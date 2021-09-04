@@ -735,6 +735,9 @@
     <On Terms="ActorCreation" Send="Create Anduin_HolyWordSalvation_Buff_Impact" />
     <On Terms="Behavior.AnduinHolyWordSalvationUnkillable.Off" Target="Anduin_HolyWordSalvation_Buff_Loop" Send="Destroy" />
     <On Terms="Behavior.AnduinHolyWordSalvationUnkillable.Off" Send="AnimBracketStop BSD" />
+    <On Terms="Effect.AnduinHolyWordSalvationLightOfStormwindTalentInvulnerableApply.Start; At Target; ValidateUnit AnduinTargetHasNoLightofStormwindInvulnerable" Send="Create" />
+    <On Terms="Behavior.AnduinHolyWordSalvationLightofStormwindTalentInvulnerable.Off" Target="Anduin_HolyWordSalvation_Buff_Loop" Send="Destroy" />
+    <On Terms="Behavior.AnduinHolyWordSalvationLightofStormwindTalentInvulnerable.Off" Send="AnimBracketStop BSD" />
     <HostSiteOps Ops="SOpAttachOrigin" HoldRotation="1" />
   </CActorModel>
   <CActorModelMaterial id="AnduinHolyWordSalvationBuffGlazeFX" parent="StormModelAnimationStyleContinuous">
@@ -744,6 +747,8 @@
     <On Terms="Behavior.AnduinHolyWordSalvationUnkillable.On" Send="Create" />
     <On Terms="ActorCreation" Send="ModelMaterialApplyTo ::Main" />
     <On Terms="Behavior.AnduinHolyWordSalvationUnkillable.Off" Send="AnimBracketStop BSD" />
+    <On Terms="Behavior.AnduinHolyWordSalvationLightofStormwindTalentInvulnerable.On" Send="Create" />
+    <On Terms="Behavior.AnduinHolyWordSalvationLightofStormwindTalentInvulnerable.Off" Send="AnimBracketStop BSD" />
     <Inherits index="CloakEffect" value="1" />
     <Inherits index="TeamColor" value="1" />
     <Inherits index="Visibility" value="1" />
@@ -1189,6 +1194,19 @@
     <PeriodicEffect value="AnduinFlashHealRenewHeal" />
     <RemoveValidatorArray value="TargetNotSpecialDeathState" />
   </CBehaviorBuff>
+  <CBehaviorBuff id="AnduinHolyWordSalvationLightofStormwindTalentInvulnerable" parent="StormInvulnerable">
+    <DisplayDuration index="Self" value="0" />
+    <DisplayDuration index="Ally" value="0" />
+    <DisplayDuration index="Neutral" value="0" />
+    <DisplayDuration index="Enemy" value="0" />
+    <RemoveValidatorArray value="AnduinHolyWordSalvationTargetIsNearCenterPoint" />
+    <RemoveValidatorArray value="AnduinCasterHasHolyWordSalvationActiveToken" />
+    <BuffFlags index="RefreshStack" value="1" />
+    <Duration value="0.125" />
+    <Period value="0.25" />
+    <InitialEffect value="" />
+    <PeriodicEffect value="AnduinHolyWordSalvationHeal" />
+  </CBehaviorBuff>
   <CBehaviorBuff id="AnduinPushForwardMoveSpeed" parent="StormSprint">
     <Duration value="6" />
     <Modification>
@@ -1399,7 +1417,7 @@
   </CBehaviorTokenCounter>
   <CBehaviorBuff id="AnduinDivineStarPowerWordShieldShield" parent="StormShield">
     <Duration value="4" />
-    <DamageResponse ModifyLimit="172" />
+    <DamageResponse ModifyLimit="185" />
   </CBehaviorBuff>
   <CBehaviorBuff id="AnduinDivineStarSpeedOfThePiousMoveSpeed" parent="StormSprint">
     <Modification>
@@ -1717,6 +1735,7 @@
     <RechargeVitalRate value="260" />
     <SourceButtonFace value="AnduinFlashHeal" />
     <MultiplicativeModifierArray index="InnerFocus" Validator="AnduinCasterHasFlashHealInnerFocusActive" Modifier="0.4" />
+    <MultiplicativeModifierArray index="EvenhandedBlessings" Validator="AnduinFlashHealTargetNotBeingTrackedandHasEvenhandedBlessingsTalent" Modifier="0.2" Crit="1" />
     <CritValidatorArray index="0" value="AnduinFlashHealCritCheckCombine" />
   </CEffectCreateHealer>
   <CEffectSet id="AnduinFlashHealCancelSet">
@@ -1744,6 +1763,13 @@
     <ValidatorArray value="AnduinCasterHasFlashHealRenewToken" />
     <Chance value="0" />
   </CEffectApplyBehavior>
+  <CEffectSwitch id="AnduinHolyWordSalvationBuffSwitch">
+    <CaseArray Validator="AnduinLightofStormwindBuffCombine" Effect="AnduinHolyWordSalvationLightOfStormwindTalentInvulnerableApply" />
+    <CaseDefault value="AnduinHolyWordSalvationUnkillableApplyBehavior" />
+  </CEffectSwitch>
+  <CEffectApplyBehavior id="AnduinHolyWordSalvationLightOfStormwindTalentInvulnerableApply">
+    <Behavior value="AnduinHolyWordSalvationLightofStormwindTalentInvulnerable" />
+  </CEffectApplyBehavior>
   <CEffectSet id="AnduinPushForwardSet">
     <EffectArray value="AnduinPushForwardMoveSpeedApplyBehavior" />
     <EffectArray value="AnduinPushForwardIncreaseTokenCount" />
@@ -1761,7 +1787,7 @@
     <Value value="0" />
   </CEffectModifyTokenCount>
   <CEffectCreateHealer id="AnduinFlashHealBindingHealHeal" parent="StormSelfOnlyHealingSpell">
-    <RechargeVitalRate value="104" />
+    <RechargeVitalRate value="115" />
     <SourceButtonFace value="AnduinFlashHealBindingHeal" />
     <ImpactUnit Value="Caster" />
     <Chance value="0" />
@@ -2132,7 +2158,7 @@
     <RequireCaster Effect="AnduinChastiseSearchPersistent" Value="Caster" />
   </CEffectDestroyPersistent>
   <CEffectDamage id="AnduinChastiseDamage" parent="StormSpell">
-    <Amount value="145" />
+    <Amount value="155" />
     <SourceButtonFace value="AnduinChastise" />
   </CEffectDamage>
   <CEffectSet id="AnduinChastiseAINotifyEffectSet">
@@ -2348,7 +2374,7 @@
   <CEffectEnumArea id="AnduinHolyWordSalvationSearch">
     <ImpactLocation Value="TargetPoint" />
     <SearchFilters value="Heroic;Neutral,Enemy,Structure,ImmuneToFriendlyAbilities,Missile,Stasis,Dead" />
-    <AreaArray Effect="AnduinHolyWordSalvationUnkillableApplyBehavior">
+    <AreaArray Effect="AnduinHolyWordSalvationBuffSwitch">
       <Radius value="$AnduinHolyWordSalvationSearchRadius" />
     </AreaArray>
     <LaunchLocation Value="OriginPoint" />
@@ -2451,7 +2477,7 @@
     </TargetSorts>
   </CEffectEnumArea>
   <CEffectCreateHealer id="AnduinPursuedByGraceHeal" parent="StormHealingSpell">
-    <RechargeVitalRate value="33" />
+    <RechargeVitalRate value="35" />
     <SourceButtonFace value="AnduinPursuedByGrace" />
   </CEffectCreateHealer>
   <CEffectSet id="AnduinBlessedRecoveryDummyCastSet">
@@ -4499,22 +4525,7 @@
   <CTalent id="AnduinHolyWordSalvationLightOfStormwind">
     <Face value="AnduinHolyWordSalvationLightOfStormwind" />
     <Abil value="AnduinHolyWordSalvation" />
-    <AbilityModificationArray>
-      <Modifications>
-        <Type value="FlatModification" />
-        <Catalog value="Effect" />
-        <Entry value="AnduinHolyWordSalvationLightOfStormwindSearch" />
-        <Field value="Chance" />
-        <Value value="1.000000" />
-      </Modifications>
-      <Modifications>
-        <Type value="FlatModification" />
-        <Catalog value="Effect" />
-        <Entry value="AnduinHolyWordSalvationHeal" />
-        <Field value="RechargeVitalFraction" />
-        <Value value="0.004300" />
-      </Modifications>
-    </AbilityModificationArray>
+    <AbilityModificationArray />
   </CTalent>
   <CTalent id="AnduinVariansLegacy">
     <Face value="AnduinVariansLegacy" />
@@ -4607,6 +4618,11 @@
     <Compare value="LE" />
     <Range value="24" />
   </CValidatorLocationCompareRange>
+  <CValidatorCombine id="AnduinFlashHealTargetNotBeingTrackedandHasEvenhandedBlessingsTalent">
+    <Type value="And" />
+    <CombineArray value="AnduinFlashHealEvenhandedBlessingsTargetNotBeingTracked" />
+    <CombineArray value="AnduinHasFlashHealEvenhandedBlessingsTalent" />
+  </CValidatorCombine>
   <CValidatorUnitOrderQueue id="AnduinIsCastingFlashHeal">
     <AbilLink value="AnduinFlashHeal" />
   </CValidatorUnitOrderQueue>
@@ -4649,6 +4665,11 @@
     <Value value="1" />
     <TokenId value="AnduinLightwellToken" />
   </CValidatorUnitCompareTokenCount>
+  <CValidatorCombine id="AnduinLightofStormwindBuffCombine">
+    <Type value="And" />
+    <CombineArray value="AnduinHasHolyWordSalvationLightOfStormwindTalent" />
+    <CombineArray value="IsNotSelf" />
+  </CValidatorCombine>
   <CValidatorUnitCompareTokenCount id="AnduinLightwellTokenCountIs8">
     <WhichUnit Value="Caster" />
     <Value value="8" />
@@ -4853,6 +4874,9 @@
     <Find value="1" />
     <Value value="AnduinFlashHealDesperatePrayer" />
   </CValidatorPlayerTalent>
+  <CValidatorUnitCompareBehaviorCount id="AnduinTargetHasNoLightofStormwindInvulnerable">
+    <Behavior value="AnduinHolyWordSalvationLightofStormwindTalentInvulnerable" />
+  </CValidatorUnitCompareBehaviorCount>
   <CValidatorUnitType id="TargetIsVarian">
     <Value value="HeroVarian" />
   </CValidatorUnitType>

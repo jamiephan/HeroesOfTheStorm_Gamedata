@@ -1,11 +1,21 @@
 <?xml version="1.0" encoding="us-ascii"?>
 <Catalog>
   <const id="$KerriganMaelstromRange" value="4" />
+  <CAbilEffectInstant id="KerriganChrysalisCancel">
+    <PrepEffect value="DismountDecloakCasterSet" />
+    <Effect value="KerriganChrysalisCancelRemoveBehaviorSet" />
+    <Flags index="Transient" value="1" />
+    <Cost>
+      <Charge Link="Abil/KerriganChrysalis" />
+      <Cooldown Link="Abil/KerriganChrysalis" TimeUse="90" />
+    </Cost>
+    <CmdButtonArray index="Execute" DefaultButtonFace="KerriganChrysalis" />
+  </CAbilEffectInstant>
   <CAbilEffectInstant id="KerriganChrysalis">
     <Effect value="KerriganChrysalisInitialSet" />
     <PrepEffect value="DismountDecloakCasterSet" />
     <Cost>
-      <Cooldown TimeUse="90" />
+      <Cooldown TimeUse="0.5" />
     </Cost>
     <CmdButtonArray index="Execute" DefaultButtonFace="KerriganChrysalis" />
   </CAbilEffectInstant>
@@ -731,6 +741,14 @@
   <CActorSound id="KerriganChrysalisLaunchSound" parent="SoundContinuous">
     <Sound value="Kerrigan_Chrysalis_Launch" />
   </CActorSound>
+  <CBehaviorBuff id="KerriganPrimalGraspPsionicBarrierMovementSpeedBuff" parent="StormSprint">
+    <BuffFlags index="RefreshStack" value="1" />
+    <MaxStackCount value="5" />
+    <Duration value="4" />
+    <Modification>
+      <UnifiedMoveSpeedFactor value="0.04" />
+    </Modification>
+  </CBehaviorBuff>
   <CBehaviorBuff id="KerriganChrysalisTimeStopListener" parent="StormTimeStopParent">
     <BehaviorFlags index="Permanent" value="1" />
     <BehaviorFlags index="EnabledWhileDead" value="1" />
@@ -778,6 +796,7 @@
     <InfoFlags index="Hidden" value="1" />
   </CBehaviorTokenCounter>
   <CBehaviorAbility id="KerriganChrysalisItem">
+    <Buttons Face="KerriganCancelChrysalis" Type="AbilCmd" AbilCmd="KerriganChrysalisCancel,Execute" ShowValidator="KerriganHasChrysalisBehavior" />
     <Buttons Face="KerriganChrysalis" Type="AbilCmd" AbilCmd="KerriganChrysalis,Execute" />
   </CBehaviorAbility>
   <CBehaviorAbility id="KerriganPsionicShiftItem">
@@ -856,6 +875,7 @@
     <InitialEffect value="KerriganChrysalisInitialBehaviorSet" />
     <Modification>
       <AbilLinkEnableArray value="KerriganChrysalis" />
+      <AbilLinkEnableArray value="KerriganChrysalisCancel" />
     </Modification>
     <RemoveValidatorArray value="KerriganChrysalisTrackedUnitDoesntExists" />
     <Period value="0.25" />
@@ -1102,6 +1122,9 @@
   <CBehaviorBuff id="KerriganUltraliskStun" parent="StormStun">
     <Duration value="0.5" />
   </CBehaviorBuff>
+  <CButton id="KerriganCancelChrysalis" parent="StormButtonParent">
+    <Icon value="Assets\Textures\hud_btn_bg_ability_cancel.dds" />
+  </CButton>
   <CButton id="KerriganUnbridledEnergyBuff" parent="StormButtonParent">
     <Icon value="Assets\Textures\storm_ui_icon_talent_abilitytalent_damage.dds" />
     <HotkeyAlias value="KerriganRavageMountingPotencyBuff" />
@@ -1134,6 +1157,7 @@
   <CButton id="KerriganChrysalis" parent="StormButtonParent">
     <Icon value="Assets\Textures\storm_ui_icon_Kerrigan_chrysalis.dds" />
     <HotkeyAlias value="KerriganAssimilationDoubleStrikeTalent" />
+    <TooltipCooldownOverrideText value="Chrysalis Cooldown" />
   </CButton>
   <CButton id="KerriganAssimilationVolatilePower" parent="StormButtonParent">
     <Icon value="Assets\Textures\storm_ui_icon_kerrigan_assimilation.dds" />
@@ -1241,6 +1265,32 @@
     <Color value="255,179,0,179" />
     <Unit value="HeroKerrigan" />
   </CCharacter>
+  <CEffectModifyUnit id="KerriganChrysalisSetCooldown">
+    <ImpactUnit Value="Caster" />
+    <Cost Abil="KerriganChrysalis,Execute" CooldownOperation="Set" CooldownTimeUse="90" />
+  </CEffectModifyUnit>
+  <CEffectClearTrackedUnits id="KerriganChrysalisCancelClearTrackedUnits">
+    <BehaviorLink value="KerriganChrysalisUnitTrackerCaster" />
+  </CEffectClearTrackedUnits>
+  <CEffectSet id="KerriganChrysalisCancelRemoveBehaviorSet">
+    <EffectArray value="KerriganChrysalisCanceSuicideEnumerateTrackedUnits" />
+  </CEffectSet>
+  <CEffectClearTrackedUnits id="KerriganChrysalisCancelClearTrackedUnitsUI">
+    <BehaviorLink value="KerriganChrysalisUnitTrackerUI" />
+  </CEffectClearTrackedUnits>
+  <CEffectDamage id="KerriganChrysalisCancelSuicide" parent="StormSuicideParent">
+    <ImpactLocation Value="TargetUnit" />
+  </CEffectDamage>
+  <CEffectRemoveBehavior id="KerriganChrysalisRemoveBehavior">
+    <WhichUnit Value="Caster" />
+    <BehaviorLink value="KerriganChrysalisStasis" />
+  </CEffectRemoveBehavior>
+  <CEffectApplyBehavior id="KerriganPrimalGraspPsionicBarrierMovementSpeedBuffApplyBehavior">
+    <ValidatorArray value="KerriganPrimalGraspHasPsionicBarrierTalent" />
+    <ValidatorArray value="TargetIsHero" />
+    <WhichUnit Value="Caster" />
+    <Behavior value="KerriganPrimalGraspPsionicBarrierMovementSpeedBuff" />
+  </CEffectApplyBehavior>
   <CEffectApplyBehavior id="KerriganChrysalisTimeStopListenerApplyBehavior">
     <WhichUnit Value="Caster" />
     <Behavior value="KerriganChrysalisTimeStopListener" />
@@ -1252,12 +1302,17 @@
   <CEffectSet id="KerriganChrysalisTimedLifeExpireSet">
     <EffectArray value="TimedLifeFate" />
     <EffectArray value="KerriganChrysalisTimeStopListenerRemoveBehavior" />
+    <EffectArray value="KerriganChrysalisSetCooldown" />
   </CEffectSet>
   <CEffectAddTrackedUnit id="KerriganChrysalisAddTrackedUnitUI">
     <BehaviorLink value="KerriganChrysalisUnitTrackerUI" />
     <TrackerUnit Value="Target" />
     <TrackedUnit Effect="KerriganChrysalisUnitSpawnSet" />
   </CEffectAddTrackedUnit>
+  <CEffectEnumTrackedUnits id="KerriganChrysalisCanceSuicideEnumerateTrackedUnits">
+    <BehaviorLink value="KerriganChrysalisUnitTrackerCaster" />
+    <Effect value="KerriganChrysalisCancelSuicide" />
+  </CEffectEnumTrackedUnits>
   <CEffectEnumArea id="KerriganUltraliskSplashWeaponDamageSearch">
     <ExcludeArray Value="Target" />
     <SearchFilters value="-;Player,Ally,Neutral,ImmuneToAOE,Missile,Item,Stasis,Dead,Hidden,Invulnerable" />
@@ -1491,6 +1546,7 @@
     <EffectArray value="KerriganPrimalGraspExplosionDamage" />
     <EffectArray value="KerriganRavageQueenOfBladesReduceCooldown" />
     <EffectArray value="KerriganPrimalGraspPsionicBarrierApplyBehavior" />
+    <EffectArray value="KerriganPrimalGraspPsionicBarrierMovementSpeedBuffApplyBehavior" />
   </CEffectSet>
   <CEffectModifyUnit id="KerriganRavageQueenOfBladesReduceCooldown">
     <ValidatorArray value="TargetIsHero" />
@@ -2014,6 +2070,7 @@
     <EffectArray value="KerriganDoubleStrikeApplyDebuffBehavior" />
     <EffectArray value="KerriganPrimalGraspPsionicBarrierApplyBehavior" />
     <EffectArray value="KerriganRavageQueenOfBladesReduceCooldown" />
+    <EffectArray value="KerriganPrimalGraspPsionicBarrierMovementSpeedBuffApplyBehavior" />
   </CEffectSet>
   <CEffectCreatePersistent id="KerriganImpalingBladesDamageCreatePersistent">
     <ExpireDelay value="2" />
@@ -2642,6 +2699,14 @@
     <ReleaseDate Month="3" Day="13" />
     <ExpandedRole value="MeleeAssassin" />
   </CHero>
+  <CHeroMastery id="KerriganMasteryRing1" parent="MasteryRingRank1">
+    <ProductId value="67035" />
+    <HyperlinkId value="KerriganMasteryRingRank1" />
+  </CHeroMastery>
+  <CHeroMastery id="KerriganMasteryRing2" parent="MasteryRingRank2">
+    <ProductId value="67152" />
+    <HyperlinkId value="KerriganMasteryRingRank2" />
+  </CHeroMastery>
   <CLight id="Home_KerriganGhost" parent="default">
     <ToDInfoArray index="0" Id="Home_KerriganGhost" OperatorHDR="4" Colorize="1">
       <AmbientColor X="0.023529" Y="0.062745" Z="0.101961" />
@@ -2723,6 +2788,12 @@
   <CRewardHero id="Kerrigan">
     <License value="10113" />
   </CRewardHero>
+  <CRewardHeroMastery id="KerriganMasteryRing1">
+    <License value="49995" />
+  </CRewardHeroMastery>
+  <CRewardHeroMastery id="KerriganMasteryRing2">
+    <License value="50036" />
+  </CRewardHeroMastery>
   <CShapeArc id="KerriganPrimalGraspCastArc">
     <Arc value="34.9914" />
     <Radius value="8.2" />
@@ -3158,6 +3229,11 @@
   <CUnit id="KerriganMissile" parent="MISSILE_INVULNERABLE">
     <Mover value="HeroMissileSpeed22Ribbon" />
   </CUnit>
+  <CValidatorUnitCompareBehaviorCount id="KerriganHasChrysalisBehavior">
+    <WhichUnit Value="Caster" />
+    <Value value="1" />
+    <Behavior value="KerriganChrysalisStasis" />
+  </CValidatorUnitCompareBehaviorCount>
   <CValidatorCompareTrackedUnitsCount id="KerriganSummonUltraliskCasterDoesntHaveTrackedUnit">
     <BehaviorLink value="KerriganSummonUltraliskUnitTracker" />
     <TrackedUnitFilters value="-;Ally,Neutral,Enemy" />
@@ -3450,18 +3526,4 @@
     <UninterruptibleDelay value="0.125" />
     <UninterruptibleDuration value="0.125" />
   </CWeaponLegacy>
-  <CHeroMastery id="KerriganMasteryRing1" parent="MasteryRingRank1">
-    <ProductId value="67035" />
-    <HyperlinkId value="KerriganMasteryRingRank1" />
-  </CHeroMastery>
-  <CHeroMastery id="KerriganMasteryRing2" parent="MasteryRingRank2">
-    <ProductId value="67152" />
-    <HyperlinkId value="KerriganMasteryRingRank2" />
-  </CHeroMastery>
-  <CRewardHeroMastery id="KerriganMasteryRing1">
-    <License value="49995" />
-  </CRewardHeroMastery>
-  <CRewardHeroMastery id="KerriganMasteryRing2">
-    <License value="50036" />
-  </CRewardHeroMastery>
 </Catalog>
