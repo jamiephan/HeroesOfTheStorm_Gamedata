@@ -1,5 +1,12 @@
 <?xml version="1.0" encoding="us-ascii"?>
 <Catalog>
+  <CAbilEffectInstant id="FalstadFrequentFlyerActive">
+    <Effect value="FalstadTailwindFrequentFlyerApplyBuffBehavior" />
+    <Cost>
+      <Cooldown TimeUse="45" />
+    </Cost>
+    <CmdButtonArray index="Execute" DefaultButtonFace="FalstadTailwindFrequentFlyerActive" />
+  </CAbilEffectInstant>
   <CAbilEffectInstant id="FalstadTailwindCooldownDisplay">
     <Effect value="FalstadTailwindCooldownDisplayDummy" />
     <Cost>
@@ -170,6 +177,17 @@
       <Flags index="AllowSelfCast" value="0" />
     </CmdButtonArray>
   </CAbilEffectTarget>
+  <CAccumulatorToken id="FalstadDishonorableDischargeAccumulator" parent="BaseAccumulator">
+    <MaxAccumulation value="10" />
+    <TokenId value="FalstadDishonorableDischargeToken" />
+    <Scale value="0.01" />
+  </CAccumulatorToken>
+  <CAccumulatorToken id="FalstadFrequentFlyerAccumulator" parent="BaseAccumulator">
+    <MaxAccumulation value="1000" />
+    <ApplicationRule value="Add" />
+    <TokenId value="FalstadFrequentFlyerAccumulator" />
+    <Scale value="1" />
+  </CAccumulatorToken>
   <CAccumulatorToken id="FalstadWingmanAccumulator" parent="BaseAccumulator">
     <MaxAccumulation value="10" />
     <TokenId value="FalstadWingmanDamageToken" />
@@ -179,7 +197,7 @@
     <MaxAccumulation value="65535" />
     <ApplicationRule value="Add" />
     <TokenId value="FalstadHammerangGatheringStormQuestToken" />
-    <Scale value="2" />
+    <Scale value="0.002" />
   </CAccumulatorToken>
   <CActorSplat id="FalstadWingmanRangeSplat" parent="StormRangeSplat">
     <Scale value="6.000000" />
@@ -893,6 +911,76 @@
   <CActorSound id="PulledSoundHeroFalstad" parent="SoundOneShot">
     <Sound value="Falstad_VOX_Pulled" />
   </CActorSound>
+  <CBehaviorBuff id="FalstadDishonorableDischargeStacksBehavior">
+    <RemoveValidatorArray value="FalstadCasterHasLightningRodCasterBehavior" />
+    <MaxStackCount value="3" />
+    <Duration value="8" />
+  </CBehaviorBuff>
+  <CBehaviorTokenCounter id="FalstadDishonorableDischargeToken" parent="StormGenericToken">
+    <Face value="DishonorableDischarge" />
+    <Max value="75" />
+    <Alignment value="Positive" />
+    <BehaviorCategories index="Quest" value="1" />
+    <SortIndex value="10" />
+    <MinStackCountDisplayed value="0" />
+    <IncreaseEvents EventId="QuestIncrease" />
+    <DecreaseEvents EventId="QuestDecrease" />
+    <AtMaxEvents EventId="QuestComplete" />
+    <AtMinEvents EventId="QuestReset" />
+  </CBehaviorTokenCounter>
+  <CBehaviorTokenCounter id="FalstadFrequentFlyerTokenCounter" parent="StormQuestToken">
+    <Face value="FalstadFrequentFlyerQuestToken" />
+    <SortIndex value="10" />
+    <TokenId value="FalstadFrequentFlyerAccumulator" />
+    <Max value="65535" />
+  </CBehaviorTokenCounter>
+  <CBehaviorBuff id="FalstadHammerangBOOMerangArmorDebuff" parent="StormArmor">
+    <Duration value="3" />
+    <ArmorModification>
+      <ArmorSet index="Hero">
+        <ArmorMitigationTable index="Ability" value="-15" />
+      </ArmorSet>
+      <ArmorSet index="Merc">
+        <ArmorMitigationTable index="Ability" value="-15" />
+      </ArmorSet>
+      <ArmorSet index="Monster">
+        <ArmorMitigationTable index="Ability" value="-15" />
+      </ArmorSet>
+      <ArmorSet index="Summon">
+        <ArmorMitigationTable index="Ability" value="-15" />
+      </ArmorSet>
+      <ArmorSet index="Structure">
+        <ArmorMitigationTable index="Ability" value="-15" />
+      </ArmorSet>
+      <ArmorSet index="Minion">
+        <ArmorMitigationTable index="Ability" value="-15" />
+      </ArmorSet>
+    </ArmorModification>
+  </CBehaviorBuff>
+  <CBehaviorAbility id="FalstadFrequentFlyer">
+    <Buttons Face="FalstadTailwindFrequentFlyerActive" Type="AbilCmd" AbilCmd="FalstadFrequentFlyerActive,Execute" />
+  </CBehaviorAbility>
+  <CBehaviorBuff id="FalstadTailwindFrequentFlyerAttackSpeedBuff">
+    <Duration value="5" />
+    <Modification>
+      <AdditiveAttackSpeedFactor value="0.4" />
+    </Modification>
+    <InitialEffect value="FalstadTailwindFrequentFlyerResetCooldown" />
+  </CBehaviorBuff>
+  <CBehaviorBuff id="FalstadTailwindSustainedWindsBuff">
+    <BehaviorFlags index="Permanent" value="1" />
+    <BehaviorFlags index="EnabledWhileDead" value="1" />
+    <DamageResponse>
+      <Chance value="1" />
+      <Handled value="FalstadTailwindSustainedWindsSwitch" />
+      <TargetFilters value="Heroic;Structure" />
+      <Location value="Attacker" />
+      <ValidatorArray value="TargetNotEvading" />
+      <Kind index="Ability" value="0" />
+      <ProvideCategories index="Preservation" value="1" />
+    </DamageResponse>
+    <Face value="FalstadTailwindSustainedWinds" />
+  </CBehaviorBuff>
   <CBehaviorBuff id="FalstadBarrelRollUpdraft" parent="StormShield">
     <DamageResponse ModifyLimit="290.7" />
   </CBehaviorBuff>
@@ -962,6 +1050,7 @@
   </CBehaviorBuff>
   <CBehaviorBuff id="FalstadTailwindDisabler" parent="CarryBehaviorParent">
     <DamageResponse Chance="1" Handled="FalstadTailwindApplyCooldown" Priority="96" />
+    <DisableValidatorArray value="FalstadDoesNotHaveFrequentFlyerBuff" />
   </CBehaviorBuff>
   <CBehaviorBuff id="FalstadFlightAscend">
     <Duration value="10" />
@@ -1191,6 +1280,24 @@
     <Duration value="3" />
     <DamageResponse ModifyLimit="171" />
   </CBehaviorBuff>
+  <CButton id="DishonorableDischarge" parent="StormButtonParent">
+    <Icon value="Assets\Textures\storm_ui_icon_falstad_lightningrod.dds" />
+  </CButton>
+  <CButton id="FalstadFrequentFlyerQuestToken">
+    <Icon value="Assets\Textures\storm_ui_icon_falstad_tailwind_a.dds" />
+  </CButton>
+  <CButton id="FalstadTailwindFrequentFlyerActive">
+    <Icon value="Assets\Textures\storm_ui_icon_falstad_tailwind_a.dds" />
+  </CButton>
+  <CButton id="FalstadTailwindSustainedWinds" parent="StormButtonParent">
+    <Icon value="Assets\Textures\storm_ui_icon_falstad_tailwind_a.dds" />
+  </CButton>
+  <CButton id="FalstadTailwindFrequentFlyer" parent="StormButtonParent">
+    <Icon value="Assets\Textures\storm_ui_icon_falstad_tailwind_a.dds" />
+  </CButton>
+  <CButton id="FalstadLightningRodDishonorableDischarge" parent="StormButtonParent">
+    <Icon value="Assets\Textures\storm_ui_icon_falstad_lightningrod.dds" />
+  </CButton>
   <CButton id="FalstadWingmanTalentToken" parent="StormButtonParent">
     <Icon value="Assets\Textures\storm_ui_icon_talent_bribe.dds" />
   </CButton>
@@ -1227,11 +1334,11 @@
     <TooltipAppender Validator="HasPregameSuppressionBehavior" Text="Button/TooltipAppender/LockedUntilGameStarts" />
     <Icon value="Assets\Textures\storm_ui_icon_falstad_mount.dds" />
   </CButton>
-  <CButton id="FalstadFlowRiderTalent" parent="StormButtonParent">
-    <Icon value="Assets\Textures\storm_ui_icon_falstad_tailwind.dds" />
-  </CButton>
   <CButton id="FalstadFreeRollTalent" parent="StormButtonParent">
     <Icon value="Assets\Textures\storm_ui_icon_falstad_barrelroll.dds" />
+  </CButton>
+  <CButton id="FalstadFlowRiderTalent" parent="StormButtonParent">
+    <Icon value="Assets\Textures\storm_ui_icon_falstad_tailwind.dds" />
   </CButton>
   <CButton id="FalstadTailwindStormhammerTalentSimple" parent="StormButtonParent">
     <Icon value="Assets\Textures\storm_ui_icon_stormbolt.dds" />
@@ -1249,6 +1356,7 @@
     <UseHotkeyLabel value="0" />
     <Icon value="Assets\Textures\storm_ui_icon_falstad_tailwind.dds" />
     <TooltipAppender Validator="HasFalstadMasteryBarrelRollFlowRider" Face="FalstadFlowRiderTalent" />
+    <TooltipAppender Validator="FalstadHasTailwindSustainedWindsTalent" Face="FalstadTailwindSustainedWinds" />
     <TooltipAppender Validator="HasFalstadAerieGusts" Face="FalstadTailwindAerieGustsTalent" />
     <TooltipFlags index="ShowHotkey" value="0" />
   </CButton>
@@ -1265,10 +1373,10 @@
   </CButton>
   <CButton id="FalstadLightningRod" parent="StormButtonParent">
     <Icon value="Assets\Textures\storm_ui_icon_falstad_lightningrod.dds" />
-    <TooltipAppender Validator="FalstadHasWingman" Face="FalstadWingmanHotbarTalent" />
+    <TooltipAppender Validator="FalstadHasLightningRodDishonorableDischargeTalent" Face="FalstadLightningRodDishonorableDischarge" />
+    <TooltipAppender Validator="HasFalstadMasteryLightningRodStaticShield" Face="FalstadStaticShieldTalent" />
     <TooltipAppender Validator="HasFalstadLightningRodChargedUp" Face="FalstadChargedUpTalent" />
     <TooltipAppender Validator="HasFalstadMasteryLightningRodThunderstrikes" Face="FalstadThunderstrikesTalent" />
-    <TooltipAppender Validator="HasFalstadMasteryLightningRodStaticShield" Face="FalstadStaticShieldTalent" />
   </CButton>
   <CButton id="FalstadMightyGust" parent="StormButtonParent">
     <Icon value="Assets\Textures\storm_ui_icon_falstad_mightygust.dds" />
@@ -1326,6 +1434,83 @@
     <Age value="40" />
     <Unit value="HeroFalstad" />
   </CCharacter>
+  <CEffectModifyUnit id="FalstadDishonorableDischargeHeroTakedownCooldownRefresh">
+    <Cost Abil="FalstadLightningRod,Execute" CooldownOperation="Set" />
+  </CEffectModifyUnit>
+  <CEffectSwitch id="FalstadDishonorableDischargeStrikesSwitch">
+    <ValidatorArray value="FalstadHasLightningRodDishonorableDischargeTalent" />
+    <CaseArray Validator="FalstadCasterGE3StacksDishonorableDischarge" Effect="FalstadDishonorableDischargeAddToken" />
+    <CaseDefault value="FalstadDishonorableDischargeApplyStacksBehavior" />
+  </CEffectSwitch>
+  <CEffectApplyBehavior id="FalstadDishonorableDischargeApplyStacksBehavior">
+    <WhichUnit Value="Caster" />
+    <Behavior value="FalstadDishonorableDischargeStacksBehavior" />
+  </CEffectApplyBehavior>
+  <CEffectModifyTokenCount id="FalstadDishonorableDischargeAddToken" parent="BaseEffectModifyTokenCount">
+    <TokenId value="FalstadDishonorableDischargeToken" />
+    <ContextUnit Value="Caster" />
+  </CEffectModifyTokenCount>
+  <CEffectModifyTokenCount id="FalstadFrequentFlyerHeroKillIncreaseQuestToken" parent="BaseEffectModifyTokenCount">
+    <EffectCategory index="Quest" value="1" />
+    <TokenId value="FalstadFrequentFlyerAccumulator" />
+    <Value value="0.5" />
+  </CEffectModifyTokenCount>
+  <CEffectModifyTokenCount id="FalstadFrequentFlyerMinionKillIncreaseQuestToken" parent="BaseEffectModifyTokenCount">
+    <EffectCategory index="Quest" value="1" />
+    <CollationId value="FalstadFrequentFlyerHeroKillIncreaseQuestToken" />
+    <TokenId value="FalstadFrequentFlyerAccumulator" />
+    <Value value="0.2" />
+  </CEffectModifyTokenCount>
+  <CEffectApplyBehavior id="HammerangBOOMerangApplyArmorBehavior">
+    <ValidatorArray index="0" value="HasFalstadBoomerang" />
+    <ValidatorArray value="TargetIsHero" />
+    <ValidatorArray value="NotStructureTarget" />
+    <Behavior value="FalstadHammerangBOOMerangArmorDebuff" />
+  </CEffectApplyBehavior>
+  <CEffectApplyBehavior id="FalstadHammerangCripplingHammerApplyBehavior">
+    <ValidatorArray index="0" value="TargetNotUnstoppable" />
+    <Chance value="0" />
+    <Behavior value="HammerangSlow" />
+  </CEffectApplyBehavior>
+  <CEffectModifyUnit id="FalstadTailwindFrequentFlyerResetCooldown">
+    <ImpactUnit Value="Caster" />
+    <Cost Abil="FalstadTailwindCooldownDisplay,Execute" CooldownOperation="Set" />
+  </CEffectModifyUnit>
+  <CEffectApplyBehavior id="FalstadTailwindFrequentFlyerApplyBuffBehavior">
+    <WhichUnit Value="Caster" />
+    <Behavior value="FalstadTailwindFrequentFlyerAttackSpeedBuff" />
+  </CEffectApplyBehavior>
+  <CEffectDamage id="FalstadTailwindSustainedWindsDamage" parent="StormSpellPercentDamage">
+    <Visibility value="Hidden" />
+    <VitalFractionMax index="Life" value="0.015" />
+  </CEffectDamage>
+  <CEffectDamage id="FalstadTailwindSustainedWindsImprovedDamage" parent="StormSpellPercentDamage">
+    <Visibility value="Hidden" />
+    <VitalFractionMax index="Life" value="0.02" />
+  </CEffectDamage>
+  <CEffectSwitch id="FalstadTailwindSustainedWindsSwitch">
+    <CaseArray Validator="FalstadTailwindNotOnCooldown" Effect="FalstadTailwindSustainedWindsImprovedDamage" />
+    <CaseDefault value="FalstadTailwindSustainedWindsDamage" />
+  </CEffectSwitch>
+  <CEffectModifyUnit id="FalstadHammerangBOOMerangModifyCooldown">
+    <ValidatorArray value="TargetIsHero" />
+    <ValidatorArray value="HasFalstadBoomerang" />
+    <ImpactUnit Value="Caster" />
+    <Cost Abil="FalstadHammerang,Execute" CooldownOperation="Add" CooldownTimeUse="-2" />
+  </CEffectModifyUnit>
+  <CEffectModifyBehaviorBuffDuration id="FalstadLightningRodDishonorableDischargeAddSlowDuration">
+    <ValidatorArray value="FalstadHasLightningRodDishonorableDischargeTalent" />
+    <WhichUnit Value="Target" />
+    <Behavior value="HammerangSlow" />
+    <Value value="1" />
+  </CEffectModifyBehaviorBuffDuration>
+  <CEffectSet id="FalstadHammerangBOOMerangImpactSet">
+    <EffectArray value="FalstadHammerangBOOMerangDamage" />
+    <EffectArray value="FalstadHammerangCripplingHammerApplyBehavior" />
+    <EffectArray value="FalstadHammerangGatheringStormCreateManaHealer" />
+    <EffectArray value="FalstadHammerangGatheringStormModifyQuestToken" />
+    <EffectArray value="HammerangBOOMerangApplyArmorBehavior" />
+  </CEffectSet>
   <CEffectApplyBehavior id="FalstadBarrelRollUpdraftApplyShieldBehavior">
     <WhichUnit Value="Caster" />
     <Behavior value="FalstadBarrelRollUpdraft" />
@@ -1334,7 +1519,7 @@
     <ValidatorArray value="TargetIsHero" />
     <ValidatorArray value="FalstadHasGatheringStorm" />
     <ImpactUnit Value="Caster" />
-    <RechargeVitalRate value="10" />
+    <RechargeVitalRate value="6" />
   </CEffectCreateHealer>
   <CEffectSet id="HinterlandBlastCastSet">
     <EffectArray value="HinterlandBlastPersistent" />
@@ -1395,11 +1580,6 @@
     <Chance value="0" />
     <TokenId value="FalstadHammerangGatheringStormQuestToken" />
   </CEffectModifyTokenCount>
-  <CEffectModifyPlayer id="FalstadGatheringStormModifyPlayer">
-    <EffectArray Reference="Effect,HammerangDamage,AmountArray[Quest]" Value="2" />
-    <EffectArray Reference="Effect,HammerangReturnDamage,AmountArray[Quest]" Value="2" />
-    <WhichPlayer Value="Caster" />
-  </CEffectModifyPlayer>
   <CEffectModifyUnit id="FalstadTailwindApplyCooldown">
     <ImpactUnit Value="Source" />
     <Cost Abil="FalstadTailwindCooldownDisplay,Execute" CooldownOperation="Set">
@@ -1603,6 +1783,7 @@
     <EffectArray value="FalstadBarrelRollFreeRollRemoveBehavior" />
     <EffectArray value="FalstadLightningRodApplyCasterConfirmBehavior" />
     <EffectArray value="FalstadLightningRodApplyTargetConfirmBehavior" />
+    <EffectArray value="FalstadLightningRodDishonorableDischargeAddSlowDuration" />
   </CEffectSet>
   <CEffectApplyBehavior id="FalstadLightningRodApplyCasterBehavior">
     <WhichUnit Value="Caster" />
@@ -1638,38 +1819,45 @@
   </CEffectSwitch>
   <CEffectDamage id="FalstadLightningRodDamageThunderstrikes1Stack" parent="StormSpell">
     <Amount value="90">
-      <AccumulatorArray value="FalstadWingmanAccumulator" />
+      <AccumulatorArray value="FalstadDishonorableDischargeAccumulator" />
     </Amount>
+    <MultiplicativeModifierArray index="LightningRodPvE" Validator="TargetIsMinionORTargetIsMercLanerORTargetIsMercDefenderAndNotAMonster" Modifier="1" />
   </CEffectDamage>
   <CEffectDamage id="FalstadLightningRodDamageThunderstrikes2Stacks" parent="StormSpell">
     <Amount value="105">
-      <AccumulatorArray value="FalstadWingmanAccumulator" />
+      <AccumulatorArray value="FalstadDishonorableDischargeAccumulator" />
     </Amount>
+    <MultiplicativeModifierArray index="LightningRodPvE" Validator="TargetIsMinionORTargetIsMercLanerORTargetIsMercDefenderAndNotAMonster" Modifier="1" />
   </CEffectDamage>
   <CEffectDamage id="FalstadLightningRodDamageThunderstrikes3Stacks" parent="StormSpell">
     <Amount value="120">
-      <AccumulatorArray value="FalstadWingmanAccumulator" />
+      <AccumulatorArray value="FalstadDishonorableDischargeAccumulator" />
     </Amount>
+    <MultiplicativeModifierArray index="LightningRodPvE" Validator="TargetIsMinionORTargetIsMercLanerORTargetIsMercDefenderAndNotAMonster" Modifier="1" />
   </CEffectDamage>
   <CEffectDamage id="FalstadLightningRodDamageThunderstrikes4Stacks" parent="StormSpell">
     <Amount value="135">
-      <AccumulatorArray value="FalstadWingmanAccumulator" />
+      <AccumulatorArray value="FalstadDishonorableDischargeAccumulator" />
     </Amount>
+    <MultiplicativeModifierArray index="LightningRodPvE" Validator="TargetIsMinionORTargetIsMercLanerORTargetIsMercDefenderAndNotAMonster" Modifier="1" />
   </CEffectDamage>
   <CEffectDamage id="FalstadLightningRodDamageThunderstrikes5Stacks" parent="StormSpell">
     <Amount value="150">
-      <AccumulatorArray value="FalstadWingmanAccumulator" />
+      <AccumulatorArray value="FalstadDishonorableDischargeAccumulator" />
     </Amount>
+    <MultiplicativeModifierArray index="LightningRodPvE" Validator="TargetIsMinionORTargetIsMercLanerORTargetIsMercDefenderAndNotAMonster" Modifier="1" />
   </CEffectDamage>
   <CEffectDamage id="FalstadLightningRodDamageThunderstrikes6Stacks" parent="StormSpell">
     <Amount value="165">
-      <AccumulatorArray value="FalstadWingmanAccumulator" />
+      <AccumulatorArray value="FalstadDishonorableDischargeAccumulator" />
     </Amount>
+    <MultiplicativeModifierArray index="LightningRodPvE" Validator="TargetIsMinionORTargetIsMercLanerORTargetIsMercDefenderAndNotAMonster" Modifier="1" />
   </CEffectDamage>
   <CEffectDamage id="FalstadLightningRodDamageThunderstrikes7Stacks" parent="StormSpell">
     <Amount value="180">
-      <AccumulatorArray value="FalstadWingmanAccumulator" />
+      <AccumulatorArray value="FalstadDishonorableDischargeAccumulator" />
     </Amount>
+    <MultiplicativeModifierArray index="LightningRodPvE" Validator="TargetIsMinionORTargetIsMercLanerORTargetIsMercDefenderAndNotAMonster" Modifier="1" />
   </CEffectDamage>
   <CEffectSet id="FalstadLightningRodImpactSet">
     <ValidatorArray value="FalstadTargetHasLightningRodConductor" />
@@ -1680,11 +1868,14 @@
     <EffectArray value="FalstadLightningRodPersistentRevealer" />
     <EffectArray value="FalstadLightningRodApplyCasterConfirmBehavior" />
     <EffectArray value="FalstadLightningRodApplyTargetConfirmBehavior" />
+    <EffectArray value="FalstadLightningRodDishonorableDischargeAddSlowDuration" />
+    <EffectArray value="FalstadDishonorableDischargeStrikesSwitch" />
   </CEffectSet>
   <CEffectDamage id="FalstadLightningRodInitialDamage" parent="StormSpell">
     <Amount value="107">
-      <AccumulatorArray value="FalstadWingmanAccumulator" />
+      <AccumulatorArray value="FalstadDishonorableDischargeAccumulator" />
     </Amount>
+    <MultiplicativeModifierArray index="LightningRodPvE" Validator="TargetIsMinionORTargetIsMercLanerORTargetIsMercDefenderAndNotAMonster" Modifier="1" />
   </CEffectDamage>
   <CEffectSet id="FalstadLightningRodInitialSet">
     <EffectArray value="FalstadLightningRodApplyConductorBehavior" />
@@ -1694,11 +1885,13 @@
     <EffectArray value="FalstadLightningRodIssueAttackOrder" />
     <EffectArray value="FalstadLightningRodInitialSetSecondary" />
     <EffectArray value="FalstadLightningRodApplyThunderstrikesDelay" />
+    <EffectArray value="FalstadDishonorableDischargeStrikesSwitch" />
   </CEffectSet>
   <CEffectDamage id="FalstadLightningRodDamage" parent="StormSpell">
     <Amount value="75">
-      <AccumulatorArray value="FalstadWingmanAccumulator" />
+      <AccumulatorArray value="FalstadDishonorableDischargeAccumulator" />
     </Amount>
+    <MultiplicativeModifierArray index="LightningRodPvE" Validator="TargetIsMinionORTargetIsMercLanerORTargetIsMercDefenderAndNotAMonster" Modifier="1" />
   </CEffectDamage>
   <CEffectIssueOrder id="FalstadLightningRodIssueAttackOrder">
     <WhichUnit Value="Caster" />
@@ -2017,18 +2210,19 @@
     <MaxCount value="1" />
   </CEffectEnumArea>
   <CEffectApplyBehavior id="FalstadHammerangBOOMerangApplyControllerBehavior">
-    <Chance value="0" />
     <WhichUnit Value="Caster" />
     <Behavior value="FalstadHammerangBOOMerangController" />
   </CEffectApplyBehavior>
   <CEffectDamage id="FalstadHammerangBOOMerangDamage" parent="StormSpell">
-    <Amount value="165" />
+    <Amount value="95" />
+    <MultiplicativeModifierArray index="BOOMerang" Validator="HasFalstadBoomerang" Modifier="0.75" Crit="1" />
+    <MultiplicativeModifierArray index="GatheringStorm" Accumulator="FalstadHammerangGatheringStormAccumulator" />
   </CEffectDamage>
   <CEffectEnumArea id="FalstadHammerangBOOMerangExplosionSearch">
     <LaunchLocation Effect="FalstadHammerangBOOMerangSearch" Value="TargetUnit" />
     <ImpactLocation Value="TargetUnit" />
     <SearchFilters value="-;Player,Ally,Neutral,ImmuneToAOE,Missile,Item,Stasis,Dead,Hidden,Invulnerable" />
-    <AreaArray Effect="FalstadHammerangBOOMerangDamage">
+    <AreaArray Effect="FalstadHammerangBOOMerangImpactSet">
       <Radius value="2.5" />
     </AreaArray>
   </CEffectEnumArea>
@@ -2072,8 +2266,8 @@
     <Behavior value="HammerangReturnMissileScan" />
   </CEffectApplyBehavior>
   <CEffectDamage id="HammerangReturnDamage" parent="StormSpell">
-    <Amount value="121" />
-    <FlatModifierArray index="FalstadHammerangGatheringStorm" Accumulator="FalstadHammerangGatheringStormAccumulator" />
+    <Amount value="80" />
+    <MultiplicativeModifierArray index="GatheringStorm" Accumulator="FalstadHammerangGatheringStormAccumulator" />
   </CEffectDamage>
   <CEffectCreatePersistent id="HammerangReturnImpactCreatePersistentReveal">
     <ExpireDelay value="0.33" />
@@ -2163,6 +2357,7 @@
   </CEffectCreatePersistent>
   <CEffectDamage id="FalstadWeaponDamage" parent="StormWeapon">
     <Amount value="104" />
+    <FlatModifierArray index="FrequentFlyer" Accumulator="FalstadFrequentFlyerAccumulator" />
   </CEffectDamage>
   <CEffectSet id="FalstadWeaponLaunchMissileSet">
     <EffectArray value="UniversalWeaponLaunchSet" />
@@ -2243,8 +2438,8 @@
     </AreaArray>
   </CEffectEnumArea>
   <CEffectSet id="HammerangImpactSet">
-    <EffectArray value="HammerangApplyBehavior" />
     <EffectArray value="HammerangDamageSet" />
+    <EffectArray value="HammerangApplyBehavior" />
     <EffectArray value="FalstadHammerangGatheringStormCreateManaHealer" />
     <EffectArray value="RemoveGatheringStormBehavior" />
     <EffectArray value="ApplyAbilityImpactReveal" />
@@ -2255,8 +2450,8 @@
     <ValidatorArray index="0" value="TargetNotUnstoppable" />
   </CEffectApplyBehavior>
   <CEffectDamage id="HammerangDamage" parent="StormSpell">
-    <Amount value="121" />
-    <FlatModifierArray index="FalstadHammerangGatheringStorm" Accumulator="FalstadHammerangGatheringStormAccumulator" />
+    <Amount value="80" />
+    <MultiplicativeModifierArray index="GatheringStorm" Accumulator="FalstadHammerangGatheringStormAccumulator" />
   </CEffectDamage>
   <CEffectEnumArea id="HinterlandBlastSearch">
     <SearchFilters value="-;Self,Player,Ally,Neutral,ImmuneToAOE,Missile,Item,Stasis,Dead,Invulnerable" />
@@ -2296,8 +2491,8 @@
     <VariationArray value="FalstadNordic" />
     <VariationArray value="FalstadBaseVar3" />
     <TalentTreeArray Talent="FalstadHammerangGatheringStorm" Tier="1" Column="1" />
-    <TalentTreeArray Talent="GenericTalentSeasonedMarksman" Tier="1" Column="2" />
-    <TalentTreeArray Talent="FalstadWingman" Tier="1" Column="3" />
+    <TalentTreeArray Talent="FalstadLightningRodDishonorableDischarge" Tier="1" Column="2" />
+    <TalentTreeArray Talent="FalstadTailwindFrequentFlyer" Tier="1" Column="3" />
     <TalentTreeArray Talent="FalstadMasteryLightningRodStaticShield" Tier="2" Column="1" />
     <TalentTreeArray Talent="FalstadMasteryUpdraftBarrelRoll" Tier="2" Column="2" />
     <TalentTreeArray Talent="FalstadTalentHammerGains" Tier="2" Column="3" />
@@ -2308,7 +2503,7 @@
     <TalentTreeArray Talent="FalstadHeroicAbilityMightyGust" Tier="4" Column="2" />
     <TalentTreeArray Talent="FalstadMasteryLightningRodThunderstrikes" Tier="5" Column="1" />
     <TalentTreeArray Talent="FalstadMasteryBarrelRollFlowRider" Tier="5" Column="2" />
-    <TalentTreeArray Talent="GenericTalentGiantKiller" Tier="5" Column="3" />
+    <TalentTreeArray Talent="FalstadTailwindSustainedWinds" Tier="5" Column="3" />
     <TalentTreeArray Talent="FalstadMasteryCripplingHammerHammerang" Tier="6" Column="1" />
     <TalentTreeArray Talent="FalstadMasteryAerieGustsTailwind" Tier="6" Column="2" />
     <TalentTreeArray Talent="FalstadMasteryAfterburner" Tier="6" Column="3" />
@@ -2330,11 +2525,11 @@
       <TalentsArray value="FalstadMasteryFlightEpicMount" />
     </TalentAIBuildsArray>
     <TalentAIBuildsArray ChanceToPick="16">
-      <TalentsArray value="GenericTalentSeasonedMarksman" />
+      <TalentsArray value="FalstadTailwindFrequentFlyer" />
       <TalentsArray value="FalstadTalentHammerGains" />
       <TalentsArray value="FalstadMasteryHammerangSecretWeapon" />
       <TalentsArray value="FalstadHeroicAbilityMightyGust" />
-      <TalentsArray value="GenericTalentGiantKiller" />
+      <TalentsArray value="FalstadTailwindSustainedWinds" />
       <TalentsArray value="FalstadMasteryCripplingHammerHammerang" />
       <TalentsArray value="FalstadMasteryFlightEpicMount" />
     </TalentAIBuildsArray>
@@ -2348,16 +2543,16 @@
       <TalentsArray value="FalstadMasteryFlightEpicMount" />
     </TalentAIBuildsArray>
     <TalentAIBuildsArray ChanceToPick="16">
-      <TalentsArray value="GenericTalentSeasonedMarksman" />
+      <TalentsArray value="FalstadTailwindFrequentFlyer" />
       <TalentsArray value="FalstadMasteryUpdraftBarrelRoll" />
       <TalentsArray value="FalstadHammerangBOOMerang" />
       <TalentsArray value="FalstadHeroicAbilityHinterlandBlast" />
-      <TalentsArray value="GenericTalentGiantKiller" />
+      <TalentsArray value="FalstadTailwindSustainedWinds" />
       <TalentsArray value="FalstadMasteryAfterburner" />
       <TalentsArray value="FalstadMasteryFlightEpicMount" />
     </TalentAIBuildsArray>
     <TalentAIBuildsArray AIOnly="1" ChanceToPick="16">
-      <TalentsArray value="GenericTalentSeasonedMarksman" />
+      <TalentsArray value="FalstadTailwindFrequentFlyer" />
       <TalentsArray value="FalstadMasteryUpdraftBarrelRoll" />
       <TalentsArray value="FalstadHammerangBOOMerang" />
       <TalentsArray value="FalstadHeroicAbilityHinterlandBlast" />
@@ -2756,6 +2951,38 @@
   <CShapeQuad id="FalstadHinterlandsBlastCallOfTheWildhammerTalentVisibilityQuad">
     <Quad value="-1,-65,1,1" />
   </CShapeQuad>
+  <CTalent id="FalstadTailwindSustainedWinds">
+    <Face value="FalstadTailwindSustainedWinds" />
+    <RankArray>
+      <BehaviorArray value="FalstadTailwindSustainedWindsBuff" />
+    </RankArray>
+    <Trait value="1" />
+  </CTalent>
+  <CTalent id="FalstadTailwindFrequentFlyer">
+    <Face value="FalstadTailwindFrequentFlyer" />
+    <Abil value="FalstadFrequentFlyerActive" />
+    <RankArray>
+      <BehaviorArray value="FalstadFrequentFlyer" />
+      <BehaviorArray value="FalstadFrequentFlyerTokenCounter" />
+    </RankArray>
+    <QuestData StackBehavior="FalstadFrequentFlyerTokenCounter" />
+  </CTalent>
+  <CTalent id="FalstadLightningRodDishonorableDischarge">
+    <Face value="FalstadLightningRodDishonorableDischarge" />
+    <Abil value="FalstadLightningRod" />
+    <RankArray>
+      <BehaviorArray value="FalstadDishonorableDischargeToken" />
+    </RankArray>
+    <AbilityModificationArray>
+      <Modifications>
+        <Type value="FlatModification" />
+        <Entry value="FalstadLightningRod" />
+        <Field value="Cost.Cooldown.TimeUse" />
+        <Value value="-3.000000" />
+      </Modifications>
+    </AbilityModificationArray>
+    <QuestData StackBehavior="FalstadDishonorableDischargeToken" />
+  </CTalent>
   <CTalent id="FalstadWingman">
     <Face value="FalstadWingmanHotbarTalent" />
     <Abil value="FalstadWingman" />
@@ -3033,23 +3260,17 @@
         <Catalog value="Behavior" />
         <Entry value="HammerangSlow" />
         <Field value="Modification.UnifiedMoveSpeedFactor" />
-        <Value value="-0.350000" />
+        <Value value="-0.250000" />
+      </Modifications>
+      <Modifications>
+        <Type value="FlatModification" />
+        <Catalog value="Effect" />
+        <Entry value="FalstadHammerangCripplingHammerApplyBehavior" />
+        <Field value="Chance" />
+        <Value value="1.000000" />
       </Modifications>
     </AbilityModificationArray>
     <Abil value="FalstadHammerang" />
-  </CTalent>
-  <CTalent id="FalstadMasteryDogFightBarrelRoll">
-    <Face value="FalstadBarrelRollDogFightTalent" />
-    <RankArray Face="FalstadBarrelRollDogFightTalentSimple" />
-    <AbilityModificationArray ModifyAbil="FalstadBarrelRoll" TooltipAddendum="Talent/Falstad/BarrelRoll/DogFight">
-      <Modifications>
-        <Type value="FlatModification" />
-        <Catalog value="Behavior" />
-        <Entry value="BarrelRoll" />
-        <Field value="Duration" />
-        <Value value="3.000000" />
-      </Modifications>
-    </AbilityModificationArray>
   </CTalent>
   <CTalent id="FalstadMasteryAerieGustsTailwind">
     <Face value="FalstadTailwindAerieGustsTalent" />
@@ -3084,6 +3305,19 @@
     </AbilityModificationArray>
     <Trait value="1" />
   </CTalent>
+  <CTalent id="FalstadMasteryDogFightBarrelRoll">
+    <Face value="FalstadBarrelRollDogFightTalent" />
+    <RankArray Face="FalstadBarrelRollDogFightTalentSimple" />
+    <AbilityModificationArray ModifyAbil="FalstadBarrelRoll" TooltipAddendum="Talent/Falstad/BarrelRoll/DogFight">
+      <Modifications>
+        <Type value="FlatModification" />
+        <Catalog value="Behavior" />
+        <Entry value="BarrelRoll" />
+        <Field value="Duration" />
+        <Value value="3.000000" />
+      </Modifications>
+    </AbilityModificationArray>
+  </CTalent>
   <CTalent id="FalstadMasteryUpdraftBarrelRoll">
     <Face value="FalstadBarrelRollUpdraftTalent" />
     <AbilityModificationArray ModifyAbil="FalstadBarrelRoll" TooltipAddendum="Talent/Falstad/BarrelRoll/Range">
@@ -3107,15 +3341,6 @@
   <CTalent id="FalstadHammerangBOOMerang">
     <Face value="FalstadHammerangBOOMerangTalent" />
     <Abil value="FalstadHammerang" />
-    <AbilityModificationArray ModifyAbil="FalstadHammerang">
-      <Modifications>
-        <Type value="FlatModification" />
-        <Catalog value="Effect" />
-        <Entry value="FalstadHammerangBOOMerangApplyControllerBehavior" />
-        <Field value="Chance" />
-        <Value value="1.000000" />
-      </Modifications>
-    </AbilityModificationArray>
   </CTalent>
   <CTalent id="FalstadHeroicAbilityHinterlandBlast">
     <Face value="FalstadHinterlandBlast" />
@@ -3190,6 +3415,36 @@
     <Mover value="HeroMissileSpeed25" />
   </CUnit>
   <CUnit id="FalstadHammerangMissile" parent="MISSILE_INVULNERABLE" />
+  <CValidatorUnitCompareBehaviorCount id="FalstadCasterGE3StacksDishonorableDischarge">
+    <WhichUnit Value="Caster" />
+    <Compare value="GE" />
+    <Value value="3" />
+    <Behavior value="FalstadDishonorableDischargeStacksBehavior" />
+  </CValidatorUnitCompareBehaviorCount>
+  <CValidatorUnitCompareBehaviorCount id="FalstadCasterHasLightningRodCasterBehavior">
+    <WhichUnit Value="Caster" />
+    <Compare value="GE" />
+    <Value value="1" />
+    <Behavior value="FalstadLightningRodCasterBehavior" />
+  </CValidatorUnitCompareBehaviorCount>
+  <CValidatorUnitCompareBehaviorCount id="FalstadDoesNotHaveFrequentFlyerBuff">
+    <Behavior value="FalstadTailwindFrequentFlyerAttackSpeedBuff" />
+  </CValidatorUnitCompareBehaviorCount>
+  <CValidatorPlayerTalent id="FalstadHasTailwindSustainedWindsTalent">
+    <WhichPlayer Value="Caster" />
+    <Find value="1" />
+    <Value value="FalstadTailwindSustainedWinds" />
+  </CValidatorPlayerTalent>
+  <CValidatorPlayerTalent id="FalstadHasTailwindFrequentFlyerTalent">
+    <WhichPlayer Value="Caster" />
+    <Find value="1" />
+    <Value value="FalstadTailwindFrequentFlyer" />
+  </CValidatorPlayerTalent>
+  <CValidatorPlayerTalent id="FalstadHasLightningRodDishonorableDischargeTalent">
+    <WhichPlayer Value="Caster" />
+    <Find value="1" />
+    <Value value="FalstadLightningRodDishonorableDischarge" />
+  </CValidatorPlayerTalent>
   <CValidatorUnitOrderQueue id="CasterCastingFalstadHinterlandBlast">
     <AbilLink value="FalstadHinterlandBlast" />
   </CValidatorUnitOrderQueue>
@@ -3261,6 +3516,11 @@
     <Value value="5" />
     <WhichUnit Value="Caster" />
   </CValidatorUnitCompareBehaviorCount>
+  <CValidatorUnitCompareBehaviorCount id="FalstadTargetHasHammerangSlow">
+    <Compare value="GE" />
+    <Value value="1" />
+    <Behavior value="HammerangSlow" />
+  </CValidatorUnitCompareBehaviorCount>
   <CValidatorUnitCompareBehaviorCount id="FalstadCasterHasLightningRodThunderstrikes6Stacks">
     <Behavior value="FalstadLightningRodThunderstrikesStacking" />
     <Value value="6" />
@@ -3270,10 +3530,6 @@
     <Behavior value="FalstadLightningRodThunderstrikesStacking" />
     <Value value="7" />
     <WhichUnit Value="Caster" />
-  </CValidatorUnitCompareBehaviorCount>
-  <CValidatorUnitCompareBehaviorCount id="FalstadHammerangTargetHasSlow">
-    <Behavior value="HammerangSlow" />
-    <Value value="1" />
   </CValidatorUnitCompareBehaviorCount>
   <CValidatorPlayerTalent id="HasFalstadLightningRodChargedUp">
     <WhichPlayer Value="Caster" />

@@ -257,12 +257,12 @@
     </CmdButtonArray>
   </CAbilEffectTarget>
   <CAccumulatorToken id="RagnarosEmpowerSulfurasSulfurasHungersTalentQuestAccumulator" parent="BaseTokenAccumulator">
-    <MaxAccumulation value="120" />
+    <MaxAccumulation value="125" />
     <ApplicationRule value="Add" />
     <TokenId value="RagnarosEmpowerSulfurasSulfurasHungersQuestToken" />
   </CAccumulatorToken>
   <CAccumulatorToken id="RagnarosEmpowerSulfurasSulfurasHungersTalentQuestDisplayAccumulator" parent="BaseTokenAccumulator">
-    <MaxAccumulation value="30" />
+    <MaxAccumulation value="25" />
     <ApplicationRule value="Add" />
     <TokenId value="RagnarosEmpowerSulfurasSulfurasHungersQuestToken" />
   </CAccumulatorToken>
@@ -1546,6 +1546,13 @@
     <Buttons Face="RagnarosCatchingFireItem" Type="AbilCmd" AbilCmd="RagnarosCatchingFire,Execute" />
     <DisableValidatorArray value="RagnarosHasMaxCatchingFireTokens" />
   </CBehaviorAbility>
+  <CBehaviorBuff id="RagnarosEmpowerSulfurasHandOfRagnarosCooldownBehavior">
+    <Duration value="4" />
+    <Period value="0.125" />
+    <PeriodCount value="32" />
+    <PeriodicEffect value="RagnarosEmpowerSulfurasHandofRagnarosModifyCooldown" />
+  </CBehaviorBuff>
+  <CBehaviorUnitTracker id="RagnarosLivingMeteorMeteorBombInnerRadiusUnitTracker" />
   <CBehaviorTokenCounter id="RagnarosLivingMeteorMoltenPowerTalentTokenCounter" parent="StormGenericToken">
     <AtMaxEvents Effect="RagnarosLivingMeteorMoltenPowerTalentProcModifyUnit" />
     <Max value="5" />
@@ -1638,10 +1645,10 @@
   </CBehaviorTokenCounter>
   <CBehaviorTokenCounter id="RagnarosEmpowerSulfurasSulfurasHungersTokenCounter" parent="StormQuestToken">
     <Face value="RagnarosEmpowerSulfurasSulfurasHungersQuestToken" />
-    <ConditionalEvents CompareValue="30">
+    <ConditionalEvents CompareValue="25">
       <Event Effect="RagnarosEmpowerSulfurasSulfurasHungersQuestCompleteAddTokens" ModifyParentBehaviorFace="RagnarosEmpowerSulfurasSulfurasHungersQuestCompleteToken" />
     </ConditionalEvents>
-    <Max value="120" />
+    <Max value="125" />
     <TokenId value="RagnarosEmpowerSulfurasSulfurasHungersQuestToken" />
     <StackCountAccumulator value="RagnarosEmpowerSulfurasSulfurasHungersTalentQuestDisplayAccumulator" />
     <SortIndex value="10" />
@@ -2038,6 +2045,10 @@
   <CEffectSet id="ExperienceGlobeSearchSet">
     <EffectArray value="RagnarosExperienceGlobePickupSearchLavaWave" />
   </CEffectSet>
+  <CEffectApplyBehavior id="RagnarosEmpowerSulfurasHandOfRagnarosApplyCooldownBehavior">
+    <WhichUnit Value="Caster" />
+    <Behavior value="RagnarosEmpowerSulfurasHandOfRagnarosCooldownBehavior" />
+  </CEffectApplyBehavior>
   <CEffectSet id="RagnarosExperienceGlobePickupSetLavaWave">
     <ValidatorArray value="RagnarosTargetIsLavaWaveLaneUnit" />
     <EffectArray value="HeroGenericExperienceGlobeTimedLifeInitialRemoveSourceBehavior" />
@@ -2102,6 +2113,27 @@
     <Chance value="0" />
     <TokenId value="RagnarosEmpowerSulfurasHandOfRagnarosTwoTargetCheck" />
   </CEffectModifyTokenCount>
+  <CEffectAddTrackedUnit id="RagnarosLivingMeteorMeteorBombAddInnerRadiusTrackedUnit">
+    <BehaviorLink value="RagnarosLivingMeteorMeteorBombInnerRadiusUnitTracker" />
+    <TrackedUnit Value="Target" />
+  </CEffectAddTrackedUnit>
+  <CEffectClearTrackedUnits id="RagnarosLivingMeteorMeteorBombClearInnerRadiusTrackedUnits">
+    <BehaviorLink value="RagnarosLivingMeteorMeteorBombInnerRadiusUnitTracker" />
+  </CEffectClearTrackedUnits>
+  <CEffectSet id="RagnarosLivingMeteorMeteorBombInitialSet">
+    <EffectArray value="RagnarosLivingMeteorMeteorBombClearInnerRadiusTrackedUnits" />
+    <EffectArray value="RagnarosLivingMeteorMeteorBombInnerSearchArea" />
+    <EffectArray value="RagnarosLivingMeteorMeteorBombSearchArea" />
+  </CEffectSet>
+  <CEffectEnumArea id="RagnarosLivingMeteorMeteorBombInnerSearchArea">
+    <SearchFilters value="-;Player,Ally,Neutral,ImmuneToAOE,Missile,Item,Stasis,Dead,Hidden,Invulnerable" />
+    <AreaArray Effect="RagnarosLivingMeteorMeteorBombAddInnerRadiusTrackedUnit">
+      <Radius value="1.25" />
+    </AreaArray>
+    <RevealerParams Duration="1.5" ShapeExpansion="1">
+      <RevealFlags index="Unfog" value="1" />
+    </RevealerParams>
+  </CEffectEnumArea>
   <CEffectModifyTokenCount id="RagnarosLivingMeteorMoltenPowerTalentAddToken" parent="BaseEffectModifyTokenCount">
     <ValidatorArray value="TargetIsHero" />
     <Chance value="0" />
@@ -2286,7 +2318,7 @@
   <CEffectModifyTokenCount id="RagnarosEmpowerSulfurasSulfurasHungersQuestCompleteAddTokens" parent="BaseEffectModifyTokenCount">
     <Marker Link="Effect/RagnarosEmpowerSulfurasSulfursHungersAddToken" />
     <TokenId value="RagnarosEmpowerSulfurasSulfurasHungersQuestToken" />
-    <Value value="90" />
+    <Value value="100" />
   </CEffectModifyTokenCount>
   <CEffectRemoveBehavior id="RagnarosLivingMeteorFireWardRemoveBehavior">
     <WhichUnit Value="Caster" />
@@ -2410,7 +2442,7 @@
   </CEffectRemoveBehavior>
   <CEffectCreatePersistent id="RagnarosLivingMeteorMeteorBombOffsetPersistent">
     <Chance value="0" />
-    <InitialEffect value="RagnarosLivingMeteorMeteorBombSearchArea" />
+    <InitialEffect value="RagnarosLivingMeteorMeteorBombInitialSet" />
     <InitialOffset Y="-1" />
   </CEffectCreatePersistent>
   <CEffectEnumArea id="RagnarosLivingMeteorMeteorBombSearchArea">
@@ -2441,6 +2473,7 @@
   <CEffectDamage id="RagnarosLivingMeteorMeteorBombDamage" parent="StormSpell">
     <Amount value="220" />
     <SourceButtonFace value="RagnarosLivingMeteorMeteorBomb" />
+    <MultiplicativeModifierArray index="MeteorBombInnerRadius" Validator="RagnarosTargetIsBeingMeteorBombInnerRadiusTracked" Modifier="0.3" Crit="1" />
   </CEffectDamage>
   <CEffectSet id="RagnarosEmpowerSulfurasCooldownSet">
     <EffectArray value="RagnarosEmpowerSulfurasAddCooldown" />
@@ -2452,13 +2485,13 @@
     <Cost Abil="RagnarosEmpowerSulfuras,Execute" CooldownOperation="Set" CooldownTimeUse="4" />
   </CEffectModifyUnit>
   <CEffectSet id="RagnarosEmpowerSulfurasHandofRagnarosSet">
-    <EffectArray value="RagnarosEmpowerSulfurasHandofRagnarosModifyCooldown" />
+    <EffectArray value="RagnarosEmpowerSulfurasHandOfRagnarosApplyCooldownBehavior" />
     <EffectArray value="RagnarosEmpowerSulfurasHandofRagnarosRestoreMana" />
     <ValidatorArray value="RagnarosEmpowerSulfurasHandOfRagnarosTwoTargetCheck" />
   </CEffectSet>
   <CEffectModifyUnit id="RagnarosEmpowerSulfurasHandofRagnarosModifyCooldown">
     <ImpactUnit Value="Caster" />
-    <Cost Abil="RagnarosEmpowerSulfuras,Execute" CooldownOperation="Add" CooldownTimeUse="-2" />
+    <Cost Abil="RagnarosEmpowerSulfuras,Execute" CooldownOperation="Add" CooldownTimeUse="-0.125" />
   </CEffectModifyUnit>
   <CEffectCreateHealer id="RagnarosEmpowerSulfurasHandofRagnarosRestoreMana" parent="StormManaRestore">
     <ImpactUnit Value="Caster" />
@@ -3953,6 +3986,9 @@
         <Value value="1.000000" />
       </Modifications>
     </AbilityModificationArray>
+    <RankArray>
+      <BehaviorArray value="RagnarosLivingMeteorMeteorBombInnerRadiusUnitTracker" />
+    </RankArray>
   </CTalent>
   <CTalent id="RagnarosBlastWaveBlastEcho">
     <Face value="RagnarosBlastWaveBlastEcho" />
@@ -4186,6 +4222,11 @@
     <Value value="5" />
     <TokenId value="RagnarosLivingMeteorMoltenPowerTalentTokenCounter" />
   </CValidatorUnitCompareTokenCount>
+  <CValidatorIsUnitTracked id="RagnarosTargetIsBeingMeteorBombInnerRadiusTracked">
+    <Find value="1" />
+    <BehaviorLink value="RagnarosLivingMeteorMeteorBombInnerRadiusUnitTracker" />
+    <TrackedUnit Value="Target" />
+  </CValidatorIsUnitTracked>
   <CValidatorCombine id="RagnarosTargetIsHeroAndHasTemperedFlameTalent">
     <Type value="And" />
     <CombineArray value="TargetIsHero" />

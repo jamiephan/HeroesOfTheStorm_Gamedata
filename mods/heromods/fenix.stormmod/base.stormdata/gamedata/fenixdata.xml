@@ -291,6 +291,7 @@
     <On Terms="StatusOff.*.TimeStopPaused" Send="AnimSetPausedAll 0" />
     <On Terms="StatusOn.*.TimeStopPaused" Send="SetTintColor 89,89,89 0.000000 OneShot VoidPrisonTint" />
     <On Terms="StatusOff.*.TimeStopPaused" Send="ClearTintColor 0.000000 VoidPrisonTint" />
+    <On Terms="ActorCreation; ValidatePlayer FenixHasArmageddonBeamTalentSource" Send="SetScale 2.750000,1.000000,1.000000 1.500000" />
     <FogVisibility value="Visible" />
     <HostForProps Subject="::Creator" />
     <HostLaunch Subject="_Unit" />
@@ -956,9 +957,31 @@
   <CActorSiteOpRandomPointInCircle id="SOpRandomPointInCircle1">
     <Radius value="1.000000" />
   </CActorSiteOpRandomPointInCircle>
+  <CBehaviorBuff id="FenixArsenalOverchargePhaseBombDamageResponseCarry" parent="CarryBehaviorParent">
+    <DamageResponse Chance="1" Handled="FenixArsenalOverchargeModifyCooldowns" Location="Attacker">
+      <RequireEffectArray value="FenixHeroPhaseBombSplashDamage" />
+      <ExcludeEffectArray value="FenixHeroPhaseBombWeaponDamage" />
+      <ValidatorArray value="TargetNotEvading" />
+      <ValidatorArray value="TargetIsHero" />
+      <Kind index="Ability" value="0" />
+    </DamageResponse>
+  </CBehaviorBuff>
   <CBehaviorAbility id="FenixDivertPowerItem">
     <Buttons Face="FenixDivertPowerWeapons" Type="AbilCmd" AbilCmd="FenixDivertPowerWeapons,Execute" />
   </CBehaviorAbility>
+  <CBehaviorBuff id="FenixPhaseBombInhibitingEnergyTalentCooldown">
+    <Alignment value="Positive" />
+    <InfoIcon value="Assets\Textures\storm_ui_icon_fenix_w_1.dds" />
+    <Duration value="10" />
+    <Face value="FenixInhibitingEnergy" />
+    <InfoFlags index="Hidden" value="0" />
+  </CBehaviorBuff>
+  <CBehaviorBuff id="FenixPhaseBombInhibitingEnergyTalentSlowController">
+    <Duration value="1.5" />
+    <Period value="0.0625" />
+    <RemoveValidatorArray value="FenixTargetHasInhibitingEnergySlowDebuff" />
+    <PeriodicEffect value="FenixPhaseBombInhibitingEnergyTalentRemoveSlowStack" />
+  </CBehaviorBuff>
   <CBehaviorAbility id="FenixUnconqueredSpiritItem">
     <Buttons Face="FenixUnconqueredSpirit" Type="AbilCmd" AbilCmd="FenixUnconqueredSpirit,Execute" />
   </CBehaviorAbility>
@@ -1070,9 +1093,9 @@
     <BehaviorFlags index="Permanent" value="1" />
     <BehaviorFlags index="EnabledWhileDead" value="1" />
     <Modification>
-      <DamageDealtFraction index="Splash" value="0.15" />
-      <DamageDealtFraction index="Basic" value="0.15" />
-      <DamageDealtFraction index="Ability" value="0.15" />
+      <DamageDealtFraction index="Splash" value="0.2" />
+      <DamageDealtFraction index="Basic" value="0.2" />
+      <DamageDealtFraction index="Ability" value="0.2" />
     </Modification>
     <DisableValidatorArray value="FenixHasVitalShieldsOrBehaviorShields" />
     <Face value="FenixPhotonicWeaponry" />
@@ -1120,15 +1143,16 @@
     <BuffFlags index="RemoveDamageResponseExhausted" value="0" />
     <ArmorModification>
       <ArmorSet index="Hero">
-        <ArmorMitigationTable index="Ability" value="25" />
+        <ArmorMitigationTable index="Ability" value="30" />
       </ArmorSet>
     </ArmorModification>
     <DisableValidatorArray value="hasShields" />
     <Face value="FenixDampeningField" />
     <InfoFlags index="Hidden" value="0" />
   </CBehaviorBuff>
-  <CBehaviorBuff id="FenixArsenalOverchargeBehavior" parent="CarryBehaviorParent">
+  <CBehaviorBuff id="FenixArsenalOverchargeRepeaterCannonDamageResponseCarry" parent="CarryBehaviorParent">
     <DamageResponse Chance="1" Handled="FenixArsenalOverchargeModifyCooldowns" Location="Attacker">
+      <RequireEffectArray value="FenixHeroWeaponDamage" />
       <ExcludeEffectArray value="FenixHeroPhaseBombSplashDamage" />
       <ValidatorArray value="TargetNotEvading" />
       <Kind index="Ability" value="0" />
@@ -1173,10 +1197,12 @@
     </Modification>
   </CBehaviorBuff>
   <CBehaviorBuff id="FenixPhaseBombInhibitingEnergySlow" parent="StormSlowParent">
-    <Duration value="2.5" />
+    <Duration value="1.5" />
     <Modification>
-      <UnifiedMoveSpeedFactor value="-0.3" />
+      <UnifiedMoveSpeedFactor value="-0.025" />
     </Modification>
+    <MaxStackCount value="24" />
+    <MaxStackCountPerCaster value="24" />
   </CBehaviorBuff>
   <CBehaviorBuff id="FenixWarpWarpingIn" parent="StormStasisAir">
     <InfoFlags index="AlwaysUseGameText" value="1" />
@@ -1333,6 +1359,9 @@
     <Alignment value="Positive" />
     <FinalEffect value="FenixOffensiveCadenceDecrementToken" />
   </CBehaviorBuff>
+  <CButton id="FenixArmageddonBeam" parent="StormButtonParent">
+    <Icon value="Assets\Textures\storm_ui_icon_fenix_r_planet_cracker.dds" />
+  </CButton>
   <CButton id="FenixPlanetCrackerCancel" parent="StormButtonParent">
     <Icon value="Assets\Textures\hud_btn_bg_ability_cancel.dds" />
   </CButton>
@@ -1436,6 +1465,7 @@
   </CButton>
   <CButton id="FenixPlanetCracker" parent="StormButtonParent">
     <Icon value="Assets\Textures\storm_ui_icon_fenix_r_planet_cracker.dds" />
+    <TooltipAppender Validator="FenixHasArmageddonBeamTalent" Face="FenixArmageddonBeam" />
   </CButton>
   <CButton id="FenixShieldCapacitor" parent="StormButtonParent">
     <Icon value="Assets\Textures\storm_ui_icon_fenix_shield_1.dds" />
@@ -1469,6 +1499,74 @@
     <ImpactUnit Value="Caster" />
     <VitalArray index="Shields" IsSet="1" />
   </CEffectModifyUnit>
+  <CEffectSet id="FenixPhaseBombArsenalSynergyInhibitingEnergyTalentProcSet">
+    <ValidatorArray value="TargetNotEvading" />
+    <ValidatorArray value="FenixCasterDoesNotHaveInhibitingSlowCooldown" />
+    <Chance value="0" />
+    <EffectArray value="FenixHeroWeaponInhibitingEnergyArsenalSynergySplashSearch" />
+    <EffectArray value="FenixPhaseBombInhibitingEnergyTalentApplyCooldown" />
+  </CEffectSet>
+  <CEffectSet id="FenixPhaseBombInhibitingEnergyTalentApplicationSet">
+    <EffectArray value="FenixPhaseBombInhibitingEnergyApplySlow" />
+    <EffectArray value="FenixPhaseBombInhibitingEnergyTalentApplySlowController" />
+  </CEffectSet>
+  <CEffectSet id="FenixPhaseBombInhibitingEnergyTalentProcSet">
+    <ValidatorArray value="TargetNotEvading" />
+    <ValidatorArray value="FenixCasterDoesNotHaveInhibitingSlowCooldown" />
+    <Chance value="0" />
+    <EffectArray value="FenixHeroWeaponInhibitingEnergySplashSearch" />
+    <EffectArray value="FenixPhaseBombInhibitingEnergyTalentApplyCooldown" />
+  </CEffectSet>
+  <CEffectApplyBehavior id="FenixPhaseBombInhibitingEnergyTalentApplySlowController">
+    <ValidatorArray value="TargetNotUnstoppable" />
+    <Behavior value="FenixPhaseBombInhibitingEnergyTalentSlowController" />
+  </CEffectApplyBehavior>
+  <CEffectApplyBehavior id="FenixPhaseBombInhibitingEnergyTalentApplyCooldown">
+    <WhichUnit Value="Caster" />
+    <Behavior value="FenixPhaseBombInhibitingEnergyTalentCooldown" />
+  </CEffectApplyBehavior>
+  <CEffectRemoveBehavior id="FenixPhaseBombInhibitingEnergyTalentRemoveSlowStack">
+    <BehaviorLink value="FenixPhaseBombInhibitingEnergySlow" />
+    <Count value="1" />
+  </CEffectRemoveBehavior>
+  <CEffectModifyCatalogNumeric id="FenixPlanetCrackerArmageddonBeamTalentModifyCatalogNumeric">
+    <CatalogModifications Reference="Effect,FenixPlanetCrackerSearch,AreaArray[0].RectangleWidth">
+      <Value value="0.105" />
+    </CatalogModifications>
+    <CatalogModifications Reference="Actor,FenixPlanetCrackerActiveGuide,Width">
+      <Value value="0.135" />
+    </CatalogModifications>
+  </CEffectModifyCatalogNumeric>
+  <CEffectModifyCatalogNumeric id="FenixPlanetCrackerArmageddonBeamTalentResetCatalogNumeric">
+    <CatalogModifications Operation="Set" Reference="Effect,FenixPlanetCrackerSearch,AreaArray[0].RectangleWidth">
+      <Value value="2" />
+    </CatalogModifications>
+    <CatalogModifications Operation="Set" Reference="Actor,FenixPlanetCrackerActiveGuide,Width">
+      <Value value="2.5" />
+    </CatalogModifications>
+  </CEffectModifyCatalogNumeric>
+  <CEffectSet id="FenixPlanetCrackerArmageddonBeamTalentPeriodicSet">
+    <EffectArray value="FenixPlanetCrackerArmageddonBeamTalentModifyCatalogNumeric" />
+  </CEffectSet>
+  <CEffectCreatePersistent id="FenixPlanetCrackerArmageddonBeamTalentResetDelay">
+    <Chance value="0" />
+    <WhichLocation Value="CasterUnit" />
+    <InitialDelay value="0.0625" />
+    <FinalEffect value="FenixPlanetCrackerArmageddonBeamTalentResetCatalogNumeric" />
+  </CEffectCreatePersistent>
+  <CEffectCreatePersistent id="FenixPlanetCrackerArmageddonBeamTalentPersistent">
+    <Chance value="0" />
+    <TimeScaleSource Value="Caster" />
+    <Flags index="Channeled" value="1" />
+    <PeriodCount value="24" />
+    <PeriodicValidator value="DoesNotHaveChanneledAbilityFullStopBehavior" />
+    <PeriodicEffectArray value="FenixPlanetCrackerArmageddonBeamTalentPeriodicSet" />
+    <PeriodicPeriodArray value="0.0625" />
+  </CEffectCreatePersistent>
+  <CEffectSet id="FenixPlanetCrackerInitialPersistentFinalSet">
+    <EffectArray value="FenixPlanetCrackerRemoveCasterBehavior" />
+    <EffectArray value="FenixPlanetCrackerArmageddonBeamTalentResetDelay" />
+  </CEffectSet>
   <CEffectApplyBehavior id="FenixUnconqueredSpiritEmergencyProtocolApplyHadShieldBehavior">
     <Behavior value="FenixUnconqueredSpiritEmergencyProtocolHadShield" />
     <ValidatorArray value="hasShields" />
@@ -1588,6 +1686,14 @@
     <Operation value="Set" />
     <Value value="0" />
   </CEffectModifyTokenCount>
+  <CEffectSet id="FenixPhaseBombSplashSearchSet">
+    <EffectArray value="FenixHeroWeaponPhaseBombSplashSearch" />
+    <EffectArray value="FenixPhaseBombInhibitingEnergyTalentProcSet" />
+  </CEffectSet>
+  <CEffectSet id="FenixPhaseBombArsenalSynergySplashSearchSet">
+    <EffectArray value="FenixHeroWeaponPhaseBombArsenalSynergySplashSearch" />
+    <EffectArray value="FenixPhaseBombArsenalSynergyInhibitingEnergyTalentProcSet" />
+  </CEffectSet>
   <CEffectApplyBehavior id="FenixWarpWarpingOutApplyBehavior">
     <WhichUnit Value="Caster" />
     <Behavior value="FenixWarpWarpingOut" />
@@ -1607,14 +1713,6 @@
     <EffectArray value="FenixHeroPhaseBombSplashDamage" />
     <EffectArray value="FenixDivertPowerWeaponsRefreshBehavior" />
     <EffectArray value="ApplyAbilityImpactReveal" />
-  </CEffectSet>
-  <CEffectSet id="FenixPhaseBombSplashSearchSet">
-    <EffectArray value="FenixHeroWeaponPhaseBombSplashSearch" />
-    <EffectArray value="FenixHeroWeaponInhibitingEnergySplashSearch" />
-  </CEffectSet>
-  <CEffectSet id="FenixPhaseBombArsenalSynergySplashSearchSet">
-    <EffectArray value="FenixHeroWeaponPhaseBombArsenalSynergySplashSearch" />
-    <EffectArray value="FenixHeroWeaponInhibitingEnergyArsenalSynergySplashSearch" />
   </CEffectSet>
   <CEffectCreatePersistent id="FenixWeaponTargetedFacingPersistent">
     <PeriodicEffectArray value="FenixWeaponTargetedUpdateFacing" />
@@ -1972,6 +2070,10 @@
   <CEffectApplyBehavior id="FenixPlasmaCutterApplyUnitTimestopCheckBehavior">
     <Behavior value="FenixPlasmaCutterUnitTimestopBehavior" />
   </CEffectApplyBehavior>
+  <CEffectApplyBehavior id="FenixPhaseBombInhibitingEnergyApplySlow" parent="StormSlowApply">
+    <Behavior value="FenixPhaseBombInhibitingEnergySlow" />
+    <Count value="24" />
+  </CEffectApplyBehavior>
   <CEffectApplyBehavior id="FenixPurificationSalvoLaserApplyUnitBehavior">
     <Behavior value="FenixPurificationSalvoLaserUnitBehavior" />
     <Marker>
@@ -1984,10 +2086,6 @@
   </CEffectApplyBehavior>
   <CEffectApplyBehavior id="FenixPlasmaCutterApplySlow" parent="StormSlowApply">
     <Behavior value="FenixPlasmaCutterSlow" />
-  </CEffectApplyBehavior>
-  <CEffectApplyBehavior id="FenixPhaseBombInhibitingEnergyApplySlow" parent="StormSlowApply">
-    <Behavior value="FenixPhaseBombInhibitingEnergySlow" />
-    <ValidatorArray value="CasterNotBlindedAndTargetNotEvading" />
   </CEffectApplyBehavior>
   <CEffectRemoveBehavior id="FenixChargeUpRemoveBehavior">
     <WhichUnit Value="Caster" />
@@ -2087,6 +2185,10 @@
     <ImpactUnit Value="Caster" />
     <Weapon Weapon="FenixPhaseBombWeapon" CooldownOperation="Set" CooldownFraction="0.5" />
   </CEffectModifyUnit>
+  <CEffectSwitch id="FenixHeroWeaponPhaseBombSplashSwitch">
+    <CaseArray Validator="FenixHasPhaseBombArsenalSynergyBehavior" Effect="FenixPhaseBombArsenalSynergySplashSearchSet" />
+    <CaseDefault value="FenixPhaseBombSplashSearchSet" />
+  </CEffectSwitch>
   <CEffectSwitch id="FenixHeroWeaponLaunchSwitch">
     <CaseDefault value="FenixHeroWeaponLaunchSet" />
   </CEffectSwitch>
@@ -2108,10 +2210,6 @@
   <CEffectSwitch id="FenixPlasmaCutterApplyFollowSwitch">
     <CaseArray Validator="FenixAdvancedTargetingTier2Complete" Effect="FenixPlasmaCutterAdvancedTargetingTier2ApplyFollow" />
     <CaseDefault value="FenixPlasmaCutterApplyFollow" />
-  </CEffectSwitch>
-  <CEffectSwitch id="FenixHeroWeaponPhaseBombSplashSwitch">
-    <CaseArray Validator="FenixHasPhaseBombArsenalSynergyBehavior" Effect="FenixPhaseBombArsenalSynergySplashSearchSet" />
-    <CaseDefault value="FenixPhaseBombSplashSearchSet" />
   </CEffectSwitch>
   <CEffectCreatePersistent id="FenixWeaponTargetedLaunchPersistent">
     <ValidatorArray value="TargetNotStasisOrInvulnerable" />
@@ -2263,6 +2361,7 @@
   </CEffectSet>
   <CEffectSet id="FenixPlanetCrackerInitialSet">
     <EffectArray value="FenixPlanetCrackerInitialPersistent" />
+    <EffectArray value="FenixPlanetCrackerArmageddonBeamTalentPersistent" />
     <EffectArray value="CameraShakeHeavyCasterDummySet" />
     <TargetLocationType value="Point" />
   </CEffectSet>
@@ -2282,7 +2381,7 @@
     <PeriodCount value="16" />
     <PeriodicValidator value="DoesNotHaveChanneledAbilityFullStopBehavior" />
     <PeriodicPeriodArray value="0.25" />
-    <FinalEffect value="FenixPlanetCrackerRemoveCasterBehavior" />
+    <FinalEffect value="FenixPlanetCrackerInitialPersistentFinalSet" />
   </CEffectCreatePersistent>
   <CEffectCreatePersistent id="FenixPurificationSalvoPlasmaCutterCreateTargetingPersistent">
     <PeriodicEffectArray value="FenixSecondaryFirePurificationSalvoLaunchMissile" />
@@ -2336,6 +2435,20 @@
     <WhichUnit Value="Caster" />
     <Behavior value="FenixWarpWarpingIn" />
   </CEffectApplyBehavior>
+  <CEffectEnumArea id="FenixHeroWeaponInhibitingEnergySplashSearch">
+    <SearchFilters value="-;Player,Ally,Neutral,ImmuneToAOE,Missile,Item,Dead,Hidden,Invulnerable" />
+    <AreaArray Effect="FenixPhaseBombInhibitingEnergyTalentApplicationSet">
+      <Radius value="3" />
+    </AreaArray>
+    <ValidatorArray value="CasterNotBlindedAndTargetNotEvading" />
+  </CEffectEnumArea>
+  <CEffectEnumArea id="FenixHeroWeaponInhibitingEnergyArsenalSynergySplashSearch">
+    <SearchFilters value="-;Player,Ally,Neutral,ImmuneToAOE,Missile,Item,Dead,Hidden,Invulnerable" />
+    <AreaArray Effect="FenixPhaseBombInhibitingEnergyTalentApplicationSet">
+      <Radius value="4.5" />
+    </AreaArray>
+    <ValidatorArray value="CasterNotBlindedAndTargetNotEvading" />
+  </CEffectEnumArea>
   <CEffectSet id="FenixWarpWarpingInExpireSet">
     <EffectArray value="FenixAdaniumShellApplyArmorBehavior" />
     <EffectArray value="FenixWarpWarfareApplyAttackSpeedBehavior" />
@@ -2361,24 +2474,6 @@
     <AreaArray Effect="FenixPhaseBombSplashImpactSet">
       <Radius value="4.5" />
     </AreaArray>
-  </CEffectEnumArea>
-  <CEffectEnumArea id="FenixHeroWeaponInhibitingEnergySplashSearch">
-    <ValidatorArray value="TargetNotEvading" />
-    <ValidatorArray value="TargetIsSlowed" />
-    <SearchFilters value="-;Player,Ally,Neutral,ImmuneToAOE,Missile,Item,Dead,Hidden,Invulnerable" />
-    <AreaArray Effect="FenixPhaseBombInhibitingEnergyApplySlow">
-      <Radius value="3" />
-    </AreaArray>
-    <Chance value="0" />
-  </CEffectEnumArea>
-  <CEffectEnumArea id="FenixHeroWeaponInhibitingEnergyArsenalSynergySplashSearch">
-    <ValidatorArray value="TargetNotEvading" />
-    <ValidatorArray value="TargetIsSlowed" />
-    <SearchFilters value="-;Player,Ally,Neutral,ImmuneToAOE,Missile,Item,Dead,Hidden,Invulnerable" />
-    <AreaArray Effect="FenixPhaseBombInhibitingEnergyApplySlow">
-      <Radius value="4.5" />
-    </AreaArray>
-    <Chance value="0" />
   </CEffectEnumArea>
   <CEffectCancelOrder id="FenixPlanetCrackerCancelOrder">
     <WhichUnit Value="Caster" />
@@ -2418,9 +2513,12 @@
     <TalentTreeArray Talent="FenixOffensiveCadence" Tier="6" Column="1" />
     <TalentTreeArray Talent="FenixPhotonicWeaponry" Tier="6" Column="2" />
     <TalentTreeArray Talent="FenixArsenalOvercharge" Tier="6" Column="3" />
-    <TalentTreeArray Talent="FenixSecondaryFire" Tier="7" Column="1" />
-    <TalentTreeArray Talent="FenixSingularityCharge" Tier="7" Column="2" />
-    <TalentTreeArray Talent="FenixUnconqueredSpirit" Tier="7" Column="3" />
+    <TalentTreeArray Talent="FenixArmageddonBeam" Tier="7" Column="1">
+      <PrerequisiteTalentArray value="FenixHeroicAbilityPlanetCracker" />
+    </TalentTreeArray>
+    <TalentTreeArray Talent="FenixSecondaryFire" Tier="7" Column="2" />
+    <TalentTreeArray Talent="FenixSingularityCharge" Tier="7" Column="3" />
+    <TalentTreeArray Talent="FenixUnconqueredSpirit" Tier="7" Column="4" />
     <LevelScalingArray>
       <Modifications>
         <Catalog value="Unit" />
@@ -2576,7 +2674,7 @@
       <Flags index="Heroic" value="1" />
     </HeroAbilArray>
     <HeroicAbilArray Abil="FenixPurificationSalvo" />
-    <HeroicAbilArray Abil="FenixVortex" />
+    <HeroicAbilArray Abil="FenixPlanetCracker" />
     <AllowedMountCategoryArray value="Ridesurf" />
     <AllowedMountCategoryArray value="MountFenixBase" />
     <DefaultMount value="MountFenixBase" />
@@ -3790,6 +3888,33 @@
     <ResourcePriority value="16" />
     <Volume value="0.000000,0.000000" />
   </CSound>
+  <CTalent id="FenixArmageddonBeam">
+    <Face value="FenixArmageddonBeam" />
+    <Abil value="FenixPlanetCracker" />
+    <RankArray />
+    <AbilityModificationArray>
+      <Modifications>
+        <Type value="FlatModification" />
+        <Catalog value="Effect" />
+        <Entry value="FenixPlanetCrackerArmageddonBeamTalentPersistent" />
+        <Field value="Chance" />
+        <Value value="1.000000" />
+      </Modifications>
+      <Modifications>
+        <Type value="FlatModification" />
+        <Catalog value="Effect" />
+        <Entry value="FenixPlanetCrackerArmageddonBeamTalentResetDelay" />
+        <Field value="Chance" />
+        <Value value="1.000000" />
+      </Modifications>
+      <Modifications>
+        <Type value="FlatModification" />
+        <Entry value="FenixPlanetCracker" />
+        <Field value="Cost[0].Cooldown.TimeUse" />
+        <Value value="-40.000000" />
+      </Modifications>
+    </AbilityModificationArray>
+  </CTalent>
   <CTalent id="FenixSecondaryFire">
     <Face value="FenixSecondaryFire" />
     <Abil value="FenixPlasmaCutter" />
@@ -3864,7 +3989,8 @@
   <CTalent id="FenixArsenalOvercharge">
     <Face value="FenixArsenalOvercharge" />
     <RankArray>
-      <BehaviorArray value="FenixArsenalOverchargeBehavior" />
+      <BehaviorArray value="FenixArsenalOverchargeRepeaterCannonDamageResponseCarry" />
+      <BehaviorArray value="FenixArsenalOverchargePhaseBombDamageResponseCarry" />
     </RankArray>
   </CTalent>
   <CTalent id="FenixDampeningField">
@@ -3909,14 +4035,14 @@
       <Modifications>
         <Type value="FlatModification" />
         <Catalog value="Effect" />
-        <Entry value="FenixHeroWeaponInhibitingEnergySplashSearch" />
+        <Entry value="FenixPhaseBombArsenalSynergyInhibitingEnergyTalentProcSet" />
         <Field value="Chance" />
         <Value value="1.000000" />
       </Modifications>
       <Modifications>
         <Type value="FlatModification" />
         <Catalog value="Effect" />
-        <Entry value="FenixHeroWeaponInhibitingEnergyArsenalSynergySplashSearch" />
+        <Entry value="FenixPhaseBombInhibitingEnergyTalentProcSet" />
         <Field value="Chance" />
         <Value value="1.000000" />
       </Modifications>
@@ -4128,14 +4254,28 @@
     <HeroPlaystyleFlags index="WaveClearer" value="1" />
     <AIThinkTree value="AI\Fenix.aitree" />
   </CUnit>
+  <CValidatorUnitCompareBehaviorCount id="FenixCasterDoesNotHaveInhibitingSlowCooldown">
+    <WhichUnit Value="Caster" />
+    <Behavior value="FenixPhaseBombInhibitingEnergyTalentCooldown" />
+  </CValidatorUnitCompareBehaviorCount>
   <CValidatorUnitCompareBehaviorCount id="FenixCasterHasDivertPowerWeaponsBuff">
     <WhichUnit Value="Caster" />
     <Compare value="GT" />
     <Behavior value="FenixDivertPowerWeapons" />
   </CValidatorUnitCompareBehaviorCount>
+  <CValidatorPlayerTalent id="FenixHasArmageddonBeamTalentSource">
+    <WhichPlayer Value="Source" />
+    <Find value="1" />
+    <Value value="FenixArmageddonBeam" />
+  </CValidatorPlayerTalent>
   <CValidatorUnitHasBehaviorShield id="FenixHasBehaviorShields">
     <WhichUnit Value="Caster" />
   </CValidatorUnitHasBehaviorShield>
+  <CValidatorPlayerTalent id="FenixHasArmageddonBeamTalent">
+    <WhichPlayer Value="Caster" />
+    <Find value="1" />
+    <Value value="FenixArmageddonBeam" />
+  </CValidatorPlayerTalent>
   <CValidatorUnitCompareOrderCount id="FenixIsCastingPlanetCracker">
     <AbilLink value="FenixPlanetCracker" />
     <Value value="1" />
@@ -4343,6 +4483,10 @@
     <CombineArray value="TargetHas2Slows" />
     <CombineArray value="TargetHasExactly1CategorySlowANDTargetDoesNotHaveInhibitingEnergySlow" />
   </CValidatorCombine>
+  <CValidatorUnitCompareBehaviorCount id="FenixTargetHasInhibitingEnergySlowDebuff">
+    <Behavior value="FenixPhaseBombInhibitingEnergySlow" />
+    <Compare value="GT" />
+  </CValidatorUnitCompareBehaviorCount>
   <CValidatorUnitCompareBehaviorCount id="FenixTargetHasPlasmaCutterSlow">
     <Value value="1" />
     <Behavior value="FenixPlasmaCutterSlow" />
