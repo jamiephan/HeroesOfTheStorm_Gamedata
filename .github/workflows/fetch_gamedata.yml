@@ -1,0 +1,147 @@
+name: Automatically Fetch Game Data Files
+on:
+  schedule:
+    - cron: "0 0 * * *"
+  workflow_dispatch:
+jobs:
+  auto-fetch-gamedata:
+    name: Automatically Fetch Game Data Files
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Check game version
+        run: |
+          if (Test-Path "./mods/core.stormmod/base.stormdata/buildid.txt") {
+            # Because the Content-Type is application/octet-stream, iwr automatically output as byte array
+            # So need to convert it back to string
+            $region = "us"
+
+            $response = Invoke-WebRequest "http://us.patch.battle.net:1119/hero/versions" -UseBasicParsing
+            $response = [System.Text.Encoding]::UTF8.GetString($response.Content)
+            $response = $response -split "\n" | Select-String -Pattern '^#' -NotMatch
+            $header = $response[0]
+            # remove first line header
+            $null, $configs = $response
+
+            $buildIdIndex = -1
+            $regionIndex = -1
+            
+            for ($i = 0; $i -lt ($header -split "\|").Count; $i++) {
+              $key = ($header -split "\|")[$i]
+
+              if ($key.ToLower() -like "region!*") {
+                $regionIndex = $i
+              }
+              if ($key.ToLower() -like "buildid!*") {
+                $buildIdIndex = $i
+              }
+            }
+
+            # Loops each config (region)
+            foreach ($config in $configs) {
+              $regionExtracted = ($config -split "\|")[$regionIndex]
+              if ($regionExtracted -eq $region) {
+                $buildIdExtracted = ($config -split "\|")[$buildIdIndex]
+                $modsBuild = Get-Content "./mods/core.stormmod/base.stormdata/buildid.txt"
+                Write-Output "$regionExtracted, buildidtxt: $modsBuild, uptsream: B$buildIdExtracted"
+                if ($modsBuild -eq ("B" + $buildIdExtracted)) {
+                  Write-Error -Message "Current Gamedata is up to date. Abort." -ErrorAction Stop
+                  break
+                }
+              }
+            }
+          }
+      - name: Download and Install Battle.net
+        run: |
+          $ErrorView = 'NormalView'
+          Write-Output $(Invoke-WebRequest "https://ipinfo.io/json").Content
+          Invoke-WebRequest -Uri "https://us.battle.net/download/getInstaller?os=win&installer=Battle.net-Setup.exe" -OutFile "C:\Battle.net-Setup.exe"
+          Cscript.exe "./.github/workflows/install_bnet.vbs" //nologo
+          Get-Process | Where {$_.MainWindowTitle} | Select-Object ProcessName, MainWindowTitle
+      - name: Installing Heroes Of the Storm
+        run: |
+          Invoke-WebRequest -Uri "https://github.com/jamiephan/Battle.Net-Installer/releases/latest/download/BNetInstaller.exe" -OutFile "C:\BNetInstaller.exe"
+          & "C:\BNetInstaller.exe" --prod "hero" --lang "enus" --dir "C:/hero"
+      - name: Setup WSL
+        uses: Vampire/setup-wsl@v1
+        with:
+          distribution: Ubuntu-20.04
+          additional-packages: cmake libbz2-dev zlib1g-dev python build-essential curl git
+      - name: Installing storm-extract
+        shell: wsl-bash_Ubuntu-20.04 {0}
+        run: |
+          git clone https://github.com/nydus/storm-extract /storm-extract
+          cd /storm-extract
+          git submodule init
+          git submodule update
+          mkdir build
+          cd build
+          cmake ..
+          make
+          cp /storm-extract/build/bin/storm-extract /usr/bin/storm-extract
+          cp /storm-extract/build/bin/libcasc.so.1 /usr/lib/libcasc.so.1
+
+      - name: Delete the mods folder
+        run: |
+          if (Test-Path "./mods") { Remove-Item "./mods" -Recurse -Force; }
+      - name: Extracting Game files
+        shell: wsl-bash_Ubuntu-20.04 {0}
+        run: |
+          storm-extract -i "/mnt/c/hero/HeroesData" -o "." -v -t "xml" -x
+          storm-extract -i "/mnt/c/hero/HeroesData" -o "." -v -t "txt" -x
+          storm-extract -i "/mnt/c/hero/HeroesData" -o "." -v -t "galaxy" -x
+          storm-extract -i "/mnt/c/hero/HeroesData" -o "." -v -t "StormLayout" -x
+          storm-extract -i "/mnt/c/hero/HeroesData" -o "." -v -t "StormHotkeys" -x
+          storm-extract -i "/mnt/c/hero/HeroesData" -o "." -v -t "StormStyle" -x
+          storm-extract -i "/mnt/c/hero/HeroesData" -o "." -v -t "StormCutscene" -x
+          storm-extract -i "/mnt/c/hero/HeroesData" -o "." -v -t "StormComponents" -x
+          storm-extract -i "/mnt/c/hero/HeroesData" -o "." -v -t "StormLocale" -x
+
+      - name: Generate XSD File
+        run: |
+          # Check if tree is not clean
+          if($(&git status --porcelain) -ne $null) {
+            $gameVersion = [regex]::match($(Get-Content "C:/hero/.build.info"), "\|\|\|(.*)").Groups[1].Value
+            New-Item -Path "./_temp_" -ItemType "Directory" | Out-Null
+            if (-Not (Test-Path "./xsd")) {
+              New-Item -Path "./xsd" -ItemType "Directory" | Out-Null
+            }
+            Write-Output "Copying XML files to temp"
+            Get-ChildItem -Path "./mods" -Filter *.xml -Recurse -File | ForEach-Object {
+              $filePath = $_.FullName
+              $filePathHash = $(Get-FileHash -Path $filePath -Algorithm "md5").Hash
+              Copy-Item -Path $filePath "./_temp_/$filePathHash.xml"  -Force
+            }
+            Write-Output "Generating XDS File"
+            &java -jar "./trang.jar" -I xml -O xsd "./_temp_/*.xml" "./xsd/$gameVersion.xsd"
+            
+            # Replace latest.xsd 
+            if (Test-Path "./xsd/latest.xsd") {
+              Remove-Item "./xsd/latest.xsd" -Recurse -Force
+            }
+            &java -jar "./trang.jar" -I xml -O xsd "./_temp_/*.xml" "./xsd/latest.xsd"
+          }
+      - name: Push Changes to Github
+        run: |
+          # Check if tree is not clean
+          if($(&git status --porcelain) -ne $null) {
+            $gameVersion = [regex]::match($(Get-Content "C:/hero/.build.info"), "\|\|\|(.*)").Groups[1].Value
+            git config --global user.name 'Jamie Phan'
+            git config --global user.email '9488815+jamiephan@users.noreply.github.com'
+            
+            git add "./mods"
+            git add "./xsd"
+            git commit -m "Updated Files to $gameVersion"
+
+            $commitHash = $(&git log --format="%H" -n 1)
+            &git tag -a "v$gameVersion" "$commitHash" -m "Game Version: $gameVersion"
+
+            Add-Content "./VERSIONS.md" -Value "`n- $gameVersion`: [``Commit``](https://github.com/jamiephan/HeroesOfTheStorm_Gamedata/commit/$commitHash) | [``Tag``](https://github.com/jamiephan/HeroesOfTheStorm_Gamedata/releases/tag/v$gameVersion)  | [``XSD``](./xsd/$gameVersion.xsd)"
+            git add "./VERSIONS.md"
+            git commit -m "Updated VERSION.md with $gameVersion"
+            git push
+            git push --tags
+          } else {
+            Write-Output "No changes have been made to git. No updates were found"
+          }
