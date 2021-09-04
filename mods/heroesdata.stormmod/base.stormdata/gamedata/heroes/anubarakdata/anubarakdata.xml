@@ -1,5 +1,16 @@
 <?xml version="1.0" encoding="us-ascii"?>
 <Catalog>
+  <CAbilEffectInstant id="AnubarakTheTraitorKing">
+    <PrepEffect value="DismountDecloakCasterSet" />
+    <Effect value="AnubarakTheTraitorKingApplyBuff" />
+    <Flags index="NoDeceleration" value="1" />
+    <Cost>
+      <Cooldown TimeUse="60" />
+    </Cost>
+    <CmdButtonArray index="Execute" DefaultButtonFace="AnubarakTheTraitorKing">
+      <Flags index="AllowSelfCast" value="1" />
+    </CmdButtonArray>
+  </CAbilEffectInstant>
   <CAbilEffectInstant id="AnubarakLegionOfBeetlesVisual">
     <Effect value="AnubarakLegionofBeetlesVisualDummySet" />
     <Flags index="ValidateButtonState" value="0" />
@@ -145,6 +156,12 @@
     <ProducedUnitArray value="AnubarakBeetleSpitBeetle" />
     <CmdButtonArray index="Execute" DefaultButtonFace="AnubarakScarabHostTrait" Requirements="AnubarakHasLegionOfBeetlesController" PreemptLevel="-1" />
   </CAbilEffectInstant>
+  <CAccumulatorToken id="AnubarakCocoonCryptweaveDamageAccumulator" parent="BaseTokenAccumulator">
+    <MaxAccumulation value="13" />
+    <TokenId value="AnubarakCocoonCryptweaveTokenCounter" />
+    <ApplicationRule value="Add" />
+    <UnitSource Value="Target" />
+  </CAccumulatorToken>
   <CActorSound id="AnubarakBurningBeetlesImpactSound" parent="SoundOneShot" />
   <CActorModel id="AnubarakBurningBeetlesBuff" parent="StormModelAddition">
     <Macros value="RemovePolymorphMacroEffects" />
@@ -867,6 +884,59 @@
     <Missile value="AnubarakScarabHostBeetleMissile" />
     <ActionFlags index="ImpactSuppressUnitSound" value="1" />
   </CActorAction>
+  <CBehaviorAbility id="AnubarakTheTraitorKingBehaviorAbility">
+    <Buttons Face="AnubarakTheTraitorKing" Type="AbilCmd" AbilCmd="AnubarakTheTraitorKing,Execute" />
+  </CBehaviorAbility>
+  <CBehaviorBuff id="AnubarakTheTraitorKingBuff" parent="StormArmor">
+    <Alignment value="Positive" />
+    <InfoIcon value="Assets\Textures\storm_ui_icon_Talent_Resistance.dds" />
+    <Duration value="4" />
+    <ArmorModification>
+      <AllArmorBonus value="75" />
+    </ArmorModification>
+    <BehaviorCategories index="BuffResistant" value="1" />
+  </CBehaviorBuff>
+  <CBehaviorBuff id="AnubarakTheTraitorKingPassiveBuff">
+    <Alignment value="Positive" />
+    <BehaviorFlags index="Permanent" value="1" />
+    <BehaviorFlags index="EnabledWhileDead" value="1" />
+    <Modification>
+      <VitalMaxFractionArray index="Life" value="0.1" />
+    </Modification>
+    <ArmorModification StackCount="1">
+      <ArmorSet index="Hero">
+        <ArmorMitigationTable index="Ability" value="20" />
+      </ArmorSet>
+      <ArmorSet index="Merc">
+        <ArmorMitigationTable index="Ability" value="20" />
+      </ArmorSet>
+      <ArmorSet index="Monster">
+        <ArmorMitigationTable index="Ability" value="20" />
+      </ArmorSet>
+      <ArmorSet index="Summon">
+        <ArmorMitigationTable index="Ability" value="20" />
+      </ArmorSet>
+      <ArmorSet index="Structure">
+        <ArmorMitigationTable index="Ability" value="20" />
+      </ArmorSet>
+      <ArmorSet index="Minion">
+        <ArmorMitigationTable index="Ability" value="20" />
+      </ArmorSet>
+    </ArmorModification>
+  </CBehaviorBuff>
+  <CBehaviorTokenCounter id="AnubarakCocoonCryptweaveTokenCounter" parent="StormGenericToken">
+    <InfoFlags index="Hidden" value="1" />
+    <Max value="13" />
+  </CBehaviorTokenCounter>
+  <CBehaviorBuff id="AnubarakCocoonCryptweaveDoTBehavior" parent="StormDot">
+    <Duration value="4.0625" />
+    <Period value="1" />
+    <PeriodicEffect value="AnubarakCocoonCryptweaveDoTDamagePeriodicSet" />
+    <InitialEffect value="AnubarakCocoonCryptweaveDoTDamageInitialSet" />
+    <FinalEffect value="AnubarakCocoonCryptweaveDoTDamageFinalSet" />
+    <PeriodicDisplayEffect value="AnubarakCocoonCryptweaveDoTDamage" />
+    <PeriodCount value="4" />
+  </CBehaviorBuff>
   <CBehaviorBuff id="AnubarakBurningBeetlesHero">
     <Alignment value="Positive" />
     <BehaviorFlags index="Permanent" value="1" />
@@ -1209,13 +1279,16 @@
     <FinalEffect value="AnubarakCocoonImpactSet" />
   </CBehaviorBuff>
   <CBehaviorBuff id="AnubarakCocoonWebbed" parent="StormStasisIceBlock">
-    <InitialEffect value="AnubarakWebCocoonCreateUnitSwitch" />
+    <InitialEffect value="AnubarakCocoonWebbedInitialSet" />
+    <FinalEffect value="AnubarakCocoonCryptweaveApplyDoTBehavior" />
     <Modification AlliedPushPriority="6001">
       <StateFlags index="UnitAttrOnImmuneToFriendlyAbilities" value="1" />
       <StateFlags index="SuppressCollision" value="1" />
     </Modification>
     <BehaviorCategories index="HideNameplate" value="1" />
     <BehaviorCategories index="HostileStasisRemoved" value="1" />
+    <Period value="1" />
+    <PeriodicEffect value="AnubarakCocoonCryptweaveIncrementToken" />
   </CBehaviorBuff>
   <CBehaviorBuff id="AnubarakCocoonWebRevealer">
     <RevealUnit Effect="AnubarakCocoonUnitSpawnSet" Value="Target" />
@@ -1307,6 +1380,9 @@
       <UnifiedMoveSpeedFactor value="0.3" />
     </Modification>
   </CBehaviorBuff>
+  <CButton id="AnubarakTheTraitorKing" parent="StormButtonParent">
+    <Icon value="Assets\Textures\storm_ui_icon_Talent_HardenedShield.dds" />
+  </CButton>
   <CButton id="AnubarakBeetleSpitBeetleJuiceTalentHotbar" parent="StormButtonParent">
     <Icon value="Assets\Textures\storm_ui_icon_Anubarak_ScarabHost.dds" />
     <HotkeyAlias value="AnubarakBeetleSpitBeetleJuiceTalent" />
@@ -1442,6 +1518,41 @@
     <Color value="255,64,0,128" />
     <Unit value="HeroAnubarak" />
   </CCharacter>
+  <CEffectApplyBehavior id="AnubarakTheTraitorKingApplyBuff">
+    <WhichUnit Value="Caster" />
+    <Behavior value="AnubarakTheTraitorKingBuff" />
+  </CEffectApplyBehavior>
+  <CEffectSet id="AnubarakCocoonWebbedInitialSet">
+    <EffectArray value="AnubarakCocoonCryptweaveApplyTokenCounter" />
+    <EffectArray value="AnubarakWebCocoonCreateUnitSwitch" />
+  </CEffectSet>
+  <CEffectModifyTokenCount id="AnubarakCocoonCryptweaveIncrementToken" parent="BaseEffectModifyTokenCount">
+    <TokenId value="AnubarakCocoonCryptweaveTokenCounter" />
+    <WhichUnit Value="Target" />
+  </CEffectModifyTokenCount>
+  <CEffectApplyBehavior id="AnubarakCocoonCryptweaveApplyTokenCounter">
+    <Behavior value="AnubarakCocoonCryptweaveTokenCounter" />
+    <Chance value="0" />
+  </CEffectApplyBehavior>
+  <CEffectRemoveBehavior id="AnubarakCocoonCryptweaveRemoveTokenCounter">
+    <BehaviorLink value="AnubarakCocoonCryptweaveTokenCounter" />
+  </CEffectRemoveBehavior>
+  <CEffectApplyBehavior id="AnubarakCocoonCryptweaveApplyDoTBehavior">
+    <Behavior value="AnubarakCocoonCryptweaveDoTBehavior" />
+    <Chance value="0" />
+  </CEffectApplyBehavior>
+  <CEffectSet id="AnubarakCocoonCryptweaveDoTDamagePeriodicSet">
+    <EffectArray value="AnubarakCocoonCryptweaveDoTDamage" />
+  </CEffectSet>
+  <CEffectSet id="AnubarakCocoonCryptweaveDoTDamageInitialSet" />
+  <CEffectSet id="AnubarakCocoonCryptweaveDoTDamageFinalSet">
+    <EffectArray value="AnubarakCocoonCryptweaveRemoveTokenCounter" />
+  </CEffectSet>
+  <CEffectDamage id="AnubarakCocoonCryptweaveDoTDamage" parent="StormSpellDot">
+    <Amount value="12.5" />
+    <SourceButtonFace value="AnubarakCryptweaveCocoonTalent" />
+    <MultiplicativeModifierArray index="Cryptweave" Validator="AnubarakHasAnubarakCryptweaveCocoon" Accumulator="AnubarakCocoonCryptweaveDamageAccumulator" />
+  </CEffectDamage>
   <CEffectEnumArea id="AnubarakBurningBeetlesSearch">
     <ImpactLocation Value="SourceUnit" />
     <SearchFilters value="-;Self,Player,Ally,Neutral,ImmuneToAOE,Missile,Stasis,Dead,Hidden,Invulnerable" />
@@ -1754,11 +1865,11 @@
   <CEffectDamage id="AnubarakLocustSwarmDamageDummy" />
   <CEffectCreateHealer id="AnubarakLocustSwarmMasteryCreateHealer" parent="StormSelfOnlyHealingSpell">
     <ImpactUnit Value="Caster" />
-    <RechargeVitalRate value="50" />
+    <RechargeVitalRate value="80" />
   </CEffectCreateHealer>
   <CEffectDamage id="AnubarakLocustSwarmMasteryDamage" parent="StormSpellNoTowerAggro">
     <DamageModifierSource Effect="AnubarakLocustSwarmMasteryLaunchMissile" />
-    <Amount value="153" />
+    <Amount value="165" />
   </CEffectDamage>
   <CEffectSet id="AnubarakLocustSwarmMasteryImpactSet">
     <EffectArray value="AnubarakLocustSwarmMasteryDamage" />
@@ -2554,7 +2665,7 @@
     <TalentTreeArray Talent="AnubarakCocoonCryptweave" Tier="7" Column="2">
       <PrerequisiteTalentArray value="AnubarakHeroicAbilityCocoon" />
     </TalentTreeArray>
-    <TalentTreeArray Talent="GenericTalentHardenedShield" Tier="7" Column="3" />
+    <TalentTreeArray Talent="AnubarakTheTraitorKing" Tier="7" Column="3" />
     <TalentTreeArray Talent="GenericTalentRewind" Tier="7" Column="4" />
     <TalentAIBuildsArray ChanceToPick="16">
       <TalentsArray value="AnubarakCombatStyleLegionOfBeetles" />
@@ -2563,7 +2674,7 @@
       <TalentsArray value="AnubarakLocustSwarm" />
       <TalentsArray value="AnubarakBurningBeetles" />
       <TalentsArray value="AnubarakScarabHostBeetleJuiced" />
-      <TalentsArray value="GenericTalentHardenedShield" />
+      <TalentsArray value="AnubarakTheTraitorKing" />
     </TalentAIBuildsArray>
     <TalentAIBuildsArray ChanceToPick="16">
       <TalentsArray value="AnubarakNerubianArmor" />
@@ -2581,7 +2692,7 @@
       <TalentsArray value="AnubarakLocustSwarm" />
       <TalentsArray value="AnubarakMasteryUrticatingSpines" />
       <TalentsArray value="AnubarakDebilitation" />
-      <TalentsArray value="GenericTalentHardenedShield" />
+      <TalentsArray value="AnubarakTheTraitorKing" />
     </TalentAIBuildsArray>
     <TalentAIBuildsArray ChanceToPick="16">
       <TalentsArray value="AnubarakNerubianArmor" />
@@ -2778,6 +2889,16 @@
       <Modifications>
         <Catalog value="Effect" />
         <Entry value="AnubarakBurningBeetlesDamage" />
+        <Field value="Amount" />
+        <Value value="0.040000" />
+        <AffectedByAbilityPower value="1" />
+        <AffectedByOverdrive value="1" />
+      </Modifications>
+    </LevelScalingArray>
+    <LevelScalingArray Ability="AnubarakCocoon">
+      <Modifications>
+        <Catalog value="Effect" />
+        <Entry value="AnubarakCocoonCryptweaveDoTDamage" />
         <Field value="Amount" />
         <Value value="0.040000" />
         <AffectedByAbilityPower value="1" />
@@ -3263,6 +3384,15 @@
     <AssetArray File="Assets\Sounds\Talents\Talent_BurningRage_Launch01.wav" />
     <Volume value="-9.000000,-9.000000" />
   </CSound>
+  <CTalent id="AnubarakTheTraitorKing">
+    <Face value="AnubarakTheTraitorKing" />
+    <Abil value="AnubarakTheTraitorKing" />
+    <RankArray>
+      <BehaviorArray value="AnubarakTheTraitorKingPassiveBuff" />
+      <BehaviorArray value="AnubarakTheTraitorKingBehaviorAbility" />
+    </RankArray>
+    <Active value="1" />
+  </CTalent>
   <CTalent id="AnubarakBurningBeetles">
     <Face value="AnubarakBurningBeetlesTalent" />
     <RankArray>
@@ -3360,6 +3490,20 @@
         <Type value="FlatModification" />
         <Catalog value="Effect" />
         <Entry value="AnubarakCocoonCryptweaverRangeIndicatorApplyBehavior" />
+        <Field value="Chance" />
+        <Value value="1.000000" />
+      </Modifications>
+      <Modifications>
+        <Type value="FlatModification" />
+        <Catalog value="Effect" />
+        <Entry value="AnubarakCocoonCryptweaveApplyDoTBehavior" />
+        <Field value="Chance" />
+        <Value value="1.000000" />
+      </Modifications>
+      <Modifications>
+        <Type value="FlatModification" />
+        <Catalog value="Effect" />
+        <Entry value="AnubarakCocoonCryptweaveApplyTokenCounter" />
         <Field value="Chance" />
         <Value value="1.000000" />
       </Modifications>

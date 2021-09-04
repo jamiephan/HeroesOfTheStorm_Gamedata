@@ -159,10 +159,6 @@
     <On Terms="Behavior.DryadHippityHopCarryBehavior.On" Send="Create" />
     <On Terms="Behavior.DryadHippityHopCarryBehavior.Off" Send="Destroy" />
   </CActorModel>
-  <CActorModel id="DryadBlossomSwellMovementSpeedRibbon" parent="StormMoveSpeedRibbon">
-    <On Terms="Behavior.DryadNoxiousBlossomBlossomSwellMovementSpeedBuff.On" Send="Create" />
-    <On Terms="Behavior.DryadNoxiousBlossomBlossomSwellMovementSpeedBuff.Off" Send="Destroy" />
-  </CActorModel>
   <CActorRange id="DryadStarwoodSpearActiveRange" parent="RangeWeapon" weapon="DryadHeroRangedWeaponStarwoodSpearMastery">
     <Filter index="All" value="1" />
     <VisibleTo index="Self" value="1" />
@@ -864,13 +860,6 @@
   <CActorSound id="CripplingSporesWildVigorImpactSound" parent="SoundContinuous">
     <Sound value="Dryad_Attack_WildVigor_Impact" />
   </CActorSound>
-  <CBehaviorBuff id="DryadNoxiousBlossomBlossomSwellMovementSpeedBuff" parent="StormSprint">
-    <DisplayDuration index="Self" value="1" />
-    <Duration value="3" />
-    <Modification>
-      <AdditiveMoveSpeedFactor value="0.15" />
-    </Modification>
-  </CBehaviorBuff>
   <CBehaviorAbility id="DryadGreaterSpellShield">
     <Buttons Face="DryadGreaterSpellShieldItemEnabled" Type="AbilCmd" AbilCmd="DryadGreaterSpellShield,On" />
     <Buttons Face="DryadGreaterSpellShieldItemDisabled" Type="AbilCmd" AbilCmd="DryadGreaterSpellShield,Off" />
@@ -1451,11 +1440,10 @@
     <Variations Model="DryadPortrait" Actor="DryadPortrait" />
     <Unit value="HeroDryad" />
   </CCharacter>
-  <CEffectApplyBehavior id="DryadNoxiousBlossomBlossomSwellMovementSpeedBuffApplyBehavior">
-    <ValidatorArray index="0" value="DryadHasBlossomSwellTalent" />
-    <ValidatorArray value="TargetIsHero" />
-    <WhichUnit Value="Caster" />
-    <Behavior value="DryadNoxiousBlossomBlossomSwellMovementSpeedBuff" />
+  <CEffectApplyBehavior id="DryadNoxiousBlossomBlossomSwellNaturesToxinApplyStack">
+    <ValidatorArray index="0" value="DryadNaturesToxinApplyDebuffTargetFilters" />
+    <ValidatorArray value="DryadHasBlossomSwellTalent" />
+    <Behavior value="DryadNaturesToxin" />
   </CEffectApplyBehavior>
   <CEffectApplyBehavior id="DryadWispBrushBonusVisionApplyBehavior">
     <ValidatorArray index="0" value="SourceInShrub" />
@@ -1530,7 +1518,7 @@
     <TrackedUnit Value="Target" />
   </CEffectAddTrackedUnit>
   <CEffectModifyUnit id="DryadAcceleratedContaminationModifyCooldown">
-    <Cost Abil="DryadNoxiousBlossom,Execute" CooldownOperation="Add" CooldownTimeUse="-0.0625" />
+    <Cost Abil="DryadNoxiousBlossom,Execute" CooldownOperation="Add" CooldownTimeUse="-0.0468" />
   </CEffectModifyUnit>
   <CEffectRemoveTrackedUnit id="DryadAcceleratedContaminationRemoveUnitTracker">
     <BehaviorLink value="DryadAcceleratedContaminationUnitTracker" />
@@ -1903,8 +1891,8 @@
   <CEffectSet id="DryadNoxiousBlossomImpactSet">
     <EffectArray value="DryadNoxiousBlossomDamageSwitch" />
     <EffectArray value="DryadNaturesToxinDebuffSet" />
+    <EffectArray value="DryadNoxiousBlossomBlossomSwellNaturesToxinApplyStack" />
     <EffectArray value="ApplyAbilityImpactReveal" />
-    <EffectArray value="DryadNoxiousBlossomBlossomSwellMovementSpeedBuffApplyBehavior" />
   </CEffectSet>
   <CEffectEnumArea id="DryadNoxiousBlossomSearch">
     <SearchFilters value="-;Self,Player,Ally,ImmuneToAOE,Missile,Stasis,Dead,Hidden,Invulnerable" />
@@ -3313,6 +3301,27 @@
         <Field value="Chance" />
         <Value value="1.000000" />
       </Modifications>
+      <Modifications>
+        <Type value="FlatModification" />
+        <Catalog value="Weapon" />
+        <Entry value="DryadHeroRangedWeapon" />
+        <Field value="Range" />
+        <Value value="0.500000" />
+      </Modifications>
+      <Modifications>
+        <Type value="FlatModification" />
+        <Catalog value="Weapon" />
+        <Entry value="DryadHeroRangedWeapon" />
+        <Field value="MinScanRange" />
+        <Value value="0.500000" />
+      </Modifications>
+      <Modifications>
+        <Type value="FlatModification" />
+        <Catalog value="Effect" />
+        <Entry value="DryadHeroWeaponSplinteredSpearMasterySearch" />
+        <Field value="AreaArray[0].Radius" />
+        <Value value="0.500000" />
+      </Modifications>
     </AbilityModificationArray>
   </CTalent>
   <CTalent id="DryadTimelostWisp">
@@ -3599,7 +3608,7 @@
   </CValidatorCompareTrackedUnitsCount>
   <CValidatorCompareTrackedUnitsCount id="DryadHasGreaterthanorEqualto2AcceleratedConramination">
     <Compare value="GE" />
-    <Value value="2" />
+    <Value value="1" />
     <BehaviorLink value="DryadAcceleratedContaminationUnitTracker" />
   </CValidatorCompareTrackedUnitsCount>
   <CValidatorPlayerTalent id="DryadHasEndlessSpores">

@@ -24,6 +24,8 @@ void libDNCM_InitLibraries () {
 bool libDNCM_InitVariables_completed = false;
 
 void libDNCM_InitVariables () {
+    int init_i;
+
     if (libDNCM_InitVariables_completed) {
         return;
     }
@@ -56,6 +58,9 @@ void libDNCM_InitVariables () {
     libDNCM_gv_dEBUGDayNightCycleTime = 120.0;
     libDNCM_gv_dEBUGDayNightCycleDayTimeModifier = 60.0;
     libDNCM_gv_dEBUGDayNightCycleIsDayTime = true;
+    for (init_i = 0; init_i <= 10; init_i += 1) {
+        libDNCM_gv_nightSoundTimer[init_i] = TimerCreate();
+    }
 }
 
 // Presets
@@ -1531,6 +1536,121 @@ void libDNCM_gt_DEBUGDayNightCycleTimerExpires_Init () {
     TriggerAddEventTimer(libDNCM_gt_DEBUGDayNightCycleTimerExpires, libDNCM_gv_dEBUGDayNightCycleCycleTimer);
 }
 
+//--------------------------------------------------------------------------------------------------
+// Trigger: Debug - Initiate Sound Test
+//--------------------------------------------------------------------------------------------------
+bool libDNCM_gt_DebugInitiateSoundTest_Func (bool testConds, bool runActions) {
+    // Variable Declarations
+    fixed[11] lv_r;
+    int lv_t;
+    int lv_i;
+    fixed lv_rbonus;
+
+    // Automatic Variable Declarations
+    const int autoD4A53AF1_ae = 10;
+    const int autoD4A53AF1_ai = 1;
+    const int autoF115E31B_ae = 10;
+    const int autoF115E31B_ai = 1;
+
+    // Variable Initialization
+
+    // Actions
+    if (!runActions) {
+        return true;
+    }
+
+    lv_t = 1;
+    for ( ; ( (autoD4A53AF1_ai >= 0 && lv_t <= autoD4A53AF1_ae) || (autoD4A53AF1_ai < 0 && lv_t >= autoD4A53AF1_ae) ) ; lv_t += autoD4A53AF1_ai ) {
+        lv_r[lv_t] = (RandomFixed(10.0, 35.0) + lv_rbonus);
+        lv_rbonus += RandomFixed(60.0, 180.0);
+    }
+    lv_i = 1;
+    for ( ; ( (autoF115E31B_ai >= 0 && lv_i <= autoF115E31B_ae) || (autoF115E31B_ai < 0 && lv_i >= autoF115E31B_ae) ) ; lv_i += autoF115E31B_ai ) {
+        TimerStart(libDNCM_gv_nightSoundTimer[lv_i], lv_r[lv_i], false, c_timeGame);
+    }
+    return true;
+}
+
+//--------------------------------------------------------------------------------------------------
+void libDNCM_gt_DebugInitiateSoundTest_Init () {
+    libDNCM_gt_DebugInitiateSoundTest = TriggerCreate("libDNCM_gt_DebugInitiateSoundTest_Func");
+    TriggerAddEventMapInit(libDNCM_gt_DebugInitiateSoundTest);
+}
+
+//--------------------------------------------------------------------------------------------------
+// Trigger: Debug - Sound Timer Expires
+//--------------------------------------------------------------------------------------------------
+bool libDNCM_gt_DebugSoundTimerExpires_Func (bool testConds, bool runActions) {
+    // Variable Declarations
+    int lv_r;
+    int lv_p;
+
+    // Automatic Variable Declarations
+    timer auto51B59240_val;
+
+    // Variable Initialization
+    lv_r = RandomInt(0, 100);
+
+    // Actions
+    if (!runActions) {
+        return true;
+    }
+
+    auto51B59240_val = EventTimer();
+    if (auto51B59240_val == libDNCM_gv_nightSoundTimer[1]) {
+        lv_p = 1;
+    }
+    else if (auto51B59240_val == libDNCM_gv_nightSoundTimer[2]) {
+        lv_p = 2;
+    }
+    else if (auto51B59240_val == libDNCM_gv_nightSoundTimer[3]) {
+        lv_p = 3;
+    }
+    else if (auto51B59240_val == libDNCM_gv_nightSoundTimer[4]) {
+        lv_p = 4;
+    }
+    else if (auto51B59240_val == libDNCM_gv_nightSoundTimer[5]) {
+        lv_p = 5;
+    }
+    else if (auto51B59240_val == libDNCM_gv_nightSoundTimer[6]) {
+        lv_p = 6;
+    }
+    else if (auto51B59240_val == libDNCM_gv_nightSoundTimer[7]) {
+        lv_p = 7;
+    }
+    else if (auto51B59240_val == libDNCM_gv_nightSoundTimer[8]) {
+        lv_p = 8;
+    }
+    else if (auto51B59240_val == libDNCM_gv_nightSoundTimer[9]) {
+        lv_p = 9;
+    }
+    else if (auto51B59240_val == libDNCM_gv_nightSoundTimer[10]) {
+        lv_p = 10;
+    }
+    else {
+    }
+    if ((lv_r <= 100)) {
+        SoundPlayAtPointForPlayer(SoundLink("Night_Sound_Test", -1), c_maxPlayers, PlayerGroupSingle(lv_p), PointWithOffset(UnitGetPosition(libGame_gv_players[lv_p].lv_heroUnit), RandomFixed(-12.0, 12.0), RandomFixed(-12.0, 12.0)), 0.0, RandomFixed(15.0, 33.0), 0.0);
+    }
+
+    return true;
+}
+
+//--------------------------------------------------------------------------------------------------
+void libDNCM_gt_DebugSoundTimerExpires_Init () {
+    libDNCM_gt_DebugSoundTimerExpires = TriggerCreate("libDNCM_gt_DebugSoundTimerExpires_Func");
+    TriggerAddEventTimer(libDNCM_gt_DebugSoundTimerExpires, libDNCM_gv_nightSoundTimer[1]);
+    TriggerAddEventTimer(libDNCM_gt_DebugSoundTimerExpires, libDNCM_gv_nightSoundTimer[2]);
+    TriggerAddEventTimer(libDNCM_gt_DebugSoundTimerExpires, libDNCM_gv_nightSoundTimer[3]);
+    TriggerAddEventTimer(libDNCM_gt_DebugSoundTimerExpires, libDNCM_gv_nightSoundTimer[4]);
+    TriggerAddEventTimer(libDNCM_gt_DebugSoundTimerExpires, libDNCM_gv_nightSoundTimer[5]);
+    TriggerAddEventTimer(libDNCM_gt_DebugSoundTimerExpires, libDNCM_gv_nightSoundTimer[6]);
+    TriggerAddEventTimer(libDNCM_gt_DebugSoundTimerExpires, libDNCM_gv_nightSoundTimer[7]);
+    TriggerAddEventTimer(libDNCM_gt_DebugSoundTimerExpires, libDNCM_gv_nightSoundTimer[8]);
+    TriggerAddEventTimer(libDNCM_gt_DebugSoundTimerExpires, libDNCM_gv_nightSoundTimer[9]);
+    TriggerAddEventTimer(libDNCM_gt_DebugSoundTimerExpires, libDNCM_gv_nightSoundTimer[10]);
+}
+
 void libDNCM_InitTriggers () {
     libDNCM_gt_PVPTrinketActivated_Init();
     libDNCM_gt_WeatherCoreUIHandler_Init();
@@ -1543,6 +1663,8 @@ void libDNCM_InitTriggers () {
     libDNCM_gt_DEBUGDayNightCycleTurnOnOffSystem_Init();
     libDNCM_gt_DEBUGDayNightCycleSetDayOrNight_Init();
     libDNCM_gt_DEBUGDayNightCycleTimerExpires_Init();
+    libDNCM_gt_DebugInitiateSoundTest_Init();
+    libDNCM_gt_DebugSoundTimerExpires_Init();
 }
 
 //--------------------------------------------------------------------------------------------------

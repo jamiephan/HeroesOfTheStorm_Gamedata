@@ -487,6 +487,76 @@ void libMSC2_gf_MMSC2BuiltWarheadSpawned (point lp_canisterSpawnLocation, int lp
     }
 }
 
+void libMSC2_gf_MMTodAddWaygate (int lp_waygateIndex, unit lp_waygateUnit, unit lp_topEntrance, unit lp_bottomEntrance) {
+    // Automatic Variable Declarations
+    // Implementation
+    if (((lp_waygateUnit == null) || (lp_topEntrance == null) || (lp_bottomEntrance == null))) {
+        TriggerDebugOutput(1, StringExternal("Param/Value/lib_MSC2_6202B8D5"), true);
+    }
+
+    if ((lp_waygateIndex > libMSC2_gv_mMFieldofSlaughterWaygateMaxCount_C)) {
+        TextExpressionSetToken("Param/Expression/lib_MSC2_3695B24F", "A", IntToText(libMSC2_gv_mMFieldofSlaughterWaygateMaxCount_C));
+        TriggerDebugOutput(1, TextExpressionAssemble("Param/Expression/lib_MSC2_3695B24F"), true);
+        return ;
+    }
+
+    libMSC2_gv_mMToDWaygates[lp_waygateIndex].lv_topWaygate = lp_topEntrance;
+    libNtve_gf_CreateUnitsWithDefaultFacing(1, "WaygateEntranceMinimapIconActor", c_unitCreateIgnorePlacement, libCore_gv_cOMPUTER_TeamOrder, UnitGetPosition(lp_topEntrance), null);
+    libNtve_gf_CreateUnitsWithDefaultFacing(1, "WaygateEntranceMinimapIconActor", c_unitCreateIgnorePlacement, libCore_gv_cOMPUTER_TeamChaos, UnitGetPosition(lp_topEntrance), null);
+    libMSC2_gv_mMToDWaygates[lp_waygateIndex].lv_bottomWaygate = lp_bottomEntrance;
+    libNtve_gf_CreateUnitsWithDefaultFacing(1, "WaygateEntranceMinimapIconActor", c_unitCreateIgnorePlacement, libCore_gv_cOMPUTER_TeamOrder, UnitGetPosition(lp_bottomEntrance), null);
+    libNtve_gf_CreateUnitsWithDefaultFacing(1, "WaygateEntranceMinimapIconActor", c_unitCreateIgnorePlacement, libCore_gv_cOMPUTER_TeamChaos, UnitGetPosition(lp_bottomEntrance), null);
+}
+
+void libMSC2_gf_MMToDActivateWaygates () {
+    // Variable Declarations
+    int lv_itWaygate;
+
+    // Automatic Variable Declarations
+    const int auto8005C6A1_ae = libMSC2_gv_mMFieldofSlaughterWaygateMaxCount_C;
+    const int auto8005C6A1_ai = 1;
+    const int auto22A05D4D_ae = libMSC2_gv_mMFieldofSlaughterWaygateMaxCount_C;
+    const int auto22A05D4D_ai = 1;
+
+    // Variable Initialization
+
+    // Implementation
+    lv_itWaygate = 1;
+    for ( ; ( (auto8005C6A1_ai >= 0 && lv_itWaygate <= auto8005C6A1_ae) || (auto8005C6A1_ai < 0 && lv_itWaygate >= auto8005C6A1_ae) ) ; lv_itWaygate += auto8005C6A1_ai ) {
+        if (true) {
+            libNtve_gf_SendActorMessageToUnit(libMSC2_gv_mMToDWaygates[lv_itWaygate].lv_topWaygate, "Signal EntranceActive");
+            libNtve_gf_SendActorMessageToUnit(libMSC2_gv_mMToDWaygates[lv_itWaygate].lv_bottomWaygate, "Signal EntranceActive");
+        }
+
+    }
+    libCore_gf_CreateMinimapPingStorm(libGame_gv_teams[libGame_gv_teamOrderIndex_C].lv_teamPlayerGroupNoNPCPlayers, "StormAlert", UnitGetPosition(libMSC2_gv_mMToDWaygates[1].lv_topWaygate), ColorWithAlpha(100.00, 100.00, 0.00, 0.00), 4.5);
+    libCore_gf_CreateMinimapPingStorm(libGame_gv_teams[libGame_gv_teamOrderIndex_C].lv_teamPlayerGroupNoNPCPlayers, "StormAlert", UnitGetPosition(libMSC2_gv_mMToDWaygates[1].lv_bottomWaygate), ColorWithAlpha(100.00, 100.00, 0.00, 0.00), 4.5);
+    libCore_gf_CreateMinimapPingStorm(libGame_gv_teams[libGame_gv_teamChaosIndex_C].lv_teamPlayerGroupNoNPCPlayers, "StormAlert", UnitGetPosition(libMSC2_gv_mMToDWaygates[1].lv_bottomWaygate), ColorWithAlpha(100.00, 100.00, 0.00, 0.00), 4.5);
+    libCore_gf_CreateMinimapPingStorm(libGame_gv_teams[libGame_gv_teamChaosIndex_C].lv_teamPlayerGroupNoNPCPlayers, "StormAlert", UnitGetPosition(libMSC2_gv_mMToDWaygates[1].lv_topWaygate), ColorWithAlpha(100.00, 100.00, 0.00, 0.00), 4.5);
+    Wait(3.5, c_timeGame);
+    lv_itWaygate = 1;
+    for ( ; ( (auto22A05D4D_ai >= 0 && lv_itWaygate <= auto22A05D4D_ae) || (auto22A05D4D_ai < 0 && lv_itWaygate >= auto22A05D4D_ae) ) ; lv_itWaygate += auto22A05D4D_ai ) {
+        if (true) {
+            UnitSetState(libMSC2_gv_mMToDWaygates[lv_itWaygate].lv_topWaygate, c_unitStateHighlightable, true);
+            UnitSetState(libMSC2_gv_mMToDWaygates[lv_itWaygate].lv_topWaygate, c_unitStateTargetable, true);
+            UnitBehaviorAdd(libMSC2_gv_mMToDWaygates[lv_itWaygate].lv_topWaygate, "MacguffinActivated", libMSC2_gv_mMToDWaygates[lv_itWaygate].lv_topWaygate, 1);
+            UnitBehaviorRemove(libMSC2_gv_mMToDWaygates[lv_itWaygate].lv_topWaygate, "UnitCannotBePinged", 1);
+            UnitSetState(libMSC2_gv_mMToDWaygates[lv_itWaygate].lv_bottomWaygate, c_unitStateHighlightable, true);
+            UnitSetState(libMSC2_gv_mMToDWaygates[lv_itWaygate].lv_bottomWaygate, c_unitStateTargetable, true);
+            UnitBehaviorAdd(libMSC2_gv_mMToDWaygates[lv_itWaygate].lv_bottomWaygate, "MacguffinActivated", libMSC2_gv_mMToDWaygates[lv_itWaygate].lv_bottomWaygate, 1);
+            UnitBehaviorRemove(libMSC2_gv_mMToDWaygates[lv_itWaygate].lv_bottomWaygate, "UnitCannotBePinged", 1);
+            AIAddPortal(libCore_gv_cOMPUTER_TeamOrder, libMSC2_gv_mMToDWaygates[lv_itWaygate].lv_topWaygate, libMSC2_gv_mMToDWaygates[lv_itWaygate].lv_bottomWaygate, 2.0, 0.0, "CaptureMacGuffinTwo", null);
+            AIAddPortal(libCore_gv_cOMPUTER_TeamChaos, libMSC2_gv_mMToDWaygates[lv_itWaygate].lv_bottomWaygate, libMSC2_gv_mMToDWaygates[lv_itWaygate].lv_topWaygate, 2.0, 0.0, "CaptureMacGuffinTwo", null);
+        }
+
+    }
+    TextTagCreate(StringExternal("Param/Value/lib_MSC2_738BDC22"), 20, UnitGetPosition(libMSC2_gv_mMToDWaygates[1].lv_topWaygate), 1.0, true, false, libCore_gv_allHeroPlayersPlusObserver);
+    TextTagShow(TextTagLastCreated(), libCore_gv_playerGroupFromPlayer[libCore_gv_oBSERVER_ObserverUIPlayer], false);
+    TextTagCreate(StringExternal("Param/Value/lib_MSC2_2EC773A5"), 20, UnitGetPosition(libMSC2_gv_mMToDWaygates[1].lv_bottomWaygate), 1.0, true, false, libCore_gv_allHeroPlayersPlusObserver);
+    TextTagShow(TextTagLastCreated(), libCore_gv_playerGroupFromPlayer[libCore_gv_oBSERVER_ObserverUIPlayer], false);
+    Wait(1.5, c_timeGame);
+}
+
 int libMSC2_gf_MMSC2NukeCountforTeam (int lp_team) {
     // Variable Declarations
     int lv_itPlayer;
@@ -1664,6 +1734,138 @@ void libMSC2_gt_MMSC2ObjectivePreviewTimerExpires_Init () {
 }
 
 //--------------------------------------------------------------------------------------------------
+// Trigger: MMSC2 Activate Waygates
+//--------------------------------------------------------------------------------------------------
+bool libMSC2_gt_MMSC2ActivateWaygates_Func (bool testConds, bool runActions) {
+    // Automatic Variable Declarations
+    // Actions
+    if (!runActions) {
+        return true;
+    }
+
+    Wait(2.0, c_timeGame);
+    libMSC2_gf_MMToDActivateWaygates();
+    return true;
+}
+
+//--------------------------------------------------------------------------------------------------
+void libMSC2_gt_MMSC2ActivateWaygates_Init () {
+    libMSC2_gt_MMSC2ActivateWaygates = TriggerCreate("libMSC2_gt_MMSC2ActivateWaygates_Func");
+    TriggerAddEventTimer(libMSC2_gt_MMSC2ActivateWaygates, libGame_gv_openTheGatesTimer);
+}
+
+//--------------------------------------------------------------------------------------------------
+// Trigger: MMToD Entered Waygate
+//--------------------------------------------------------------------------------------------------
+bool libMSC2_gt_MMToDEnteredWaygate_Func (bool testConds, bool runActions) {
+    // Variable Declarations
+    int lv_computerTeam;
+    unit lv_hero;
+    point lv_heroPreTeleportPosition;
+    unit lv_waygateEntrance;
+    int lv_itWaygate;
+    int lv_player;
+    string lv_mountCooldownLink;
+    int lv_teleportingUnitTypeIndex;
+    unit lv_teleportingUnit;
+
+    // Automatic Variable Declarations
+    const int auto2D8F4586_ae = libMSC2_gv_mMFieldofSlaughterWaygateMaxCount_C;
+    const int auto2D8F4586_ai = 1;
+    unit auto6BD862A7_val;
+
+    // Variable Initialization
+    lv_hero = EventPlayerEffectUsedUnit(c_effectUnitCaster);
+    lv_heroPreTeleportPosition = UnitGetPosition(lv_hero);
+    lv_waygateEntrance = EventPlayerEffectUsedUnit(c_effectUnitTarget);
+    lv_player = UnitGetOwner(lv_hero);
+    lv_mountCooldownLink = "";
+
+    // Conditions
+    if (testConds) {
+        if (!((libGame_gf_UnitIsHero(lv_hero) == true))) {
+            return false;
+        }
+
+        if (!((UnitGetType(lv_waygateEntrance) == "WaygateEntrance"))) {
+            return false;
+        }
+    }
+
+    // Actions
+    if (!runActions) {
+        return true;
+    }
+
+    if ((libGame_gf_TeamNumberOfPlayer(UnitGetOwner(lv_hero)) == 1)) {
+        lv_computerTeam = libCore_gv_cOMPUTER_TeamOrder;
+    }
+    else {
+        lv_computerTeam = libCore_gv_cOMPUTER_TeamChaos;
+    }
+    UnitCreateEffectPoint(lv_hero, "TeleportVisualDummyEffect", UnitGetPosition(lv_hero));
+    UnitIssueOrder(lv_hero, Order(AbilityCommand("stop", 0)), c_orderQueueReplace);
+    libNtve_gf_MakeUnitUncommandable(lv_hero, true);
+    libNtve_gf_SendActorMessageToUnit(lv_hero, "Signal InvisibleModel");
+    UnitSetState(lv_hero, c_unitStateTargetable, false);
+    UnitBehaviorAdd(lv_hero, "WaygateUnstoppable", lv_hero, 1);
+    if ((libGame_gv_players[lv_player].lv_remountHeroAfterTeleport == true)) {
+        libGame_gf_ApplyMountBehaviorToHero(lv_hero);
+        lv_mountCooldownLink = CatalogFieldValueGet(c_gameCatalogAbil, "Mount", "Cost[" + IntToString(0) + "].Cooldown.Link", lv_player);
+        libNtve_gf_UnitRemoveCooldown(lv_hero, lv_mountCooldownLink);
+        libNtve_gf_PlayerRemoveCooldown(lv_player, lv_mountCooldownLink);
+    }
+
+    lv_itWaygate = 1;
+    for ( ; ( (auto2D8F4586_ai >= 0 && lv_itWaygate <= auto2D8F4586_ae) || (auto2D8F4586_ai < 0 && lv_itWaygate >= auto2D8F4586_ae) ) ; lv_itWaygate += auto2D8F4586_ai ) {
+        if (((lv_waygateEntrance == libMSC2_gv_mMToDWaygates[lv_itWaygate].lv_topWaygate) || (lv_waygateEntrance == libMSC2_gv_mMToDWaygates[lv_itWaygate].lv_bottomWaygate))) {
+            break;
+        }
+
+        if (((libMSC2_gv_mMToDWaygates[lv_itWaygate].lv_topWaygate == null) || (libMSC2_gv_mMToDWaygates[lv_itWaygate].lv_bottomWaygate == null))) {
+            TriggerDebugOutput(1, StringExternal("Param/Value/lib_MSC2_99E787AE"), true);
+            return true;
+        }
+
+    }
+    if (true) {
+        auto6BD862A7_val = lv_waygateEntrance;
+        if (auto6BD862A7_val == libMSC2_gv_mMToDWaygates[lv_itWaygate].lv_topWaygate) {
+            UnitSetPosition(lv_hero, UnitGetPosition(libMSC2_gv_mMToDWaygates[lv_itWaygate].lv_bottomWaygate), false);
+        }
+        else if (auto6BD862A7_val == libMSC2_gv_mMToDWaygates[lv_itWaygate].lv_bottomWaygate) {
+            UnitSetPosition(lv_hero, UnitGetPosition(libMSC2_gv_mMToDWaygates[lv_itWaygate].lv_topWaygate), false);
+        }
+        else {
+        }
+    }
+    else {
+        TriggerDebugOutput(1, StringExternal("Param/Value/lib_MSC2_099015DA"), true);
+        return true;
+    }
+    UnitCreateEffectUnit(lv_hero, "UnderworldTeleport", lv_hero);
+    if ((libGame_gv_gameOver == false) && (lv_hero == UnitGroupUnit(libGame_gv_players[lv_player].lv_cameraPlayerUnitGroupToFocusOn, 1))) {
+        libGame_gf_CameraPanCameraForPlayerAndUpdateMapBoundsIfNecessary(lv_player, UnitGetPosition(lv_hero), 0.0, -1, 0.0, false);
+    }
+
+    SoundPlayOnUnitForPlayer(SoundLink("Event_Mines_EnterMinesEnd", -1), c_maxPlayers, PlayerGroupAll(), lv_hero, 0.0, 100.0, 0.0);
+    Wait(0.125, c_timeGame);
+    libNtve_gf_MakeUnitUncommandable(lv_hero, false);
+    UnitSetState(lv_hero, c_unitStateTargetable, true);
+    UnitBehaviorRemove(lv_hero, "WaygateUnstoppable", 1);
+    UnitIssueOrder(lv_hero, Order(AbilityCommand("stop", 0)), c_orderQueueReplace);
+    libNtve_gf_SendActorMessageToUnit(lv_hero, "Signal RestoreModel");
+    PathSetSourceUnit(libGame_gv_players[lv_player].lv_pathDisplay, lv_hero);
+    return true;
+}
+
+//--------------------------------------------------------------------------------------------------
+void libMSC2_gt_MMToDEnteredWaygate_Init () {
+    libMSC2_gt_MMToDEnteredWaygate = TriggerCreate("libMSC2_gt_MMToDEnteredWaygate_Func");
+    TriggerAddEventPlayerEffectUsed(libMSC2_gt_MMToDEnteredWaygate, c_playerAny, "CaptureMacGuffinTwoCastComplete");
+}
+
+//--------------------------------------------------------------------------------------------------
 // Trigger: MMSC2 Built Warhead Reminder Timer Expires
 //--------------------------------------------------------------------------------------------------
 bool libMSC2_gt_MMSC2BuiltWarheadReminderTimerExpires_Func (bool testConds, bool runActions) {
@@ -2693,6 +2895,8 @@ void libMSC2_InitTriggers () {
     libMSC2_gt_MMSC2GatesOpened_Init();
     libMSC2_gt_MMSC2MainThread_Init();
     libMSC2_gt_MMSC2ObjectivePreviewTimerExpires_Init();
+    libMSC2_gt_MMSC2ActivateWaygates_Init();
+    libMSC2_gt_MMToDEnteredWaygate_Init();
     libMSC2_gt_MMSC2BuiltWarheadReminderTimerExpires_Init();
     libMSC2_gt_MMSC2NukeDamageScaling_Init();
     libMSC2_gt_MMSC2BuiltWarheadChannelStarted_Init();
