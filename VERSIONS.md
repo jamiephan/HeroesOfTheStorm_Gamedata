@@ -102,3 +102,5 @@
 - 2.54.1.85276: [`Commit`](https://github.com/jamiephan/HeroesOfTheStorm_Gamedata/commit/3b88699f30d5a10bcf7bd8caa4ced7bf529f2ea0) | [`Tag`](https://github.com/jamiephan/HeroesOfTheStorm_Gamedata/releases/tag/v2.54.1.85276) | [`XSD`](./xsd/2.54.1.85276.xsd)
 
 - 2.54.2.85311: [`Commit`](https://github.com/jamiephan/HeroesOfTheStorm_Gamedata/commit/b79e1d4547ec1393c450b27c262f9b048b29f88b) | [`Tag`](https://github.com/jamiephan/HeroesOfTheStorm_Gamedata/releases/tag/v2.54.2.85311) | [`XSD`](./xsd/2.54.2.85311.xsd)
+
+- 2.54.2.85551: [`Commit`](https://github.com/jamiephan/HeroesOfTheStorm_Gamedata/commit/01282ab35b3824fb93a76b1327d81307731c84f3) | [`Tag`](https://github.com/jamiephan/HeroesOfTheStorm_Gamedata/releases/tag/v2.54.2.85551) | [`XSD`](./xsd/2.54.2.85551.xsd)
