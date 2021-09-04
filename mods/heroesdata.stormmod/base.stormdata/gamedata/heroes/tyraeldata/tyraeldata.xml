@@ -183,10 +183,10 @@
   </CAbilEffectInstant>
   <CAccumulatorToken id="TyraelArdentRestorationAccumulator" parent="BaseTokenAccumulator">
     <MinAccumulation value="0" />
-    <MaxAccumulation value="35" />
+    <MaxAccumulation value="40" />
     <ApplicationRule value="Add" />
     <TokenId value="TyraelArdentRestorationTokenCounter" />
-    <Scale value="3.5" />
+    <Scale value="4" />
   </CAccumulatorToken>
   <CAccumulatorToken id="TyraelZealotryShieldAccumulator" parent="BaseAccumulator">
     <MaxAccumulation value="2.5" />
@@ -796,10 +796,10 @@
     <Buttons Face="TyraelDefenseOfTheAngels" Type="AbilCmd" AbilCmd="TyraelDefenseOfTheAngels,Execute" />
   </CBehaviorAbility>
   <CBehaviorTokenCounter id="TyraelArdentRestorationTokenCounter" parent="StormGenericToken">
-    <Face value="TyraelEldruinsMightBoundByLawTokenCounter" />
-    <Max value="10" />
     <InfoIcon value="Assets\Textures\storm_ui_icon_talent_regenerationmaster.dds" />
     <MinStackCountDisplayed value="1" />
+    <Max value="10" />
+    <Alignment value="Positive" />
   </CBehaviorTokenCounter>
   <CBehaviorBuff id="TyraelSmiteSwiftRetributionAttackSpeed">
     <Alignment value="Positive" />
@@ -811,7 +811,7 @@
   </CBehaviorBuff>
   <CBehaviorBuff id="TyraelRighteousnessJusticeForAllAllyShield" parent="StormShield">
     <Duration value="4" />
-    <DamageResponse Handled="TyraelDefenseOfTheAngelsModifyPlayerCooldown" ModifyLimit="252">
+    <DamageResponse ModifyLimit="252">
       <ModifyScoreArray index="0" Value="Healing" />
     </DamageResponse>
   </CBehaviorBuff>
@@ -830,6 +830,15 @@
     <ArmorModification>
       <AllArmorBonus value="50" />
     </ArmorModification>
+    <DamageResponse>
+      <Chance value="1" />
+      <Handled value="TyraelDefenseoftheAngelsModifyDuration" />
+      <TargetFilters value="Heroic;-" />
+      <Location value="Attacker" />
+      <RequireEffectArray value="ElDruinsMightDamage" />
+      <RequireEffectArray value="TyraelSmiteDamage" />
+      <Kind index="Basic" value="0" />
+    </DamageResponse>
   </CBehaviorBuff>
   <CBehaviorTokenCounter id="TyraelRighteousnessZealotryTalentTokenCounter" parent="StormGenericToken">
     <Max value="10" />
@@ -1164,8 +1173,9 @@
     <BehaviorFlags index="EnabledWhileDead" value="1" />
     <BuffFlags index="RefreshStack" value="1" />
     <MaxStackCount value="10" />
-    <Duration value="1.5" />
+    <Duration value="0.25" />
     <Alignment value="Positive" />
+    <Period value="0.125" />
   </CBehaviorBuff>
   <CBehaviorBuff id="TyraelArchangelsWrath">
     <Alignment value="Positive" />
@@ -1187,7 +1197,7 @@
   <CBehaviorBuff id="TyraelArchangelsWrathDeathActiveBuff" parent="StormSpecialDeathState">
     <InfoIcon value="Assets\Textures\storm_ui_icon_tyrael_archangelswrath.dds" />
     <Duration value="3.5" />
-    <Period value="3.4" />
+    <Period value="3.4375" />
     <InitialEffect value="TyraelArchangelsWrathDeathActiveBuffInitialSet" />
     <PeriodicEffect value="ArchangelsWrathSearchAreaEnemyHeroes" />
     <FinalEffect value="ArchangelsWrathFinalSet" />
@@ -1232,7 +1242,7 @@
     <Face value="TyraelRighteousnessReciprocateTalent" />
     <Duration value="4" />
     <FinalEffect value="RighteousnessExpirationFinalSet" />
-    <DamageResponse Handled="TyraelDefenseOfTheAngelsModifyPlayerCooldown" Exhausted="RighteousnessSalvationCreateHealer" ModifyLimit="336" />
+    <DamageResponse Exhausted="RighteousnessSalvationCreateHealer" ModifyLimit="336" />
     <AINotifySettings AreaEffect="RighteousnessExpirationSearch">
       <Flags index="Disabled" value="1" />
     </AINotifySettings>
@@ -1254,7 +1264,7 @@
   </CBehaviorBuff>
   <CBehaviorBuff id="TyraelRighteousnessAllyShield" parent="StormShield">
     <Duration value="4" />
-    <DamageResponse Handled="TyraelDefenseOfTheAngelsModifyPlayerCooldown" ModifyLimit="134.4">
+    <DamageResponse ModifyLimit="134.4">
       <ModifyScoreArray index="0" Value="Healing" />
     </DamageResponse>
   </CBehaviorBuff>
@@ -1410,6 +1420,13 @@
     <Race value="Unknown" />
     <Unit value="HeroTyrael" />
   </CCharacter>
+  <CEffectModifyBehaviorBuffDuration id="TyraelDefenseoftheAngelsBasicAttackModifyDuration">
+    <ValidatorArray value="CasterNotBlindedAndTargetNotEvading" />
+    <ValidatorArray value="TargetIsHero" />
+    <WhichUnit Value="Source" />
+    <Behavior value="TyraelDefenseOfTheAngels" />
+    <Value value="0.5" />
+  </CEffectModifyBehaviorBuffDuration>
   <CEffectApplyBehavior id="TyraelElDruinsMightApplyBurningHaloCarry">
     <Chance value="0" />
     <Behavior value="TyraelBurningHalo" />
@@ -1519,18 +1536,11 @@
   <CEffectSet id="TyraelDefenseOfTheAngelsCastSet">
     <EffectArray value="TyraelDefenseOfTheAngelsApplyBuff" />
   </CEffectSet>
-  <CEffectModifyPlayer id="TyraelDefenseOfTheAngelsModifyPlayerCooldown">
-    <ValidatorArray value="TyraelPlayerOriginHasDefenseOfTheAngelsTalent" />
-    <WhichPlayer Value="Origin" />
-    <Cost>
-      <Cooldown>
-        <Link value="Abil/TyraelDefenseOfTheAngels" />
-        <Location value="Player" />
-        <Operation value="Add" />
-        <TimeUse value="-3" />
-      </Cooldown>
-    </Cost>
-  </CEffectModifyPlayer>
+  <CEffectModifyBehaviorBuffDuration id="TyraelDefenseoftheAngelsModifyDuration">
+    <WhichUnit Value="Source" />
+    <Behavior value="TyraelDefenseOfTheAngels" />
+    <Value value="0.5" />
+  </CEffectModifyBehaviorBuffDuration>
   <CEffectSet id="TyraelRighteousnessTalentTokenResetSet">
     <EffectArray value="TyraelRighteousnessLawAndOrderTalentResetTokenCount" />
     <EffectArray value="TyraelRighteousnessZealotryTalentResetToken" />
@@ -2173,7 +2183,6 @@
   <CEffectApplyBehavior id="ArchangelsWrathAddDeathTimeStack">
     <WhichUnit Value="Caster" />
     <Behavior value="ArchangelsWrathDeathTimeStack" />
-    <Chance value="0" />
   </CEffectApplyBehavior>
   <CEffectApplyBehavior id="ArchangelsWrathApplyActiveBehavior">
     <WhichUnit Value="Caster" />
@@ -2189,7 +2198,7 @@
     <EffectArray value="CameraShakeMediumTauntingTotemSet" />
   </CEffectSet>
   <CEffectEnumArea id="ArchangelsWrathSearchAreaEnemyHeroes">
-    <SearchFilters value="Heroic;Self,Player,Ally,Structure,RawResource,HarvestableResource,Missile,Dead" />
+    <SearchFilters value="Heroic;Player,Ally,Neutral,ImmuneToAOE,Missile,Item,Stasis,Dead,Hidden,Invulnerable" />
     <AreaArray Effect="ArchangelsWrathAddDeathTimeStack">
       <Radius value="4" />
     </AreaArray>
@@ -2207,6 +2216,7 @@
     <EffectArray value="UniversalWeaponImpact" />
     <EffectArray value="TyraelHeroWeaponHoradricReforgingTalentModifyCooldown" />
     <EffectArray value="TyraelWeaponDamage" />
+    <EffectArray value="TyraelDefenseoftheAngelsBasicAttackModifyDuration" />
     <EffectArray value="TyraelBoundByLawIncreaseEldruinsMightSlowDuration" />
     <EffectArray value="TyraelEldruinsMightBoundByLawIncrementTokenCounter" />
     <EffectArray value="UniversalWeaponLaunchSet" />
@@ -2457,8 +2467,8 @@
     <TalentTreeArray Talent="TyraelMasterySanctificationHolyArena" Tier="7" Column="2">
       <PrerequisiteTalentArray value="TyraelHeroicAbilitySanctification" />
     </TalentTreeArray>
-    <TalentTreeArray Talent="TyraelDefenseOfTheAngels" Tier="7" Column="3" />
-    <TalentTreeArray Talent="TyraelSealOfElDruin" Tier="7" Column="4" />
+    <TalentTreeArray Talent="TyraelSealOfElDruin" Tier="7" Column="3" />
+    <TalentTreeArray Talent="TyraelDefenseOfTheAngels" Tier="7" Column="4" />
     <TalentAIBuildsArray ChanceToPick="16">
       <TalentsArray value="TyraelJusticeForAll" />
       <TalentsArray value="TyraelDivineVigor" />
@@ -2750,6 +2760,14 @@
     <ReleaseDate Month="3" Day="13" />
     <AIComplexityTier value="Low" />
   </CHero>
+  <CHeroMastery id="TyraelMasteryRing1" parent="MasteryRingRank1">
+    <ProductId value="67014" />
+    <HyperlinkId value="TyraelMasteryRingRank1" />
+  </CHeroMastery>
+  <CHeroMastery id="TyraelMasteryRing2" parent="MasteryRingRank2">
+    <ProductId value="67121" />
+    <HyperlinkId value="TyraelMasteryRingRank2" />
+  </CHeroMastery>
   <CModel id="TyraelDefenseOfTheAngelsBuffModel" parent="BuffFX">
     <Model value="Assets\Effects\Storm_FX_Talent_HardenedShields\Storm_FX_Talent_HardenedShields.m3" />
   </CModel>
@@ -2900,6 +2918,12 @@
     <Description value="Reward/Description/Summer2019EventCompletionReward" />
     <DescriptionUnearned value="" />
   </CRewardHero>
+  <CRewardHeroMastery id="TyraelMasteryRing1">
+    <License value="49960" />
+  </CRewardHeroMastery>
+  <CRewardHeroMastery id="TyraelMasteryRing2">
+    <License value="49961" />
+  </CRewardHeroMastery>
   <CShapeQuad id="TyraelSmiteQuad">
     <Quad value="-3,-1,3,1" />
   </CShapeQuad>
@@ -3748,18 +3772,4 @@
     <PreswingBeforeAttack value="0.4" />
     <PreswingBetweenAttacks value="0.25" />
   </CWeaponLegacy>
-  <CHeroMastery id="TyraelMasteryRing1" parent="MasteryRingRank1">
-    <ProductId value="67014" />
-    <HyperlinkId value="TyraelMasteryRingRank1" />
-  </CHeroMastery>
-  <CHeroMastery id="TyraelMasteryRing2" parent="MasteryRingRank2">
-    <ProductId value="67121" />
-    <HyperlinkId value="TyraelMasteryRingRank2" />
-  </CHeroMastery>
-  <CRewardHeroMastery id="TyraelMasteryRing1">
-    <License value="49960" />
-  </CRewardHeroMastery>
-  <CRewardHeroMastery id="TyraelMasteryRing2">
-    <License value="49961" />
-  </CRewardHeroMastery>
 </Catalog>

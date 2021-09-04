@@ -3943,6 +3943,7 @@ void libGDHL_gf_HeroTyraelIncrementHeroCountFunction () {
         TriggerEnable(libGDHL_gt_HeroTyraelSanctificationFacing, true);
         TriggerEnable(libGDHL_gt_HeroTyraelSanctificationTimerStart, true);
         TriggerEnable(libGDHL_gt_HeroTyraelArchangelsWrathSuppressCollision, true);
+        TriggerEnable(libGDHL_gt_HeroTyraelArchangelsWrathDeathTimerModification, true);
         TriggerEnable(libGDHL_gt_HeroTyraelSanctificationFullscreenOverlayOn, true);
         TriggerEnable(libGDHL_gt_HeroTyraelSanctificationFullscreenOverlayOff, true);
     }
@@ -3961,6 +3962,7 @@ void libGDHL_gf_HeroTyraelDecrementHeroCountFunction () {
         TriggerEnable(libGDHL_gt_HeroTyraelSanctificationFacing, false);
         TriggerEnable(libGDHL_gt_HeroTyraelSanctificationTimerStart, false);
         TriggerEnable(libGDHL_gt_HeroTyraelArchangelsWrathSuppressCollision, false);
+        TriggerEnable(libGDHL_gt_HeroTyraelArchangelsWrathDeathTimerModification, false);
         TriggerEnable(libGDHL_gt_HeroTyraelSanctificationFullscreenOverlayOn, false);
         TriggerEnable(libGDHL_gt_HeroTyraelSanctificationFullscreenOverlayOff, false);
     }
@@ -24489,6 +24491,51 @@ void libGDHL_gt_HeroTyraelArchangelsWrathSuppressCollision_Init () {
 }
 
 //--------------------------------------------------------------------------------------------------
+// Trigger: Hero - Tyrael - Archangel's Wrath Death Timer Modification
+//--------------------------------------------------------------------------------------------------
+bool libGDHL_gt_HeroTyraelArchangelsWrathDeathTimerModification_Func (bool testConds, bool runActions) {
+    // Variable Declarations
+    int lv_i;
+    unit lv_tyrael;
+    int lv_tyraelOwner;
+    fixed lv_timerMod;
+    fixed lv_baseTimerValue;
+    fixed lv_existingTimer;
+    fixed lv_newTimer;
+
+    // Automatic Variable Declarations
+    // Variable Initialization
+    lv_tyrael = EventUnit();
+    lv_tyraelOwner = UnitGetOwner(lv_tyrael);
+    lv_timerMod = 0.1;
+
+    // Actions
+    if (!runActions) {
+        return true;
+    }
+
+    lv_baseTimerValue = libCore_gf_HeroDeathTime(lv_tyraelOwner, UnitLevel(lv_tyrael));
+    lv_existingTimer = TimerGetRemaining(libGame_gv_players[lv_tyraelOwner].lv_respawnTimer);
+    lv_newTimer = lv_existingTimer;
+    if ((lv_baseTimerValue > 1)) {
+        lv_newTimer -= (lv_baseTimerValue * lv_timerMod);
+        if ((lv_newTimer > 2.0)) {
+            libGame_gf_HeroDeathUpdateRespawnTimer(lv_tyraelOwner, lv_newTimer);
+        }
+
+    }
+
+    return true;
+}
+
+//--------------------------------------------------------------------------------------------------
+void libGDHL_gt_HeroTyraelArchangelsWrathDeathTimerModification_Init () {
+    libGDHL_gt_HeroTyraelArchangelsWrathDeathTimerModification = TriggerCreate("libGDHL_gt_HeroTyraelArchangelsWrathDeathTimerModification_Func");
+    TriggerEnable(libGDHL_gt_HeroTyraelArchangelsWrathDeathTimerModification, false);
+    TriggerAddEventUnitBehaviorChange(libGDHL_gt_HeroTyraelArchangelsWrathDeathTimerModification, null, "ArchangelsWrathDeathTimeStack", c_unitBehaviorChangeIncrease);
+}
+
+//--------------------------------------------------------------------------------------------------
 // Trigger: Hero - Tyrael - Sanctification Fullscreen Overlay On
 //--------------------------------------------------------------------------------------------------
 bool libGDHL_gt_HeroTyraelSanctificationFullscreenOverlayOn_Func (bool testConds, bool runActions) {
@@ -27249,6 +27296,7 @@ void libGDHL_InitTriggers () {
     libGDHL_gt_HeroTyraelSanctificationFacing_Init();
     libGDHL_gt_HeroTyraelSanctificationTimerStart_Init();
     libGDHL_gt_HeroTyraelArchangelsWrathSuppressCollision_Init();
+    libGDHL_gt_HeroTyraelArchangelsWrathDeathTimerModification_Init();
     libGDHL_gt_HeroTyraelSanctificationFullscreenOverlayOn_Init();
     libGDHL_gt_HeroTyraelSanctificationFullscreenOverlayOff_Init();
     libGDHL_gt_HeroTyrandeElunesChosenSetTarget_Init();

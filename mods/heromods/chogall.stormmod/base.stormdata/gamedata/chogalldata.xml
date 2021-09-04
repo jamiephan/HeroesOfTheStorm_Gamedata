@@ -310,6 +310,12 @@
     <TokenId value="GallRunicBlastBombsAwayTalentTokenCounter" />
     <Scale value="5" />
   </CAccumulatorToken>
+  <CAccumulatorToken id="GallOgreRampageSpellPowerAccumulator" parent="BaseAccumulator">
+    <MaxAccumulation value="0.1" />
+    <ApplicationRule value="Add" />
+    <TokenId value="GallOgreRampageToken" />
+    <Scale value="0.01" />
+  </CAccumulatorToken>
   <CAccumulatorToken id="GallTheWillofGallDamageAccumulator" parent="BaseAccumulator">
     <MaxAccumulation value="2" />
     <ApplicationRule value="Add" />
@@ -1877,6 +1883,13 @@
     <Model value="DefendPing" />
     <HostSiteOps Ops="SOpShadow" />
   </CActorModel>
+  <CBehaviorBuff id="ChoEnragedRegenerationHoT">
+    <Duration value="3" />
+    <Period value="0.5" />
+    <PeriodCount value="6" />
+    <PeriodicEffect value="ChoEnragedRegenerationCreateHealer" />
+    <PeriodicDisplayEffect value="ChoEnragedRegenerationCreateHealer" />
+  </CBehaviorBuff>
   <CBehaviorAbility id="ChoMoltenBlockItem">
     <Buttons Face="ChoTalentMoltenBlock" Type="AbilCmd" AbilCmd="ChoTalentMoltenBlock,On" />
     <Buttons Face="ChoTalentMoltenBlockCancel" Type="AbilCmd" AbilCmd="ChoTalentMoltenBlock,Off" />
@@ -1884,9 +1897,11 @@
   <CBehaviorBuff id="ChoOgreHideCallousedHideTalentMoveSpeedCarry">
     <BehaviorCategories index="Fast" value="1" />
     <DisableValidatorArray value="ChoHasCallousedHideTalent" />
-    <DisableValidatorArray value="ChoHasOgreHideArmorBuff" />
+    <DisableValidatorArray value="CasterLifeLT60Percent" />
     <Modification>
+      <HealTakenAdditiveMultiplier index="Life" value="0.15" />
       <UnifiedMoveSpeedFactor value="0.15" />
+      <VitalRegenMultiplier index="Life" value="0.15" />
     </Modification>
   </CBehaviorBuff>
   <CBehaviorBuff id="GallDreadOrbEnragedRegenerationTalentDebuff" parent="StormHealReduction">
@@ -1899,8 +1914,16 @@
   <CBehaviorBuff id="GallOgreRageOgreRampageSpellpower" parent="CarryBehaviorParent">
     <DisableValidatorArray value="GallHasOgreRageSpellDamageBuff" />
     <Modification>
-      <DamageDealtFraction index="Ability" value="0.05" />
+      <DamageDealtFraction index="Ability" value="0.05">
+        <AccumulatorArray value="GallOgreRampageSpellPowerAccumulator" />
+      </DamageDealtFraction>
     </Modification>
+    <DamageResponse>
+      <Chance value="1" />
+      <Handled value="GallOgreRageOgreRampageTalentProcSet" />
+      <TargetFilters value="Heroic;-" />
+      <Location value="Attacker" />
+    </DamageResponse>
   </CBehaviorBuff>
   <CBehaviorAbility id="ChoTwilightVeilItem">
     <Buttons Face="ChoTwilightVeilTalent" Type="AbilCmd" AbilCmd="ChoTwilightVeil,Execute" />
@@ -1925,13 +1948,6 @@
     <Face value="ChoFuelForTheFlameToken" />
     <Max value="65000" />
   </CBehaviorTokenCounter>
-  <CBehaviorBuff id="ChoOgreHideEnragedRegenerationTalentCarry" parent="CarryBehaviorParent">
-    <DisableValidatorArray value="ChoHasEnragedRegenerationTalent" />
-    <DisableValidatorArray value="ChoDoesNotHaveOgreHideActive" />
-    <Modification>
-      <VitalRegenMultiplier index="Life" value="2" />
-    </Modification>
-  </CBehaviorBuff>
   <CBehaviorBuff id="ChoOgreHideVisualController" parent="CarryBehaviorParent">
     <DisableValidatorArray value="ChoHasOgreHideArmorBuff" />
     <DisableValidatorArray value="TargetNotDead" />
@@ -1949,13 +1965,17 @@
       <Kind index="Ability" value="0" />
     </DamageResponse>
   </CBehaviorBuff>
-  <CBehaviorBuff id="GallOgreRageOgreRampageCDRBuff">
+  <CBehaviorBuff id="GallOgreRageOgreRampageDurationBuff">
     <DisableValidatorArray value="GallHasOgreRampageTalentTarget" />
-    <Duration value="5" />
-    <Period value="0.5" />
-    <PeriodCount value="10" />
-    <PeriodicEffect value="GallOgreRageOgreRampageTalentModifyUnit" />
+    <Duration value="4" />
+    <FinalEffect value="GallOgreRageOgreRampageTalentResetToken" />
+    <RemoveValidatorArray value="GallHasOgreRageSpellDamageBuff" />
+    <CancelEffect value="GallOgreRageOgreRampageTalentResetToken" />
   </CBehaviorBuff>
+  <CBehaviorTokenCounter id="GallOgreRageOgreRampageTalentTokenCounter" parent="StormGenericToken">
+    <TokenId value="GallOgreRampageToken" />
+    <Max value="10" />
+  </CBehaviorTokenCounter>
   <CBehaviorBuff id="GallShadowflameDoubleTroubleTalentImpactMarker">
     <Duration value="0.0625" />
   </CBehaviorBuff>
@@ -2825,6 +2845,24 @@
   <CEffectSet id="ChoConsumingBlazePeriodicSet">
     <EffectArray value="ChoConsumingBlazeDamage" />
   </CEffectSet>
+  <CEffectApplyBehavior id="ChoEnragedRegenerationApplyHoT">
+    <WhichUnit Value="Caster" />
+    <Behavior value="ChoEnragedRegenerationHoT" />
+    <ValidatorArray index="0" value="TargetIsHero" />
+    <ValidatorArray value="ChoHasEnragedRegenerationTalent" />
+    <Chance value="0" />
+  </CEffectApplyBehavior>
+  <CEffectApplyBehavior id="ChoEnragedRegenerationBasicAttackApplyHoT">
+    <ValidatorArray index="0" value="TargetIsHero" />
+    <ValidatorArray value="ChoHasEnragedRegenerationTalent" />
+    <ValidatorArray value="CasterNotBlindedAndTargetNotEvading" />
+    <Chance value="0" />
+    <WhichUnit Value="Caster" />
+    <Behavior value="ChoEnragedRegenerationHoT" />
+  </CEffectApplyBehavior>
+  <CEffectCreateHealer id="ChoEnragedRegenerationCreateHealer" parent="StormSelfOnlyHealingSpell">
+    <RechargeVitalRate value="10" />
+  </CEffectCreateHealer>
   <CEffectModifyUnit id="ChoRuneBombRunedGauntletTalentModifyGallCooldowns">
     <ImpactUnit Effect="ChoGallLinkUnitsInitialSet" />
     <Cost Abil="GallShadowboltVolley,Execute" CooldownOperation="Add">
@@ -2843,9 +2881,27 @@
   <CEffectApplyBehavior id="GallDreadOrbEnragedRegenerationTalentApplyHealingDebuff">
     <Behavior value="GallDreadOrbEnragedRegenerationTalentDebuff" />
   </CEffectApplyBehavior>
+  <CEffectModifyTokenCount id="GallOgreRageOgreRampageTalentAddToken" parent="BaseEffectModifyTokenCount">
+    <TokenId value="GallOgreRampageToken" />
+  </CEffectModifyTokenCount>
+  <CEffectSet id="GallOgreRageOgreRampageTalentProcSet">
+    <EffectArray value="GallOgreRageOgreRampageTalentApplyDurationBuff" />
+    <EffectArray value="GallOgreRageOgreRampageTalentAddToken" />
+  </CEffectSet>
+  <CEffectModifyTokenCount id="GallOgreRageOgreRampageTalentResetToken" parent="BaseEffectModifyTokenCount">
+    <CollationId value="GallOgreRageOgreRampageTalentAddToken" />
+    <TokenId value="GallOgreRampageToken" />
+    <Operation value="Set" />
+    <Value value="0" />
+    <WhichUnit Value="Target" />
+  </CEffectModifyTokenCount>
   <CEffectModifyUnit id="GallRunicBlastResetCooldown">
     <Cost Abil="GallRunicBlast,Execute" CooldownOperation="Set" />
   </CEffectModifyUnit>
+  <CEffectApplyBehavior id="GallOgreRageOgreRampageTalentApplyDurationBuff">
+    <WhichUnit Value="Source" />
+    <Behavior value="GallOgreRageOgreRampageDurationBuff" />
+  </CEffectApplyBehavior>
   <CEffectModifyUnit id="GallShadowBoltVolleyPrepPsychoticBreakDummy">
     <ImpactUnit Value="Caster" />
   </CEffectModifyUnit>
@@ -2856,11 +2912,6 @@
   <CEffectApplyBehavior id="GallShoveApplyShoveDisablerBehavior">
     <WhichUnit Effect="ChoGallLinkUnitsInitialSet" />
     <Behavior value="GallShoveDisablerDummyBehavior" />
-  </CEffectApplyBehavior>
-  <CEffectApplyBehavior id="GallOgreRageOgreRampageTalentApplyCDRBuff">
-    <ValidatorArray index="0" value="GallHasOgreRampageTalentTarget" />
-    <WhichUnit Effect="ChoGallLinkUnitsInitialSet" />
-    <Behavior value="GallOgreRageOgreRampageCDRBuff" />
   </CEffectApplyBehavior>
   <CEffectCreatePersistent id="GallWillofGallModifyTokenPersistent">
     <WhichLocation Value="CasterUnit" />
@@ -3368,7 +3419,7 @@
   </CEffectModifyPlayer>
   <CEffectSet id="ChoOgreRageSpellDamageBuffFinalSet">
     <EffectArray value="ChoOgreHideApplyArmorBuff" />
-    <EffectArray value="GallOgreRageOgreRampageTalentApplyCDRBuff" />
+    <EffectArray value="GallOgreRageOgreRampageTalentApplyDurationBuff" />
     <ReparentEffectChain value="ChoGallLinkUnitsInitialSet" />
   </CEffectSet>
   <CEffectSet id="GallOgreRageEnableGallAbilityFinalSet">
@@ -3432,6 +3483,7 @@
   <CEffectSet id="ChoMoltenBlockImpactSet">
     <EffectArray value="ApplyAbilityImpactReveal" />
     <EffectArray value="ChoMoltenBlockImpactDamage" />
+    <EffectArray value="ChoEnragedRegenerationApplyHoT" />
   </CEffectSet>
   <CEffectApplyBehavior id="ChoRuneBombApplySlowDownController">
     <WhichUnit Value="Source" />
@@ -3606,6 +3658,7 @@
   </CEffectEnumArea>
   <CEffectSet id="ChoRuneBombImpactSet">
     <EffectArray value="ChoRuneBombDamage" />
+    <EffectArray value="ChoEnragedRegenerationApplyHoT" />
     <EffectArray value="ApplyAbilityImpactReveal" />
     <ValidatorArray value="noMarkers" />
   </CEffectSet>
@@ -3819,6 +3872,7 @@
   <CEffectSet id="ChoConsumingBlazeImpactSet">
     <EffectArray value="ChoConsumingBlazeApplyDoTBehavior" />
     <EffectArray value="ChoConsumingBlazeCasterHeal" />
+    <EffectArray value="ChoEnragedRegenerationApplyHoT" />
     <EffectArray value="DismountTarget" />
   </CEffectSet>
   <CEffectApplyBehavior id="ChoConsumingBlazeApplyDoTBehavior">
@@ -4092,6 +4146,7 @@
     <EffectArray value="ChoSurgingFistImpactedDamage" />
     <EffectArray value="ChoSurgingFistUppercutTalentDamage" />
     <EffectArray value="ChoSurgingFistPowerSurgeTalentModifyCooldown" />
+    <EffectArray value="ChoEnragedRegenerationApplyHoT" />
   </CEffectSet>
   <CEffectSet id="ChoSurgingFistImpactSetRight">
     <ValidatorArray value="noMarkers" />
@@ -4100,6 +4155,7 @@
     <EffectArray value="ChoSurgingFistImpactedDamage" />
     <EffectArray value="ChoSurgingFistUppercutTalentDamage" />
     <EffectArray value="ChoSurgingFistPowerSurgeTalentModifyCooldown" />
+    <EffectArray value="ChoEnragedRegenerationApplyHoT" />
   </CEffectSet>
   <CEffectApplyBehavior id="ChoSurgingFistApplyKnockbackBehavior">
     <Behavior value="ChoSurgingFistKnockbackBehavior" />
@@ -4264,6 +4320,7 @@
     <EffectArray value="ChoUpheavalPushbackOffsetPersistent" />
     <EffectArray value="ChoUpheavalDamage" />
     <EffectArray value="ChoUpheavalApplySlowBehavior" />
+    <EffectArray value="ChoEnragedRegenerationApplyHoT" />
     <EffectArray value="ApplyAbilityImpactReveal" />
   </CEffectSet>
   <CEffectCreatePersistent id="ChoUpheavalPushbackOffsetPersistent">
@@ -4412,6 +4469,7 @@
     <ValidatorArray value="noMarkers" />
     <EffectArray value="ChoGallTwilightHammerDamage" />
     <EffectArray value="ChoHammerOfTwilightKnockbackPersistent" />
+    <EffectArray value="ChoEnragedRegenerationApplyHoT" />
     <EffectArray value="ApplyAbilityImpactReveal" />
     <EffectArray value="CameraShakeLightTauntingTotemSet" />
     <EffectArray value="CameraShakeLightCasterDummySet" />
@@ -5002,6 +5060,7 @@
     <EffectArray value="ChoHeroWeaponDamage" />
     <EffectArray value="ChoConsumingBlazeBasicAttackSet" />
     <EffectArray value="ChoHeroWeaponCthunsGiftTalentApplySlow" />
+    <EffectArray value="ChoEnragedRegenerationBasicAttackApplyHoT" />
     <EffectArray value="UniversalWeaponImpact" />
   </CEffectSet>
   <CEffectSet id="ChoHeroWeaponCthunsGiftTalentRangedImpactSet">
@@ -5265,6 +5324,13 @@
         <Entry value="ChoHeroWeaponDamage" />
         <Field value="Amount" />
         <Value value="0.045000" />
+        <AffectedByOverdrive value="1" />
+      </Modifications>
+      <Modifications>
+        <Catalog value="Effect" />
+        <Entry value="ChoEnragedRegenerationCreateHealer" />
+        <Field value="RechargeVitalRate" />
+        <Value value="0.040000" />
         <AffectedByOverdrive value="1" />
       </Modifications>
     </LevelScalingArray>
@@ -6386,15 +6452,6 @@
   <CTalent id="ChoCallousedHide">
     <Face value="ChoCallousedHide" />
     <Abil value="ChoOgreHide" />
-    <AbilityModificationArray>
-      <Modifications>
-        <Type value="FlatModification" />
-        <Catalog value="Behavior" />
-        <Entry value="ChoOgreHide" />
-        <Field value="Modification.HealTakenAdditiveMultiplier[Life]" />
-        <Value value="0.150000" />
-      </Modifications>
-    </AbilityModificationArray>
     <Trait value="1" />
   </CTalent>
   <CTalent id="ChoHourofTwilight">
@@ -6514,6 +6571,22 @@
     </RankArray>
     <Trait value="1" />
     <Abil value="ChoOgreHide" />
+    <AbilityModificationArray>
+      <Modifications>
+        <Type value="FlatModification" />
+        <Catalog value="Effect" />
+        <Entry value="ChoEnragedRegenerationApplyHoT" />
+        <Field value="Chance" />
+        <Value value="1.000000" />
+      </Modifications>
+      <Modifications>
+        <Type value="FlatModification" />
+        <Catalog value="Effect" />
+        <Entry value="ChoEnragedRegenerationBasicAttackApplyHoT" />
+        <Field value="Chance" />
+        <Value value="1.000000" />
+      </Modifications>
+    </AbilityModificationArray>
   </CTalent>
   <CTalent id="ChoSurgingDash">
     <Face value="ChoSurgingDashTalent" />
@@ -6719,6 +6792,7 @@
     <Trait value="1" />
     <RankArray>
       <BehaviorArray value="GallOgreRageOgreRampageSpellpower" />
+      <BehaviorArray value="GallOgreRageOgreRampageTalentTokenCounter" />
     </RankArray>
   </CTalent>
   <CTalent id="GallEdgeOfMadness">
