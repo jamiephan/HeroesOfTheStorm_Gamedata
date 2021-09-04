@@ -1112,6 +1112,12 @@
     </DamageResponse>
     <BuffFlags index="RefreshStack" value="1" />
   </CBehaviorBuff>
+  <CBehaviorBuff id="ZeratulVorpalBladeShadowStrideShield" parent="StormShield">
+    <Duration value="3" />
+    <DamageResponse ModifyLimit="260">
+      <ModifyScoreArray index="0" Value="Healing" />
+    </DamageResponse>
+  </CBehaviorBuff>
   <CBehaviorBuff id="ZeratulGiftoftheXelNagaSlow" parent="StormSlowParent">
     <Duration value="3" />
     <Modification>
@@ -1561,12 +1567,26 @@
     <Voice value="ATT Rich" />
     <Unit value="HeroZeratul" />
   </CCharacter>
-  <CEffectModifyUnit id="ZeratulSingularitySpikeUnwaveringPressureModifyCooldown">
+  <CEffectSet id="ZeratulVorpalBladeActivationSet">
+    <EffectArray value="VorpalBladeRemoveActiveBehavior" />
+    <EffectArray value="ZeratulVorpalBladeShadowStrideApplyShieldBehavior" />
+  </CEffectSet>
+  <CEffectApplyBehavior id="ZeratulVorpalBladeShadowStrideApplyShieldBehavior">
+    <ValidatorArray index="0" value="ZeratulHasShadowStrideTalent" />
+    <Behavior value="ZeratulVorpalBladeShadowStrideShield" />
+  </CEffectApplyBehavior>
+  <CEffectSwitch id="ZeratulSingularitySpikeUnwaveringPressureSwitch">
     <ValidatorArray value="ZeratulHasUnwaveringPressureTalent" />
-    <ValidatorArray value="ZeratulIsCasterofSingularitySpikeDummyOrSlow" />
-    <ValidatorArray value="TargetIsHero" />
+    <CaseArray Validator="TargetIsHero" Effect="ZeratulSingularitySpikeUnwaveringPressureHeroModifyCooldown" />
+    <CaseDefault value="ZeratulSingularitySpikeUnwaveringPressureModifyCooldown" />
+  </CEffectSwitch>
+  <CEffectModifyUnit id="ZeratulSingularitySpikeUnwaveringPressureModifyCooldown">
     <ImpactUnit Value="Caster" />
     <Cost Abil="ZeratulSingularitySpike,Execute" CooldownOperation="Add" CooldownTimeUse="-1.25" />
+  </CEffectModifyUnit>
+  <CEffectModifyUnit id="ZeratulSingularitySpikeUnwaveringPressureHeroModifyCooldown">
+    <ImpactUnit Value="Caster" />
+    <Cost Abil="ZeratulSingularitySpike,Execute" CooldownOperation="Add" CooldownTimeUse="-2.5" />
   </CEffectModifyUnit>
   <CEffectApplyBehavior id="ZeratulSingularitySpikeApplyMightOfTheNerazimSlow" parent="StormSlowApply">
     <ValidatorArray index="0" value="TargetNotUnstoppable" />
@@ -2329,6 +2349,7 @@
     <EffectArray value="VorpalBladeBlinkRemoveBehavior" />
     <EffectArray value="VorpalBladeBlinkIssueOrder" />
     <EffectArray value="ZeratulWarpSkirmisherApplyDamageProcBehavior" />
+    <EffectArray value="ZeratulVorpalBladeShadowStrideApplyShieldBehavior" />
     <ValidatorArray value="ZeratulVorpalBladeSourceHasDebuff" />
     <ValidatorArray value="ZeratulVorpalBladeSourceDoesNotHaveSpecialDeathState" />
     <ValidatorArray value="SourceNotDead" />
@@ -2594,7 +2615,7 @@
     <EffectArray value="ZeratulMightOfTheNerazimRemoveDamageProcBehavior" />
     <EffectArray value="ZeratulBlinkShadowHunterTalentModifyCooldown" />
     <EffectArray value="ZeratulWarpSkirmisherRemoveDamageProcBehavior" />
-    <EffectArray value="ZeratulSingularitySpikeUnwaveringPressureModifyCooldown" />
+    <EffectArray value="ZeratulSingularitySpikeUnwaveringPressureSwitch" />
   </CEffectSet>
   <CEffectSet id="ZeratulMasterWarpBladeFirstAttackSet">
     <EffectArray value="ZeratulMasterWarpBladeRemoveCasterHasTarget" />
@@ -2808,6 +2829,14 @@
         <Catalog value="Effect" />
         <Entry value="ZeratulSingularitySpikeMightOfTheNerazimDamage" />
         <Field value="Amount" />
+        <Value value="0.040000" />
+        <AffectedByAbilityPower value="1" />
+        <AffectedByOverdrive value="1" />
+      </Modifications>
+      <Modifications>
+        <Catalog value="Behavior" />
+        <Entry value="ZeratulVorpalBladeShadowStrideShield" />
+        <Field value="DamageResponse.ModifyLimit" />
         <Value value="0.040000" />
         <AffectedByAbilityPower value="1" />
         <AffectedByOverdrive value="1" />
@@ -3182,6 +3211,20 @@
   <CTalent id="ZeratulUnwaveringPressure">
     <Face value="ZeratulUnwaveringPressure" />
     <Abil value="ZeratulSingularitySpike" />
+    <AbilityModificationArray>
+      <Modifications>
+        <Catalog value="Effect" />
+        <Entry value="ZeratulSingularitySpikeUnwaveringPressureSwitch" />
+        <Field value="Chance" />
+        <Value value="1.000000" />
+      </Modifications>
+      <Modifications>
+        <Type value="FlatModification" />
+        <Entry value="ZeratulSingularitySpike" />
+        <Field value="Cost[0].Vital[Energy]" />
+        <Value value="-70.000000" />
+      </Modifications>
+    </AbilityModificationArray>
   </CTalent>
   <CTalent id="ZeratulWarpSkirmisherTalent">
     <Face value="ZeratulWarpSkirmisher" />

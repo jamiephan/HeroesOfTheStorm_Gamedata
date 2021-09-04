@@ -194,6 +194,13 @@
     <Scale value="1" />
     <MaxAccumulation value="500" />
   </CAccumulatorToken>
+  <CAccumulatorToken id="ZuljinYouWantAxeASurpriseForYaWeaponDamage" parent="BaseAccumulator">
+    <SourceEffect value="ZuljinASurpriseForYaWeaponDamage" />
+    <ApplicationRule value="Add" />
+    <TokenId value="ZuljinYouWantAxeQuestMainToken" />
+    <Scale value="0.5" />
+    <MaxAccumulation value="500" />
+  </CAccumulatorToken>
   <CActorAction default="1" id="ZuljinBaseWeaponAttack" parent="GenericAttackBaseStorm">
     <?token id="effectAttack" value="Bogus"?>
     <?token id="effectImpact" value="Bogus"?>
@@ -637,6 +644,11 @@
     <On Terms="Effect.ZuljinGuillotineBuzzsawDamage.Start; At Target" Send="Create" />
     <HostSiteOps Ops="SOpAttachCenter" />
   </CActorModel>
+  <CActorModel id="ZuljinASurpriseForYaImpactUnitFX" parent="StormModelAnimationStyleOneShotUnit">
+    <On Terms="Effect.ZuljinASurpriseForYaWeaponDamage.Start; At Target" Send="Create" />
+    <HostSiteOps Ops="SOpAttachCenter" />
+    <Model value="ZuljinWeaponAttackImpact" />
+  </CActorModel>
   <CActorModel id="ZuljinYouWantAxeQuestCompletionRightBuff" parent="StormModelAnimationStyleContinuousUnit">
     <Inherits index="Scale" value="1" />
     <Inherits index="TimeScale" value="1" />
@@ -669,6 +681,15 @@
     <Missile value="ZuljinBerserkerWeaponMissile" />
     <ImpactMap index="None" Model="ZuljinRecklessnessBerserkerWeaponImpact" Sound="" />
   </CActorAction>
+  <CActorAction id="ZuljinASurpriseForYaActionActor" parent="RangedHeroAttackPoint" effectImpact="ZuljinHeroWeaponASurpriseForYaTalentImpactSet" effectLaunch="ZuljinHeroWeaponASurpriseForYaLaunchMissile">
+    <Missile value="ZuljinWeaponASurpriseForYaAttackMissile" />
+    <ImpactSite value="ZuljinASurpriseForYaImpactSite" />
+    <ImpactMap index="None" Model="ZuljinWeaponASurpriseForYaAttackImpact" />
+    <LaunchSiteOps Ops="SOpAttachCenter" />
+    <LaunchRequest Subject="_ImpactGuide" Actor="Find" />
+    <ImpactSiteOps Ops="SOpAttachCenter" />
+  </CActorAction>
+  <CActorSite id="ZuljinASurpriseForYaImpactSite" parent="GenericAttackImpactSite" />
   <CActorModel id="ZuljinRegenerationForestMedicineCasterFX" parent="StormModelAnimationStyleContinuousUnit">
     <On Terms="Behavior.ZuljinRegenerationForestMedicineHealBehavior.On; ValidatePlayer ZuljinHasForestMedicine" Send="Create" />
     <On Terms="Behavior.ZuljinRegenerationForestMedicineHealBehavior.Off" Send="AnimBracketStop BSD" />
@@ -937,7 +958,7 @@
     <On Terms="Effect.ZuljinTwinCleaveWrongPlaceWrongTimeDamage.Start; At Target" Send="Create" />
     <HostSiteOps Ops="SOpAttachCenter" />
   </CActorModel>
-  <CActorAction id="ZuljinWeaponAttack" parent="ZuljinBaseWeaponAttack" effectImpact="ZuljinWeaponDamage" effectLaunch="ZuljinWeaponLaunchMissile">
+  <CActorAction id="ZuljinWeaponAttack" parent="ZuljinBaseWeaponAttack" effectImpact="ZuljinWeaponImpactSet" effectLaunch="ZuljinWeaponLaunchMissile">
     <On Terms="Effect.ZuljinWeaponLaunchMissile.Start; !ValidateEffect ZuljinRecklessnessCasterHasRecklessnessBuff; At Caster" Send="Create" />
     <LaunchSiteOps Ops="SOpOffsetLaunch" />
     <LaunchAssets Sound="" />
@@ -950,6 +971,17 @@
     <On Terms="Signal.*.ZuljinWeaponAttackW" Send="AnimPlay Custom Custom,01 PlayForever" />
     <On Terms="ActorCreation; ValidateEffect ZuljinRecklessnessCasterHasRecklessnessBuff" Send="ModelSwap ZuljinRecklessnessWeaponMissile" />
     <On Terms="ActorDestruction" Target="Zuljin_AttackLaunch" Send="Destroy" />
+    <AnimBlendTime value="0.000000" />
+    <DeathArray index="Normal" ModelLink="Invisible" />
+  </CActorMissile>
+  <CActorMissile id="ZuljinWeaponASurpriseForYaAttackMissile" parent="StormMissileWithDeath" unitName="ZuljinWeaponASurpriseForYaAttackMissile">
+    <On Terms="ActorCreation" Send="RefSetFromRequest ::actor.ZuljinHero _Unit Caster Find" />
+    <On Terms="ActorCreation" Target="::actor.ZuljinHero" Send="Signal ZuljinRequestWeaponAnim" />
+    <On Terms="Signal.*.ZuljinWeaponAttackX; ValidateEffect ZuljinBerserkerCasterHasBerserkerBuff" Send="AnimPlay Custom Custom,02 PlayForever" />
+    <On Terms="Signal.*.ZuljinWeaponAttackW; ValidateEffect ZuljinBerserkerCasterHasBerserkerBuff" Send="AnimPlay Custom Custom,01 PlayForever" />
+    <On Terms="Signal.*.ZuljinWeaponAttackX; ValidateEffect ZuljinBerserkerCasterHasBerserkerBuff" Send="Create Zuljin_Berserker_AttackMissile_Drone_L" />
+    <On Terms="Signal.*.ZuljinWeaponAttackW; ValidateEffect ZuljinBerserkerCasterHasBerserkerBuff" Send="Create Zuljin_Berserker_AttackMissile_Drone_R" />
+    <On Terms="ActorCreation; ValidateEffect ZuljinBerserkerCasterHasBerserkerBuff" Send="ModelSwap ZuljinBerserkerWeaponMissile" />
     <AnimBlendTime value="0.000000" />
     <DeathArray index="Normal" ModelLink="Invisible" />
   </CActorMissile>
@@ -1408,6 +1440,9 @@
   <CButton id="Zul'jinAmaniRageAmaniHide" parent="StormButtonParent">
     <Icon value="Assets\Textures\storm_ui_icon_zuljin_davoodooshuffle.dds" />
   </CButton>
+  <CButton id="Zul'jinPassiveASurpriseForYa" parent="StormButtonParent">
+    <Icon value="Assets\Textures\storm_ui_icon_talent_autoattack_aoe.dds" />
+  </CButton>
   <CButton id="ZuljinAmaniResilience" parent="StormButtonParent">
     <Icon value="Assets\Textures\storm_ui_icon_zuljin_tazdingo.dds" />
   </CButton>
@@ -1544,6 +1579,38 @@
     <ValidatorArray value="TargetNotHallucination" />
     <Behavior value="ZuljinGuillotineBuzzsawDebuff" />
   </CEffectApplyBehavior>
+  <CEffectSet id="ZuljinHeroWeaponASurpriseForYaInitialSet">
+    <ValidatorArray value="CasterNotBlindedAndTargetNotEvading" />
+    <Chance value="0" />
+    <EffectArray value="ZuljinHeroWeaponASurpriseForYaTargetSearch" />
+  </CEffectSet>
+  <CEffectEnumArea id="ZuljinHeroWeaponASurpriseForYaTargetSearch">
+    <ImpactLocation Value="TargetUnit" />
+    <ExcludeArray Effect="ZuljinHeroWeaponASurpriseForYaInitialSet" Value="Target" />
+    <SearchFilters value="-;Player,Ally,Neutral,ImmuneToAOE,Item,Stasis,Dead,Invulnerable" />
+    <TargetSorts RequestCount="1" RequestPercentage="1">
+      <SortArray value="TSHeroic" />
+      <SortArray value="TSRandom" />
+    </TargetSorts>
+    <AreaArray MaxCount="1" Effect="ZuljinHeroWeaponASurpriseForYaLaunchMissile">
+      <Radius value="5" />
+    </AreaArray>
+  </CEffectEnumArea>
+  <CEffectLaunchMissile id="ZuljinHeroWeaponASurpriseForYaLaunchMissile">
+    <ValidatorArray index="0" value="noMarkers" />
+    <ValidatorArray value="NotCloakedOrIsRevealed" />
+    <LaunchLocation Effect="ZuljinWeaponImpactSet" Value="TargetUnit" />
+    <ImpactEffect value="ZuljinASurpriseForYaWeaponDamage" />
+    <SharedFlags index="ValidateWeapon" value="0" />
+    <AmmoUnit value="ZuljinWeaponASurpriseForYaAttackMissile" />
+    <Movers Link="HeroMissileSpeed22Ribbon" />
+  </CEffectLaunchMissile>
+  <CEffectSet id="ZuljinHeroWeaponASurpriseForYaTalentImpactSet">
+    <EffectArray value="TracerHeroWeaponHeroDamageSwitch" />
+    <EffectArray value="ApplyAbilityImpactReveal" />
+    <EffectArray value="TracerHeroWeaponApplyTracerRoundsMasteryReveal" />
+    <EffectArray value="TracerHeroWeaponTelefragTalentModifyUnit" />
+  </CEffectSet>
   <CEffectApplyBehavior id="ZuljinAmaniRageArmorBuffApplyBehavior">
     <ValidatorArray index="0" value="Zul'jinHasAmaniRageAmaniHideTalent" />
     <Chance value="0" />
@@ -2372,6 +2439,7 @@
     <EffectArray value="ZuljinYouWantAxeAttackResponseSet" />
     <EffectArray value="ZuljinGrievousThrowRemoveAttackStackBehavior" />
     <EffectArray value="UniversalWeaponImpact" />
+    <EffectArray value="ZuljinHeroWeaponASurpriseForYaInitialSet" />
   </CEffectSet>
   <CEffectApplyKinetic id="ZuljinTwinCleaveSwirlingDeathRightApplyKinetic">
     <Kinetic value="ZuljinTwinCleaveSwirlingDeathRotateRight" />
@@ -2384,10 +2452,10 @@
   <CEffectLaunchMissile id="ZuljinBerserkerWeaponLaunchMissile">
     <ValidatorArray value="TargetNotDead" />
     <ValidatorArray value="ZuljinBerserkerCasterHasBerserkerBuff" />
+    <LaunchEffect value="ZuljinBerserkerThrownAxeApplyBehavior" />
     <ImpactEffect value="ZuljinWeaponImpactSet" />
     <AmmoUnit value="ZuljinBerserkerWeaponAttackMissile" />
     <Movers Link="HeroMissileSpeed22Ribbon" />
-    <LaunchEffect value="ZuljinBerserkerThrownAxeApplyBehavior" />
   </CEffectLaunchMissile>
   <CEffectSet id="ZuljinWeaponLaunchSet">
     <EffectArray value="ZuljinBerserkerModifyLife" />
@@ -2414,6 +2482,12 @@
     <SourceButtonFace value="Attack" />
     <MultiplicativeModifierArray index="LaunchedWithBerserker" Validator="ZuljinSourceHasBerserkerThrownAxe" Modifier="0.25" />
     <MultiplicativeModifierArray index="GrievousThrowDebuffCheck" Validator="ZuljinGrievousThrowTargetHasAttackStacks" Accumulator="ZuljinGrievousThrowViciousAssaultAccumulator" Modifier="0.5" />
+  </CEffectDamage>
+  <CEffectDamage id="ZuljinASurpriseForYaWeaponDamage" parent="StormWeapon">
+    <MultiplicativeModifierArray index="LaunchedWithBerserker" Validator="ZuljinBerserkerCasterHasBerserkerBuff" Modifier="0.25" />
+    <FlatModifierArray index="ZuljinYouWantAxeASurpriseForYa" Accumulator="ZuljinYouWantAxeASurpriseForYaWeaponDamage" />
+    <Amount value="47" />
+    <SourceButtonFace value="Attack" />
   </CEffectDamage>
   <CEffectApplyBehavior id="ZuljinBerserkerApplyBehavior">
     <Behavior value="ZuljinBerserkerActive" />
@@ -2557,6 +2631,7 @@
       <PrerequisiteTalentArray value="ZuljinGuillotine" />
     </TalentTreeArray>
     <TalentTreeArray Talent="ZuljinForestMedicine" Tier="7" Column="3" />
+    <TalentTreeArray Talent="ZuljinPassiveASurpriseForYa" Tier="7" Column="4" />
     <HeroTierAchievementId value="5216701565566617634" />
     <Universe value="Warcraft" />
     <UniverseIcon value="Assets\Textures\ui_glues_store_gameicon_wow.dds" />
@@ -2628,6 +2703,13 @@
       <Modifications>
         <Catalog value="Effect" />
         <Entry value="ZuljinNoMercyWeaponDamage" />
+        <Field value="Amount" />
+        <Value value="0.040000" />
+        <AffectedByOverdrive value="1" />
+      </Modifications>
+      <Modifications>
+        <Catalog value="Effect" />
+        <Entry value="ZuljinASurpriseForYaWeaponDamage" />
         <Field value="Amount" />
         <Value value="0.040000" />
         <AffectedByOverdrive value="1" />
@@ -2823,6 +2905,18 @@
       </Modifications>
     </AbilityModificationArray>
     <Abil value="ZuljinAmaniRage" />
+  </CTalent>
+  <CTalent id="ZuljinPassiveASurpriseForYa">
+    <Face value="Zul'jinPassiveASurpriseForYa" />
+    <AbilityModificationArray>
+      <Modifications>
+        <Type value="FlatModification" />
+        <Catalog value="Effect" />
+        <Entry value="ZuljinHeroWeaponASurpriseForYaInitialSet" />
+        <Field value="Chance" />
+        <Value value="1.000000" />
+      </Modifications>
+    </AbilityModificationArray>
   </CTalent>
   <CTalent id="ZuljinAmaniResilience">
     <Face value="ZuljinAmaniResilience" />
@@ -3251,6 +3345,7 @@
     <BehaviorArray Link="HallOfStormsKnockbackImmunity" />
   </CUnit>
   <CUnit id="ZuljinWeaponAttackMissile" parent="MISSILE_INVULNERABLE" />
+  <CUnit id="ZuljinWeaponASurpriseForYaAttackMissile" parent="MISSILE_INVULNERABLE" />
   <CUnit id="ZuljinGrievousThrowMissile" parent="MISSILE_INVULNERABLE">
     <Mover value="ZuljinGrievousThrowMissileMover" />
   </CUnit>
@@ -3262,6 +3357,11 @@
     <WhichPlayer Value="Caster" />
     <Find value="1" />
     <Value value="Zul'jinAmaniRageAmaniHide" />
+  </CValidatorPlayerTalent>
+  <CValidatorPlayerTalent id="ZuljinHasPassiveASurpriseForYaTalent">
+    <WhichPlayer Value="Caster" />
+    <Find value="1" />
+    <Value value="ZuljinPassiveASurpriseForYa" />
   </CValidatorPlayerTalent>
   <CValidatorPlayerTalent id="ZuljinAmaniRagePlayerHasTalent">
     <Find value="1" />

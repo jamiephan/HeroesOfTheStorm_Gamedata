@@ -151,8 +151,8 @@
     <Flags index="RequireTargetVision" value="0" />
     <Flags index="TargetVectorLock" value="1" />
     <Cost>
-      <Vital index="Energy" value="70" />
-      <Cooldown TimeUse="12" />
+      <Vital index="Energy" value="55" />
+      <Cooldown TimeUse="10" />
     </Cost>
     <Range value="500" />
     <UninterruptibleArray index="Cast" value="1" />
@@ -165,7 +165,16 @@
     <CastIntroTime value="0.15" />
     <Arc value="360" />
     <PrepEffect value="DismountDecloakCasterSet" />
+    <PostEffectBehavior Behavior="UtherTyrsDeliveranceRadianceResetTokenBehavior" Count="1" Duration="0.75">
+      <Flags index="UseDuration" value="1" />
+    </PostEffectBehavior>
   </CAbilEffectTarget>
+  <CAccumulatorToken id="UtherTyrsDeliveranceAccumulator" parent="BaseAccumulator">
+    <MaxAccumulation value="0.5" />
+    <ApplicationRule value="Add" />
+    <TokenId value="UtherTyrsDeliveranceTokenCounter" />
+    <Scale value="0.1" />
+  </CAccumulatorToken>
   <CAccumulatorToken id="UtherHolyFireAccumulator" parent="BaseAccumulator">
     <MaxAccumulation value="0.6" />
     <ApplicationRule value="Add" />
@@ -690,6 +699,19 @@
     <Magnitude value="90.000000" />
     <Radius value="3.000000" />
   </CActorForceSphere>
+  <CBehaviorBuff id="UtherTyrsDeliveranceRadianceResetTokenBehavior">
+    <Duration value="0.75" />
+    <FinalEffect value="UtherTyrsDeliveranceResetTokens" />
+  </CBehaviorBuff>
+  <CBehaviorTokenCounter id="UtherTyrsDeliveranceTokenCounter" parent="StormGenericToken">
+    <Max value="5" />
+    <Face value="UtherHolyRadianceTyrsDeliveranceToken" />
+    <Alignment value="Positive" />
+    <SortIndex value="60" />
+    <MinStackCountDisplayed value="1" />
+    <Min value="1" />
+    <Init value="1" />
+  </CBehaviorTokenCounter>
   <CBehaviorBuff id="UtherDivineInterventionMovementSpeed" parent="StormSprint">
     <Modification>
       <UnifiedMoveSpeedFactor value="0.2" />
@@ -740,15 +762,6 @@
     <Duration value="6" />
     <Period value="0.125" />
     <PeriodicEffect value="UtherHolyLightArmorOfFaithModifyUnit" />
-  </CBehaviorBuff>
-  <CBehaviorBuff id="UtherHolyRadianceTyrsDeliveranceAmplifiedHealing">
-    <BehaviorFlags index="Permanent" value="1" />
-    <BehaviorFlags index="EnabledWhileDead" value="1" />
-    <Duration value="6" />
-    <Modification>
-      <HealTakenAdditiveMultiplier index="Life" value="0.4" />
-      <VitalRegenMultiplier index="Life" value="0.4" />
-    </Modification>
   </CBehaviorBuff>
   <CBehaviorBuff id="UtherHammerOfTheLightbringerComplete" parent="CarryBehaviorParent">
     <RemoveValidatorArray value="UtherHasHammerOfTheLightbringer" />
@@ -977,6 +990,10 @@
     <Max value="3" />
     <Face value="UtherHolyFireTalent" />
   </CBehaviorTokenCounter>
+  <CButton id="UtherHolyRadianceTyrsDeliveranceToken" parent="StormButtonParent">
+    <Icon value="Assets\Textures\storm_ui_icon_uther_holyradiance.dds" />
+    <HotkeyAlias value="UtherRedemptionTalent" />
+  </CButton>
   <CButton id="UtherDevotionEternalVanguardShop" parent="StormButtonParentTrait">
     <TooltipFlags index="ShowHotkey" value="0" />
     <Icon value="Assets\Textures\storm_ui_icon_uther_eternaldevotion.dds" />
@@ -1118,6 +1135,17 @@
     </Variations>
     <Unit value="HeroUther" />
   </CCharacter>
+  <CEffectModifyTokenCount id="UtherTyrsDeliveranceAddToken" parent="BaseEffectModifyTokenCount">
+    <ValidatorArray value="TargetIsHero" />
+    <ValidatorArray value="CasterNotBlindedAndTargetNotEvading" />
+    <ContextUnit Value="Source" />
+    <TokenId value="UtherTyrsDeliveranceTokenCounter" />
+  </CEffectModifyTokenCount>
+  <CEffectModifyTokenCount id="UtherTyrsDeliveranceResetTokens" parent="BaseEffectModifyTokenCount">
+    <WhichUnit Value="Source" />
+    <TokenId value="UtherTyrsDeliveranceTokenCounter" />
+    <Operation value="Set" />
+  </CEffectModifyTokenCount>
   <CEffectApplyBehavior id="DivineInterventionApplyBehaviorMovementSpeed">
     <ValidatorArray index="0" value="TargetNotDead" />
     <Behavior value="UtherDivineInterventionMovementSpeed" />
@@ -1259,13 +1287,6 @@
       </Cooldown>
     </Cost>
   </CEffectModifyPlayer>
-  <CEffectApplyBehavior id="UtherEternalDevotionTyrsDeliveranceApplyBehavior">
-    <ValidatorArray index="0" value="UtherHasTalentTyrsDeliverance" />
-    <Behavior value="UtherHolyRadianceTyrsDeliveranceAmplifiedHealing" />
-  </CEffectApplyBehavior>
-  <CEffectRemoveBehavior id="UtherEternalDevotionTyrsDeliveranceRemoveBehavior">
-    <BehaviorLink value="UtherHolyRadianceTyrsDeliveranceAmplifiedHealing" />
-  </CEffectRemoveBehavior>
   <CEffectSet id="UtherHammerOfJusticeHammerOfTheLightbringerSet">
     <ValidatorArray value="UtherHasHammerOfTheLightbringer" />
     <EffectArray value="HammerOfTheLightbringerModifyUnit" />
@@ -1332,7 +1353,9 @@
     <ValidatorArray value="IsNotSelf" />
     <ImpactUnit Value="Caster" />
     <RechargeVitalRate value="181" />
-    <MultiplicativeModifierArray index="BeaconOfLight" Validator="UtherHasBeaconOfLightAndLT50Health" Modifier="2" Crit="1" />
+    <MultiplicativeModifierArray index="BeaconOfLight" Validator="HasUtherBeaconOfLight" Modifier="1" Crit="1" />
+    <MultiplicativeModifierArray index="BeaconOfLightCrit" Validator="UtherHasBeaconOfLightAndLT50Health" Modifier="1" Crit="1" />
+    <MultiplicativeModifierArray index="Tyr'sDeliverance" Validator="UtherHasTalentTyrsDeliverance" Accumulator="UtherTyrsDeliveranceAccumulator" Modifier="0.1" />
     <AmountScoreArray Validator="CasterHasLTMaxSilverTouchHealingTokensandSilverTouch" Value="UtherHolyLightSilverTouch" />
     <CritValidatorArray value="UtherHasBeaconOfLightAndLT50Health" />
   </CEffectCreateHealer>
@@ -1730,7 +1753,7 @@
   </CEffectSet>
   <CEffectModifyUnit id="WaveofLightModifyUnit">
     <ImpactUnit Value="Caster" />
-    <Cost Abil="UtherHolyRadiance,Execute" CooldownOperation="Add" CooldownTimeUse="-1" />
+    <Cost Abil="UtherHolyRadiance,Execute" CooldownOperation="Add" CooldownTimeUse="-0.75" />
   </CEffectModifyUnit>
   <CEffectCreateHealer id="UtherWaveofLightRestoreMana" parent="StormManaRestore">
     <ImpactUnit Value="Caster" />
@@ -1807,7 +1830,6 @@
     <ValidatorArray value="TargetIsMinionNotMercLanerORTargetIsHero" />
     <EffectArray value="UtherHolyRadianceWaveofLightTalentProcSet" />
     <EffectArray value="HolyRadianceCreateHealer" />
-    <EffectArray value="UtherEternalDevotionTyrsDeliveranceApplyBehavior" />
     <EffectArray value="EternalDevotionApplyTargetArmorSet" />
   </CEffectSet>
   <CEffectSet id="UtherPassiveBuffWeaponSet">
@@ -1874,6 +1896,7 @@
     <EffectArray value="HolyLightBlessedChampionMasteryProcSet" />
     <EffectArray value="UtherHolyFireApplyStack" />
     <EffectArray value="UtherHandOfProtectionModifyPlayer" />
+    <EffectArray value="UtherTyrsDeliveranceAddToken" />
   </CEffectSet>
   <CEffectModifyUnit id="UtherSpiritofRedemptionModifyUnit">
     <ImpactUnit Value="Caster" />
@@ -1907,7 +1930,9 @@
     <Behavior value="DivineInterventionInvulnerable" />
   </CEffectApplyBehavior>
   <CEffectCreateHealer id="HolyRadianceCreateHealer" parent="StormHealingSpell">
-    <RechargeVitalRate value="177" />
+    <RechargeVitalRate value="194" />
+    <MultiplicativeModifierArray index="TyrsDeliverance" Validator="UtherHasTalentTyrsDeliverance" Accumulator="UtherTyrsDeliveranceAccumulator" />
+    <CritValidatorArray index="0" value="UtherHas3OrMoreTyrsDeliverenceTokens" />
   </CEffectCreateHealer>
   <CEffectApplyBehavior id="HammerOfJusticeApplyBehavior">
     <Behavior value="HammerOfJustice" />
@@ -1952,6 +1977,8 @@
   </CEffectApplyBehavior>
   <CEffectDamage id="HolyRadianceEnemyDamage" parent="StormSpell">
     <Amount value="177" />
+    <MultiplicativeModifierArray index="TyrsDeliverance" Validator="UtherHasTalentTyrsDeliverance" Accumulator="UtherTyrsDeliveranceAccumulator" />
+    <CritValidatorArray index="0" value="UtherHas3OrMoreTyrsDeliverenceTokens" />
   </CEffectDamage>
   <CEffectEnumArea id="HolyRadianceEnemySearch">
     <SearchFilters value="-;Player,Ally,Neutral,ImmuneToAOE,Missile,Item,Stasis,Dead,Invulnerable" />
@@ -2510,6 +2537,9 @@
   <CTalent id="UtherHolyRadianceTyrsDeliverance">
     <Face value="UtherHolyRadianceTyrsDeliveranceTalent" />
     <Abil value="UtherHolyRadiance" />
+    <RankArray>
+      <BehaviorArray value="UtherTyrsDeliveranceTokenCounter" />
+    </RankArray>
   </CTalent>
   <CTalent id="UtherHolyLightSilverTouch">
     <Face value="UtherHolyLightSilverTouch" />
@@ -2728,9 +2758,9 @@
     <QuestData StackBehavior="UtherHolyRadianceWaveofLightQuestTokenBehavior" TargetCount="60" />
   </CTalent>
   <CUnit id="HeroUther" parent="StormHeroMounted">
-    <LifeStart value="2000" />
-    <LifeMax value="2000" />
-    <LifeRegenRate value="4.168" />
+    <LifeStart value="1975" />
+    <LifeMax value="1975" />
+    <LifeRegenRate value="4.1093" />
     <AbilArray Link="UtherHolyLight" />
     <AbilArray Link="UtherHolyRadiance" />
     <AbilArray Link="UtherHammerOfJustice" />
@@ -2768,6 +2798,11 @@
     <HeroPlaystyleFlags index="SelfHealer" value="1" />
   </CUnit>
   <CUnit id="UtherHolyRadianceMissile" parent="MISSILE_INVULNERABLE" />
+  <CValidatorCombine id="UtherHasTyrsDeliverenceAndHas3OrMoreTokens">
+    <Type value="And" />
+    <CombineArray value="UtherHasTalentTyrsDeliverance" />
+    <CombineArray value="UtherHas3OrMoreTyrsDeliverenceTokens" />
+  </CValidatorCombine>
   <CValidatorUnitCompareBehaviorCount id="UtherTargetHasDivineShieldInvulnerable">
     <Compare value="GT" />
     <Behavior value="DivineInterventionInvulnerable" />
@@ -2895,6 +2930,12 @@
     <Compare value="LT" />
     <Value value="80" />
     <TokenId value="UtherSilverTouchArmorQuestToken" />
+  </CValidatorUnitCompareTokenCount>
+  <CValidatorUnitCompareTokenCount id="UtherHas3OrMoreTyrsDeliverenceTokens">
+    <WhichUnit Value="Caster" />
+    <Compare value="GE" />
+    <Value value="3" />
+    <TokenId value="UtherTyrsDeliveranceTokenCounter" />
   </CValidatorUnitCompareTokenCount>
   <CValidatorUnitCompareTokenCount id="UtherCasterHasMaxSilverTouchArmorTokens">
     <WhichUnit Value="Caster" />
