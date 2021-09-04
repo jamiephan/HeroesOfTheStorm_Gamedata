@@ -116,12 +116,12 @@
     <Cost>
       <Vital index="Energy" value="10" />
       <Charge>
-        <CountMax value="4" />
-        <CountStart value="4" />
+        <CountMax value="2" />
+        <CountStart value="2" />
         <CountUse value="1" />
         <TimeUse value="3" />
       </Charge>
-      <Cooldown TimeUse="0.0625" />
+      <Cooldown TimeUse="0.125" />
     </Cost>
     <Range value="500" />
     <UninterruptibleArray index="Cast" value="1" />
@@ -280,6 +280,12 @@
     <TokenId value="ZagaraSerratedSpinesQuestToken" />
     <Scale value="0.002" />
   </CAccumulatorToken>
+  <CActorModel id="ZagaraBanelingBarrageBroodmotherTalentCastFX" parent="StormModelAnimationStyleOneShot">
+    <Preload index="0" value="ZagaraBanelingBarrageCast" />
+    <On Terms="Effect.ZagaraBanelingBarrageBroodmotherTalentLaunchPersistent.Start; At Caster" Send="Create" />
+    <HostSiteOps Ops="SOpAttachWeapon SOpForwardTargetUnit" />
+    <Model value="ZagaraBanelingBarrageCast" />
+  </CActorModel>
   <CActorEventMacro id="DevouringMawHeightMacro">
     <On Terms="ActorCreation" Send="StatusSet Sinking 0" />
     <On Terms="Signal.*.SinkingDevouredStart" Send="StatusIncrement StatusBarHide" />
@@ -604,6 +610,7 @@
   </CActorUnit>
   <CActorSound id="ZagaraBanelingActivate" parent="SoundOneShot">
     <On Terms="Abil.ZagaraBanelingBarrage.SourceCastStart" Send="Create" />
+    <On Terms="Effect.ZagaraBanelingBarrageBroodmotherTalentLaunchPersistent.Start; At Caster" Send="Create" />
     <Host Subject="_Unit" />
     <Sound value="Zagara_Baneling_Activate" />
   </CActorSound>
@@ -1123,6 +1130,17 @@
   <CActorModel id="ZagaraSkinInsectoidPortraitAddition" parent="StormCompositePortraitAddition" />
   <CActorPortrait id="ZagaraSkinUltimatePortrait" parent="StormCompositePortrait" />
   <CActorModel id="ZagaraSkinUltimatePortraitAddition" parent="StormCompositePortraitAddition" />
+  <CBehaviorBuff id="ZagaraHunterKillerPackInstinctsTalentTargetMarker">
+    <Duration value="3" />
+    <MaxStackCount value="5" />
+    <MaxStackCountPerCaster value="1" />
+  </CBehaviorBuff>
+  <CBehaviorTokenCounter id="ZagaraBanelingBarrageBroodmotherTalentTokenCounter" parent="StormGenericToken">
+    <Face value="ZagaraBroodmother" />
+    <Alignment value="Positive" />
+    <Min value="1" />
+    <Max value="3" />
+  </CBehaviorTokenCounter>
   <CBehaviorAbility id="ZagaraInfestItem">
     <Face value="ZagaraInfestToggleOff" />
     <Buttons Face="ZagaraInfestItem" Type="AbilCmd" AbilCmd="ZagaraInfestToggle,Off" />
@@ -1270,7 +1288,6 @@
     <Modification>
       <StateFlags index="Passive" value="1" />
       <MoveSpeedMaximum value="0" />
-      <AbilClassEnableArray index="CAbilArmMagazine" value="1" />
       <AbilClassDisableArray index="CAbilAttack" value="1" />
       <AbilClassDisableArray index="CAbilMorph" value="1" />
       <AbilClassDisableArray index="CAbilMove" value="1" />
@@ -1351,8 +1368,6 @@
     <DisableValidatorArray value="TargetNotMounted" />
     <Modification>
       <UnifiedMoveSpeedFactor value="0.2" />
-      <WeaponRange value="1.1" />
-      <WeaponScanBonus value="1.1" />
     </Modification>
   </CBehaviorBuff>
   <CBehaviorBuff id="ZagaraRapidIncubationChannel">
@@ -1504,11 +1519,18 @@
     <Max value="65535" />
     <SortIndex value="20" />
   </CBehaviorTokenCounter>
+  <CButton id="ZagaraBroodmother" parent="StormButtonParent">
+    <Icon value="Assets\Textures\storm_ui_icon_zagara_banelingbarrage.dds" />
+    <HotkeyAlias value="ZagaraBanelingBarrageBanelingMassacreTalent" />
+  </CButton>
   <CButton id="ZagaraCreepTumorJaggedBarbs" parent="StormButtonParent">
     <Icon value="Assets\Textures\storm_ui_icon_zagara_creep.dds" />
     <HotkeyAlias value="ZagaraCreepTumorMetabolicBoostTalent" />
   </CButton>
   <CButton id="BurrowDown" />
+  <CButton id="ZagaraPackInstinct" parent="StormButtonParent">
+    <Icon value="Assets\Textures\storm_ui_icon_zagara_hunterkiller.dds" />
+  </CButton>
   <CButton id="ZagaraInfestedDropBileDropTalentToken" parent="StormButtonParent">
     <TooltipAppender />
     <Icon value="Assets\Textures\storm_ui_icon_zagara_infesteddrop.dds" />
@@ -1604,6 +1626,7 @@
     <TooltipAppender Validator="ZagaraHasVolatileAcid" Face="ZagaraBanelingBarrageVolatileAcidTalent" />
     <TooltipAppender Validator="ZagaraHasBanelingMassacre" Face="ZagaraBanelingBarrageBanelingMassacreTalent" />
     <TooltipAppender Validator="ZagaraHasViscousAcidTalent" Face="ZagaraViscousAcid" />
+    <TooltipAppender Validator="ZagaraHasBroodmotherTalent" Face="ZagaraBroodmother" />
   </CButton>
   <CButton id="ZagaraHunterKiller" parent="StormButtonParent">
     <Icon value="Assets\Textures\storm_ui_icon_zagara_hunterkiller.dds" />
@@ -1612,6 +1635,7 @@
     <TooltipAppender Validator="ZagaraHasBroodExpansion" Face="ZagaraHunterKillerBroodExpansionTalent" />
     <TooltipAppender Validator="ZagaraHasHydraliskTransfusion" Face="ZagaraHydraliskTransfusionTalent" />
     <TooltipAppender Validator="ZagaraHasCorrosiveSaliva" Face="ZagaraCorrosiveSalivaHunterKillerTalent" />
+    <TooltipAppender Validator="ZagaraHasPackInstinctTalent" Face="ZagaraPackInstinct" />
   </CButton>
   <CButton id="ZagaraEnterNydusWorm" parent="StormButtonParent">
     <Icon value="Assets\Textures\storm_temp_war3_btnload.dds" />
@@ -1663,6 +1687,35 @@
     <Voice value="ATT Crystal" />
     <Unit value="HeroZagara" />
   </CCharacter>
+  <CEffectApplyBehavior id="ZagaraHunterKillerPackInstinctsTalentApplyTargetMarker">
+    <Chance value="0" />
+    <Behavior value="ZagaraHunterKillerPackInstinctsTalentTargetMarker" />
+  </CEffectApplyBehavior>
+  <CEffectCreatePersistent id="ZagaraBanelingBarrageBroodmotherTalentLaunchPersistent">
+    <WhichLocation Value="CasterPoint" />
+    <OffsetVectorStartLocation Value="CasterUnit" />
+    <OffsetVectorEndLocation Effect="ZagaraWeaponLaunchMissile" Value="TargetUnit" />
+    <PeriodCount value="1" />
+    <PeriodicEffectArray value="SummonBanelingsLaunchDummy" />
+    <PeriodicOffsetArray Y="-15.75" />
+    <PeriodicPeriodArray value="0" />
+  </CEffectCreatePersistent>
+  <CEffectModifyTokenCount id="ZagaraBanelingBarrageBroodmotherTalentAddToken" parent="BaseEffectModifyTokenCount">
+    <TokenId value="ZagaraBanelingBarrageBroodmotherTalentTokenCounter" />
+  </CEffectModifyTokenCount>
+  <CEffectSet id="ZagaraBanelingBarrageBroodmotherTalentProcSet">
+    <EffectArray value="ZagaraBanelingBarrageBroodmotherTalentResetToken" />
+    <EffectArray value="ZagaraBanelingBarrageBroodmotherTalentLaunchPersistent" />
+  </CEffectSet>
+  <CEffectModifyTokenCount id="ZagaraBanelingBarrageBroodmotherTalentResetToken" parent="BaseEffectModifyTokenCount">
+    <CollationId value="ZagaraBanelingBarrageBroodmotherTalentAddToken" />
+    <TokenId value="ZagaraBanelingBarrageBroodmotherTalentTokenCounter" />
+    <Operation value="Set" />
+  </CEffectModifyTokenCount>
+  <CEffectSwitch id="ZagaraBanelingBarrageBroodmotherTalentSwitch">
+    <CaseArray Validator="ZagaraHasMaxBroodmotherTalentTokens" Effect="ZagaraBanelingBarrageBroodmotherTalentProcSet" />
+    <CaseDefault value="ZagaraBanelingBarrageBroodmotherTalentAddToken" />
+  </CEffectSwitch>
   <CEffectSet id="ZagaraInfestedDropDropSet">
     <EffectArray value="InfestedDropCreateSpawnPersistent" />
     <EffectArray value="ZagaraInfestedDropSearch" />
@@ -1785,6 +1838,7 @@
   <CEffectSet id="ZagaraHydraliskMeleeImpactSet">
     <EffectArray value="ZagaraHydraliskMeleeDamageSwitch" />
     <EffectArray value="ZagaraHunterKillerBileDropCorrosiveSalivaPercentDamage" />
+    <EffectArray value="ZagaraHunterKillerPackInstinctsTalentApplyTargetMarker" />
   </CEffectSet>
   <CEffectSwitch id="ZagaraHydraliskRangedImpactSwitch" parent="SummonedBasicAttackAbilityDamageMissCheck">
     <CaseDefault value="ZagaraHydraliskRangedImpactSet" />
@@ -1792,6 +1846,7 @@
   <CEffectSet id="ZagaraHydraliskRangedImpactSet">
     <EffectArray value="ZagaraHydraliskRangedDamageSwitch" />
     <EffectArray value="ZagaraHunterKillerBileDropCorrosiveSalivaPercentDamage" />
+    <EffectArray value="ZagaraHunterKillerPackInstinctsTalentApplyTargetMarker" />
   </CEffectSet>
   <CEffectApplyBehavior id="ZagaraCreepTumorEndlessCreepApplyBehavior">
     <Chance value="0" />
@@ -1902,11 +1957,13 @@
   <CEffectDamage id="ZagaraWeaponDamage" parent="StormWeapon">
     <Amount value="85" />
     <MultiplicativeModifierArray index="SerratedSpines" Validator="ZagaraHasSerratedSpines" Accumulator="ZagaraSerratedSpinesAccumulator" />
-    <MultiplicativeModifierArray index="JaggedBarbs" Validator="ZagaraHasJaggedBarbsAndHasOnCreepSpeedBuff" Modifier="0.4" Crit="1" />
+    <MultiplicativeModifierArray index="JaggedBarbs" Validator="ZagaraHasJaggedBarbsAndHasOnCreepSpeedBuff" Modifier="0.5" Crit="1" />
+    <MultiplicativeModifierArray index="PackInstinct" Validator="ZagaraPackInstinctTalentProcCombine" Modifier="0.25" Crit="1" />
   </CEffectDamage>
   <CEffectDamage id="ZagaraWeaponEnvenomedSpinesDamage" parent="StormWeapon">
     <Amount value="85" />
-    <MultiplicativeModifierArray index="JaggedBarbs" Validator="ZagaraHasJaggedBarbsAndHasOnCreepSpeedBuff" Modifier="0.4" Crit="1" />
+    <MultiplicativeModifierArray index="JaggedBarbs" Validator="ZagaraHasJaggedBarbsAndHasOnCreepSpeedBuff" Modifier="0.5" Crit="1" />
+    <MultiplicativeModifierArray index="PackInstinct" Validator="ZagaraPackInstinctTalentProcCombine" Modifier="0.25" Crit="1" />
   </CEffectDamage>
   <CEffectSet id="ZagaraWeaponImpactSet">
     <EffectArray value="UniversalWeaponImpact" />
@@ -1926,6 +1983,7 @@
     <SharedFlags index="TravelValidation" value="1" />
     <SharedFlags index="ValidateWeapon" value="0" />
     <AmmoUnit value="ZagaraWeaponMissile" />
+    <LaunchEffect value="ZagaraBanelingBarrageBroodmotherTalentSwitch" />
   </CEffectLaunchMissile>
   <CEffectSet id="ZagaraMedusaBladesImpactSet">
     <EffectArray value="MedusaBladesWeaponDamage" />
@@ -1962,7 +2020,8 @@
     <AttributeFactor index="Heroic" value="-0.67" />
     <AttributeFactor index="Summoned" value="-0.67" />
     <Amount value="85" />
-    <MultiplicativeModifierArray index="JaggedBarbs" Validator="ZagaraHasJaggedBarbsAndHasOnCreepSpeedBuff" Modifier="0.4" Crit="1" />
+    <MultiplicativeModifierArray index="JaggedBarbs" Validator="ZagaraHasJaggedBarbsAndHasOnCreepSpeedBuff" Modifier="0.5" Crit="1" />
+    <MultiplicativeModifierArray index="PackInstinct" Validator="ZagaraPackInstinctTalentProcCombine" Modifier="0.25" Crit="1" />
   </CEffectDamage>
   <CEffectLaunchMissile id="MedusaBladesSideWeaponLaunchMissile">
     <ValidatorArray index="0" value="TargetNotDead" />
@@ -1973,7 +2032,8 @@
   </CEffectLaunchMissile>
   <CEffectDamage id="MedusaBladesWeaponDamage" parent="StormWeapon">
     <Amount value="85" />
-    <MultiplicativeModifierArray index="JaggedBarbs" Validator="ZagaraHasJaggedBarbsAndHasOnCreepSpeedBuff" Modifier="0.4" Crit="1" />
+    <MultiplicativeModifierArray index="JaggedBarbs" Validator="ZagaraHasJaggedBarbsAndHasOnCreepSpeedBuff" Modifier="0.5" Crit="1" />
+    <MultiplicativeModifierArray index="PackInstinct" Validator="ZagaraPackInstinctTalentProcCombine" Modifier="0.25" Crit="1" />
   </CEffectDamage>
   <CEffectApplyBehavior id="ZagaraCorruptingSpinesApplyBehavior">
     <ValidatorArray index="0" value="HasZagaraCorruptingSpines" />
@@ -2064,11 +2124,13 @@
     <WhichLocation Value="CasterPoint" />
     <Flags index="Channeled" value="1" />
     <InitialEffect value="SummonBanelingsApplyChannelBehavior" />
-    <PeriodCount value="1" />
+    <PeriodCount value="2" />
     <PeriodicValidator value="HasZagaraBanelingChannel" />
+    <PeriodicEffectArray value="SummonBanelingsLaunchDummy" />
     <PeriodicEffectArray value="SummonBanelingsLaunchDummy" />
     <PeriodicOffsetArray Y="-15.75" />
     <PeriodicPeriodArray value="0" />
+    <PeriodicPeriodArray value="0.125" />
     <PeriodicPeriodArray value="0.25" />
   </CEffectCreatePersistent>
   <CEffectCreatePersistent id="ZagaraBanelingCreatePersistentSuicideReveal">
@@ -2086,6 +2148,7 @@
     <Amount value="86" />
     <DamageModifierSource Value="Creator" />
     <MultiplicativeModifierArray index="VolatileAcid" Validator="ZagaraHasVolatileAcid" Modifier="0.2" />
+    <MultiplicativeModifierArray index="PackInstinct" Validator="ZagaraPackInstinctTalentProcCombine" Modifier="0.25" Crit="1" />
   </CEffectDamage>
   <CEffectSet id="ZagaraBanelingSuicideTest">
     <EffectArray value="ZagaraBanelingCreatePersistentSuicideReveal" />
@@ -2162,6 +2225,7 @@
   </CEffectCreateUnit>
   <CEffectDamage id="ZagaraInfestedDropDamage" parent="StormSpell">
     <Amount value="140" />
+    <MultiplicativeModifierArray index="PackInstinct" Validator="ZagaraPackInstinctTalentProcCombine" Modifier="0.25" Crit="1" />
   </CEffectDamage>
   <CEffectCreatePersistent id="ZagaraInfestedDropInitialCreatePersistent">
     <PeriodCount value="1" />
@@ -2185,7 +2249,8 @@
     <OffsetRandMode value="RandomNoRepeat" />
   </CEffectCreatePersistent>
   <CEffectDamage id="ZagaraRoachAttackDamage" parent="StormSummonedUnitWeapon">
-    <Amount value="27" />
+    <Amount value="30" />
+    <MultiplicativeModifierArray index="PackInstinct" Validator="ZagaraPackInstinctTalentProcCombine" Modifier="0.25" Crit="1" />
   </CEffectDamage>
   <CEffectEnumArea id="ZagaraInfestedDropSearch">
     <ImpactLocation Value="TargetPoint" />
@@ -2239,15 +2304,18 @@
   </CEffectCreatePersistent>
   <CEffectDamage id="ZagaraMutaliskWeaponDamage1" parent="StormSummonedUnitWeapon">
     <Amount value="$ZagaraHunterKillerDamage" />
+    <MultiplicativeModifierArray index="PackInstinct" Validator="ZagaraPackInstinctTalentProcCombine" Modifier="0.25" Crit="1" />
   </CEffectDamage>
   <CEffectDamage id="ZagaraMutaliskWeaponDamage2" parent="StormSummonedUnitWeapon">
     <Amount value="$ZagaraHunterKillerMutaliskDamageBounce1" />
+    <MultiplicativeModifierArray index="PackInstinct" Validator="ZagaraPackInstinctTalentProcCombine" Modifier="0.25" Crit="1" />
   </CEffectDamage>
   <CEffectSwitch id="ZagaraMutaliskWeaponDamageSwitch3" parent="SummonedBasicAttackAbilityDamageMissCheck">
     <CaseDefault value="ZagaraMutaliskWeaponDamage3" />
   </CEffectSwitch>
   <CEffectDamage id="ZagaraMutaliskWeaponDamage3" parent="StormSummonedUnitWeapon">
     <Amount value="$ZagaraHunterKillerMutaliskDamageBounce2" />
+    <MultiplicativeModifierArray index="PackInstinct" Validator="ZagaraPackInstinctTalentProcCombine" Modifier="0.25" Crit="1" />
   </CEffectDamage>
   <CEffectSwitch id="ZagaraMutaliskWeaponImpactSwitch1" parent="SummonedBasicAttackAbilityDamageMissCheck">
     <CaseDefault value="ZagaraMutaliskWeaponImpactSet1" />
@@ -2257,6 +2325,7 @@
     <EffectArray value="ZagaraHunterKillerBileDropCorrosiveSalivaPercentDamage" />
     <EffectArray value="ZagaraMutaliskWeaponSearchArea1" />
     <EffectArray value="ZagaraMutaliskApplyBenignTarget" />
+    <EffectArray value="ZagaraHunterKillerPackInstinctsTalentApplyTargetMarker" />
   </CEffectSet>
   <CEffectSwitch id="ZagaraMutaliskWeaponImpactSwitch2" parent="SummonedBasicAttackAbilityDamageMissCheck">
     <CaseDefault value="ZagaraMutaliskWeaponImpactSet2" />
@@ -2310,10 +2379,12 @@
   <CEffectDamage id="ZagaraHydraliskGroovedSpinesRangedDamage" parent="StormSummonedUnitWeapon">
     <Marker Link="Effect/ZagaraHydraliskRangedDamage" />
     <Amount value="106.8" />
+    <MultiplicativeModifierArray index="PackInstinct" Validator="ZagaraPackInstinctTalentProcCombine" Modifier="0.25" Crit="1" />
   </CEffectDamage>
   <CEffectDamage id="ZagaraHydraliskGroovedSpinesMeleeDamage" parent="StormSummonedUnitWeapon">
     <Marker Link="Effect/ZagaraHydraliskRangedDamage" />
     <Amount value="106.8" />
+    <MultiplicativeModifierArray index="PackInstinct" Validator="ZagaraPackInstinctTalentProcCombine" Modifier="0.25" Crit="1" />
   </CEffectDamage>
   <CEffectSwitch id="ZagaraHydraliskMeleeDamageSwitch">
     <CaseArray Validator="ZagaraHasGroovedSpines" Effect="ZagaraHydraliskGroovedSpinesMeleeDamage" />
@@ -2325,9 +2396,11 @@
   </CEffectSwitch>
   <CEffectDamage id="ZagaraHydraliskMeleeDamage" parent="StormSummonedUnitWeapon">
     <Amount value="$ZagaraHunterKillerDamage" />
+    <MultiplicativeModifierArray index="PackInstinct" Validator="ZagaraPackInstinctTalentProcCombine" Modifier="0.25" Crit="1" />
   </CEffectDamage>
   <CEffectDamage id="ZagaraHydraliskRangedDamage" parent="StormSummonedUnitWeapon">
     <Amount value="$ZagaraHunterKillerDamage" />
+    <MultiplicativeModifierArray index="PackInstinct" Validator="ZagaraPackInstinctTalentProcCombine" Modifier="0.25" Crit="1" />
   </CEffectDamage>
   <CEffectApplyBehavior id="DevouringMawApplyNoDrawBehavior">
     <ValidatorArray index="0" value="TargetNotHero" />
@@ -2373,6 +2446,7 @@
   </CEffectSet>
   <CEffectDamage id="DevouringMawImpactDamage" parent="StormSpell">
     <Amount value="307" />
+    <MultiplicativeModifierArray index="PackInstinct" Validator="ZagaraPackInstinctTalentProcCombine" Modifier="0.25" Crit="1" />
   </CEffectDamage>
   <CEffectEnumArea id="DevouringMawInitialSearchArea">
     <SearchFilters value="-;Player,Ally,Neutral,ImmuneToAOE,Structure,Missile,Item,Stasis,Dead,Hidden,Invulnerable,Summoned" />
@@ -2402,6 +2476,7 @@
   <CEffectDamage id="DevouringMawSustainedDamage" parent="StormSpell">
     <ImpactUnitValidator value="TargetIsStasisOrNotInvulnerable" />
     <Amount value="94" />
+    <MultiplicativeModifierArray index="PackInstinct" Validator="ZagaraPackInstinctTalentProcCombine" Modifier="0.25" Crit="1" />
   </CEffectDamage>
   <CEffectCreatePersistent id="ZagaraDevouringMawCCPersistent">
     <WhichLocation Value="TargetUnit" />
@@ -2551,6 +2626,7 @@
   </CEffectApplyBehavior>
   <CEffectDamage id="ZagaraWeaponEnvenomedSpinesPeriodicDamage" parent="StormSpellDot">
     <Amount value="46" />
+    <MultiplicativeModifierArray index="PackInstinct" Validator="ZagaraPackInstinctTalentProcCombine" Modifier="0.25" Crit="1" />
   </CEffectDamage>
   <CEffectApplyBehavior id="ZagaraWeaponEnvenomedSpinesApplyBehavior">
     <ValidatorArray value="CasterNotBlindedAndTargetNotEvading" />
@@ -2818,10 +2894,10 @@
     <VOArray index="PingTransport" value="Zagara_Ping_Transport" />
     <VOArray index="PingTurnIn" value="Zagara_Ping_TurnIn" />
     <VOArray index="VOPing_AssistMe" value="Zagara_VOPing_AssistMe" />
-    <VOArray index="VOPing_OnMyWay" value="Zagara_VOPing_OnMyWay" />
     <VOArray index="VOPing_Danger" value="Zagara_VOPing_Danger" />
-    <VOArray index="VOPing_EnemyMissing" value="Zagara_VOPing_EnemyMissing" />
     <VOArray index="VOPing_Defend" value="Zagara_VOPing_Defend" />
+    <VOArray index="VOPing_EnemyMissing" value="Zagara_VOPing_EnemyMissing" />
+    <VOArray index="VOPing_OnMyWay" value="Zagara_VOPing_OnMyWay" />
     <VOArray index="VOPing_Retreat" value="Zagara_VOPing_Retreat" />
     <TalentTreeArray Talent="ZagaraMasteryVolatileAcid" Tier="1" Column="1" />
     <TalentTreeArray Talent="ZagaraMasteryCorpseFeeders" Tier="1" Column="2" />
@@ -2846,7 +2922,8 @@
     <TalentTreeArray Talent="ZagaraMasteryEndlessCreep" Tier="7" Column="2">
       <PrerequisiteTalentArray value="ZagaraHeroicAbilityNydusAssault" />
     </TalentTreeArray>
-    <TalentTreeArray Talent="GenericTalentFuryoftheStorm" Tier="7" Column="3" />
+    <TalentTreeArray Talent="ZagaraBroodmother" Tier="7" Column="3" />
+    <TalentTreeArray Talent="ZagaraPackInstinct" Tier="7" Column="4" />
     <TalentAIBuildsArray ChanceToPick="16">
       <TalentsArray value="ZagaraMasteryVolatileAcid" />
       <TalentsArray value="ZagaraCombatStyleMedusaBlades" />
@@ -2854,7 +2931,7 @@
       <TalentsArray value="ZagaraHeroicAbilityDevouringMaw" />
       <TalentsArray value="ZagaraMasteryHydraliskTransfusion" />
       <TalentsArray value="ZagaraMasteryMutalisk" />
-      <TalentsArray value="GenericTalentFuryoftheStorm" />
+      <TalentsArray value="ZagaraBroodmother" />
     </TalentAIBuildsArray>
     <TalentAIBuildsArray ChanceToPick="16">
       <TalentsArray value="ZagaraMasteryCorpseFeeders" />
@@ -2863,7 +2940,7 @@
       <TalentsArray value="ZagaraHeroicAbilityDevouringMaw" />
       <TalentsArray value="ZagaraMasteryHydraliskTransfusion" />
       <TalentsArray value="ZagaraMasteryMutalisk" />
-      <TalentsArray value="GenericTalentFuryoftheStorm" />
+      <TalentsArray value="ZagaraPackInstinct" />
     </TalentAIBuildsArray>
     <TalentAIBuildsArray ChanceToPick="16">
       <TalentsArray value="ZagaraMasteryCorpseFeeders" />
@@ -2881,7 +2958,7 @@
       <TalentsArray value="ZagaraHeroicAbilityDevouringMaw" />
       <TalentsArray value="ZagaraMasteryHydraliskTransfusion" />
       <TalentsArray value="ZagaraMasteryCorrosiveSaliva" />
-      <TalentsArray value="GenericTalentFuryoftheStorm" />
+      <TalentsArray value="ZagaraBroodmother" />
     </TalentAIBuildsArray>
     <TalentAIBuildsArray AIOnly="1" ChanceToPick="16">
       <TalentsArray value="ZagaraMasteryInfest" />
@@ -3232,6 +3309,7 @@
     <VoiceLineArray value="ZagaraBase_VoiceLine05" />
     <Rarity value="Epic" />
     <ExpandedRole value="RangedAssassin" />
+    <HeroSpecificUIArray Location="HeroSpecificStackingBuffsStatus" DescName="Zagara/ZagaraPackInstinctsFrameContainer" />
   </CHero>
   <CHeroMastery id="ZagaraMasteryRing1" parent="MasteryRingRank1">
     <ProductId value="67031" />
@@ -3460,6 +3538,13 @@
   <CRewardHeroMastery id="ZagaraMasteryRing3">
     <License value="52270" />
   </CRewardHeroMastery>
+  <CTalent id="ZagaraBroodmother">
+    <Face value="ZagaraBroodmother" />
+    <Abil value="ZagaraBanelingBarrage" />
+    <RankArray>
+      <BehaviorArray value="ZagaraBanelingBarrageBroodmotherTalentTokenCounter" />
+    </RankArray>
+  </CTalent>
   <CTalent id="ZagaraJaggedBarbsTalent">
     <Face value="ZagaraCreepTumorJaggedBarbs" />
     <Abil value="ZagaraSummonCreepTumor" />
@@ -3477,6 +3562,19 @@
         <Entry value="ZagaraOnCreepSpeedBuff" />
         <Field value="Modification.WeaponScanBonus" />
         <Value value="1.100000" />
+      </Modifications>
+    </AbilityModificationArray>
+  </CTalent>
+  <CTalent id="ZagaraPackInstinct">
+    <Face value="ZagaraPackInstinct" />
+    <Abil value="ZagaraSummonHydralisk" />
+    <AbilityModificationArray>
+      <Modifications>
+        <Type value="FlatModification" />
+        <Catalog value="Effect" />
+        <Entry value="ZagaraHunterKillerPackInstinctsTalentApplyTargetMarker" />
+        <Field value="Chance" />
+        <Value value="1.000000" />
       </Modifications>
     </AbilityModificationArray>
   </CTalent>
@@ -3653,6 +3751,13 @@
         <Type value="FlatModification" />
         <Catalog value="Effect" />
         <Entry value="SummonBanelingsPersistent" />
+        <Field value="PeriodicOffsetArray[0]" />
+        <Value value="-14.000000" />
+      </Modifications>
+      <Modifications>
+        <Type value="FlatModification" />
+        <Catalog value="Effect" />
+        <Entry value="ZagaraBanelingBarrageBroodmotherTalentLaunchPersistent" />
         <Field value="PeriodicOffsetArray[0]" />
         <Value value="-14.000000" />
       </Modifications>
@@ -4048,7 +4153,7 @@
     <FlagArray index="Untargetable" value="1" />
     <PlaneArray index="Ground" value="1" />
     <Speed value="6" />
-    <SpeedMultiplierCreep value="1.2" />
+    <SpeedMultiplierCreep value="1.3" />
     <Acceleration value="1000" />
     <LateralAcceleration value="46.0625" />
     <StationaryTurningRate value="0" />
@@ -4091,7 +4196,7 @@
     <LifeStart value="450" />
     <LifeMax value="450" />
     <Speed value="4" />
-    <SpeedMultiplierCreep value="1.2" />
+    <SpeedMultiplierCreep value="1.3" />
     <Sight value="9" />
     <AbilArray Link="stop" />
     <AbilArray Link="attack" />
@@ -4123,7 +4228,7 @@
     <LifeStart value="328" />
     <LifeMax value="328" />
     <Speed value="3" />
-    <SpeedMultiplierCreep value="1.2" />
+    <SpeedMultiplierCreep value="1.3" />
     <Sight value="9" />
     <AbilArray Link="stop" />
     <AbilArray Link="attack" />
@@ -4214,6 +4319,31 @@
   <CUnit id="ZagaraRoachRangedMissile" parent="MISSILE_INVULNERABLE">
     <Mover value="ZagaraRoachAttackMover" />
   </CUnit>
+  <CValidatorPlayerTalent id="ZagaraHasPackInstinctTalent">
+    <WhichPlayer Value="Caster" />
+    <Find value="1" />
+    <Value value="ZagaraPackInstinct" />
+  </CValidatorPlayerTalent>
+  <CValidatorCombine id="ZagaraPackInstinctTalentProcCombine">
+    <Type value="And" />
+    <CombineArray value="ZagaraHasPackInstinctTalent" />
+    <CombineArray value="ZagaraTargetHasPackInstinctTalentMarker" />
+  </CValidatorCombine>
+  <CValidatorUnitCompareBehaviorCount id="ZagaraTargetHasPackInstinctTalentMarker">
+    <Compare value="GT" />
+    <Behavior value="ZagaraHunterKillerPackInstinctsTalentTargetMarker" />
+    <RequireOriginPlayer Value="Caster" />
+  </CValidatorUnitCompareBehaviorCount>
+  <CValidatorUnitCompareTokenCount id="ZagaraHasMaxBroodmotherTalentTokens">
+    <WhichUnit Value="Caster" />
+    <Value value="3" />
+    <TokenId value="ZagaraBanelingBarrageBroodmotherTalentTokenCounter" />
+  </CValidatorUnitCompareTokenCount>
+  <CValidatorPlayerTalent id="ZagaraHasBroodmotherTalent">
+    <WhichPlayer Value="Caster" />
+    <Find value="1" />
+    <Value value="ZagaraBroodmother" />
+  </CValidatorPlayerTalent>
   <CValidatorUnitCompareBehaviorCount id="ZagaraHasCreepSpeedBuffJaggedBarbs">
     <WhichUnit Value="Caster" />
     <Value value="1" />
@@ -4552,8 +4682,8 @@
   <CWeaponLegacy id="HeroZagara" parent="StormHeroMediumWeapon">
     <Icon value="Assets\Textures\storm_temp_btn-upgrade-terran-infantryweaponslevel2.dds" />
     <DisplayEffect value="ZagaraWeaponDamage" />
-    <MinScanRange value="5.5" />
-    <Range value="5.5" />
+    <MinScanRange value="6.6" />
+    <Range value="6.6" />
     <Period value="0.8" />
     <PreswingBeforeAttack value="0.25" />
     <PreswingBetweenAttacks value="0.25" />

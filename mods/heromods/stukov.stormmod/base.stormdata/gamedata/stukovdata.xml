@@ -49,6 +49,23 @@
     <UninterruptibleArray index="Finish" value="1" />
     <CmdButtonArray index="Execute" DefaultButtonFace="StukovBioKillSwitch" Requirements="StukovBioKillSwitchTargetsAvailable" />
   </CAbilEffectInstant>
+  <CAbilBehavior id="StukovSpineLauncher">
+    <OrderArray index="0" Color="255,0,255,0" Model="Assets\UI\Feedback\WayPointConfirm\WayPointConfirm.m3" LineTexture="Assets\Textures\Storm_WayPointLine.dds" />
+    <CmdButtonArray index="On" DefaultButtonFace="StukovSpineLauncherTalentEnabled" PreemptLevel="-1" />
+    <CmdButtonArray index="Off" DefaultButtonFace="StukovSpineLauncherTalentDisabled" PreemptLevel="-1">
+      <Flags index="ShowInGlossary" value="1" />
+    </CmdButtonArray>
+    <Flags index="Toggle" value="1" />
+    <Flags index="ToggledOn" value="1" />
+    <Flags index="Transient" value="1" />
+    <Cost>
+      <Cooldown Location="Player" TimeUse="0.5" />
+    </Cost>
+    <OffCost>
+      <Cooldown Location="Player" TimeUse="0.5" />
+    </OffCost>
+    <BehaviorArray value="StukovSpineLauncherWeapon" />
+  </CAbilBehavior>
   <CAbilEffectInstant id="StukovLurkingArmCancel">
     <Effect value="StukovLurkingArmRemoveCasterBehavior" />
     <Flags index="Transient" value="1" />
@@ -684,14 +701,14 @@
     <On Terms="ActorCreation" Send="StatusSet WeaponNext 0" />
     <On Terms="WeaponStart.*.AttackStart" Send="StatusIncrement WeaponNext" />
     <On Terms="WeaponStart.*.AttackStart; IsStatus WeaponNext 2" Send="StatusSet WeaponNext 0" />
-    <On Terms="WeaponStart.*.AttackStart; IsStatus WeaponNext 0; !ValidateUnit StukovHasFetidTouchTalent" Send="AnimPlay Attack Attack,A" />
-    <On Terms="AnimPlay; ValidateUnit StukovHasFetidTouchTalent; AnimPlaying Attack" Send="Create StukovSpineLauncherWeaponAttackPreLaunch" />
-    <On Terms="WeaponStart.*.AttackStart; IsStatus WeaponNext 1; !ValidateUnit StukovHasFetidTouchTalent" Send="AnimPlay Attack Attack,B" />
-    <On Terms="WeaponStart.*.AttackStart; IsStatus WeaponNext 0; ValidateUnit StukovHasFetidTouchTalent" Send="AnimPlay Attack Attack,A,Superior" />
-    <On Terms="WeaponStart.*.AttackStart; IsStatus WeaponNext 1; ValidateUnit StukovHasFetidTouchTalent" Send="AnimPlay Attack Attack,B,Superior" />
-    <On Terms="WeaponStart.*.AttackStart; !ValidateUnit StukovHasFetidTouchTalent" Send="Create StukovWeaponTrailFX" />
-    <On Terms="WeaponStart.*.AttackStart; IsStatus WeaponNext 0; !ValidateUnit StukovHasFetidTouchTalent" Target="StukovWeaponTrailFX" Send="AnimGroupApply A" />
-    <On Terms="WeaponStart.*.AttackStart; IsStatus WeaponNext 1; !ValidateUnit StukovHasFetidTouchTalent" Target="StukovWeaponTrailFX" Send="AnimGroupApply B" />
+    <On Terms="WeaponStart.*.AttackStart; IsStatus WeaponNext 0; !ValidateUnit StukovHasSpineLauncherWeaponBehavior" Send="AnimPlay Attack Attack,A" />
+    <On Terms="AnimPlay; ValidateUnit StukovHasSpineLauncherWeaponBehavior; AnimPlaying Attack" Send="Create StukovSpineLauncherWeaponAttackPreLaunch" />
+    <On Terms="WeaponStart.*.AttackStart; IsStatus WeaponNext 1; !ValidateUnit StukovHasSpineLauncherWeaponBehavior" Send="AnimPlay Attack Attack,B" />
+    <On Terms="WeaponStart.*.AttackStart; IsStatus WeaponNext 0; ValidateUnit StukovHasSpineLauncherWeaponBehavior" Send="AnimPlay Attack Attack,A,Superior" />
+    <On Terms="WeaponStart.*.AttackStart; IsStatus WeaponNext 1; ValidateUnit StukovHasSpineLauncherWeaponBehavior" Send="AnimPlay Attack Attack,B,Superior" />
+    <On Terms="WeaponStart.*.AttackStart; !ValidateUnit StukovHasSpineLauncherWeaponBehavior" Send="Create StukovWeaponTrailFX" />
+    <On Terms="WeaponStart.*.AttackStart; IsStatus WeaponNext 0; !ValidateUnit StukovHasSpineLauncherWeaponBehavior" Target="StukovWeaponTrailFX" Send="AnimGroupApply A" />
+    <On Terms="WeaponStart.*.AttackStart; IsStatus WeaponNext 1; !ValidateUnit StukovHasSpineLauncherWeaponBehavior" Target="StukovWeaponTrailFX" Send="AnimGroupApply B" />
     <On Terms="Signal.*.LurkingArmLinkMe" Send="RefSetFromMsg ::actor.LurkingArm ::Sender" />
     <On Terms="Signal.*.LurkingArmWarningLinkMe" Send="RefSetFromMsg ::actor.LurkingArmWarning ::Sender" />
     <On Terms="StatusOn.*.TimeStopPaused" Target="::actor.LurkingArm" Send="AnimSetPausedAll" />
@@ -1113,6 +1130,10 @@
   <CBehaviorAbility id="StukovReactiveBallistosporesItem">
     <Buttons Face="StukovReactiveBallistosporesHotbar" Type="AbilCmd" AbilCmd="StukovWeightedPustuleReactiveBallistospores,Execute" />
   </CBehaviorAbility>
+  <CBehaviorAbility id="StukovSpineLauncherItem">
+    <Buttons Face="StukovSpineLauncherTalentDisabled" Type="AbilCmd" AbilCmd="StukovSpineLauncher,Off" />
+    <Buttons Face="StukovSpineLauncherTalentEnabled" Type="AbilCmd" AbilCmd="StukovSpineLauncher,On" />
+  </CBehaviorAbility>
   <CBehaviorBuff id="StukovUniversalCarrierCarryBehavior" parent="CarryBehaviorParent" />
   <CBehaviorTokenCounter id="StukovLurkingArmItHungersTokenCounter" parent="StormGenericToken">
     <Face value="StukovItHungersToken" />
@@ -1519,8 +1540,14 @@
     <TooltipAppender Validator="StukovHasEyeInfectionTalent" Face="StukovEyeInfectionTalent" />
     <TooltipAppender Validator="StukovHasBioExplosionSwitchTalent" Face="StukovBioExplosionSwitchTalent" />
   </CButton>
-  <CButton id="StukovSpineLauncherTalent" parent="StormButtonParent">
+  <CButton id="StukovSpineLauncherTalentEnabled" parent="StormButtonParent">
+    <TooltipFlags index="ShowCooldown" value="0" />
     <Icon value="Assets\Textures\storm_ui_icon_stukov_spinelauncher.dds" />
+    <HotkeyAlias value="StukovSpineLauncherTalentDisabled" />
+  </CButton>
+  <CButton id="StukovSpineLauncherTalentDisabled" parent="StormButtonParent">
+    <TooltipFlags index="ShowCooldown" value="0" />
+    <Icon value="Assets\Textures\hud_btn_bg_ability_cancel.dds" />
   </CButton>
   <CButton id="StukovMassiveShove" parent="StormButtonParent">
     <Icon value="Assets\Textures\storm_ui_icon_stukov_massiveshove.dds" />
@@ -4628,7 +4655,7 @@
     </AbilityModificationArray>
     <RankArray>
       <BehaviorArray value="StukovWeightedPustuleFetidTouchQuestToken" />
-      <BehaviorArray value="StukovSpineLauncherWeapon" />
+      <BehaviorArray value="StukovSpineLauncherItem" />
     </RankArray>
     <Abil value="StukovWeightedPustule" />
     <QuestData StackBehavior="StukovWeightedPustuleFetidTouchQuestToken" TargetCount="40" />
@@ -4826,6 +4853,10 @@
     <WhichUnit Value="Caster" />
     <Value value="1" />
     <Behavior value="StukovBioKillSwitchTargetedExcisionBehavior" />
+  </CValidatorUnitCompareBehaviorCount>
+  <CValidatorUnitCompareBehaviorCount id="StukovHasSpineLauncherWeaponBehavior">
+    <Value value="1" />
+    <Behavior value="StukovSpineLauncherWeapon" />
   </CValidatorUnitCompareBehaviorCount>
   <CValidatorCombine id="StukovLurkingArmItHungersCasterHasBehaviorAndMaxTokens">
     <Type value="And" />

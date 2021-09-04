@@ -177,6 +177,12 @@
       <Flags index="AllowSelfCast" value="0" />
     </CmdButtonArray>
   </CAbilEffectTarget>
+  <CAccumulatorToken id="FalstadHammerangGatheringStormDamageAccumulator" parent="BaseTokenAccumulator">
+    <MaxAccumulation value="65535" />
+    <ApplicationRule value="Add" />
+    <TokenId value="FalstadHammerangGatheringStormDamageToken" />
+    <Scale value="0.005" />
+  </CAccumulatorToken>
   <CAccumulatorToken id="FalstadThunderstrikesAccumulator" parent="BaseAccumulator">
     <MaxAccumulation value="1.5" />
     <ApplicationRule value="Add" />
@@ -203,7 +209,6 @@
     <MaxAccumulation value="65535" />
     <ApplicationRule value="Add" />
     <TokenId value="FalstadHammerangGatheringStormQuestToken" />
-    <Scale value="0.004" />
   </CAccumulatorToken>
   <CActorSplat id="FalstadWingmanRangeSplat" parent="StormRangeSplat">
     <Scale value="6.000000" />
@@ -919,6 +924,11 @@
   <CActorSound id="PulledSoundHeroFalstad" parent="SoundOneShot">
     <Sound value="Falstad_VOX_Pulled" />
   </CActorSound>
+  <CBehaviorTokenCounter id="FalstadHammerangGatheringStormDamageToken" parent="StormQuestToken">
+    <Face value="FalstadHammerangGatheringStormQuestToken" />
+    <InfoFlags index="Hidden" value="1" />
+    <Max value="65535" />
+  </CBehaviorTokenCounter>
   <CBehaviorBuff id="FalstadDishonorableDischargeQuestCompleteCarryBehavior">
     <BehaviorFlags index="Permanent" value="1" />
     <BehaviorFlags index="EnabledWhileDead" value="1" />
@@ -948,6 +958,9 @@
     <DecreaseEvents EventId="QuestDecrease" />
     <AtMaxEvents EventId="QuestComplete" Effect="FalstadFalstadDishonorableDischargeApplyQuestCompleteCarryBehavior" ValidRange="100,100" />
     <AtMinEvents EventId="QuestReset" />
+    <ConditionalEvents Compare="GE" CompareValue="30">
+      <Event EventId="QuestMilestone" Effect="FalstadDishonorableDischargeModifyPlayer" />
+    </ConditionalEvents>
   </CBehaviorTokenCounter>
   <CBehaviorTokenCounter id="FalstadFrequentFlyerTokenCounter" parent="StormQuestToken">
     <Face value="FalstadFrequentFlyerQuestToken" />
@@ -982,7 +995,7 @@
     <Buttons Face="FalstadTailwindFrequentFlyerActive" Type="AbilCmd" AbilCmd="FalstadFrequentFlyerActive,Execute" />
   </CBehaviorAbility>
   <CBehaviorBuff id="FalstadTailwindFrequentFlyerAttackSpeedBuff">
-    <Duration value="5" />
+    <Duration value="4" />
     <Modification>
       <AdditiveAttackSpeedFactor value="0.4" />
     </Modification>
@@ -1021,6 +1034,9 @@
   </CBehaviorTokenCounter>
   <CBehaviorTokenCounter id="FalstadHammerangGatheringStormQuestToken" parent="StormQuestToken">
     <Max value="65535" />
+    <ConditionalEvents Compare="GE" CompareValue="30">
+      <Event EventId="QuestMilestone" Effect="FalstadHammerangGatheringStormQuestMilestoneModifyQuestToken" />
+    </ConditionalEvents>
   </CBehaviorTokenCounter>
   <CBehaviorBuff id="FalstadHammerGains">
     <Face value="GenericVigorousAssaultTalent" />
@@ -1224,7 +1240,7 @@
     <InfoIcon value="Assets\Textures\storm_temp_war3_btnfeedback.dds" />
     <Duration value="3" />
     <Modification>
-      <DamageDealtFraction index="Basic" value="0.9" />
+      <DamageDealtFraction index="Basic" value="0.75" />
     </Modification>
   </CBehaviorBuff>
   <CBehaviorBuff id="FalstadHammerangBOOMerangController">
@@ -1457,6 +1473,22 @@
     <Age value="40" />
     <Unit value="HeroFalstad" />
   </CCharacter>
+  <CEffectModifyPlayer id="FalstadDishonorableDischargeModifyPlayer">
+    <EffectArray Reference="Abil,FalstadLightningRod,Cost.Cooldown.TimeUse" Value="-2.000000" />
+  </CEffectModifyPlayer>
+  <CEffectModifyTokenCount id="FalstadHammerangGatheringStormModifyDamageToken" parent="BaseEffectModifyTokenCount">
+    <ValidatorArray value="TargetIsHero" />
+    <EffectCategory index="Quest" value="1" />
+    <Chance value="0" />
+    <CollationId value="FalstadHammerangGatheringStormModifyQuestToken" />
+    <TokenId value="FalstadHammerangGatheringStormDamageToken" />
+  </CEffectModifyTokenCount>
+  <CEffectModifyTokenCount id="FalstadHammerangGatheringStormQuestMilestoneModifyQuestToken" parent="BaseEffectModifyTokenCount">
+    <EffectCategory index="Quest" value="1" />
+    <CollationId value="FalstadHammerangGatheringStormModifyQuestToken" />
+    <TokenId value="FalstadHammerangGatheringStormDamageToken" />
+    <Value value="30" />
+  </CEffectModifyTokenCount>
   <CEffectApplyBehavior id="FalstadFalstadDishonorableDischargeApplyQuestCompleteCarryBehavior">
     <WhichUnit Value="Caster" />
     <Behavior value="FalstadDishonorableDischargeQuestCompleteCarryBehavior" />
@@ -1567,6 +1599,7 @@
     <EffectArray value="FalstadHammerangCripplingHammerApplyBehavior" />
     <EffectArray value="FalstadHammerangGatheringStormCreateManaHealer" />
     <EffectArray value="FalstadHammerangGatheringStormModifyQuestToken" />
+    <EffectArray value="FalstadHammerangGatheringStormModifyDamageToken" />
     <EffectArray value="HammerangBOOMerangApplyArmorBehavior" />
   </CEffectSet>
   <CEffectApplyBehavior id="FalstadBarrelRollUpdraftApplyShieldBehavior">
@@ -1590,10 +1623,12 @@
   <CEffectSet id="HammerangReturnDamageSet">
     <EffectArray value="HammerangReturnDamage" />
     <EffectArray value="FalstadHammerangGatheringStormModifyQuestToken" />
+    <EffectArray value="FalstadHammerangGatheringStormModifyDamageToken" />
   </CEffectSet>
   <CEffectSet id="HammerangDamageSet">
     <EffectArray value="HammerangDamage" />
     <EffectArray value="FalstadHammerangGatheringStormModifyQuestToken" />
+    <EffectArray value="FalstadHammerangGatheringStormModifyDamageToken" />
   </CEffectSet>
   <CEffectModifyUnit id="FalstadHinterlandBlastModifyCooldown">
     <ValidatorArray value="TargetIsHero" />
@@ -1897,35 +1932,27 @@
   </CEffectDamage>
   <CEffectDamage id="FalstadLightningRodDamageThunderstrikes1Stack" parent="FalstadLightningRodDamage">
     <Amount value="90" />
-    <MultiplicativeModifierArray removed="1" />
   </CEffectDamage>
   <CEffectDamage id="FalstadLightningRodDamageThunderstrikes2Stacks" parent="FalstadLightningRodDamage">
     <Amount value="105" />
-    <MultiplicativeModifierArray removed="1" />
   </CEffectDamage>
   <CEffectDamage id="FalstadLightningRodDamageThunderstrikes3Stacks" parent="FalstadLightningRodDamage">
     <Amount value="120" />
-    <MultiplicativeModifierArray removed="1" />
   </CEffectDamage>
   <CEffectDamage id="FalstadLightningRodDamageThunderstrikes4Stacks" parent="FalstadLightningRodDamage">
     <Amount value="135" />
-    <MultiplicativeModifierArray removed="1" />
   </CEffectDamage>
   <CEffectDamage id="FalstadLightningRodDamageThunderstrikes5Stacks" parent="FalstadLightningRodDamage">
     <Amount value="150" />
-    <MultiplicativeModifierArray removed="1" />
   </CEffectDamage>
   <CEffectDamage id="FalstadLightningRodDamageThunderstrikes6Stacks" parent="FalstadLightningRodDamage">
     <Amount value="165" />
-    <MultiplicativeModifierArray removed="1" />
   </CEffectDamage>
   <CEffectDamage id="FalstadLightningRodDamageThunderstrikes7Stacks" parent="FalstadLightningRodDamage">
     <Amount value="180" />
-    <MultiplicativeModifierArray removed="1" />
   </CEffectDamage>
   <CEffectDamage id="FalstadLightningRodInitialDamage" parent="FalstadLightningRodDamage">
     <Amount value="107" />
-    <MultiplicativeModifierArray removed="1" />
   </CEffectDamage>
   <CEffectIssueOrder id="FalstadLightningRodIssueAttackOrder">
     <WhichUnit Value="Caster" />
@@ -2249,8 +2276,8 @@
   </CEffectApplyBehavior>
   <CEffectDamage id="FalstadHammerangBOOMerangDamage" parent="StormSpell">
     <Amount value="95" />
-    <MultiplicativeModifierArray index="BOOMerang" Validator="HasFalstadBoomerang" Modifier="0.75" Crit="1" />
-    <MultiplicativeModifierArray index="GatheringStorm" Accumulator="FalstadHammerangGatheringStormAccumulator" />
+    <MultiplicativeModifierArray index="BOOMerang" Validator="HasFalstadBoomerang" Modifier="1" Crit="1" />
+    <MultiplicativeModifierArray index="GatheringStorm" Accumulator="FalstadHammerangGatheringStormDamageAccumulator" />
   </CEffectDamage>
   <CEffectEnumArea id="FalstadHammerangBOOMerangExplosionSearch">
     <LaunchLocation Effect="FalstadHammerangBOOMerangSearch" Value="TargetUnit" />
@@ -2301,7 +2328,7 @@
   </CEffectApplyBehavior>
   <CEffectDamage id="HammerangReturnDamage" parent="StormSpell">
     <Amount value="80" />
-    <MultiplicativeModifierArray index="GatheringStorm" Accumulator="FalstadHammerangGatheringStormAccumulator" />
+    <MultiplicativeModifierArray index="GatheringStorm" Accumulator="FalstadHammerangGatheringStormDamageAccumulator" />
   </CEffectDamage>
   <CEffectCreatePersistent id="HammerangReturnImpactCreatePersistentReveal">
     <ExpireDelay value="0.33" />
@@ -2485,7 +2512,7 @@
   </CEffectApplyBehavior>
   <CEffectDamage id="HammerangDamage" parent="StormSpell">
     <Amount value="80" />
-    <MultiplicativeModifierArray index="GatheringStorm" Accumulator="FalstadHammerangGatheringStormAccumulator" />
+    <MultiplicativeModifierArray index="GatheringStorm" Accumulator="FalstadHammerangGatheringStormDamageAccumulator" />
   </CEffectDamage>
   <CEffectEnumArea id="HinterlandBlastSearch">
     <SearchFilters value="-;Self,Player,Ally,Neutral,ImmuneToAOE,Missile,Item,Stasis,Dead,Invulnerable" />
@@ -3054,12 +3081,20 @@
     <Abil value="FalstadHammerang" />
     <RankArray>
       <BehaviorArray value="FalstadHammerangGatheringStormQuestToken" />
+      <BehaviorArray value="FalstadHammerangGatheringStormDamageToken" />
     </RankArray>
     <AbilityModificationArray>
       <Modifications>
         <Type value="FlatModification" />
         <Catalog value="Effect" />
         <Entry value="FalstadHammerangGatheringStormModifyQuestToken" />
+        <Field value="Chance" />
+        <Value value="1.000000" />
+      </Modifications>
+      <Modifications>
+        <Type value="FlatModification" />
+        <Catalog value="Effect" />
+        <Entry value="FalstadHammerangGatheringStormModifyDamageToken" />
         <Field value="Chance" />
         <Value value="1.000000" />
       </Modifications>

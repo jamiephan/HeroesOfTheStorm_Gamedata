@@ -139,7 +139,7 @@
     <MaxAccumulation value="5000" />
     <ApplicationRule value="Add" />
     <TokenId value="TyrandeDarnassianArcheryTalentTokenCounter" />
-    <Scale value="0.1" />
+    <Scale value="0.12" />
   </CAccumulatorToken>
   <CAccumulatorToken id="TyrandeLunarFlareLunarBlazeDamageAccumulator" parent="BaseAccumulator">
     <ApplicationRule value="Add" />
@@ -188,6 +188,10 @@
     <On Terms="Behavior.TyrandeHuntersMark.Off" Send="Destroy Immediate" />
     <On Terms="ActorCreation" Send="AnimPlay BirthOnly Birth" />
     <On Terms="AnimDone; AnimName BirthOnly" Send="Destroy" />
+    <On Terms="ActorCreation" Send="TimerSet 0.825000 Repeat" />
+    <On Terms="TimerExpired; TimerName Repeat" Send="AnimPlay BirthOnly Birth" />
+    <On Terms="TimerExpired; TimerName Repeat" Send="TimerSet 0.825000 Repeat" />
+    <Remove Terms="ActorCreation" Send="AnimBracketStart BSD Birth Stand Death ContentPlayOnce" />
     <HostSiteOps Ops="SOpAttachCenter" />
   </CActorModel>
   <CActorSound id="PulledSoundHeroTyrande" parent="SoundOneShot">
@@ -659,7 +663,7 @@
     <BehaviorCategories index="BuffAutoattackDPS" value="1" />
     <Duration value="5" />
     <Modification>
-      <DamageDealtFraction index="Basic" value="0.25" />
+      <DamageDealtFraction index="Basic" value="0.3" />
     </Modification>
   </CBehaviorBuff>
   <CBehaviorBuff id="TyrandeShadowstalkHealBehavior">
@@ -829,14 +833,6 @@
     <InfoFlags index="Hidden" value="1" />
     <Max value="5" />
   </CBehaviorTokenCounter>
-  <CBehaviorBuff id="TyrandeHuntersMarkMarkOfMending">
-    <DamageResponse Chance="1" Handled="TyrandeHuntersMarkMarkofMendingTalentHeal">
-      <Kind index="Ability" value="0" />
-      <ProvideCategories index="Proc" value="1" />
-      <ProvideCategories index="Shield" value="1" />
-    </DamageResponse>
-    <RemoveValidatorArray value="TyrandeTargetHasHuntersMark" />
-  </CBehaviorBuff>
   <CBehaviorBuff id="TyrandeHuntersMarkHuntressFury">
     <BehaviorCategories index="BuffAutoattackDPS" value="1" />
     <RemoveValidatorArray value="TyrandeTargetHasHuntersMark" />
@@ -882,6 +878,12 @@
   <CBehaviorBuff id="SentinelShot" parent="StormReveal">
     <Alignment value="Negative" />
     <InfoIcon value="Assets\Textures\storm_temp_war3_btnscout.dds" />
+    <DamageResponse>
+      <Chance value="1" />
+      <Handled value="TyrandeSentinelSetCooldown" />
+      <Priority value="15" />
+      <Fatal value="1" />
+    </DamageResponse>
     <Duration value="5" />
     <RemoveValidatorArray value="TargetNotSpecialDeathState" />
   </CBehaviorBuff>
@@ -906,7 +908,7 @@
     <BehaviorCategories index="Permanent" value="1" />
     <BehaviorCategories index="BuffAutoattackDPS" value="1" />
     <Modification>
-      <DamageDealtFraction index="Basic" value="0.15" />
+      <DamageDealtFraction index="Basic" value="0.3" />
     </Modification>
     <DisableValidatorArray value="TyrandeTargetDoesNotHaveTrueshotAuraAllyBuff" />
   </CBehaviorBuff>
@@ -1050,6 +1052,10 @@
     <Variations Model="TyrandePortrait" Actor="TyrandePortrait" />
     <Unit value="HeroTyrande" />
   </CCharacter>
+  <CEffectSwitch id="TyrandeBasicAttackSelfHealSwitch">
+    <CaseArray Validator="TyrandeTargetHasHuntersMark" Effect="TyrandeHuntersMarkMarkedHeal" />
+    <CaseDefault value="TyrandeHuntersMarkNormalHeal" />
+  </CEffectSwitch>
   <CEffectSet id="TyrandeLightOfEluneChargeResetSet">
     <EffectArray value="TyrandeLightOfEluneEverlastingLightClearTrackedUnits" />
     <EffectArray value="TyrandeLightOfEluneModifyUnit" />
@@ -1215,17 +1221,10 @@
     <EffectArray value="TyrandeHeroWeaponImpactSet" />
   </CEffectSet>
   <CEffectSet id="TyrandeHeroWeaponTalentSet">
-    <EffectArray value="TyrandeHuntersMarkMarkofMendingTalentSelfHeal" />
     <EffectArray value="TyrandeDarnassianArcheryApplyBehavior" />
     <EffectArray value="TyrandeShootingStarModifyTokenCount" />
     <EffectArray value="TyrandeIcebladeArrowsSwitch" />
   </CEffectSet>
-  <CEffectCreateHealer id="TyrandeHuntersMarkMarkofMendingTalentSelfHeal" parent="StormSelfOnlyHealingSpellPercent">
-    <ValidatorArray value="TyrandeHasMarkofMendingTalent" />
-    <ValidatorArray value="CasterNotBlindedAndTargetNotEvading" />
-    <ImpactUnit Value="Caster" />
-    <RechargeVitalFraction value="0.025" />
-  </CEffectCreateHealer>
   <CEffectApplyBehavior id="TyrandeLightofEluneKaldoreiResistanceTalentApplyArmorStack">
     <ValidatorArray index="0" value="TyrandeHasKaldoreiResistanceTalent" />
     <Behavior value="TyrandeLightofEluneKaldoreiResistanceTalentArmorStack" />
@@ -1246,11 +1245,11 @@
   </CEffectSet>
   <CEffectModifyUnit id="TyrandeHuntersMarkRangersMarkTalentModifyCooldown">
     <ImpactUnit Value="Caster" />
-    <Cost Abil="TyrandeHuntersMark,Execute" CooldownOperation="Add" CooldownTimeUse="-1" />
+    <Cost Abil="TyrandeHuntersMark,Execute" CooldownOperation="Add" CooldownTimeUse="-2" />
   </CEffectModifyUnit>
   <CEffectModifyUnit id="TyrandeHuntersMarkRangersMarkTalentModifyLunarFlareCooldown">
     <ImpactUnit Value="Caster" />
-    <Cost Abil="TyrandeLunarFlare,Execute" CooldownOperation="Add" CooldownTimeUse="-3" />
+    <Cost Abil="TyrandeLunarFlare,Execute" CooldownOperation="Add" CooldownTimeUse="-4" />
     <ValidatorArray value="TyrandeTargetHasHuntersMark" />
   </CEffectModifyUnit>
   <CEffectSet id="TyrandeHuntersMarkRangersMarkTalentBasicAttackImpactSet">
@@ -1286,6 +1285,10 @@
   <CEffectModifyUnit id="TyrandeLightofEluneModifyCooldown">
     <ImpactUnit Value="Caster" />
     <Cost Abil="TyrandeLightofElune,Execute" ChargeTimeUse="-1.5" CooldownOperation="Add" />
+  </CEffectModifyUnit>
+  <CEffectModifyUnit id="TyrandeSentinelSetCooldown">
+    <ImpactUnit Value="Caster" />
+    <Cost Abil="TyrandeSentinelShot,Execute" ChargeTimeUse="-1.5" CooldownOperation="Set" />
   </CEffectModifyUnit>
   <CEffectModifyUnit id="TyrandeLightofEluneMoonlitArrowsTalentModifyCooldown">
     <ValidatorArray value="CasterNotBlindedAndTargetNotEvading" />
@@ -1416,20 +1419,23 @@
     <CmdFlags index="Queued" value="1" />
     <Target Value="TargetUnit" />
   </CEffectIssueOrder>
-  <CEffectApplyBehavior id="TyrandeHuntersMarkApplyMarkOfMendingBehavior">
-    <ValidatorArray index="0" value="TyrandeHasMarkofMendingTalent" />
-    <Behavior value="TyrandeHuntersMarkMarkOfMending" />
-  </CEffectApplyBehavior>
   <CEffectApplyBehavior id="TyrandeHuntersMarkApplyHuntressFuryBehavior">
     <ValidatorArray index="0" value="TyrandeHasHuntressFuryTalent" />
     <Behavior value="TyrandeHuntersMarkHuntressFury" />
   </CEffectApplyBehavior>
-  <CEffectCreateHealer id="TyrandeHuntersMarkMarkofMendingTalentHeal" parent="StormHealingSpellPercent">
-    <ValidatorArray value="NotStructureTarget" />
-    <ValidatorArray value="TargetIsNotABossUnitOrMonsterMinorCombine" />
-    <ValidatorArray value="TargetIsNotImmuneToFriendlyAbilities" />
-    <ValidatorArray value="TargetIsAllyorSelf" />
+  <CEffectCreateHealer id="TyrandeHuntersMarkNormalHeal" parent="StormHealingSpellPercent">
+    <ValidatorArray value="CasterNotBlindedAndTargetNotEvading" />
+    <ImpactUnit Value="Caster" />
+    <RechargeVitalFraction value="0.01" />
+  </CEffectCreateHealer>
+  <CEffectCreateHealer id="TyrandeHuntersMarkMarkedHeal" parent="StormHealingSpellPercent">
+    <ValidatorArray value="CasterNotBlindedAndTargetNotEvading" />
+    <ImpactUnit Value="Caster" />
     <RechargeVitalFraction value="0.02" />
+  </CEffectCreateHealer>
+  <CEffectCreateHealer id="TyrandeHuntersMarkMarkOfMendingMarkedHeal" parent="StormHealingSpellPercent">
+    <ValidatorArray value="CasterNotBlindedAndTargetNotEvading" />
+    <RechargeVitalFraction value="0.04" />
   </CEffectCreateHealer>
   <CEffectApplyBehavior id="HuntersMarkApplyBehavior">
     <Behavior value="TyrandeHuntersMark" />
@@ -1629,9 +1635,9 @@
   </CEffectApplyBehavior>
   <CEffectSet id="SentinelShotImpactSet">
     <EffectArray value="SentinelShotRevealerPersistent" />
+    <EffectArray value="TyrandeSentinelApplyBehaviorsSet" />
     <EffectArray value="SentinelShotDamage" />
     <EffectArray value="TyrandeSentinelShotEmpowerDamage" />
-    <EffectArray value="TyrandeSentinelApplyBehaviorsSet" />
     <EffectArray value="TyrandeLightofEluneAbilityModifyCooldown" />
     <EffectArray value="CameraShakeLightTauntingTotemSet" />
     <EffectArray value="SentinelShotSuicide" />
@@ -1674,6 +1680,8 @@
     <EffectArray value="TyrandeHeroWeaponSoundFXSwitch" />
     <EffectArray value="TyrandeHuntersMarkRangersMarkTalentBasicAttackImpactSet" />
     <EffectArray value="TyrandeHeroWeaponDamage" />
+    <EffectArray value="TyrandeBasicAttackSelfHealSwitch" />
+    <EffectArray value="TyrandeHuntersMarkMarkOfMendingMarkedSearch" />
     <EffectArray value="TyrandeLightofEluneModifyCooldownSwitch" />
     <EffectArray value="TyrandeHeroWeaponTalentSet" />
   </CEffectSet>
@@ -1684,6 +1692,17 @@
     </AreaArray>
     <SearchFlags index="ExtendByUnitRadius" value="1" />
     <ValidatorArray value="CasterNotStasis" />
+  </CEffectEnumArea>
+  <CEffectEnumArea id="TyrandeHuntersMarkMarkOfMendingMarkedSearch">
+    <ValidatorArray value="CasterNotStasis" />
+    <ValidatorArray value="TyrandeTargetHasHuntersMark" />
+    <Chance value="0" />
+    <ImpactLocation Value="CasterPoint" />
+    <SearchFilters value="Heroic;Player,Neutral,Enemy,NoMinionAggro,Structure,ImmuneToFriendlyAbilities,Worker,Missile,Item,Stasis,Dead,Hidden,Summoned" />
+    <AreaArray Effect="TyrandeHuntersMarkMarkOfMendingMarkedHeal">
+      <Radius value="6" />
+    </AreaArray>
+    <SearchFlags index="ExtendByUnitRadius" value="1" />
   </CEffectEnumArea>
   <CEffectApplyBehavior id="TrueshotBowAuraApplyBehavior">
     <ValidatorArray index="0" value="NotRegenGlobe" />
@@ -1809,10 +1828,10 @@
     <VOArray index="PingTransport" value="Tyrande_Ping_Transport" />
     <VOArray index="PingTurnIn" value="Tyrande_Ping_TurnIn" />
     <VOArray index="VOPing_AssistMe" value="Tyrande_VOPing_AssistMe" />
-    <VOArray index="VOPing_OnMyWay" value="Tyrande_VOPing_OnMyWay" />
     <VOArray index="VOPing_Danger" value="Tyrande_VOPing_Danger" />
-    <VOArray index="VOPing_EnemyMissing" value="Tyrande_VOPing_EnemyMissing" />
     <VOArray index="VOPing_Defend" value="Tyrande_VOPing_Defend" />
+    <VOArray index="VOPing_EnemyMissing" value="Tyrande_VOPing_EnemyMissing" />
+    <VOArray index="VOPing_OnMyWay" value="Tyrande_VOPing_OnMyWay" />
     <VOArray index="VOPing_Retreat" value="Tyrande_VOPing_Retreat" />
     <TalentTreeArray Talent="TyrandeRanger" Tier="1" Column="1" />
     <TalentTreeArray Talent="TyrandeMasteryLunarBlaze" Tier="1" Column="2" />
@@ -2124,9 +2143,16 @@
     <AbilityModificationArray>
       <Modifications>
         <Type value="FlatModification" />
-        <Catalog value="Behavior" />
-        <Entry value="TyrandeHuntersMark" />
-        <Field value="DamageResponse.Chance" />
+        <Catalog value="Effect" />
+        <Entry value="TyrandeHuntersMarkMarkOfMendingNormalSearch" />
+        <Field value="Chance" />
+        <Value value="1.000000" />
+      </Modifications>
+      <Modifications>
+        <Type value="FlatModification" />
+        <Catalog value="Effect" />
+        <Entry value="TyrandeHuntersMarkMarkOfMendingMarkedSearch" />
+        <Field value="Chance" />
         <Value value="1.000000" />
       </Modifications>
     </AbilityModificationArray>

@@ -148,7 +148,7 @@
     <Flags index="RequireTargetVision" value="0" />
     <Cost>
       <Vital index="Energy" value="70" />
-      <Cooldown TimeUse="80" />
+      <Cooldown TimeUse="70" />
     </Cost>
     <Range value="9" />
     <Arc value="360" />
@@ -807,6 +807,23 @@
     <On Terms="Behavior.JainaImprovedIceBlock.Off; ValidateUnit TargetNotTimeStopped" Send="Destroy" />
   </CActorSimple>
   <CActorPortrait id="JainaClausPortrait" parent="StormCompositePortrait" />
+  <CBehaviorBuff id="JainaConeOfColdIceFloesCleanupTimer" parent="CarryBehaviorParent">
+    <Duration value="0.625" />
+    <FinalEffect value="JainaConeOfColdIceFloesResetTokens" />
+  </CBehaviorBuff>
+  <CBehaviorTokenCounter id="JainaConeOfColdIceFloesTokenCounter" parent="StormGenericToken">
+    <Max value="4" />
+    <DeltaEvents Delta="1" OnlyIncrease="1" FireForEachDelta="1">
+      <Event Effect="JainaConeOfColdIceFloesModifyCooldown" />
+    </DeltaEvents>
+  </CBehaviorTokenCounter>
+  <CBehaviorBuff id="JainaFrostBoltFrostShardsCleanupTimer" parent="CarryBehaviorParent">
+    <Duration value="0.125" />
+    <FinalEffect value="JainaFrostBoltFrostShardsResetTokens" />
+  </CBehaviorBuff>
+  <CBehaviorTokenCounter id="JainaFrostBoltFrostShardsTokenCounter" parent="StormGenericToken">
+    <Max value="2" />
+  </CBehaviorTokenCounter>
   <CBehaviorTokenCounter id="JainaBlizzardSnowstormTokenCounter" parent="StormGenericToken">
     <AtMaxEvents Effect="JainaBlizzardSnowstormResetTokens" />
     <Max value="3" />
@@ -1020,7 +1037,7 @@
     <BehaviorCategories index="DebuffVulnerable" value="1" />
     <Duration value="2" />
     <ArmorModification>
-      <AllArmorBonus value="-20" />
+      <AllArmorBonus value="-25" />
     </ArmorModification>
   </CBehaviorBuff>
   <CBehaviorAbility id="ImprovedIceBlock">
@@ -1180,6 +1197,45 @@
     <Variations Model="JainaPortrait" Actor="JainaPortrait" />
     <Unit value="HeroJaina" />
   </CCharacter>
+  <CEffectSwitch id="JainaConeOfColdIceFloesSwitch">
+    <CaseArray Validator="JainaTargetHasChilledDamageBonus" Effect="JainaConeOfColdIceFloesAdd2Tokens" />
+    <CaseDefault value="JainaConeOfColdIceFloesAddToken" />
+  </CEffectSwitch>
+  <CEffectApplyBehavior id="JainaConeOfColdIceFloesApplyCleanupBehavior">
+    <ValidatorArray index="0" value="JainaHasConeOfColdIceFloes" />
+    <WhichUnit Value="Caster" />
+    <Behavior value="JainaConeOfColdIceFloesCleanupTimer" />
+  </CEffectApplyBehavior>
+  <CEffectModifyTokenCount id="JainaConeOfColdIceFloesAddToken" parent="BaseEffectModifyTokenCount">
+    <TokenId value="JainaConeOfColdIceFloesTokenCounter" />
+  </CEffectModifyTokenCount>
+  <CEffectModifyTokenCount id="JainaConeOfColdIceFloesAdd2Tokens" parent="BaseEffectModifyTokenCount">
+    <TokenId value="JainaConeOfColdIceFloesTokenCounter" />
+    <Value value="2" />
+  </CEffectModifyTokenCount>
+  <CEffectModifyTokenCount id="JainaConeOfColdIceFloesResetTokens" parent="BaseEffectModifyTokenCount">
+    <TokenId value="JainaConeOfColdIceFloesTokenCounter" />
+    <Operation value="Set" />
+    <Value value="0" />
+  </CEffectModifyTokenCount>
+  <CEffectApplyBehavior id="JainaFrostBoltFrostShardsApplyCleanupTimerBehavior">
+    <ValidatorArray index="0" value="JainaHas2TokensofFrostShards" />
+    <WhichUnit Value="Caster" />
+    <Behavior value="JainaFrostBoltFrostShardsCleanupTimer" />
+  </CEffectApplyBehavior>
+  <CEffectSet id="JainaFrostBoltFrostShardsCleanupSet">
+    <EffectArray value="JainaFrostboltFrostShardsSuicide" />
+    <EffectArray value="JainaFrostBoltFrostShardsApplyCleanupTimerBehavior" />
+  </CEffectSet>
+  <CEffectModifyTokenCount id="JainaFrostBoltFrostShardsAddToken" parent="BaseEffectModifyTokenCount">
+    <TokenId value="JainaFrostBoltFrostShardsTokenCounter" />
+  </CEffectModifyTokenCount>
+  <CEffectModifyTokenCount id="JainaFrostBoltFrostShardsResetTokens" parent="BaseEffectModifyTokenCount">
+    <TokenId value="JainaFrostBoltFrostShardsTokenCounter" />
+    <Operation value="Set" />
+    <Value value="0" />
+    <ValidatorArray value="JainaHas2TokensofFrostShards" />
+  </CEffectModifyTokenCount>
   <CEffectSwitch id="IcefuryWandModifyBlizzardCooldownSwitch">
     <CaseArray Validator="TargetIsHero" Effect="JainaIcefuryWandModifyBlizzardCooldownHeroTarget" />
     <CaseDefault value="JainaIcefuryWandModifyBlizzardCooldownNonHeroTarget" />
@@ -1239,7 +1295,7 @@
     <ValidatorArray value="JainaHasRingOfFrostColdSnap" />
     <ValidatorArray value="TargetIsHero" />
     <ImpactUnit Value="Caster" />
-    <Cost Abil="JainaRingOfFrost,Execute" CooldownOperation="Add" CooldownTimeUse="-10" />
+    <Cost Abil="JainaRingOfFrost,Execute" CooldownOperation="Add" CooldownTimeUse="-15" />
   </CEffectModifyUnit>
   <CEffectApplyBehavior id="JainaWaterElementalApplyFingersOfFrostCarry">
     <ValidatorArray index="0" value="JainaHasFingersOfFrostTalent" />
@@ -1341,7 +1397,7 @@
     <ValidatorArray value="JainaHasConeOfColdIceFloes" />
     <ImpactLocation Value="TargetPoint" />
     <SearchFilters value="-;Player,Ally,Neutral,ImmuneToAOE,Missile,Item,Stasis,Dead,Hidden,Invulnerable" />
-    <AreaArray Arc="45" MaxCount="2" Effect="JainaConeOfColdIceFloesCreatePersistent">
+    <AreaArray Arc="45" Effect="JainaConeOfColdIceFloesSwitch">
       <Radius value="7" />
     </AreaArray>
     <SearchFlags index="CenterAtLaunch" value="1" />
@@ -1725,14 +1781,14 @@
   </CEffectSet>
   <CEffectModifyUnit id="JainaFrostboltIceLanceModifyCooldown">
     <ImpactUnit Value="Caster" />
-    <Cost Abil="JainaFrostbolt,Execute" CooldownOperation="Add" CooldownTimeUse="-1.25" />
+    <Cost Abil="JainaFrostbolt,Execute" CooldownOperation="Add" CooldownTimeUse="-1.5" />
   </CEffectModifyUnit>
   <CEffectCreateHealer id="JainaFrostboltIceLanceRestoreMana" parent="StormManaRestore">
     <ImpactUnit Value="Caster" />
     <RechargeVitalRate value="10" />
   </CEffectCreateHealer>
   <CEffectDamage id="JainaFrostboltFrostShardsSuicide" parent="StormSuicideParent">
-    <ValidatorArray value="JainaSourceHasFrostShardsImpactMarkerSource" />
+    <ValidatorArray value="JainaHas2TokensofFrostShards" />
   </CEffectDamage>
   <CEffectModifyPlayer id="JainaFrostbiteIceBlockResetCooldown">
     <Cost Abil="ImprovedIceBlock">
@@ -1746,7 +1802,7 @@
   </CEffectModifyPlayer>
   <CEffectModifyUnit id="JainaConeOfColdIceFloesModifyCooldown">
     <ImpactUnit Value="Caster" />
-    <Cost Abil="JainaConeOfCold,Execute" CooldownOperation="Add" CooldownTimeUse="-3.5" />
+    <Cost Abil="JainaConeOfCold,Execute" CooldownOperation="Add" CooldownTimeUse="-2" />
   </CEffectModifyUnit>
   <CEffectSet id="JainaImprovedIceBlockExpirationSet">
     <EffectArray value="HeroGenericCleanseRemoveCCBehaviorCategoriesExpandedTarget" />
@@ -1894,8 +1950,8 @@
     <EffectArray value="JainaFrostboltFrostShardsScanDestroyPersistent" />
     <EffectArray value="JainaFrostbiteApplyChilledBehaviorSet" />
     <EffectArray value="JainaFrostboltSuicide" />
-    <EffectArray value="JainaFrostboltFrostShardsSuicide" />
-    <EffectArray value="JainaFrostboltFrostShardsApplyMarker" />
+    <EffectArray value="JainaFrostBoltFrostShardsCleanupSet" />
+    <EffectArray value="JainaFrostBoltFrostShardsAddToken" />
     <ValidatorArray value="noMarkers" />
   </CEffectSet>
   <CEffectCreatePersistent id="JainaBlizzardBasePersistent">
@@ -2004,6 +2060,7 @@
     <EffectArray value="JainaConeOfColdArcaneIntellectSearch" />
     <EffectArray value="JainaConeOfColdIceFloesTalentSearch" />
     <EffectArray value="JainaConeOfColdSearch" />
+    <EffectArray value="JainaConeOfColdIceFloesApplyCleanupBehavior" />
   </CEffectSet>
   <CEffectEnumArea id="JainaConeOfColdSearch">
     <ImpactLocation Value="TargetPoint" />
@@ -2935,6 +2992,9 @@
         <Value value="45.000000" />
       </Modifications>
     </AbilityModificationArray>
+    <RankArray>
+      <BehaviorArray value="JainaConeOfColdIceFloesTokenCounter" />
+    </RankArray>
   </CTalent>
   <CTalent id="JainaConeOfColdNorthernExposure">
     <Face value="JainaConeOfColdNorthernExposureTalent" />
@@ -3093,6 +3153,9 @@
         <Value value="-1.000000" />
       </Modifications>
     </AbilityModificationArray>
+    <RankArray>
+      <BehaviorArray value="JainaFrostBoltFrostShardsTokenCounter" />
+    </RankArray>
   </CTalent>
   <CTalent id="JainaFrostbiteIceBarrier">
     <Face value="JainaFrostbiteIceBarrierTalent" />
@@ -3326,6 +3389,11 @@
     <OverlapIndex value="Hero" />
     <AcquireLeashRadius value="15" />
   </CUnit>
+  <CValidatorUnitCompareTokenCount id="JainaHas2TokensofFrostShards">
+    <Value value="2" />
+    <TokenId value="JainaFrostBoltFrostShardsTokenCounter" />
+    <WhichUnit Value="Caster" />
+  </CValidatorUnitCompareTokenCount>
   <CValidatorCombine id="JainaTargetIsChilledAndCasterHasIcefuryWand">
     <Type value="And" />
     <CombineArray value="JainaHasIcefuryWandTalent" />

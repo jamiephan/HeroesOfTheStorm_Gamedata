@@ -133,12 +133,21 @@
     <TokenId value="DehakaEssenceCollectionTissueRegenerationQuestToken" />
     <Scale value="4" />
   </CAccumulatorToken>
+  <CAccumulatorToken id="DehakaParalyzingEnzymesTalentDamageAccumulator" parent="BaseTokenAccumulator">
+    <MaxAccumulation value="2.5" />
+    <TokenId value="DehakaDragParalyzingEnzymesTalentTokenCounter" />
+    <Scale value="0.5" />
+  </CAccumulatorToken>
   <CAccumulatorToken id="DehakaPrimalRageTalentDamageAccumulator" parent="BaseAccumulator">
     <MaxAccumulation value="0.75" />
     <ApplicationRule value="Add" />
     <TokenId value="DehakaEssenceCollectionPrimalRageTalentTokenCounter" />
     <Scale value="0.0124" />
   </CAccumulatorToken>
+  <CActorSound id="DehakaAdaptationMinionImpactSound" parent="SoundOneShot">
+    <On Terms="Effect.DehakaAdaptationMinionImpactSoundDummy.Start; At Caster" Send="Create" />
+    <Sound value="Dehaka_Adaptation_Impact_Minion" />
+  </CActorSound>
   <CActorModelMaterial id="DehakaAdaptationActiveGlaze" parent="StormModelAnimationStyleContinuousUnit">
     <On Terms="Behavior.DehakaAdaptationDamageTrackerBehavior.On" Send="Create" />
     <On Terms="Behavior.DehakaAdaptationDamageTrackerBehavior.Off" Send="AnimBracketStop BSD" />
@@ -154,10 +163,6 @@
   <CActorSound id="DehakaAdaptationNonMinionImpactSound" parent="SoundOneShot">
     <On Terms="Effect.DehakaAdaptationNonMinionImpactSoundDummy.Start; At Caster" Send="Create" />
     <Sound value="Dehaka_Adaptation_Impact" />
-  </CActorSound>
-  <CActorSound id="DehakaAdaptationMinionImpactSound" parent="SoundOneShot">
-    <On Terms="Effect.DehakaAdaptationMinionImpactSoundDummy.Start; At Caster" Send="Create" />
-    <Sound value="Dehaka_Adaptation_Impact_Minion" />
   </CActorSound>
   <CActorModel id="DehakaArmGrowthFXRight" parent="StormModelAnimationStyleOneShotUnit">
     <HostSiteOps Ops="SOpAttachForearmRight" />
@@ -453,8 +458,8 @@
     <On Terms="Behavior.DehakaBurrowChannel.Off" Send="AnimPlay Burrow Burrow,End" />
     <On Terms="Effect.DehakaBurrowRemoveBehavior.Start" Send="AnimClear Burrow" />
     <On Terms="Effect.DehakaBurrowRemoveBehavior.Start" Send="AnimPlay Spell Burrow,End 0 -1.000000 -1.000000 1.000000 AsTimeScale" />
-    <On Terms="UnitMovementUpdate.*.Walk; ValidateUnit DehakaBurrowed; ValidatePlayer DehakaHasTunnelingClaws" Target="DehakaBurrowFX" Send="Signal Walk" />
-    <On Terms="UnitMovementUpdate.*.Stand; ValidateUnit DehakaBurrowed; ValidatePlayer DehakaHasTunnelingClaws" Target="DehakaBurrowFX" Send="Signal Stand" />
+    <On Terms="UnitMovementUpdate.*.Walk; ValidateUnit DehakaBurrowed" Target="DehakaBurrowFX" Send="Signal Walk" />
+    <On Terms="UnitMovementUpdate.*.Stand; ValidateUnit DehakaBurrowed" Target="DehakaBurrowFX" Send="Signal Stand" />
     <On Terms="Abil.DehakaEssenceCollection.SourceCastStart" Send="AnimPlay Spell Spell,E 0 -1.000000 -1.000000 1.000000 AsTimeScale" />
     <On Terms="ActorCreation; !ValidateUnit CasterHasPickedAnUltimate" Send="AnimPlay Cover Cover PlayForever" />
     <On Terms="Behavior.Ultimate1Unlocked.On" Send="Signal UltimatePicked" />
@@ -644,13 +649,13 @@
     <On Terms="ActorCreation; IsStatus Variation 2" Send="AnimPlay Spell Spell,A PlayForever" />
     <On Terms="Behavior.DehakaBurrowChannel.Off" Send="RefClear ::Host" />
     <On Terms="Behavior.DehakaBurrowChannel.Off" Send="AnimClear Spell" />
-    <On Terms="ActorCreation; !ValidateUnit DehakaHasTunnelingClaws" Send="AnimPlay Stand Stand,Alternate PlayForever 0.000000" />
-    <On Terms="ActorCreation; UnitWalking; ValidateUnit DehakaHasTunnelingClaws" Send="AnimPlay Walk Walk PlayForever" />
-    <On Terms="Signal.*.Walk; ValidateUnit DehakaHasTunnelingClaws" Send="AnimPlay Walk Walk PlayForever" />
-    <On Terms="Signal.*.Walk; ValidateUnit DehakaHasTunnelingClaws" Send="Create DehakaBurrowTunnelingClawsTalentLoopSound" />
+    <On Terms="ActorCreation" Send="AnimPlay Stand Stand,Alternate PlayForever 0.000000" />
+    <On Terms="ActorCreation; UnitWalking" Send="AnimPlay Walk Walk PlayForever" />
+    <On Terms="Signal.*.Walk" Send="AnimPlay Walk Walk PlayForever" />
+    <On Terms="Signal.*.Walk" Send="Create DehakaBurrowTunnelingClawsTalentLoopSound" />
     <On Terms="Signal.*.Stand" Send="AnimSetPaused Walk" />
     <On Terms="Signal.*.Walk" Send="AnimClear Stand 0.000000" />
-    <On Terms="Signal.*.Stand; ValidateUnit DehakaHasTunnelingClaws" Send="AnimPlay Stand Stand,Alternate PlayForever 0.000000" />
+    <On Terms="Signal.*.Stand" Send="AnimPlay Stand Stand,Alternate PlayForever 0.000000" />
     <On Terms="Signal.*.Stand" Target="DehakaBurrowTunnelingClawsTalentLoopSound" Send="Destroy" />
     <On Terms="Behavior.DehakaBurrowChannel.Off" Target="DehakaBurrowTunnelingClawsTalentLoopSound" Send="Destroy" />
     <HostSiteOps Ops="SOpShadow SOpTipability" />
@@ -999,6 +1004,9 @@
     <ArmorModification>
       <AllArmorBonus value="20" />
     </ArmorModification>
+    <Modification>
+      <AdditiveAttackSpeedFactor value="0.15" />
+    </Modification>
   </CBehaviorBuff>
   <CBehaviorBuff id="DehakaDarkSwarmPrimalSwarmTalentDebuff" parent="StormArmor">
     <Duration value="0.75" />
@@ -1012,6 +1020,20 @@
     <Modification>
       <UnifiedMoveSpeedFactor value="-0.15" />
     </Modification>
+  </CBehaviorBuff>
+  <CBehaviorTokenCounter id="DehakaDragParalyzingEnzymesTalentTokenCounter" parent="StormQuestToken">
+    <Max value="5" />
+    <Init value="5" />
+    <Face value="DehakaDragTalentParalyzingEnzymesToken" />
+  </CBehaviorTokenCounter>
+  <CBehaviorBuff id="DehakaDragParalyzingEnzymesTalentDoT" parent="StormDot">
+    <Duration value="2" />
+    <MaxStackCount value="5" />
+    <MaxStackCountPerCaster value="1" />
+    <Period value="0.5" />
+    <PeriodCount value="4" />
+    <PeriodicEffect value="DehakaDragParalyzingEnzymesTalentDamage" />
+    <PeriodicDisplayEffect value="DehakaDragParalyzingEnzymesTalentDamage" />
   </CBehaviorBuff>
   <CBehaviorTokenCounter id="DehakaEssenceCollectionEnhancedAgilityQuestToken" parent="StormQuestToken">
     <Face value="DehakaEnhancedAgilityQuestToken" />
@@ -1092,11 +1114,12 @@
     <Modification>
       <StateFlags index="Silence" value="1" />
       <StateFlags index="SuppressAttack" value="1" />
-      <MoveSpeedMaximum value="0" />
+      <MoveSpeedMaximum value="2.3984" />
       <AbilLinkEnableArray value="DehakaCancelBurrow" />
       <AbilLinkEnableArray value="DehakaDarkSwarm" />
       <AbilLinkEnableArray value="DehakaEssenceCollection" />
       <WeaponDisableArray value="HeroDehaka" />
+      <CollideDisableFlags index="ForceField" value="0" />
     </Modification>
     <InitialEffect value="DehakaBurrowInitialSet" />
     <InfoFlags index="AlwaysUseGameText" value="1" />
@@ -1365,9 +1388,9 @@
     </Modification>
   </CBehaviorBuff>
   <CBehaviorBuff id="DehakaDragTalentParalyzingEnzymesSlow" parent="StormSlowParent">
-    <Duration value="2.5" />
+    <Duration value="2" />
     <Modification>
-      <UnifiedMoveSpeedFactor value="-0.35" />
+      <UnifiedMoveSpeedFactor value="-0.4" />
     </Modification>
   </CBehaviorBuff>
   <CBehaviorBuff id="DehakaBrushstalkerCarry" parent="CarryBehaviorParent">
@@ -1431,6 +1454,10 @@
     </ArmorModification>
     <Duration value="3.5" />
   </CBehaviorBuff>
+  <CButton id="DehakaDragTalentParalyzingEnzymesToken" parent="StormButtonParent">
+    <Icon value="Assets\Textures\storm_ui_icon_dehaka_drag_var1.dds" />
+    <HotkeyAlias value="DehakaDragTalentParalyzingEnzymes" />
+  </CButton>
   <CButton id="DehakaPackLeaderBrushstalker" parent="StormButtonParent">
     <Icon value="Assets\Textures\storm_ui_icon_dehaka_brushstalker.dds" />
     <HotkeyAlias value="DehakaBrushstalkerApexPredatorTalent" />
@@ -1496,6 +1523,7 @@
   </CButton>
   <CButton id="DehakaDarkSwarm" parent="StormButtonParent">
     <TooltipAppender Validator="DehakaHasDarkSwarmTalentEnduringSwarmTalent" Face="DehakaDarkSwarmTalentEnduringSwarm" />
+    <TooltipAppender Validator="DehakaEssenceCollectionOneWhoCollects" Face="DehakaEssenceCollectionOneWhoCollectsTalent" />
     <TooltipAppender Validator="DehakaHasEssenceCollectionTalentHeroStalkerTalent" Face="DehakaEssenceCollectionTalentHeroStalker" />
     <TooltipAppender Validator="DehakaHasSymbiosisTalent" Face="DehakaDarkSwarmTalentSymbiosis" />
     <TooltipAppender Validator="DehakaHasBrushstalkerFerociousStalker" Face="DehakaBrushstalkerFerociousStalkerTalent" />
@@ -1598,6 +1626,9 @@
   <CEffectSet id="DehakaBurrowInitialSet">
     <EffectArray value="ImmuneToStasisApplyBehaviorCaster" />
   </CEffectSet>
+  <CEffectDamage id="DehakaBurrowLurkerStrainTalentDamage" parent="StormSpell">
+    <Amount value="125" />
+  </CEffectDamage>
   <CEffectRemoveBehavior id="DehakaBurrowRemoveBehavior">
     <WhichUnit Value="Caster" />
     <BehaviorLink value="DehakaBurrowChannel" />
@@ -1623,6 +1654,17 @@
   <CEffectApplyBehavior id="DehakaDragApplyWeaponSlop">
     <Behavior value="DehakaDragWeaponSlop" />
   </CEffectApplyBehavior>
+  <CEffectApplyBehavior id="DehakaDragParalyzingEnzymesTalentApplyDoT">
+    <Chance value="0" />
+    <Behavior value="DehakaDragParalyzingEnzymesTalentDoT" />
+  </CEffectApplyBehavior>
+  <CEffectDamage id="DehakaDragParalyzingEnzymesTalentDamage" parent="StormSpellDot">
+    <Flags index="NoDamageTimerReset" value="0" />
+    <Amount value="20">
+      <AccumulatorArray value="DehakaParalyzingEnzymesTalentDamageAccumulator" />
+    </Amount>
+    <ResponseExclusionFlags index="Enhancement" value="0" />
+  </CEffectDamage>
   <CEffectModifyUnit id="DehakaDragFinalFacingModifyUnit">
     <ImpactUnit Value="Caster" />
     <FacingLocation Effect="DehakaDragImpactSet" Value="TargetUnit" />
@@ -1635,6 +1677,10 @@
     <EffectArray value="DehakaDragApplyMissileScan" />
     <EffectArray value="DehakaDragApplyMissileActiveBehavior" />
   </CEffectSet>
+  <CEffectModifyTokenCount id="DehakaDragParalyzingEnzymesTalentSubtractToken" parent="BaseEffectModifyTokenCount">
+    <TokenId value="DehakaDragParalyzingEnzymesTalentTokenCounter" />
+    <Value value="-1" />
+  </CEffectModifyTokenCount>
   <CEffectRemoveBehavior id="DehakaDragRemoveMissileActiveBehavior">
     <WhichUnit Value="Caster" />
     <BehaviorLink value="DehakaDragMissileActive" />
@@ -1654,6 +1700,7 @@
   </CEffectRemoveBehavior>
   <CEffectSet id="DehakaDragTalentFinalSet">
     <EffectArray value="DehakaDragApplyParalyzingEnzymesTalentSlow" />
+    <EffectArray value="DehakaDragParalyzingEnzymesTalentApplyDoT" />
     <EffectArray value="DehakaDragRemoveCasterChannelBehavior" />
     <EffectArray value="DehakaDragFinalFacingModifyUnit" />
     <EffectArray value="DehakaDragApplyFinalTurnSpeedModifier" />
@@ -1955,7 +2002,8 @@
   </CEffectEnumArea>
   <CEffectDamage id="DehakaDarkSwarmDamage" parent="StormSpell">
     <Amount value="52" />
-    <MultiplicativeModifierArray index="FerociousStalker" Validator="DehakaHasFerociousStalkerBehavior" Modifier="0.5" Crit="1" />
+    <MultiplicativeModifierArray index="FerociousStalker" Validator="DehakaHasFerociousStalkerBehavior" Modifier="0.6" Crit="1" />
+    <MultiplicativeModifierArray index="OneWhoCollects" Validator="DehakaOneWhoCollectedTalentDamageCombine" Modifier="0.4" Crit="1" />
   </CEffectDamage>
   <CEffectCreatePersistent id="DehakaDragMissileScanPersistent">
     <WhichLocation Value="SourcePoint" />
@@ -2275,6 +2323,7 @@
   <CEffectSet id="DehakaBurrowNumbingEruptionTalentImpactSet">
     <EffectArray value="DehakaBurrowApplyNumbingEruptionTalentKnockbackBehavior" />
     <EffectArray value="DehakaBurrowNumbingEruptionTalentKnockbackPersistent" />
+    <EffectArray value="DehakaBurrowLurkerStrainTalentDamage" />
   </CEffectSet>
   <CEffectCreatePersistent id="DehakaBurrowNumbingEruptionTalentKnockbackPersistent">
     <ValidatorArray value="TargetNotUnstoppable" />
@@ -2483,7 +2532,7 @@
     <ValidatorArray value="CasterNotBlindedAndTargetNotEvading" />
     <ValidatorArray value="DehakaHasDragFeedingFrenzyTalent" />
     <ImpactUnit Value="Caster" />
-    <Cost Abil="DehakaDrag,Execute" CooldownOperation="Add" CooldownTimeUse="-2" />
+    <Cost Abil="DehakaDrag,Execute" CooldownOperation="Add" CooldownTimeUse="-1.75" />
   </CEffectModifyUnit>
   <CEffectModifyUnit id="DehakaBurrowModifyWeaponCooldown">
     <ImpactUnit Value="Caster" />
@@ -2514,13 +2563,14 @@
     <TriggerLibs Id="HDEH" />
   </CGame>
   <CHero id="Dehaka">
-    <AIComplexityTier value="Mid" />
     <AttributeId value="Deha" />
     <Flags index="UsesMount" value="0" />
     <Flags index="GoodForModeA" value="1" />
-    <Melee value="1" />
+    <DisplayModel value="HeroDehaka" />
+    <ExpandedRole value="Bruiser" />
     <RolesMultiClass value="Warrior" />
     <RoleScoreValueOverride value="Warrior" />
+    <Melee value="1" />
     <Portrait value="Assets\Textures\ui_targetportrait_hero_dehaka.dds" />
     <SelectScreenButtonImage value="Assets\Textures\storm_ui_ingame_heroselect_btn_dehaka.dds" />
     <PartyPanelButtonImage value="Assets\Textures\storm_ui_ingame_partypanel_btn_dehaka.dds" />
@@ -2562,12 +2612,15 @@
       <Flags index="AffectedByCooldownReduction" value="1" />
       <Flags index="Heroic" value="1" />
     </HeroAbilArray>
-    <Ratings>
-      <Damage value="6" />
-      <Utility value="8" />
-      <Survivability value="9" />
-      <Complexity value="7" />
-    </Ratings>
+    <SkinArray value="DehakaMaster" />
+    <SkinArray value="DehakaMecha" />
+    <SkinArray value="DehakaVHaka" />
+    <SkinArray value="DehakaToys18" />
+    <VoiceLineArray value="DehakaBase_VoiceLine01" />
+    <VoiceLineArray value="DehakaBase_VoiceLine02" />
+    <VoiceLineArray value="DehakaBase_VoiceLine03" />
+    <VoiceLineArray value="DehakaBase_VoiceLine04" />
+    <VoiceLineArray value="DehakaBase_VoiceLine05" />
     <TalentTreeArray Talent="DehakaDarkSwarmTalentEnduringSwarm" Tier="1" Column="1" />
     <TalentTreeArray Talent="DehakaEssenceCollectionTalentTissueRegeneration" Tier="1" Column="2" />
     <TalentTreeArray Talent="DehakaEssenceCollectionTalentEnhancedAgility" Tier="1" Column="3" />
@@ -2593,11 +2646,13 @@
     </TalentTreeArray>
     <TalentTreeArray Talent="DehakaEssenceClaws" Tier="7" Column="3" />
     <TalentTreeArray Talent="DehakaBrushstalkerApexPredator" Tier="7" Column="4" />
+    <VariationIcon value="Assets\Textures\ui_glues_swatch_blue_gray.dds" />
+    <Difficulty value="Medium" />
+    <AIComplexityTier value="Mid" />
     <HeroTierAchievementId value="5216701565560433744" />
     <CollectionIcon value="Assets\Textures\storm_ui_glues_draft_portrait_dehaka.dds" />
     <UniverseIcon value="Assets\Textures\ui_glues_store_gameicon_sc2.dds" />
     <ProductId value="21756" />
-    <ReleaseDate Month="3" Day="29" Year="2016" />
     <LevelScalingArray Ability="DehakaDarkSwarm">
       <Modifications>
         <Catalog value="Effect" />
@@ -2608,7 +2663,16 @@
         <AffectedByOverdrive value="1" />
       </Modifications>
     </LevelScalingArray>
-    <LevelScalingArray Ability="DehakaBurrow" />
+    <LevelScalingArray Ability="DehakaBurrow">
+      <Modifications>
+        <Catalog value="Effect" />
+        <Entry value="DehakaBurrowLurkerStrainTalentDamage" />
+        <Field value="Amount" />
+        <Value value="0.040000" />
+        <AffectedByAbilityPower value="1" />
+        <AffectedByOverdrive value="1" />
+      </Modifications>
+    </LevelScalingArray>
     <LevelScalingArray Ability="DehakaIsolation">
       <Modifications>
         <Catalog value="Effect" />
@@ -2623,6 +2687,14 @@
       <Modifications>
         <Catalog value="Effect" />
         <Entry value="DehakaDragDamage" />
+        <Field value="Amount" />
+        <Value value="0.040000" />
+        <AffectedByAbilityPower value="1" />
+        <AffectedByOverdrive value="1" />
+      </Modifications>
+      <Modifications>
+        <Catalog value="Effect" />
+        <Entry value="DehakaDragParalyzingEnzymesTalentDamage" />
         <Field value="Amount" />
         <Value value="0.040000" />
         <AffectedByAbilityPower value="1" />
@@ -2669,16 +2741,16 @@
         <AffectedByOverdrive value="1" />
       </Modifications>
     </LevelScalingArray>
-    <VariationIcon value="Assets\Textures\ui_glues_swatch_blue_gray.dds" />
     <VariationArray value="DehakaVar1" />
     <VariationArray value="DehakaVar2" />
     <VariationArray value="DehakaVar3" />
-    <SkinArray value="DehakaMaster" />
-    <SkinArray value="DehakaMecha" />
-    <SkinArray value="DehakaVHaka" />
-    <SkinArray value="DehakaToys18" />
-    <DisplayModel value="HeroDehaka" />
-    <HeroSpecificUIArray Location="Status" DescName="Dehaka/DehakaFrame" />
+    <ReleaseDate Month="3" Day="29" Year="2016" />
+    <Ratings>
+      <Damage value="6" />
+      <Utility value="8" />
+      <Survivability value="9" />
+      <Complexity value="7" />
+    </Ratings>
     <TalentAIBuildsArray ChanceToPick="16">
       <TalentsArray value="DehakaDarkSwarmTalentEnduringSwarm" />
       <TalentsArray value="DehakaBurrowTalentLurkerStrain" />
@@ -2733,14 +2805,8 @@
       <TalentsArray value="DehakaPackLeaderBrushstalkerTalent" />
       <TalentsArray value="DehakaAdaptationChangeIsSurvivalTalent" />
     </TalentAIBuildsArray>
-    <Difficulty value="Medium" />
-    <VoiceLineArray value="DehakaBase_VoiceLine01" />
-    <VoiceLineArray value="DehakaBase_VoiceLine02" />
-    <VoiceLineArray value="DehakaBase_VoiceLine03" />
-    <VoiceLineArray value="DehakaBase_VoiceLine04" />
-    <VoiceLineArray value="DehakaBase_VoiceLine05" />
+    <HeroSpecificUIArray Location="Status" DescName="Dehaka/DehakaFrame" />
     <Rarity value="Legendary" />
-    <ExpandedRole value="Bruiser" />
   </CHero>
   <CHeroMastery id="DehakaMasteryRing1" parent="MasteryRingRank1">
     <ProductId value="66939" />
@@ -3067,14 +3133,14 @@
         <Catalog value="Behavior" />
         <Entry value="DehakaBurrowChannel" />
         <Field value="Modification.MoveSpeedMaximum" />
-        <Value value="160.000000" />
+        <Value value="3.650000" />
       </Modifications>
       <Modifications>
         <Type value="FlatModification" />
         <Catalog value="Behavior" />
         <Entry value="DehakaBurrowChannel" />
-        <Field value="Modification.CollideDisableFlags[ForceField]" />
-        <Value value="-1.000000" />
+        <Field value="Modification.MoveSpeedMinimum" />
+        <Value value="6.050000" />
       </Modifications>
     </AbilityModificationArray>
   </CTalent>
@@ -3163,27 +3229,16 @@
       </Modifications>
       <Modifications>
         <Type value="FlatModification" />
-        <Catalog value="Behavior" />
-        <Entry value="DehakaDragStun" />
-        <Field value="Duration" />
-        <Value value="0.500000" />
-      </Modifications>
-      <Modifications>
-        <Type value="FlatModification" />
-        <Catalog value="Behavior" />
-        <Entry value="DehakaDragChannelBehavior" />
-        <Field value="Duration" />
-        <Value value="0.500000" />
-      </Modifications>
-      <Modifications>
-        <Type value="FlatModification" />
         <Catalog value="Effect" />
-        <Entry value="DehakaDragCreateForcePersistent" />
-        <Field value="PeriodCount" />
-        <FieldIsInteger value="1" />
-        <Value value="8.000000" />
+        <Entry value="DehakaDragParalyzingEnzymesTalentApplyDoT" />
+        <Field value="Chance" />
+        <Value value="1.000000" />
       </Modifications>
     </AbilityModificationArray>
+    <RankArray>
+      <BehaviorArray value="DehakaDragParalyzingEnzymesTalentTokenCounter" />
+    </RankArray>
+    <QuestData StackBehavior="DehakaDragParalyzingEnzymesTalentTokenCounter" TargetCount="5" IgnoreTargetCount="0" />
   </CTalent>
   <CTalent id="DehakaDarkSwarmTalentSymbiosis">
     <Face value="DehakaDarkSwarmTalentSymbiosis" />
@@ -3281,6 +3336,30 @@
   <CTalent id="DehakaDragTalentFeedingFrenzy">
     <Face value="DehakaDragTalentFeedingFrenzy" />
     <Abil value="DehakaDrag" />
+    <AbilityModificationArray>
+      <Modifications>
+        <Type value="FlatModification" />
+        <Catalog value="Behavior" />
+        <Entry value="DehakaDragStun" />
+        <Field value="Duration" />
+        <Value value="0.500000" />
+      </Modifications>
+      <Modifications>
+        <Type value="FlatModification" />
+        <Catalog value="Behavior" />
+        <Entry value="DehakaDragChannelBehavior" />
+        <Field value="Duration" />
+        <Value value="0.500000" />
+      </Modifications>
+      <Modifications>
+        <Type value="FlatModification" />
+        <Catalog value="Effect" />
+        <Entry value="DehakaDragCreateForcePersistent" />
+        <Field value="PeriodCount" />
+        <FieldIsInteger value="1" />
+        <Value value="8.000000" />
+      </Modifications>
+    </AbilityModificationArray>
   </CTalent>
   <CTalent id="DehakaEssenceCollectionOneWhoCollectsTalent">
     <Face value="DehakaEssenceCollectionOneWhoCollectsTalent" />
@@ -3351,6 +3430,7 @@
     <HeroPlaystyleFlags index="WaveClearer" value="1" />
     <InitializerFunction value="libHDEH_gf_HeroDehakaIncrementHeroCountFunction" />
     <DestructionFunction value="libHDEH_gf_HeroDehakaDecrementHeroCountFunction" />
+    <EffectArray index="Death" value="DehakaDragParalyzingEnzymesTalentSubtractToken" />
   </CUnit>
   <CUnit id="DehakaDragMissile" parent="MISSILE_INVULNERABLE">
     <Sight value="2" />
@@ -3370,6 +3450,16 @@
     <Find value="1" />
     <Value value="DehakaPackLeaderBrushstalkerTalent" />
   </CValidatorPlayerTalent>
+  <CValidatorUnitCompareTokenCount id="DehakaHasGT0ParalyzingEnzymesToken">
+    <Compare value="GT" />
+    <TokenId value="DehakaDragParalyzingEnzymesTalentTokenCounter" />
+    <WhichUnit Value="Caster" />
+  </CValidatorUnitCompareTokenCount>
+  <CValidatorCombine id="DehakaOneWhoCollectedTalentDamageCombine">
+    <Type value="And" />
+    <CombineArray value="DehakaEssenceCollectionOneWhoCollects" />
+    <CombineArray value="TargetIsMercLanerorDefender" />
+  </CValidatorCombine>
   <CValidatorCombine id="RemoveSuppressTurningBehavior">
     <CombineArray value="CasterCastingIsolation" />
     <CombineArray value="CasterCastingDrag" />
@@ -3855,7 +3945,7 @@
     <Icon value="Assets\Textures\storm_temp_btn-upgrade-terran-infantryweaponslevel3.dds" />
     <MinScanRange value="4" />
     <Range value="1" />
-    <Period value="0.9" />
+    <Period value="0.8" />
     <Effect value="DehakaHeroWeaponImpactSet" />
     <DisplayEffect value="DehakaHeroWeaponDamage" />
   </CWeaponLegacy>

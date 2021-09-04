@@ -30,7 +30,7 @@
       <Flags index="AllowSelfCast" value="0" />
       <Flags index="ToSelection" value="1" />
     </CmdButtonArray>
-    <FinishTime value="0.0625" />
+    <FinishTime value="0.1875" />
     <CursorEffect value="ArtanisPhasePrismMissileScan" />
     <AbilSetId value="ArtanisPhasePrism" />
   </CAbilEffectTarget>
@@ -71,8 +71,8 @@
     <Flags index="ClearLastAttackTargetOutOfRange" value="1" />
     <Flags index="ClearLastMoveTarget" value="1" />
     <Cost>
-      <Vital index="Energy" value="80" />
-      <Cooldown TimeUse="80" />
+      <Vital index="Energy" value="65" />
+      <Cooldown TimeUse="70" />
     </Cost>
     <Arc value="360" />
     <FinishTime value="0.125" />
@@ -572,7 +572,7 @@
     <On Terms="Behavior.ArtanisTwinBladesPrimed.On" Send="Create" />
     <On Terms="Behavior.ArtanisTwinBladesPrimed.Off" Send="Destroy" />
     <On Terms="Behavior.Dead.On" Send="Destroy" />
-    <Range value="2.500000" />
+    <Range value="3.000000" />
     <Icon value="Assets\Textures\storm_tankradius_passive.dds" />
     <IconArcLength value="3.000000" />
   </CActorRange>
@@ -737,6 +737,31 @@
     <On Terms="Effect.ArtanisSpearofAdunSuppressionPulseInitialDelayPersistent.Stop" Send="Destroy" />
     <Sound value="Artanis_SpearofAdunSuppressionPulse_Delay" />
   </CActorSound>
+  <CBehaviorBuff id="ArtanisFinalCutCarry" parent="CarryBehaviorParent">
+    <DisableValidatorArray value="TargetLifeLT25Percent" />
+    <EnableEffect value="ArtanisFinalCutModifyPlayer" />
+    <DisableEffect value="ArtanisFinalCutResetPlayer" />
+  </CBehaviorBuff>
+  <CBehaviorBuff id="ArtanisFinalCutBuff">
+    <Aliases value="RangedDamageCrit" />
+    <Alignment value="Positive" />
+    <Modification>
+      <DamageDealtFraction index="Basic" value="0.4" />
+    </Modification>
+    <InfoIcon value="Assets\Textures\storm_btn-extra_int_0.dds" />
+    <Duration value="6" />
+    <DamageResponse>
+      <Chance value="1" />
+      <Handled value="ArtanisFinalCutProcSet" />
+      <TargetFilters value="-;Player" />
+      <Location value="Attacker" />
+      <Kind index="Ability" value="0" />
+      <ProvideCategories index="Proc" value="1" />
+    </DamageResponse>
+  </CBehaviorBuff>
+  <CBehaviorBuff id="ArtanisPhasePrism" parent="StormUnstoppableParent">
+    <Duration value="1.5" />
+  </CBehaviorBuff>
   <CBehaviorTokenCounter id="ArtanisProtectorOfAiurQuestTokenCounter" parent="StormQuestToken">
     <Face value="ArtanisProtectorOfAiurQuestToken" />
     <SortIndex value="10" />
@@ -749,7 +774,7 @@
     <BehaviorFlags index="Permanent" value="1" />
     <BehaviorFlags index="EnabledWhileDead" value="1" />
     <Modification>
-      <AdditiveAttackSpeedFactor value="0.3" />
+      <AdditiveAttackSpeedFactor value="0.2" />
     </Modification>
   </CBehaviorBuff>
   <CBehaviorBuff id="ArtanisMovementSpeedSlowBladesofaTemplar" parent="StormSlowParent">
@@ -924,6 +949,11 @@
     <DamageResponse Handled="ArtanisReactiveParryRemoveBlockSet" />
     <SortIndex value="10" />
     <Tooltip value="Behavior/Tooltip/ArtanisTwinBladesReactiveParry" />
+    <ArmorModification>
+      <ArmorSet index="Hero">
+        <ArmorMitigationTable index="Basic" value="50" />
+      </ArmorSet>
+    </ArmorModification>
   </CBehaviorBuff>
   <CBehaviorBuff id="ArtanisBladeDashBetweenStrikes">
     <Duration value="0.25" />
@@ -1111,6 +1141,10 @@
       <AllArmorBonus value="-25" />
     </ArmorModification>
   </CBehaviorBuff>
+  <CButton id="ArtanisFinalCut" parent="StormButtonParent">
+    <Icon value="Assets\Textures\storm_ui_icon_talent_autoattack_damage.dds" />
+    <HotkeyAlias value="GenericFollowThroughTalent" />
+  </CButton>
   <CButton id="ArtanisProtectorOfAiurTalent" parent="StormButtonParent">
     <Icon value="Assets\Textures\storm_ui_icon_talent_autoattack_damage.dds" />
     <HotkeyAlias value="GenericFollowThroughTalent" />
@@ -1238,6 +1272,29 @@
     <Variations Model="ArtanisPortrait" Actor="ArtanisPortrait" />
     <Unit value="HeroArtanis" />
   </CCharacter>
+  <CEffectModifyPlayer id="ArtanisFinalCutResetPlayer">
+    <EffectArray Operation="Set" Reference="Behavior,ArtanisFinalCutBuff,Modification.DamageDealtFraction[Basic]" Value="0.4" />
+  </CEffectModifyPlayer>
+  <CEffectApplyBehavior id="ArtanisFinalCutApplyBuff">
+    <Chance value="0" />
+    <WhichUnit Value="Caster" />
+    <Behavior value="ArtanisFinalCutBuff" />
+  </CEffectApplyBehavior>
+  <CEffectModifyPlayer id="ArtanisFinalCutModifyPlayer">
+    <EffectArray Reference="Behavior,ArtanisFinalCutBuff,Modification.DamageDealtFraction[Basic]" Value=".2" />
+  </CEffectModifyPlayer>
+  <CEffectSet id="ArtanisFinalCutProcSet">
+    <EffectArray value="ArtanisFinalCutRemoveBuff" />
+  </CEffectSet>
+  <CEffectRemoveBehavior id="ArtanisFinalCutRemoveBuff">
+    <BehaviorLink value="ArtanisFinalCutBuff" />
+    <Count value="1" />
+    <WhichUnit Value="Caster" />
+  </CEffectRemoveBehavior>
+  <CEffectApplyBehavior id="ArtanisPhasePrismUnstoppableApply">
+    <WhichUnit Value="Caster" />
+    <Behavior value="ArtanisPhasePrism" />
+  </CEffectApplyBehavior>
   <CEffectModifyTokenCount id="ArtanisProtectorOfAiurAddTokenCount" parent="BaseEffectModifyTokenCount">
     <ValidatorArray value="CasterNotBlindedAndTargetNotEvading" />
     <ValidatorArray value="ArtanisHasProtectorOfAiurTalent" />
@@ -1392,6 +1449,7 @@
     <EffectArray value="ArtanisBladeDashApplyDummyBuff" />
     <EffectArray value="ArtanisBladeDashRemovePhasePrismMarker" />
     <EffectArray value="ArtanisShieldOverloadForceofWillSubtractCooldown" />
+    <EffectArray value="ArtanisFinalCutApplyBuff" />
   </CEffectSet>
   <CEffectRedirectMissile id="ArtanisBladeDashPhasePrismRedirectMissile">
     <WhichUnit Effect="ArtanisPhasePrismInitialSet" Value="Caster" />
@@ -1442,15 +1500,16 @@
     <PeriodicEffectArray value="CameraShakeMediumTauntingTotemSet" />
     <PeriodicPeriodArray value="1.9375" />
   </CEffectCreatePersistent>
-  <CEffectApplyBehavior id="ArtanisTwinBladesApplyPostProcBehavior">
-    <WhichUnit Value="Caster" />
-    <Behavior value="ArtanisTwinBladesPostProc" />
-  </CEffectApplyBehavior>
-  <CEffectApplyBehavior id="ArtanisTwinBladesReactiveParryApplyBlockStackFirstStrike">
+  <CEffectApplyBehavior id="ArtanisTwinBladesReactiveParryApplyStack">
     <ValidatorArray index="0" value="SourceHasLessThanTwoStacksOfReactiveParryBlock" />
+    <ValidatorArray value="TargetIsHero" />
     <Chance value="0" />
     <WhichUnit Value="Caster" />
     <Behavior value="ArtanisReactiveParryBlock" />
+  </CEffectApplyBehavior>
+  <CEffectApplyBehavior id="ArtanisTwinBladesApplyPostProcBehavior">
+    <WhichUnit Value="Caster" />
+    <Behavior value="ArtanisTwinBladesPostProc" />
   </CEffectApplyBehavior>
   <CEffectApplyBehavior id="ArtanisTwinBladesApplyPrimedBehavior">
     <WhichUnit Value="Caster" />
@@ -1483,7 +1542,7 @@
     <EffectArray value="CameraShakeLightCasterDummySet" />
     <EffectArray value="ArtanisPhasePrismGravitonVortexModifyCooldownBasicAttacks" />
     <EffectArray value="ArtanisMovementSpeedSlowApplyBehaviorBladesofaTemplar" />
-    <EffectArray value="ArtanisTwinBladesReactiveParryApplyBlockStackFirstStrike" />
+    <EffectArray value="ArtanisTwinBladesReactiveParryApplyStack" />
     <EffectArray value="ArtanisProtectorOfAiurAddTokenCount" />
     <ValidatorArray value="CasterNotDead" />
     <ValidatorArray value="CasterNotStunned" />
@@ -1499,7 +1558,7 @@
     <EffectArray value="CameraShakeLightCasterDummySet" />
     <EffectArray value="ArtanisPhasePrismGravitonVortexModifyCooldownBasicAttacks" />
     <EffectArray value="ArtanisMovementSpeedSlowApplyBehaviorBladesofaTemplar" />
-    <EffectArray value="ArtanisTwinBladesReactiveParryApplyBlockStackSecondStrike" />
+    <EffectArray value="ArtanisTwinBladesReactiveParryApplyStack" />
     <EffectArray value="ArtanisProtectorOfAiurAddTokenCount" />
     <ValidatorArray value="CasterNotDead" />
     <ValidatorArray value="CasterNotStunned" />
@@ -1544,6 +1603,7 @@
     <EffectArray value="ArtanisTwinBladesApplyPrimedBehavior" />
     <EffectArray value="ArtanisApplyTwinBladesButtonDummy" />
     <EffectArray value="ArtanisShieldOverloadForceofWillSubtractCooldown" />
+    <EffectArray value="ArtanisFinalCutApplyBuff" />
   </CEffectSet>
   <CEffectModifyUnit id="ArtanisTwinBladesModifyCooldown">
     <ImpactUnit Value="Caster" />
@@ -1708,6 +1768,7 @@
     <TargetLocationType value="Point" />
     <EffectArray value="ArtanisPhasePrismInitialPersistent" />
     <EffectArray value="ArtanisShieldOverloadForceofWillSubtractCooldown" />
+    <EffectArray value="ArtanisFinalCutApplyBuff" />
   </CEffectSet>
   <CEffectCreatePersistent id="ArtanisPhasePrismInitialPersistent">
     <WhichLocation Value="CasterPoint" />
@@ -1715,7 +1776,6 @@
     <PeriodicEffectArray value="ArtanisPhasePrismLaunchMissile" />
     <PeriodicOffsetArray Y="-7.5" />
     <PeriodicPeriodArray value="0" />
-    <Flags index="Channeled" value="1" />
   </CEffectCreatePersistent>
   <CEffectLaunchMissileAdvanced id="ArtanisPhasePrismLaunchArtanis" parent="StormLaunchUnitTargetPointValidated">
     <LaunchLocation Value="CasterUnit" />
@@ -1728,7 +1788,6 @@
     <ValidatorArray index="0" value="CasterNotDead" />
     <ImpactLocation Value="TargetPoint" />
     <SharedFlags index="2D" value="1" />
-    <SharedFlags index="Channeled" value="1" />
     <SharedFlags index="DynamicSearchArea" value="1" />
     <AmmoUnit value="ArtanisPhasePrismMissile" />
     <Movers Link="ArtanisPhasePrismMissile" />
@@ -1768,6 +1827,7 @@
     <EffectArray value="ArtanisPhasePrismLaunchTargetSwitch" />
     <EffectArray value="ArtanisPhasePrismImpactSetSecondary" />
     <EffectArray value="ArtanisPhasePrismApplyArmorBehaviorPsionicSynergy" />
+    <EffectArray value="ArtanisPhasePrismUnstoppableApply" />
     <EffectArray value="SuicideRemove" />
     <ValidatorArray value="TargetIsHero" />
     <ValidatorArray value="ArtanisPhasePrismTargetDoesNotHaveTargetingBehavior" />
@@ -1856,6 +1916,7 @@
     <EffectArray value="CameraShakeLightTauntingTotemSet" />
     <EffectArray value="ArtanisBladeDashShieldOverloadReductionImpactSet" />
     <EffectArray value="ArtanisPhasePrismGravitonVortexModifyCooldownBladeDash" />
+    <EffectArray value="ArtanisTwinBladesReactiveParryApplyStack" />
   </CEffectSet>
   <CEffectLaunchMissileAdvanced id="ArtanisBladeDashSecondLaunchMissile" parent="StormLaunchUnitTargetPointValidated">
     <LaunchEffect value="ArtanisBladeDashSecondApplyCasterBehaviorPersistent" />
@@ -2058,6 +2119,7 @@
     <EffectArray value="ArtanisSpearofAdunPurifierBeamApplyRevealer" />
     <EffectArray value="ArtanisSpearofAdunPurifierBeamCreateInvisibleTrackingUnit" />
     <EffectArray value="ArtanisSpearofAdunPurifierBeamCreateCameraShakePersistent" />
+    <EffectArray value="ArtanisFinalCutApplyBuff" />
   </CEffectSet>
   <CEffectSet id="ArtanisSpearofAdunPurifierBeamKillCommandMasteryDelayPersistentInitialSet">
     <EffectArray value="ArtanisSpearofAdunPurifierBeamTargetPurifiedDestoryPreviousBeamSearch" />
@@ -2147,6 +2209,7 @@
   </CEffectCreatePersistent>
   <CEffectSet id="ArtanisSpearofAdunSuppressionPulseInitialSet">
     <EffectArray value="ArtanisSpearofAdunSuppressionPulseInitialDelayPersistent" />
+    <EffectArray value="ArtanisFinalCutApplyBuff" />
     <TargetLocationType value="Point" />
   </CEffectSet>
   <CEffectCreatePersistent id="ArtanisSpearofAdunPurifierBeamSpawnDummy">
@@ -2266,6 +2329,7 @@
     <EffectArray value="CameraShakeLightTauntingTotemSet" />
     <EffectArray value="ArtanisBladeDashShieldOverloadReductionImpactSet" />
     <EffectArray value="ArtanisPhasePrismGravitonVortexModifyCooldownBladeDash" />
+    <EffectArray value="ArtanisTwinBladesReactiveParryApplyStack" />
     <ValidatorArray value="ArtanisBladeDashTargetDoesNotHaveFirstImpactSuppression" />
   </CEffectSet>
   <CEffectDamage id="ArtanisBladeDashFirstDamage" parent="StormSpell">
@@ -2327,30 +2391,14 @@
     <ExpireEffect value="ArtanisSpearofAdunPurifierBeamSearch" />
   </CEffectCreatePersistent>
   <CHero id="Artanis">
-    <AIComplexityTier value="Mid" />
-    <HeroTierAchievementId value="5216701565565206600" />
     <AttributeId value="Arts" />
-    <Melee value="1" />
+    <Flags index="GoodForModeA" value="1" />
+    <ExpandedRole value="Bruiser" />
     <RolesMultiClass value="Warrior" />
     <RoleScoreValueOverride value="Warrior" />
-    <ExpandedRole value="Bruiser" />
-    <ProductId value="11720" />
-    <ReleaseDate Month="10" Day="27" Year="2015" />
+    <Melee value="1" />
     <ImageFacing value="Left" />
     <IntroCutsceneSize value="Large" />
-    <DefaultMount value="BattleBeast" />
-    <Difficulty value="Medium" />
-    <UniverseIcon value="Assets\Textures\ui_glues_store_gameicon_sc2.dds" />
-    <AllowedMountCategoryArray value="Ride" />
-    <AllowedMountCategoryArray value="Ridebeast" />
-    <AllowedMountCategoryArray value="Ridebike" />
-    <AllowedMountCategoryArray value="Ridesurf" />
-    <Ratings>
-      <Damage value="6" />
-      <Utility value="6" />
-      <Survivability value="8" />
-      <Complexity value="5" />
-    </Ratings>
     <HeroAbilArray Abil="ArtanisBladeDash" Button="ArtanisBladeDash">
       <Flags index="ShowInHeroSelect" value="1" />
       <Flags index="AffectedByCooldownReduction" value="1" />
@@ -2382,6 +2430,51 @@
       <Flags index="AffectedByOverdrive" value="1" />
       <Flags index="Heroic" value="1" />
     </HeroAbilArray>
+    <HeroicAbilArray Abil="ArtanisSpearofAdunPurifierBeam" />
+    <HeroicAbilArray Abil="ArtanisSpearofAdunSuppressionPulse" />
+    <SkinArray value="ArtanisUltimate" />
+    <SkinArray value="ArtanisPurifier" />
+    <SkinArray value="ArtanisSkinRonin" />
+    <SkinArray value="ArtanisZeraBlade" />
+    <SkinArray value="ArtanisCraft20" />
+    <VoiceLineArray value="ArtanisBase_VoiceLine01" />
+    <VoiceLineArray value="ArtanisBase_VoiceLine02" />
+    <VoiceLineArray value="ArtanisBase_VoiceLine03" />
+    <VoiceLineArray value="ArtanisBase_VoiceLine04" />
+    <VoiceLineArray value="ArtanisBase_VoiceLine05" />
+    <DefaultMount value="BattleBeast" />
+    <TalentTreeArray Talent="ArtanisTwinBladesReactiveParry" Tier="1" Column="1" />
+    <TalentTreeArray Talent="ArtanisTwinBladesAmateurOpponent" Tier="1" Column="2" />
+    <TalentTreeArray Talent="ArtanisProtectorOfAiur" Tier="1" Column="3" />
+    <TalentTreeArray Talent="ArtanisPhasePrismPsionicSynergy" Tier="2" Column="1" />
+    <TalentTreeArray Talent="ArtanisShieldOverloadShieldBattery" Tier="2" Column="2" />
+    <TalentTreeArray Talent="ArtanisShieldOverloadShieldSurge" Tier="2" Column="3" />
+    <TalentTreeArray Talent="ArtanisBladeDashSolariteReaper" Tier="3" Column="1" />
+    <TalentTreeArray Talent="ArtanisPhasePrismChronoSurge" Tier="3" Column="2" />
+    <TalentTreeArray Talent="ArtanisFinalCut" Tier="3" Column="3" />
+    <TalentTreeArray Talent="ArtanisHeroicAbilitySpearofAdunSuppressionPulse" Tier="4" Column="1" />
+    <TalentTreeArray Talent="ArtanisHeroicAbilitySpearofAdunPurifierBeam" Tier="4" Column="2" />
+    <TalentTreeArray Talent="ArtanisBladeDashTemplarsZeal" Tier="5" Column="1" />
+    <TalentTreeArray Talent="ArtanisTwinBladesTripleStrike" Tier="5" Column="2" />
+    <TalentTreeArray Talent="ArtanisPhasePrismGravitonVortex" Tier="5" Column="3" />
+    <TalentTreeArray Talent="ArtanisShieldOverloadPhaseBulwark" Tier="5" Column="4" />
+    <TalentTreeArray Talent="ArtanisTwinBladesTitanKiller" Tier="6" Column="1" />
+    <TalentTreeArray Talent="ArtanisShieldOverloadForceofWill" Tier="6" Column="2" />
+    <TalentTreeArray Talent="ArtanisTwinBladesBladesofaTemplar" Tier="6" Column="3" />
+    <TalentTreeArray Talent="ArtanisSpearofAdunSuppressionPulseOrbitalBombardment" Tier="7" Column="1">
+      <PrerequisiteTalentArray value="ArtanisHeroicAbilitySpearofAdunSuppressionPulse" />
+    </TalentTreeArray>
+    <TalentTreeArray Talent="ArtanisSpearofAdunPurifierBeamTargetPurified" Tier="7" Column="2">
+      <PrerequisiteTalentArray value="ArtanisHeroicAbilitySpearofAdunPurifierBeam" />
+    </TalentTreeArray>
+    <TalentTreeArray Talent="ArtanisTwinBladesZealotCharge" Tier="7" Column="3" />
+    <TalentTreeArray Talent="ArtanisPlasmaBurn" Tier="7" Column="4" />
+    <VariationIcon value="Assets\Textures\ui_glues_swatch_whiteeggshell.dds" />
+    <Difficulty value="Medium" />
+    <AIComplexityTier value="Mid" />
+    <HeroTierAchievementId value="5216701565565206600" />
+    <UniverseIcon value="Assets\Textures\ui_glues_store_gameicon_sc2.dds" />
+    <ProductId value="11720" />
     <LevelScalingArray Ability="ArtanisShieldOverloadDummy">
       <Modifications>
         <Catalog value="Behavior" />
@@ -2499,43 +2592,20 @@
         <AffectedByOverdrive value="1" />
       </Modifications>
     </LevelScalingArray>
-    <TalentTreeArray Talent="ArtanisTwinBladesReactiveParry" Tier="1" Column="1" />
-    <TalentTreeArray Talent="ArtanisTwinBladesAmateurOpponent" Tier="1" Column="2" />
-    <TalentTreeArray Talent="ArtanisProtectorOfAiur" Tier="1" Column="3" />
-    <TalentTreeArray Talent="ArtanisPhasePrismPsionicSynergy" Tier="2" Column="1" />
-    <TalentTreeArray Talent="ArtanisShieldOverloadShieldBattery" Tier="2" Column="2" />
-    <TalentTreeArray Talent="ArtanisShieldOverloadShieldSurge" Tier="2" Column="3" />
-    <TalentTreeArray Talent="ArtanisBladeDashSolariteReaper" Tier="3" Column="1" />
-    <TalentTreeArray Talent="ArtanisPhasePrismChronoSurge" Tier="3" Column="2" />
-    <TalentTreeArray Talent="GenericTalentFollowThrough" Tier="3" Column="3" />
-    <TalentTreeArray Talent="ArtanisHeroicAbilitySpearofAdunSuppressionPulse" Tier="4" Column="1" />
-    <TalentTreeArray Talent="ArtanisHeroicAbilitySpearofAdunPurifierBeam" Tier="4" Column="2" />
-    <TalentTreeArray Talent="ArtanisBladeDashTemplarsZeal" Tier="5" Column="1" />
-    <TalentTreeArray Talent="ArtanisTwinBladesTripleStrike" Tier="5" Column="2" />
-    <TalentTreeArray Talent="ArtanisPhasePrismGravitonVortex" Tier="5" Column="3" />
-    <TalentTreeArray Talent="ArtanisShieldOverloadPhaseBulwark" Tier="5" Column="4" />
-    <TalentTreeArray Talent="ArtanisTwinBladesTitanKiller" Tier="6" Column="1" />
-    <TalentTreeArray Talent="ArtanisShieldOverloadForceofWill" Tier="6" Column="2" />
-    <TalentTreeArray Talent="ArtanisTwinBladesBladesofaTemplar" Tier="6" Column="3" />
-    <TalentTreeArray Talent="ArtanisSpearofAdunSuppressionPulseOrbitalBombardment" Tier="7" Column="1">
-      <PrerequisiteTalentArray value="ArtanisHeroicAbilitySpearofAdunSuppressionPulse" />
-    </TalentTreeArray>
-    <TalentTreeArray Talent="ArtanisSpearofAdunPurifierBeamTargetPurified" Tier="7" Column="2">
-      <PrerequisiteTalentArray value="ArtanisHeroicAbilitySpearofAdunPurifierBeam" />
-    </TalentTreeArray>
-    <TalentTreeArray Talent="ArtanisTwinBladesZealotCharge" Tier="7" Column="3" />
-    <TalentTreeArray Talent="ArtanisPlasmaBurn" Tier="7" Column="4" />
-    <HeroicAbilArray Abil="ArtanisSpearofAdunPurifierBeam" />
-    <HeroicAbilArray Abil="ArtanisSpearofAdunSuppressionPulse" />
-    <SkinArray value="ArtanisUltimate" />
-    <SkinArray value="ArtanisPurifier" />
-    <SkinArray value="ArtanisSkinRonin" />
-    <SkinArray value="ArtanisZeraBlade" />
-    <SkinArray value="ArtanisCraft20" />
-    <VariationIcon value="Assets\Textures\ui_glues_swatch_whiteeggshell.dds" />
     <VariationArray value="ArtanisBaseRed" />
     <VariationArray value="ArtanisBaseBlack" />
     <VariationArray value="ArtanisBaseVar3" />
+    <ReleaseDate Month="10" Day="27" Year="2015" />
+    <AllowedMountCategoryArray value="Ride" />
+    <AllowedMountCategoryArray value="Ridebeast" />
+    <AllowedMountCategoryArray value="Ridebike" />
+    <AllowedMountCategoryArray value="Ridesurf" />
+    <Ratings>
+      <Damage value="6" />
+      <Utility value="6" />
+      <Survivability value="8" />
+      <Complexity value="5" />
+    </Ratings>
     <TalentAIBuildsArray ChanceToPick="16">
       <TalentsArray value="ArtanisTwinBladesReactiveParry" />
       <TalentsArray value="ArtanisPhasePrismPsionicSynergy" />
@@ -2548,7 +2618,7 @@
     <TalentAIBuildsArray ChanceToPick="16">
       <TalentsArray value="ArtanisProtectorOfAiur" />
       <TalentsArray value="ArtanisShieldOverloadShieldSurge" />
-      <TalentsArray value="GenericTalentFollowThrough" />
+      <TalentsArray value="ArtanisFinalCut" />
       <TalentsArray value="ArtanisHeroicAbilitySpearofAdunPurifierBeam" />
       <TalentsArray value="ArtanisTwinBladesTripleStrike" />
       <TalentsArray value="ArtanisTwinBladesTitanKiller" />
@@ -2557,7 +2627,7 @@
     <TalentAIBuildsArray ChanceToPick="16">
       <TalentsArray value="ArtanisTwinBladesAmateurOpponent" />
       <TalentsArray value="ArtanisShieldOverloadShieldBattery" />
-      <TalentsArray value="GenericTalentFollowThrough" />
+      <TalentsArray value="ArtanisFinalCut" />
       <TalentsArray value="ArtanisHeroicAbilitySpearofAdunSuppressionPulse" />
       <TalentsArray value="ArtanisShieldOverloadPhaseBulwark" />
       <TalentsArray value="ArtanisShieldOverloadForceofWill" />
@@ -2591,12 +2661,6 @@
       <TalentsArray value="ArtanisSpearofAdunSuppressionPulseOrbitalBombardment" />
     </TalentAIBuildsArray>
     <PurchaseWarning value="Hero/PurchaseWarning/Artanis" />
-    <Flags index="GoodForModeA" value="1" />
-    <VoiceLineArray value="ArtanisBase_VoiceLine01" />
-    <VoiceLineArray value="ArtanisBase_VoiceLine02" />
-    <VoiceLineArray value="ArtanisBase_VoiceLine03" />
-    <VoiceLineArray value="ArtanisBase_VoiceLine04" />
-    <VoiceLineArray value="ArtanisBase_VoiceLine05" />
     <Rarity value="Epic" />
   </CHero>
   <CHeroMastery id="ArtanisMasteryRing1" parent="MasteryRingRank1">
@@ -2731,6 +2795,21 @@
   <CRewardHeroMastery id="ArtanisMasteryRing3">
     <License value="52247" />
   </CRewardHeroMastery>
+  <CTalent id="ArtanisFinalCut">
+    <Face value="ArtanisFinalCut" />
+    <RankArray>
+      <BehaviorArray value="ArtanisFinalCutCarry" />
+    </RankArray>
+    <AbilityModificationArray>
+      <Modifications>
+        <Type value="FlatModification" />
+        <Catalog value="Effect" />
+        <Entry value="ArtanisFinalCutApplyBuff" />
+        <Field value="Chance" />
+        <Value value="1.000000" />
+      </Modifications>
+    </AbilityModificationArray>
+  </CTalent>
   <CTalent id="ArtanisProtectorOfAiur">
     <Face value="ArtanisProtectorOfAiurTalent" />
     <RankArray>
@@ -2763,14 +2842,7 @@
       <Modifications>
         <Type value="FlatModification" />
         <Catalog value="Effect" />
-        <Entry value="ArtanisTwinBladesReactiveParryApplyBlockStackFirstStrike" />
-        <Field value="Chance" />
-        <Value value="1.000000" />
-      </Modifications>
-      <Modifications>
-        <Type value="FlatModification" />
-        <Catalog value="Effect" />
-        <Entry value="ArtanisTwinBladesReactiveParryApplyBlockStackSecondStrike" />
+        <Entry value="ArtanisTwinBladesReactiveParryApplyStack" />
         <Field value="Chance" />
         <Value value="1.000000" />
       </Modifications>
@@ -2824,7 +2896,7 @@
         <Catalog value="Actor" />
         <Entry value="ArtanisTwinBladesChargeRange" />
         <Field value="Range" />
-        <Value value="2.500000" />
+        <Value value="2.625000" />
       </Modifications>
     </AbilityModificationArray>
   </CTalent>
@@ -3016,11 +3088,9 @@
     <AbilityModificationArray>
       <Modifications>
         <Type value="FlatModification" />
-        <Catalog value="Behavior" />
-        <Entry value="ArtanisShieldOverload" />
-        <Field value="Duration" />
-        <FieldIsInteger value="1" />
-        <Value value="1.000000" />
+        <Entry value="ArtanisShieldOverloadDummy" />
+        <Field value="Cost[0].Cooldown.TimeUse" />
+        <Value value="-4.000000" />
       </Modifications>
     </AbilityModificationArray>
   </CTalent>
@@ -3308,7 +3378,7 @@
     <OtherUnit Value="Target" />
     <Compare value="LE" />
     <AbilLink value="attack" />
-    <Value value="6" />
+    <Value value="6.125" />
   </CValidatorUnitCompareOrderTargetRange>
   <CValidatorCombine id="ArtanisTwinBladesCombine">
     <Type value="And" />
@@ -3327,14 +3397,14 @@
     <ResultFailed value="TargetIsOutOfRange" />
     <WhichLocation Value="CasterUnit" />
     <Compare value="LT" />
-    <Range value="3" />
+    <Range value="3.5" />
     <Value Value="TargetOuterUnit" />
   </CValidatorLocationCompareRange>
   <CValidatorLocationCompareRange id="ArtanisTwinBladesChargeZealotChargeMaxDistance">
     <ResultFailed value="TargetIsOutOfRange" />
     <WhichLocation Value="CasterUnit" />
     <Compare value="LT" />
-    <Range value="6" />
+    <Range value="6.125" />
     <Value Value="TargetOuterUnit" />
   </CValidatorLocationCompareRange>
   <CValidatorUnitCompareBehaviorCount id="ArtanisHasHealthTrackingDummyActive">
