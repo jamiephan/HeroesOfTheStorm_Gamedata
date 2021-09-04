@@ -186,6 +186,12 @@
     </CmdButtonArray>
     <CursorEffect value="DeckardAncientBlessingsAllySearch" />
   </CAbilEffectInstant>
+  <CActorModel id="DeckardHealingPotionWarningSplat" parent="StormModelAnimationStyleContinuous">
+    <On Terms="Effect.DeckardHealingPotionCreateWarningPersistent.Start" Send="Create" />
+    <On Terms="Effect.DeckardHealingPotionCreateWarningPersistent.Stop" Send="Destroy Immediate" />
+    <Filter index="Neutral" value="1" />
+    <Filter index="Enemy" value="1" />
+  </CActorModel>
   <CActorSite id="DeckardScrollOfSealingVectorLaunchSite">
     <Host Subject="_Unit" />
     <HostSiteOps Ops="SOpCursor SOpMoveBackByDot01" HoldPosition="1" />
@@ -930,7 +936,7 @@
     <Sound value="Deckard_HoradricCube_ReleaseImpactWindUpSound" />
   </CActorSound>
   <CActorSplat id="DeckardFortitudeOfTheFaithfulRangeSplat" parent="StormRangeSplat">
-    <Scale value="7.250000" />
+    <Scale value="8.250000" />
   </CActorSplat>
   <CActorRange id="DeckardHoradricCubeReleaseRange" parent="StormRangeAbilPlusSplat" abil="DeckardHoradricCube" />
   <CActorSplat id="DeckardHoradricCubeReleaseRangeSplat" parent="StormRangeSplat">
@@ -1073,7 +1079,7 @@
     <On Terms="Behavior.Dead.On" Send="Destroy" />
     <On Terms="Behavior.DeckardFortitudeOfTheFaithfulArmor.On" Send="Create" />
     <On Terms="Behavior.DeckardFortitudeOfTheFaithfulArmor.Off" Send="Destroy" />
-    <Range value="5.000000" />
+    <Range value="6.000000" />
     <Icon value="Assets\Textures\storm_fx_medivh_base_portal_outerrange.dds" />
     <IconArcLength value="5.000000" />
   </CActorRange>
@@ -1354,9 +1360,7 @@
   </CBehaviorBuff>
   <CBehaviorBuff id="DeckardSuperHealingPotionActive" />
   <CBehaviorBuff id="DeckardPotionOfShieldingShield" parent="StormShield">
-    <DamageResponse Priority="45" ModifyLimit="122">
-      <ModifyScoreArray index="0" Value="Healing" />
-    </DamageResponse>
+    <DamageResponse Priority="45" ModifyLimit="122" />
     <Duration value="6" />
   </CBehaviorBuff>
   <CBehaviorBuff id="DeckardBottomlessFlask">
@@ -1660,6 +1664,16 @@
     <Cost Abil="DeckardHoradricCube,Execute" CooldownOperation="Add" CooldownTimeUse="-0.0625" />
     <Cost Abil="DeckardScrollOfSealing,Execute" CooldownOperation="Add" CooldownTimeUse="-0.0625" />
   </CEffectModifyUnit>
+  <CEffectCreatePersistent id="DeckardHealingPotionCreateWarningPersistent">
+    <ExpireDelay value="0.75" />
+    <ValidatorArray value="DeckardHealingPotionWarningMinimumRange" />
+  </CEffectCreatePersistent>
+  <CEffectDestroyPersistent id="DeckardHealingPotionDestroyWarningPersistent">
+    <WhichLocation Value="TargetPoint" />
+    <Effect value="DeckardHealingPotionCreateWarningPersistent" />
+    <Count value="1" />
+    <RequireCaster Value="Caster" />
+  </CEffectDestroyPersistent>
   <CEffectApplyBehavior id="DeckardHoradricStaffStunApply">
     <Behavior value="DeckardHoradricStaffStun" />
     <ValidatorArray value="TargetNotEvading" />
@@ -2020,6 +2034,7 @@
   <CEffectSet id="DeckardHealingPotionLaunchSet">
     <ValidatorArray value="TargetPointWalkable" />
     <EffectArray value="DeckardHealingPotionLaunchMissile" />
+    <EffectArray value="DeckardHealingPotionCreateWarningPersistent" />
     <TargetLocationType value="Point" />
   </CEffectSet>
   <CEffectLaunchMissile id="DeckardHealingPotionLaunchMissile">
@@ -2034,6 +2049,7 @@
   </CEffectLaunchMissile>
   <CEffectSet id="DeckardHealingPotionCreateSet">
     <EffectArray value="DeckardHealingPotionCreateUnit" />
+    <EffectArray value="DeckardHealingPotionDestroyWarningPersistent" />
   </CEffectSet>
   <CEffectCreateUnit id="DeckardHealingPotionCreateUnit">
     <ValidatorArray value="TargetPointWalkable" />
@@ -2261,6 +2277,7 @@
   </CEffectApplyBehavior>
   <CEffectDamage id="DeckardHoradricCubeActiveDamage" parent="StormSpell">
     <Amount value="80" />
+    <MultiplicativeModifierArray index="Gem" Validator="DeckardHasGemSourceBuffCombine" Modifier="1" Crit="1" />
   </CEffectDamage>
   <CEffectDamage id="DeckardHoradricCubeActiveMissileWhiffSuicide">
     <ImpactLocation Value="SourceUnit" />
@@ -2385,7 +2402,7 @@
         <Link value="Abil/DeckardGemRuby" />
         <Location value="Unit" />
         <Operation value="Set" />
-        <TimeUse value="30" />
+        <TimeUse value="20" />
       </Cooldown>
     </Cost>
   </CEffectModifyPlayer>
@@ -2793,7 +2810,7 @@
   <CEffectEnumArea id="DeckardLesserHealingPotionSearchForAllies">
     <SearchFilters value="Heroic;Neutral,Enemy,Minion,Merc,Structure,ImmuneToFriendlyAbilities,Worker,Missile,Item,Stasis,Dead,Hidden,MapBoss" />
     <AreaArray Effect="DeckardLesserHealingPotionAllyImpactSet">
-      <Radius value="0.5" />
+      <Radius value="1" />
     </AreaArray>
     <SearchFlags index="DoActorSearch" value="1" />
   </CEffectEnumArea>
@@ -3631,7 +3648,7 @@
         <Catalog value="Effect" />
         <Entry value="DeckardGemRubyModifyCooldown" />
         <Field value="Cost[0].Cooldown.TimeUse" />
-        <Value value="-25.000000" />
+        <Value value="-15.000000" />
       </Modifications>
       <Modifications>
         <Type value="FlatModification" />
@@ -3796,6 +3813,11 @@
     <InnerRadius value="0.5" />
   </CUnit>
   <CUnit id="DeckardLesserHealingPotionMissile" parent="MISSILE_INVULNERABLE" />
+  <CValidatorCombine id="DeckardHasGemSourceBuffCombine">
+    <CombineArray value="DeckardGemSapphireSourceHasBuff" />
+    <CombineArray value="DeckardGemRubySourceHasBuff" />
+    <CombineArray value="DeckardGemEmeraldSourceHasBuff" />
+  </CValidatorCombine>
   <CValidatorCompareTrackedUnitsCount id="DeckardHealingPotionCount2">
     <Compare value="GT" />
     <Value value="1" />
@@ -3820,6 +3842,10 @@
     <Compare value="GT" />
     <BehaviorLink value="DeckardHealingPotionUnitTracker" />
   </CValidatorCompareTrackedUnitsCount>
+  <CValidatorLocationCompareRange id="DeckardHealingPotionWarningMinimumRange">
+    <Compare value="GT" />
+    <Range value="0.5" />
+  </CValidatorLocationCompareRange>
   <CValidatorCombine id="DeckardLifeNotFullAndRangeLT1">
     <Type value="And" />
     <CombineArray value="DeckardTargetPointLT1Range" />
@@ -3883,7 +3909,7 @@
   <CValidatorLocationEnumArea id="DeckardFortitudeOfTheFaithfulNearby">
     <WhichLocation Value="CasterPoint" />
     <AreaArray Compare="GT" Count="0">
-      <Radius value="6" />
+      <Radius value="7" />
     </AreaArray>
     <SearchFilters value="Heroic;Self,Neutral,Enemy,Missile,Item,Stasis,Dead,Hidden,Benign" />
   </CValidatorLocationEnumArea>
@@ -4153,7 +4179,7 @@
   <CValidatorLocationEnumArea id="DeckardSafetyInNumbersHeroesNearby">
     <WhichLocation Value="CasterPoint" />
     <AreaArray Compare="GT" Count="2">
-      <Radius value="6" />
+      <Radius value="7" />
     </AreaArray>
     <SearchFilters value="Heroic;Self,Neutral,Enemy,Missile,Item,Stasis,Dead,Hidden,Benign" />
   </CValidatorLocationEnumArea>
@@ -4217,4 +4243,18 @@
     <RandomDelayMin value="0" />
     <RandomDelayMax value="0" />
   </CWeaponLegacy>
+  <CHeroMastery id="DeckardMasteryRing1" parent="MasteryRingRank1">
+    <ProductId value="66934" />
+    <HyperlinkId value="DeckardMasteryRingRank1" />
+  </CHeroMastery>
+  <CHeroMastery id="DeckardMasteryRing2" parent="MasteryRingRank2">
+    <ProductId value="67073" />
+    <HyperlinkId value="DeckardMasteryRingRank2" />
+  </CHeroMastery>
+  <CRewardHeroMastery id="DeckardMasteryRing1">
+    <License value="49821" />
+  </CRewardHeroMastery>
+  <CRewardHeroMastery id="DeckardMasteryRing2">
+    <License value="49841" />
+  </CRewardHeroMastery>
 </Catalog>

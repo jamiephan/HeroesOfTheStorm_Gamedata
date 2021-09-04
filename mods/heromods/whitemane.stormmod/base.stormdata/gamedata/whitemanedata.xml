@@ -12,9 +12,9 @@
     <Arc value="360" />
     <CmdButtonArray index="Execute" DefaultButtonFace="WhitemaneDesperatePlea" />
   </CAbilEffectTarget>
-  <CAbilEffectTarget id="WhitemaneFanaticalPower">
+  <CAbilEffectTarget id="WhitemaneGuidingLight">
     <PrepEffect value="DismountDecloakCasterSet" />
-    <Effect value="WhitemaneFanaticalPowerInitialSet" />
+    <Effect value="WhitemaneGuidingLightInitialSet" />
     <Cost>
       <Cooldown TimeUse="30" />
     </Cost>
@@ -30,7 +30,6 @@
     <Flags index="ClearLastMoveTarget" value="1" />
     <Flags index="RequireTargetVision" value="0" />
     <Cost>
-      <Vital index="Energy" value="75" />
       <Cooldown Link="Abil/WhitemaneInquisition" TimeUse="12" />
     </Cost>
     <TargetFilters value="Heroic;Self,Player,Neutral,Enemy,Structure,ImmuneToFriendlyAbilities,Missile,Item,Stasis,Dead,Hidden" />
@@ -60,6 +59,13 @@
       <Flags index="AllowSelfCast" value="0" />
     </CmdButtonArray>
   </CAbilEffectTarget>
+  <CAbilEffectInstant id="WhitemaneFanaticalPower">
+    <Effect value="WhitemaneFanaticalPowerApplyBehaviorBuff" />
+    <Cost>
+      <Cooldown TimeUse="60" />
+    </Cost>
+    <CmdButtonArray index="Execute" DefaultButtonFace="WhitemaneFanaticalPower" />
+  </CAbilEffectInstant>
   <CAbilEffectTarget id="WhitemanePurgeTheWicked">
     <PrepEffect value="DismountDecloakCasterSet" />
     <Effect value="WhitemanePurgeTheWickedInitialSet" />
@@ -170,12 +176,6 @@
     <TokenId value="WhitemaneZealTokenCounter" />
     <Scale value="0.15" />
   </CAccumulatorToken>
-  <CAccumulatorToken id="WhitemaneSaintlyGreatstaffAccumulator" parent="BaseAccumulator">
-    <MaxAccumulation value="2" />
-    <ApplicationRule value="Add" />
-    <TokenId value="WhitemaneZealTokenCounter" />
-    <Scale value="0.2" />
-  </CAccumulatorToken>
   <CAccumulatorToken id="WhitemaneDesperatePleaCostAccumulator" parent="BaseTokenAccumulator">
     <ApplicationRule value="Add" />
     <TokenId value="WhitemaneDesperatePleaDesperationTokenCounter" />
@@ -237,8 +237,8 @@
     <On Terms="UnitDeathCustomize" Send="Destroy" />
   </CActorSimple>
   <CActorModel id="WhitemaneFanaticalPowerBuffFX" parent="StormModelAnimationStyleContinuousUnit">
-    <On Terms="Behavior.WhitemaneFanaticalPower.On" Send="Create" />
-    <On Terms="Behavior.WhitemaneFanaticalPower.Off" Send="AnimBracketStop BSD" />
+    <On Terms="Behavior.WhitemaneFanaticalBuff.On" Send="Create" />
+    <On Terms="Behavior.WhitemaneFanaticalBuff.Off" Send="AnimBracketStop BSD" />
     <HostSiteOps Ops="SOpAttachWeapon" />
   </CActorModel>
   <CActorModel id="WhitemaneDivineReckoningImpactFXNonHero" parent="StormModelAnimationStyleOneShotUnit">
@@ -387,7 +387,7 @@
     <HostSiteOps Ops="SOpAttachCenter SOpPointSouthWorld" HoldRotation="1" />
   </CActorModel>
   <CActorModel id="WhitemaneFanaticalPowerCastFX" parent="StormModelAnimationStyleOneShotUnit">
-    <On Terms="Effect.WhitemaneFanaticalPowerApplyBehavior.Start; At Caster" Send="Create" />
+    <On Terms="Effect.WhitemaneFanaticalPowerApplyBehaviorBuff.Start; At Caster" Send="Create" />
     <HostSiteOps Ops="SOpAttachOrigin SOpPointSouthWorld SOpMoveUpByDot5" HoldRotation="1" />
   </CActorModel>
   <CActorModel id="HeroWhitemaneDeathRagdoll" parent="StormHeroDeathRagdoll" />
@@ -431,19 +431,19 @@
     <VisibleTo index="Self" value="1" />
   </CActorSound>
   <CActorSound id="WhitemaneFanaticalPowerCastSound" parent="SoundOneShot">
-    <On Terms="Effect.WhitemaneFanaticalPowerApplyBehavior.Start; At Caster" Send="Create" />
-    <On Terms="Behavior.WhitemaneFanaticalPower.Off" Send="Destroy" />
+    <On Terms="Effect.WhitemaneFanaticalPowerApplyBehaviorBuff.Start; At Caster" Send="Create" />
+    <On Terms="Behavior.WhitemaneFanaticalBuff.Off" Send="Destroy" />
     <Sound value="Whitemane_FanaticalPower_Launch" />
     <Layers Sound="Whitemane_FanaticalPower_Active" PlayDelay="250,250" PlayDelaySource="Actor" />
   </CActorSound>
   <CActorSound id="Whitemane_FanaticalPower_End" parent="SoundOneShot">
-    <On Terms="Behavior.WhitemaneFanaticalPower.Off" Send="Create" />
+    <On Terms="Behavior.WhitemaneFanaticalBuff.Off" Send="Create" />
     <Filter index="All" value="1" />
     <VisibleTo index="Self" value="1" />
     <VisibleTo index="Ally" value="1" />
   </CActorSound>
   <CActorSound id="WhitemaneFanaticalPowerVOSound" parent="SoundOneShot">
-    <On Terms="Effect.WhitemaneFanaticalPowerApplyBehavior.Start; At Caster" Send="Create" />
+    <On Terms="Effect.WhitemaneFanaticalPowerApplyBehaviorBuff.Start; At Caster" Send="Create" />
     <Sound value="WhitemaneBase_VOX_Fanatacism" />
   </CActorSound>
   <CActorRange id="WhitemaneInquisitionClemencyRange" parent="StormRangeAbilPlusSplat" abil="WhitemaneInquisitionClemency" />
@@ -483,6 +483,23 @@
     <NotifyArcKey value="_Scalable" />
     <Radius value="0.100000" />
   </CActorRegionCircle>
+  <CActorRegionCircle id="WhitemaneInquisitionClemencySharedPunishmentCursorRegion">
+    <Aliases value="_InquisitionRegion" />
+    <Aliases value="_Scalable" />
+    <On Terms="ActorCreation" Send="QueryPersistent WhitemaneInquisitionClemencySharedPunishmentAddCursor WhitemaneInquisitionSharedPunishmentRemoveCursor AgainstRadiusGame" />
+    <On Terms="ActorOrphan" Send="Destroy" />
+    <HostSiteOps Ops="SOpBasicScopeFollow" />
+    <NotifyRadiusKey value="_Scalable" />
+    <NotifyArcKey value="_Scalable" />
+    <Radius value="0.100000" />
+  </CActorRegionCircle>
+  <CActorQueryResponse id="WhitemaneInquisitionClemencySharedPunishmentAddCursor">
+    <Subject Filters="Snapshot,Unit,Missile" Terms="ValidateUnit WhitemaneSharedPunishmentClemencyTargetIsFriendlyHero IncludeDerivedSnapshot System_Snapshot_Dummy" />
+    <OnResponse Send="StatusIncrement PreTargetingModel" />
+    <OnResponse Send="StatusIncrement PreTargetingTint" />
+    <OnResponse Send="RefSet ::actor.PreTargetingSource ::QueryDirector" />
+    <OnResponse Send="StatusSet WhitemaneInquisitionSharedPunishment 1" />
+  </CActorQueryResponse>
   <CActorQueryResponse id="WhitemaneInquisitionSharedPunishmentAddCursor">
     <Subject Filters="Snapshot,Unit,Missile" Terms="ValidateUnit WhitemaneSharedPunishmentTargetIsVisibleAndEnemyHero IncludeDerivedSnapshot System_Snapshot_Dummy" />
     <OnResponse Send="StatusIncrement PreTargetingModel" />
@@ -1002,13 +1019,26 @@
     <Buttons Face="WhitemaneInquisitionCancel" Type="AbilCmd" AbilCmd="WhitemaneInquisitionCancel,Execute" />
     <Buttons Face="WhitemaneInquisitionClemency" Type="AbilCmd" AbilCmd="WhitemaneInquisitionClemency,Execute" />
   </CBehaviorAbility>
-  <CBehaviorBuff id="WhitemaneFanaticalPowerDurationIncreaseBehavior" parent="CarryBehaviorParent">
-    <Period value="0.0625" />
-    <PeriodicEffect value="WhitemaneFanaticalPowerModifyBehaviorDuration" />
-    <RemoveValidatorArray value="WhitemaneFanaticalPowerIsUnitTracked" />
-    <FinalEffect value="WhitemaneFanaticalPowerRemoveZealBehavior" />
+  <CBehaviorBuff id="WhitemaneFanaticalBuff" parent="StormDamageIncrease">
+    <Duration value="5" />
+    <Modification>
+      <HealDealtAdditiveMultiplier index="Life" value="0.25" />
+      <DamageDealtFraction index="Ability" value="0.25" />
+    </Modification>
+    <ArmorModification StackCount="1">
+      <AllArmorBonus value="-25" />
+    </ArmorModification>
+  </CBehaviorBuff>
+  <CBehaviorAbility id="WhitemaneFanaticalPowerItem">
+    <Buttons Face="WhitemaneFanaticalPower" Type="AbilCmd" AbilCmd="WhitemaneFanaticalPower,Execute" />
+  </CBehaviorAbility>
+  <CBehaviorBuff id="WhitemaneGuidingLightDurationIncreaseBehavior" parent="CarryBehaviorParent">
     <BehaviorFlags index="Permanent" value="0" />
     <BehaviorFlags index="EnabledWhileDead" value="0" />
+    <RemoveValidatorArray value="WhitemaneGuidingLightIsUnitTracked" />
+    <Period value="0.0625" />
+    <PeriodicEffect value="WhitemaneGuidingLightModifyBehaviorDuration" />
+    <FinalEffect value="WhitemaneGuidingLightRemoveZealBehavior" />
   </CBehaviorBuff>
   <CBehaviorBuff id="WhitemaneDesperatePleaHighInquisitorArmorBehavior" parent="StormArmor">
     <BehaviorFlags index="Permanent" value="1" />
@@ -1064,10 +1094,10 @@
       </ArmorSet>
     </ArmorModification>
   </CBehaviorBuff>
-  <CBehaviorUnitTracker id="WhitemaneFanaticalPowerUnitTracker">
-    <MaxTrackedUnits value="1" />
+  <CBehaviorUnitTracker id="WhitemaneGuidingLightUnitTracker">
     <BehaviorFlags index="Permanent" value="1" />
     <BehaviorFlags index="EnabledWhileDead" value="1" />
+    <MaxTrackedUnits value="1" />
   </CBehaviorUnitTracker>
   <CBehaviorBuff id="WhitemaneInquisitorsPrayerHealth" parent="CarryBehaviorParent">
     <Alignment value="Positive" />
@@ -1095,6 +1125,11 @@
     <Face value="WhitemaneInquisitor'sPrayerQuestTokens" />
     <Max value="65000" />
   </CBehaviorTokenCounter>
+  <CBehaviorBuff id="WhitemaneSearingLashSaintlyGreatstaffMarkedBehavior">
+    <BehaviorFlags index="Permanent" value="1" />
+    <BehaviorFlags index="EnabledWhileDead" value="1" />
+    <Duration value="3" />
+  </CBehaviorBuff>
   <CBehaviorBuff id="WhitemaneZealIndulgenceMoveSpeedBehavior" parent="StormSprint">
     <BehaviorFlags index="Permanent" value="1" />
     <BehaviorFlags index="EnabledWhileDead" value="1" />
@@ -1104,9 +1139,9 @@
       </UnifiedMoveSpeedFactor>
     </Modification>
   </CBehaviorBuff>
-  <CBehaviorAbility id="WhitemaneFanaticalPowerItem">
+  <CBehaviorAbility id="WhitemaneGuidingLightItem">
     <Face value="WhitemaneDesperatePlea" />
-    <Buttons Face="WhitemaneFanaticalPower" Type="AbilCmd" AbilCmd="WhitemaneFanaticalPower,Execute" />
+    <Buttons Face="WhitemaneGuidingLight" Type="AbilCmd" AbilCmd="WhitemaneGuidingLight,Execute" />
   </CBehaviorAbility>
   <CBehaviorBuff id="WhitemaneDesperatePleaUnwaveringFaithBasicAttackBuff" parent="StormDamageIncrease">
     <Modification>
@@ -1234,12 +1269,6 @@
     <Duration value="8" />
     <FinalEffect value="WhitemaneZealRemoveToken" />
   </CBehaviorBuff>
-  <CBehaviorBuff id="WhitemaneZealGuidingLightMovementSpeed" parent="StormSprint">
-    <Duration value="2" />
-    <Modification>
-      <UnifiedMoveSpeedFactor value="0.2" />
-    </Modification>
-  </CBehaviorBuff>
   <CBehaviorTokenCounter id="WhitemaneZealTokenCounter" parent="StormGenericToken">
     <Max value="10" />
     <Face value="WhitemaneTraitZealToken" />
@@ -1250,6 +1279,9 @@
     <InfoFlags index="Hidden" value="1" />
     <TrackingValidatorArray value="WhitemaneZealTargetHasZealBehavior" />
   </CBehaviorUnitTracker>
+  <CButton id="WhitemaneFanaticalPower" parent="StormButtonParent">
+    <Icon value="Assets\Textures\storm_ui_icon_whitemane_fanatical.dds" />
+  </CButton>
   <CButton id="WhitemaneInquisitor'sPrayer" parent="StormButtonParent">
     <Icon value="Assets\Textures\storm_ui_icon_whitemane_lash_alt_1.dds" />
   </CButton>
@@ -1276,8 +1308,8 @@
   <CButton id="WhitemaneDesperatePleaUnwaveringFaith" parent="StormButtonParent">
     <Icon value="Assets\Textures\storm_ui_icon_whitemane_desperation.dds" />
   </CButton>
-  <CButton id="WhitemaneFanaticalPower" parent="StormButtonParent">
-    <Icon value="Assets\Textures\storm_ui_icon_whitemane_desperation.dds" />
+  <CButton id="WhitemaneGuidingLight" parent="StormButtonParent">
+    <Icon value="Assets\Textures\storm_ui_icon_whitemane_zeal.dds" />
   </CButton>
   <CButton id="WhitemaneInquisitionCancel" parent="StormButtonParent">
     <Icon value="Assets\Textures\hud_btn_bg_ability_cancel.dds" />
@@ -1298,7 +1330,7 @@
     <Icon value="Assets\Textures\storm_ui_icon_whitemane_intercession.dds" />
   </CButton>
   <CButton id="WhitemaneSaintlyGreatstaff" parent="StormButtonParent">
-    <Icon value="Assets\Textures\storm_ui_icon_whitemane_zeal.dds" />
+    <Icon value="Assets\Textures\storm_ui_icon_whitemane_lash_alt_1.dds" />
   </CButton>
   <CButton id="WhitemanePurgeTheWicked" parent="StormButtonParent">
     <Icon value="Assets\Textures\storm_ui_icon_whitemane_purge.dds" />
@@ -1320,6 +1352,7 @@
     <TooltipAppender Validator="WhitemaneHasZealIndulgenceTalent" Face="WhitemaneZealIndulgence" />
     <TooltipAppender Validator="WhitemaneDesperatePleaZealousSpiritHasTalent" Face="WhitemaneDesperatePleaZealousSpirit" />
     <TooltipAppender Validator="WhitemaneZealRadianceHasTalent" Face="WhitemaneDesperatePleaRadiance" />
+    <TooltipAppender Validator="WhitemaneDesperatePleaGuidingLightHasTalent" Face="WhitemaneGuidingLight" />
   </CButton>
   <CButton id="WhitemaneDivineReckoningJudgmentDay" parent="StormButtonParent">
     <Icon value="Assets\Textures\storm_ui_icon_whitemane_reckoning.dds" />
@@ -1336,6 +1369,7 @@
     <TooltipAppender Validator="WhitemaneSearingLashRighteousFlameHasTalent" Face="WhitemaneSearingLashRighteousFlame" />
     <TooltipAppender Validator="WhitemaneHasPassiveInquisitor'sPrayerTalent" Face="WhitemaneInquisitor'sPrayer" />
     <TooltipAppender Validator="WhitemaneSearingLashLashingOutHasTalent" Face="WhitemaneSearingLashLashingOut" />
+    <TooltipAppender Validator="WhitemaneHasPassiveSaintlyGreatstaffTalent" Face="WhitemaneSaintlyGreatstaff" />
     <TooltipAppender Validator="WhitemaneSearingLashHarshDisciplineHasTalent" Face="WhitemaneSearingLashHarshDiscipline" />
   </CButton>
   <CButton id="WhitemaneSearingLashHarshDiscipline" parent="StormButtonParent">
@@ -1350,13 +1384,11 @@
   <CButton id="WhitemaneTraitZeal" parent="StormButtonParentTrait">
     <Icon value="Assets\Textures\storm_ui_icon_whitemane_zeal.dds" />
     <TooltipAppender Validator="WhitemaneHasZealScarletWrathTalent" Face="WhitemaneZealScarletWrath" />
-    <TooltipAppender Validator="WhitemaneHasPassiveSaintlyGreatstaffTalent" Face="WhitemaneSaintlyGreatstaff" />
+    <TooltipAppender Validator="WhitemaneHasFanaticalPowerTalent" Face="WhitemaneFanaticalPower" />
+    <TooltipCooldownOverrideText value="60 seconds" />
   </CButton>
   <CButton id="WhitemaneZealPityTheFrail" parent="StormButtonParent">
     <Icon value="Assets\Textures\storm_ui_icon_whitemane_inquisition_lash.dds" />
-  </CButton>
-  <CButton id="WhitemaneZealGuidingLight" parent="StormButtonParent">
-    <Icon value="Assets\Textures\storm_ui_icon_whitemane_zeal.dds" />
   </CButton>
   <CButton id="WhitemaneDesperatePleaRadiance" parent="StormButtonParent">
     <Icon value="Assets\Textures\storm_ui_icon_whitemane_desperation.dds" />
@@ -1377,25 +1409,29 @@
     <WhichUnit Value="Caster" />
     <BehaviorLink value="WhitemaneDesperatePleaDesperation" />
   </CEffectRemoveBehavior>
-  <CEffectAddTrackedUnit id="WhitemaneFanaticalPowerAddTrackedUnit">
-    <BehaviorLink value="WhitemaneFanaticalPowerUnitTracker" />
+  <CEffectApplyBehavior id="WhitemaneFanaticalPowerApplyBehaviorBuff">
+    <WhichUnit Value="Caster" />
+    <Behavior value="WhitemaneFanaticalBuff" />
+  </CEffectApplyBehavior>
+  <CEffectAddTrackedUnit id="WhitemaneGuidingLightAddTrackedUnit">
+    <BehaviorLink value="WhitemaneGuidingLightUnitTracker" />
     <TrackedUnit Value="Target" />
   </CEffectAddTrackedUnit>
-  <CEffectApplyBehavior id="WhitemaneFanaticalPowerApplyDurationIncreaseBehavior">
-    <Behavior value="WhitemaneFanaticalPowerDurationIncreaseBehavior" />
+  <CEffectApplyBehavior id="WhitemaneGuidingLightApplyDurationIncreaseBehavior">
+    <Behavior value="WhitemaneGuidingLightDurationIncreaseBehavior" />
   </CEffectApplyBehavior>
-  <CEffectModifyBehaviorBuffDuration id="WhitemaneFanaticalPowerModifyBehaviorDuration">
+  <CEffectModifyBehaviorBuffDuration id="WhitemaneGuidingLightModifyBehaviorDuration">
     <WhichUnit Value="Target" />
     <Behavior value="WhitemaneZealBuff" />
     <Value value="0.0625" />
   </CEffectModifyBehaviorBuffDuration>
-  <CEffectClearTrackedUnits id="WhitemaneFanaticalPowerRemoveTrackedUnit">
-    <BehaviorLink value="WhitemaneFanaticalPowerUnitTracker" />
+  <CEffectClearTrackedUnits id="WhitemaneGuidingLightRemoveTrackedUnit">
+    <BehaviorLink value="WhitemaneGuidingLightUnitTracker" />
   </CEffectClearTrackedUnits>
-  <CEffectRemoveBehavior id="WhitemaneFanaticalPowerRemoveZealBehavior">
+  <CEffectRemoveBehavior id="WhitemaneGuidingLightRemoveZealBehavior">
     <BehaviorLink value="WhitemaneZealBuff" />
   </CEffectRemoveBehavior>
-  <CEffectModifyTokenCount id="WhitemaneFanaticalPowerResetTokenCount" parent="BaseEffectModifyTokenCount">
+  <CEffectModifyTokenCount id="WhitemaneGuidingLightResetTokenCount" parent="BaseEffectModifyTokenCount">
     <TokenId value="WhitemaneFanaticalPowerTokenCounter" />
     <Operation value="Set" />
     <Value value="0" />
@@ -1441,6 +1477,7 @@
     <ImpactUnit Value="Caster" />
     <RechargeVitalRate value="135" />
     <MultiplicativeModifierArray index="PityTheFrail" Validator="WhitemaneZealPityTheFrailHasTalentAndTargetHealthLT30" Modifier="0.25" Crit="1" />
+    <MultiplicativeModifierArray index="FanaticalPower" Validator="WhitemaneHasFanaticalPowerBehavior" Crit="1" />
     <SourceButtonFace value="WhitemaneDesperatePleaSelfRighteous" />
     <CritValidatorArray value="CritAliasSpellPower" />
   </CEffectCreateHealer>
@@ -1477,24 +1514,12 @@
   <CEffectDamage id="WhitemanePurgeTheWickedDamage" parent="StormSpellDot">
     <Amount value="60" />
     <SourceButtonFace value="WhitemanePurgeTheWicked" />
+    <MultiplicativeModifierArray index="FanaticalPower" Validator="WhitemaneHasFanaticalPowerBehavior" Crit="1" />
   </CEffectDamage>
   <CEffectSet id="WhitemanePurgeTheWickedInitialSet">
     <EffectArray value="WhitemanePurgeTheWickedApplyBehaviorSet" />
     <EffectArray value="WhitemanePurgeTheWickedInitialDamage" />
   </CEffectSet>
-  <CEffectCreateHealer id="WhitemaneSaintlyGreatstaffCreateHealer" parent="StormHealingParent">
-    <ValidatorArray value="WhitemaneHasPassiveSaintlyGreatstaffTalent" />
-    <ValidatorArray value="TargetIsHero" />
-    <MultiplicativeModifierArray index="UnwaveringFaith" Validator="WhitemaneDesperatePleaUnwaveringFaithHasTalent" Accumulator="WhitemaneZealUnwaveringFaithAccumulator" />
-    <RechargeVitalRate value="55" />
-  </CEffectCreateHealer>
-  <CEffectEnumTrackedUnits id="WhitemaneSaintlyGreatstaffEnumerateTrackedUnits">
-    <ValidatorArray value="WhitemaneHasPassiveSaintlyGreatstaffTalent" />
-    <ValidatorArray value="TargetIsHero" />
-    <ValidatorArray value="CasterNotBlindedAndTargetNotEvading" />
-    <BehaviorLink value="WhitemaneZealUnitTracker" />
-    <Effect value="WhitemaneSaintlyGreatstaffCreateHealer" />
-  </CEffectEnumTrackedUnits>
   <CEffectApplyBehavior id="WhitemaneSearingLashHarshDisciplineApplyRootBehavior">
     <ValidatorArray index="0" value="WhitemaneSearingLashHarshDisciplineTargetHasInquisitionSlowBehavior" />
     <ValidatorArray value="WhitemaneSearingLashHarshDisciplineTargetDoesNotHaveRootBehavior" />
@@ -1533,6 +1558,18 @@
       </Value>
     </CatalogModifications>
   </CEffectModifyCatalogNumeric>
+  <CEffectApplyBehavior id="WhitemaneSearingLashSaintlyGreatstaffApplyMarkedBehavior">
+    <Behavior value="WhitemaneSearingLashSaintlyGreatstaffMarkedBehavior" />
+    <ValidatorArray index="0" value="WhitemaneHasPassiveSaintlyGreatstaffTalent" />
+  </CEffectApplyBehavior>
+  <CEffectDamage id="WhitemaneSearingLashSaintlyGreatstaffDamage" parent="StormSpell">
+    <Amount value="50" />
+    <MultiplicativeModifierArray index="FanaticalPower" Validator="WhitemaneHasFanaticalPowerBehavior" Crit="1" />
+    <ValidatorArray value="WhitemaneSearingLashSaintlyGreatstaffCombine" />
+  </CEffectDamage>
+  <CEffectRemoveBehavior id="WhitemaneSearingLashSaintlyGreatstaffRemoveMarkedBehavior">
+    <BehaviorLink value="WhitemaneSearingLashSaintlyGreatstaffMarkedBehavior" />
+  </CEffectRemoveBehavior>
   <CEffectModifyTokenCount id="WhitemaneZealAddToken" parent="BaseEffectModifyTokenCount">
     <TokenId value="WhitemaneZealTokenCounter" />
     <ValidatorArray value="WhitemaneZealTargetDoesNotHaveZealBehavior" />
@@ -1541,14 +1578,6 @@
     <TokenId value="WhitemaneZealTokenCounter" />
     <Value value="-1" />
   </CEffectModifyTokenCount>
-  <CEffectApplyBehavior id="WhitemaneZealGuidingLightApplyMovementSpeed">
-    <Behavior value="WhitemaneZealGuidingLightMovementSpeed" />
-  </CEffectApplyBehavior>
-  <CEffectSet id="WhitemaneZealGuidingLightApplySpeedSet">
-    <ValidatorArray value="IsNotSelf" />
-    <Chance value="0" />
-    <EffectArray value="WhitemaneZealGuidingLightApplyMovementSpeed" />
-  </CEffectSet>
   <CEffectSet id="WhitemaneDesperatePleaRadiance3StackSet">
     <ValidatorArray value="WhitemaneZealRadianceHasTalent" />
     <EffectArray value="WhitemaneDesperatePleaRadianceEnumTrackedUnits" />
@@ -1567,10 +1596,10 @@
   <CEffectApplyBehavior id="WhitemaneInquisitionApplySlowBehavior" parent="StormSlowApply">
     <Behavior value="WhitemaneInquisitionSlow" />
   </CEffectApplyBehavior>
-  <CEffectSet id="WhitemaneFanaticalPowerInitialSet">
-    <EffectArray value="WhitemaneFanaticalPowerRemoveTrackedUnit" />
-    <EffectArray value="WhitemaneFanaticalPowerAddTrackedUnit" />
-    <EffectArray value="WhitemaneFanaticalPowerApplyDurationIncreaseBehavior" />
+  <CEffectSet id="WhitemaneGuidingLightInitialSet">
+    <EffectArray value="WhitemaneGuidingLightRemoveTrackedUnit" />
+    <EffectArray value="WhitemaneGuidingLightAddTrackedUnit" />
+    <EffectArray value="WhitemaneGuidingLightApplyDurationIncreaseBehavior" />
     <EffectArray value="WhitemaneDesperatePleaCreateHealer" />
     <EffectArray value="WhitemaneDesperatePleaSelfRighteousSelfHealSet" />
     <EffectArray value="WhitemaneZealApplyBehaviorSet" />
@@ -1584,6 +1613,7 @@
     <RechargeVitalRate value="140" />
     <MultiplicativeModifierArray index="PityTheFrail" Validator="WhitemaneZealPityTheFrailHasTalentAndTargetHealthLT30" Modifier="0.25" Crit="1" />
     <MultiplicativeModifierArray index="Martyrdom" Validator="WhitemaneDesperatePleaMartyrdomHasTalent" Accumulator="WhitemaneZealMartyrdomHealAccumulator" Modifier="0.2" />
+    <MultiplicativeModifierArray index="FanaticalPower" Validator="WhitemaneHasFanaticalPowerBehavior" Crit="1" />
     <CritValidatorArray value="WhitemaneDesperatePleaCritCombine" />
   </CEffectCreateHealer>
   <CEffectSet id="WhitemaneDesperatePleaInitialSet">
@@ -1606,6 +1636,7 @@
   </CEffectModifyUnit>
   <CEffectSet id="WhitemaneInquisitionClemencyInitialSet">
     <EffectArray value="WhitemaneInquisitionHealCreatePersistent" />
+    <EffectArray value="WhitemaneInquisitionSharedPunishmentChainSet" />
     <EffectArray value="WhitemaneDesperatePleaRemoveDesperationToken" />
   </CEffectSet>
   <CEffectEnumArea id="WhitemaneInquisitionSharedPunishmentChainSearch">
@@ -1622,6 +1653,7 @@
   <CEffectDamage id="WhitemaneInquisitionSharedPunishmentDamage" parent="StormSpell">
     <Amount value="35" />
     <SourceButtonFace value="WhitemaneInquisitionSharedPunishment" />
+    <MultiplicativeModifierArray index="FanaticalPower" Validator="WhitemaneHasFanaticalPowerBehavior" Crit="1" />
   </CEffectDamage>
   <CEffectSet id="WhitemaneInquisitionSharedPunishmentImpactSet">
     <EffectArray value="WhitemaneInquisitionApplyTargetBehavior" />
@@ -1633,10 +1665,12 @@
   <CEffectCreateHealer id="WhitemaneInquisitionCreateHealer" parent="StormHealingSpell">
     <RechargeVitalRate value="47" />
     <MultiplicativeModifierArray index="PityTheFrail" Validator="WhitemaneZealPityTheFrailHasTalentAndTargetHealthLT30" Modifier="0.25" Crit="1" />
+    <MultiplicativeModifierArray index="FanaticalPower" Validator="WhitemaneHasFanaticalPowerBehavior" Crit="1" />
     <CritValidatorArray value="CritAliasSpellPower" />
   </CEffectCreateHealer>
   <CEffectDamage id="WhitemaneInquisitionDamage" parent="StormSpell">
     <Amount value="47" />
+    <MultiplicativeModifierArray index="FanaticalPower" Validator="WhitemaneHasFanaticalPowerBehavior" Crit="1" />
   </CEffectDamage>
   <CEffectSet id="WhitemaneInquisitionDamageCPInitialSet">
     <EffectArray value="WhitemaneInquisitionApplyChannelBehavior" />
@@ -1710,6 +1744,7 @@
   </CEffectSet>
   <CEffectSet id="WhitemaneInquisitionInitialSet">
     <EffectArray value="WhitemaneInquisitionDamageCreatePersistent" />
+    <EffectArray value="WhitemaneDesperatePleaRemoveDesperationToken" />
     <EffectArray value="WhitemaneInquisitionSharedPunishmentChainSet" />
     <EffectArray value="WhitemaneInquistionSharedPunishmentApplyArmorBehavior" />
   </CEffectSet>
@@ -1778,6 +1813,7 @@
     <SourceButtonFace value="WhitemaneScarletAegis" />
     <MultiplicativeModifierArray index="0" Validator="WhitemaneScarletAegisScarletCrusadeHasTalent" Modifier="0.5" />
     <MultiplicativeModifierArray index="PityTheFrail" Validator="WhitemaneZealPityTheFrailHasTalentAndTargetHealthLT30" Modifier="0.25" Crit="1" />
+    <MultiplicativeModifierArray index="FanaticalPower" Validator="WhitemaneHasFanaticalPowerBehavior" Crit="1" />
     <CritValidatorArray value="CritAliasSpellPower" />
   </CEffectCreateHealer>
   <CEffectSet id="WhitemaneScarletAegisInitialSet">
@@ -1836,9 +1872,11 @@
     <Amount value="50" />
     <SourceButtonFace value="WhitemaneDivineReckoning" />
     <MultiplicativeModifierArray index="0" Validator="WhitemaneDivineReckoningJudgmentDayHasTalent" Modifier="0.5" />
+    <MultiplicativeModifierArray index="FanaticalPower" Validator="WhitemaneHasFanaticalPowerBehavior" Crit="1" />
     <LeechFraction index="Energy" value="0.25" />
     <FloaterCreation value="Force" />
     <LeechValidator index="Energy" value="TargetIsHero" />
+    <LeechScoreArray index="0" removed="1" />
   </CEffectDamage>
   <CEffectSet id="WhitemaneDivineReckoningInitialSet">
     <EffectArray value="WhitemaneDivineReckoningInitialPersistent" />
@@ -1871,12 +1909,14 @@
   </CEffectSet>
   <CEffectSet id="WhitemaneSearingLashStage1ImpactSet">
     <EffectArray value="WhitemaneSearingLashDamage" />
+    <EffectArray value="WhitemaneSearingLashSaintlyGreatstaffApplyMarkedBehavior" />
     <EffectArray value="WhitemaneSearingLashHarshDisciplineApplyRootBehavior" />
     <EffectArray value="WhitemaneSearingLashPityTheFrailModifyCooldown" />
     <EffectArray value="WhitemaneInquisitorsPrayerAddTokenFirstStrike" />
   </CEffectSet>
   <CEffectSet id="WhitemaneSearingLashStage2ImpactSet">
     <EffectArray value="WhitemaneSearingLashSecondStrikeDamage" />
+    <EffectArray value="WhitemaneSearingLashSaintlyGreatstaffApplyMarkedBehavior" />
     <EffectArray value="WhitemaneSearingLashHarshDisciplineApplyRootBehavior" />
     <EffectArray value="WhitemaneSearingLashLashingOutCooldownRefundSet" />
     <EffectArray value="WhitemaneSearingLashPityTheFrailModifyCooldown" />
@@ -1944,12 +1984,14 @@
     <Amount value="82" />
     <MultiplicativeModifierArray index="RighteousFlame" Validator="WhitemaneSearingLashRighteousFlameHasTalent" Modifier="0.25" />
     <MultiplicativeModifierArray index="RighteousFlameCC" Validator="WhitemaneSearingLashRighteousFlameHasTalentAndTargetIsStunnedRootedOrSlowed" Modifier="0.25" Crit="1" />
+    <MultiplicativeModifierArray index="FanaticalPower" Validator="WhitemaneHasFanaticalPowerBehavior" Crit="1" />
   </CEffectDamage>
   <CEffectDamage id="WhitemaneSearingLashSecondStrikeDamage" parent="WhitemaneSearingLashDamage" />
   <CEffectSet id="WhitemaneWeaponImpactSet">
     <EffectArray value="WhitemaneWeaponDamage" />
+    <EffectArray value="WhitemaneSearingLashSaintlyGreatstaffDamage" />
     <EffectArray value="ZealScarletWrathEnumerateTrackedUnits" />
-    <EffectArray value="WhitemaneSaintlyGreatstaffEnumerateTrackedUnits" />
+    <EffectArray value="WhitemaneSearingLashSaintlyGreatstaffRemoveMarkedBehavior" />
   </CEffectSet>
   <CEffectLaunchMissile id="WhitemaneWeaponLaunchMissile">
     <ImpactEffect value="WhitemaneWeaponImpactSet" />
@@ -1962,7 +2004,7 @@
     <EffectArray value="WhitemaneWeaponLaunchMissile" />
   </CEffectSet>
   <CEffectDamage id="WhitemaneWeaponDamage" parent="StormWeapon">
-    <Amount value="55" />
+    <Amount value="62" />
     <SourceButtonFace value="Attack" />
     <CritValidatorArray index="0" value="WhitemaneDesperatePleaUnwaveringFaithCritCombine" />
   </CEffectDamage>
@@ -1970,7 +2012,6 @@
     <EffectArray value="WhitemaneZealAddTrackedUnit" />
     <EffectArray value="WhitemaneZealAddToken" />
     <EffectArray value="WhitemaneZealApplyBuffBehavior" />
-    <EffectArray value="WhitemaneZealGuidingLightApplySpeedSet" />
   </CEffectSet>
   <CEffectAddTrackedUnit id="WhitemaneZealAddTrackedUnit">
     <ValidatorArray value="WhitemaneZealTargetNotTracked" />
@@ -1984,6 +2025,7 @@
   <CEffectCreateHealer id="WhitemaneDesperatePleaRadianceCreateHealer" parent="StormHealingSpell">
     <RechargeVitalRate value="175" />
     <MultiplicativeModifierArray index="PityTheFrail" Validator="WhitemaneZealPityTheFrailHasTalentAndTargetHealthLT30" Modifier="0.25" Crit="1" />
+    <MultiplicativeModifierArray index="FanaticalPower" Validator="WhitemaneHasFanaticalPowerBehavior" Crit="1" />
     <SourceButtonFace value="WhitemaneDesperatePleaRadiance" />
     <CritValidatorArray value="CritAliasSpellPower" />
   </CEffectCreateHealer>
@@ -2001,6 +2043,7 @@
   <CEffectCreateHealer id="WhitemaneZealCreateHealer" parent="StormHealingSpell">
     <MultiplicativeModifierArray index="ZealBase" />
     <MultiplicativeModifierArray index="PityTheFrail" Validator="WhitemaneZealPityTheFrailHasTalentAndTargetHealthLT30" Modifier="0.25" Crit="1" />
+    <MultiplicativeModifierArray index="FanaticalPower" Validator="WhitemaneHasFanaticalPowerBehavior" Crit="1" />
     <Flags index="IgnoreBehaviorDealtMultipliers" value="1" />
     <Flags index="TriggerVoiceResponse" value="0" />
     <SourceButtonFace value="WhitemaneTraitZeal" />
@@ -2067,6 +2110,13 @@
       <Flags index="AffectedByCooldownReduction" value="1" />
       <Flags index="AffectedByOverdrive" value="1" />
     </HeroAbilArray>
+    <HeroAbilArray Abil="WhitemaneFanaticalPower" Button="WhitemaneFanaticalPower">
+      <Flags index="ShowInHeroSelect" value="1" />
+      <Flags index="ShowInQuickCastSetting" value="1" />
+      <Flags index="AffectedByCooldownReduction" value="1" />
+      <Flags index="AffectedByOverdrive" value="1" />
+      <Flags index="Trait" value="1" />
+    </HeroAbilArray>
     <Gender value="Female" />
     <HeroicAbilArray Abil="WhitemaneScarletAegis" />
     <HeroicAbilArray Abil="WhitemaneDivineReckoning" />
@@ -2099,7 +2149,7 @@
     <TalentTreeArray Talent="WhitemaneDivineReckoningJudgmentDay" Tier="7" Column="2">
       <PrerequisiteTalentArray value="WhitemaneDivineReckoning" />
     </TalentTreeArray>
-    <TalentTreeArray Talent="WhitemaneFanaticalPower" Tier="7" Column="3" />
+    <TalentTreeArray Talent="WhitemaneGuidingLight" Tier="7" Column="3" />
     <TalentTreeArray Talent="WhitemanePurgeTheWicked" Tier="7" Column="4" />
     <Difficulty value="Medium" />
     <Universe value="Warcraft" />
@@ -2159,14 +2209,6 @@
         <Catalog value="Effect" />
         <Entry value="WhitemanePurgeTheWickedDamage" />
         <Field value="Amount" />
-        <Value value="0.040000" />
-        <AffectedByAbilityPower value="1" />
-        <AffectedByOverdrive value="1" />
-      </Modifications>
-      <Modifications>
-        <Catalog value="Effect" />
-        <Entry value="WhitemaneSaintlyGreatstaffCreateHealer" />
-        <Field value="RechargeVitalRate" />
         <Value value="0.040000" />
         <AffectedByAbilityPower value="1" />
         <AffectedByOverdrive value="1" />
@@ -2233,6 +2275,14 @@
         <AffectedByAbilityPower value="1" />
         <AffectedByOverdrive value="1" />
       </Modifications>
+      <Modifications>
+        <Catalog value="Effect" />
+        <Entry value="WhitemaneSearingLashSaintlyGreatstaffDamage" />
+        <Field value="Amount" />
+        <Value value="0.040000" />
+        <AffectedByAbilityPower value="1" />
+        <AffectedByOverdrive value="1" />
+      </Modifications>
     </LevelScalingArray>
     <LevelScalingArray Ability="WhitemaneScarletAegis">
       <Modifications>
@@ -2278,7 +2328,7 @@
       <TalentsArray value="WhitemaneDesperatePleaUnwaveringFaith" />
       <TalentsArray value="WhitemaneIntercession" />
       <TalentsArray value="WhitemaneScarletAegis" />
-      <TalentsArray value="WhitemaneSearingLashLashingOut" />
+      <TalentsArray value="WhitemaneSaintlyGreatstaff" />
       <TalentsArray value="WhitemaneSearingLashHarshDiscipline" />
       <TalentsArray value="WhitemaneScarletAegisScarletCrusade" />
     </TalentAIBuildsArray>
@@ -2289,23 +2339,23 @@
       <TalentsArray value="WhitemaneDivineReckoning" />
       <TalentsArray value="WhitemaneInquisitionSubjugation" />
       <TalentsArray value="WhitemaneInquisitionSharedPunishment" />
-      <TalentsArray value="WhitemaneFanaticalPower" />
+      <TalentsArray value="WhitemaneGuidingLight" />
     </TalentAIBuildsArray>
     <TalentAIBuildsArray ChanceToPick="16">
       <TalentsArray value="WhitemaneZealPityTheFrail" />
       <TalentsArray value="WhitemaneZealIndulgence" />
       <TalentsArray value="WhitemaneDesperatePleaZealousSpirit" />
       <TalentsArray value="WhitemaneScarletAegis" />
-      <TalentsArray value="WhitemaneSearingLashLashingOut" />
+      <TalentsArray value="WhitemaneSaintlyGreatstaff" />
       <TalentsArray value="WhitemaneSearingLashHarshDiscipline" />
       <TalentsArray value="WhitemanePurgeTheWicked" />
     </TalentAIBuildsArray>
     <TalentAIBuildsArray ChanceToPick="16">
       <TalentsArray value="WhitemaneZealPityTheFrail" />
       <TalentsArray value="WhitemaneDesperatePleaUnwaveringFaith" />
-      <TalentsArray value="WhitemaneZealScarletWrath" />
+      <TalentsArray value="WhitemaneDesperatePleaZealousSpirit" />
       <TalentsArray value="WhitemaneDivineReckoning" />
-      <TalentsArray value="WhitemaneSaintlyGreatstaff" />
+      <TalentsArray value="WhitemaneSearingLashLashingOut" />
       <TalentsArray value="WhitemaneDesperatePleaRadiance" />
       <TalentsArray value="WhitemaneDivineReckoningJudgmentDay" />
     </TalentAIBuildsArray>
@@ -2316,19 +2366,27 @@
       <TalentsArray value="WhitemaneDivineReckoning" />
       <TalentsArray value="WhitemaneInquisitionSubjugation" />
       <TalentsArray value="WhitemaneInquisitionSharedPunishment" />
-      <TalentsArray value="WhitemaneFanaticalPower" />
+      <TalentsArray value="WhitemaneGuidingLight" />
     </TalentAIBuildsArray>
     <TalentAIBuildsArray AIOnly="1" ChanceToPick="16">
       <TalentsArray value="WhitemaneZealPityTheFrail" />
       <TalentsArray value="WhitemaneDesperatePleaMartyrdom" />
       <TalentsArray value="WhitemaneDesperatePleaZealousSpirit" />
       <TalentsArray value="WhitemaneDivineReckoning" />
-      <TalentsArray value="WhitemaneSearingLashLashingOut" />
+      <TalentsArray value="WhitemaneSaintlyGreatstaff" />
       <TalentsArray value="WhitemaneSearingLashHarshDiscipline" />
       <TalentsArray value="WhitemaneDivineReckoningJudgmentDay" />
     </TalentAIBuildsArray>
     <ExpandedRole value="Healer" />
   </CHero>
+  <CHeroMastery id="WhitemaneMasteryRing1" parent="MasteryRingRank1">
+    <ProductId value="66990" />
+    <HyperlinkId value="WhitemaneMasteryRingRank1" />
+  </CHeroMastery>
+  <CHeroMastery id="WhitemaneMasteryRing2" parent="MasteryRingRank2">
+    <ProductId value="67087" />
+    <HyperlinkId value="WhitemaneMasteryRingRank2" />
+  </CHeroMastery>
   <CModel id="WhitemaneSearingLashHarshDisciplineRoot" parent="PersistentSpellFX">
     <Model value="Assets\Effects\Storm_FX_Whitemane_Base_SearingLash_Root\Storm_FX_Whitemane_Base_SearingLash_Root.m3" />
   </CModel>
@@ -2366,6 +2424,12 @@
     <IconSlot value="27" />
     <Hero value="Whitemane" />
   </CRewardPortrait>
+  <CRewardHeroMastery id="WhitemaneMasteryRing1">
+    <License value="49900" />
+  </CRewardHeroMastery>
+  <CRewardHeroMastery id="WhitemaneMasteryRing2">
+    <License value="49917" />
+  </CRewardHeroMastery>
   <CShapeQuad id="WhitemaneSearingLashVisibilityShape">
     <Quad value="-4,-1,4,1" />
   </CShapeQuad>
@@ -3233,6 +3297,14 @@
     <SustainFade index="1" Time="600" Volume="-19.000000" />
     <SustainFade Time="1500" Volume="-96.000000" />
   </CSound>
+  <CTalent id="WhitemaneFanaticalPower">
+    <Face value="WhitemaneFanaticalPower" />
+    <Abil value="WhitemaneFanaticalPower" />
+    <RankArray>
+      <BehaviorArray value="WhitemaneFanaticalPowerItem" />
+    </RankArray>
+    <Active value="1" />
+  </CTalent>
   <CTalent id="WhitemaneInquisitorsPrayer">
     <Face value="WhitemaneInquisitor'sPrayer" />
     <Abil value="WhitemaneSearingLash" />
@@ -3290,12 +3362,12 @@
       <BehaviorArray value="WhitemaneDesperatePleaUnwaveringFaithBasicAttackBuff" />
     </RankArray>
   </CTalent>
-  <CTalent id="WhitemaneFanaticalPower">
-    <Face value="WhitemaneFanaticalPower" />
-    <Abil value="WhitemaneFanaticalPower" />
+  <CTalent id="WhitemaneGuidingLight">
+    <Face value="WhitemaneGuidingLight" />
+    <Abil value="WhitemaneGuidingLight" />
     <RankArray>
-      <BehaviorArray value="WhitemaneFanaticalPowerItem" />
-      <BehaviorArray value="WhitemaneFanaticalPowerUnitTracker" />
+      <BehaviorArray value="WhitemaneGuidingLightItem" />
+      <BehaviorArray value="WhitemaneGuidingLightUnitTracker" />
     </RankArray>
     <Active value="1" />
   </CTalent>
@@ -3365,7 +3437,7 @@
   </CTalent>
   <CTalent id="WhitemaneSaintlyGreatstaff">
     <Face value="WhitemaneSaintlyGreatstaff" />
-    <Trait value="1" />
+    <Abil value="WhitemaneSearingLash" />
   </CTalent>
   <CTalent id="WhitemanePurgeTheWicked">
     <Face value="WhitemanePurgeTheWicked" />
@@ -3460,19 +3532,6 @@
       </Modifications>
     </AbilityModificationArray>
   </CTalent>
-  <CTalent id="WhitemaneZealGuidingLight">
-    <Face value="WhitemaneZealGuidingLight" />
-    <Trait value="1" />
-    <AbilityModificationArray>
-      <Modifications>
-        <Type value="FlatModification" />
-        <Catalog value="Effect" />
-        <Entry value="WhitemaneZealGuidingLightApplySpeedSet" />
-        <Field value="Chance" />
-        <Value value="1.000000" />
-      </Modifications>
-    </AbilityModificationArray>
-  </CTalent>
   <CTalent id="WhitemaneDesperatePleaRadiance">
     <Face value="WhitemaneDesperatePleaRadiance" />
     <Abil value="WhitemaneDesperatePlea" />
@@ -3509,6 +3568,7 @@
     <AbilArray Link="WhitemaneSearingLash" />
     <AbilArray Link="WhitemaneScarletAegis" />
     <AbilArray Link="WhitemaneDivineReckoning" />
+    <AbilArray Link="WhitemaneFanaticalPower" />
     <BehaviorArray Link="ExcellentMana" />
     <BehaviorArray Link="WhitemaneZealUnitTracker" />
     <BehaviorArray Link="WhitemaneZealCasterBehavior" />
@@ -3519,11 +3579,12 @@
     <CardLayouts index="0">
       <LayoutButtons Face="WhitemaneScarletAegis" Type="AbilCmd" AbilCmd="WhitemaneScarletAegis,Execute" Slot="Heroic" />
       <LayoutButtons Face="WhitemaneDivineReckoning" Type="AbilCmd" AbilCmd="WhitemaneDivineReckoning,Execute" Slot="Heroic" />
-      <LayoutButtons Face="WhitemaneTraitZeal" Type="Passive" Slot="Trait" />
+      <LayoutButtons Face="WhitemaneTraitZeal" Type="AbilCmd" AbilCmd="WhitemaneFanaticalPower,Execute" Slot="Trait" />
       <LayoutButtons Face="WhitemaneDesperatePlea" Type="AbilCmd" AbilCmd="WhitemaneDesperatePlea,Execute" Slot="Ability1" />
       <LayoutButtons Face="WhitemaneInquisitionCancel" Type="AbilCmd" AbilCmd="WhitemaneInquisitionCancel,Execute" Slot="Ability2" />
       <LayoutButtons Face="WhitemaneInquisition" Type="AbilCmd" AbilCmd="WhitemaneInquisition,Execute" Slot="Ability2" />
       <LayoutButtons Face="WhitemaneSearingLash" Type="AbilCmd" AbilCmd="WhitemaneSearingLash,Execute" Slot="Ability3" />
+      <LayoutButtons />
     </CardLayouts>
     <Radius value="0.625" />
     <InnerRadius value="0.625" />
@@ -3541,11 +3602,16 @@
     <CombineArray value="WhitemaneDesperatePleaUnwaveringFaithHasTalent" />
     <CombineArray value="WhitemaneZealHasTrackedUnits" />
   </CValidatorCombine>
-  <CValidatorIsUnitTracked id="WhitemaneFanaticalPowerIsUnitTracked">
+  <CValidatorIsUnitTracked id="WhitemaneGuidingLightIsUnitTracked">
     <Find value="1" />
-    <BehaviorLink value="WhitemaneFanaticalPowerUnitTracker" />
+    <BehaviorLink value="WhitemaneGuidingLightUnitTracker" />
     <TrackedUnit Value="Target" />
   </CValidatorIsUnitTracked>
+  <CValidatorPlayerTalent id="WhitemaneHasFanaticalPowerTalent">
+    <WhichPlayer Value="Caster" />
+    <Find value="1" />
+    <Value value="WhitemaneFanaticalPower" />
+  </CValidatorPlayerTalent>
   <CValidatorPlayerTalent id="WhitemaneHasPassiveInquisitor'sPrayerTalent">
     <WhichPlayer Value="Caster" />
     <Find value="1" />
@@ -3606,6 +3672,11 @@
     <Find value="1" />
     <Value value="WhitemaneDesperatePleaUnwaveringFaith" />
   </CValidatorPlayerTalent>
+  <CValidatorCombine id="WhitemaneSearingLashSaintlyGreatstaffCombine">
+    <Type value="And" />
+    <CombineArray value="WhitemaneHasPassiveSaintlyGreatstaffTalent" />
+    <CombineArray value="WhitemaneSearingLashSaintlyGreatstaffHasMarkedBehavior" />
+  </CValidatorCombine>
   <CValidatorUnitCompareVital id="WhitemaneZealPityTheFrailTargetHealthLT30">
     <Compare value="LT" />
     <Type value="Fraction" />
@@ -3633,11 +3704,6 @@
     <Find value="0" />
     <Queued value="1" />
   </CValidatorUnitOrderQueue>
-  <CValidatorPlayerTalent id="WhitemaneZealGuidingLightHasTalent">
-    <WhichPlayer Value="Caster" />
-    <Find value="1" />
-    <Value value="WhitemaneZealGuidingLight" />
-  </CValidatorPlayerTalent>
   <CValidatorUnitHasBehavior id="WhitemaneSearingLashHarshDisciplineTargetDoesNotHaveRootBehavior">
     <Behavior value="WhitemaneSearingLashHarshDisciplineRoot" />
     <Negate value="1" />
@@ -3684,6 +3750,11 @@
     <Find value="1" />
     <Value value="WhitemaneDesperatePleaZealousSpirit" />
   </CValidatorPlayerTalent>
+  <CValidatorPlayerTalent id="WhitemaneDesperatePleaGuidingLightHasTalent">
+    <WhichPlayer Value="Caster" />
+    <Find value="1" />
+    <Value value="WhitemaneGuidingLight" />
+  </CValidatorPlayerTalent>
   <CValidatorPlayerTalent id="WhitemaneDesperatePleaSelfRighteousHasTalent">
     <WhichPlayer Value="Caster" />
     <Find value="1" />
@@ -3709,6 +3780,9 @@
   </CValidatorUnitHasBehavior>
   <CValidatorUnitHasBehavior id="WhitemaneDivineReckoningJudgmentDayHasPullBehavior">
     <Behavior value="WhitemaneDivineReckoningJudgmentDayPullBehavior" />
+  </CValidatorUnitHasBehavior>
+  <CValidatorUnitHasBehavior id="WhitemaneSearingLashSaintlyGreatstaffHasMarkedBehavior">
+    <Behavior value="WhitemaneSearingLashSaintlyGreatstaffMarkedBehavior" />
   </CValidatorUnitHasBehavior>
   <CValidatorPlayerTalent id="WhitemaneDivineReckoningJudgmentDayHasTalent">
     <WhichPlayer Value="Caster" />
@@ -3796,6 +3870,10 @@
   <CValidatorUnitHasBehavior id="WhitemaneInquisitionHasCasterBehavior">
     <WhichUnit Value="Caster" />
     <Behavior value="WhitemaneInquisitionCasterChannelBehavior" />
+  </CValidatorUnitHasBehavior>
+  <CValidatorUnitHasBehavior id="WhitemaneHasFanaticalPowerBehavior">
+    <WhichUnit Value="Caster" />
+    <Behavior value="WhitemaneFanaticalBuff" />
   </CValidatorUnitHasBehavior>
   <CValidatorUnitHasBehavior id="WhitemaneInquisitionDoesNotHaveCasterBehavior">
     <WhichUnit Value="Caster" />

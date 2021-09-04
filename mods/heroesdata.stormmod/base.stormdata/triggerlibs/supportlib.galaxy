@@ -42,6 +42,7 @@ void libSprt_InitVariables () {
     for (init_i = 0; init_i <= libSprt_gv_dataMiningMaxNumberOfDifferentManaRegenSources; init_i += 1) {
         libSprt_gv_dataMiningManaRegenSourceNames[init_i] = "";
     }
+    libSprt_gv_heroMasteryRingsMaxRank = 2;
     libSprt_gv_qACheatsSpawnedUnitsGroup = UnitGroupEmpty();
     libSprt_gv_qACheatsSelectedBehavior = 1;
     libSprt_gv_qACheatsSelectedSpawnUnit = 1;
@@ -757,6 +758,88 @@ void libSprt_gf_DataMiningSendEndOfGameDigests (int lp_team) {
         StatEventSend(StatEventLastCreated());
     }
     libSprt_gf_DataMiningTurnDataMiningTriggersOnOff(false);
+}
+
+void libSprt_gf_SetHeroMasteryRingLevel (int lp_player) {
+    // Variable Declarations
+    int lv_i;
+    string lv_playerHero;
+    int lv_playerMasteryLevel;
+    string lv_heroCatalogID;
+    string lv_masteryRingString;
+    int lv_iteratorString;
+    string lv_combinedHeroString;
+    string lv_combinedRewardArrayStringValue;
+    int lv_lastSuccessfulUpgradeLevel;
+
+    // Automatic Variable Declarations
+    int auto311B52FA_ae;
+    const int auto311B52FA_ai = 1;
+    unitgroup auto31D416DD_g;
+    int auto31D416DD_u;
+    unit auto31D416DD_var;
+
+    // Variable Initialization
+    lv_playerHero = PlayerHero(lp_player);
+    lv_playerMasteryLevel = PlayerHeroMasteryTier(lp_player, PlayerHero(lp_player));
+    lv_heroCatalogID = (lv_playerHero);
+    lv_masteryRingString = "MasteryRing";
+    lv_iteratorString = 1;
+    lv_combinedHeroString = "";
+    lv_combinedRewardArrayStringValue = "";
+
+    // Implementation
+    auto311B52FA_ae = libSprt_gv_heroMasteryRingsMaxRank;
+    lv_i = 1;
+    for ( ; ( (auto311B52FA_ai >= 0 && lv_i <= auto311B52FA_ae) || (auto311B52FA_ai < 0 && lv_i >= auto311B52FA_ae) ) ; lv_i += auto311B52FA_ai ) {
+        lv_combinedHeroString = (lv_heroCatalogID + lv_masteryRingString + IntToString(lv_iteratorString));
+        lv_combinedRewardArrayStringValue = CatalogFieldValueGet(c_gameCatalogHero, lv_playerHero, "HeroMasteryRingArray[" + IntToString(lv_iteratorString) + "]", lp_player);
+        if ((lv_playerMasteryLevel >= lv_iteratorString) && (PlayerHasReward(lp_player, (lv_combinedRewardArrayStringValue)) == true)) {
+            lv_lastSuccessfulUpgradeLevel = lv_iteratorString;
+            lv_iteratorString += 1;
+            if ((lv_iteratorString > libSprt_gv_heroMasteryRingsMaxRank)) {
+                lv_iteratorString = libSprt_gv_heroMasteryRingsMaxRank;
+                break;
+            }
+
+        }
+        else {
+            break;
+        }
+    }
+    libNtve_gf_SetUpgradeLevelForPlayer(lp_player, "HeroRingMasteryUpgrade", lv_lastSuccessfulUpgradeLevel);
+    if (((lv_playerHero == "Cho") || (lv_playerHero == "Gall"))) {
+        if ((lv_lastSuccessfulUpgradeLevel > libGDHL_gv_chogallPairs[libGame_gf_TeamNumberOfPlayer(lp_player)].lv_pairedHighestHeroRingMasteryLevel)) {
+            libGDHL_gv_chogallPairs[libGame_gf_TeamNumberOfPlayer(lp_player)].lv_pairedHighestHeroRingMasteryLevel = lv_lastSuccessfulUpgradeLevel;
+        }
+
+    }
+    else {
+        auto31D416DD_g = libGame_gv_players[lp_player].lv_heroUnitGroup;
+        auto31D416DD_u = UnitGroupCount(auto31D416DD_g, c_unitCountAll);
+        for (;; auto31D416DD_u -= 1) {
+            auto31D416DD_var = UnitGroupUnitFromEnd(auto31D416DD_g, auto31D416DD_u);
+            if (auto31D416DD_var == null) { break; }
+            libNtve_gf_SendActorMessageToUnit(auto31D416DD_var, "Signal MasteryRingCreation");
+        }
+    }
+}
+
+void libSprt_gf_ChoGallHeroMasteryRing (int lp_player) {
+    // Automatic Variable Declarations
+    unitgroup autoE98F73C3_g;
+    int autoE98F73C3_u;
+    unit autoE98F73C3_var;
+
+    // Implementation
+    libNtve_gf_SetUpgradeLevelForPlayer(libGDHL_gv_chogallPairs[libGame_gf_TeamNumberOfPlayer(lp_player)].lv_choPlayer, "HeroRingMasteryUpgrade", libGDHL_gv_chogallPairs[libGame_gf_TeamNumberOfPlayer(lp_player)].lv_pairedHighestHeroRingMasteryLevel);
+    autoE98F73C3_g = libGame_gv_players[libGDHL_gv_chogallPairs[libGame_gf_TeamNumberOfPlayer(lp_player)].lv_choPlayer].lv_heroUnitGroup;
+    autoE98F73C3_u = UnitGroupCount(autoE98F73C3_g, c_unitCountAll);
+    for (;; autoE98F73C3_u -= 1) {
+        autoE98F73C3_var = UnitGroupUnitFromEnd(autoE98F73C3_g, autoE98F73C3_u);
+        if (autoE98F73C3_var == null) { break; }
+        libNtve_gf_SendActorMessageToUnit(autoE98F73C3_var, "Signal MasteryRingCreation");
+    }
 }
 
 void libSprt_gf_QACheatsUIInit () {
@@ -2692,6 +2775,201 @@ void libSprt_gt_DataMiningPeriodicDataSendPeriodicEventTrigger_Init () {
     libSprt_gt_DataMiningPeriodicDataSendPeriodicEventTrigger = TriggerCreate("libSprt_gt_DataMiningPeriodicDataSendPeriodicEventTrigger_Func");
     TriggerEnable(libSprt_gt_DataMiningPeriodicDataSendPeriodicEventTrigger, false);
     TriggerAddEventTimer(libSprt_gt_DataMiningPeriodicDataSendPeriodicEventTrigger, libSprt_gv_dataMiningPeriodicTimer);
+}
+
+//--------------------------------------------------------------------------------------------------
+// Trigger: DEBUG - Force Hero Mastery Ring 0
+//--------------------------------------------------------------------------------------------------
+bool libSprt_gt_DEBUGForceHeroMasteryRing0_Func (bool testConds, bool runActions) {
+    // Variable Declarations
+    int lv_player;
+
+    // Automatic Variable Declarations
+    unitgroup autoDB9E388B_g;
+    int autoDB9E388B_u;
+    unit autoDB9E388B_var;
+
+    // Variable Initialization
+    lv_player = EventPlayer();
+
+    // Actions
+    if (!runActions) {
+        return true;
+    }
+
+    if ((EventChatMessage(false) == "-mre0")) {
+        lv_player = 6;
+    }
+
+    TextExpressionSetToken("Param/Expression/lib_Sprt_6EEBE7A1", "A", IntToText(lv_player));
+    TriggerDebugOutput(1, TextExpressionAssemble("Param/Expression/lib_Sprt_6EEBE7A1"), true);
+    libNtve_gf_SetUpgradeLevelForPlayer(lv_player, "HeroRingMasteryUpgrade", 0);
+    autoDB9E388B_g = libGame_gv_players[lv_player].lv_heroUnitGroup;
+    autoDB9E388B_u = UnitGroupCount(autoDB9E388B_g, c_unitCountAll);
+    for (;; autoDB9E388B_u -= 1) {
+        autoDB9E388B_var = UnitGroupUnitFromEnd(autoDB9E388B_g, autoDB9E388B_u);
+        if (autoDB9E388B_var == null) { break; }
+        libNtve_gf_SendActorMessageToUnit(autoDB9E388B_var, "Signal MasteryRingCreation");
+    }
+    return true;
+}
+
+//--------------------------------------------------------------------------------------------------
+void libSprt_gt_DEBUGForceHeroMasteryRing0_Init () {
+    libSprt_gt_DEBUGForceHeroMasteryRing0 = TriggerCreate("libSprt_gt_DEBUGForceHeroMasteryRing0_Func");
+    TriggerAddEventChatMessage(libSprt_gt_DEBUGForceHeroMasteryRing0, c_playerAny, "-mr0", true);
+    TriggerAddEventChatMessage(libSprt_gt_DEBUGForceHeroMasteryRing0, c_playerAny, "-mre0", true);
+}
+
+//--------------------------------------------------------------------------------------------------
+// Trigger: DEBUG - Force Hero Mastery Ring 1
+//--------------------------------------------------------------------------------------------------
+bool libSprt_gt_DEBUGForceHeroMasteryRing1_Func (bool testConds, bool runActions) {
+    // Variable Declarations
+    int lv_player;
+
+    // Automatic Variable Declarations
+    unitgroup auto7EEB58A8_g;
+    int auto7EEB58A8_u;
+    unit auto7EEB58A8_var;
+
+    // Variable Initialization
+    lv_player = EventPlayer();
+
+    // Actions
+    if (!runActions) {
+        return true;
+    }
+
+    if ((EventChatMessage(false) == "-mre1")) {
+        lv_player = 6;
+    }
+
+    TextExpressionSetToken("Param/Expression/lib_Sprt_AAD84D88", "A", IntToText(lv_player));
+    TriggerDebugOutput(1, TextExpressionAssemble("Param/Expression/lib_Sprt_AAD84D88"), true);
+    libNtve_gf_SetUpgradeLevelForPlayer(lv_player, "HeroRingMasteryUpgrade", 1);
+    auto7EEB58A8_g = libGame_gv_players[lv_player].lv_heroUnitGroup;
+    auto7EEB58A8_u = UnitGroupCount(auto7EEB58A8_g, c_unitCountAll);
+    for (;; auto7EEB58A8_u -= 1) {
+        auto7EEB58A8_var = UnitGroupUnitFromEnd(auto7EEB58A8_g, auto7EEB58A8_u);
+        if (auto7EEB58A8_var == null) { break; }
+        libNtve_gf_SendActorMessageToUnit(auto7EEB58A8_var, "Signal MasteryRingCreation");
+    }
+    return true;
+}
+
+//--------------------------------------------------------------------------------------------------
+void libSprt_gt_DEBUGForceHeroMasteryRing1_Init () {
+    libSprt_gt_DEBUGForceHeroMasteryRing1 = TriggerCreate("libSprt_gt_DEBUGForceHeroMasteryRing1_Func");
+    TriggerAddEventChatMessage(libSprt_gt_DEBUGForceHeroMasteryRing1, c_playerAny, "-mr1", true);
+    TriggerAddEventChatMessage(libSprt_gt_DEBUGForceHeroMasteryRing1, c_playerAny, "-mre1", true);
+}
+
+//--------------------------------------------------------------------------------------------------
+// Trigger: DEBUG - Force Hero Mastery Ring 2
+//--------------------------------------------------------------------------------------------------
+bool libSprt_gt_DEBUGForceHeroMasteryRing2_Func (bool testConds, bool runActions) {
+    // Variable Declarations
+    int lv_player;
+
+    // Automatic Variable Declarations
+    unitgroup autoCE596295_g;
+    int autoCE596295_u;
+    unit autoCE596295_var;
+
+    // Variable Initialization
+    lv_player = EventPlayer();
+
+    // Actions
+    if (!runActions) {
+        return true;
+    }
+
+    if ((EventChatMessage(false) == "-mre2")) {
+        lv_player = 6;
+    }
+
+    TextExpressionSetToken("Param/Expression/lib_Sprt_B1FD42AF", "A", IntToText(lv_player));
+    TriggerDebugOutput(1, TextExpressionAssemble("Param/Expression/lib_Sprt_B1FD42AF"), true);
+    libNtve_gf_SetUpgradeLevelForPlayer(lv_player, "HeroRingMasteryUpgrade", 2);
+    autoCE596295_g = libGame_gv_players[lv_player].lv_heroUnitGroup;
+    autoCE596295_u = UnitGroupCount(autoCE596295_g, c_unitCountAll);
+    for (;; autoCE596295_u -= 1) {
+        autoCE596295_var = UnitGroupUnitFromEnd(autoCE596295_g, autoCE596295_u);
+        if (autoCE596295_var == null) { break; }
+        libNtve_gf_SendActorMessageToUnit(autoCE596295_var, "Signal MasteryRingCreation");
+    }
+    return true;
+}
+
+//--------------------------------------------------------------------------------------------------
+void libSprt_gt_DEBUGForceHeroMasteryRing2_Init () {
+    libSprt_gt_DEBUGForceHeroMasteryRing2 = TriggerCreate("libSprt_gt_DEBUGForceHeroMasteryRing2_Func");
+    TriggerAddEventChatMessage(libSprt_gt_DEBUGForceHeroMasteryRing2, c_playerAny, "-mr2", true);
+    TriggerAddEventChatMessage(libSprt_gt_DEBUGForceHeroMasteryRing2, c_playerAny, "-mre2", true);
+}
+
+//--------------------------------------------------------------------------------------------------
+// Trigger: DEBUG - Force Hero Mastery Ring Rando
+//--------------------------------------------------------------------------------------------------
+bool libSprt_gt_DEBUGForceHeroMasteryRingRando_Func (bool testConds, bool runActions) {
+    // Variable Declarations
+    int lv_i;
+    int lv_k;
+    int lv_player;
+
+    // Automatic Variable Declarations
+    int autoB3844838_ae;
+    unitgroup auto7F5A7DC7_g;
+    int auto7F5A7DC7_u;
+    unit auto7F5A7DC7_var;
+    int autoF65E787E_ae;
+    unitgroup autoE82B844E_g;
+    int autoE82B844E_u;
+    unit autoE82B844E_var;
+
+    // Variable Initialization
+    lv_player = EventPlayer();
+
+    // Actions
+    if (!runActions) {
+        return true;
+    }
+
+    TextExpressionSetToken("Param/Expression/lib_Sprt_AF44B7C2", "A", IntToText(lv_player));
+    TriggerDebugOutput(1, TextExpressionAssemble("Param/Expression/lib_Sprt_AF44B7C2"), true);
+    autoB3844838_ae = libCore_gv_bALMaxPlayers;
+    lv_k = 1;
+    for ( ; lv_k <= autoB3844838_ae ; lv_k += 1 ) {
+        libNtve_gf_SetUpgradeLevelForPlayer(lv_k, "HeroRingMasteryUpgrade", 0);
+        auto7F5A7DC7_g = libGame_gv_players[lv_k].lv_heroUnitGroup;
+        auto7F5A7DC7_u = UnitGroupCount(auto7F5A7DC7_g, c_unitCountAll);
+        for (;; auto7F5A7DC7_u -= 1) {
+            auto7F5A7DC7_var = UnitGroupUnitFromEnd(auto7F5A7DC7_g, auto7F5A7DC7_u);
+            if (auto7F5A7DC7_var == null) { break; }
+            libNtve_gf_SendActorMessageToUnit(auto7F5A7DC7_var, "Signal MasteryRingCreation");
+        }
+    }
+    Wait(0.0625, c_timeGame);
+    autoF65E787E_ae = libCore_gv_bALMaxPlayers;
+    lv_k = 1;
+    for ( ; lv_k <= autoF65E787E_ae ; lv_k += 1 ) {
+        libNtve_gf_SetUpgradeLevelForPlayer(lv_k, "HeroRingMasteryUpgrade", RandomInt(0, 2));
+        autoE82B844E_g = libGame_gv_players[lv_k].lv_heroUnitGroup;
+        autoE82B844E_u = UnitGroupCount(autoE82B844E_g, c_unitCountAll);
+        for (;; autoE82B844E_u -= 1) {
+            autoE82B844E_var = UnitGroupUnitFromEnd(autoE82B844E_g, autoE82B844E_u);
+            if (autoE82B844E_var == null) { break; }
+            libNtve_gf_SendActorMessageToUnit(autoE82B844E_var, "Signal MasteryRingCreation");
+        }
+    }
+    return true;
+}
+
+//--------------------------------------------------------------------------------------------------
+void libSprt_gt_DEBUGForceHeroMasteryRingRando_Init () {
+    libSprt_gt_DEBUGForceHeroMasteryRingRando = TriggerCreate("libSprt_gt_DEBUGForceHeroMasteryRingRando_Func");
+    TriggerAddEventChatMessage(libSprt_gt_DEBUGForceHeroMasteryRingRando, c_playerAny, "-mrrando", true);
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -9151,6 +9429,10 @@ void libSprt_InitTriggers () {
     libSprt_gt_StatTrackingGameOver_Init();
     libSprt_gt_DataMiningListenForRegenGlobes_Init();
     libSprt_gt_DataMiningPeriodicDataSendPeriodicEventTrigger_Init();
+    libSprt_gt_DEBUGForceHeroMasteryRing0_Init();
+    libSprt_gt_DEBUGForceHeroMasteryRing1_Init();
+    libSprt_gt_DEBUGForceHeroMasteryRing2_Init();
+    libSprt_gt_DEBUGForceHeroMasteryRingRando_Init();
     libSprt_gt_QACheatsInit_Init();
     libSprt_gt_ToggleCheatsDialog_Init();
     libSprt_gt_QACheatsCloseButtonClicked_Init();

@@ -208,6 +208,16 @@
     <On Terms="Signal.*.MedivacOn" Target="##id##Addition" Send="AnimPlay Spell Portrait,Unpowered PlayForever -1.000000 -1.000000 -1.000000 AsAutomatic 0.000000 14" />
     <On Terms="Signal.*.MedivacOff" Target="##id##Addition" Send="AnimClear Spell" />
   </CActorPortrait>
+  <CActorModel id="MedicHealingBeamMediDroneTalentTargetFX" parent="StormModelAnimationStyleContinuousUnit">
+    <Terms value="Cap 1" />
+    <On Terms="Effect.MedicHealingBeamMediDroneTalentCreateHealer.Start; At Target" Send="Create" />
+    <On Terms="ActorCreation" Send="TimerSet 0.562500 Kill" />
+    <On Terms="TimerExpired; TimerName Kill" Send="Destroy" />
+    <On Terms="Effect.MedicHealingBeamMediDroneTalentCreateHealer.Start" Send="TimerSet 0.562500 Kill" />
+    <On Terms="Behavior.MedicSafeguardBuff.Off" Send="Destroy" />
+    <HostSiteOps Ops="SOpAttachCenter" />
+    <Model value="MedicHealingBeamTargetFX" />
+  </CActorModel>
   <CActorModel id="MedicDisplacementGrenadeSystemShockTalentDebuff" parent="StormModelAnimationStyleContinuousUnit">
     <On Terms="Behavior.MedicDisplacementGrenadeSystemShockTalentDebuff.On" Send="Create" />
     <On Terms="Behavior.MedicDisplacementGrenadeSystemShockTalentDebuff.Off" Send="AnimBracketStop BSD" />
@@ -1063,6 +1073,10 @@
   <CActorSound id="HeroMedicTauntUEVO" parent="SoundOneShot">
     <Sound value="MedicBase_Taunt_Evo" />
   </CActorSound>
+  <CBehaviorUnitTracker id="MedicSafeguardMediDroneTalentUnitTracker">
+    <BehaviorFlags index="Permanent" value="1" />
+    <BehaviorFlags index="EnabledWhileDead" value="1" />
+  </CBehaviorUnitTracker>
   <CBehaviorBuff id="MedicStimDroneMovementSpeedBuff" parent="StormSprint">
     <Modification>
       <UnifiedMoveSpeedFactor value="0.25" />
@@ -1162,6 +1176,9 @@
   </CBehaviorBuff>
   <CBehaviorBuff id="MedicMedivacDropshipSafeZoneTalentProtectedBuff" parent="StormProtect">
     <Duration value="2" />
+    <DamageResponse>
+      <ModifyScoreArray index="0" Value="Healing" />
+    </DamageResponse>
   </CBehaviorBuff>
   <CBehaviorBuff id="MedicDisplacementGrenadeSystemShockTalentDebuff" parent="StormDamageReduction">
     <BehaviorCategories index="DebuffAbilityPower" value="1" />
@@ -1188,7 +1205,7 @@
     <BuffFlags index="RefreshStack" value="1" />
     <DamageResponse Chance="1" Priority="55" />
     <ArmorModification>
-      <AllArmorBonus value="55" />
+      <AllArmorBonus value="50" />
     </ArmorModification>
   </CBehaviorBuff>
   <CBehaviorBuff id="MedicTraumaTrigger">
@@ -1317,8 +1334,8 @@
     <Period value="0.0625" />
     <InitialEffect value="MedicSafeguardTalentsInitialSet" />
     <RefreshEffect value="MedicSafeguardPhysicalTherapyTalentProcSet" />
-    <PeriodicEffect value="MedicSafeguardVanadiumPlatingTalentModifyBuffDuration" />
     <BuffFlags index="RefreshStack" value="1" />
+    <FinalEffect value="MedicSafeguardMediDroneTalentRemoveTrackedUnit" />
   </CBehaviorBuff>
   <CBehaviorBuff id="MedicInsideMedivacDropship">
     <BehaviorCategories index="DebuffStasis" value="1" />
@@ -1520,6 +1537,9 @@
     <BehaviorFlags index="Permanent" value="1" />
     <BehaviorFlags index="EnabledWhileDead" value="1" />
   </CBehaviorUnitTracker>
+  <CButton id="MedicMediDrone" parent="StormButtonParent">
+    <Icon value="Assets\Textures\storm_ui_icon_medic_deployshield_b.dds" />
+  </CButton>
   <CButton id="MedicClearTalent" parent="StormButtonParent">
     <Icon value="Assets\Textures\storm_ui_icon_medic_displacementgrenade.dds" />
     <SimpleDisplayText value="Button/SimpleDisplayText/MedicClear" />
@@ -1555,7 +1575,7 @@
     <Icon value="Assets\Textures\storm_temp_btn-upgrade-terran-mobiusreactor.dds" />
   </CButton>
   <CButton id="MedicVanadiumPlating" parent="StormButtonParent">
-    <Icon value="Assets\Textures\storm_ui_icon_medic_deployshield_b.dds" />
+    <Icon value="Assets\Textures\storm_ui_icon_medic_deployshield_c.dds" />
   </CButton>
   <CButton id="MedicClearToken" parent="StormButtonParent">
     <Icon value="Assets\Textures\storm_ui_icon_medic_displacementgrenade.dds" />
@@ -1607,7 +1627,7 @@
     <TooltipAppender Validator="MedicHasLifeSupportTalent" Face="MedicLifeSupport" />
     <TooltipAppender Validator="MedicHasPhysicalTherapyTalent" Face="MedicPhysicalTherapy" />
     <TooltipAppender Validator="MedicHasVanadiumPlatingTalent" Face="MedicVanadiumPlating" />
-    <TooltipAppender Validator="MedicHasProlongedSafeguardTalent" Face="MedicProlongedSafeguard" />
+    <TooltipAppender Validator="MedicHasMediDroneTalent" Face="MedicMediDrone" />
     <TooltipAppender Validator="MedicHasShieldSequencerTalent" Face="MedicShieldSequencerTalent" />
     <Icon value="Assets\Textures\storm_ui_icon_medic_deployshield.dds" />
     <TooltipCooldownOverrideText value="Abil/SafeguardCooldownOverrideText" />
@@ -1659,6 +1679,21 @@
     <Variations Model="MedicPortrait" Actor="MedicPortrait" />
     <Unit value="HeroMedic" />
   </CCharacter>
+  <CEffectEnumTrackedUnits id="MedicHealingBeamMediDroneTalentEnumerateTrackedUnits">
+    <ValidatorArray value="TargetLifeNotFull" />
+    <ValidatorArray value="MedicHasMediDroneTalent" />
+    <BehaviorLink value="MedicSafeguardMediDroneTalentUnitTracker" />
+    <Effect value="MedicHealingBeamMediDroneTalentCreateHealer" />
+  </CEffectEnumTrackedUnits>
+  <CEffectAddTrackedUnit id="MedicSafeguardMediDroneTalentAddTrackedUnit">
+    <ValidatorArray value="MedicHasMediDroneTalent" />
+    <BehaviorLink value="MedicSafeguardMediDroneTalentUnitTracker" />
+    <TrackedUnit Value="Target" />
+  </CEffectAddTrackedUnit>
+  <CEffectRemoveTrackedUnit id="MedicSafeguardMediDroneTalentRemoveTrackedUnit">
+    <BehaviorLink value="MedicSafeguardMediDroneTalentUnitTracker" />
+    <TrackedUnit Value="Target" />
+  </CEffectRemoveTrackedUnit>
   <CEffectApplyBehavior id="MedicStimDroneApplyStimMovementSpeedBuff">
     <Behavior value="MedicStimDroneMovementSpeedBuff" />
   </CEffectApplyBehavior>
@@ -1773,6 +1808,7 @@
   <CEffectSet id="MedicSafeguardTalentsInitialSet">
     <EffectArray value="MedicSafeguardPhysicalTherapyTalentProcSet" />
     <EffectArray value="MedicSafeguardVanadiumPlatingTalentSet" />
+    <EffectArray value="MedicSafeguardMediDroneTalentAddTrackedUnit" />
   </CEffectSet>
   <CEffectLaunchMissileAdvanced id="MedicMedivacDropshipReinforcementsTalentLaunchMissile">
     <LaunchLocation Value="CasterUnit" />
@@ -2425,6 +2461,7 @@
   </CEffectSwitch>
   <CEffectSet id="MedicHealingBeamHealingSet">
     <EffectArray value="MedicHealingBeamManaCostSwitch" />
+    <EffectArray value="MedicHealingBeamMediDroneTalentEnumerateTrackedUnits" />
     <EffectArray value="MedicHealingBeamCreateHealer" />
   </CEffectSet>
   <CEffectRemoveBehavior id="MedicHealingBeamRemoveTimeSlopBehavior">
@@ -2619,6 +2656,11 @@
   <CEffectApplyBehavior id="MedicHealingBeamApplyTargetLifeNotFullBehavior">
     <Behavior value="MedicHealingBeamOnTargetTargetLifeNotFull" />
   </CEffectApplyBehavior>
+  <CEffectCreateHealer id="MedicHealingBeamMediDroneTalentCreateHealer" parent="StormHealingSpell">
+    <ValidatorArray value="MedicDoesNotHaveHealingBeamBuffTarget" />
+    <MultiplicativeModifierArray index="FirstResponder" Validator="MedicFirstResponderTalentCombine" Modifier="0.25" Crit="1" />
+    <RechargeVitalRate value="43" />
+  </CEffectCreateHealer>
   <CEffectSet id="MedicHealingBeamPersistentSet">
     <EffectArray value="MedicHealingBeamApplyPeriodicBehaviorsSet" />
     <EffectArray value="MedicHealingBeamHealingSet" />
@@ -2746,7 +2788,7 @@
     <TalentTreeArray Talent="MedicBlastShield" Tier="2" Column="3" />
     <TalentTreeArray Talent="MedicPhysicalTherapy" Tier="3" Column="1" />
     <TalentTreeArray Talent="MedicVanadiumPlating" Tier="3" Column="2" />
-    <TalentTreeArray Talent="MedicProlongedSafeguard" Tier="3" Column="3" />
+    <TalentTreeArray Talent="MedicMediDrone" Tier="3" Column="3" />
     <TalentTreeArray Talent="MedicHeroicAbilityStimDrone" Tier="4" Column="1" />
     <TalentTreeArray Talent="MedicHeroicAbilityMedivacDropship" Tier="4" Column="2" />
     <TalentTreeArray Talent="MedicEMPGrenade" Tier="5" Column="1" />
@@ -2773,6 +2815,13 @@
       <Modifications>
         <Catalog value="Effect" />
         <Entry value="MedicHealingBeamCreateHealer" />
+        <Field value="RechargeVitalRate" />
+        <Value value="0.040000" />
+        <AffectedByOverdrive value="1" />
+      </Modifications>
+      <Modifications>
+        <Catalog value="Effect" />
+        <Entry value="MedicHealingBeamMediDroneTalentCreateHealer" />
         <Field value="RechargeVitalRate" />
         <Value value="0.040000" />
         <AffectedByOverdrive value="1" />
@@ -2863,7 +2912,7 @@
     <TalentAIBuildsArray ChanceToPick="16">
       <TalentsArray value="MedicClear" />
       <TalentsArray value="MedicBlastShield" />
-      <TalentsArray value="MedicProlongedSafeguard" />
+      <TalentsArray value="MedicVanadiumPlating" />
       <TalentsArray value="MedicHeroicAbilityMedivacDropship" />
       <TalentsArray value="MedicSecondOpinion" />
       <TalentsArray value="MedicExtendedCare" />
@@ -2872,7 +2921,7 @@
     <TalentAIBuildsArray ChanceToPick="16">
       <TalentsArray value="MedicCaduceusFeedback" />
       <TalentsArray value="MedicCellularReactor" />
-      <TalentsArray value="MedicProlongedSafeguard" />
+      <TalentsArray value="MedicMediDrone" />
       <TalentsArray value="MedicHeroicAbilityMedivacDropship" />
       <TalentsArray value="MedicSystemShock" />
       <TalentsArray value="MedicFirstResponder" />
@@ -2890,7 +2939,7 @@
     <TalentAIBuildsArray ChanceToPick="16">
       <TalentsArray value="MedicClear" />
       <TalentsArray value="MedicBlastShield" />
-      <TalentsArray value="MedicProlongedSafeguard" />
+      <TalentsArray value="MedicMediDrone" />
       <TalentsArray value="MedicHeroicAbilityStimDrone" />
       <TalentsArray value="MedicSystemShock" />
       <TalentsArray value="MedicExtendedCare" />
@@ -2908,7 +2957,7 @@
     <TalentAIBuildsArray AIOnly="1" ChanceToPick="16">
       <TalentsArray value="MedicLifeSupport" />
       <TalentsArray value="MedicTraumaTrigger" />
-      <TalentsArray value="MedicProlongedSafeguard" />
+      <TalentsArray value="MedicMediDrone" />
       <TalentsArray value="MedicHeroicAbilityStimDrone" />
       <TalentsArray value="MedicSystemShock" />
       <TalentsArray value="MedicShieldSequencer" />
@@ -2934,6 +2983,14 @@
     <Rarity value="Epic" />
     <ExpandedRole value="Healer" />
   </CHero>
+  <CHeroMastery id="MedicMasteryRing1" parent="MasteryRingRank1">
+    <ProductId value="66978" />
+    <HyperlinkId value="LtMoralesMasteryRingRank1" />
+  </CHeroMastery>
+  <CHeroMastery id="MedicMasteryRing2" parent="MasteryRingRank2">
+    <ProductId value="67133" />
+    <HyperlinkId value="LtMoralesMasteryRingRank2" />
+  </CHeroMastery>
   <CLight id="Home_Medic" parent="default">
     <ToDInfoArray index="0" Id="Home_Medic" OperatorHDR="4" Colorize="1">
       <AmbientColor X="0.298039" Y="0.427451" Z="0.870588" />
@@ -3222,6 +3279,12 @@
     <IconSlot value="3" />
     <Hero value="Medic" />
   </CRewardPortrait>
+  <CRewardHeroMastery id="MedicMasteryRing1">
+    <License value="49956" />
+  </CRewardHeroMastery>
+  <CRewardHeroMastery id="MedicMasteryRing2">
+    <License value="49957" />
+  </CRewardHeroMastery>
   <CTalent id="MedicReinforcements">
     <Face value="MedicReinforcements" />
     <Abil value="MedicReinforcements" />
@@ -3328,6 +3391,15 @@
   <CTalent id="MedicVanadiumPlating">
     <Face value="MedicVanadiumPlating" />
     <Abil value="MedicSafeguard" />
+    <AbilityModificationArray>
+      <Modifications>
+        <Type value="FlatModification" />
+        <Catalog value="Behavior" />
+        <Entry value="MedicSafeguardBuff" />
+        <Field value="Duration" />
+        <Value value="1.000000" />
+      </Modifications>
+    </AbilityModificationArray>
   </CTalent>
   <CTalent id="MedicCellularReactor">
     <Face value="MedicCellularReactorTalent" />
@@ -3453,6 +3525,13 @@
       <BehaviorArray value="MedicTraumaTriggerController" />
     </RankArray>
   </CTalent>
+  <CTalent id="MedicMediDrone">
+    <Face value="MedicMediDrone" />
+    <Abil value="MedicSafeguard" />
+    <RankArray>
+      <BehaviorArray value="MedicSafeguardMediDroneTalentUnitTracker" />
+    </RankArray>
+  </CTalent>
   <CUnit id="HeroMedic" parent="StormHeroMounted">
     <LifeStart value="1545" />
     <LifeMax value="1545" />
@@ -3557,6 +3636,20 @@
     <BehaviorArray Link="HallOfStormsKnockbackImmunity" />
     <MinimapRadius value="1" />
   </CUnit>
+  <CValidatorUnitCompareBehaviorCount id="MedicHasHealingBeamBuffTarget">
+    <Value value="1" />
+    <Behavior value="MedicHealingBeamOnTargetTargetLifeNotFull" />
+    <RequireCasterUnit Value="Caster" />
+  </CValidatorUnitCompareBehaviorCount>
+  <CValidatorUnitCompareBehaviorCount id="MedicDoesNotHaveHealingBeamBuffTarget">
+    <Behavior value="MedicHealingBeamOnTargetTargetLifeNotFull" />
+    <RequireCasterUnit Value="Caster" />
+  </CValidatorUnitCompareBehaviorCount>
+  <CValidatorPlayerTalent id="MedicHasMediDroneTalent">
+    <WhichPlayer Value="Caster" />
+    <Find value="1" />
+    <Value value="MedicMediDrone" />
+  </CValidatorPlayerTalent>
   <CValidatorUnitCompareBehaviorCount id="MedicDoesNotHaveHealingBeamDisplayBuffTarget">
     <Behavior value="MedicHealingBeamDisplayBuff" />
     <RequireCasterUnit Value="Caster" />

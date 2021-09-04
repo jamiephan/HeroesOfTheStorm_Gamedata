@@ -251,7 +251,7 @@
     <MaxAccumulation value="1000" />
     <ApplicationRule value="Add" />
     <TokenId value="AnaShrikeSelfHealPoisonTraitHealToken" />
-    <Scale value="0.5" />
+    <Scale value="0.6" />
   </CAccumulatorToken>
   <CAccumulatorDistance id="AnaEyeOfHorusDistanceAccumulator" parent="BaseAccumulator">
     <MinAccumulation value="-524288" />
@@ -1204,6 +1204,7 @@
     <Max value="20" />
   </CBehaviorTokenCounter>
   <CBehaviorTokenCounter id="AnaShrikeVampiricRoundsTokenCounter" parent="StormQuestToken">
+    <Face value="AnaShrikeVampiricRoundsToken" />
     <InfoIcon value="Assets\Textures\storm_ui_icon_ana_shrike.dds" />
     <SortIndex value="10" />
     <DeltaEvents Delta="1">
@@ -1215,7 +1216,6 @@
     <FinalEffect value="AnaSleepEndSet" />
     <Duration value="3" />
     <InitialEffect value="AnaSleepDartBehaviorInitialSet" />
-    <ExpireEffect value="AnaSleepDartNightTerrorsModifyUnit" />
   </CBehaviorBuff>
   <CBehaviorBuff id="AnaSleepDartAimDownSightsDummyBehavior" />
   <CBehaviorBuff id="AnaSleepDartMarkerAimDownSights" parent="CarryBehaviorParent">
@@ -1294,19 +1294,18 @@
     <Duration value="5.0625" />
     <BuffFlags index="RefreshStack" value="1" />
   </CBehaviorBuff>
+  <CBehaviorBuff id="AnaSleepDartNightTerrorsMovementSpeedBuff" parent="StormSprint">
+    <Modification>
+      <UnifiedMoveSpeedFactor value="0.2" />
+    </Modification>
+    <BuffFlags index="Extend" value="1" />
+    <Duration value="2" />
+  </CBehaviorBuff>
   <CBehaviorBuff id="AnaSleepDartSlumberShellsSlowBehavior" parent="StormSlowParent">
     <Duration value="3" />
     <Modification>
       <UnifiedMoveSpeedFactor value="-0.25" />
     </Modification>
-  </CBehaviorBuff>
-  <CBehaviorBuff id="AnaSleepDartSlumberShellsMovespeedBehavior" parent="StormSprint">
-    <BehaviorFlags index="Permanent" value="1" />
-    <BehaviorFlags index="EnabledWhileDead" value="1" />
-    <Modification>
-      <UnifiedMoveSpeedFactor value="0.25" />
-    </Modification>
-    <Duration value="3" />
   </CBehaviorBuff>
   <CBehaviorUnitTracker id="AnaSleepDartUnitTracker">
     <BehaviorFlags index="Permanent" value="1" />
@@ -1355,7 +1354,7 @@
   <CBehaviorTokenCounter id="AnaShrikeDotDamageToken" parent="StormGenericToken">
     <BehaviorCategories index="DamageOverTime" value="1" />
     <Max value="4" />
-    <AtMaxEvents Effect="AnaShrikeVampiricRoundsAddToken" />
+    <AtMaxEvents Effect="AnaShrikeVampiricRoundsAdd3Tokens" />
     <AtMaxEvents Effect="AnaSomnolentDosesApplyBehaviorDelayCP" />
     <AtMaxEvents Effect="AnaShrikeDotDamageMaxStack" />
   </CBehaviorTokenCounter>
@@ -1487,11 +1486,16 @@
   <CButton id="AnaShrikeVampiricRounds" parent="StormButtonParent">
     <Icon value="Assets\Textures\storm_ui_icon_ana_shrike.dds" />
   </CButton>
+  <CButton id="AnaShrikeVampiricRoundsToken" parent="StormButtonParent">
+    <Icon value="Assets\Textures\storm_ui_icon_ana_shrike.dds" />
+    <HotkeyAlias value="AnaShrikeVampiricRounds" />
+  </CButton>
   <CButton id="AnaSleepDart" parent="StormButtonParent">
     <Icon value="Assets\Textures\storm_ui_icon_ana_sleep_dart.dds" />
     <TooltipAppender Validator="AnaSleepDartHasSlumberShells" Face="AnaSleepingDartSlumberShells" />
     <TooltipAppender Validator="AnaHasOverdose" Face="AnaOverdose" />
     <TooltipAppender Validator="AnaHasSleepDartNightTerrorsTalent" Face="AnaSleepDartNightTerrors" />
+    <TooltipCooldownOverrideText value="14 seconds" />
   </CButton>
   <CButton id="AnaPiercingDarts" parent="StormButtonParent">
     <Icon value="Assets\Textures\storm_ui_icon_ana_sleep_dart.dds" />
@@ -2054,15 +2058,15 @@
     <EffectArray value="SleepBreakPreventApplyBehavior" />
     <EffectArray value="AnaSleepDartAddTrackedUnit" />
   </CEffectSet>
+  <CEffectApplyBehavior id="AnaSleepDartNightTerrorsApplyMoveSpeedBehavior">
+    <ValidatorArray index="0" value="AnaHasSleepDartNightTerrorsTalent" />
+    <WhichUnit Value="Caster" />
+    <Behavior value="AnaSleepDartNightTerrorsMovementSpeedBuff" />
+  </CEffectApplyBehavior>
   <CEffectDamage id="AnaSleepDartNightTerrorsDamage" parent="StormSpellPercentDamage">
     <Chance value="0" />
     <VitalFractionMax index="Life" value="0.1" />
   </CEffectDamage>
-  <CEffectModifyUnit id="AnaSleepDartNightTerrorsModifyUnit">
-    <Chance value="0" />
-    <ImpactUnit Value="Caster" />
-    <Cost Abil="AnaSleepDart,Execute" CooldownOperation="Set" CooldownTimeUse="5" />
-  </CEffectModifyUnit>
   <CEffectModifyUnit id="AnaAimDownSightsModifyUnitCooldown">
     <ImpactUnit Value="Caster" />
     <Cost Abil="Mount,Execute" CooldownOperation="Set" CooldownTimeUse="4" />
@@ -2141,13 +2145,19 @@
     <ValidatorArray value="TargetNotImmuneToFriendlyAbilities" />
     <TokenId value="AnaBioticGrenadeContactHealingCountTracker" />
   </CEffectModifyTokenCount>
-  <CEffectModifyTokenCount id="AnaShrikeVampiricRoundsAddToken" parent="BaseEffectModifyTokenCount">
-    <TokenId value="AnaShrikeVampiricRoundsTokenCounter" />
+  <CEffectModifyTokenCount id="AnaShrikeVampiricRoundsAdd3Tokens" parent="BaseEffectModifyTokenCount">
     <ValidatorArray value="TargetIsHero" />
+    <TokenId value="AnaShrikeVampiricRoundsTokenCounter" />
+    <Value value="3" />
+  </CEffectModifyTokenCount>
+  <CEffectModifyTokenCount id="AnaShrikeVampiricRoundsAddToken" parent="BaseEffectModifyTokenCount">
+    <ValidatorArray value="TargetIsHero" />
+    <ValidatorArray value="AnaAttackHas4AnaShrikeDotDamageToken" />
+    <TokenId value="AnaShrikeVampiricRoundsTokenCounter" />
   </CEffectModifyTokenCount>
   <CEffectModifyPlayer id="AnaShrikeVampiricRoundsModifyPlayer">
-    <EffectArray Reference="Accumulator,AnaShrikeSelfHealPoisonTraitHealToken,Scale" Value="0.015" />
     <Chance value="0" />
+    <EffectArray Reference="Accumulator,AnaShrikeSelfHealPoisonTraitHealToken,Scale" Value="0.0024" />
   </CEffectModifyPlayer>
   <CEffectSet id="AnaSleepDartInitialSet">
     <EffectArray value="AnaSleepDartSetFacing" />
@@ -2210,15 +2220,11 @@
     <EffectArray value="AnaPiercingDartsQuestTokenIncrease" />
     <EffectArray value="AnaOverdoseApplySet" />
     <EffectArray value="DismountDecloakTargetSet" />
+    <EffectArray value="AnaSleepDartNightTerrorsApplyMoveSpeedBehavior" />
   </CEffectSet>
   <CEffectApplyBehavior id="AnaSleepDartMarkerApplyBehavior">
     <Behavior value="AnaSleepDartMarkerAimDownSights" />
     <ValidatorArray index="0" value="AnaCasterHasAimDownSightsBehavior" />
-  </CEffectApplyBehavior>
-  <CEffectApplyBehavior id="AnaSleepDartSlumberShellsApplyMovespeedBehavior">
-    <ValidatorArray index="0" value="AnaSleepDartHasSlumberShells" />
-    <WhichUnit Value="Caster" />
-    <Behavior value="AnaSleepDartSlumberShellsMovespeedBehavior" />
   </CEffectApplyBehavior>
   <CEffectApplyBehavior id="AnaSleepDartSlumberShellsApplySlowBehavior">
     <ValidatorArray index="0" value="AnaSleepDartHasSlumberShells" />
@@ -2462,6 +2468,7 @@
     <SharedFlags index="ValidateWeapon" value="0" />
   </CEffectLaunchMissile>
   <CEffectSet id="AnaRangedAttackImpactSet">
+    <EffectArray value="AnaShrikeVampiricRoundsAddToken" />
     <EffectArray value="AnaRangedAttackPoisonImpactSet" />
     <EffectArray value="AnaRangedAttackDamage" />
     <EffectArray value="AnaDynamicOpticsApplyBehavior" />
@@ -3083,6 +3090,14 @@
     </TalentAIBuildsArray>
     <ExpandedRole value="Healer" />
   </CHero>
+  <CHeroMastery id="AnaMasteryRing1" parent="MasteryRingRank1">
+    <ProductId value="66951" />
+    <HyperlinkId value="AnaMasteryRingRank1" />
+  </CHeroMastery>
+  <CHeroMastery id="AnaMasteryRing2" parent="MasteryRingRank2">
+    <ProductId value="67092" />
+    <HyperlinkId value="AnaMasteryRingRank2" />
+  </CHeroMastery>
   <CModel id="AnaHealingDartLaunchMissile" parent="LaunchFX">
     <Model value="Assets\Effects\Storm_FX_Ana_Base_HealingDart\Storm_FX_Ana_Base_HealingDart.m3" />
   </CModel>
@@ -3481,6 +3496,12 @@
     <IconSlot value="18" />
     <Hero value="Ana" />
   </CRewardPortrait>
+  <CRewardHeroMastery id="AnaMasteryRing1">
+    <License value="49822" />
+  </CRewardHeroMastery>
+  <CRewardHeroMastery id="AnaMasteryRing2">
+    <License value="49823" />
+  </CRewardHeroMastery>
   <CSound id="AnaAirStrikeCircleDescendingTravelSound" parent="_FX_Hero_Ult_Launch">
     <AssetArray File="Assets\Sounds\Heroes\Ana_Base\Ana_AirStrike_Warning_Travel_01.wav" FacialGroup="" />
     <AssetArray File="Assets\Sounds\Heroes\Ana_Base\Ana_AirStrike_Warning_Travel_02.wav" FacialGroup="" />
@@ -4811,13 +4832,11 @@
     <RankArray>
       <BehaviorArray value="AnaShrikeVampiricRoundsTokenCounter" />
     </RankArray>
-    <Trait value="1" />
-    <QuestData StackBehavior="AnaShrikeVampiricRoundsTokenCounter" />
     <AbilityModificationArray>
       <Modifications>
         <Type value="FlatModification" />
         <Catalog value="Effect" />
-        <Entry value="AnaShrikeVampiricRoundsModifyPlayer" />
+        <Entry value="AnaShrikeVampiricRoundsModifyPlayerMain" />
         <Field value="Chance" />
         <Value value="1.000000" />
       </Modifications>
@@ -4828,6 +4847,8 @@
         <Field value="Scale" />
       </Modifications>
     </AbilityModificationArray>
+    <QuestData StackBehavior="AnaShrikeVampiricRoundsTokenCounter" />
+    <Trait value="1" />
   </CTalent>
   <CTalent id="AnaSleepDartNightTerrors">
     <Face value="AnaSleepDartNightTerrors" />
@@ -4837,13 +4858,6 @@
         <Type value="FlatModification" />
         <Catalog value="Effect" />
         <Entry value="AnaSleepDartNightTerrorsDamage" />
-        <Field value="Chance" />
-        <Value value="1.000000" />
-      </Modifications>
-      <Modifications>
-        <Type value="FlatModification" />
-        <Catalog value="Effect" />
-        <Entry value="AnaSleepDartNightTerrorsModifyUnit" />
         <Field value="Chance" />
         <Value value="1.000000" />
       </Modifications>
@@ -4860,6 +4874,12 @@
         <Entry value="AnaSleepDartSlumberShellsApplySlowBehavior" />
         <Field value="Chance" />
         <Value value="1.000000" />
+      </Modifications>
+      <Modifications>
+        <Type value="FlatModification" />
+        <Entry value="AnaSleepDart" />
+        <Field value="Cost.Cooldown.TimeUse" />
+        <Value value="-4.000000" />
       </Modifications>
     </AbilityModificationArray>
   </CTalent>

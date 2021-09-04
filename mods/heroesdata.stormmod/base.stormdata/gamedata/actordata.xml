@@ -457,6 +457,7 @@
     <Macros value="PolymorphMacro" />
     <Macros value="PreTargetHaloMacro" />
     <Macros value="ShrubMacro" />
+    <Macros value="HeroRingMasteryMacro" />
     <Macros value="StunnedMacro" />
     <Macros value="FlailMacro" />
     <Macros value="HeroTalentUseMacro" />
@@ -493,10 +494,11 @@
     <On Terms="WeaponStart.*.AttackStart; AnimPlaying Spell" Send="AnimClear Spell" />
     <On Terms="Signal.*.InvisibleModel" Send="SetVisibility" />
     <On Terms="Signal.*.RestoreModel" Send="SetVisibility 1" />
-    <On Terms="Signal.*.InvisibleModel" Target="Storm_HeroRing" Send="SetVisibility" />
-    <On Terms="Signal.*.RestoreModel" Target="Storm_HeroRing" Send="SetVisibility 1" />
-    <On Terms="Signal.*.InvisibleRing" Target="Storm_HeroRing" Send="SetVisibility" />
-    <On Terms="Signal.*.RestoreRing" Target="Storm_HeroRing" Send="SetVisibility 1" />
+    <On Terms="Signal.*.InvisibleModel" Target="_HeroRing" Send="SetVisibility" />
+    <On Terms="Signal.*.RestoreModel" Target="_HeroRing" Send="SetVisibility 1" />
+    <On Terms="Signal.*.InvisibleRing" Target="_HeroRing" Send="SetVisibility" />
+    <On Terms="Signal.*.RestoreRing" Target="_HeroRing" Send="SetVisibility 1" />
+    <On Terms="Signal.*.MasteryRingCreation" Target="HeroRingMasteryMacro" Send="Signal MasteryRingCreation" />
     <On Terms="UnitDeath" Send="SetVisibility 1" />
     <On Terms="Abil.*.SourcePrepStart" Send="AnimClear Fidget" />
     <On Terms="ActorCreation" Send="RefClear ::Host" />
@@ -505,11 +507,11 @@
     <On Terms="UnitDeathCustomize; ValidateUnit SourceIsPolymorphed" Send="DeathCustomize Polymorph" />
     <On Terms="UnitDeathCustomize" Send="Create HeroDeathSearch" />
     <On Terms="ActorCreation" Send="Create Storm_HeroRing" />
-    <On Terms="ActorDestruction" Target="Storm_HeroRing" Send="Destroy" />
+    <On Terms="ActorDestruction" Target="_HeroRing" Send="Destroy" />
     <On Terms="ActorCreation" Send="Create StatusBarStabilizer" />
     <On Terms="ActorDestruction" Target="StatusBarStabilizer" Send="Destroy" />
-    <On Terms="Behavior.VideoDebug.On" Target="Storm_HeroRing" Send="Destroy" />
-    <On Terms="Behavior.VideoDebug.Off" Send="Create Storm_HeroRing" />
+    <On Terms="Behavior.VideoDebug.On" Target="_HeroRing" Send="SetVisibility" />
+    <On Terms="Behavior.VideoDebug.Off" Target="_HeroRing" Send="SetVisibility 1" />
     <On Terms="Behavior.PulledVOXDummyBehavior.On" Send="Create PulledSound##id##" />
     <On Terms="AnimPlay; AnimName Spell" Send="AnimBaselineSuppressNextStandIntro" />
     <On Terms="AnimPlay; AnimName Channel" Send="AnimBaselineSuppressNextStandIntro" />
@@ -1282,6 +1284,13 @@
     <Filter index="Enemy" value="1" />
     <On Terms="Effect.GPU2020EventVoXDummy2.Start; At Target" Send="Create" />
   </CActorSound>
+  <CActorEventMacro id="HeroRingMasteryMacro">
+    <Aliases value="_HeroRingMasteryMacro" />
+    <On Terms="Signal.*.MasteryRingCreation; ValidatePlayer HasHeroRingMastery1Upgrade" Send="Create Storm_HeroRing_Mastery1" />
+    <On Terms="Signal.*.MasteryRingCreation; ValidatePlayer HasHeroRingMastery2Upgrade" Send="Create Storm_HeroRing_Mastery2" />
+    <On Terms="Signal.*.MasteryRingCreation; ValidatePlayer HasHeroRingMastery0Upgrade" Target="Storm_HeroRing_Mastery1" Send="Destroy" />
+    <On Terms="Signal.*.MasteryRingCreation; ValidatePlayer HasHeroRingMastery0Upgrade" Target="Storm_HeroRing_Mastery2" Send="Destroy" />
+  </CActorEventMacro>
   <CActorSound id="MercLanerSiegeGiantBirthSound" parent="SoundOneShot">
     <Sound value="Merc_SiegeTroll_Laner_Birth_Vox" />
   </CActorSound>
@@ -2920,6 +2929,7 @@
   <CActorUnitRing id="Storm_HeroRing_Parent" parent="StormModelAddition">
     <Model value="Invisible" />
     <Inherits index="BaseModelScale" value="0" />
+    <Inherits index="TeamColor" value="0" />
     <Inherits index="Visibility" value="1" />
     <On Terms="Behavior.VideoDebug.On" Send="SetVisibility" />
     <On Terms="Behavior.VideoDebug.Off" Send="SetVisibility 1" />
@@ -2960,13 +2970,32 @@
     <Aliases value="_EditorHelper" />
     <On Terms="Signal.*.BrushTintOn" Send="SetTintColor 140,140,244 0.650000 Bounce TargetingTint" />
   </CActorDoodad>
+  <CActorUnitRing id="Storm_HeroRing_NotSelfFilter" parent="Storm_HeroRing_Parent">
+    <Filter index="Self" value="1" />
+    <Model value="Storm_HeroRing_Player" />
+    <Aliases value="_HeroRing" />
+  </CActorUnitRing>
+  <CActorUnitRing id="Storm_HeroRing_Mastery1" parent="Storm_HeroRing_Parent">
+    <HostSiteOps Ops="SOpBasicScopeFollow SOpShadow SOpMoveDownByDot502" />
+    <Model value="Storm_HeroRing_Mastery1" />
+    <Aliases value="_HeroRingMastery" />
+    <Aliases value="_HeroRing" />
+    <Remove Terms="ActorCreation" Send="Create HitTestDisc" />
+    <Remove Terms="ActorDestruction" Target="HitTestDisc" Send="Destroy" />
+  </CActorUnitRing>
+  <CActorUnitRing id="Storm_HeroRing_Mastery2" parent="Storm_HeroRing_Parent">
+    <HostSiteOps Ops="SOpBasicScopeFollow SOpShadow SOpMoveDownByDot502" />
+    <Model value="Storm_HeroRing_Mastery2" />
+    <Aliases value="_HeroRingMastery" />
+    <Aliases value="_HeroRing" />
+    <Remove Terms="ActorCreation" Send="Create HitTestDisc" />
+    <Remove Terms="ActorDestruction" Target="HitTestDisc" Send="Destroy" />
+  </CActorUnitRing>
   <CActorUnitRing id="TowerTargetingMarker" parent="Storm_HeroRing_Parent">
     <Remove Terms="ActorCreation" Send="Create HitTestDisc" />
     <Remove Terms="ActorDestruction" Target="HitTestDisc" Send="Destroy" />
     <Model value="TowerTargetingMarker" />
     <VisibleToAtCreation index="Target" value="1" />
-    <Inherits index="TeamColor" value="0" />
-    <Inherits index="Visibility" value="0" />
     <Filter index="Ally" value="1" />
     <Filter index="Neutral" value="1" />
     <Filter index="Enemy" value="1" />
@@ -3458,13 +3487,17 @@
     <HostSiteOps Ops="SOpBasicScopePositionFollowHoldRotation SOpStatusBarStabilizer" />
     <SiteFlags index="RequiresManualKill" value="1" />
   </CActorSite>
-  <CActorUnitRing id="StormModelTargetSelected" parent="Storm_HeroRing_Parent">
-    <Model value="StormModelTargetSelected" />
-    <Preload value="StormModelTargetSelected" />
-    <Inherits index="Scale" value="0" />
+  <CActorUnitRing id="Storm_HeroRing_Selected" parent="Storm_HeroRing_Parent">
+    <Filter index="Ally" value="1" />
+    <Filter index="Neutral" value="1" />
+    <Filter index="Enemy" value="1" />
     <On Terms="ActorCreation" Send="SetTintColor 0,255,255" />
     <On Terms="ActorOrphan" Send="Destroy Immediate" />
-    <RingRadius value="1.250000" />
+    <On Terms="ActorCreation" Target="Storm_HeroRing_Multi" Send="SetVisibility" />
+    <On Terms="ActorDestruction" Target="Storm_HeroRing_Multi" Send="SetVisibility 1" />
+    <Model value="Storm_HeroRing_Player" />
+    <TeamColorStyle value="DefaultHeroRingColors" />
+    <Aliases value="_HeroRing" />
   </CActorUnitRing>
   <CActorDoodad id="Storm_Doodad_KingsCrest_CastleBackground_Overgrown">
     <RandomScaleRange value="1.000000,1.000000" />
@@ -5678,49 +5711,27 @@
     <Filter index="Enemy" value="1" />
   </CActorSound>
   <CActorUnitRing id="Storm_HeroRing_Multi" parent="Storm_HeroRing_Parent">
-    <ModelAspectSets>
-      <Aspects RegardsAs="Friendly" Model="Storm_HeroRing_Multi_Teammate" />
-      <Aspects RegardsAs="Self" Model="Storm_HeroRing_Multi_Player" />
-      <Aspects RegardsAs="Enemy" Model="Storm_HeroRing_Multi_Enemy" />
-      <Aspects>
-        <Person value="Observer" />
-        <ObservingPoV value="DefaultObservedPlayerId" />
-        <ModelOwnerHasTeamId value="0" />
-        <Model value="Storm_HeroRing_Multi_Teammate" />
-      </Aspects>
-      <Aspects>
-        <Person value="Observer" />
-        <ObservingPoV value="DefaultObservedPlayerId" />
-        <ModelOwnerHasTeamId value="1" />
-        <Model value="Storm_HeroRing_Multi_Enemy" />
-      </Aspects>
-    </ModelAspectSets>
-    <RingRadius value="1.250000" />
+    <Aliases value="_HeroRing" />
+    <Model value="Storm_HeroRing_Player" />
+    <On Terms="ActorCreation" Target="::Host" Send="Signal MasteryRingCreation" />
+    <On Terms="ActorCreation" Send="SetOpacity 0.750000" />
+    <TeamColorStyle value="DefaultMultiselectionHeroRingColors" />
+    <Filter index="Ally" value="1" />
+    <Filter index="Neutral" value="1" />
+    <Filter index="Enemy" value="1" />
   </CActorUnitRing>
-  <CActorUnitRing id="Storm_HeroRing_Holo" parent="Storm_HeroRing_Parent">
-    <ModelAspectSets>
-      <Aspects RegardsAs="Enemy" Model="Storm_HeroRing_Enemy" />
-    </ModelAspectSets>
+  <CActorUnitRing id="Storm_HeroRing_EnemyOnlyFilter" parent="Storm_HeroRing_Parent">
+    <Filter index="Self" value="1" />
+    <Filter index="Ally" value="1" />
+    <Model value="Storm_HeroRing_Player" />
+    <Aliases value="_HeroRing" />
   </CActorUnitRing>
   <CActorUnitRing id="Storm_HeroRing" parent="Storm_HeroRing_Parent">
-    <ModelAspectSets>
-      <Aspects RegardsAs="Friendly" Model="Storm_HeroRing_Teammate" />
-      <Aspects RegardsAs="Self" Model="Storm_HeroRing_Player" />
-      <Aspects RegardsAs="Enemy" Model="Storm_HeroRing_Enemy" />
-      <Aspects>
-        <Person value="Observer" />
-        <ObservingPoV value="DefaultObservedPlayerId" />
-        <ModelOwnerHasTeamId value="1" />
-        <Model value="Storm_HeroRing_Enemy" />
-      </Aspects>
-      <Aspects>
-        <Person value="Observer" />
-        <ObservingPoV value="DefaultObservedPlayerId" />
-        <ModelOwnerHasTeamId value="0" />
-        <Model value="Storm_HeroRing_Teammate" />
-      </Aspects>
-    </ModelAspectSets>
+    <Aliases value="_HeroRing" />
+    <On Terms="ActorCreation" Target="::Host" Send="Signal MasteryRingCreation" />
     <HostSiteOps Ops="SOpBasicScopeFollow SOpShadow SOpMoveDownByDot502" />
+    <Model value="Storm_HeroRing_Player" />
+    <TeamColorStyle value="DefaultHeroRingColors" />
   </CActorUnitRing>
   <CActorModel id="HitTestDisc" parent="ModelAddition">
     <Host Subject="::Creator" />
