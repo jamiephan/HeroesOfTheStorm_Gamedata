@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="us-ascii"?>
 <Catalog>
+  <const id="$TassadarPsionicStormSearchRadius" value="2.5" />
   <CAbilEffectInstant id="TassadarCancelDimensionalShift">
     <Effect value="TassadarDimensionalShiftRemoveBehavior" />
     <Flags index="Transient" value="1" />
@@ -43,7 +44,7 @@
     <UninterruptibleArray index="Cast" value="1" />
     <UninterruptibleArray index="Channel" value="1" />
     <UninterruptibleArray index="Finish" value="1" />
-    <CursorEffect value="TassadarPsionicStormSearchArea" />
+    <CursorEffect value="TassadarPsionicStormSearchAreaCursorDummy" />
     <CmdButtonArray index="Execute" DefaultButtonFace="TassadarPsionicStorm" />
   </CAbilEffectTarget>
   <CAbilEffectInstant id="TassadarOracle">
@@ -90,7 +91,7 @@
     </Cost>
     <Range value="9" />
     <RangeSlop value="7" />
-    <CursorEffect value="TassadarPsionicStormSearchArea" />
+    <CursorEffect value="TassadarPsionicStormSearchAreaCursorDummy" />
     <CmdButtonArray index="Execute" DefaultButtonFace="TassadarPsionicStorm" />
     <Arc value="360" />
     <CastIntroTime value="0.1" />
@@ -105,7 +106,7 @@
     <Flags index="RequireTargetVision" value="0" />
     <Range value="9" />
     <RangeSlop value="7" />
-    <CursorEffect value="TassadarPsionicStormSearchArea" />
+    <CursorEffect value="TassadarPsionicStormSearchAreaCursorDummy" />
     <CmdButtonArray index="Execute" DefaultButtonFace="TassadarPsionicStorm" Requirements="TassadarPsionicStormSecondStrikeProc" />
     <Arc value="219.9902" />
     <CastIntroTime value="0.1" />
@@ -230,8 +231,8 @@
     <On Terms="Effect.TassadarPsionicStormCreatePersistent.Start" Send="Create" />
     <On Terms="Effect.TassadarPsionicStormCreatePersistent.Stop; FromEffectTreeDescendant" Send="AnimBracketStop BSD" />
     <On Terms="ActorCreation" Send="AnimSetTimeScale BSD 2.000000" />
-    <On Terms="Effect.TassadarPsionicStormPsionicShiftTalentCreatePersistent.Start" Send="Create" />
-    <On Terms="Effect.TassadarPsionicStormPsionicShiftTalentCreatePersistent.Stop; FromEffectTreeDescendant" Send="AnimBracketStop BSD" />
+    <On Terms="Effect.TassadarPsionicStormCreatePersistentPsiInfusion.Start" Send="Create" />
+    <On Terms="Effect.TassadarPsionicStormCreatePersistentPsiInfusion.Stop; FromEffectTreeDescendant" Send="AnimBracketStop BSD" />
   </CActorModel>
   <CActorModel id="TassadarPsionicStormImpact" parent="StormModelAddition">
     <On Terms="Behavior.TassadarPsionicStorm.On" Send="Create" />
@@ -817,7 +818,7 @@
   </CActorSplat>
   <CActorSound id="TassadarPsionicStormCastSound" parent="SoundOneShot">
     <On Terms="Effect.TassadarPsionicStormCreatePersistent.Start" Send="Create" />
-    <On Terms="Effect.TassadarPsionicStormPsionicShiftTalentCreatePersistent.Start" Send="Create" />
+    <On Terms="Effect.TassadarPsionicStormCreatePersistentPsiInfusion.Start" Send="Create" />
     <Sound value="Tassadar_PsionicStorm_Cast" />
   </CActorSound>
   <CActorForceSphere id="TassadarPsionicStormForce">
@@ -1426,6 +1427,36 @@
     <Color value="255,128,128,255" />
     <Unit value="HeroTassadar" />
   </CCharacter>
+  <CEffectEnumArea id="TassadarPsionicStormSearchAreaCursorDummy">
+    <SearchFilters value="-;Player,Ally,Neutral,ImmuneToAOE,Missile,Item,Stasis,Dead,Hidden,Invulnerable" />
+    <AreaArray Effect="PsionicStormImpactSet">
+      <Radius value="$TassadarPsionicStormSearchRadius" />
+    </AreaArray>
+  </CEffectEnumArea>
+  <CEffectCreatePersistent id="TassadarPsionicStormCreatePersistentPsiInfusion">
+    <InitialEffect value="TassadarPsionicStormInitialSearchAreaPsiInfusion" />
+    <PeriodCount value="10" />
+    <PeriodicEffectArray value="TassadarPsionicStormSearchAreaPsiInfusion" />
+    <PeriodicPeriodArray value="0.25" />
+    <RevealRadius value="4.2" />
+    <RevealFlags index="Unfog" value="1" />
+  </CEffectCreatePersistent>
+  <CEffectEnumArea id="TassadarPsionicStormInitialSearchAreaPsiInfusion">
+    <SearchFilters value="-;Player,Ally,Neutral,ImmuneToAOE,Missile,Item,Stasis,Dead,Hidden,Invulnerable" />
+    <AreaArray Effect="TassadarPsionicStormInitialSearchSet">
+      <Radius value="3" />
+    </AreaArray>
+  </CEffectEnumArea>
+  <CEffectEnumArea id="TassadarPsionicStormSearchAreaPsiInfusion">
+    <SearchFilters value="-;Player,Ally,Neutral,ImmuneToAOE,Missile,Item,Stasis,Dead,Hidden,Invulnerable" />
+    <AreaArray Effect="PsionicStormImpactSet">
+      <Radius value="3" />
+    </AreaArray>
+  </CEffectEnumArea>
+  <CEffectSwitch id="TassadarPsionicStormCreatePersistentSwitch">
+    <CaseArray Validator="TassadarHasGreaterThan500TokensOfPsiInfusion" Effect="TassadarPsionicStormCreatePersistentPsiInfusion" />
+    <CaseDefault value="TassadarPsionicStormCreatePersistent" />
+  </CEffectSwitch>
   <CEffectApplyBehavior id="PhaseShift">
     <Behavior value="TassadarDimensionalShift" />
   </CEffectApplyBehavior>
@@ -1506,11 +1537,8 @@
     <Cost Abil="TassadarPsionicStorm,Execute" CooldownOperation="Add" CooldownTimeUse="-0.0625" />
   </CEffectModifyUnit>
   <CEffectModifyPlayer id="TassadarPsionicStormPsiInfusionTalent1stTierCompletionModifyPlayer">
-    <EffectArray Operation="Multiply" Reference="Effect,TassadarPsionicStormInitialSearchArea,AreaArray[0].Radius" Value="1.2" />
-    <EffectArray Operation="Multiply" Reference="Effect,TassadarPsionicStormCreatePersistent,RevealRadius" Value="1.2" />
-    <EffectArray Operation="Multiply" Reference="Effect,TassadarPsionicStormSearchArea,AreaArray[0].Radius" Value="1.2" />
     <EffectArray Operation="Multiply" Reference="Actor,TassadarPsionicStorm,Scale" Value="1.200000" />
-    <EffectArray Operation="Multiply" Reference="Actor,TassadarPsionicStormCursorSplat,Scale" Value="1.200000" />
+    <EffectArray Operation="Multiply" Reference="Effect,TassadarPsionicStormSearchAreaCursorDummy,AreaArray[0].Radius" Value="1.2" />
     <EffectCategory index="Quest" value="1" />
   </CEffectModifyPlayer>
   <CEffectModifyPlayer id="TassadarPsionicStormPsiInfusionTalent2ndTierCompletionModifyPlayer">
@@ -1521,11 +1549,8 @@
   <CEffectModifyPlayer id="TassadarPsionicStormPsiInfusionTalentResetModifyPlayer">
     <EffectArray Operation="Set" Reference="Effect,TassadarPsionicStormDamage,Amount" Value="50" />
     <EffectArray Operation="Set" Reference="Effect,TassadarPsionicStormPsionicEchoTalentDamage,Amount" Value="50" />
-    <EffectArray Operation="Set" Reference="Effect,TassadarPsionicStormInitialSearchArea,AreaArray[0].Radius" Value="2.5" />
-    <EffectArray Operation="Set" Reference="Effect,TassadarPsionicStormCreatePersistent,RevealRadius" Value="3.5" />
-    <EffectArray Operation="Set" Reference="Effect,TassadarPsionicStormSearchArea,AreaArray[0].Radius" Value="2.5" />
     <EffectArray Operation="Set" Reference="Actor,TassadarPsionicStorm,Scale" Value="1.000000" />
-    <EffectArray Operation="Set" Reference="Actor,TassadarPsionicStormCursorSplat,Scale" Value="1.000000" />
+    <EffectArray Operation="Set" Reference="Effect,TassadarPsionicStormSearchAreaCursorDummy,AreaArray[0].Radius" Value="$TassadarPsionicStormSearchRadius" />
   </CEffectModifyPlayer>
   <CEffectApplyBehavior id="TassadarTemplarsWillApplyQuestProgressCarry">
     <ValidatorArray index="0" removed="1" />
@@ -2027,11 +2052,11 @@
   </CEffectSet>
   <CEffectSet id="TassadarPsionicStormSecondStrikeInitialSet">
     <EffectArray value="TassadarPsionicStormSecondStrikeTalentRemoveBehavior" />
-    <EffectArray value="TassadarPsionicStormCreatePersistent" />
+    <EffectArray value="TassadarPsionicStormCreatePersistentSwitch" />
     <TargetLocationType value="Point" />
   </CEffectSet>
   <CEffectSet id="TassadarPsionicStormSecondStrikeMasteryInitialSet">
-    <EffectArray value="TassadarPsionicStormCreatePersistent" />
+    <EffectArray value="TassadarPsionicStormCreatePersistentSwitch" />
     <EffectArray value="TassadarPsionicStormSecondStrikeTalentRemoveBehavior" />
   </CEffectSet>
   <CEffectSwitch id="TassadarPsionicStormSwitch">
@@ -2364,7 +2389,7 @@
   </CEffectApplyBehavior>
   <CEffectSet id="TassadarPsionicStormInitialSet">
     <EffectArray value="TassadarPsionicStormApplySecondStrikeTalentActiveBehavior" />
-    <EffectArray value="TassadarPsionicStormCreatePersistent" />
+    <EffectArray value="TassadarPsionicStormCreatePersistentSwitch" />
     <TargetLocationType value="Point" />
   </CEffectSet>
   <CEffectCreatePersistent id="TassadarPsionicStormCreatePersistent">
@@ -2384,7 +2409,7 @@
   <CEffectEnumArea id="TassadarPsionicStormSearchArea">
     <SearchFilters value="-;Player,Ally,Neutral,ImmuneToAOE,Missile,Item,Stasis,Dead,Hidden,Invulnerable" />
     <AreaArray Effect="PsionicStormImpactSet">
-      <Radius value="2.5" />
+      <Radius value="$TassadarPsionicStormSearchRadius" />
     </AreaArray>
   </CEffectEnumArea>
   <CEffectSet id="TassadarPsionicStormInitialSearchSet">
@@ -3234,6 +3259,12 @@
     <Name value="Unit/Name/TassadarForceWallArtUnitCenter" />
     <Description value="Button/Tooltip/TassadarForceWallArtUnitCenter" />
   </CUnit>
+  <CValidatorUnitCompareTokenCount id="TassadarHasGreaterThan500TokensOfPsiInfusion">
+    <WhichUnit Value="Caster" />
+    <Compare value="GE" />
+    <Value value="500" />
+    <TokenId value="TassadarPsionicStormPsiInfusionTokenCounter" />
+  </CValidatorUnitCompareTokenCount>
   <CValidatorCombine id="TargetIsStructureORTargetisHeroandNotSpecialDeathStateORTargetIsMinionAndNotMercLaner">
     <CombineArray value="IsStructureTarget" />
     <CombineArray value="TargetIsHeroAndNotSpecialDeathState" />
