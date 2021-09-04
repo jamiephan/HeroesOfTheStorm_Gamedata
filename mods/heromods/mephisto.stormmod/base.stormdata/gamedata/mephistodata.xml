@@ -110,17 +110,6 @@
       <Flags index="AllowSelfCast" value="0" />
     </CmdButtonArray>
   </CAbilEffectTarget>
-  <CAbilEffectInstant id="MephistoAnimosity">
-    <PrepEffect value="DismountDecloakCasterSet" />
-    <Effect value="MephistoLightningNovaAnimosityInitialSet" />
-    <Cost>
-      <Cooldown TimeUse="15" />
-    </Cost>
-    <UninterruptibleArray index="Cast" value="1" />
-    <UninterruptibleArray index="Channel" value="1" />
-    <UninterruptibleArray index="Finish" value="1" />
-    <CmdButtonArray index="Execute" DefaultButtonFace="MephistoAnimosity" />
-  </CAbilEffectInstant>
   <CAbilEffectInstant id="MephistoShadeOfMephistoShadeLord">
     <PrepEffect value="DismountDecloakCasterSet" />
     <Effect value="MephistoShadeOfMephistoShadeLordInitialSet" />
@@ -329,12 +318,6 @@
       <Host Subject="_Unit" />
       <HostSiteOps Ops="SOpAttachOrigin" />
     </HostedAttaches>
-  </CActorModel>
-  <CActorModel id="MephistoShadeOfMephistoShadeFrostStormFX" parent="StormModelAnimationStyleContinuousUnit">
-    <Inherits index="Visibility" value="0" />
-    <On Terms="Behavior.MephistoShadeOfMephistoShadeTimedLife.On; ValidateUnit MephistoShadeOfMephistoFrostStormOrShadeLordHasTalentCombine" Send="Create" />
-    <On Terms="Behavior.MephistoShadeOfMephistoShadeTimedLife.Off" Send="AnimBracketStop BSD" />
-    <HostSiteOps Ops="SOpForwardSouth SOpMoveUpByDot05" />
   </CActorModel>
   <CActorModel id="MephistoShadeOfMephistoDirectionalReturnTeleportInFX" parent="StormModelAnimationStyleOneShotUnit">
     <On Terms="Effect.MephistoShadeOfMephistoReturnTeleport.Start; At Source" Send="Create" />
@@ -1021,13 +1004,44 @@
     </HostedAttaches>
     <Model value="MephistoConsumeSoulsWarningFX" />
   </CActorModel>
-  <CBehaviorAbility id="MephistoAnimosityItem">
-    <Buttons Face="MephistoAnimosity" Type="AbilCmd" AbilCmd="MephistoAnimosity,Execute" />
-  </CBehaviorAbility>
+  <CBehaviorBuff id="MephistoFrostStormLightningNovaSlowBehavior" parent="StormSlowParent">
+    <Duration value="1" />
+    <Modification>
+      <UnifiedMoveSpeedFactor value="-0.15" />
+    </Modification>
+  </CBehaviorBuff>
+  <CBehaviorBuff id="MephistoMaliciousIntentImprovedPostTeleportSpellPowerBuff" parent="StormDamageIncrease">
+    <Face value="MephistoShadeOfMephistoMaliciousIntentSpellPowerBuff" />
+    <Alignment value="Positive" />
+    <InfoFlags index="Hidden" value="0" />
+    <BehaviorCategories index="BuffAbilityPower" value="1" />
+    <SortIndex value="100" />
+    <Duration value="10" />
+    <Modification>
+      <HealDealtAdditiveMultiplier index="Life" value="0.2" />
+      <HealDealtAdditiveMultiplier index="Shields" value="0.2" />
+      <DamageDealtFraction index="Ability" value="0.2" />
+    </Modification>
+  </CBehaviorBuff>
+  <CBehaviorTokenCounter id="MephistoShadeOfMephistoMaliciousIntentTokenCounter" parent="StormGenericToken">
+    <Face value="MephistoShadeOfMephistoMaliciousIntentTokenCount" />
+    <Alignment value="Positive" />
+    <SortIndex value="10" />
+    <Max value="9001" />
+  </CBehaviorTokenCounter>
+  <CBehaviorTokenCounter id="MephistoShadeOfMephistoTrickeryTokenCounter" parent="StormGenericToken">
+    <Face value="MephistoShadeOfMephistoTrickeryTokenCount" />
+    <Alignment value="Positive" />
+    <SortIndex value="20" />
+    <Max value="9001" />
+    <ConditionalEvents CompareValue="20">
+      <Event Effect="MephistoShadeOfMephistoTrickeryModifyUnitCooldown" ValidRange="20,20" />
+    </ConditionalEvents>
+  </CBehaviorTokenCounter>
   <CBehaviorAbility id="MephistoShadeOfMephistoShadeLordItem">
     <Buttons Face="MephistoShadeOfMephistoShadeLord" Type="AbilCmd" AbilCmd="MephistoShadeOfMephistoShadeLord,Execute" />
   </CBehaviorAbility>
-  <CBehaviorBuff id="MephistoShadeOfMephistoFrostStormSlowBehavior" parent="StormSlowParent">
+  <CBehaviorBuff id="MephistoFrostStormSkullMissileSlowBehavior" parent="StormSlowParent">
     <Duration value="2" />
     <Modification>
       <UnifiedMoveSpeedFactor value="-0.5" />
@@ -1219,7 +1233,11 @@
       <HealDealtAdditiveMultiplier index="Shields" value="0.2" />
       <DamageDealtFraction index="Ability" value="0.2" />
     </Modification>
-    <FinalEffect value="MephistoShadeOfMephistoMaliciousIntentPostTeleportBehavior" />
+    <FinalEffect value="MephistoShadeOfMephistoMaliciousIntentSpellPowerBuffSwitch" />
+    <Face value="MephistoShadeOfMephistoMaliciousIntentSpellPowerBuff" />
+    <InfoFlags index="Hidden" value="0" />
+    <SortIndex value="100" />
+    <DisableValidatorArray value="MephistoHasMaliciousIntentPostTeleportSpellPowerBuffOrImprovedSpellPowerBuff" />
   </CBehaviorBuff>
   <CBehaviorBuff id="MephistoSkullMissileLightningReactionExplosionBehavior">
     <Duration value="0.125" />
@@ -1227,7 +1245,7 @@
   </CBehaviorBuff>
   <CBehaviorBuff id="MephistoLightningNovaFuriousSparkTargetBehavior">
     <RemoveValidatorArray value="MephistoLightningNovaCasterHasCasterBehavior" />
-    <MaxStackCount value="4" />
+    <MaxStackCount value="2" />
   </CBehaviorBuff>
   <CBehaviorBuff id="MephistoSkullMissileFrostStormSlowBehavior" parent="StormSlowParent">
     <Duration value="2" />
@@ -1260,6 +1278,10 @@
       <HealDealtAdditiveMultiplier index="Shields" value="0.2" />
       <DamageDealtFraction index="Ability" value="0.2" />
     </Modification>
+    <Face value="MephistoShadeOfMephistoMaliciousIntentSpellPowerBuff" />
+    <InfoFlags index="Hidden" value="0" />
+    <SortIndex value="100" />
+    <DisableValidatorArray value="MephistoHasMaliciousIntentPostTeleportImprovedSpellPowerBuff" />
   </CBehaviorBuff>
   <CBehaviorBuff id="MephistoSkullMissileUnyieldingPowerDamageIncrease" parent="CarryBehaviorParent">
     <RemoveValidatorArray value="MephistoSkullMissileUnyieldingPowerHasTalent" />
@@ -1301,6 +1323,13 @@
   <CButton id="MephistoLightningNovaStaticField" parent="StormButtonParent">
     <Icon value="Assets\Textures\storm_ui_icon_mephisto_lightning.dds" />
   </CButton>
+  <CButton id="MephistoShadeOfMephistoMaliciousIntentTokenCount" parent="StormButtonParent">
+    <Icon value="Assets\Textures\storm_ui_icon_mephisto_shade.dds" />
+    <HotkeyAlias value="MephistoShadeOfMephistoMaliciousIntentSpellPowerBuff" />
+  </CButton>
+  <CButton id="MephistoShadeOfMephistoTrickeryTokenCount" parent="StormButtonParent">
+    <Icon value="Assets\Textures\storm_ui_icon_mephisto_shade_c.dds" />
+  </CButton>
   <CButton id="MephistoShadeOfMephistoShadeLord" parent="StormButtonParent">
     <Icon value="Assets\Textures\storm_ui_icon_mephisto_shade.dds" />
   </CButton>
@@ -1330,6 +1359,9 @@
   </CButton>
   <CButton id="MephistoLordofHatredHysteria" parent="StormButtonParent">
     <Icon value="Assets\Textures\storm_ui_icon_mephisto_hatred.dds" />
+  </CButton>
+  <CButton id="MephistoShadeOfMephistoMaliciousIntentSpellPowerBuff" parent="StormButtonParent">
+    <Icon value="Assets\Textures\storm_ui_icon_mephisto_shade.dds" />
   </CButton>
   <CButton id="MephistoSpite" parent="StormButtonParent">
     <Icon value="Assets\Textures\storm_ui_icon_mephisto_hatred.dds" />
@@ -1370,6 +1402,7 @@
     <TooltipAppender Validator="MephistoLightningNovaFuriousSparkHasTalent" Face="MephistoLightningNovaFuriousSpark" />
     <TooltipAppender Validator="MephistoHasLightningNovaStaticBarrierTalent" Face="MephistoLightningNovaStaticBarrier" />
     <TooltipAppender Validator="MephistoHasLightningNovaStaticFieldTalent" Face="MephistoLightningNovaStaticField" />
+    <TooltipAppender Validator="MephistoLightningNovaAnimosityHasTalent" Face="MephistoAnimosity" />
     <TooltipAppender Validator="MephistoHasLightningNovaMimicTalent" Face="MephistoLightningNovaShadeOfMephistoMimic" />
   </CButton>
   <CButton id="MephistoDuranceOfHate" parent="StormButtonParent">
@@ -1395,6 +1428,26 @@
   <CButton id="MephistoShadeOfMephistoShadeLordActivatable" parent="StormButtonParent">
     <Icon value="Assets\Textures\storm_ui_icon_mephisto_shade.dds" />
   </CButton>
+  <CEffectSet id="MephistoConsumeSoulsHysteriaImpactSet">
+    <EffectArray value="MephistoLordOfHatredHysteriaHealthRestoration" />
+    <EffectArray value="MephistoLordOfHatredHysteriaManaRestoration" />
+  </CEffectSet>
+  <CEffectApplyBehavior id="MephistoFrostStormLightningNovaSlowApplyBehavior">
+    <ValidatorArray value="MephistoShadeOfMephistoFrostStormOrShadeLordHasTalentCombine" />
+    <ValidatorArray value="MephistoShadeOfMephistoCasterHasTeleportBehavior" />
+    <ValidatorArray value="TargetNotUnstoppable" />
+    <Behavior value="MephistoFrostStormLightningNovaSlowBehavior" />
+  </CEffectApplyBehavior>
+  <CEffectCreateHealer id="MephistoLordOfHatredHysteriaHealthRestoration" parent="StormSelfOnlyHealingSpellPercent">
+    <ValidatorArray value="MephistoHasLordofHatredHysteriaTalent" />
+    <ImpactUnit Value="Caster" />
+    <RechargeVitalFraction value="0.15" />
+  </CEffectCreateHealer>
+  <CEffectCreateHealer id="MephistoLordOfHatredHysteriaManaRestoration" parent="StormManaRestore">
+    <ValidatorArray value="MephistoHasLordofHatredHysteriaTalent" />
+    <ImpactUnit Value="Caster" />
+    <RechargeVitalFraction value="0.15" />
+  </CEffectCreateHealer>
   <CEffectDamage id="MephistoLightningNovaStaticFieldDamage" parent="StormSpellPercentDamage">
     <VitalFractionMax index="Life" value="0.1" />
     <SourceButtonFace value="MephistoLightningNovaStaticField" />
@@ -1409,18 +1462,61 @@
     <BehaviorLink value="MephistoShadeOfMephistoUnitTracker" />
     <Effect value="MephistoLightningNovaShadeOfMephistoMimicApplyShadeBehavior" />
   </CEffectEnumTrackedUnits>
-  <CEffectApplyBehavior id="MephistoShadeOfMephistoFrostStormApplySlow" parent="StormSlowApply">
-    <Behavior value="MephistoShadeOfMephistoFrostStormSlowBehavior" />
+  <CEffectApplyBehavior id="MephistoMaliciousIntentImprovedPostTeleportSpellPowerBuffApplyBehavior">
+    <WhichUnit Value="Caster" />
+    <Behavior value="MephistoMaliciousIntentImprovedPostTeleportSpellPowerBuff" />
   </CEffectApplyBehavior>
+  <CEffectApplyBehavior id="MephistoShadeOfMephistoFrostStormApplySlow" parent="StormSlowApply">
+    <Behavior value="MephistoFrostStormSkullMissileSlowBehavior" />
+  </CEffectApplyBehavior>
+  <CEffectModifyTokenCount id="MephistoShadeOfMephistoMaliciousIntentAddTokenCount" parent="BaseEffectModifyTokenCount">
+    <ValidatorArray value="TargetIsHero" />
+    <ValidatorArray value="MephistoShadeOfMephistoMaliciousIntentHasTalent" />
+    <ValidatorArray value="MephistoShadeOfMephistoCasterHasTeleportBehavior" />
+    <ContextUnit Value="Caster" />
+    <TokenId value="MephistoShadeOfMephistoMaliciousIntentTokenCounter" />
+  </CEffectModifyTokenCount>
   <CEffectApplyBehavior id="MephistoShadeOfMephistoFrostStormApplyShadeBehavior">
     <ValidatorArray index="0" value="MephistoShadeOfMephistoFrostStormOrShadeLordHasTalentCombine" />
     <Behavior value="MephistoShadeOfMephistoFrostStormShadeBehavior" />
   </CEffectApplyBehavior>
+  <CEffectRemoveBehavior id="MephistoShadeOfMephistoMaliciousIntentPostTeleportSpellPowerBuffRemoveBehavior">
+    <ValidatorArray value="MephistoShadeOfMephistoMaliciousIntentHasTalent" />
+    <WhichUnit Value="Caster" />
+    <BehaviorLink value="MephistoShadeOfMephistoMaliciousIntentPostTeleportSpellPowerBuff" />
+  </CEffectRemoveBehavior>
+  <CEffectModifyTokenCount id="MephistoShadeOfMephistoTrickeryAddTokenCount" parent="BaseEffectModifyTokenCount">
+    <ValidatorArray value="TargetIsHero" />
+    <ValidatorArray value="MephistoShadeOfMephistoTrickeryOrShadeLordHasTalentCombine" />
+    <ValidatorArray value="MephistoShadeOfMephistoCasterHasTeleportBehavior" />
+    <CollationId value="MephistoShadeOfMephistoTrickeryTokenCounter" />
+    <ContextUnit Value="Caster" />
+    <TokenId value="MephistoShadeOfMephistoTrickeryTokenCounter" />
+  </CEffectModifyTokenCount>
+  <CEffectApplyBehavior id="MephistoShadeOfMephistoMaliciousIntentApplyTokenCounterBehavior">
+    <ValidatorArray value="MephistoShadeOfMephistoMaliciousIntentHasTalent" />
+    <ValidatorArray value="MephistoShadeOfMephistoCasterHasTeleportBehavior" />
+    <WhichUnit Value="Caster" />
+    <Behavior value="MephistoShadeOfMephistoMaliciousIntentTokenCounter" />
+  </CEffectApplyBehavior>
+  <CEffectSwitch id="MephistoShadeOfMephistoMaliciousIntentSpellPowerBuffSwitch">
+    <CaseArray Validator="MephistoShadeOfMephistoMaliciousIntentHasGTOrEqualTo20Tokens" Effect="MephistoMaliciousIntentImprovedPostTeleportSpellPowerBuffApplyBehavior" />
+    <CaseDefault value="MephistoShadeOfMephistoMaliciousIntentPostTeleportBehavior" />
+  </CEffectSwitch>
   <CEffectApplyBehavior id="MephistoShadeOfMephistoTrickeryApplyPostTeleportBehavior">
     <ValidatorArray value="MephistoShadeOfMephistoTrickeryOrShadeLordHasTalentCombine" />
     <WhichUnit Value="Caster" />
     <Behavior value="MephistoShadeOfMephistoTrickeryPostTeleportMovespeedBehavior" />
   </CEffectApplyBehavior>
+  <CEffectApplyBehavior id="MephistoShadeOfMephistoTrickeryApplyTokenCounterBehavior">
+    <ValidatorArray value="MephistoShadeOfMephistoTrickeryOrShadeLordHasTalentCombine" />
+    <WhichUnit Value="Caster" />
+    <Behavior value="MephistoShadeOfMephistoTrickeryTokenCounter" />
+  </CEffectApplyBehavior>
+  <CEffectModifyUnit id="MephistoShadeOfMephistoTrickeryModifyUnitCooldown">
+    <Cost Abil="MephistoShadeOfMephisto,Execute" CooldownOperation="Set" />
+    <ImpactUnit Value="Caster" />
+  </CEffectModifyUnit>
   <CEffectApplyBehavior id="MephistoSkullMissileApplyFrostStormSlowBehavior">
     <ValidatorArray value="TargetIsHero" />
     <Behavior value="MephistoSkullMissileFrostStormSlowBehavior" />
@@ -1440,24 +1536,18 @@
     <Marker Link="Effect/MephistoLordOfHatredHysteriaAngerCDR" />
     <Chance value="0" />
     <ImpactUnit Value="Caster" />
-    <Cost Abil="MephistoConsumeSouls,Execute" CooldownOperation="Add" CooldownTimeUse="-0.75" />
-    <Cost Abil="MephistoDuranceOfHate,Execute" CooldownOperation="Add" CooldownTimeUse="-0.75" />
+    <Cost Abil="MephistoConsumeSouls,Execute" CooldownOperation="Add" CooldownTimeUse="-1" />
+    <Cost Abil="MephistoDuranceOfHate,Execute" CooldownOperation="Add" CooldownTimeUse="-1" />
   </CEffectModifyUnit>
-  <CEffectRemoveBehavior id="MephistoShadeOfMephistoTrickeryRemoveSlowRoot">
-    <WhichUnit Value="Caster" />
-    <BehaviorCategories index="Slow" value="1" />
-    <BehaviorCategories index="DebuffRoot" value="1" />
-  </CEffectRemoveBehavior>
   <CEffectSet id="MephistoShadeOfMephistoTrickeryReturnSet">
-    <EffectArray value="MephistoShadeOfMephistoTrickeryRemoveSlowRoot" />
     <EffectArray value="MephistoShadeOfMephistoTrickeryApplyPostTeleportBehavior" />
     <ValidatorArray value="MephistoShadeOfMephistoTrickeryOrShadeLordHasTalentCombine" />
   </CEffectSet>
   <CEffectModifyUnit id="MephistoSpiteCDR">
     <ImpactUnit Value="Caster" />
-    <Cost Abil="MephistoSkullMissile,Execute" CooldownOperation="Add" CooldownTimeUse="-0.75" />
-    <Cost Abil="MephistoLightningNova,Execute" CooldownOperation="Add" CooldownTimeUse="-0.75" />
-    <Cost Abil="MephistoShadeOfMephisto,Execute" CooldownOperation="Add" CooldownTimeUse="-0.75" />
+    <Cost Abil="MephistoSkullMissile,Execute" CooldownOperation="Add" CooldownTimeUse="-1" />
+    <Cost Abil="MephistoLightningNova,Execute" CooldownOperation="Add" CooldownTimeUse="-1" />
+    <Cost Abil="MephistoShadeOfMephisto,Execute" CooldownOperation="Add" CooldownTimeUse="-1" />
   </CEffectModifyUnit>
   <CEffectCreatePersistent id="MephistoConsumeSoulsConsumedByHatredApplyRecastDelayPersistent">
     <WhichLocation Value="TargetUnit" />
@@ -1483,10 +1573,6 @@
   <CEffectModifyUnit id="MephistoLightningNovaStaticBarrierShieldFractionDummy">
     <XP value="0.4" />
   </CEffectModifyUnit>
-  <CEffectSet id="MephistoLightningNovaAnimosityInitialSet">
-    <EffectArray value="MephistoLightningNovaAnimosityModifyLightningNovaDuration" />
-    <ValidatorArray value="MephistoLightningNovaCasterHasCasterBehavior" />
-  </CEffectSet>
   <CEffectSwitch id="MephistoLightningNovaFuriousSparkSwitch">
     <Chance value="0" />
     <CaseArray Validator="MephistoLightningNovaFuriousSparkTargetHasMaxStacks" Effect="MephistoLightningNovaFuriousSparkDamageImpactSet" />
@@ -1500,9 +1586,13 @@
   </CEffectRemoveBehavior>
   <CEffectDamage id="MephistoLightningNovaFuriousSparkDamage" parent="StormSpell">
     <Flags index="Crit" value="1" />
-    <Amount value="95" />
+    <Amount value="72" />
     <SourceButtonFace value="MephistoLightningNovaFuriousSpark" />
   </CEffectDamage>
+  <CEffectCreateHealer id="MephistoLightningNovaFuriousSparkManaRestoration" parent="StormManaRestore">
+    <ImpactUnit Value="Caster" />
+    <RechargeVitalRate value="2" />
+  </CEffectCreateHealer>
   <CEffectAddTrackedUnit id="MephistoShadeOfMephistoAddTrackedUnit">
     <BehaviorLink value="MephistoShadeOfMephistoUnitTracker" />
     <TrackedUnit Value="Target" />
@@ -1510,6 +1600,7 @@
   <CEffectSet id="MephistoLightningNovaFuriousSparkDamageImpactSet">
     <EffectArray value="MephistoLightningNovaFuriousSparkDamage" />
     <EffectArray value="MephistoLightningNovaFuriousSparkRemoveTargetBehavior" />
+    <EffectArray value="MephistoLightningNovaFuriousSparkManaRestoration" />
   </CEffectSet>
   <CEffectModifyUnit id="MephistoLordOfHatredHysteriaAngerCDR">
     <Chance value="0" />
@@ -1602,6 +1693,7 @@
     <EffectArray value="MephistoAngerCDRSet" />
     <EffectArray value="MephistoWeaponDamage" />
     <EffectArray value="MephistoWeaponShardOfHateSearch" />
+    <EffectArray value="MephistoLightningNovaAnimosityModifyLightningNovaDuration" />
   </CEffectSet>
   <CEffectDamage id="MephistoWeaponDamage" parent="StormWeapon">
     <Amount value="66" />
@@ -1621,7 +1713,12 @@
   <CEffectSet id="MephistoShadeOfMephistoInitialSet">
     <ValidatorArray value="CasterNotRooted" />
     <EffectArray value="MephistoShadeOfMephistoApplyCasterTeleportBehavior" />
+    <EffectArray value="MephistoShadeOfMephistoMaliciousIntentPostTeleportSpellPowerBuffRemoveBehavior" />
     <EffectArray value="MephistoShadeOfMephistoMaliciousIntentApplyBehavior" />
+    <EffectArray value="RemoveShadeOfMephistoMaliciousIntentRemoveTokenCounterBehavior" />
+    <EffectArray value="MephistoShadeOfMephistoTrickeryRemoveTokenCounterBehavior" />
+    <EffectArray value="MephistoShadeOfMephistoTrickeryApplyTokenCounterBehavior" />
+    <EffectArray value="MephistoShadeOfMephistoMaliciousIntentApplyTokenCounterBehavior" />
     <EffectArray value="MephistoShadeOfMephistoCreateUnit" />
     <EffectArray value="MephistoShadeOfMephistoCastTeleport" />
     <EffectArray value="MephistoShadeOfMephistoGhastlyArmorApplyBehavior" />
@@ -1648,6 +1745,8 @@
     <EffectArray value="MephistoShadeOfMephistoDamage" />
     <EffectArray value="MephistoLordOfHatedSkullMissileShadeOfMephistoCDRSet" />
     <EffectArray value="MephistoShadeOfMephistoFrostStormImpactSlowApplyBehavior" />
+    <EffectArray value="MephistoShadeOfMephistoMaliciousIntentAddTokenCount" />
+    <EffectArray value="MephistoShadeOfMephistoTrickeryAddTokenCount" />
   </CEffectSet>
   <CEffectDamage id="MephistoShadeOfMephistoDamage" parent="StormSpell">
     <Amount value="78" />
@@ -1747,6 +1846,8 @@
     <EffectArray value="MephistoSkullMissileAbhorredSkullApplyBehavior" />
     <EffectArray value="MephistoSkullMissileUnyieldingPowerAddToken" />
     <EffectArray value="ApplyAbilityImpactReveal" />
+    <EffectArray value="MephistoShadeOfMephistoMaliciousIntentAddTokenCount" />
+    <EffectArray value="MephistoShadeOfMephistoTrickeryAddTokenCount" />
   </CEffectSet>
   <CEffectModifyUnit id="MephistoAngerCDR">
     <ImpactUnit Value="Caster" />
@@ -1815,6 +1916,7 @@
   </CEffectSet>
   <CEffectSet id="MephistoConsumeSoulsFinalSet">
     <EffectArray value="MephistoConsumeSoulsImpactEnumTrackedUnits" />
+    <EffectArray value="MephistoConsumeSoulsHysteriaImpactSet" />
   </CEffectSet>
   <CEffectDamage id="MephistoConsumeSoulsDamage" parent="StormSpell">
     <Amount value="357" />
@@ -1864,6 +1966,9 @@
     <EffectArray value="MephistoLordOfHatredLightningNovaCDRSet" />
     <EffectArray value="MephistoLightningNovaEnemyHeroHitAddToken" />
     <EffectArray value="DecloakCasterSet" />
+    <EffectArray value="MephistoShadeOfMephistoMaliciousIntentAddTokenCount" />
+    <EffectArray value="MephistoFrostStormLightningNovaSlowApplyBehavior" />
+    <EffectArray value="MephistoShadeOfMephistoTrickeryAddTokenCount" />
   </CEffectSet>
   <CEffectDamage id="MephistoLightningNovaDamage" parent="StormSpell">
     <MultiplicativeModifierArray index="DamageBonus" Accumulator="MephistoLightningNovaAccumulator" />
@@ -1885,6 +1990,8 @@
   <CEffectSet id="MephistoDuranceOfHateInitialSet">
     <EffectArray value="MephistoDuranceOfHateLaunchMissile" />
     <EffectArray value="MephistoDisableTurningBehaviorApplyBehavior" />
+    <EffectArray value="MephistoLordOfHatredHysteriaHealthRestoration" />
+    <EffectArray value="MephistoLordOfHatredHysteriaManaRestoration" />
     <TargetLocationType value="Point" />
   </CEffectSet>
   <CEffectSet id="MephistoLightningNovaStaticFieldImpactSet">
@@ -1958,12 +2065,6 @@
     <ValidatorArray value="TargetNotUnstoppable" />
     <Behavior value="MephistoDuranceOfHatePrimaryRootBehavior" />
   </CEffectApplyBehavior>
-  <CEffectEnumArea id="MephistoLightningNovaAnimosityLoopSearchArea" parent="MephistoLightningNovaLoopSearch">
-    <ImpactLocation Value="CasterUnit" />
-    <ValidatorArray value="MephistoLightningNovaCasterHasCasterBehavior" />
-    <Chance value="0" />
-    <SearchFlags index="DoActorSearch" value="0" />
-  </CEffectEnumArea>
   <CEffectApplyBehavior id="MephistoLightningNovaApplyCasterBehavior">
     <Behavior value="MephistoLightningNovaCasterBehavior" />
   </CEffectApplyBehavior>
@@ -2088,7 +2189,8 @@
   </CEffectApplyBehavior>
   <CEffectModifyBehaviorBuffDuration id="MephistoLightningNovaAnimosityModifyLightningNovaDuration">
     <Behavior value="MephistoLightningNovaCasterBehavior" />
-    <Value value="2.5" />
+    <Value value="0.25" />
+    <ValidatorArray value="MephistoLightningNovaAnimosityHasTalent" />
   </CEffectModifyBehaviorBuffDuration>
   <CEffectApplyBehavior id="MephistoShadeOfMephistoTrickeryApplyBehavior">
     <WhichUnit Value="Caster" />
@@ -2098,7 +2200,6 @@
   <CEffectSet id="MephistoShadeOfMephistoShadeSpawnSet">
     <EffectArray value="MephistoShadeOfMephistoApplyShadeTimedLife" />
     <EffectArray value="MephistoShadeOfMephistoAddTrackedUnit" />
-    <EffectArray value="MephistoShadeOfMephistoFrostStormApplyShadeBehavior" />
     <EffectArray value="MephistoShadeOfMephistoSetFacing" />
   </CEffectSet>
   <CEffectModifyUnit id="MephistoShadeOfMephistoSetFacing">
@@ -2152,9 +2253,20 @@
   <CEffectSet id="RegenGlobePickupPercentModifyPeriodicSet">
     <EffectArray value="MephistoSpiteCDRSet" />
   </CEffectSet>
+  <CEffectRemoveBehavior id="RemoveShadeOfMephistoMaliciousIntentRemoveTokenCounterBehavior">
+    <ValidatorArray value="MephistoShadeOfMephistoMaliciousIntentHasTalent" />
+    <WhichUnit Value="Caster" />
+    <BehaviorLink value="MephistoShadeOfMephistoMaliciousIntentTokenCounter" />
+  </CEffectRemoveBehavior>
+  <CEffectRemoveBehavior id="MephistoShadeOfMephistoTrickeryRemoveTokenCounterBehavior">
+    <ValidatorArray index="0" value="MephistoShadeOfMephistoTrickeryOrShadeLordHasTalentCombine" />
+    <WhichUnit Value="Caster" />
+    <BehaviorLink value="MephistoShadeOfMephistoTrickeryTokenCounter" />
+  </CEffectRemoveBehavior>
   <CHero id="Mephisto">
     <AttributeId value="MEPH" />
     <SkinArray value="MephistoStarWraith" />
+    <SkinArray value="MephistoToys19" />
     <VariationArray value="MephistoVar1" />
     <VariationArray value="MephistoVar2" />
     <VariationArray value="MephistoVar3" />
@@ -2398,6 +2510,14 @@
     <Flags index="GoodForModeB" value="1" />
     <ExpandedRole value="RangedAssassin" />
   </CHero>
+  <CHeroMastery id="MephistoMasteryRing1" parent="MasteryRingRank1">
+    <ProductId value="66991" />
+    <HyperlinkId value="MephistoMasteryRingRank1" />
+  </CHeroMastery>
+  <CHeroMastery id="MephistoMasteryRing2" parent="MasteryRingRank2">
+    <ProductId value="67110" />
+    <HyperlinkId value="MephistoMasteryRingRank2" />
+  </CHeroMastery>
   <CModel id="MephistoConsumeSoulsCastGlaze">
     <Model value="Assets\Effects\Glaze\Storm_Glaze_Mephisto_Base_Shared\Storm_Glaze_Mephisto_Base_Shared.m3" />
   </CModel>
@@ -2490,6 +2610,12 @@
     <IconSlot value="28" />
     <Hero value="Mephisto" />
   </CRewardPortrait>
+  <CRewardHeroMastery id="MephistoMasteryRing1">
+    <License value="49921" />
+  </CRewardHeroMastery>
+  <CRewardHeroMastery id="MephistoMasteryRing2">
+    <License value="49922" />
+  </CRewardHeroMastery>
   <CShapeArc id="MephistoLightningNovaVisibilityShape">
     <Arc value="360" />
     <Radius value="6" />
@@ -4021,7 +4147,7 @@
         <Catalog value="Behavior" />
         <Entry value="RegenGlobePercentBuff" />
         <Field value="Duration" />
-        <Value value="6.250000" />
+        <Value value="7.500000" />
       </Modifications>
       <Modifications>
         <Type value="FlatModification" />
@@ -4076,20 +4202,16 @@
   </CTalent>
   <CTalent id="MephistoAnimosity">
     <Face value="MephistoAnimosity" />
-    <Abil value="MephistoAnimosity" />
-    <RankArray>
-      <BehaviorArray value="MephistoAnimosityItem" />
-    </RankArray>
+    <Abil value="MephistoLightningNova" />
     <AbilityModificationArray>
       <Modifications>
         <Type value="FlatModification" />
-        <Catalog value="Effect" />
-        <Entry value="MephistoLightningNovaAnimosityLoopSearchArea" />
-        <Field value="Chance" />
-        <Value value="1.000000" />
+        <Catalog value="Behavior" />
+        <Entry value="MephistoLightningNovaCasterBehavior" />
+        <Field value="Duration" />
+        <Value value="0.500000" />
       </Modifications>
     </AbilityModificationArray>
-    <Active value="1" />
   </CTalent>
   <CTalent id="MephistoSkullMissileUnyieldingPower">
     <Face value="MephistoSkullMissileUnyieldingPower" />
@@ -4164,11 +4286,34 @@
     <SeparationRadius value="0.125" />
     <InnerRadius value="1.5" />
   </CUnit>
+  <CValidatorUnitCompareBehaviorCount id="MephistoHasMaliciousIntentPostTeleportSpellPowerBuff">
+    <WhichUnit Value="Caster" />
+    <Value value="1" />
+    <Behavior value="MephistoShadeOfMephistoMaliciousIntentPostTeleportSpellPowerBuff" />
+  </CValidatorUnitCompareBehaviorCount>
+  <CValidatorUnitCompareBehaviorCount id="MephistoHasMaliciousIntentPostTeleportImprovedSpellPowerBuff">
+    <WhichUnit Value="Caster" />
+    <Behavior value="MephistoMaliciousIntentImprovedPostTeleportSpellPowerBuff" />
+  </CValidatorUnitCompareBehaviorCount>
+  <CValidatorCombine id="MephistoHasMaliciousIntentPostTeleportSpellPowerBuffOrImprovedSpellPowerBuff">
+    <CombineArray value="MephistoHasMaliciousIntentPostTeleportImprovedSpellPowerBuff" />
+    <CombineArray value="MephistoHasMaliciousIntentPostTeleportSpellPowerBuff" />
+  </CValidatorCombine>
   <CValidatorCombine id="MephistoShadeOfMephistoCasterHasTeleportBehaviorANDFrostStormOrShadeLordHasTalentCombine">
     <Type value="And" />
     <CombineArray value="MephistoShadeOfMephistoCasterHasTeleportBehavior" />
     <CombineArray value="MephistoShadeOfMephistoFrostStormOrShadeLordHasTalentCombine" />
   </CValidatorCombine>
+  <CValidatorUnitCompareTokenCount id="MephistoShadeOfMephistoMaliciousIntentHasGTOrEqualTo20Tokens">
+    <Compare value="GE" />
+    <Value value="20" />
+    <TokenId value="MephistoShadeOfMephistoMaliciousIntentTokenCounter" />
+  </CValidatorUnitCompareTokenCount>
+  <CValidatorUnitCompareTokenCount id="MephistoShadeOfMephistoTrickeryHasGTOrEqualTo20Tokens">
+    <Compare value="GE" />
+    <Value value="20" />
+    <TokenId value="MephistoShadeOfMephistoTrickeryTokenCounter" />
+  </CValidatorUnitCompareTokenCount>
   <CValidatorUnitCompareBehaviorCount id="MephistoSkullMissileUnyieldingPowerCasterHasDamageIncreaseBehavior">
     <WhichUnit Value="Caster" />
     <Compare value="GT" />
@@ -4372,7 +4517,7 @@
   </CValidatorUnitCompareBehaviorCount>
   <CValidatorUnitCompareBehaviorCount id="MephistoLightningNovaFuriousSparkTargetHasMaxStacks">
     <Compare value="GE" />
-    <Value value="4" />
+    <Value value="2" />
     <Behavior value="MephistoLightningNovaFuriousSparkTargetBehavior" />
   </CValidatorUnitCompareBehaviorCount>
   <CValidatorCombine id="MephistoSkullMissileHatefulMendingCombine">
@@ -4398,18 +4543,4 @@
     <Period value="1" />
     <Effect value="MephistoWeaponInitialSet" />
   </CWeaponLegacy>
-  <CHeroMastery id="MephistoMasteryRing1" parent="MasteryRingRank1">
-    <ProductId value="66991" />
-    <HyperlinkId value="MephistoMasteryRingRank1" />
-  </CHeroMastery>
-  <CHeroMastery id="MephistoMasteryRing2" parent="MasteryRingRank2">
-    <ProductId value="67110" />
-    <HyperlinkId value="MephistoMasteryRingRank2" />
-  </CHeroMastery>
-  <CRewardHeroMastery id="MephistoMasteryRing1">
-    <License value="49921" />
-  </CRewardHeroMastery>
-  <CRewardHeroMastery id="MephistoMasteryRing2">
-    <License value="49922" />
-  </CRewardHeroMastery>
 </Catalog>

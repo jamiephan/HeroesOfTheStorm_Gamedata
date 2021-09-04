@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="us-ascii"?>
 <Catalog>
+  <const id="$NovaHoloDecoyLethalDecoyDamageModifier" value="2" />
   <CAbilEffectTarget id="NovaCovertMission">
     <PrepEffect value="DismountDecloakCasterSet" />
     <Effect value="NovaCovertMissionSet" />
@@ -999,7 +1000,6 @@
     </Modification>
     <DisplayDuration index="Self" value="1" />
     <DisplayDuration index="Ally" value="1" />
-    <DamageResponse Chance="1" Location="Attacker" ModifyFraction="0.1" />
     <AINotifySettings AreaEffect="HoloDecoySearch">
       <Flags index="Disabled" value="1" />
     </AINotifySettings>
@@ -1223,6 +1223,39 @@
     <Variations Model="NovaPortrait" Actor="NovaPortrait" />
     <Unit value="HeroNova" />
   </CCharacter>
+  <CEffectSwitch id="NovaSnipeExplosiveShotDamageSwitch">
+    <CaseArray Validator="CasterIsNovaHoloDecoy" Effect="NovaHoloDecoySnipeExplosiveShotDamage" />
+    <CaseDefault value="SnipeExplosiveDamage" />
+  </CEffectSwitch>
+  <CEffectDamage id="NovaHoloDecoySnipeExplosiveShotDamage" parent="StormSpell">
+    <Amount value="20.7" />
+    <ValidatorArray value="noMarkers" />
+    <SourceButtonFace value="NovaSnipeExplosiveRoundTalent" />
+    <MultiplicativeModifierArray index="PrecisionSniperBase" Accumulator="NovaPrecisionSniperAccumulator" />
+    <MultiplicativeModifierArray index="PrecisionSniperMax" Validator="NovaHas5StacksOfPrecisionSniper" Modifier="0.25" />
+    <MultiplicativeModifierArray index="LethalDecoy" Validator="NovaHasLethalDecoyHoloDecoy" Modifier="$NovaHoloDecoyLethalDecoyDamageModifier" />
+    <DamageModifierSource Value="Creator" />
+  </CEffectDamage>
+  <CEffectSwitch id="NovaSnipeDamageSwitch">
+    <CaseArray Validator="CasterIsNovaHoloDecoy" Effect="NovaHoloDecoySnipeDamage" />
+    <CaseDefault value="StormSnipeDamage" />
+  </CEffectSwitch>
+  <CEffectDamage id="NovaHoloDecoySnipeDamage" parent="StormSpell">
+    <Amount value="23" />
+    <MultiplicativeModifierArray index="PrecisionSniperBase" Accumulator="NovaPrecisionSniperAccumulator" />
+    <MultiplicativeModifierArray index="PrecisionSniperMax" Validator="NovaHas5StacksOfPrecisionSniper" Modifier="0.25" />
+    <MultiplicativeModifierArray index="LethalDecoy" Validator="NovaHasLethalDecoyHoloDecoy" Modifier="$NovaHoloDecoyLethalDecoyDamageModifier" />
+    <DamageModifierSource Value="Creator" />
+  </CEffectDamage>
+  <CEffectSwitch id="NovaPinningShotDamageSwitch">
+    <CaseArray Validator="CasterIsNovaHoloDecoy" Effect="NovaHoloDecoyPinningShotDamage" />
+    <CaseDefault value="PinningShotDamage" />
+  </CEffectSwitch>
+  <CEffectDamage id="NovaHoloDecoyPinningShotDamage" parent="StormSpell">
+    <Amount value="10" />
+    <DamageModifierSource Value="Creator" />
+    <MultiplicativeModifierArray index="LethalDecoy" Validator="NovaHasLethalDecoyHoloDecoy" Modifier="$NovaHoloDecoyLethalDecoyDamageModifier" />
+  </CEffectDamage>
   <CEffectModifyTokenCount id="NovaPrecisionSniperPsionicEfficiencyTalentAddTokenCount" parent="BaseEffectModifyTokenCount">
     <ValidatorArray value="TargetIsHero" />
     <Chance value="0" />
@@ -1439,7 +1472,8 @@
   </CEffectSwitch>
   <CEffectDamage id="NovaHoloDecoyWeaponRelicAntiArmorShellsDamage" parent="StormWeapon">
     <Marker Link="Effect/HoloCloneWeaponDamage" />
-    <Amount value="262.5" />
+    <Amount value="26.25" />
+    <MultiplicativeModifierArray index="LethalDecoy" Validator="NovaHasLethalDecoyHoloDecoy" Modifier="$NovaHoloDecoyLethalDecoyDamageModifier" />
   </CEffectDamage>
   <CEffectSet id="NovaAntiArmorShellsInitialCarrySet">
     <EffectArray value="NovaAntiArmorShellsRemoveInitialVeterancySuppression" />
@@ -1708,7 +1742,8 @@
   </CEffectCreatePersistent>
   <CEffectDamage id="HoloDecoyWeaponRelicDamage" parent="StormWeapon">
     <Marker Link="Effect/HoloCloneWeaponDamage" />
-    <Amount value="105" />
+    <Amount value="10.5" />
+    <MultiplicativeModifierArray index="LethalDecoy" Validator="NovaHasLethalDecoyHoloDecoy" Modifier="$NovaHoloDecoyLethalDecoyDamageModifier" />
   </CEffectDamage>
   <CEffectSet id="HoloDecoyAttackSet">
     <EffectArray value="HoloDecoyWeaponDamage" />
@@ -1885,6 +1920,7 @@
     <EffectArray value="TripleTapMissileScanDestroyPersistent" />
     <EffectArray value="CameraShakeLightTauntingTotemSet" />
     <EffectArray value="TripleTapSuicideRemove" />
+    <ValidatorArray value="TargetIsHeroOrStructure" />
   </CEffectSet>
   <CEffectCreatePersistent id="TripleTapCreateLaunchPersistent">
     <WhichLocation Value="CasterPoint" />
@@ -1904,7 +1940,7 @@
     <ImpactLocation Value="CasterUnit" />
   </CEffectEnumArea>
   <CEffectEnumArea id="TripleTapMissileScan">
-    <SearchFilters value="-;Player,Ally,Neutral,Creep,Minion,ImmuneToSkillshots,User1,Missile,Item,Stasis,Dead,Hidden,Summoned" />
+    <SearchFilters value="-;Player,Ally,Neutral,Creep,ImmuneToSkillshots,User1,Missile,Item,Stasis,Dead,Hidden,Summoned" />
     <AreaArray MaxCount="1" Effect="TripleTapImpactSet">
       <RectangleWidth value="0.66" />
       <RectangleHeight value="1.25" />
@@ -1970,7 +2006,7 @@
     <Behavior value="PinningShotSlow" />
   </CEffectApplyBehavior>
   <CEffectSet id="PinningShotImpactSet">
-    <EffectArray value="PinningShotDamage" />
+    <EffectArray value="NovaPinningShotDamageSwitch" />
     <EffectArray value="PinningShotImpactSwitch" />
     <EffectArray value="NovaPinningShotApplyVulnerable" />
     <EffectArray value="ApplyAbilityImpactReveal" />
@@ -2114,7 +2150,7 @@
   <CEffectSet id="SnipeImpactSet">
     <EffectArray value="SnipeMissileScanDestroyPersistent" />
     <EffectArray value="SnipeMissileScanDestroyExpanderPersistent" />
-    <EffectArray value="StormSnipeDamage" />
+    <EffectArray value="NovaSnipeDamageSwitch" />
     <EffectArray value="NovaSnipeSecondaryImpactSet" />
     <EffectArray value="NovaSnipeImpactSetTalentsSet" />
     <EffectArray value="StormSuicide" />
@@ -2160,7 +2196,7 @@
     </RevealerParams>
   </CEffectEnumArea>
   <CEffectSet id="NovaSnipeExplosiveShotImpactSet">
-    <EffectArray value="SnipeExplosiveDamage" />
+    <EffectArray value="NovaSnipeExplosiveShotDamageSwitch" />
     <EffectArray value="NovaSnipeModifyCooldown" />
   </CEffectSet>
   <CEffectDamage id="SnipeExplosiveDamage" parent="StormSpell">
@@ -2282,7 +2318,23 @@
       </Modifications>
       <Modifications>
         <Catalog value="Effect" />
+        <Entry value="NovaHoloDecoySnipeDamage" />
+        <Field value="Amount" />
+        <Value value="0.040000" />
+        <AffectedByAbilityPower value="1" />
+        <AffectedByOverdrive value="1" />
+      </Modifications>
+      <Modifications>
+        <Catalog value="Effect" />
         <Entry value="SnipeExplosiveDamage" />
+        <Field value="Amount" />
+        <Value value="0.040000" />
+        <AffectedByAbilityPower value="1" />
+        <AffectedByOverdrive value="1" />
+      </Modifications>
+      <Modifications>
+        <Catalog value="Effect" />
+        <Entry value="NovaHoloDecoySnipeExplosiveShotDamage" />
         <Field value="Amount" />
         <Value value="0.040000" />
         <AffectedByAbilityPower value="1" />
@@ -2293,6 +2345,14 @@
       <Modifications>
         <Catalog value="Effect" />
         <Entry value="PinningShotDamage" />
+        <Field value="Amount" />
+        <Value value="0.040000" />
+        <AffectedByAbilityPower value="1" />
+        <AffectedByOverdrive value="1" />
+      </Modifications>
+      <Modifications>
+        <Catalog value="Effect" />
+        <Entry value="NovaHoloDecoyPinningShotDamage" />
         <Field value="Amount" />
         <Value value="0.040000" />
         <AffectedByAbilityPower value="1" />
@@ -2958,15 +3018,6 @@
   <CTalent id="NovaMasteryLethalDecoy">
     <Face value="NovaHoloDecoyLethalDecoyTalent" />
     <Abil value="NovaHoloDecoy" />
-    <AbilityModificationArray ModifyAbil="NovaHoloDecoy">
-      <Modifications>
-        <Type value="FlatModification" />
-        <Catalog value="Behavior" />
-        <Entry value="NovaHoloDecoyTimedLife" />
-        <Field value="DamageResponse.ModifyFraction" />
-        <Value value="0.200000" />
-      </Modifications>
-    </AbilityModificationArray>
   </CTalent>
   <CTalent id="NovaMasteryExplosiveShot">
     <Face value="NovaSnipeExplosiveRoundTalent" />

@@ -40,7 +40,6 @@ void libHMaj_gf_HeroRagnarosIncrementHeroCountFunction () {
         TriggerEnable(libHMaj_gt_HeroRagnarosMoltenCore, true);
         TriggerEnable(libHMaj_gt_HeroRagnarosMoltenCoreEnd, true);
         TriggerEnable(libHMaj_gt_HeroRagnarosLavaWavePointTarget, true);
-        TriggerEnable(libHMaj_gt_HeroRagnarosBlastWaveTemperedFlame, true);
         TriggerEnable(libHMaj_gt_HeroRagnarosEmpowerSulfurasCauterizeWounds, true);
         TriggerEnable(libHMaj_gt_HeroRagnarosMoltenCoreUpdateDurationBar, true);
         TriggerEnable(libHMaj_gt_HeroRagnarosMoltenCoreCreateMarkers, true);
@@ -70,7 +69,6 @@ void libHMaj_gf_HeroRagnarosDecrementHeroCountFunction () {
         TriggerEnable(libHMaj_gt_HeroRagnarosMoltenCore, false);
         TriggerEnable(libHMaj_gt_HeroRagnarosMoltenCoreEnd, false);
         TriggerEnable(libHMaj_gt_HeroRagnarosLavaWavePointTarget, false);
-        TriggerEnable(libHMaj_gt_HeroRagnarosBlastWaveTemperedFlame, false);
         TriggerEnable(libHMaj_gt_HeroRagnarosEmpowerSulfurasCauterizeWounds, false);
         TriggerEnable(libHMaj_gt_HeroRagnarosMoltenCoreUpdateDurationBar, false);
         TriggerEnable(libHMaj_gt_HeroRagnarosMoltenCoreCreateMarkers, false);
@@ -718,88 +716,6 @@ void libHMaj_gt_HeroRagnarosGainsHeroic_Init () {
 }
 
 //--------------------------------------------------------------------------------------------------
-// Trigger: Hero - Ragnaros - Blast Wave - Tempered Flame
-//--------------------------------------------------------------------------------------------------
-bool libHMaj_gt_HeroRagnarosBlastWaveTemperedFlame_Func (bool testConds, bool runActions) {
-    // Variable Declarations
-    bool lv_clearOld;
-    string lv_effect;
-    unit lv_damagedUnit;
-    unit lv_ragnarosUnit;
-    int lv_owner;
-    fixed lv_damageValue;
-    fixed lv_shieldsToAdd;
-    fixed lv_currentShields;
-
-    // Automatic Variable Declarations
-    // Variable Initialization
-    lv_effect = EventUnitDamageEffect();
-    lv_damagedUnit = EventUnit();
-    lv_ragnarosUnit = EventUnitDamageSourceUnit();
-    lv_owner = UnitGetOwner(lv_ragnarosUnit);
-
-    // Conditions
-    if (testConds) {
-        if (!((UnitTypeTestAttribute(UnitGetType(EventUnit()), c_unitAttributeHeroic) == true))) {
-            return false;
-        }
-
-        if (!((UnitBehaviorCount(lv_ragnarosUnit, "DestructibleBehavior") == 0))) {
-            return false;
-        }
-
-        if (!((UnitBehaviorCount(lv_ragnarosUnit, "HasDamageClampBehavior") == 0))) {
-            return false;
-        }
-
-        if (!((PlayerHasTalent(lv_owner, "RagnarosBlastWaveTemperedFlame") == true))) {
-            return false;
-        }
-
-        if (!((UnitIsAlive(lv_ragnarosUnit) == true))) {
-            return false;
-        }
-    }
-
-    // Actions
-    if (!runActions) {
-        return true;
-    }
-
-    lv_damageValue = (EventUnitDamageAmount() + EventUnitDamageBehaviorShield());
-    if ((UnitHasBehavior2(lv_ragnarosUnit, "RagnarosBlastWaveTemperedFlame") == true)) {
-        lv_currentShields = UnitBehaviorDamageModifyRemaining(lv_ragnarosUnit, "RagnarosBlastWaveTemperedFlame");
-        lv_clearOld = true;
-    }
-    else {
-        lv_currentShields = 0.0;
-    }
-    lv_shieldsToAdd += (libHMaj_gv_hero_Ragnaros_BlastWave_TemperedFlameMod_C * lv_damageValue);
-    lv_currentShields += lv_shieldsToAdd;
-    if ((lv_currentShields < 1)) {
-        lv_currentShields = (lv_currentShields + 1.0);
-    }
-
-    CatalogFieldValueSetFixed(c_gameCatalogBehavior, "RagnarosBlastWaveTemperedFlame", "DamageResponse.ModifyLimit", lv_owner, lv_currentShields);
-    if ((lv_clearOld == true)) {
-        UnitBehaviorRemove(lv_ragnarosUnit, "RagnarosBlastWaveTemperedFlame", 1);
-        UnitBehaviorAdd(lv_ragnarosUnit, "RagnarosBlastWaveTemperedFlame", lv_ragnarosUnit, 1);
-    }
-    else {
-        UnitBehaviorAdd(lv_ragnarosUnit, "RagnarosBlastWaveTemperedFlame", lv_ragnarosUnit, 1);
-    }
-    return true;
-}
-
-//--------------------------------------------------------------------------------------------------
-void libHMaj_gt_HeroRagnarosBlastWaveTemperedFlame_Init () {
-    libHMaj_gt_HeroRagnarosBlastWaveTemperedFlame = TriggerCreate("libHMaj_gt_HeroRagnarosBlastWaveTemperedFlame_Func");
-    TriggerEnable(libHMaj_gt_HeroRagnarosBlastWaveTemperedFlame, false);
-    TriggerAddEventUnitDamaged(libHMaj_gt_HeroRagnarosBlastWaveTemperedFlame, null, c_unitDamageTypeAbility, c_unitDamageEither, "RagnarosBlastWaveDamage");
-    TriggerAddEventUnitDamaged(libHMaj_gt_HeroRagnarosBlastWaveTemperedFlame, null, c_unitDamageTypeAbility, c_unitDamageEither, "RagnarosBlastWaveSuperheatedDamage");
-}
-
-//--------------------------------------------------------------------------------------------------
 // Trigger: Hero - Ragnaros - Empower Sulfuras - Cauterize Wounds
 //--------------------------------------------------------------------------------------------------
 bool libHMaj_gt_HeroRagnarosEmpowerSulfurasCauterizeWounds_Func (bool testConds, bool runActions) {
@@ -925,7 +841,6 @@ void libHMaj_InitTriggers () {
     libHMaj_gt_HeroRagnarosSubmergeFullscreenOverlayOn_Init();
     libHMaj_gt_HeroRagnarosSubmergeFullscreenOverlayOff_Init();
     libHMaj_gt_HeroRagnarosGainsHeroic_Init();
-    libHMaj_gt_HeroRagnarosBlastWaveTemperedFlame_Init();
     libHMaj_gt_HeroRagnarosEmpowerSulfurasCauterizeWounds_Init();
     libHMaj_gt_HeroRagnarosEmpowerSulfurasResilientFlame_Init();
 }

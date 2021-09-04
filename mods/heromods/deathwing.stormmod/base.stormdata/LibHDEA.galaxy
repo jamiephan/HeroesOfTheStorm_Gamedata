@@ -1,0 +1,660 @@
+include "TriggerLibs/NativeLib"
+include "TriggerLibs/HeroesLib"
+include "TriggerLibs/GameLib"
+include "TriggerLibs/UILib"
+
+include "LibHDEA_h"
+
+//--------------------------------------------------------------------------------------------------
+// Library: Deathwing
+//--------------------------------------------------------------------------------------------------
+// External Library Initialization
+void libHDEA_InitLibraries () {
+    libNtve_InitVariables();
+    libCore_InitVariables();
+    libGame_InitVariables();
+    libUIUI_InitVariables();
+}
+
+// Variable Initialization
+bool libHDEA_InitVariables_completed = false;
+
+void libHDEA_InitVariables () {
+    if (libHDEA_InitVariables_completed) {
+        return;
+    }
+
+    libHDEA_InitVariables_completed = true;
+
+}
+
+// Functions
+void libHDEA_gf_HeroDeathwingIncrementHeroCountFunction () {
+    // Automatic Variable Declarations
+    // Implementation
+    libHDEA_gv_heroDeathwingTriggerRegistrationVariable += 1;
+    if ((libHDEA_gv_heroDeathwingTriggerRegistrationVariable == 1)) {
+        TriggerEnable(libHDEA_gt_HeroDeathwingDragonflightModifyFacing, true);
+        TriggerEnable(libHDEA_gt_HeroDeathwingDragonflightOverlayOn, true);
+        TriggerEnable(libHDEA_gt_HeroDeathwingDragonflightOverlayOff, true);
+        TriggerEnable(libHDEA_gt_HeroDeathwingDragonflightCameraLockInterrupt, true);
+        TriggerEnable(libHDEA_gt_HeroDeathwingDragonflightCameraLockResume, true);
+        TriggerEnable(libHDEA_gt_HeroDeathwingDragonflightPeriodicRoar, true);
+        TriggerEnable(libHDEA_gt_HeroDeathwingDragonflightDamageTakenCooldownModifier, true);
+        TriggerEnable(libHDEA_gt_HeroDeathwingElementiumPlatingShieldStrength, true);
+        TriggerEnable(libHDEA_gt_HeroDeathwingBurnBeneathMyShadowFortOrKeepDies, true);
+        TriggerEnable(libHDEA_gt_HeroDeathwingConflagrationRemoveTrackedDamage, true);
+        TriggerEnable(libHDEA_gt_HeroDeathwingConflagrationUnitTakesDamage, true);
+        TriggerEnable(libHDEA_gt_HeroDeathwingFirestormDeathwingLanded, true);
+    }
+
+}
+
+void libHDEA_gf_HeroDeathwingDecrementHeroCountFunction () {
+    // Automatic Variable Declarations
+    // Implementation
+    libHDEA_gv_heroDeathwingTriggerRegistrationVariable -= 1;
+    if ((libHDEA_gv_heroDeathwingTriggerRegistrationVariable < 0)) {
+        libHDEA_gv_heroDeathwingTriggerRegistrationVariable = 0;
+    }
+
+    if ((libHDEA_gv_heroDeathwingTriggerRegistrationVariable == 0)) {
+        TriggerEnable(libHDEA_gt_HeroDeathwingDragonflightModifyFacing, false);
+        TriggerEnable(libHDEA_gt_HeroDeathwingDragonflightOverlayOn, false);
+        TriggerEnable(libHDEA_gt_HeroDeathwingDragonflightOverlayOff, false);
+        TriggerEnable(libHDEA_gt_HeroDeathwingDragonflightCameraLockInterrupt, false);
+        TriggerEnable(libHDEA_gt_HeroDeathwingDragonflightCameraLockResume, false);
+        TriggerEnable(libHDEA_gt_HeroDeathwingDragonflightPeriodicRoar, false);
+        TriggerEnable(libHDEA_gt_HeroDeathwingDragonflightDamageTakenCooldownModifier, false);
+        TriggerEnable(libHDEA_gt_HeroDeathwingElementiumPlatingShieldStrength, false);
+        TriggerEnable(libHDEA_gt_HeroDeathwingBurnBeneathMyShadowFortOrKeepDies, false);
+        TriggerEnable(libHDEA_gt_HeroDeathwingConflagrationRemoveTrackedDamage, false);
+        TriggerEnable(libHDEA_gt_HeroDeathwingConflagrationUnitTakesDamage, false);
+        TriggerEnable(libHDEA_gt_HeroDeathwingFirestormDeathwingLanded, false);
+    }
+
+}
+
+void libHDEA_gf_HeroDeathwingFirestormGenerateFirestormatLocation (point lp_point, int lp_owner, unit lp_caster) {
+    // Variable Declarations
+    int lv_meteorIter;
+    unit lv_targetUnit;
+    unitgroup lv_meteorGroup;
+    int lv_meteorCount;
+    point lv_currentRandomPoint;
+    point lv_lastRandomPoint;
+    point lv_secondtoLastRandomPoint;
+    region lv_targetRegion;
+    bool lv_firstRandomMeteor;
+    int lv_randomPointAttemptsRemaining;
+
+    // Automatic Variable Declarations
+    unitgroup auto5400686E_g;
+    int auto5400686E_u;
+    unit auto5400686E_var;
+    unitgroup autoB05DA75F_g;
+    int autoB05DA75F_u;
+    int auto12BFBDAB_ae;
+    const int auto12BFBDAB_ai = 1;
+
+    // Variable Initialization
+    lv_meteorGroup = UnitGroupEmpty();
+    lv_meteorCount = 7;
+    lv_targetRegion = RegionCircle(lp_point, 8.0);
+    lv_firstRandomMeteor = true;
+    lv_randomPointAttemptsRemaining = 10;
+
+    // Implementation
+    auto5400686E_g = UnitGroupAlliance(lp_owner, c_unitAllianceEnemy, lv_targetRegion, UnitFilter((1 << c_targetFilterHeroic) | (1 << c_targetFilterVisible), 0, (1 << c_targetFilterMinion) | (1 << c_targetFilterMerc) | (1 << c_targetFilterImmuneToAOE) | (1 << c_targetFilterUser1) | (1 << c_targetFilterMissile) | (1 << c_targetFilterItem), (1 << (c_targetFilterDead - 32)) | (1 << (c_targetFilterHidden - 32)) | (1 << (c_targetFilterInvulnerable - 32)) | (1 << (c_targetFilterSummoned - 32)) | (1 << (c_targetFilterMapBoss - 32))), 0);
+    auto5400686E_u = UnitGroupCount(auto5400686E_g, c_unitCountAll);
+    for (;; auto5400686E_u -= 1) {
+        auto5400686E_var = UnitGroupUnitFromEnd(auto5400686E_g, auto5400686E_u);
+        if (auto5400686E_var == null) { break; }
+        UnitGroupAdd(lv_meteorGroup, auto5400686E_var);
+    }
+    autoB05DA75F_g = lv_meteorGroup;
+    autoB05DA75F_u = UnitGroupCount(autoB05DA75F_g, c_unitCountAll);
+    for (;; autoB05DA75F_u -= 1) {
+        lv_targetUnit = UnitGroupUnitFromEnd(autoB05DA75F_g, autoB05DA75F_u);
+        if (lv_targetUnit == null) { break; }
+        if ((lv_meteorCount >= 1)) {
+            UnitCreateEffectPoint(lp_caster, "DeathwingFirestormCreatePersistent", UnitGetPosition(lv_targetUnit));
+            UnitGroupRemove(lv_meteorGroup, lv_targetUnit);
+            lv_meteorCount -= 1;
+            Wait(RandomFixed(0.0625, 0.0625), c_timeGame);
+        }
+
+    }
+    auto12BFBDAB_ae = lv_meteorCount;
+    lv_meteorIter = 1;
+    for ( ; ( (auto12BFBDAB_ai >= 0 && lv_meteorIter <= auto12BFBDAB_ae) || (auto12BFBDAB_ai < 0 && lv_meteorIter >= auto12BFBDAB_ae) ) ; lv_meteorIter += auto12BFBDAB_ai ) {
+        if ((lv_firstRandomMeteor == true)) {
+            lv_currentRandomPoint = RegionRandomPoint(lv_targetRegion);
+            UnitCreateEffectPoint(lp_caster, "DeathwingFirestormCreatePersistent", lv_currentRandomPoint);
+            lv_secondtoLastRandomPoint = lv_lastRandomPoint;
+            lv_lastRandomPoint = lv_currentRandomPoint;
+            lv_firstRandomMeteor = false;
+            Wait(RandomFixed(0.0625, 0.0625), c_timeGame);
+        }
+        else {
+            lv_currentRandomPoint = RegionRandomPoint(lv_targetRegion);
+            while (((DistanceBetweenPoints(lv_currentRandomPoint, lv_lastRandomPoint) < 4.0) && (DistanceBetweenPoints(lv_currentRandomPoint, lv_secondtoLastRandomPoint) < 4.0) && (lv_randomPointAttemptsRemaining >= 1))) {
+                lv_currentRandomPoint = RegionRandomPoint(lv_targetRegion);
+                lv_randomPointAttemptsRemaining -= 1;
+            }
+            UnitCreateEffectPoint(lp_caster, "DeathwingFirestormCreatePersistent", lv_currentRandomPoint);
+            lv_secondtoLastRandomPoint = lv_lastRandomPoint;
+            lv_lastRandomPoint = lv_currentRandomPoint;
+            Wait(RandomFixed(0.0625, 0.0625), c_timeGame);
+        }
+    }
+}
+
+// Triggers
+//--------------------------------------------------------------------------------------------------
+// Trigger: Hero - Deathwing - Respawn
+//--------------------------------------------------------------------------------------------------
+bool libHDEA_gt_HeroDeathwingRespawn_Func (bool testConds, bool runActions) {
+    // Automatic Variable Declarations
+    // Conditions
+    if (testConds) {
+        if (!((UnitGetType(libGame_gf_HeroRespawnUnit()) == "HeroDeathwing"))) {
+            return false;
+        }
+    }
+
+    // Actions
+    if (!runActions) {
+        return true;
+    }
+
+    UnitCreateEffectUnit(libGame_gf_HeroRespawnUnit(), "DeathwingAdamantineArmorPlatesApplySwitch", libGame_gf_HeroRespawnUnit());
+    return true;
+}
+
+//--------------------------------------------------------------------------------------------------
+void libHDEA_gt_HeroDeathwingRespawn_Init () {
+    libHDEA_gt_HeroDeathwingRespawn = TriggerCreate("libHDEA_gt_HeroDeathwingRespawn_Func");
+    libGame_gf_HeroRespawn(libHDEA_gt_HeroDeathwingRespawn);
+}
+
+//--------------------------------------------------------------------------------------------------
+// Trigger: Hero - Deathwing - Dragonflight - Periodic Roar
+//--------------------------------------------------------------------------------------------------
+bool libHDEA_gt_HeroDeathwingDragonflightPeriodicRoar_Func (bool testConds, bool runActions) {
+    // Variable Declarations
+    unit lv_deathwing;
+    int lv_deathwingOwner;
+
+    // Automatic Variable Declarations
+    // Variable Initialization
+    lv_deathwing = EventUnit();
+    lv_deathwingOwner = UnitGetOwner(lv_deathwing);
+
+    // Actions
+    if (!runActions) {
+        return true;
+    }
+
+    Wait(1.0, c_timeGame);
+    while ((UnitBehaviorCount(lv_deathwing, "DeathwingDragonflightBuff") == 1)) {
+        UnitCreateEffectPoint(lv_deathwing, "DeathwingDragonflightPeriodicRoarDummy", CameraGetTarget(lv_deathwingOwner));
+        Wait(10.0, c_timeGame);
+    }
+    return true;
+}
+
+//--------------------------------------------------------------------------------------------------
+void libHDEA_gt_HeroDeathwingDragonflightPeriodicRoar_Init () {
+    libHDEA_gt_HeroDeathwingDragonflightPeriodicRoar = TriggerCreate("libHDEA_gt_HeroDeathwingDragonflightPeriodicRoar_Func");
+    TriggerEnable(libHDEA_gt_HeroDeathwingDragonflightPeriodicRoar, false);
+    TriggerAddEventUnitBehaviorChange(libHDEA_gt_HeroDeathwingDragonflightPeriodicRoar, null, "DeathwingDragonflightBuff", c_unitBehaviorChangeActivate);
+}
+
+//--------------------------------------------------------------------------------------------------
+// Trigger: Hero - Deathwing - Dragonflight - Modify Facing
+//--------------------------------------------------------------------------------------------------
+bool libHDEA_gt_HeroDeathwingDragonflightModifyFacing_Func (bool testConds, bool runActions) {
+    // Variable Declarations
+    unit lv_deathwingUnit;
+
+    // Automatic Variable Declarations
+    // Variable Initialization
+    lv_deathwingUnit = EventPlayerEffectUsedUnit(c_effectUnitCaster);
+
+    // Actions
+    if (!runActions) {
+        return true;
+    }
+
+    UnitSetFacing(lv_deathwingUnit, 270.0, 0.0);
+    return true;
+}
+
+//--------------------------------------------------------------------------------------------------
+void libHDEA_gt_HeroDeathwingDragonflightModifyFacing_Init () {
+    libHDEA_gt_HeroDeathwingDragonflightModifyFacing = TriggerCreate("libHDEA_gt_HeroDeathwingDragonflightModifyFacing_Func");
+    TriggerEnable(libHDEA_gt_HeroDeathwingDragonflightModifyFacing, false);
+    TriggerAddEventPlayerEffectUsed(libHDEA_gt_HeroDeathwingDragonflightModifyFacing, c_playerAny, "DeathwingDragonflightTeleport");
+}
+
+//--------------------------------------------------------------------------------------------------
+// Trigger: Hero - Deathwing - Dragonflight - Overlay On
+//--------------------------------------------------------------------------------------------------
+bool libHDEA_gt_HeroDeathwingDragonflightOverlayOn_Func (bool testConds, bool runActions) {
+    // Variable Declarations
+    unit lv_unit;
+
+    // Automatic Variable Declarations
+    // Variable Initialization
+    lv_unit = EventUnit();
+
+    // Actions
+    if (!runActions) {
+        return true;
+    }
+
+    if ((UnitIsAlive(lv_unit) == true) && (UnitTestState(lv_unit, c_unitStateHallucination) == false) && (UnitHasBehavior2(lv_unit, "HeroGenericIgnoreFullscreenOverlay") == false)) {
+        libUIUI_gf_FullscreenOverlayAddItemForPlayer(EventPlayer(), libUIUI_ge_FullscreenOverlayPriorities_Stasis, "Cutscenes\\GameUI_DeathwingOverlay.StormCutscene", EventUnitBehavior());
+    }
+
+    return true;
+}
+
+//--------------------------------------------------------------------------------------------------
+void libHDEA_gt_HeroDeathwingDragonflightOverlayOn_Init () {
+    libHDEA_gt_HeroDeathwingDragonflightOverlayOn = TriggerCreate("libHDEA_gt_HeroDeathwingDragonflightOverlayOn_Func");
+    TriggerEnable(libHDEA_gt_HeroDeathwingDragonflightOverlayOn, false);
+    TriggerAddEventUnitBehaviorChange(libHDEA_gt_HeroDeathwingDragonflightOverlayOn, null, "DeathwingDragonflightBuff", c_unitBehaviorChangeActivate);
+}
+
+//--------------------------------------------------------------------------------------------------
+// Trigger: Hero - Deathwing - Dragonflight - Overlay Off
+//--------------------------------------------------------------------------------------------------
+bool libHDEA_gt_HeroDeathwingDragonflightOverlayOff_Func (bool testConds, bool runActions) {
+    // Automatic Variable Declarations
+    // Actions
+    if (!runActions) {
+        return true;
+    }
+
+    if ((UnitHasBehavior2(EventUnit(), "HeroGenericIgnoreFullscreenOverlay") == false)) {
+        libUIUI_gf_FullscreenOverlayRemoveItemFromQueueForPlayer(EventPlayer(), "Cutscenes\\GameUI_DeathwingOverlay.StormCutscene", EventUnitBehavior());
+    }
+
+    return true;
+}
+
+//--------------------------------------------------------------------------------------------------
+void libHDEA_gt_HeroDeathwingDragonflightOverlayOff_Init () {
+    libHDEA_gt_HeroDeathwingDragonflightOverlayOff = TriggerCreate("libHDEA_gt_HeroDeathwingDragonflightOverlayOff_Func");
+    TriggerEnable(libHDEA_gt_HeroDeathwingDragonflightOverlayOff, false);
+    TriggerAddEventUnitBehaviorChange(libHDEA_gt_HeroDeathwingDragonflightOverlayOff, null, "DeathwingDragonflightBuff", c_unitBehaviorChangeDestroy);
+}
+
+//--------------------------------------------------------------------------------------------------
+// Trigger: Hero - Deathwing - Dragonflight - Camera Lock Interrupt
+//--------------------------------------------------------------------------------------------------
+bool libHDEA_gt_HeroDeathwingDragonflightCameraLockInterrupt_Func (bool testConds, bool runActions) {
+    // Variable Declarations
+    int lv_player;
+
+    // Automatic Variable Declarations
+    // Variable Initialization
+    lv_player = EventPlayerEffectUsedUnitOwner(c_effectPlayerCaster);
+
+    // Actions
+    if (!runActions) {
+        return true;
+    }
+
+    PlayerOptionOverride(lv_player, "camerafollow", "0");
+    return true;
+}
+
+//--------------------------------------------------------------------------------------------------
+void libHDEA_gt_HeroDeathwingDragonflightCameraLockInterrupt_Init () {
+    libHDEA_gt_HeroDeathwingDragonflightCameraLockInterrupt = TriggerCreate("libHDEA_gt_HeroDeathwingDragonflightCameraLockInterrupt_Func");
+    TriggerEnable(libHDEA_gt_HeroDeathwingDragonflightCameraLockInterrupt, false);
+    TriggerAddEventPlayerEffectUsed(libHDEA_gt_HeroDeathwingDragonflightCameraLockInterrupt, c_playerAny, "DeathwingDragonflightBuffApplyBehavior");
+}
+
+//--------------------------------------------------------------------------------------------------
+// Trigger: Hero - Deathwing - Dragonflight - Camera Lock Resume
+//--------------------------------------------------------------------------------------------------
+bool libHDEA_gt_HeroDeathwingDragonflightCameraLockResume_Func (bool testConds, bool runActions) {
+    // Variable Declarations
+    unit lv_unit;
+    int lv_player;
+
+    // Automatic Variable Declarations
+    // Variable Initialization
+    lv_unit = EventUnit();
+    lv_player = UnitGetOwner(EventUnit());
+
+    // Actions
+    if (!runActions) {
+        return true;
+    }
+
+    libGame_gv_players[lv_player].lv_cameraCameraLockInterrupt = false;
+    libGame_gf_CameraUpdateCameraForPlayer(lv_player);
+    return true;
+}
+
+//--------------------------------------------------------------------------------------------------
+void libHDEA_gt_HeroDeathwingDragonflightCameraLockResume_Init () {
+    libHDEA_gt_HeroDeathwingDragonflightCameraLockResume = TriggerCreate("libHDEA_gt_HeroDeathwingDragonflightCameraLockResume_Func");
+    TriggerEnable(libHDEA_gt_HeroDeathwingDragonflightCameraLockResume, false);
+    TriggerAddEventUnitBehaviorChange(libHDEA_gt_HeroDeathwingDragonflightCameraLockResume, null, "DeathwingDragonflightBuff", c_unitBehaviorChangeDeactivate);
+}
+
+//--------------------------------------------------------------------------------------------------
+// Trigger: Hero - Deathwing - Dragonflight - Damage Taken Cooldown Modifier
+//--------------------------------------------------------------------------------------------------
+bool libHDEA_gt_HeroDeathwingDragonflightDamageTakenCooldownModifier_Func (bool testConds, bool runActions) {
+    // Variable Declarations
+    unit lv_deathwing;
+
+    // Automatic Variable Declarations
+    // Variable Initialization
+    lv_deathwing = EventUnit();
+
+    // Conditions
+    if (testConds) {
+        if (!(((UnitGetType(lv_deathwing) == "HeroDeathwing") && (UnitOrder(lv_deathwing, 0) != Order(AbilityCommand("DeathwingDragonflight", 0))) && (CatalogFieldValueGet(c_gameCatalogEffect, EventUnitDamageEffect(), "Flags[" + IntToString(20) + "]", c_playerAny) == "0")))) {
+            return false;
+        }
+    }
+
+    // Actions
+    if (!runActions) {
+        return true;
+    }
+
+    UnitCreateEffectUnit(lv_deathwing, "DeathwingDragonflightSetCooldown", lv_deathwing);
+    return true;
+}
+
+//--------------------------------------------------------------------------------------------------
+void libHDEA_gt_HeroDeathwingDragonflightDamageTakenCooldownModifier_Init () {
+    libHDEA_gt_HeroDeathwingDragonflightDamageTakenCooldownModifier = TriggerCreate("libHDEA_gt_HeroDeathwingDragonflightDamageTakenCooldownModifier_Func");
+    TriggerEnable(libHDEA_gt_HeroDeathwingDragonflightDamageTakenCooldownModifier, false);
+    TriggerAddEventUnitDamaged(libHDEA_gt_HeroDeathwingDragonflightDamageTakenCooldownModifier, null, c_unitDamageTypeAny, c_unitDamageEither, null);
+}
+
+//--------------------------------------------------------------------------------------------------
+// Trigger: Hero - Deathwing - Elementium Plating Shield Strength
+//--------------------------------------------------------------------------------------------------
+bool libHDEA_gt_HeroDeathwingElementiumPlatingShieldStrength_Func (bool testConds, bool runActions) {
+    // Variable Declarations
+    unit lv_caster;
+    int lv_casterPlayer;
+    fixed lv_casterMissingHealth;
+    fixed lv_shieldFraction;
+    fixed lv_shieldValue;
+
+    // Automatic Variable Declarations
+    // Variable Initialization
+    lv_caster = EventPlayerEffectUsedUnit(c_effectUnitCaster);
+    lv_casterPlayer = UnitGetOwner(lv_caster);
+    lv_casterMissingHealth = (UnitGetPropertyFixed(lv_caster, c_unitPropLifeMax, c_unitPropCurrent) - UnitGetPropertyFixed(lv_caster, c_unitPropLife, c_unitPropCurrent));
+    lv_shieldFraction = CatalogFieldValueGetAsFixed(c_gameCatalogEffect, "DeathwingElementiumPlatingMissingHealthRatioDummy", "XP", c_playerAny);
+    lv_shieldValue = (lv_casterMissingHealth * lv_shieldFraction);
+
+    // Conditions
+    if (testConds) {
+        if (!((lv_casterMissingHealth > 0.0))) {
+            return false;
+        }
+    }
+
+    // Actions
+    if (!runActions) {
+        return true;
+    }
+
+    CatalogFieldValueSetFixed(c_gameCatalogBehavior, "DeathwingElementiumPlatingShield", "DamageResponse.ModifyLimit", lv_casterPlayer, lv_shieldValue);
+    UnitCreateEffectUnit(lv_caster, "DeathwingElementiumPlatingShieldApply", lv_caster);
+    return true;
+}
+
+//--------------------------------------------------------------------------------------------------
+void libHDEA_gt_HeroDeathwingElementiumPlatingShieldStrength_Init () {
+    libHDEA_gt_HeroDeathwingElementiumPlatingShieldStrength = TriggerCreate("libHDEA_gt_HeroDeathwingElementiumPlatingShieldStrength_Func");
+    TriggerEnable(libHDEA_gt_HeroDeathwingElementiumPlatingShieldStrength, false);
+    TriggerAddEventPlayerEffectUsed(libHDEA_gt_HeroDeathwingElementiumPlatingShieldStrength, c_playerAny, "DeathwingElementiumPlatingInitialSet");
+}
+
+//--------------------------------------------------------------------------------------------------
+// Trigger: Hero - Deathwing - Burn Beneath My Shadow - Fort Or Keep Dies
+//--------------------------------------------------------------------------------------------------
+bool libHDEA_gt_HeroDeathwingBurnBeneathMyShadowFortOrKeepDies_Func (bool testConds, bool runActions) {
+    // Variable Declarations
+    unit lv_dyingStructureUnit;
+    int lv_victimTeam;
+    int lv_structureType;
+    int lv_itPlayer;
+    unit lv_itUnit;
+    int lv_killingTeam;
+
+    // Automatic Variable Declarations
+    playergroup auto04166922_g;
+
+    // Variable Initialization
+    lv_dyingStructureUnit = EventUnit();
+    lv_structureType = libGame_ge_TownStructureTypes_None;
+
+    // Conditions
+    if (testConds) {
+        if (!((UnitTypeTestAttribute(UnitGetType(lv_dyingStructureUnit), c_unitAttributeStructure) == true))) {
+            return false;
+        }
+
+        if (!((UnitTypeTestAttribute(UnitGetType(lv_dyingStructureUnit), c_unitAttributeSummoned) == false))) {
+            return false;
+        }
+
+        if (!((libGame_gv_gameOver == false))) {
+            return false;
+        }
+    }
+
+    // Actions
+    if (!runActions) {
+        return true;
+    }
+
+    lv_structureType = libGame_gf_TownGetTownStructurePresetFromUnit(lv_dyingStructureUnit);
+    lv_victimTeam = libGame_gf_TeamNumberOfPlayer(UnitGetOwner(lv_dyingStructureUnit));
+    lv_killingTeam = libGame_gf_EnemyTeam(lv_victimTeam);
+    auto04166922_g = libGame_gv_teams[libGame_gf_EnemyTeam(lv_victimTeam)].lv_teamPlayerGroup;
+    lv_itPlayer = -1;
+    while (true) {
+        	lv_itPlayer = PlayerGroupNextPlayer(auto04166922_g, lv_itPlayer);
+        	if (lv_itPlayer<0) { break; }
+        	if (((lv_structureType == libGame_ge_TownStructureTypes_TownHall) && ((UnitGetType(libGame_gv_players[lv_itPlayer].lv_heroUnit) == "HeroDeathwing") || (UnitGetType(libGame_gv_players[lv_itPlayer].lv_heroUnit) == "DeathwingDragonflightUnit")) && (PlayerHasTalent(lv_itPlayer, "DeathwingBurnBeneathMyShadow") == true))) {
+            lv_itUnit = libGame_gv_players[lv_itPlayer].lv_heroUnit;
+            UnitCreateEffectUnit(lv_itUnit, "DeathwingBurnBeneathMyShadowResetCataclysmCooldown", lv_itUnit);
+        }
+
+    }
+    return true;
+}
+
+//--------------------------------------------------------------------------------------------------
+void libHDEA_gt_HeroDeathwingBurnBeneathMyShadowFortOrKeepDies_Init () {
+    libHDEA_gt_HeroDeathwingBurnBeneathMyShadowFortOrKeepDies = TriggerCreate("libHDEA_gt_HeroDeathwingBurnBeneathMyShadowFortOrKeepDies_Func");
+    TriggerEnable(libHDEA_gt_HeroDeathwingBurnBeneathMyShadowFortOrKeepDies, false);
+    TriggerAddEventUnitDied(libHDEA_gt_HeroDeathwingBurnBeneathMyShadowFortOrKeepDies, null);
+}
+
+//--------------------------------------------------------------------------------------------------
+// Trigger: Hero - Deathwing - Conflagration - Remove Tracked Damage
+//--------------------------------------------------------------------------------------------------
+bool libHDEA_gt_HeroDeathwingConflagrationRemoveTrackedDamage_Func (bool testConds, bool runActions) {
+    // Variable Declarations
+    unit lv_unit;
+    int lv_player;
+
+    // Automatic Variable Declarations
+    // Variable Initialization
+    lv_unit = EventUnit();
+    lv_player = UnitGetOwner(lv_unit);
+
+    // Conditions
+    if (testConds) {
+        if (!((lv_player > 0))) {
+            return false;
+        }
+
+        if (!((lv_player <= libCore_gv_bALMaxPlayers))) {
+            return false;
+        }
+    }
+
+    // Actions
+    if (!runActions) {
+        return true;
+    }
+
+    UnitSetCustomValue(lv_unit, 48, 0.0);
+    return true;
+}
+
+//--------------------------------------------------------------------------------------------------
+void libHDEA_gt_HeroDeathwingConflagrationRemoveTrackedDamage_Init () {
+    libHDEA_gt_HeroDeathwingConflagrationRemoveTrackedDamage = TriggerCreate("libHDEA_gt_HeroDeathwingConflagrationRemoveTrackedDamage_Func");
+    TriggerEnable(libHDEA_gt_HeroDeathwingConflagrationRemoveTrackedDamage, false);
+    TriggerAddEventUnitBehaviorChange(libHDEA_gt_HeroDeathwingConflagrationRemoveTrackedDamage, null, "DeathwingConflagrationTracker", c_unitBehaviorChangeDestroy);
+}
+
+//--------------------------------------------------------------------------------------------------
+// Trigger: Hero - Deathwing - Conflagration - Unit Takes Damage
+//--------------------------------------------------------------------------------------------------
+bool libHDEA_gt_HeroDeathwingConflagrationUnitTakesDamage_Func (bool testConds, bool runActions) {
+    // Variable Declarations
+    fixed lv_damageAmount;
+    unit lv_attackingUnit;
+    int lv_attackingOwner;
+    unit lv_victimUnit;
+    int lv_victimOwner;
+    fixed lv_conflagrationRequiredDamageAmount;
+
+    // Automatic Variable Declarations
+    // Variable Initialization
+    lv_damageAmount = EventUnitDamageAbsorbed();
+    lv_attackingUnit = EventUnitDamageSourceUnit();
+    lv_attackingOwner = UnitGetOwner(EventUnitDamageSourceUnit());
+    lv_victimUnit = EventUnit();
+    lv_victimOwner = UnitGetOwner(lv_victimUnit);
+    lv_conflagrationRequiredDamageAmount = CatalogFieldValueGetAsFixed(c_gameCatalogEffect, "DeathwingConflagrationRequiredDamage", "Amount", lv_attackingOwner);
+
+    // Conditions
+    if (testConds) {
+        if (!((UnitGetOwner(lv_victimUnit) > 0))) {
+            return false;
+        }
+
+        if (!((UnitGetOwner(lv_victimUnit) <= libCore_gv_bALMaxPlayers))) {
+            return false;
+        }
+
+        if (!(((UnitGetType(lv_attackingUnit) == "HeroDeathwing") && (UnitHasBehavior2(lv_victimUnit, "DeathwingConflagrationTracker") == true) && (UnitBehaviorEffectPlayer(lv_victimUnit, "DeathwingConflagrationTracker", c_effectPlayerCaster, 0) == UnitGetOwner(lv_attackingUnit))))) {
+            return false;
+        }
+    }
+
+    // Actions
+    if (!runActions) {
+        return true;
+    }
+
+    UnitSetCustomValue(lv_victimUnit, 48, (UnitGetCustomValue(lv_victimUnit, 48) + lv_damageAmount));
+    if ((UnitGetCustomValue(lv_victimUnit, 48) >= lv_conflagrationRequiredDamageAmount)) {
+        UnitBehaviorAdd(lv_victimUnit, "DeathwingConflagrationDoT", lv_attackingUnit, 1);
+        UnitSetCustomValue(lv_victimUnit, 48, 0.0);
+    }
+
+    return true;
+}
+
+//--------------------------------------------------------------------------------------------------
+void libHDEA_gt_HeroDeathwingConflagrationUnitTakesDamage_Init () {
+    libHDEA_gt_HeroDeathwingConflagrationUnitTakesDamage = TriggerCreate("libHDEA_gt_HeroDeathwingConflagrationUnitTakesDamage_Func");
+    TriggerEnable(libHDEA_gt_HeroDeathwingConflagrationUnitTakesDamage, false);
+    TriggerAddEventUnitDamaged(libHDEA_gt_HeroDeathwingConflagrationUnitTakesDamage, null, c_unitDamageTypeAny, c_unitDamageEither, "DeathwingMoltenFlameDamage");
+}
+
+//--------------------------------------------------------------------------------------------------
+// Trigger: Hero - Deathwing - Firestorm - Deathwing Landed
+//--------------------------------------------------------------------------------------------------
+bool libHDEA_gt_HeroDeathwingFirestormDeathwingLanded_Func (bool testConds, bool runActions) {
+    // Variable Declarations
+    point lv_landingLocation;
+    int lv_owner;
+    unit lv_caster;
+
+    // Automatic Variable Declarations
+    // Variable Initialization
+    lv_landingLocation = EventPlayerEffectUsedPoint(c_effectLocationTargetPoint);
+    lv_owner = EventPlayerEffectUsedUnitOwner(c_effectPlayerCaster);
+    lv_caster = EventPlayerEffectUsedUnit(c_effectUnitCaster);
+
+    // Conditions
+    if (testConds) {
+        if (!(((PlayerHasTalent(lv_owner, "DeathwingFirestorm") == true) || (PlayerHasTalent(lv_owner, "DeathwingArrivalOfAGod") == true)))) {
+            return false;
+        }
+    }
+
+    // Actions
+    if (!runActions) {
+        return true;
+    }
+
+    Wait(1.0, c_timeGame);
+    libHDEA_gf_HeroDeathwingFirestormGenerateFirestormatLocation(lv_landingLocation, lv_owner, lv_caster);
+    return true;
+}
+
+//--------------------------------------------------------------------------------------------------
+void libHDEA_gt_HeroDeathwingFirestormDeathwingLanded_Init () {
+    libHDEA_gt_HeroDeathwingFirestormDeathwingLanded = TriggerCreate("libHDEA_gt_HeroDeathwingFirestormDeathwingLanded_Func");
+    TriggerEnable(libHDEA_gt_HeroDeathwingFirestormDeathwingLanded, false);
+    TriggerAddEventPlayerEffectUsed(libHDEA_gt_HeroDeathwingFirestormDeathwingLanded, c_playerAny, "DeathwingDragonflightTeleport");
+}
+
+void libHDEA_InitTriggers () {
+    libHDEA_gt_HeroDeathwingRespawn_Init();
+    libHDEA_gt_HeroDeathwingDragonflightPeriodicRoar_Init();
+    libHDEA_gt_HeroDeathwingDragonflightModifyFacing_Init();
+    libHDEA_gt_HeroDeathwingDragonflightOverlayOn_Init();
+    libHDEA_gt_HeroDeathwingDragonflightOverlayOff_Init();
+    libHDEA_gt_HeroDeathwingDragonflightCameraLockInterrupt_Init();
+    libHDEA_gt_HeroDeathwingDragonflightCameraLockResume_Init();
+    libHDEA_gt_HeroDeathwingDragonflightDamageTakenCooldownModifier_Init();
+    libHDEA_gt_HeroDeathwingElementiumPlatingShieldStrength_Init();
+    libHDEA_gt_HeroDeathwingBurnBeneathMyShadowFortOrKeepDies_Init();
+    libHDEA_gt_HeroDeathwingConflagrationRemoveTrackedDamage_Init();
+    libHDEA_gt_HeroDeathwingConflagrationUnitTakesDamage_Init();
+    libHDEA_gt_HeroDeathwingFirestormDeathwingLanded_Init();
+}
+
+//--------------------------------------------------------------------------------------------------
+// Library Initialization
+//--------------------------------------------------------------------------------------------------
+bool libHDEA_InitLib_completed = false;
+
+void libHDEA_InitLib () {
+    if (libHDEA_InitLib_completed) {
+        return;
+    }
+
+    libHDEA_InitLib_completed = true;
+
+    libHDEA_InitLibraries();
+    libHDEA_InitVariables();
+    libHDEA_InitTriggers();
+}
+

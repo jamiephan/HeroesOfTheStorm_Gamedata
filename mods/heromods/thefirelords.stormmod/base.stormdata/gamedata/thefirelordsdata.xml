@@ -1498,7 +1498,8 @@
   </CBehaviorBuff>
   <CBehaviorBuff id="RagnarosBlastWaveTemperedFlame" parent="StormShield">
     <Duration value="3" />
-    <DamageResponse SuppressFloatersCausedByBehavior="1" />
+    <DamageResponse ModifyLimit="2075" SuppressModifyLimitOnCreation="1" />
+    <Face value="RagnarosBlastWaveTemperedFlame" />
   </CBehaviorBuff>
   <CBehaviorBuff id="RagnarosBlastWave" parent="StormSprint">
     <InfoFlags index="AlwaysUseGameText" value="1" />
@@ -2028,6 +2029,24 @@
   <CButton id="RagnarosLivingMeteorMeteorBomb" parent="StormButtonParent">
     <Icon value="Assets\Textures\storm_ui_icon_ragnaros_livingmeteor.dds" />
   </CButton>
+  <CEffectSet id="ExperienceGlobeSearchSet">
+    <EffectArray value="RagnarosExperienceGlobePickupSearchLavaWave" />
+  </CEffectSet>
+  <CEffectSet id="RagnarosExperienceGlobePickupSetLavaWave">
+    <ValidatorArray value="RagnarosTargetIsLavaWaveLaneUnit" />
+    <EffectArray value="HeroGenericExperienceGlobeTimedLifeInitialRemoveSourceBehavior" />
+    <EffectArray value="ExperienceGlobeLaunchMissile" />
+    <EffectArray value="StormSuicide" />
+  </CEffectSet>
+  <CEffectEnumArea id="RagnarosExperienceGlobePickupSearchLavaWave">
+    <SearchFilters value="-;Player,Neutral,Enemy,Stasis,Dead" />
+    <TargetSorts RequestCount="1" RequestPercentage="1">
+      <SortArray value="TSDistance" />
+    </TargetSorts>
+    <AreaArray MaxCount="1" Effect="RagnarosExperienceGlobePickupSetLavaWave">
+      <Radius value="6" />
+    </AreaArray>
+  </CEffectEnumArea>
   <CEffectSet id="MoltenCoreDurationInitialSet">
     <EffectArray value="RagnarosMoltenCoreApplyCasterStasisBehavior" />
     <EffectArray value="RagnarosBigRagLavaWaveModifyCost" />
@@ -2587,6 +2606,9 @@
   </CEffectSwitch>
   <CEffectDamage id="RagnarosBlastWaveDamage" parent="StormSpell">
     <Amount value="104" />
+    <LeechValidator index="Shields" value="RagnarosTargetIsHeroAndHasTemperedFlameTalent" />
+    <LeechFraction index="Shields" value="1" />
+    <LeechShieldsTargetBehaviorBuff value="RagnarosBlastWaveTemperedFlame" />
   </CEffectDamage>
   <CEffectSet id="RagnarosBlastWaveImpactSet">
     <EffectArray value="ApplyAbilityImpactReveal" />
@@ -3233,6 +3255,13 @@
         <AffectedByAbilityPower value="1" />
         <AffectedByOverdrive value="1" />
       </Modifications>
+      <Modifications>
+        <Catalog value="Behavior" />
+        <Entry value="RagnarosBlastWaveTemperedFlame" />
+        <Field value="DamageResponse.ModifyLimit" />
+        <Value value="0.040000" />
+        <AffectedByOverdrive value="1" />
+      </Modifications>
     </LevelScalingArray>
     <LevelScalingArray Ability="RagnarosSulfurasSmash">
       <Modifications>
@@ -3407,6 +3436,14 @@
     <Rarity value="Epic" />
     <ExpandedRole value="Bruiser" />
   </CHero>
+  <CHeroMastery id="RagnarosMasteryRing1" parent="MasteryRingRank1">
+    <ProductId value="66949" />
+    <HyperlinkId value="RagnarosMasteryRingRank1" />
+  </CHeroMastery>
+  <CHeroMastery id="RagnarosMasteryRing2" parent="MasteryRingRank2">
+    <ProductId value="67085" />
+    <HyperlinkId value="RagnarosMasteryRingRank2" />
+  </CHeroMastery>
   <CMoverAvoid id="RagnarosLavaWaveMover" parent="Ground">
     <HeightMap value="Air" />
     <PathMode value="Digger" />
@@ -3536,6 +3573,12 @@
     <IconSlot value="6" />
     <Hero value="Ragnaros" />
   </CRewardPortrait>
+  <CRewardHeroMastery id="RagnarosMasteryRing1">
+    <License value="49902" />
+  </CRewardHeroMastery>
+  <CRewardHeroMastery id="RagnarosMasteryRing2">
+    <License value="49898" />
+  </CRewardHeroMastery>
   <CShapeArc id="RagnarosBlastWaveVisibilityShape">
     <Arc value="360" />
     <Radius value="3.75" />
@@ -4094,6 +4137,14 @@
   <CValidatorCombine id="AbilBarHealthBarPortraitGlow">
     <CombineArray value="RagnarosMoltenCoreDuration" />
   </CValidatorCombine>
+  <CValidatorCombine id="RagnarosTargetIsHeroAndHasTemperedFlameTalent">
+    <Type value="And" />
+    <CombineArray value="TargetIsHero" />
+    <CombineArray value="RagnarosHasBlastWaveTemperedFlame" />
+  </CValidatorCombine>
+  <CValidatorUnitType id="RagnarosTargetIsLavaWaveLaneUnit">
+    <Value value="RagnarosLavaWaveLaneUnit" />
+  </CValidatorUnitType>
   <CValidatorUnitCompareBehaviorCount id="RagnarosCasterDoesNotHaveBlisteringAttacksCooldown">
     <WhichUnit Value="Caster" />
     <Behavior value="RagnarosBlisteringAttacksCooldown" />
@@ -4477,18 +4528,4 @@
     <Effect value="RagnarosWeaponImpactSet" />
     <Period value="1.2" />
   </CWeaponLegacy>
-  <CHeroMastery id="RagnarosMasteryRing1" parent="MasteryRingRank1">
-    <ProductId value="66949" />
-    <HyperlinkId value="RagnarosMasteryRingRank1" />
-  </CHeroMastery>
-  <CHeroMastery id="RagnarosMasteryRing2" parent="MasteryRingRank2">
-    <ProductId value="67085" />
-    <HyperlinkId value="RagnarosMasteryRingRank2" />
-  </CHeroMastery>
-  <CRewardHeroMastery id="RagnarosMasteryRing1">
-    <License value="49902" />
-  </CRewardHeroMastery>
-  <CRewardHeroMastery id="RagnarosMasteryRing2">
-    <License value="49898" />
-  </CRewardHeroMastery>
 </Catalog>

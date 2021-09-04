@@ -480,6 +480,7 @@
     <Macros value="StormStunMacro" />
     <Macros value="StormDamageReductionMacro" />
     <Macros value="StormAnimAdditionDestructionMacro" />
+    <Macros value="MountCabooseMacro" />
     <On Terms="UnitDetectedByViewer.*.On; ValidateUnit IsMirrorImage" Target="_MirrorImageTinter" Send="Signal MirrorImageTintOn" />
     <On Terms="UnitDetectedByViewer.*.Off; ValidateUnit IsMirrorImage" Target="_MirrorImageTinter" Send="Signal MirrorImageTintOff" />
     <On Terms="UnitBirth.##unitName##" Send="Create PropsHost" />
@@ -1278,6 +1279,55 @@
     <Aliases value="_DeathMaterial" />
     <MaterialType value="Replacement" />
   </CActorModelMaterial>
+  <CActorEventMacro id="MountCabooseMacro">
+    <On Terms="Behavior.MountCaboose.On; AnimPlaying Fidget" Send="AnimClear Fidget" />
+    <On Terms="Behavior.MountCaboose.On" Send="StatusSet Mounted 1" />
+    <On Terms="Behavior.MountCaboose.On" Send="AnimGroupRemove Ready Instant" />
+    <On Terms="Signal.*.MountCreatedConfirmation; !HasStatus HearthScaling" Send="PhysicsInitialize" />
+    <On Terms="Signal.*.MountCreatedConfirmation" Send="SourceWalkAnimMoveSpeedFrom _Mount" />
+    <On Terms="Signal.*.MountCreatedConfirmation" Target="_Mount" Send="AnimHookSet HookedBaseline _Unit ::Baseline" />
+    <On Terms="Behavior.MountCaboose.Off" Target="_Mount" Send="AnimHookClear HookedBaseline" />
+    <On Terms="Behavior.MountCaboose.Off" Send="SourceWalkAnimMoveSpeedFrom" />
+    <On Terms="UnitMovementUpdate.*.Stand" Target="MountMovingSound" Send="SoundSetMuted 1" />
+    <On Terms="UnitMovementUpdate.*.Walk" Target="MountMovingSound" Send="SoundSetMuted" />
+    <On Terms="UnitMovementUpdate.*.Stand" Target="MountStationarySound" Send="SoundSetMuted" />
+    <On Terms="UnitMovementUpdate.*.Walk" Target="MountStationarySound" Send="SoundSetMuted 1" />
+    <On Terms="Behavior.MountCaboose.Off" Target="MountLoopingSound" Send="Destroy Immediate" />
+    <On Terms="Behavior.MountCaboose.Off" Target="MountMovingSound" Send="Destroy Immediate" />
+    <On Terms="Behavior.MountCaboose.Off" Target="MountStationarySound" Send="Destroy Immediate" />
+    <On Terms="Behavior.MountCaboose.Off" Target="MountStartMovingSound" Send="Destroy Immediate" />
+    <On Terms="Behavior.MountCaboose.Off" Target="MountStopMovingSound" Send="Destroy Immediate" />
+    <On Terms="Behavior.MountCaboose.Off" Target="MountTurboSound" Send="Destroy Immediate" />
+    <On Terms="Behavior.MountCaboose.Off" Send="StatusSet Mounted 0" />
+    <On Terms="Behavior.MountCaboose.Off" Send="RefClear ::Host" />
+    <On Terms="Behavior.MountCaboose.Off" Send="HostSiteOpsSet ::Host SOpBasicScopeFollow" />
+    <On Terms="UnitMovementUpdate.*.Walk; HasStatus Mounted" Send="Create MountStartMovingSound" />
+    <On Terms="UnitMovementUpdate.*.Walk; HasStatus Mounted" Target="MountStopMovingSound" Send="Destroy" />
+    <On Terms="UnitMovementUpdate.*.Walk; HasStatus Mounted; ValidateUnit MountWalkStartDistanceCheck" Send="Create MountTurboSound" />
+    <On Terms="UnitMovementUpdate.*.Stand; HasStatus Mounted" Target="MountTurboSound" Send="Destroy" />
+    <On Terms="UnitMovementUpdate.*.Stand; HasStatus Mounted" Send="Create MountStopMovingSound" />
+    <On Terms="UnitMovementUpdate.*.Stand; HasStatus Mounted" Target="MountStartMovingSound" Send="Destroy" />
+    <On Terms="UnitMovementUpdate.*.Walk; HasStatus Mounted; ValidateUnit MountWalkStartDistanceCheck" Target="_Mount" Send="Signal WalkStart" />
+    <On Terms="UnitMovementUpdate.*.Stand; HasStatus Mounted" Target="_Mount" Send="Signal WalkStartStop" />
+    <On Terms="UnitMovementUpdate.*.Walk" Target="_Mount" Send="MessageForward" />
+    <On Terms="UnitMovementUpdate.*.Stand" Target="_Mount" Send="MessageForward" />
+  </CActorEventMacro>
+  <CActorUnit id="ExperienceGlobeHostL2Tower" parent="GenericUnitMinimal" unitName="ExperienceGlobeL2Tower">
+    <On Terms="ActorCreation" Send="Create ExperienceGlobeAlly" />
+    <On Terms="ActorCreation" Send="Create ExperienceGlobeEnemy" />
+    <On Terms="UnitDeath" Target="ExperienceGlobeEnemy" Send="Signal Death" />
+    <On Terms="UnitDeath" Target="ExperienceGlobeAlly" Send="Signal Death" />
+    <HostSiteOps Ops="SOpMoveUpBy1Dot5" />
+    <Model value="Invisible" />
+  </CActorUnit>
+  <CActorUnit id="ExperienceGlobeHostL3Tower" parent="GenericUnitMinimal" unitName="ExperienceGlobeL3Tower">
+    <On Terms="ActorCreation" Send="Create ExperienceGlobeAlly" />
+    <On Terms="ActorCreation" Send="Create ExperienceGlobeEnemy" />
+    <On Terms="UnitDeath" Target="ExperienceGlobeEnemy" Send="Signal Death" />
+    <On Terms="UnitDeath" Target="ExperienceGlobeAlly" Send="Signal Death" />
+    <HostSiteOps Ops="SOpMoveUpBy1Dot5" />
+    <Model value="Invisible" />
+  </CActorUnit>
   <CActorSound id="GPU2020EventVoX2" parent="SoundOneShot">
     <Filter index="Ally" value="1" />
     <Filter index="Neutral" value="1" />
@@ -1291,6 +1341,34 @@
     <On Terms="Signal.*.MasteryRingCreation; ValidatePlayer HasHeroRingMastery0Upgrade" Target="Storm_HeroRing_Mastery1" Send="Destroy" />
     <On Terms="Signal.*.MasteryRingCreation; ValidatePlayer HasHeroRingMastery0Upgrade" Target="Storm_HeroRing_Mastery2" Send="Destroy" />
   </CActorEventMacro>
+  <CActorSiteOpLocalOffset id="SOpMoveUpBy1Dot5">
+    <LocalOffset Z="1.500000" />
+  </CActorSiteOpLocalOffset>
+  <CActorModel id="ExperienceGlobeGlow" parent="ModelAddition">
+    <Filter index="All" value="1" />
+    <VisibleTo index="Ally" value="1" />
+    <Inherits index="Opacity" value="0" />
+    <On Terms="Behavior.ExperienceGlobeSearch.Create" Send="Create" />
+    <On Terms="ActorCreation" Send="SetTintColor 215,53,255" />
+    <On Terms="Behavior.ExperienceGlobeSearch.Off" Send="AnimBracketStop BSD" />
+  </CActorModel>
+  <CActorSound id="ExperienceGlobePickupSound" parent="SoundOneShot">
+    <Filter index="All" value="1" />
+    <VisibleToAtCreation index="Target" value="1" />
+    <On Terms="Effect.ExperienceGlobeLaunchMissile.Start; At Caster" Send="Create" />
+    <Sound value="ExperienceGlobePickup" />
+  </CActorSound>
+  <CActorModel id="ExperienceGlobeMissileImpact" parent="StormModelAnimationStyleOneShotUnit">
+    <On Terms="Effect.ExperienceGlobeTowerSpawnDummyImpactSwitch.Start; At Target" Send="Create" />
+    <On Terms="ActorCreation" Send="SetTintColor 215,53,255" />
+    <HostSiteOps Ops="SOpAttachCenter" />
+    <Scale value="0.200000" />
+  </CActorModel>
+  <CActorSound id="ExperienceGlobeMissileImpactSound" parent="SoundOneShot">
+    <Filter index="All" value="1" />
+    <VisibleToAtCreation index="Target" value="1" />
+    <On Terms="Effect.ExperienceGlobeTowerSpawnDummyImpactSwitch.Start; At Caster" Send="Create" />
+  </CActorSound>
   <CActorSound id="MercLanerSiegeGiantBirthSound" parent="SoundOneShot">
     <Sound value="Merc_SiegeTroll_Laner_Birth_Vox" />
   </CActorSound>
@@ -1318,6 +1396,39 @@
       <VolumeSource value="Actor" />
     </Layers>
   </CActorSound>
+  <CActorModel id="ExperienceGlobePickup" parent="StormModelAnimationStyleOneShotUnit">
+    <On Terms="Effect.ExperienceGlobeLaunchMissile.Start; At Caster" Send="Create" />
+    <HostSiteOps Ops="SOpAttachOriginStationary" HoldPosition="1" HoldRotation="1" />
+    <Model value="WizardTeleportCalamityExplosion" />
+    <Scale value="0.200000" />
+  </CActorModel>
+  <CActorUnit id="ExperienceGlobeHost" parent="GenericUnitMinimal" unitName="ExperienceGlobeMinion">
+    <On Terms="ActorCreation" Send="Create ExperienceGlobeAlly" />
+    <On Terms="ActorCreation" Send="Create ExperienceGlobeEnemy" />
+    <On Terms="UnitDeath" Target="ExperienceGlobeEnemy" Send="Signal Death" />
+    <On Terms="UnitDeath" Target="ExperienceGlobeAlly" Send="Signal Death" />
+    <Model value="Invisible" />
+    <HostSiteOps Ops="SOpMoveUpBy1Dot5" />
+  </CActorUnit>
+  <CActorModel id="ExperienceGlobeEnemy" parent="StormModelAnimationStyleContinuous">
+    <Filter index="All" value="1" />
+    <VisibleTo index="Enemy" value="1" />
+    <FogVisibility value="Visible" />
+    <Remove Terms="ActorOrphan" Send="Destroy" />
+    <On Terms="ActorCreation" Send="SetTintColor 46,46,46" />
+    <On Terms="Signal.*.Death" Send="AnimPlay Death Death 0 0.001000 0.001000 1.000000 AsTimeScale 0.000000 500" />
+    <On Terms="AnimDone; AnimName Death" Send="Destroy Immediate" />
+    <Host Subject="_Unit" />
+  </CActorModel>
+  <CActorModel id="ExperienceGlobeAlly" parent="StormModelAnimationStyleContinuous">
+    <Filter index="All" value="1" />
+    <VisibleTo index="Self" value="1" />
+    <VisibleTo index="Ally" value="1" />
+    <Remove Terms="ActorOrphan" Send="Destroy" />
+    <On Terms="Signal.*.Death" Send="AnimPlay Death Death 0 0.001000 0.001000 1.000000 AsTimeScale 0.000000 500" />
+    <On Terms="AnimDone; AnimName Death" Send="Destroy Immediate" />
+    <Host Subject="_Unit" />
+  </CActorModel>
   <CActorOverrides id="StormHeroBaseAnimOverrides">
     <ActorOverrides>
       <Actor value="AnimOverrideReceiverStand" />
@@ -4398,6 +4509,8 @@
   <CActorSound id="MountSummonChannelSound" parent="SoundContinuous">
     <On Terms="Abil.Mount.SourceCastStart" Send="Create" />
     <On Terms="Abil.Mount.SourceCastStop" Send="Destroy" />
+    <On Terms="Abil.MountCabooseSmartCommandUnitInteraction.SourceCastStart" Send="Create" />
+    <On Terms="Abil.MountCabooseSmartCommandUnitInteraction.SourceCastStop" Send="Destroy" />
     <Sound value="Mount_Generic_Player_Activate_Loop" />
   </CActorSound>
   <CActorSound id="GenericMountChannelFinish" parent="SoundOneShot">
@@ -4406,6 +4519,7 @@
   </CActorSound>
   <CActorSound id="GenericMountChannelStart" parent="SoundOneShot">
     <On Terms="Abil.Mount.SourceCastStart" Send="Create" />
+    <On Terms="Abil.MountCabooseSmartCommandUnitInteraction.SourceCastStart" Send="Create" />
     <Sound value="Mount_Generic_Player_Activate_Start" />
   </CActorSound>
   <CActorSound id="GenericDismountedSound" parent="SoundOneShot">
@@ -5926,6 +6040,8 @@
     <On Terms="AnimPlay; AnimName Channel" Send="AnimClear Spell" />
     <On Terms="Abil.Mount.SourceCastStart; ValidateUnit CasterNoSiegeMode" Send="AnimPlay Channel Channel,Mount PlayForever -1.000000 -1.000000 1.000000 AsTimeScale" />
     <On Terms="Abil.Mount.SourceCastStop" Send="AnimClear Channel 0.000000" />
+    <On Terms="Abil.MountCabooseSmartCommandUnitInteraction.SourceCastStart; ValidateUnit CasterNoSiegeMode" Send="AnimPlay Channel Channel,Mount PlayForever -1.000000 -1.000000 1.000000 AsTimeScale" />
+    <On Terms="Abil.MountCabooseSmartCommandUnitInteraction.SourceCastStop" Send="AnimClear Channel 0.000000" />
     <On Terms="Abil.UseVehicle.SourceChannelStart" Send="AnimPlay Channel Channel,Interact PlayForever -1.000000 -1.000000 1.000000 AsTimeScale" />
     <On Terms="Abil.UseVehicle.SourceChannelStop" Send="AnimClear Channel 0.000000" />
     <On Terms="Behavior.Mounted.On" Send="AnimClear Channel 0.000000" />
@@ -6025,6 +6141,7 @@
     <On Terms="AnimPlay; AnimName SpellWalk" Send="Signal ApplyReady" />
     <On Terms="AnimBracketStop; AnimName WorkSpell" Send="Signal ApplyReady" />
     <On Terms="Abil.Mount.SourceCastStart" Send="Signal ClearReadyState" />
+    <On Terms="Abil.MountCabooseSmartCommandUnitInteraction.SourceCastStart" Send="Signal ClearReadyState" />
     <On Terms="Abil.Hearthstone.SourceCastStart" Send="Signal ClearReadyState" />
     <On Terms="Signal.*.ApplyReady" Send="AnimGroupApply Ready" />
     <On Terms="Signal.*.ApplyReady" Send="AnimClear Ready" />
@@ -6054,6 +6171,7 @@
     <Remove Terms="AnimPlay; AnimName SpellWalk" Send="Signal ApplyReady" />
     <Remove Terms="AnimBracketStop; AnimName WorkSpell" Send="Signal ApplyReady" />
     <Remove Terms="Abil.Mount.SourceCastStart" Send="Signal ClearReadyState" />
+    <Remove Terms="Abil.MountCabooseSmartCommandUnitInteraction.SourceCastStart" Send="Signal ClearReadyState" />
     <Remove Terms="Abil.Hearthstone.SourceCastStart" Send="Signal ClearReadyState" />
     <Remove Terms="Signal.*.ApplyReady" Send="AnimGroupApply Ready" />
     <Remove Terms="Signal.*.ApplyReady" Send="AnimClear Ready" />
@@ -6654,6 +6772,7 @@
     <On Terms="Signal.*.DecrementTint; !IsStatus PreTargetingTint 0" Send="StatusDecrement PreTargetingTint" />
     <Macros value="PreTargetHaloMacro" />
   </CActorModel>
+  <CActorModel id="MountCabooseActor" parent="MountModel" />
   <CActorModel id="MountSmokeScreen" parent="StormModelAnimationStyleOneShotUnit">
     <On Terms="ActorCreation; ScopeContains _CrimsonSimple" Send="ModelSwap ArthasSkinCountMountSmokeScreen" />
     <On Terms="ActorCreation; ScopeContains _CountessSimple" Send="ModelSwap MountSmokeScreenCountessKerrigan" />
@@ -6668,6 +6787,8 @@
   <CActorModel id="Storm_Effect_Mount_SummonChannel" parent="StormModelAddition">
     <On Terms="Abil.Mount.SourceCastStart" Send="Create" />
     <On Terms="Abil.Mount.SourceCastStop" Send="AnimBracketStop BSD" />
+    <On Terms="Abil.MountCabooseSmartCommandUnitInteraction.SourceCastStart" Send="Create" />
+    <On Terms="Abil.MountCabooseSmartCommandUnitInteraction.SourceCastStop" Send="AnimBracketStop BSD" />
     <HostSiteOps Ops="SOpAttachCenterStationary" />
     <FogVisibility value="Hidden" />
     <ModelFlags index="AllowHitTest" value="0" />
@@ -13708,6 +13829,20 @@
     <GroupSoundArray index="Yes" value="" />
     <GroupSoundArray index="Attack" value="" />
   </CActorUnit>
+  <CActorMissile id="ExperienceGlobeMissileUnit" parent="GenericAttackMissile" unitName="ExperienceGlobeMissile">
+    <On Terms="ActorCreation" Send="Create Diablo_BlackSoulstone_Missile_Loop" />
+    <On Terms="ActorDestruction" Send="DestroyParticles" />
+    <On Terms="ActorCreation" Send="SetTintColor {252,230,141 5.000000}" />
+    <On Terms="ActorCreation" Send="SetScale 0.500000" />
+    <On Terms="ActorCreation" Send="SetOpacity 0.500000" />
+  </CActorMissile>
+  <CActorAction id="ExperienceGlobeMissileLaunchMissileActionActor" parent="GenericAttackPointStorm" effectImpact="ExperienceGlobeTowerSpawnDummyImpactSwitch" effectLaunch="ExperienceGlobeLaunchMissile">
+    <LaunchSiteOps Ops="SOpMoveUpBy2" />
+    <Missile value="ExperienceGlobeMissileUnit" />
+    <ImpactSiteOps Ops="SOpAttachCenter" />
+    <ImpactAttachQuery Methods="AMFilterCenter" />
+    <ShieldFlashType value="None" />
+  </CActorAction>
   <CActorDoodad id="Storm_Doodad_CyberWorld_Ramp_Small">
     <RandomScaleRange value="1.000000,1.000000" />
     <Aliases value="_CreepEngulfable" />

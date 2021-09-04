@@ -30,7 +30,8 @@ void libHWHI_gf_HeroWhitemaneIncrementHeroCountFunction () {
     // Implementation
     libHWHI_gv_heroWhitemaneTriggerRegistrationVariable += 1;
     if ((libHWHI_gv_heroWhitemaneTriggerRegistrationVariable == 1)) {
-        TriggerEnable(libHWHI_gt_HeroWhitemaneZealDamageTracker, true);
+        TriggerEnable(libHWHI_gt_HeroWhitemaneZealAbilityDamageTracker, true);
+        TriggerEnable(libHWHI_gt_HeroWhitemaneZealBasicDamageTracker, true);
         TriggerEnable(libHWHI_gt_HeroWhitemaneZealCombinedHeal, true);
     }
 
@@ -45,7 +46,8 @@ void libHWHI_gf_HeroWhitemaneDecrementHeroCountFunction () {
     }
 
     if ((libHWHI_gv_heroWhitemaneTriggerRegistrationVariable == 0)) {
-        TriggerEnable(libHWHI_gt_HeroWhitemaneZealDamageTracker, false);
+        TriggerEnable(libHWHI_gt_HeroWhitemaneZealAbilityDamageTracker, false);
+        TriggerEnable(libHWHI_gt_HeroWhitemaneZealBasicDamageTracker, false);
         TriggerEnable(libHWHI_gt_HeroWhitemaneZealCombinedHeal, false);
     }
 
@@ -53,9 +55,9 @@ void libHWHI_gf_HeroWhitemaneDecrementHeroCountFunction () {
 
 // Triggers
 //--------------------------------------------------------------------------------------------------
-// Trigger: Hero - Whitemane - Zeal - Damage Tracker
+// Trigger: Hero - Whitemane - Zeal - Ability Damage Tracker
 //--------------------------------------------------------------------------------------------------
-bool libHWHI_gt_HeroWhitemaneZealDamageTracker_Func (bool testConds, bool runActions) {
+bool libHWHI_gt_HeroWhitemaneZealAbilityDamageTracker_Func (bool testConds, bool runActions) {
     // Variable Declarations
     fixed lv_damageAmount;
     unit lv_itUnit;
@@ -86,16 +88,67 @@ bool libHWHI_gt_HeroWhitemaneZealDamageTracker_Func (bool testConds, bool runAct
         return true;
     }
 
-    lv_damageAmount = (EventUnitDamageAmount() + EventUnitDamageBehaviorShield());
+    lv_damageAmount = EventUnitDamageAbsorbed();
     libHWHI_gv_heroWhitemaneZealCombinedHeal[lv_itPlayer] += lv_damageAmount;
     return true;
 }
 
 //--------------------------------------------------------------------------------------------------
-void libHWHI_gt_HeroWhitemaneZealDamageTracker_Init () {
-    libHWHI_gt_HeroWhitemaneZealDamageTracker = TriggerCreate("libHWHI_gt_HeroWhitemaneZealDamageTracker_Func");
-    TriggerEnable(libHWHI_gt_HeroWhitemaneZealDamageTracker, false);
-    TriggerAddDamageEvent(libHWHI_gt_HeroWhitemaneZealDamageTracker, "HeroWhitemane", null, c_unitDamageTypeAny, c_unitDamageEither, null);
+void libHWHI_gt_HeroWhitemaneZealAbilityDamageTracker_Init () {
+    libHWHI_gt_HeroWhitemaneZealAbilityDamageTracker = TriggerCreate("libHWHI_gt_HeroWhitemaneZealAbilityDamageTracker_Func");
+    TriggerEnable(libHWHI_gt_HeroWhitemaneZealAbilityDamageTracker, false);
+    TriggerAddDamageEvent(libHWHI_gt_HeroWhitemaneZealAbilityDamageTracker, "HeroWhitemane", null, c_unitDamageTypeAbility, c_unitDamageEither, null);
+}
+
+//--------------------------------------------------------------------------------------------------
+// Trigger: Hero - Whitemane - Zeal - Basic Damage Tracker
+//--------------------------------------------------------------------------------------------------
+bool libHWHI_gt_HeroWhitemaneZealBasicDamageTracker_Func (bool testConds, bool runActions) {
+    // Variable Declarations
+    fixed lv_damageAmount;
+    unit lv_itUnit;
+    int lv_itPlayer;
+
+    // Automatic Variable Declarations
+    // Variable Initialization
+    lv_itUnit = EventUnitDamageSourceUnit();
+    lv_itPlayer = UnitGetOwner(EventUnitDamageSourceUnit());
+
+    // Conditions
+    if (testConds) {
+        if (!((UnitTypeTestAttribute(UnitGetType(EventUnit()), c_unitAttributeHeroic) == true))) {
+            return false;
+        }
+
+        if (!((UnitBehaviorCount(lv_itUnit, "WhitemaneZealCasterBehavior") > 0))) {
+            return false;
+        }
+    }
+
+    // Actions
+    if (!runActions) {
+        return true;
+    }
+
+    if (((lv_itPlayer > libCore_gv_bALMaxPlayers) || (lv_itPlayer <= 0))) {
+        return true;
+    }
+
+    if ((PlayerHasTalent(lv_itPlayer, "WhitemaneSaintlyGreatstaff") == true)) {
+        lv_damageAmount = (EventUnitDamageAbsorbed() * 2.0);
+    }
+    else {
+        lv_damageAmount = EventUnitDamageAbsorbed();
+    }
+    libHWHI_gv_heroWhitemaneZealCombinedHeal[lv_itPlayer] += lv_damageAmount;
+    return true;
+}
+
+//--------------------------------------------------------------------------------------------------
+void libHWHI_gt_HeroWhitemaneZealBasicDamageTracker_Init () {
+    libHWHI_gt_HeroWhitemaneZealBasicDamageTracker = TriggerCreate("libHWHI_gt_HeroWhitemaneZealBasicDamageTracker_Func");
+    TriggerEnable(libHWHI_gt_HeroWhitemaneZealBasicDamageTracker, false);
+    TriggerAddDamageEvent(libHWHI_gt_HeroWhitemaneZealBasicDamageTracker, "HeroWhitemane", null, c_unitDamageTypeBasic, c_unitDamageEither, null);
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -141,7 +194,8 @@ void libHWHI_gt_HeroWhitemaneZealCombinedHeal_Init () {
 }
 
 void libHWHI_InitTriggers () {
-    libHWHI_gt_HeroWhitemaneZealDamageTracker_Init();
+    libHWHI_gt_HeroWhitemaneZealAbilityDamageTracker_Init();
+    libHWHI_gt_HeroWhitemaneZealBasicDamageTracker_Init();
     libHWHI_gt_HeroWhitemaneZealCombinedHeal_Init();
 }
 

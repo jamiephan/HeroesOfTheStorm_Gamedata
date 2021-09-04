@@ -8976,6 +8976,7 @@ void libGame_gf_AwardXPForNPCKill (unit lp_killedUnit, int lp_killedUnitPlayer, 
     int lv_xPSource;
     unitgroup lv_nearbyUnitsAlliedToKilledUnit;
     unit lv_itAlliedUnit;
+    unitgroup lv_experienceAwardedVisualizationGroup;
 
     // Automatic Variable Declarations
     unitgroup auto8BF37171_g;
@@ -8994,6 +8995,7 @@ void libGame_gf_AwardXPForNPCKill (unit lp_killedUnit, int lp_killedUnitPlayer, 
     lv_killCreditGroup = PlayerGroupEmpty();
     lv_xPAwardGroup = PlayerGroupEmpty();
     lv_nearbyUnitsAlliedToKilledUnit = UnitGroupEmpty();
+    lv_experienceAwardedVisualizationGroup = UnitGroupEmpty();
 
     // Implementation
     if ((lp_killingPlayer > 0) && (lp_killingPlayer <= libCore_gv_bALMaxEnginePlayerCount)) {
@@ -9032,6 +9034,7 @@ void libGame_gf_AwardXPForNPCKill (unit lp_killedUnit, int lp_killedUnitPlayer, 
 
         if (((UnitHasBehavior2(lv_itUnit, "EarnsXP") == true) || ((UnitTypeTestAttribute(UnitGetType(lv_itUnit), c_unitAttributeHeroic) == true) && (UnitHasBehavior2(lv_itUnit, "AbathurUltimateEvolutionVehicleCasterBehavior") == false) && (UnitTestState(lv_itUnit, c_unitStateHallucination) == false)))) {
             lv_creditPlayer = UnitGetOwner(lv_itUnit);
+            UnitGroupAdd(lv_experienceAwardedVisualizationGroup, lv_itUnit);
             if ((lv_creditPlayer <= libCore_gv_bALMaxPlayers)) {
                 PlayerGroupAdd(lv_killCreditGroup, lv_creditPlayer);
             }
@@ -15606,6 +15609,211 @@ void libGame_gt_InitializeSecondaryAwardList_Init () {
 }
 
 //--------------------------------------------------------------------------------------------------
+// Trigger: OldXP Enable/Disable
+//--------------------------------------------------------------------------------------------------
+bool libGame_gt_OldXPEnableDisable_Func (bool testConds, bool runActions) {
+    // Automatic Variable Declarations
+    // Conditions
+    if (testConds) {
+        if (!((GameCheatsEnabled(c_gameCheatCategoryDevelopment) == true))) {
+            return false;
+        }
+    }
+
+    // Actions
+    if (!runActions) {
+        return true;
+    }
+
+    if ((libGame_gv_oldXPCheat == false)) {
+        TriggerDebugOutput(1, StringExternal("Param/Value/lib_Game_0C17214B"), true);
+        libGame_gv_oldXPCheat = true;
+    }
+    else {
+        TriggerDebugOutput(1, StringExternal("Param/Value/lib_Game_798CA662"), true);
+        libGame_gv_oldXPCheat = false;
+    }
+    return true;
+}
+
+//--------------------------------------------------------------------------------------------------
+void libGame_gt_OldXPEnableDisable_Init () {
+    libGame_gt_OldXPEnableDisable = TriggerCreate("libGame_gt_OldXPEnableDisable_Func");
+    TriggerAddEventChatMessage(libGame_gt_OldXPEnableDisable, c_playerAny, "-oldxp", true);
+    TriggerAddEventChatMessage(libGame_gt_OldXPEnableDisable, c_playerAny, "-oldexp", true);
+}
+
+//--------------------------------------------------------------------------------------------------
+// Trigger: Experience Globe - Scaling
+//--------------------------------------------------------------------------------------------------
+bool libGame_gt_ExperienceGlobeScaling_Func (bool testConds, bool runActions) {
+    // Variable Declarations
+    fixed lv_xPScaling;
+
+    // Automatic Variable Declarations
+    // Variable Initialization
+    lv_xPScaling = 2.0;
+
+    // Conditions
+    if (testConds) {
+        if (!((libGame_gv_oldXPCheat == false))) {
+            return false;
+        }
+    }
+
+    // Actions
+    if (!runActions) {
+        return true;
+    }
+
+    CatalogFieldValueSetFixed(c_gameCatalogEffect, "ExperienceAcquiredMinions", "XP", libCore_gv_cOMPUTER_TeamOrder, (CatalogFieldValueGetAsFixed(c_gameCatalogEffect, "ExperienceAcquiredMinions", "XP", libCore_gv_cOMPUTER_TeamOrder) + lv_xPScaling));
+    CatalogFieldValueSetFixed(c_gameCatalogEffect, "ExperienceAcquiredMinions", "XP", libCore_gv_cOMPUTER_TeamChaos, (CatalogFieldValueGetAsFixed(c_gameCatalogEffect, "ExperienceAcquiredMinions", "XP", libCore_gv_cOMPUTER_TeamChaos) + lv_xPScaling));
+    return true;
+}
+
+//--------------------------------------------------------------------------------------------------
+void libGame_gt_ExperienceGlobeScaling_Init () {
+    libGame_gt_ExperienceGlobeScaling = TriggerCreate("libGame_gt_ExperienceGlobeScaling_Func");
+    libGame_gf_ScalingIncremented(libGame_gt_ExperienceGlobeScaling);
+}
+
+//--------------------------------------------------------------------------------------------------
+// Trigger: Experience Globe - Spawn
+//--------------------------------------------------------------------------------------------------
+bool libGame_gt_ExperienceGlobeSpawn_Func (bool testConds, bool runActions) {
+    // Automatic Variable Declarations
+    // Conditions
+    if (testConds) {
+        if (!(((libGame_gv_oldXPCheat == false) && (UnitHasBehavior2(EventUnit(), "ExperienceGlobeSpawn") == true)))) {
+            return false;
+        }
+    }
+
+    // Actions
+    if (!runActions) {
+        return true;
+    }
+
+    if ((UnitGetOwner(EventUnit()) == libCore_gv_cOMPUTER_TeamOrder)) {
+        PlayerCreateEffectPoint(libCore_gv_cOMPUTER_TeamChaos, "HeroGenericGenerateExperienceGlobeCreateUnit", UnitGetPosition(EventUnit()));
+    }
+    else {
+        if ((UnitGetOwner(EventUnit()) == libCore_gv_cOMPUTER_TeamChaos)) {
+            PlayerCreateEffectPoint(libCore_gv_cOMPUTER_TeamOrder, "HeroGenericGenerateExperienceGlobeCreateUnit", UnitGetPosition(EventUnit()));
+        }
+        else {
+            TriggerDebugOutput(1, StringExternal("Param/Value/lib_Game_C11D8B82"), true);
+        }
+    }
+    return true;
+}
+
+//--------------------------------------------------------------------------------------------------
+void libGame_gt_ExperienceGlobeSpawn_Init () {
+    libGame_gt_ExperienceGlobeSpawn = TriggerCreate("libGame_gt_ExperienceGlobeSpawn_Func");
+    TriggerAddEventUnitDied(libGame_gt_ExperienceGlobeSpawn, null);
+}
+
+//--------------------------------------------------------------------------------------------------
+// Trigger: Experience Globe - Grant XP
+//--------------------------------------------------------------------------------------------------
+bool libGame_gt_ExperienceGlobeGrantXP_Func (bool testConds, bool runActions) {
+    // Variable Declarations
+    int lv_itPlayer;
+    playergroup lv_xPAwardGroup;
+    int lv_targetPlayer;
+    fixed lv_xPAmount;
+
+    // Automatic Variable Declarations
+    playergroup auto4D2B2D44_g;
+
+    // Variable Initialization
+    lv_itPlayer = c_playerAny;
+    lv_xPAwardGroup = PlayerGroupEmpty();
+    lv_targetPlayer = EventPlayerEffectUsedUnitOwner(c_effectPlayerTarget);
+
+    // Conditions
+    if (testConds) {
+        if (!((libGame_gv_oldXPCheat == false))) {
+            return false;
+        }
+    }
+
+    // Actions
+    if (!runActions) {
+        return true;
+    }
+
+    lv_xPAmount = CatalogFieldValueGetAsFixed(c_gameCatalogEffect, "ExperienceAcquiredMinions", "XP", libCore_gv_cOMPUTER_TeamOrder);
+    lv_xPAwardGroup = PlayerGroupCopy(libGame_gf_AlliedPlayerGroupOfPlayer(lv_targetPlayer));
+    auto4D2B2D44_g = lv_xPAwardGroup;
+    lv_itPlayer = -1;
+    while (true) {
+        	lv_itPlayer = PlayerGroupNextPlayer(auto4D2B2D44_g, lv_itPlayer);
+        	if (lv_itPlayer<0) { break; }
+        	libGame_gf_GrantXPToPlayer(lv_xPAmount, lv_itPlayer, libGame_ge_XPSources_Minion);
+    }
+    libGame_gf_ScoreValuesRecordXPContributionForPlayer(lv_targetPlayer, lv_xPAmount, true);
+    libUIUI_gf_UIFloatingCombatTextH16MidXP(lv_targetPlayer, EventPlayerEffectUsedUnit(c_effectUnitSource), libCore_ge_FloatingTextType_XPSmall, FixedToInt(lv_xPAmount));
+    return true;
+}
+
+//--------------------------------------------------------------------------------------------------
+void libGame_gt_ExperienceGlobeGrantXP_Init () {
+    libGame_gt_ExperienceGlobeGrantXP = TriggerCreate("libGame_gt_ExperienceGlobeGrantXP_Func");
+    TriggerAddEventPlayerEffectUsed(libGame_gt_ExperienceGlobeGrantXP, c_playerAny, "ExperienceGlobeDummyImpactSetMinion");
+}
+
+//--------------------------------------------------------------------------------------------------
+// Trigger: OldXP Enabled - Minion Veterency
+//--------------------------------------------------------------------------------------------------
+bool libGame_gt_OldXPEnabledMinionVeterency_Func (bool testConds, bool runActions) {
+    // Automatic Variable Declarations
+    // Conditions
+    if (testConds) {
+        if (!(((libGame_gv_oldXPCheat == true) && (UnitTypeTestAttribute(UnitGetType(EventUnitCreatedUnit()), c_unitAttributeMinion) == true)))) {
+            return false;
+        }
+    }
+
+    // Actions
+    if (!runActions) {
+        return true;
+    }
+
+    if ((UnitHasBehavior2(EventUnitCreatedUnit(), "FootmanMinionScaling") == true)) {
+        UnitBehaviorAdd(EventUnitCreatedUnit(), "FootmanMinionXPScaling", EventUnitCreatedUnit(), 1);
+        UnitXPAddXP(EventUnitCreatedUnit(), "FootmanMinionXPScaling", libGame_gv_scalingTicks);
+    }
+    else {
+        if ((UnitHasBehavior2(EventUnitCreatedUnit(), "WizardMinionScaling") == true)) {
+            UnitBehaviorAdd(EventUnitCreatedUnit(), "WizardMinionXPScaling", EventUnitCreatedUnit(), 1);
+            UnitXPAddXP(EventUnitCreatedUnit(), "WizardMinionXPScaling", libGame_gv_scalingTicks);
+        }
+        else {
+            if ((UnitHasBehavior2(EventUnitCreatedUnit(), "RangedMinionScaling") == true)) {
+                UnitBehaviorAdd(EventUnitCreatedUnit(), "RangedMinionXPScaling", EventUnitCreatedUnit(), 1);
+                UnitXPAddXP(EventUnitCreatedUnit(), "RangedMinionXPScaling", libGame_gv_scalingTicks);
+            }
+            else {
+                if ((UnitHasBehavior2(EventUnitCreatedUnit(), "CatapultMinionScaling") == true)) {
+                    UnitBehaviorAdd(EventUnitCreatedUnit(), "CatapultMinionXPScaling", EventUnitCreatedUnit(), 1);
+                    UnitXPAddXP(EventUnitCreatedUnit(), "CatapultMinionXPScaling", libGame_gv_scalingTicks);
+                }
+
+            }
+        }
+    }
+    return true;
+}
+
+//--------------------------------------------------------------------------------------------------
+void libGame_gt_OldXPEnabledMinionVeterency_Init () {
+    libGame_gt_OldXPEnabledMinionVeterency = TriggerCreate("libGame_gt_OldXPEnabledMinionVeterency_Func");
+    TriggerAddEventUnitCreated(libGame_gt_OldXPEnabledMinionVeterency, null, null, null);
+}
+
+//--------------------------------------------------------------------------------------------------
 // Trigger: Start Game
 //--------------------------------------------------------------------------------------------------
 bool libGame_gt_StartGame_Func (bool testConds, bool runActions) {
@@ -18780,6 +18988,466 @@ void libGame_gt_HeroDismountOnCheerDanceTauntUsed_Init () {
 }
 
 //--------------------------------------------------------------------------------------------------
+// Trigger: Apply Engine Interaction Behaviors
+//--------------------------------------------------------------------------------------------------
+bool libGame_gt_ApplyEngineInteractionBehaviors_Func (bool testConds, bool runActions) {
+    // Variable Declarations
+    int lv_player;
+    unit lv_unit;
+
+    // Automatic Variable Declarations
+    // Variable Initialization
+    lv_player = EventPlayer();
+    lv_unit = libGame_gv_players[lv_player].lv_heroUnit;
+
+    // Conditions
+    if (testConds) {
+        if (!(((PlayerMount(lv_player) == "MountTrainEngineToys19") || (PlayerMount(lv_player) == "MountTrainEngineToys19Var1") || (PlayerMount(lv_player) == "MountTrainEngineToys19Var2") || (PlayerMount(lv_player) == "MountTrainEngineToys19Var3") || (PlayerMount(lv_player) == "MountTrainEngineToys19Var4") || (PlayerMount(lv_player) == "MountTrainEngineToys19Var5")))) {
+            return false;
+        }
+    }
+
+    // Actions
+    if (!runActions) {
+        return true;
+    }
+
+    libGame_gv_playerIsEngine[lv_player] = true;
+    if ((PlayerMount(lv_player) == "MountTrainEngineToys19")) {
+        UnitBehaviorAdd(lv_unit, "IsEngineVar0", lv_unit, 1);
+    }
+
+    if ((PlayerMount(lv_player) == "MountTrainEngineToys19Var1")) {
+        UnitBehaviorAdd(lv_unit, "IsEngineVar1", lv_unit, 1);
+    }
+
+    if ((PlayerMount(lv_player) == "MountTrainEngineToys19Var2")) {
+        UnitBehaviorAdd(lv_unit, "IsEngineVar2", lv_unit, 1);
+    }
+
+    if ((PlayerMount(lv_player) == "MountTrainEngineToys19Var3")) {
+        UnitBehaviorAdd(lv_unit, "IsEngineVar3", lv_unit, 1);
+    }
+
+    if ((PlayerMount(lv_player) == "MountTrainEngineToys19Var4")) {
+        UnitBehaviorAdd(lv_unit, "IsEngineVar4", lv_unit, 1);
+    }
+
+    if ((PlayerMount(lv_player) == "MountTrainEngineToys19Var5")) {
+        UnitBehaviorAdd(lv_unit, "IsEngineVar5", lv_unit, 1);
+    }
+
+    return true;
+}
+
+//--------------------------------------------------------------------------------------------------
+void libGame_gt_ApplyEngineInteractionBehaviors_Init () {
+    libGame_gt_ApplyEngineInteractionBehaviors = TriggerCreate("libGame_gt_ApplyEngineInteractionBehaviors_Func");
+    TriggerAddEventUnitBehaviorChange(libGame_gt_ApplyEngineInteractionBehaviors, null, "Mounted", c_unitBehaviorChangeActivate);
+}
+
+//--------------------------------------------------------------------------------------------------
+// Trigger: Remove  Engine Interaction Behaviors
+//--------------------------------------------------------------------------------------------------
+bool libGame_gt_RemoveEngineInteractionBehaviors_Func (bool testConds, bool runActions) {
+    // Variable Declarations
+    unit lv_unit;
+    int lv_player;
+    int lv_int;
+
+    // Automatic Variable Declarations
+    const int autoB621CB98_ae = 10;
+    const int autoB621CB98_ai = 1;
+
+    // Variable Initialization
+    lv_unit = EventUnit();
+    lv_player = UnitGetOwner(lv_unit);
+
+    // Actions
+    if (!runActions) {
+        return true;
+    }
+
+    if ((libGame_gv_playerIsEngine[lv_player] == true)) {
+        libGame_gv_playerIsEngine[lv_player] = false;
+        libGame_gv_choochooSize[lv_player] = 0;
+        libGame_gv_cabooseEngineOwner[lv_player] = 0;
+        lv_int = 1;
+        for ( ; ( (autoB621CB98_ai >= 0 && lv_int <= autoB621CB98_ae) || (autoB621CB98_ai < 0 && lv_int >= autoB621CB98_ae) ) ; lv_int += autoB621CB98_ai ) {
+            libGame_gv_choochooTrains[lv_player][lv_int] = null;
+        }
+    }
+
+    UnitBehaviorRemove(lv_unit, "IsEngineVar0", 1);
+    UnitBehaviorRemove(lv_unit, "IsEngineVar1", 1);
+    UnitBehaviorRemove(lv_unit, "IsEngineVar2", 1);
+    UnitBehaviorRemove(lv_unit, "IsEngineVar3", 1);
+    UnitBehaviorRemove(lv_unit, "IsEngineVar4", 1);
+    UnitBehaviorRemove(lv_unit, "IsEngineVar5", 1);
+    return true;
+}
+
+//--------------------------------------------------------------------------------------------------
+void libGame_gt_RemoveEngineInteractionBehaviors_Init () {
+    libGame_gt_RemoveEngineInteractionBehaviors = TriggerCreate("libGame_gt_RemoveEngineInteractionBehaviors_Func");
+    TriggerAddEventUnitBehaviorChange(libGame_gt_RemoveEngineInteractionBehaviors, null, "Mounted", c_unitBehaviorChangeDeactivate);
+}
+
+//--------------------------------------------------------------------------------------------------
+// Trigger: Mount Caboose
+//--------------------------------------------------------------------------------------------------
+bool libGame_gt_MountCaboose_Func (bool testConds, bool runActions) {
+    // Variable Declarations
+    unit lv_mountingUnit;
+    int lv_mountingPlayer;
+    string lv_mountingUnitType;
+    actor lv_heroActor;
+    int lv_heroIndex;
+    int lv_mountIndex;
+    string lv_poseAnimGroup;
+    string lv_poseAnimGroupStatus;
+    fixed lv_mountScale;
+    fixed lv_mountWalkAnimMoveSpeed;
+    string lv_mountModel;
+    string lv_actorNameForMount;
+    actor lv_mountActor;
+
+    // Automatic Variable Declarations
+    playergroup auto34FCCFC4_g;
+    int auto34FCCFC4_var;
+
+    // Variable Initialization
+    lv_mountingUnit = EventUnit();
+    lv_mountingPlayer = UnitGetOwner(lv_mountingUnit);
+    lv_mountingUnitType = UnitGetType(lv_mountingUnit);
+    lv_heroActor = libNtve_gf_MainActorofUnit(lv_mountingUnit);
+    lv_heroIndex = lv_mountingPlayer;
+    lv_poseAnimGroup = "";
+    lv_poseAnimGroupStatus = "";
+    lv_mountModel = "MountTrainCartToys19";
+    lv_actorNameForMount = "MountCabooseActor";
+
+    // Conditions
+    if (testConds) {
+        if (!((UnitHasBehavior2(lv_mountingUnit, "MountCaboose") == true))) {
+            return false;
+        }
+
+        if (!((UnitGetOwner(lv_mountingUnit) > 0))) {
+            return false;
+        }
+
+        if (!((UnitGetOwner(lv_mountingUnit) <= libCore_gv_bALMaxPlayers))) {
+            return false;
+        }
+    }
+
+    // Actions
+    if (!runActions) {
+        return true;
+    }
+
+    if ((UnitHasBehavior2(lv_mountingUnit, "UltimateEvolutionTimedLife") == true)) {
+        auto34FCCFC4_g = libGame_gf_AlliedPlayerGroupOfPlayer(lv_mountingPlayer);
+        auto34FCCFC4_var = -1;
+        while (true) {
+            	auto34FCCFC4_var = PlayerGroupNextPlayer(auto34FCCFC4_g, auto34FCCFC4_var);
+            	if (auto34FCCFC4_var<0) { break; }
+            	if ((UnitGetType(lv_mountingUnit) == UnitGetType(libGame_gv_players[auto34FCCFC4_var].lv_heroUnit))) {
+                lv_mountIndex = auto34FCCFC4_var;
+                break;
+            }
+
+        }
+    }
+    else {
+        lv_mountIndex = lv_mountingPlayer;
+    }
+    lv_mountIndex = lv_mountingPlayer;
+    lv_poseAnimGroup = "Ridebeast";
+    lv_poseAnimGroupStatus = "Ridebeast";
+    lv_mountScale = 1.0;
+    lv_mountWalkAnimMoveSpeed = 5.72;
+    if ((UnitHasBehavior2(lv_mountingUnit, "SiegeMode") == true)) {
+        UnitCreateEffectUnit(lv_mountingUnit, "SiegeModeRemoveSet", lv_mountingUnit);
+    }
+
+    ActorSend(lv_heroActor, (("StatusSet " + lv_poseAnimGroupStatus + " 1")));
+    lv_actorNameForMount = libGame_gv_players[lv_mountIndex].lv_mountData.lv_mountActor;
+    if ((libGame_gv_players[lv_mountIndex].lv_mountData.lv_noAttachedMountModel == false)) {
+        ActorSend(lv_heroActor, "PhysicsTerminate");
+        lv_mountModel = "MountTrainCartToys19";
+        ActorSend(lv_heroActor, libNtve_gf_Create(lv_actorNameForMount, (lv_mountModel)));
+        lv_mountActor = ActorFromActor(lv_heroActor, lv_actorNameForMount);
+        libCore_gf_SendMountActorMessagesToActor(lv_mountIndex, lv_mountActor);
+        if ((libGame_gv_players[lv_heroIndex].lv_heroData.lv_isFlyer == true)) {
+            ActorSend(lv_mountActor, libNtve_gf_RefSet("::Host", "FlyerBillboard"));
+        }
+
+        if ((UnitHasBehavior2(lv_mountingUnit, "CabooseVar0") == true)) {
+            ActorSend(lv_mountActor, libNtve_gf_TextureSelectByID("Storm_Mount_TrainCart_Toys19_Diff"));
+            ActorSend(lv_mountActor, libNtve_gf_TextureSelectByID("Storm_Mount_TrainCart_Toys19_Emis"));
+            ActorSend(lv_mountActor, libNtve_gf_TextureSelectByID("Storm_Mount_TrainCart_Toys19_Spec"));
+            ActorSend(lv_mountActor, libNtve_gf_TextureSelectByID("Storm_Mount_TrainCart_Toys19_Norm"));
+        }
+
+        if ((UnitHasBehavior2(lv_mountingUnit, "CabooseVar1") == true)) {
+            ActorSend(lv_mountActor, libNtve_gf_TextureSelectByID("Storm_Mount_TrainCart_Toys19_Var1_Diff"));
+            ActorSend(lv_mountActor, libNtve_gf_TextureSelectByID("Storm_Mount_TrainCart_Toys19_Var1_Emis"));
+            ActorSend(lv_mountActor, libNtve_gf_TextureSelectByID("Storm_Mount_TrainCart_Toys19_Var1_Spec"));
+            ActorSend(lv_mountActor, libNtve_gf_TextureSelectByID("Storm_Mount_TrainCart_Toys19_Norm"));
+        }
+
+        if ((UnitHasBehavior2(lv_mountingUnit, "CabooseVar2") == true)) {
+            ActorSend(lv_mountActor, libNtve_gf_TextureSelectByID("Storm_Mount_TrainCart_Toys19_Var2_Diff"));
+            ActorSend(lv_mountActor, libNtve_gf_TextureSelectByID("Storm_Mount_TrainCart_Toys19_Var2_Emis"));
+            ActorSend(lv_mountActor, libNtve_gf_TextureSelectByID("Storm_Mount_TrainCart_Toys19_Var2_Spec"));
+            ActorSend(lv_mountActor, libNtve_gf_TextureSelectByID("Storm_Mount_TrainCart_Toys19_Norm"));
+        }
+
+        if ((UnitHasBehavior2(lv_mountingUnit, "CabooseVar3") == true)) {
+            ActorSend(lv_mountActor, libNtve_gf_TextureSelectByID("Storm_Mount_TrainCart_Toys19_Var3_Diff"));
+            ActorSend(lv_mountActor, libNtve_gf_TextureSelectByID("Storm_Mount_TrainCart_Toys19_Var3_Emis"));
+            ActorSend(lv_mountActor, libNtve_gf_TextureSelectByID("Storm_Mount_TrainCart_Toys19_Var3_Spec"));
+            ActorSend(lv_mountActor, libNtve_gf_TextureSelectByID("Storm_Mount_TrainCart_Toys19_Norm"));
+        }
+
+        if ((UnitHasBehavior2(lv_mountingUnit, "CabooseVar4") == true)) {
+            ActorSend(lv_mountActor, libNtve_gf_TextureSelectByID("Storm_Mount_TrainCart_Toys19_Var4_Diff"));
+            ActorSend(lv_mountActor, libNtve_gf_TextureSelectByID("Storm_Mount_TrainCart_Toys19_Var4_Emis"));
+            ActorSend(lv_mountActor, libNtve_gf_TextureSelectByID("Storm_Mount_TrainCart_Toys19_Var4_Spec"));
+            ActorSend(lv_mountActor, libNtve_gf_TextureSelectByID("Storm_Mount_TrainCart_Toys19_Norm"));
+        }
+
+        if ((UnitHasBehavior2(lv_mountingUnit, "CabooseVar5") == true)) {
+            ActorSend(lv_mountActor, libNtve_gf_TextureSelectByID("Storm_Mount_TrainCart_Toys19_Var5_Diff"));
+            ActorSend(lv_mountActor, libNtve_gf_TextureSelectByID("Storm_Mount_TrainCart_Toys19_Var5_Emis"));
+            ActorSend(lv_mountActor, libNtve_gf_TextureSelectByID("Storm_Mount_TrainCart_Toys19_Var5_Spec"));
+            ActorSend(lv_mountActor, libNtve_gf_TextureSelectByID("Storm_Mount_TrainCart_Toys19_Norm"));
+        }
+
+        ActorSend(lv_mountActor, libNtve_gf_SetScaleAbsolute(lv_mountScale, lv_mountScale, lv_mountScale, 0.0));
+        ActorSend(lv_heroActor, (("AnimGroupApply " + lv_poseAnimGroup + " {} {} Instant")));
+        ActorSend(lv_heroActor, libNtve_gf_RefSet("::Host", lv_actorNameForMount));
+        ActorSend(lv_heroActor, libNtve_gf_HostSiteOpsSet("::Host", "SOpAttachMount", 0, 0));
+        ActorSend(lv_heroActor, libNtve_gf_RefSet("::HostForProps", "PropsHost"));
+        ActorSend(lv_mountActor, libNtve_gf_RefSet("::HostForProps", (lv_mountingUnitType)));
+    }
+    else {
+        ActorSend(lv_heroActor, (("AnimGroupApply " + lv_poseAnimGroup)));
+    }
+    ActorSend(lv_heroActor, libNtve_gf_SetWalkAnimMoveSpeed(lv_mountWalkAnimMoveSpeed));
+    ActorSend(lv_mountActor, libNtve_gf_Signal("MountSound"));
+    ActorSend(lv_heroActor, libNtve_gf_Create((libGame_gv_players[lv_mountIndex].lv_mountData.lv_mountUpFXActor), ""));
+    ActorSend(lv_heroActor, libNtve_gf_Create("MountDismountSound", ("Mount_Generic_Player_Activate_End")));
+    ActorSend(lv_heroActor, libNtve_gf_Create("MountLoopingSound", ("Mount_TrainCartToys19_Idle")));
+    ActorSend(lv_heroActor, libNtve_gf_Create("MountStationarySound", ("Mount_TrainCartToys19_Idle_ChooChoo")));
+    ActorSend(lv_heroActor, libNtve_gf_Create("MountMovingSound", ("Mount_TrainCartToys19_Ride")));
+    CatalogLinkReplace(lv_mountingPlayer, c_gameCatalogSound, "GenericMountMoveStartSound", ("Mount_TrainCartToys19_Start"));
+    CatalogLinkReplace(lv_mountingPlayer, c_gameCatalogSound, "GenericMountMoveStopSound", ("Mount_TrainCartToys19_Stop"));
+    CatalogLinkReplace(lv_mountingPlayer, c_gameCatalogSound, "GenericMountTurboSound", ("StormNoSound"));
+    return true;
+}
+
+//--------------------------------------------------------------------------------------------------
+void libGame_gt_MountCaboose_Init () {
+    libGame_gt_MountCaboose = TriggerCreate("libGame_gt_MountCaboose_Func");
+    TriggerAddEventUnitBehaviorChange(libGame_gt_MountCaboose, null, "MountCaboose", c_unitBehaviorChangeActivate);
+}
+
+//--------------------------------------------------------------------------------------------------
+// Trigger: Dismount Caboose
+//--------------------------------------------------------------------------------------------------
+bool libGame_gt_DismountCaboose_Func (bool testConds, bool runActions) {
+    // Variable Declarations
+    unit lv_dismountingUnit;
+    int lv_dismountingPlayer;
+    int lv_heroIndex;
+    actor lv_heroActor;
+    int lv_mountIndex;
+    fixed lv_heroWalkAnimMoveSpeed;
+    string lv_poseAnimGroup;
+    string lv_poseAnimGroupStatus;
+    string lv_mountModel;
+    string lv_mountActorName;
+
+    // Automatic Variable Declarations
+    playergroup auto736967E5_g;
+    int auto736967E5_var;
+
+    // Variable Initialization
+    lv_dismountingUnit = EventUnit();
+    lv_dismountingPlayer = UnitGetOwner(lv_dismountingUnit);
+    lv_heroIndex = libCore_gf_GetHeroIndexForUnitType(UnitGetType(lv_dismountingUnit));
+    lv_heroActor = libNtve_gf_MainActorofUnit(lv_dismountingUnit);
+    lv_poseAnimGroup = "";
+    lv_poseAnimGroupStatus = "";
+    lv_mountModel = "MountTrainCartToys19";
+    lv_mountActorName = "MountCabooseActor";
+
+    // Conditions
+    if (testConds) {
+        if (!((lv_dismountingPlayer <= libCore_gv_bALMaxEnginePlayerCount))) {
+            return false;
+        }
+    }
+
+    // Actions
+    if (!runActions) {
+        return true;
+    }
+
+    UnitCreateEffectUnit(lv_dismountingUnit, "ToyTrainFollowAbilityRemove", lv_dismountingUnit);
+    UnitBehaviorRemove(lv_dismountingUnit, "CabooseVar0", 1);
+    UnitBehaviorRemove(lv_dismountingUnit, "CabooseVar1", 1);
+    UnitBehaviorRemove(lv_dismountingUnit, "CabooseVar2", 1);
+    UnitBehaviorRemove(lv_dismountingUnit, "CabooseVar3", 1);
+    UnitBehaviorRemove(lv_dismountingUnit, "CabooseVar4", 1);
+    UnitBehaviorRemove(lv_dismountingUnit, "CabooseVar5", 1);
+    if ((UnitHasBehavior2(lv_dismountingUnit, "UltimateEvolutionTimedLife") == true)) {
+        auto736967E5_g = libGame_gf_AlliedPlayerGroupOfPlayer(lv_dismountingPlayer);
+        auto736967E5_var = -1;
+        while (true) {
+            	auto736967E5_var = PlayerGroupNextPlayer(auto736967E5_g, auto736967E5_var);
+            	if (auto736967E5_var<0) { break; }
+            	if ((UnitGetType(lv_dismountingUnit) == UnitGetType(libGame_gv_players[auto736967E5_var].lv_heroUnit))) {
+                lv_mountIndex = auto736967E5_var;
+                break;
+            }
+
+        }
+    }
+    else {
+        lv_mountIndex = lv_dismountingPlayer;
+    }
+    lv_heroWalkAnimMoveSpeed = CatalogFieldValueGetAsFixed(c_gameCatalogActor, UnitGetType(lv_dismountingUnit), "WalkAnimMoveSpeed", lv_dismountingPlayer);
+    lv_poseAnimGroup = "Ridebeast";
+    lv_poseAnimGroupStatus = "Ridebeast";
+    lv_mountActorName = "MountCabooseActor";
+    ActorSend(lv_heroActor, (("StatusSet " + lv_poseAnimGroupStatus + " 0")));
+    if ((libGame_gv_players[lv_mountIndex].lv_mountData.lv_isMorphMount == true)) {
+        lv_mountActorName = "MountCabooseActor";
+    }
+
+    if ((libGame_gv_players[lv_mountIndex].lv_mountData.lv_noAttachedMountModel == false)) {
+        ActorSend(lv_heroActor, (("AnimBlendTimeApply 0")));
+        ActorSend(lv_heroActor, (("AnimGroupRemove " + lv_poseAnimGroup + " Instant")));
+        ActorSend(lv_heroActor, (("AnimBlendTimeApply")));
+        ActorSend(ActorFromScope(ActorScopeFromUnit(EventUnit()), "MountModel"), libNtve_gf_Destroy());
+    }
+    else {
+        ActorSend(lv_heroActor, (("AnimGroupRemove " + lv_poseAnimGroup)));
+    }
+    ActorSend(lv_heroActor, libNtve_gf_SetWalkAnimMoveSpeed(lv_heroWalkAnimMoveSpeed));
+    if ((UnitIsAlive(lv_dismountingUnit) == true)) {
+        ActorSend(lv_heroActor, libNtve_gf_Create((libGame_gv_players[lv_mountIndex].lv_mountData.lv_dismountFXActor), ""));
+    }
+
+    ActorSend(lv_heroActor, libNtve_gf_Create("MountDismountSound", ("Mount_TrainCartToys19_Dismiss")));
+    return true;
+}
+
+//--------------------------------------------------------------------------------------------------
+void libGame_gt_DismountCaboose_Init () {
+    libGame_gt_DismountCaboose = TriggerCreate("libGame_gt_DismountCaboose_Func");
+    TriggerAddEventUnitBehaviorChange(libGame_gt_DismountCaboose, null, "MountCaboose", c_unitBehaviorChangeDeactivate);
+}
+
+//--------------------------------------------------------------------------------------------------
+// Trigger: Caboose Follow Logic
+//--------------------------------------------------------------------------------------------------
+bool libGame_gt_CabooseFollowLogic_Func (bool testConds, bool runActions) {
+    // Variable Declarations
+    unit lv_cabooseUnit;
+    unit lv_engineUnit;
+    int lv_cabooseOwner;
+    int lv_engine;
+
+    // Automatic Variable Declarations
+    // Variable Initialization
+    lv_cabooseUnit = EventPlayerEffectUsedUnit(c_effectUnitCaster);
+    lv_engineUnit = EventPlayerEffectUsedUnit(c_effectUnitTarget);
+    lv_cabooseOwner = UnitGetOwner(lv_cabooseUnit);
+    lv_engine = UnitGetOwner(lv_engineUnit);
+
+    // Actions
+    if (!runActions) {
+        return true;
+    }
+
+    UnitBehaviorAdd(lv_cabooseUnit, "ToyTrainFollowAbility", lv_cabooseUnit, 1);
+    libGame_gv_cabooseEngineOwner[lv_cabooseOwner] = lv_engine;
+    if ((libGame_gv_choochooSize[lv_engine] == 0)) {
+        UnitIssueOrder(lv_cabooseUnit, OrderTargetingUnit(AbilityCommand("ToyTrainFollowAbility", 0), lv_engineUnit), c_orderQueueReplace);
+        libGame_gv_playerIsEngine[lv_engine] = true;
+        libGame_gv_choochooSize[lv_engine] += 1;
+    }
+    else {
+        UnitIssueOrder(lv_cabooseUnit, OrderTargetingUnit(AbilityCommand("ToyTrainFollowAbility", 0), libGame_gv_choochooTrains[lv_engine][libGame_gv_choochooSize[lv_engine]]), c_orderQueueReplace);
+        libGame_gv_choochooSize[lv_engine] += 1;
+    }
+    libGame_gv_choochooTrains[lv_engine][libGame_gv_choochooSize[lv_engine]] = lv_cabooseUnit;
+    return true;
+}
+
+//--------------------------------------------------------------------------------------------------
+void libGame_gt_CabooseFollowLogic_Init () {
+    libGame_gt_CabooseFollowLogic = TriggerCreate("libGame_gt_CabooseFollowLogic_Func");
+    TriggerAddEventPlayerEffectUsed(libGame_gt_CabooseFollowLogic, c_playerAny, "MountCabooseSmartCommandSet");
+}
+
+//--------------------------------------------------------------------------------------------------
+// Trigger: Unit Loses Toy Train Follow Behavior
+//--------------------------------------------------------------------------------------------------
+bool libGame_gt_UnitLosesToyTrainFollowBehavior_Func (bool testConds, bool runActions) {
+    // Variable Declarations
+    unit lv_unit;
+    int lv_owner;
+    int lv_cabooseChecker;
+    int lv_choochooClearer;
+    int lv_cabooseIndex;
+
+    // Automatic Variable Declarations
+    const int auto4868FB37_ae = 10;
+    const int auto4868FB37_ai = 1;
+    const int auto3DC0D354_ae = 10;
+    const int auto3DC0D354_ai = 1;
+
+    // Variable Initialization
+    lv_unit = EventPlayerEffectUsedUnit(c_effectUnitCaster);
+    lv_owner = UnitGetOwner(lv_unit);
+
+    // Actions
+    if (!runActions) {
+        return true;
+    }
+
+    lv_cabooseChecker = 1;
+    for ( ; ( (auto4868FB37_ai >= 0 && lv_cabooseChecker <= auto4868FB37_ae) || (auto4868FB37_ai < 0 && lv_cabooseChecker >= auto4868FB37_ae) ) ; lv_cabooseChecker += auto4868FB37_ai ) {
+        if ((libGame_gv_choochooTrains[libGame_gv_cabooseEngineOwner[lv_owner]][lv_cabooseChecker] == lv_unit)) {
+            lv_cabooseIndex = lv_cabooseChecker;
+            lv_choochooClearer = lv_cabooseChecker;
+            for ( ; ( (auto3DC0D354_ai >= 0 && lv_choochooClearer <= auto3DC0D354_ae) || (auto3DC0D354_ai < 0 && lv_choochooClearer >= auto3DC0D354_ae) ) ; lv_choochooClearer += auto3DC0D354_ai ) {
+                if ((libGame_gv_choochooTrains[libGame_gv_cabooseEngineOwner[lv_owner]][lv_choochooClearer] != null)) {
+                    libGame_gv_choochooTrains[libGame_gv_cabooseEngineOwner[lv_owner]][lv_choochooClearer] = null;
+                    libGame_gv_choochooSize[libGame_gv_cabooseEngineOwner[lv_owner]] -= 1;
+                }
+
+            }
+            break;
+        }
+
+    }
+    return true;
+}
+
+//--------------------------------------------------------------------------------------------------
+void libGame_gt_UnitLosesToyTrainFollowBehavior_Init () {
+    libGame_gt_UnitLosesToyTrainFollowBehavior = TriggerCreate("libGame_gt_UnitLosesToyTrainFollowBehavior_Func");
+    TriggerAddEventPlayerEffectUsed(libGame_gt_UnitLosesToyTrainFollowBehavior, c_playerAny, "ToyTrainFollowAbilityRemove");
+}
+
+//--------------------------------------------------------------------------------------------------
 // Trigger: Game General NPC Proc Listener
 //--------------------------------------------------------------------------------------------------
 bool libGame_gt_GameGeneralNPCProcListener_Func (bool testConds, bool runActions) {
@@ -21541,6 +22209,11 @@ void libGame_InitTriggers () {
     libGame_gt_ClutchHealerIncrement_Init();
     libGame_gt_HatTrickAwardCounter_Init();
     libGame_gt_InitializeSecondaryAwardList_Init();
+    libGame_gt_OldXPEnableDisable_Init();
+    libGame_gt_ExperienceGlobeScaling_Init();
+    libGame_gt_ExperienceGlobeSpawn_Init();
+    libGame_gt_ExperienceGlobeGrantXP_Init();
+    libGame_gt_OldXPEnabledMinionVeterency_Init();
     libGame_gt_StartGame_Init();
     libGame_gt_PickingHeroesNormalMode_Init();
     libGame_gt_StartGameShowTowerRadius_Init();
@@ -21591,6 +22264,12 @@ void libGame_InitTriggers () {
     libGame_gt_HeroMount_Init();
     libGame_gt_HeroDismount_Init();
     libGame_gt_HeroDismountOnCheerDanceTauntUsed_Init();
+    libGame_gt_ApplyEngineInteractionBehaviors_Init();
+    libGame_gt_RemoveEngineInteractionBehaviors_Init();
+    libGame_gt_MountCaboose_Init();
+    libGame_gt_DismountCaboose_Init();
+    libGame_gt_CabooseFollowLogic_Init();
+    libGame_gt_UnitLosesToyTrainFollowBehavior_Init();
     libGame_gt_GameGeneralNPCProcListener_Init();
     libGame_gt_NPCUnitDies_Init();
     libGame_gt_TownStructureDies_Init();

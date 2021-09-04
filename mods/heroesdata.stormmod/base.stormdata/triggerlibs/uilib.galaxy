@@ -456,6 +456,7 @@ void libUIUI_InitVariables () {
     libUIUI_gv_uIHeroConsole.lv_heroStatsManaBar = c_invalidDialogControlId;
     libUIUI_gv_uIHeroConsole.lv_heroStatsFuryStatFrame = c_invalidDialogControlId;
     libUIUI_gv_uIHeroConsole.lv_heroStatsBrewStatFrame = c_invalidDialogControlId;
+    libUIUI_gv_uIHeroConsole.lv_heroStatsBreathStatFrame = c_invalidDialogControlId;
     libUIUI_gv_uIHeroConsole.lv_heroStatsEnergyStatFrame = c_invalidDialogControlId;
     libUIUI_gv_uIHeroConsole.lv_heroStatsNoEnergyStatFrame = c_invalidDialogControlId;
     libUIUI_gv_uIHeroConsole.lv_heroStatsNoEnergyNoShieldStatFrame = c_invalidDialogControlId;
@@ -740,6 +741,9 @@ void libUIUI_InitVariables () {
     }
     for (init_i1 = 0; init_i1 <= libCore_gv_bALMaxPlayers; init_i1 += 1) {
         libUIUI_gv_uIPartyFrame.lv_heroStatusBarsOrange[init_i1] = c_invalidDialogControlId;
+    }
+    for (init_i1 = 0; init_i1 <= libCore_gv_bALMaxPlayers; init_i1 += 1) {
+        libUIUI_gv_uIPartyFrame.lv_heroStatusBarsBreath[init_i1] = c_invalidDialogControlId;
     }
     for (init_i1 = 0; init_i1 <= libCore_gv_bALMaxPlayers; init_i1 += 1) {
         libUIUI_gv_uIPartyFrame.lv_heroStatusBarsYellow[init_i1] = c_invalidDialogControlId;
@@ -4005,6 +4009,7 @@ void libUIUI_gf_UIHeroConsoleShowHideUnitStatusFrameForPlayer (bool lp_showHide,
         DialogControlSetVisible(libUIUI_gv_uIHeroConsole.lv_heroStatsNoEnergyNoShieldStatFrame, libCore_gv_playerGroupFromPlayer[lp_player], false);
         DialogControlSetVisible(libUIUI_gv_uIHeroConsole.lv_heroStatsEnergyStatFrame, libCore_gv_playerGroupFromPlayer[lp_player], false);
         DialogControlSetVisible(libUIUI_gv_uIHeroConsole.lv_heroStatsUnitStatusFrame, libCore_gv_playerGroupFromPlayer[lp_player], false);
+        DialogControlSetVisible(libUIUI_gv_uIHeroConsole.lv_heroStatsBreathStatFrame, libCore_gv_playerGroupFromPlayer[lp_player], false);
     }
 
     if ((UnitGetType(libGame_gv_players[lp_player].lv_activeVehicle) != "VolskayaVehicle") && (UnitGetType(libGame_gv_players[lp_player].lv_activeVehicle) != "VolskayaVehicleGunner") && ((libGame_gv_players[lp_player].lv_activeVehicle == null) || (UnitGetType(libGame_gv_players[lp_player].lv_heroUnit) != "HeroAbathur"))) {
@@ -4026,6 +4031,9 @@ void libUIUI_gf_UIHeroConsoleShowHideUnitStatusFrameForPlayer (bool lp_showHide,
         }
         else if (autoA5817BAB_val == libUIUI_ge_UIHeroResourceType_Blinking) {
             DialogControlSetVisible(libUIUI_gv_uIHeroConsole.lv_heroStatsBlinkingEnergyStatFrame, libCore_gv_playerGroupFromPlayer[lp_player], lp_showHide);
+        }
+        else if (autoA5817BAB_val == libUIUI_ge_UIHeroResourceType_Breath) {
+            DialogControlSetVisible(libUIUI_gv_uIHeroConsole.lv_heroStatsBreathStatFrame, libCore_gv_playerGroupFromPlayer[lp_player], lp_showHide);
         }
         else {
             DialogControlSetVisible(libUIUI_gv_uIHeroConsole.lv_heroStatsUnitStatusFrame, libCore_gv_playerGroupFromPlayer[lp_player], lp_showHide);
@@ -4050,6 +4058,9 @@ void libUIUI_gf_UIHeroConsoleShowHideUnitStatusFrameForPlayer (bool lp_showHide,
         }
         else if (auto15575334_val == libUIUI_ge_UIHeroResourceType_Blinking) {
             DialogControlSetVisible(libUIUI_gv_uIHeroConsole.lv_heroStatsBlinkingEnergyStatFrame, libCore_gv_playerGroupFromPlayer[lp_player], lp_showHide);
+        }
+        else if (auto15575334_val == libUIUI_ge_UIHeroResourceType_Breath) {
+            DialogControlSetVisible(libUIUI_gv_uIHeroConsole.lv_heroStatsBreathStatFrame, libCore_gv_playerGroupFromPlayer[lp_player], lp_showHide);
         }
         else {
             DialogControlSetVisible(libUIUI_gv_uIHeroConsole.lv_heroStatsUnitStatusFrame, libCore_gv_playerGroupFromPlayer[lp_player], lp_showHide);
@@ -4091,6 +4102,11 @@ void libUIUI_gf_UIHeroConsoleSetUpForPlayer (unit lp_unit, int lp_player) {
         else if (auto4832C7DC_val == libUIUI_ge_UIHeroResourceType_Yellow) {
             libNtve_gf_SetDialogItemUnit(libUIUI_gv_uIHeroConsole.lv_heroStatsBrewStatFrame, lp_unit, libCore_gv_playerGroupFromPlayer[lp_player]);
             DialogControlHookup(libUIUI_gv_uIHeroConsole.lv_heroStatsBrewStatFrame, c_triggerControlTypeUnitStatusBar, "HealthBar");
+            libNtve_gf_SetDialogItemTooltip(DialogControlLastCreated(), lv_healthText, libCore_gv_playerGroupFromPlayer[lp_player]);
+        }
+        else if (auto4832C7DC_val == libUIUI_ge_UIHeroResourceType_Breath) {
+            libNtve_gf_SetDialogItemUnit(libUIUI_gv_uIHeroConsole.lv_heroStatsBreathStatFrame, lp_unit, libCore_gv_playerGroupFromPlayer[lp_player]);
+            DialogControlHookup(libUIUI_gv_uIHeroConsole.lv_heroStatsBreathStatFrame, c_triggerControlTypeUnitStatusBar, "HealthBar");
             libNtve_gf_SetDialogItemTooltip(DialogControlLastCreated(), lv_healthText, libCore_gv_playerGroupFromPlayer[lp_player]);
         }
         else if (auto4832C7DC_val == libUIUI_ge_UIHeroResourceType_Pink) {
@@ -4143,6 +4159,11 @@ void libUIUI_gf_UIHeroConsoleSetUpForPlayer (unit lp_unit, int lp_player) {
             DialogControlHookup(libUIUI_gv_uIHeroConsole.lv_heroStatsBlinkingEnergyStatFrame, c_triggerControlTypeUnitStatusBar, "HealthBar");
             libNtve_gf_SetDialogItemTooltip(DialogControlLastCreated(), lv_healthText, libCore_gv_playerGroupFromPlayer[lp_player]);
         }
+        else if (auto4296FE76_val == libUIUI_ge_UIHeroResourceType_Breath) {
+            libNtve_gf_SetDialogItemUnit(libUIUI_gv_uIHeroConsole.lv_heroStatsBreathStatFrame, lp_unit, libCore_gv_playerGroupFromPlayer[lp_player]);
+            DialogControlHookup(libUIUI_gv_uIHeroConsole.lv_heroStatsBreathStatFrame, c_triggerControlTypeUnitStatusBar, "HealthBar");
+            libNtve_gf_SetDialogItemTooltip(DialogControlLastCreated(), lv_healthText, libCore_gv_playerGroupFromPlayer[lp_player]);
+        }
         else {
             libNtve_gf_SetDialogItemUnit(libUIUI_gv_uIHeroConsole.lv_heroStatsUnitStatusFrame, lp_unit, libCore_gv_playerGroupFromPlayer[lp_player]);
             libNtve_gf_SetDialogItemTooltip(libUIUI_gv_uIHeroConsole.lv_heroStatsHealthBar, lv_healthText, libCore_gv_playerGroupFromPlayer[lp_player]);
@@ -4169,6 +4190,10 @@ void libUIUI_gf_UIHeroConsoleSetUpForPlayer (unit lp_unit, int lp_player) {
     else if (autoAFEECCF3_val == "HeroZarya") {
         DialogControlHookup(libUIUI_gv_uIHeroConsole.lv_heroStatsEnergyStatFrame, c_triggerControlTypeUnitStatusBar, "EnergyBar");
         libNtve_gf_SetDialogItemTooltip(DialogControlLastCreated(), StringExternal("Param/Value/lib_UIUI_64406079"), libCore_gv_playerGroupFromPlayer[lp_player]);
+    }
+    else if (autoAFEECCF3_val == "HeroDeathwing") {
+        DialogControlHookup(libUIUI_gv_uIHeroConsole.lv_heroStatsBreathStatFrame, c_triggerControlTypeUnitStatusBar, "EnergyBar");
+        libNtve_gf_SetDialogItemTooltip(DialogControlLastCreated(), StringExternal("Param/Value/lib_UIUI_0E6A1519"), libCore_gv_playerGroupFromPlayer[lp_player]);
     }
     else {
     }
@@ -6127,6 +6152,9 @@ void libUIUI_gf_UIPartyFrameAddPlayerToPartyFrame (int lp_player) {
         else if (auto99686152_val == libUIUI_ge_UIHeroResourceType_Orange) {
             libNtve_gf_SetDialogItemUnit(libUIUI_gv_uIPartyFrame.lv_heroStatusBarsOrange[lv_rosterSlot], libGame_gv_players[lp_player].lv_heroUnit, PlayerGroupAll());
         }
+        else if (auto99686152_val == libUIUI_ge_UIHeroResourceType_Breath) {
+            libNtve_gf_SetDialogItemUnit(libUIUI_gv_uIPartyFrame.lv_heroStatusBarsBreath[lv_rosterSlot], libGame_gv_players[lp_player].lv_heroUnit, PlayerGroupAll());
+        }
         else if (auto99686152_val == libUIUI_ge_UIHeroResourceType_Yellow) {
             libNtve_gf_SetDialogItemUnit(libUIUI_gv_uIPartyFrame.lv_heroStatusBarsYellow[lv_rosterSlot], libGame_gv_players[lp_player].lv_heroUnit, PlayerGroupAll());
         }
@@ -6236,6 +6264,7 @@ void libUIUI_gf_UIPartyFrameShowHideUnitStatusFrameofPlayerforPlayerGroup (bool 
         DialogControlSetVisible(libUIUI_gv_uIPartyFrame.lv_heroStatusBarsSeparateShields[lv_rosterSlot], lp_playerGroup, false);
         DialogControlSetVisible(libUIUI_gv_uIPartyFrame.lv_heroStatusFrameHeroWithPet[lv_rosterSlot], lp_playerGroup, false);
         DialogControlSetVisible(libUIUI_gv_uIPartyFrame.lv_heroStatusFrameLostVikings[lv_rosterSlot], lp_playerGroup, false);
+        DialogControlSetVisible(libUIUI_gv_uIPartyFrame.lv_heroStatusBarsBreath[lv_rosterSlot], lp_playerGroup, false);
     }
 
     auto903465C9_val = libUIUI_gf_UIPartyFrameHeroTypeofHero(libGame_gv_players[lp_player].lv_heroUnit);
@@ -6255,6 +6284,9 @@ void libUIUI_gf_UIPartyFrameShowHideUnitStatusFrameofPlayerforPlayerGroup (bool 
         }
         else if (auto48A6BE0D_val == libUIUI_ge_UIHeroResourceType_Pink) {
             DialogControlSetVisible(libUIUI_gv_uIPartyFrame.lv_heroStatusBarsPink[lv_rosterSlot], lp_playerGroup, lp_showHide);
+        }
+        else if (auto48A6BE0D_val == libUIUI_ge_UIHeroResourceType_Breath) {
+            DialogControlSetVisible(libUIUI_gv_uIPartyFrame.lv_heroStatusBarsBreath[lv_rosterSlot], lp_playerGroup, lp_showHide);
         }
         else if (auto48A6BE0D_val == libUIUI_ge_UIHeroResourceType_None) {
             DialogControlSetVisible(libUIUI_gv_uIPartyFrame.lv_heroStatusBarsNoResource[lv_rosterSlot], lp_playerGroup, lp_showHide);
@@ -6753,8 +6785,8 @@ void libUIUI_gf_UIPartyFrameHeroicTalentUpdate (int lp_player, int lp_talentTier
 
     lv_rosterSlot = libGame_gv_players[lp_player].lv_rosterSlot;
     lv_buttonEntry = CatalogFieldValueGet(c_gameCatalogTalent, libGame_gv_talents_TalentChoices[lp_player][lp_talentTierIndex].lv_talentData[libGame_gv_talents_TalentChoices[lp_player][lp_talentTierIndex].lv_selection].lv_talentCatalogLink, "Face", c_playerAny);
-    libUIUI_gf_UIPartyFrameHeroicTalentIconSet(((CatalogFieldValueGet(c_gameCatalogButton, lv_buttonEntry, "Icon", c_playerAny))), lp_player);
     if ((libUIUI_gf_UIPartyFrameSpecialCaseHeroHasHeroicatStart(UnitGetType(libUIUI_gv_uIPartyFrame.lv_heroUnits[lv_rosterSlot][libUIUI_gv_uIPartyFrameHeroSlot_C])) == false)) {
+        libUIUI_gf_UIPartyFrameHeroicTalentIconSet(((CatalogFieldValueGet(c_gameCatalogButton, lv_buttonEntry, "Icon", c_playerAny))), lp_player);
         libUIUI_gf_UIPartyFrameHeroicAbilitySet((CatalogFieldValueGet(c_gameCatalogTalent, libGame_gv_talents_TalentChoices[lp_player][libGame_gv_players[lp_player].lv_talent_HeroicTalentTier].lv_talentData[libGame_gv_talents_TalentChoices[lp_player][libGame_gv_players[lp_player].lv_talent_HeroicTalentTier].lv_selection].lv_talentCatalogLink, "Abil", c_playerAny)), lp_player);
     }
 
@@ -6968,6 +7000,12 @@ bool libUIUI_gf_UIPartyFrameSpecialCaseHeroHasHeroicatStart (string lp_hero) {
     if (auto4AC3BCDB_val == "HeroTracer") {
         return true;
     }
+    else if (auto4AC3BCDB_val == "HeroDeathwing") {
+        return true;
+    }
+    else if (auto4AC3BCDB_val == "DeathwingDragonflightUnit") {
+        return true;
+    }
     else {
         return false;
     }
@@ -6980,6 +7018,12 @@ bool libUIUI_gf_UIPartyFrameSpecialCaseHeroHasHeroicCoolup (string lp_hero) {
     // Implementation
     auto4D6381D4_val = lp_hero;
     if (auto4D6381D4_val == "HeroTracer") {
+        return true;
+    }
+    else if (auto4D6381D4_val == "HeroDeathwing") {
+        return true;
+    }
+    else if (auto4D6381D4_val == "DeathwingDragonflightUnit") {
         return true;
     }
     else {
@@ -8672,6 +8716,9 @@ int libUIUI_gf_UIGetHeroResourceType (string lp_heroUnitType) {
     else if (((lp_heroUnitType == "HeroBarbarian"))) {
         return libUIUI_ge_UIHeroResourceType_Orange;
     }
+    else if (((lp_heroUnitType == "HeroDeathwing"))) {
+        return libUIUI_ge_UIHeroResourceType_Breath;
+    }
     else if (((lp_heroUnitType == "HeroZarya") || (lp_heroUnitType == "VolskayaVehicleGunner"))) {
         return libUIUI_ge_UIHeroResourceType_Pink;
     }
@@ -8701,6 +8748,9 @@ int libUIUI_gf_UIGetHeroResourceTypeForPartyFrame (string lp_heroUnitType) {
     }
     else if (((lp_heroUnitType == "HeroProbius"))) {
         return libUIUI_ge_UIHeroResourceType_Blinking;
+    }
+    else if (((lp_heroUnitType == "HeroDeathwing"))) {
+        return libUIUI_ge_UIHeroResourceType_Breath;
     }
     else if (((lp_heroUnitType == "HeroTracer") || (lp_heroUnitType == "HeroIllidan") || (lp_heroUnitType == "HeroJunkrat") || (lp_heroUnitType == "HeroMurky") || (lp_heroUnitType == "HeroCho") || (lp_heroUnitType == "HeroGall") || (lp_heroUnitType == "HeroSamuro") || (lp_heroUnitType == "HeroAbathur"))) {
         return libUIUI_ge_UIHeroResourceType_None;
@@ -12614,6 +12664,8 @@ bool libUIUI_gt_UIInitializeHeroConsole_Func (bool testConds, bool runActions) {
     libUIUI_gv_uIHeroConsole.lv_heroStatsBrewStatFrame = DialogControlLastCreated();
     DialogControlHookup(lv_panels[lv_currentPanelLayer], c_triggerControlTypeUnitStatus, "HeroUnitStatusFramePink");
     libUIUI_gv_uIHeroConsole.lv_heroStatsEnergyStatFrame = DialogControlLastCreated();
+    DialogControlHookup(lv_panels[lv_currentPanelLayer], c_triggerControlTypeUnitStatus, "HeroUnitStatusFrameBreath");
+    libUIUI_gv_uIHeroConsole.lv_heroStatsBreathStatFrame = DialogControlLastCreated();
     DialogControlHookup(lv_panels[lv_currentPanelLayer], c_triggerControlTypeUnitStatus, "HeroUnitStatusFrameNoEnergy");
     libUIUI_gv_uIHeroConsole.lv_heroStatsNoEnergyStatFrame = DialogControlLastCreated();
     DialogControlHookup(lv_panels[lv_currentPanelLayer], c_triggerControlTypeUnitStatus, "HeroUnitStatusFrameNoEnergyNoShield");
@@ -15151,6 +15203,8 @@ bool libUIUI_gt_UIInitializePartyFrameUI_Func (bool testConds, bool runActions) 
             libUIUI_gv_uIPartyFrame.lv_heroStatusBarsOrange[lv_heroRosterIndex] = DialogControlLastCreated();
             DialogControlHookup(lv_panels[lv_currentPanelLayer], c_triggerControlTypeUnitStatus, "HeroUnitStatusFramePinkEnergy");
             libUIUI_gv_uIPartyFrame.lv_heroStatusBarsPink[lv_heroRosterIndex] = DialogControlLastCreated();
+            DialogControlHookup(lv_panels[lv_currentPanelLayer], c_triggerControlTypeUnitStatus, "HeroUnitStatusFrameBreathEnergy");
+            libUIUI_gv_uIPartyFrame.lv_heroStatusBarsBreath[lv_heroRosterIndex] = DialogControlLastCreated();
             DialogControlHookup(lv_panels[lv_currentPanelLayer], c_triggerControlTypeUnitStatus, "HeroUnitStatusFrameRespawn");
             libUIUI_gv_uIPartyFrame.lv_heroStatusBarsRespawn[lv_heroRosterIndex] = DialogControlLastCreated();
             DialogControlHookup(lv_panels[lv_currentPanelLayer], c_triggerControlTypePanel, "HeroWithPetStatusFrame");
@@ -15561,6 +15615,9 @@ bool libUIUI_gt_UIPartyFramePlayerRejoins_Func (bool testConds, bool runActions)
             }
             else if (auto6F1CBD07_val == libUIUI_ge_UIHeroResourceType_Pink) {
                 libNtve_gf_SetDialogItemUnit(libUIUI_gv_uIPartyFrame.lv_heroStatusBarsPink[lv_rosterSlot], libGame_gv_players[lv_i_Player].lv_heroUnit, lv_reconnectingPlayer);
+            }
+            else if (auto6F1CBD07_val == libUIUI_ge_UIHeroResourceType_Breath) {
+                libNtve_gf_SetDialogItemUnit(libUIUI_gv_uIPartyFrame.lv_heroStatusBarsBreath[lv_rosterSlot], libGame_gv_players[lv_i_Player].lv_heroUnit, lv_reconnectingPlayer);
             }
             else if (auto6F1CBD07_val == libUIUI_ge_UIHeroResourceType_None) {
                 libNtve_gf_SetDialogItemUnit(libUIUI_gv_uIPartyFrame.lv_heroStatusBarsNoResource[lv_rosterSlot], libGame_gv_players[lv_i_Player].lv_heroUnit, lv_reconnectingPlayer);
