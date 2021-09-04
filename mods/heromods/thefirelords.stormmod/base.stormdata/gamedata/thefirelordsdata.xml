@@ -276,7 +276,7 @@
   <CAccumulatorToken id="RagnarosLivingMeteorShiftingMeteorDamage" parent="BaseAccumulator">
     <MaxAccumulation value="3" />
     <TokenId value="RagnarosLivingMeteorShiftingMeteorDamageTokenCounter" />
-    <Scale value="0.05" />
+    <Scale value="0.06" />
     <UnitSource Value="Target" />
   </CAccumulatorToken>
   <CActorSound id="HeroRagnarosTauntVO" parent="SoundOneShot">
@@ -1546,6 +1546,11 @@
     <Buttons Face="RagnarosCatchingFireItem" Type="AbilCmd" AbilCmd="RagnarosCatchingFire,Execute" />
     <DisableValidatorArray value="RagnarosHasMaxCatchingFireTokens" />
   </CBehaviorAbility>
+  <CBehaviorTokenCounter id="RagnarosLivingMeteorMoltenPowerTalentTokenCounter" parent="StormGenericToken">
+    <AtMaxEvents Effect="RagnarosLivingMeteorMoltenPowerTalentProcModifyUnit" />
+    <Max value="5" />
+    <Face value="RagnarosLivingMeteorMoltenPower" />
+  </CBehaviorTokenCounter>
   <CBehaviorAbility id="RagnarosResilientFlameItem">
     <Buttons Face="RagnarosResilientFlame" Type="AbilCmd" AbilCmd="RagnarosResilientFlameCooldownDisplay,Execute" />
   </CBehaviorAbility>
@@ -2097,6 +2102,25 @@
     <Chance value="0" />
     <TokenId value="RagnarosEmpowerSulfurasHandOfRagnarosTwoTargetCheck" />
   </CEffectModifyTokenCount>
+  <CEffectModifyTokenCount id="RagnarosLivingMeteorMoltenPowerTalentAddToken" parent="BaseEffectModifyTokenCount">
+    <ValidatorArray value="TargetIsHero" />
+    <Chance value="0" />
+    <TokenId value="RagnarosLivingMeteorMoltenPowerTalentTokenCounter" />
+  </CEffectModifyTokenCount>
+  <CEffectModifyTokenCount id="RagnarosLivingMeteorMoltenPowerTalentResetToken" parent="BaseEffectModifyTokenCount">
+    <Chance value="0" />
+    <CollationId value="RagnarosLivingMeteorMoltenPowerTalentAddToken" />
+    <TokenId value="RagnarosLivingMeteorMoltenPowerTalentTokenCounter" />
+    <Operation value="Set" />
+    <Value value="0" />
+  </CEffectModifyTokenCount>
+  <CEffectModifyUnit id="RagnarosLivingMeteorMoltenPowerTalentProcModifyUnit">
+    <Cost Abil="RagnarosLivingMeteor,Execute" CooldownOperation="Add" CooldownTimeUse="-7" />
+    <VitalArray index="Energy">
+      <Change value="30" />
+    </VitalArray>
+    <FloaterCreation value="Force" />
+  </CEffectModifyUnit>
   <CEffectModifyTokenCount id="RagnarosLivingMeteorShiftingMeteorTalentApplyDamageToken" parent="BaseEffectModifyTokenCount">
     <WhichUnit Value="Target" />
     <TokenId value="RagnarosLivingMeteorShiftingMeteorDamageTokenCounter" />
@@ -2297,6 +2321,7 @@
   <CEffectSet id="RagnarosLivingMeteorFinalEffectSet">
     <EffectArray value="RagnarosLivingMeteorShiftingMeteorRemoveController" />
     <EffectArray value="RagnarosLivingMeteorMeteorBombOffsetPersistent" />
+    <EffectArray value="RagnarosLivingMeteorMoltenPowerTalentResetToken" />
   </CEffectSet>
   <CEffectSet id="RagnarosLivingMeteorPrepSet">
     <EffectArray value="DismountDecloakCasterSetInstantSetFacing" />
@@ -2778,7 +2803,7 @@
     <EffectArray value="RagnarosBlisteringAttacksModifyCooldownDuration" />
     <EffectArray value="RagnarosLivingMeteorMoltenPowerApplyBehavior" />
     <EffectArray value="RagnarosLivingMeteorFireWardApplyBehavior" />
-    <EffectArray value="RagnarosLivingMeteorMoltenPowerApplyBlockBehavior" />
+    <EffectArray value="RagnarosLivingMeteorMoltenPowerTalentAddToken" />
     <EffectArray value="RagnarosLivingMeteorPeriodicDamage" />
     <EffectArray value="RagnarosLivingMeteorShiftingMeteorTalentImpactSet" />
     <EffectArray value="ApplyAbilityImpactReveal" />
@@ -3767,26 +3792,22 @@
       <Modifications>
         <Type value="FlatModification" />
         <Catalog value="Effect" />
-        <Entry value="RagnarosLivingMeteorMoltenPowerApplyBehavior" />
+        <Entry value="RagnarosLivingMeteorMoltenPowerTalentAddToken" />
         <Field value="Chance" />
         <Value value="1.000000" />
       </Modifications>
       <Modifications>
         <Type value="FlatModification" />
         <Catalog value="Effect" />
-        <Entry value="RagnarosLivingMeteorMoltenPowerRemoveBehavior" />
-        <Field value="Chance" />
-        <Value value="1.000000" />
-      </Modifications>
-      <Modifications>
-        <Type value="FlatModification" />
-        <Catalog value="Effect" />
-        <Entry value="RagnarosLivingMeteorMoltenPowerRemoveDamageBuff" />
+        <Entry value="RagnarosLivingMeteorMoltenPowerTalentResetToken" />
         <Field value="Chance" />
         <Value value="1.000000" />
       </Modifications>
     </AbilityModificationArray>
     <Face value="RagnarosLivingMeteorMoltenPower" />
+    <RankArray>
+      <BehaviorArray value="RagnarosLivingMeteorMoltenPowerTalentTokenCounter" />
+    </RankArray>
   </CTalent>
   <CTalent id="RagnarosLivingMeteorPyrocasticFlow">
     <Face value="RagnarosPyrocasticFlow" />
@@ -4145,6 +4166,26 @@
   <CValidatorCombine id="AbilBarHealthBarPortraitGlow">
     <CombineArray value="RagnarosMoltenCoreDuration" />
   </CValidatorCombine>
+  <CValidatorUnitCompareTokenCount id="RagnarosHas1MoltenPowerToken">
+    <Value value="1" />
+    <TokenId value="RagnarosLivingMeteorMoltenPowerTalentTokenCounter" />
+  </CValidatorUnitCompareTokenCount>
+  <CValidatorUnitCompareTokenCount id="RagnarosHas2MoltenPowerTokens">
+    <Value value="2" />
+    <TokenId value="RagnarosLivingMeteorMoltenPowerTalentTokenCounter" />
+  </CValidatorUnitCompareTokenCount>
+  <CValidatorUnitCompareTokenCount id="RagnarosHas3MoltenPowerTokens">
+    <Value value="3" />
+    <TokenId value="RagnarosLivingMeteorMoltenPowerTalentTokenCounter" />
+  </CValidatorUnitCompareTokenCount>
+  <CValidatorUnitCompareTokenCount id="RagnarosHas4MoltenPowerTokens">
+    <Value value="4" />
+    <TokenId value="RagnarosLivingMeteorMoltenPowerTalentTokenCounter" />
+  </CValidatorUnitCompareTokenCount>
+  <CValidatorUnitCompareTokenCount id="RagnarosHas5MoltenPowerTokens">
+    <Value value="5" />
+    <TokenId value="RagnarosLivingMeteorMoltenPowerTalentTokenCounter" />
+  </CValidatorUnitCompareTokenCount>
   <CValidatorCombine id="RagnarosTargetIsHeroAndHasTemperedFlameTalent">
     <Type value="And" />
     <CombineArray value="TargetIsHero" />

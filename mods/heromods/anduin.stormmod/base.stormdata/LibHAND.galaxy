@@ -33,6 +33,7 @@ void libHAND_gf_HeroAnduinIncrementHeroCountFunction () {
     if ((libHAND_gv_heroAnduinTriggerRegistrationVariable == 1)) {
         TriggerEnable(libHAND_gt_HeroAnduinLeapofFaithCameraLock, true);
         TriggerEnable(libHAND_gt_HeroAnduinBlessedRecoveryDamageCheck, true);
+        TriggerEnable(libHAND_gt_HeroAnduinLightofStormwindCDR, true);
     }
 
 }
@@ -48,6 +49,7 @@ void libHAND_gf_HeroAnduinDecrementHeroCountFunction () {
     if ((libHAND_gv_heroAnduinTriggerRegistrationVariable == 0)) {
         TriggerEnable(libHAND_gt_HeroAnduinLeapofFaithCameraLock, false);
         TriggerEnable(libHAND_gt_HeroAnduinBlessedRecoveryDamageCheck, false);
+        TriggerEnable(libHAND_gt_HeroAnduinLightofStormwindCDR, false);
     }
 
 }
@@ -140,9 +142,50 @@ void libHAND_gt_HeroAnduinBlessedRecoveryDamageCheck_Init () {
     TriggerAddEventUnitDamaged(libHAND_gt_HeroAnduinBlessedRecoveryDamageCheck, null, c_unitDamageTypeAny, c_unitDamageEither, null);
 }
 
+//--------------------------------------------------------------------------------------------------
+// Trigger: Hero - Anduin - Light of Stormwind CDR
+//--------------------------------------------------------------------------------------------------
+bool libHAND_gt_HeroAnduinLightofStormwindCDR_Func (bool testConds, bool runActions) {
+    // Variable Declarations
+    unit lv_unit;
+    int lv_player;
+
+    // Automatic Variable Declarations
+    // Variable Initialization
+    lv_unit = EventUnit();
+    lv_player = UnitGetOwner(lv_unit);
+
+    // Conditions
+    if (testConds) {
+        if (!((UnitGetType(lv_unit) == "HeroAnduin"))) {
+            return false;
+        }
+
+        if (!((PlayerHasTalent(lv_player, "AnduinHolyWordSalvationLightOfStormwind") == true))) {
+            return false;
+        }
+    }
+
+    // Actions
+    if (!runActions) {
+        return true;
+    }
+
+    UnitCreateEffectUnit(lv_unit, "AnduinHolyWordSalvationLightOfStormwindCooldownReduction", lv_unit);
+    return true;
+}
+
+//--------------------------------------------------------------------------------------------------
+void libHAND_gt_HeroAnduinLightofStormwindCDR_Init () {
+    libHAND_gt_HeroAnduinLightofStormwindCDR = TriggerCreate("libHAND_gt_HeroAnduinLightofStormwindCDR_Func");
+    TriggerEnable(libHAND_gt_HeroAnduinLightofStormwindCDR, false);
+    TriggerAddEventUnitAbility(libHAND_gt_HeroAnduinLightofStormwindCDR, null, AbilityCommand("AnduinHolyWordSalvation", 0), c_abilEffectStageFinish, false);
+}
+
 void libHAND_InitTriggers () {
     libHAND_gt_HeroAnduinLeapofFaithCameraLock_Init();
     libHAND_gt_HeroAnduinBlessedRecoveryDamageCheck_Init();
+    libHAND_gt_HeroAnduinLightofStormwindCDR_Init();
 }
 
 //--------------------------------------------------------------------------------------------------

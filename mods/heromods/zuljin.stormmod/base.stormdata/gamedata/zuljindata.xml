@@ -147,7 +147,7 @@
     <Flags index="ClearLastMoveTarget" value="1" />
     <Flags index="RequireTargetVision" value="0" />
     <Cost>
-      <Cooldown TimeUse="45" />
+      <Cooldown TimeUse="40" />
     </Cost>
     <Range value="500" />
     <Arc value="360" />
@@ -1157,6 +1157,9 @@
   <CBehaviorAbility id="ZuljinEnsnareItem">
     <Buttons Face="ZuljinEnsnare" Type="AbilCmd" AbilCmd="ZuljinEnsnare,Execute" Behavior="ZuljinEnsnareItem" />
   </CBehaviorAbility>
+  <CBehaviorBuff id="ZuljinEnsnareMissMarker">
+    <Duration value="0.125" />
+  </CBehaviorBuff>
   <CBehaviorTokenCounter id="ZuljinEyeOfZuljinTokenCounter" parent="StormGenericToken">
     <Max value="5" />
   </CBehaviorTokenCounter>
@@ -1305,7 +1308,7 @@
     <Alignment value="Positive" />
     <DisableValidatorArray value="CasterLifeLT50Percent" />
     <Modification>
-      <DamageDealtFraction index="Basic" value="0.2" />
+      <DamageDealtFraction index="Basic" value="0.15" />
     </Modification>
     <SortIndex value="100" />
   </CBehaviorBuff>
@@ -1415,13 +1418,13 @@
   </CBehaviorBuff>
   <CBehaviorBuff id="ZuljinTwinCleaveLacerateFirstHitSlow" parent="StormSlowParent">
     <RemoveValidatorArray value="ZuljinTwinCleaveLacerateTargetDoesNotHaveFullSlow" />
-    <Duration value="2" />
+    <Duration value="2.5" />
     <Modification>
       <UnifiedMoveSpeedFactor value="-0.25" />
     </Modification>
   </CBehaviorBuff>
   <CBehaviorBuff id="ZuljinTwinCleaveLacerateFullSlow" parent="StormSlowParent">
-    <Duration value="2" />
+    <Duration value="2.5" />
     <Modification>
       <UnifiedMoveSpeedFactor value="-0.5" />
     </Modification>
@@ -1485,7 +1488,7 @@
     <Icon value="Assets\Textures\storm_ui_icon_zuljin_guillotine.dds" />
   </CButton>
   <CButton id="ZuljinCancelBerserker" parent="StormButtonParent">
-    <TooltipAppender Validator="ZuljinHasRecklessness" Face="ZuljinRecklessness" />
+    <TooltipAppender Validator="ZuljinHasRecklessnessTalent" Face="ZuljinRecklessness" />
     <TooltipAppender Validator="ZuljinHasFerocity" Face="ZuljinFerocity" />
     <Icon value="Assets\Textures\storm_ui_icon_zuljin_berzerker_off.dds" />
   </CButton>
@@ -1552,7 +1555,7 @@
     <Icon value="Assets\Textures\storm_ui_icon_zuljin_twincleave.dds" />
   </CButton>
   <CButton id="ZuljinBerserker" parent="StormButtonParentTrait">
-    <TooltipAppender Validator="ZuljinHasRecklessness" Face="ZuljinRecklessness" />
+    <TooltipAppender Validator="ZuljinHasRecklessnessTalent" Face="ZuljinRecklessness" />
     <TooltipAppender Validator="ZuljinHasFerocity" Face="ZuljinFerocity" />
     <Icon value="Assets\Textures\storm_ui_icon_zuljin_berzerker.dds" />
     <TooltipFlags index="ShowCooldown" value="0" />
@@ -1579,6 +1582,15 @@
     <ValidatorArray value="TargetNotHallucination" />
     <Behavior value="ZuljinGuillotineBuzzsawDebuff" />
   </CEffectApplyBehavior>
+  <CEffectApplyBehavior id="ZuljinEnsnareApplyMissMarker">
+    <WhichUnit Value="Caster" />
+    <Behavior value="ZuljinEnsnareMissMarker" />
+  </CEffectApplyBehavior>
+  <CEffectModifyUnit id="ZuljinEnsnareMissModifyCooldown">
+    <ValidatorArray value="ZuljinCasterDoesNotHaveEnsnareMissMarker" />
+    <ImpactUnit Value="Caster" />
+    <Cost Abil="ZuljinEnsnare,Execute" CooldownOperation="Set" CooldownTimeUse="10" />
+  </CEffectModifyUnit>
   <CEffectSet id="ZuljinHeroWeaponASurpriseForYaInitialSet">
     <ValidatorArray value="CasterNotBlindedAndTargetNotEvading" />
     <Chance value="0" />
@@ -1690,6 +1702,11 @@
     <WhichUnit Value="Source" />
     <Behavior value="ZuljinHeadhunterAttackRangeIncrease" />
   </CEffectApplyBehavior>
+  <CEffectDamage id="ZuljinHeroWeaponNoMercyTalentPercentDamage" parent="StormSpellPercentDamage">
+    <ValidatorArray value="CasterNotBlindedAndTargetNotEvading" />
+    <ValidatorArray value="ZuljinGrievousThrowTargetHasAttackStacks" />
+    <VitalFractionMax index="Life" value="0.02" />
+  </CEffectDamage>
   <CEffectSwitch id="ZuljinTwinCleaveWrongPlaceWrongTimeTalentSwitch">
     <Chance value="0" />
     <CaseArray Validator="ZuljinHasEqualToOrGreaterThan30TokensOfYouWantAxe" Effect="ZuljinTwinCleaveWrongPlaceWrongTimeYouWantAxeCompletionPersistent" />
@@ -1769,6 +1786,12 @@
   <CEffectApplyBehavior id="ZuljinYouWantAxeApplyQuestCompletionCarry">
     <Behavior value="ZuljinYouWantAxeQuestCompletionCarry" />
   </CEffectApplyBehavior>
+  <CEffectModifyTokenCount id="ZuljinYouWantAxeRecklessnessTalentQuestIncrementMiniProgressToken" parent="BaseEffectModifyTokenCount">
+    <ValidatorArray value="CasterNotBlindedAndTargetNotEvading" />
+    <ValidatorArray value="ZuljinRecklessnessCasterHasRecklessnessBuff" />
+    <CollationId value="ZuljinYouWantAxeQuestIncrementMiniProgressToken" />
+    <TokenId value="ZuljinYouWantAxeQuestMiniProgressToken" />
+  </CEffectModifyTokenCount>
   <CEffectModifyTokenCount id="ZuljinYouWantAxeQuestResetMiniProgressToken" parent="BaseEffectModifyTokenCount">
     <TokenId value="ZuljinYouWantAxeQuestMiniProgressToken" />
     <Operation value="Set" />
@@ -1869,6 +1892,7 @@
   <CEffectSet id="ZuljinYouWantAxeAttackResponseSet">
     <ValidatorArray value="TargetIsHero" />
     <EffectArray value="ZuljinYouWantAxeQuestIncrementMiniProgressToken" />
+    <EffectArray value="ZuljinYouWantAxeRecklessnessTalentQuestIncrementMiniProgressToken" />
   </CEffectSet>
   <CEffectSet id="ZuljinBerserkerCancelInitialSet">
     <EffectArray value="ZuljinBerserkerRemoveBehavior" />
@@ -2069,6 +2093,7 @@
   </CEffectCreatePersistent>
   <CEffectSet id="ZuljinEnsnareInitialSet">
     <EffectArray value="ZuljinInstantAbilitySetCasterFacing" />
+    <EffectArray value="ZuljinEnsnareMissCatalogReset" />
     <EffectArray value="ZuljinEnsnareInitialOffset" />
     <TargetLocationType value="Point" />
   </CEffectSet>
@@ -2077,6 +2102,7 @@
     <ValidatorArray value="NotImmunetoSkillshots" />
     <EffectArray value="ZuljinEnsnareApplyRootBehavior" />
     <EffectArray value="ApplyAbilityImpactReveal" />
+    <EffectArray value="ZuljinEnsnareApplyMissMarker" />
     <EffectArray value="ZuljinEnsnareMissileSuicide" />
   </CEffectSet>
   <CEffectCreatePersistent id="ZuljinEnsnareMissilePersistent">
@@ -2086,6 +2112,7 @@
     <PeriodicEffectArray value="ZuljinEnsnareMissileScan" />
     <PeriodicPeriodArray value="0.0625" />
     <InitialDelay value="0.0625" />
+    <FinalEffect value="ZuljinEnsnareMissModifyCooldown" />
   </CEffectCreatePersistent>
   <CEffectLaunchMissile id="ZuljinEnsnareLaunchMissile">
     <ValidatorArray value="CasterNotDead" />
@@ -2438,8 +2465,9 @@
     <EffectArray value="ZuljinWeaponDamageSwitch" />
     <EffectArray value="ZuljinYouWantAxeAttackResponseSet" />
     <EffectArray value="ZuljinGrievousThrowRemoveAttackStackBehavior" />
-    <EffectArray value="UniversalWeaponImpact" />
     <EffectArray value="ZuljinHeroWeaponASurpriseForYaInitialSet" />
+    <EffectArray value="ZuljinHeroWeaponNoMercyTalentPercentDamage" />
+    <EffectArray value="UniversalWeaponImpact" />
   </CEffectSet>
   <CEffectApplyKinetic id="ZuljinTwinCleaveSwirlingDeathRightApplyKinetic">
     <Kinetic value="ZuljinTwinCleaveSwirlingDeathRotateRight" />
@@ -3102,14 +3130,14 @@
         <Catalog value="Effect" />
         <Entry value="ZuljinWeaponDamage" />
         <Field value="MultiplicativeModifierArray[GrievousThrowDebuffCheck].Modifier" />
-        <Value value="0.350000" />
+        <Value value="0.450000" />
       </Modifications>
       <Modifications>
         <Type value="FlatModification" />
         <Catalog value="Effect" />
         <Entry value="ZuljinNoMercyWeaponDamage" />
         <Field value="MultiplicativeModifierArray[GrievousThrowDebuffCheck].Modifier" />
-        <Value value="0.350000" />
+        <Value value="0.450000" />
       </Modifications>
       <Modifications>
         <Type value="FlatModification" />
@@ -3327,7 +3355,9 @@
     <EffectArray index="Birth" value="ZuljinUIActivateDummy" />
     <InnerRadius value="0.75" />
   </CUnit>
-  <CUnit id="ZuljinEnsnareMissile" parent="MISSILE_INVULNERABLE" />
+  <CUnit id="ZuljinEnsnareMissile" parent="MISSILE_INVULNERABLE">
+    <DeathTime value="0.125" />
+  </CUnit>
   <CUnit id="ZuljinTwinCleaveRightUnit" parent="StormSummonFigment">
     <PlaneArray index="Air" value="1" />
     <FlagArray index="Turnable" value="0" />
@@ -3358,6 +3388,10 @@
     <Find value="1" />
     <Value value="Zul'jinAmaniRageAmaniHide" />
   </CValidatorPlayerTalent>
+  <CValidatorUnitCompareBehaviorCount id="ZuljinCasterDoesNotHaveEnsnareMissMarker">
+    <WhichUnit Value="Caster" />
+    <Behavior value="ZuljinEnsnareMissMarker" />
+  </CValidatorUnitCompareBehaviorCount>
   <CValidatorPlayerTalent id="ZuljinHasPassiveASurpriseForYaTalent">
     <WhichPlayer Value="Caster" />
     <Find value="1" />
@@ -3654,7 +3688,7 @@
     <Find value="1" />
     <Value value="ZuljinLetTheKillingBegin" />
   </CValidatorPlayerTalent>
-  <CValidatorPlayerTalent id="ZuljinHasRecklessness">
+  <CValidatorPlayerTalent id="ZuljinHasRecklessnessTalent">
     <Find value="1" />
     <Value value="ZuljinRecklessness" />
   </CValidatorPlayerTalent>

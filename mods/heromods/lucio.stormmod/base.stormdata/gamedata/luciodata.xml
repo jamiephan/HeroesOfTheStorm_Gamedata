@@ -42,7 +42,7 @@
     <Effect value="LucioSummerAnthemSearchArea" />
     <Flags index="NoDeceleration" value="1" />
     <Cost>
-      <Cooldown TimeUse="75" />
+      <Cooldown TimeUse="60" />
     </Cost>
     <CmdButtonArray index="Execute" DefaultButtonFace="LucioItemSummerAnthem" />
   </CAbilEffectInstant>
@@ -166,7 +166,7 @@
     <Flags index="ClearLastAttackTargetOutOfRange" value="1" />
     <Flags index="ClearLastMoveTarget" value="1" />
     <Cost>
-      <Vital index="Energy" value="35" />
+      <Vital index="Energy" value="30" />
     </Cost>
     <TargetFilters value="Heroic,Visible;Self,Player,RawResource,HarvestableResource,Missile,Item,Dead,Hidden" />
     <Range value="6.5" />
@@ -1292,7 +1292,7 @@
     <Duration value="1" />
   </CBehaviorBuff>
   <CBehaviorBuff id="LucioHighFiveCooldownBehavior">
-    <Duration value="15" />
+    <Duration value="20" />
     <MaxStackCount value="5" />
     <MaxStackCountPerCaster value="1" />
   </CBehaviorBuff>
@@ -1656,7 +1656,7 @@
     <BehaviorCategories index="BuffTempMaxHealth" value="0" />
     <MaxStackCount value="100" />
     <Duration value="7" />
-    <DamageResponse ModifyLimit="35" SuppressFloatersCausedByBehavior="1" />
+    <DamageResponse ModifyLimit="38" SuppressFloatersCausedByBehavior="1" />
   </CBehaviorBuff>
   <CBehaviorBuff id="LucioSoundBarrierBossaNovaShield" parent="StormShield">
     <MaxStackCount value="32" />
@@ -1908,6 +1908,7 @@
     <TooltipAppender Validator="LucioHasAmpItUpRejuvenescenciaTalent" Face="LucioAmpItUpRejuvenescencia" />
     <TooltipAppender Validator="LucioHasAmpItUpBringItTogetherTalent" Face="LucioAmpItUpBringItTogether" />
     <TooltipAppender Validator="LucioHasAmpItUpUpTheFrequencyTalent" Face="LucioAmpItUpUpTheFrequency" />
+    <TooltipAppender Validator="LucioHasAmpItUpUpToElevenTalent" Face="LucioAmpItUpUpToEleven" />
     <TooltipAppender Validator="LucioHasAmptItUpBonusTrackTalent" Face="LucioAmptItUpBonusTrack" />
     <TooltipAppender Validator="LucioHasAmpItUpSynaesthesiaAuditivaTalent" Face="LucioAmpItUpSynaesthesiaAuditiva" />
   </CButton>
@@ -2099,7 +2100,9 @@
   <CEffectSet id="LucioHighFiveApproachImpactSet">
     <EffectArray value="LucioHighFiveRemoveBehavior" />
     <EffectArray value="LucioHighFiveCreateHealer" />
+    <EffectArray value="LucioHighFiveSelfHealCreateHealer" />
     <EffectArray value="LucioHighFiveApplyUnstoppableBehavior" />
+    <EffectArray value="LucioHighFiveSelfBuffApplyUnstoppableBehavior" />
     <EffectArray value="LucioHighFiveMixingFireDamage" />
     <EffectArray value="LucioHighFiveMixingFireApplyHealingReductionBehavior" />
     <EffectArray value="LucioWeaponDisablerHoldFireRemoveBehavior" />
@@ -2172,6 +2175,16 @@
     <EffectArray value="LucioCrossfadeSpeedBoostSearchArea" />
     <EffectArray value="LucioHighFiveAvailableSearchSwitch" />
   </CEffectSet>
+  <CEffectApplyBehavior id="LucioHighFiveSelfBuffApplyUnstoppableBehavior">
+    <WhichUnit Value="Caster" />
+    <Behavior value="LucioHighFiveUnstoppable" />
+  </CEffectApplyBehavior>
+  <CEffectCreateHealer id="LucioHighFiveSelfHealCreateHealer" parent="StormHealingParent">
+    <MultiplicativeModifierArray index="HouseParty" Validator="LucioHasPassiveHousePartyTalent" Accumulator="LucioCrossfadeHousePartyAccumulator" />
+    <ImpactUnit Value="Caster" />
+    <RechargeVitalRate value="125" />
+    <AmountScoreArray index="0" Validator="TargetIsHero" Value="SelfHealing" />
+  </CEffectCreateHealer>
   <CEffectApplyBehavior id="LucioPushOffCasterBehaviorApply">
     <WhichUnit Value="Caster" />
     <Behavior value="LucioPushOffCasterBehavior" />
@@ -2505,7 +2518,7 @@
   </CEffectEnumArea>
   <CEffectEnumArea id="LucioSummerAnthemSearchArea">
     <ImpactLocation Value="TargetUnit" />
-    <SearchFilters value="Heroic;Player,Neutral,Enemy,Structure,ImmuneToFriendlyAbilities,Missile,Stasis,Dead" />
+    <SearchFilters value="Heroic;Neutral,Enemy,Structure,ImmuneToFriendlyAbilities,Missile,Stasis,Dead" />
     <AreaArray Effect="LucioSummerAnthemApplyUnkillableBehavior">
       <Radius value="7" />
     </AreaArray>
@@ -3456,6 +3469,14 @@
         <AffectedByAbilityPower value="1" />
         <AffectedByOverdrive value="1" />
       </Modifications>
+      <Modifications>
+        <Catalog value="Effect" />
+        <Entry value="LucioHighFiveSelfHealCreateHealer" />
+        <Field value="RechargeVitalRate" />
+        <Value value="0.040000" />
+        <AffectedByAbilityPower value="1" />
+        <AffectedByOverdrive value="1" />
+      </Modifications>
     </LevelScalingArray>
     <LevelScalingArray Ability="LucioAmpItUp">
       <Modifications>
@@ -3757,11 +3778,16 @@
   </CSoundExclusivity>
   <CTalent id="LucioAmpItUpUpToEleven">
     <Face value="LucioAmpItUpUpToEleven" />
-    <Abil value="LucioAmpItUpUpToEleven" />
-    <RankArray>
-      <BehaviorArray value="LucioAmpItUpUpToElevenItem" />
-    </RankArray>
-    <Active value="1" />
+    <Abil value="LucioAmpItUp" />
+    <AbilityModificationArray>
+      <Modifications>
+        <Type value="FlatModification" />
+        <Catalog value="Behavior" />
+        <Entry value="LucioAmpItUp" />
+        <Field value="Duration" />
+        <Value value="1.000000" />
+      </Modifications>
+    </AbilityModificationArray>
   </CTalent>
   <CTalent id="LucioCrossfadeAllTogetherTalent">
     <Face value="LucioCrossfadeAllTogether" />
@@ -3775,11 +3801,11 @@
     <Abil value="LucioHighFive" />
     <AbilityModificationArray>
       <Modifications>
-        <Type value="FlatModification" />
+        <Type value="MultiplyLevelModification" />
         <Catalog value="Behavior" />
-        <Entry value="LucioAmpItUp" />
+        <Entry value="LucioHighFiveCooldownBehavior" />
         <Field value="Duration" />
-        <Value value="1.000000" />
+        <Value value="0.500000" />
       </Modifications>
       <Modifications>
         <Type value="FlatModification" />
@@ -3794,6 +3820,12 @@
         <Entry value="LucioHighFiveMixingFireDamage" />
         <Field value="Chance" />
         <Value value="1.000000" />
+      </Modifications>
+      <Modifications>
+        <Type value="MultiplyLevelModification" />
+        <Entry value="LucioHighFive" />
+        <Field value="Cost.Vital[Energy]" />
+        <Value value="0.500000" />
       </Modifications>
     </AbilityModificationArray>
   </CTalent>
@@ -4461,7 +4493,6 @@
   <CUnit id="LucioBoombox" parent="StormSummonPassive">
     <LifeStart value="350" />
     <LifeMax value="350" />
-    <BehaviorArray Link="LucioBoomboxTimedLife" />
     <Radius value="0.25" />
     <InnerRadius value="0.25" />
     <Sight value="7.25" />
