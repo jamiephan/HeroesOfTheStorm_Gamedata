@@ -93,14 +93,13 @@ void libHCHO_gf_HeroChoGallIncrementHeroCountFunction () {
         TriggerEnable(libHCHO_gt_HeroChoMoltenBlockOverlayOff, true);
         TriggerEnable(libHCHO_gt_HeroGallShoveRootOff, true);
         TriggerEnable(libHCHO_gt_HeroGallShoveRootOn, true);
-        TriggerEnable(libHCHO_gt_HeroChoFuelfortheFlameMinionKillProc, true);
-        TriggerEnable(libHCHO_gt_HeroChoFuelfortheFlameHeroKillProc, true);
-        TriggerEnable(libHCHO_gt_HeroChoTheWillofChoTakedownProc, true);
+        TriggerEnable(libHCHO_gt_HeroChoTheWillofChoHeroTakedownProc, true);
         TriggerEnable(libHCHO_gt_HeroGallTheWillofGallTakedownProc, true);
         TriggerEnable(libHCHO_gt_HeroChoHourofTwilightDeathTimerReduction, true);
         TriggerEnable(libHCHO_gt_HeroChoGallTryMeModeSetLevelSpecialCase, true);
         TriggerEnable(libHCHO_gt_HeroChoRuneBombRunicFeedbackDamageResponses, true);
         TriggerEnable(libHCHO_gt_HeroGallDreadOrbEnragedRegenerationDamageResponse, true);
+        TriggerEnable(libHCHO_gt_HeroChoTheWillofChoMinionTakedownProc, true);
     }
 
 }
@@ -155,14 +154,13 @@ void libHCHO_gf_HeroChoGallDecrementHeroCountFunction () {
         TriggerEnable(libHCHO_gt_HeroChoMoltenBlockOverlayOff, false);
         TriggerEnable(libHCHO_gt_HeroGallShoveRootOff, false);
         TriggerEnable(libHCHO_gt_HeroGallShoveRootOn, false);
-        TriggerEnable(libHCHO_gt_HeroChoFuelfortheFlameMinionKillProc, false);
-        TriggerEnable(libHCHO_gt_HeroChoFuelfortheFlameHeroKillProc, false);
-        TriggerEnable(libHCHO_gt_HeroChoTheWillofChoTakedownProc, false);
+        TriggerEnable(libHCHO_gt_HeroChoTheWillofChoHeroTakedownProc, false);
         TriggerEnable(libHCHO_gt_HeroGallTheWillofGallTakedownProc, false);
         TriggerEnable(libHCHO_gt_HeroChoHourofTwilightDeathTimerReduction, false);
         TriggerEnable(libHCHO_gt_HeroChoGallTryMeModeSetLevelSpecialCase, false);
         TriggerEnable(libHCHO_gt_HeroChoRuneBombRunicFeedbackDamageResponses, false);
         TriggerEnable(libHCHO_gt_HeroGallDreadOrbEnragedRegenerationDamageResponse, false);
+        TriggerEnable(libHCHO_gt_HeroChoTheWillofChoMinionTakedownProc, false);
     }
 
 }
@@ -616,14 +614,17 @@ void libHCHO_gt_HeroGallPsychoticBreakRespawnTimerAdjustmentBase_Init () {
 }
 
 //--------------------------------------------------------------------------------------------------
-// Trigger: Hero - Cho - The Will of Cho - Takedown Proc
+// Trigger: Hero - Cho - The Will of Cho - Hero Takedown Proc
 //--------------------------------------------------------------------------------------------------
-bool libHCHO_gt_HeroChoTheWillofChoTakedownProc_Func (bool testConds, bool runActions) {
+bool libHCHO_gt_HeroChoTheWillofChoHeroTakedownProc_Func (bool testConds, bool runActions) {
     // Variable Declarations
     int lv_choPlayer;
     unit lv_cho;
 
     // Automatic Variable Declarations
+    const int auto05A6B816_n = 10;
+    int auto05A6B816_i;
+
     // Variable Initialization
     lv_choPlayer = libGame_gf_HeroParticipatedInTakedownKillingPlayer();
     lv_cho = libGame_gv_players[lv_choPlayer].lv_heroUnit;
@@ -648,15 +649,62 @@ bool libHCHO_gt_HeroChoTheWillofChoTakedownProc_Func (bool testConds, bool runAc
         return true;
     }
 
-    UnitCreateEffectUnit(lv_cho, "ChoWillofChoModifyTokenPersistent", lv_cho);
+    for (auto05A6B816_i = 1; auto05A6B816_i <= auto05A6B816_n; auto05A6B816_i += 1) {
+        UnitCreateEffectUnit(lv_cho, "ChoWillofChoModifyToken", lv_cho);
+    }
     return true;
 }
 
 //--------------------------------------------------------------------------------------------------
-void libHCHO_gt_HeroChoTheWillofChoTakedownProc_Init () {
-    libHCHO_gt_HeroChoTheWillofChoTakedownProc = TriggerCreate("libHCHO_gt_HeroChoTheWillofChoTakedownProc_Func");
-    TriggerEnable(libHCHO_gt_HeroChoTheWillofChoTakedownProc, false);
-    libGame_gf_HeroParticipatedInTakedown(libHCHO_gt_HeroChoTheWillofChoTakedownProc);
+void libHCHO_gt_HeroChoTheWillofChoHeroTakedownProc_Init () {
+    libHCHO_gt_HeroChoTheWillofChoHeroTakedownProc = TriggerCreate("libHCHO_gt_HeroChoTheWillofChoHeroTakedownProc_Func");
+    TriggerEnable(libHCHO_gt_HeroChoTheWillofChoHeroTakedownProc, false);
+    libGame_gf_HeroParticipatedInTakedown(libHCHO_gt_HeroChoTheWillofChoHeroTakedownProc);
+}
+
+//--------------------------------------------------------------------------------------------------
+// Trigger: Hero - Cho - The Will of Cho - Minion Takedown Proc
+//--------------------------------------------------------------------------------------------------
+bool libHCHO_gt_HeroChoTheWillofChoMinionTakedownProc_Func (bool testConds, bool runActions) {
+    // Variable Declarations
+    int lv_killingPlayer;
+    unit lv_killingHero;
+    unit lv_minion;
+
+    // Automatic Variable Declarations
+    // Variable Initialization
+    lv_killingPlayer = libGame_gf_HeroParticipatedInNPCTakedownKillingPlayer();
+    lv_killingHero = libGame_gv_players[lv_killingPlayer].lv_heroUnit;
+    lv_minion = libGame_gf_HeroParticipatedInNPCTakedownMinion();
+
+    // Conditions
+    if (testConds) {
+        if (!((PlayerHasTalent(lv_killingPlayer, "ChoTheWillofCho") == true))) {
+            return false;
+        }
+    }
+
+    // Actions
+    if (!runActions) {
+        return true;
+    }
+
+    if (((UnitTypeTestAttribute(UnitGetType(lv_minion), c_unitAttributeSummoned) == true) || (UnitTypeTestAttribute(UnitGetType(lv_minion), c_unitAttributeUser1) == true) || (UnitTypeTestAttribute(UnitGetType(lv_minion), c_unitAttributeMapBoss) == true))) {
+        return true;
+    }
+
+    if ((UnitTypeTestAttribute(UnitGetType(lv_minion), c_unitAttributeMinion) == true) && (UnitFilterMatch(lv_minion, lv_killingPlayer, UnitFilter(0, 0, (1 << c_targetFilterCreep) | (1 << c_targetFilterMerc), 0)) == true)) {
+        UnitCreateEffectUnit(lv_killingHero, "ChoWillofChoModifyToken", lv_killingHero);
+    }
+
+    return true;
+}
+
+//--------------------------------------------------------------------------------------------------
+void libHCHO_gt_HeroChoTheWillofChoMinionTakedownProc_Init () {
+    libHCHO_gt_HeroChoTheWillofChoMinionTakedownProc = TriggerCreate("libHCHO_gt_HeroChoTheWillofChoMinionTakedownProc_Func");
+    TriggerEnable(libHCHO_gt_HeroChoTheWillofChoMinionTakedownProc, false);
+    libGame_gf_HeroParticipatedInNPCTakedown(libHCHO_gt_HeroChoTheWillofChoMinionTakedownProc);
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -844,96 +892,6 @@ void libHCHO_gt_HeroGallDreadOrbEnragedRegenerationDamageResponse_Init () {
     TriggerAddEventUnitDamaged(libHCHO_gt_HeroGallDreadOrbEnragedRegenerationDamageResponse, null, c_unitDamageTypeAbility, c_unitDamageEither, "GallDreadOrbImpactDamage01");
     TriggerAddEventUnitDamaged(libHCHO_gt_HeroGallDreadOrbEnragedRegenerationDamageResponse, null, c_unitDamageTypeAbility, c_unitDamageEither, "GallDreadOrbImpactDamage02");
     TriggerAddEventUnitDamaged(libHCHO_gt_HeroGallDreadOrbEnragedRegenerationDamageResponse, null, c_unitDamageTypeAbility, c_unitDamageEither, "GallDreadOrbImpactDamage03");
-}
-
-//--------------------------------------------------------------------------------------------------
-// Trigger: Hero - Cho - Fuel for the Flame Minion Kill Proc
-//--------------------------------------------------------------------------------------------------
-bool libHCHO_gt_HeroChoFuelfortheFlameMinionKillProc_Func (bool testConds, bool runActions) {
-    // Variable Declarations
-    fixed lv_baseScale;
-    fixed lv_stacks;
-    unit lv_minion;
-    int lv_choPlayer;
-    unit lv_cho;
-
-    // Automatic Variable Declarations
-    // Variable Initialization
-    lv_baseScale = 0.5;
-    lv_minion = libGame_gf_HeroParticipatedInNPCTakedownMinion();
-    lv_choPlayer = libGame_gf_HeroParticipatedInNPCTakedownKillingPlayer();
-    lv_cho = libGame_gv_players[lv_choPlayer].lv_heroUnit;
-
-    // Conditions
-    if (testConds) {
-        if (!((UnitTypeTestAttribute(UnitGetType(lv_minion), c_unitAttributeMinion) == true))) {
-            return false;
-        }
-
-        if (!((UnitTypeTestAttribute(UnitGetType(lv_minion), c_unitAttributeMapCreature) == false))) {
-            return false;
-        }
-
-        if (!((PlayerHasTalent(lv_choPlayer, "ChoFuelForTheFlame") == true))) {
-            return false;
-        }
-    }
-
-    // Actions
-    if (!runActions) {
-        return true;
-    }
-
-    UnitCreateEffectUnit(lv_cho, "ChoConsumingBlazeFuelfortheFlameTalentModifyTokenMinion", lv_cho);
-    return true;
-}
-
-//--------------------------------------------------------------------------------------------------
-void libHCHO_gt_HeroChoFuelfortheFlameMinionKillProc_Init () {
-    libHCHO_gt_HeroChoFuelfortheFlameMinionKillProc = TriggerCreate("libHCHO_gt_HeroChoFuelfortheFlameMinionKillProc_Func");
-    TriggerEnable(libHCHO_gt_HeroChoFuelfortheFlameMinionKillProc, false);
-    libGame_gf_HeroParticipatedInNPCTakedown(libHCHO_gt_HeroChoFuelfortheFlameMinionKillProc);
-}
-
-//--------------------------------------------------------------------------------------------------
-// Trigger: Hero - Cho - Fuel for the Flame Hero Kill Proc
-//--------------------------------------------------------------------------------------------------
-bool libHCHO_gt_HeroChoFuelfortheFlameHeroKillProc_Func (bool testConds, bool runActions) {
-    // Variable Declarations
-    fixed lv_baseScale;
-    fixed lv_stacks;
-    unit lv_killedHero;
-    int lv_choPlayer;
-    unit lv_cho;
-
-    // Automatic Variable Declarations
-    // Variable Initialization
-    lv_baseScale = 0.5;
-    lv_killedHero = libGame_gf_HeroParticipatedInTakedownKilledHero();
-    lv_choPlayer = libGame_gf_HeroParticipatedInTakedownKillingPlayer();
-    lv_cho = libGame_gv_players[lv_choPlayer].lv_heroUnit;
-
-    // Conditions
-    if (testConds) {
-        if (!((PlayerHasTalent(lv_choPlayer, "ChoFuelForTheFlame") == true))) {
-            return false;
-        }
-    }
-
-    // Actions
-    if (!runActions) {
-        return true;
-    }
-
-    UnitCreateEffectUnit(lv_cho, "ChoConsumingBlazeFuelfortheFlameTalentModifyTokenHero", lv_cho);
-    return true;
-}
-
-//--------------------------------------------------------------------------------------------------
-void libHCHO_gt_HeroChoFuelfortheFlameHeroKillProc_Init () {
-    libHCHO_gt_HeroChoFuelfortheFlameHeroKillProc = TriggerCreate("libHCHO_gt_HeroChoFuelfortheFlameHeroKillProc_Func");
-    TriggerEnable(libHCHO_gt_HeroChoFuelfortheFlameHeroKillProc, false);
-    libGame_gf_HeroParticipatedInTakedown(libHCHO_gt_HeroChoFuelfortheFlameHeroKillProc);
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -2769,14 +2727,13 @@ void libHCHO_InitTriggers () {
     libHCHO_gt_HeroGallShoveRootOff_Init();
     libHCHO_gt_HeroChoHourofTwilightDeathTimerReduction_Init();
     libHCHO_gt_HeroGallPsychoticBreakRespawnTimerAdjustmentBase_Init();
-    libHCHO_gt_HeroChoTheWillofChoTakedownProc_Init();
+    libHCHO_gt_HeroChoTheWillofChoHeroTakedownProc_Init();
+    libHCHO_gt_HeroChoTheWillofChoMinionTakedownProc_Init();
     libHCHO_gt_HeroGallTheWillofGallTakedownProc_Init();
     libHCHO_gt_HeroChoMoltenBlockOverlayOn_Init();
     libHCHO_gt_HeroChoMoltenBlockOverlayOff_Init();
     libHCHO_gt_HeroChoRuneBombRunicFeedbackDamageResponses_Init();
     libHCHO_gt_HeroGallDreadOrbEnragedRegenerationDamageResponse_Init();
-    libHCHO_gt_HeroChoFuelfortheFlameMinionKillProc_Init();
-    libHCHO_gt_HeroChoFuelfortheFlameHeroKillProc_Init();
     libHCHO_gt_SurgingFistFakeCastActivated_Init();
     libHCHO_gt_SurgingFistMouseTracker_Init();
     libHCHO_gt_SurgingFistExecuteChargetomouse_Init();

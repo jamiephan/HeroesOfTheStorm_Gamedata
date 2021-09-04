@@ -1,5 +1,15 @@
 <?xml version="1.0" encoding="us-ascii"?>
 <Catalog>
+  <CAbilEffectInstant id="GallTwilightFrenzy">
+    <Effect value="GallTwilightFrenzyApplyBehavior" />
+    <Cost>
+      <Cooldown TimeUse="30" />
+    </Cost>
+    <UninterruptibleArray index="Cast" value="1" />
+    <UninterruptibleArray index="Channel" value="1" />
+    <UninterruptibleArray index="Finish" value="1" />
+    <CmdButtonArray index="Execute" DefaultButtonFace="GallTwilightFrenzy" />
+  </CAbilEffectInstant>
   <CAbilEffectInstant id="ChoSurgingFistCast">
     <PrepEffect value="DismountDecloakCasterSet" />
     <Effect value="ChoSurgingFistApplyInitialFakeCastSet" />
@@ -103,7 +113,7 @@
     <Cost>
       <Cooldown TimeUse="0.5" />
     </Cost>
-    <CmdButtonArray index="Execute" DefaultButtonFace="GallDoubleBackAbility" Requirements="GallHasDoubleBackTalentActive" />
+    <CmdButtonArray index="Execute" DefaultButtonFace="GallDoubleBackAbility" ShowValidator="GallHasDoubleBackTalentActive" UseValidator="GallHasDoubleBackTalentActive" />
   </CAbilEffectInstant>
   <CAbilEffectTarget id="GallShiftingNether">
     <PrepEffect value="GallDecloakSelfAndChoSet" />
@@ -293,11 +303,6 @@
     <CursorRangeFlags index="ClampMax" value="1" />
     <PrepEffect value="GallDecloakSelfAndChoSet" />
   </CAbilEffectTarget>
-  <CAccumulatorToken id="ChoFuelfortheFlameHealingAccumulator" parent="BaseTokenAccumulator">
-    <MinAccumulation value="0" />
-    <TokenId value="ChoFuelfortheFlameTokenCounter" />
-    <Scale value="0.01" />
-  </CAccumulatorToken>
   <CAccumulatorToken id="ChoSearedFleshDamageAccumulator" parent="BaseTokenAccumulator">
     <MinAccumulation value="0" />
     <MaxAccumulation value="0.6" />
@@ -333,6 +338,12 @@
   <CActorRegion default="1" id="ChoSurgingFistGuideRegion" parent="StormGuideRegion">
     <On Terms="ActorCreation" Send="QueryPersistent ChoSurgingFistGuideRegionAdd StormGuideRegionRemove AgainstRadiusGame" />
   </CActorRegion>
+  <CActorModel id="ChoFuelForTheFlameExplosionRing" parent="StormModelAnimationStyleOneShot">
+    <On Terms="Effect.ChoFuelForTheFlameSearch.Start; At Effect" Send="Create" />
+    <On Terms="ActorCreation" Send="SetTintColor {64,0,128 1.500000}" />
+    <Scale value="1.050000" />
+    <HostSiteOps Ops="SOpTargetPointStationary" HoldPosition="1" HoldRotation="1" />
+  </CActorModel>
   <CActorQueryResponse id="ChoSurgingFistGuideRegionAdd">
     <Subject Filters="Snapshot,Unit,Missile" Terms="ValidateUnit ChoSurgingFistFilters 0 System_Snapshot_Dummy" />
     <OnResponse Send="StatusIncrement PreTargetingModel" />
@@ -1883,6 +1894,31 @@
     <Model value="DefendPing" />
     <HostSiteOps Ops="SOpShadow" />
   </CActorModel>
+  <CBehaviorAbility id="GallTwilightFrenzyBehaviorAbility">
+    <Buttons Face="GallTwilightFrenzy" Type="AbilCmd" AbilCmd="GallTwilightFrenzy,Execute" Behavior="GazloweRockItSockItBehaviorAbility" />
+  </CBehaviorAbility>
+  <CBehaviorBuff id="GallTwilightFrenzyBuff">
+    <InitialEffect value="GallTwilightFrenzyBuffApplyBonus" />
+    <FinalEffect value="GallTwilightFrenzyBuffResetSwitch" />
+    <Duration value="6" />
+    <Face value="GallTwilightFrenzyBuff" />
+    <Alignment value="Positive" />
+    <InfoFlags index="Hidden" value="0" />
+  </CBehaviorBuff>
+  <CBehaviorBuff id="ChoSurgingFirstPowerSurgeChannelMoveSpeedBuff" parent="StormSprint">
+    <BehaviorFlags index="Permanent" value="1" />
+    <BehaviorFlags index="EnabledWhileDead" value="1" />
+    <DisableValidatorArray value="ChoHasSurgingFistFakeChannelBehaviorPowerSurge" />
+    <Modification>
+      <UnifiedMoveSpeedFactor value="0.15" />
+    </Modification>
+  </CBehaviorBuff>
+  <CBehaviorBuff id="ChoSurgingFistPowerSurgeSlow" parent="StormSlowParent">
+    <Duration value="2.5" />
+    <Modification>
+      <UnifiedMoveSpeedFactor value="-0.3" />
+    </Modification>
+  </CBehaviorBuff>
   <CBehaviorBuff id="ChoEnragedRegenerationHoT">
     <Duration value="3" />
     <Period value="0.5" />
@@ -1903,6 +1939,14 @@
       <UnifiedMoveSpeedFactor value="0.15" />
       <VitalRegenMultiplier index="Life" value="0.15" />
     </Modification>
+  </CBehaviorBuff>
+  <CBehaviorBuff id="ChoTheWillOfChoArmorBuff" parent="StormArmor">
+    <BehaviorFlags index="Permanent" value="1" />
+    <BehaviorFlags index="EnabledWhileDead" value="1" />
+  </CBehaviorBuff>
+  <CBehaviorBuff id="ChoTheWillOfChoDummyQuestCompletionBehavior">
+    <BehaviorFlags index="Permanent" value="1" />
+    <BehaviorFlags index="EnabledWhileDead" value="1" />
   </CBehaviorBuff>
   <CBehaviorBuff id="GallDreadOrbEnragedRegenerationTalentDebuff" parent="StormHealReduction">
     <Modification>
@@ -1944,10 +1988,6 @@
     </Modification>
     <PeriodCount value="5" />
   </CBehaviorBuff>
-  <CBehaviorTokenCounter id="ChoFuelfortheFlameTokenCounter" parent="StormQuestToken">
-    <Face value="ChoFuelForTheFlameToken" />
-    <Max value="65000" />
-  </CBehaviorTokenCounter>
   <CBehaviorBuff id="ChoOgreHideVisualController" parent="CarryBehaviorParent">
     <DisableValidatorArray value="ChoHasOgreHideArmorBuff" />
     <DisableValidatorArray value="TargetNotDead" />
@@ -1976,6 +2016,12 @@
     <TokenId value="GallOgreRampageToken" />
     <Max value="10" />
   </CBehaviorTokenCounter>
+  <CBehaviorBuff id="ChoSurgingFirstPowerSurgePostCastMoveSpeedBuff" parent="StormSprint">
+    <Duration value="2.5" />
+    <Modification>
+      <UnifiedMoveSpeedFactor value="0.15" />
+    </Modification>
+  </CBehaviorBuff>
   <CBehaviorBuff id="GallShadowflameDoubleTroubleTalentImpactMarker">
     <Duration value="0.0625" />
   </CBehaviorBuff>
@@ -1986,12 +2032,39 @@
       <Kind index="Ability" value="0" />
     </DamageResponse>
   </CBehaviorBuff>
-  <CBehaviorTokenCounter id="ChoWillofChoTokenCounter" parent="StormGenericToken">
+  <CBehaviorTokenCounter id="ChoWillofChoTokenCounter" parent="StormQuestToken">
     <Face value="ChoTheWillofChoToken" />
-    <Alignment value="Positive" />
-    <MinStackCountDisplayed value="0" />
-    <IncreaseEvents Effect="ChoWillofChoModifyPlayer" />
-    <Max value="50" />
+    <Max value="300" />
+    <ConditionalEvents CompareValue="30">
+      <Event Effect="ChoWillofChoModifyPlayer" />
+    </ConditionalEvents>
+    <ConditionalEvents CompareValue="60">
+      <Event Effect="ChoWillofChoModifyPlayer" />
+    </ConditionalEvents>
+    <ConditionalEvents CompareValue="90">
+      <Event Effect="ChoWillofChoModifyPlayer" />
+    </ConditionalEvents>
+    <ConditionalEvents CompareValue="120">
+      <Event Effect="ChoWillofChoModifyPlayer" />
+    </ConditionalEvents>
+    <ConditionalEvents CompareValue="150">
+      <Event Effect="ChoWillofChoModifyPlayer" />
+    </ConditionalEvents>
+    <ConditionalEvents CompareValue="180">
+      <Event Effect="ChoWillofChoModifyPlayer" />
+    </ConditionalEvents>
+    <ConditionalEvents CompareValue="210">
+      <Event Effect="ChoWillofChoModifyPlayer" />
+    </ConditionalEvents>
+    <ConditionalEvents CompareValue="240">
+      <Event Effect="ChoWillofChoModifyPlayer" />
+    </ConditionalEvents>
+    <ConditionalEvents CompareValue="270">
+      <Event Effect="ChoWillofChoModifyPlayer" />
+    </ConditionalEvents>
+    <ConditionalEvents CompareValue="300">
+      <Event Effect="ChoWillofChoModifyPlayer" />
+    </ConditionalEvents>
   </CBehaviorTokenCounter>
   <CBehaviorBuff id="GallDreadOrbDoubleBackTalentActive" />
   <CBehaviorBuff id="GallDreadOrbLeadenOrbTalentStun" parent="StormStun">
@@ -1999,17 +2072,14 @@
   </CBehaviorBuff>
   <CBehaviorBuff id="ChoSearedFleshSelfMarker">
     <Duration value="5" />
-    <InitialEffect value="ChoSearedFleshApplyTargetMarker" />
-    <FinalEffect value="ChoSearedFleshRemoveTargetMarker" />
-  </CBehaviorBuff>
-  <CBehaviorBuff id="ChoSearedFleshTargetMarker">
-    <MaxStackCount value="2" />
-    <MaxStackCountPerCaster value="1" />
-    <Duration value="5" />
+    <FinalEffect value="ChoSearedFleshRemoveSelfMarkerAndTokenCountSet" />
   </CBehaviorBuff>
   <CBehaviorTokenCounter id="ChoSearedFleshTokenCounter" parent="StormGenericToken">
-    <InfoFlags index="Hidden" value="1" />
-    <Max value="4" />
+    <Max value="3" />
+    <Face value="ChoSearedFleshTalentToken" />
+    <Alignment value="Positive" />
+    <SortIndex value="10" />
+    <DisplayDurationProxyBehavior value="ChoSearedFleshSelfMarker" />
   </CBehaviorTokenCounter>
   <CBehaviorBuff id="ChoSurgingFistSurgingDashTalentUnstoppable" parent="StormUnstoppableParent">
     <Period value="0.5" />
@@ -2553,12 +2623,19 @@
     <TileTexture value="Assets\Textures\storm_ui_bundles_h15_corruptorchogallbundle.dds" />
     <ReleaseDate Day="12" Year="2016" />
   </CBundle>
+  <CButton id="GallTwilightFrenzy" parent="StormButtonParent">
+    <Icon value="Assets\Textures\storm_ui_icon_gall_psychoticbreak.dds" />
+  </CButton>
   <CButton id="ChoCallousedHide" parent="StormButtonParent">
     <Icon value="Assets\Textures\storm_ui_icon_cho_ogrehide.dds" />
     <HotkeyAlias value="ChoConsumingBlaze" />
   </CButton>
   <CButton id="ChoHourofTwilight" parent="StormButtonParent">
     <Icon value="Assets\Textures\storm_ui_icon_gall_psychoticbreak.dds" />
+    <HotkeyAlias value="ChoConsumingBlaze" />
+  </CButton>
+  <CButton id="ChoSearedFleshTalentToken" parent="StormButtonParent">
+    <Icon value="Assets\Textures\storm_ui_icon_talent_autoattack_damage.dds" />
     <HotkeyAlias value="ChoConsumingBlaze" />
   </CButton>
   <CButton id="GallTheWillofGall" parent="StormButtonParent">
@@ -2577,8 +2654,12 @@
     <HotkeyAlias value="GallDoubleBackTalent" />
   </CButton>
   <CButton id="ChoTheWillofChoToken" parent="StormButtonParent">
-    <Icon value="Assets\Textures\storm_ui_icon_cho_ogrehide.dds" />
+    <Icon value="Assets\Textures\storm_ui_icon_cho_ogrehide_var1.dds" />
     <HotkeyAlias value="ChoFuelForTheFlameTalent" />
+  </CButton>
+  <CButton id="GallTwilightFrenzyBuff" parent="StormButtonParent">
+    <Icon value="Assets\Textures\storm_ui_icon_gall_psychoticbreak.dds" />
+    <HotkeyAlias value="GallTwilightFrenzy" />
   </CButton>
   <CButton id="GallWeSeeYou" parent="StormButtonParentTrait">
     <Icon value="Assets\Textures\storm_ui_icon_gall_eyeofkilrogg.dds" />
@@ -2597,10 +2678,6 @@
   <CButton id="GallKeepMoving" parent="StormButtonParent">
     <Icon value="Assets\Textures\storm_ui_icon_gall_shove.dds" />
   </CButton>
-  <CButton id="ChoFuelForTheFlameToken" parent="StormButtonParent">
-    <Icon value="Assets\Textures\storm_ui_icon_cho_consumingflame_var1.dds" />
-    <HotkeyAlias value="ChoFuelForTheFlameTalent" />
-  </CButton>
   <CButton id="ChoRuneBomb" parent="StormButtonParent">
     <TooltipAppender Validator="ChoTalentHasRollback" Face="ChoRollbackTalent" />
     <TooltipAppender Validator="ChoTalentHasRunicFeedback" Face="ChoRunicFeedbackTalent" />
@@ -2608,7 +2685,6 @@
   </CButton>
   <CButton id="ChoConsumingBlaze" parent="StormButtonParent">
     <TooltipAppender Validator="ChoHasConsumingFireTalent" Face="ChoConsumingFire" />
-    <TooltipAppender Validator="ChoTalentHasFuelForTheFlame" Face="ChoFuelForTheFlameTalent" />
     <TooltipAppender Validator="ChoHasFirestarterTalent" Face="ChoFirestarter" />
     <Icon value="Assets\Textures\storm_ui_icon_Cho_ConsumingFlame.dds" />
   </CButton>
@@ -2652,6 +2728,7 @@
     <Icon value="Assets\Textures\storm_ui_icon_gall_ogrerage.dds" />
     <TooltipAppender Validator="GallHasOgreRampageTalent" Face="GallOgreRampage" />
     <TooltipAppender Validator="GallHasTheWillofGallTalent" Face="GallTheWillofGall" />
+    <TooltipAppender Validator="GallTalentHasPsychoticBreak" Face="GallPsychoticBreakTalent" />
   </CButton>
   <CButton id="GallOgreRageActivated" parent="StormButtonParent">
     <Icon value="Assets\Textures\storm_ui_icon_gall_ogrerage.dds" />
@@ -2661,8 +2738,9 @@
   <CButton id="ChoOgreHidePassive" parent="StormButtonParent">
     <Icon value="Assets\Textures\storm_ui_icon_cho_ogrehide.dds" />
     <TooltipAppender Validator="ChoHasCallousedHideTalent" Face="ChoCallousedHide" />
-    <TooltipAppender Validator="ChoHasEnragedRegenerationTalent" Face="ChoEnragedRegeneration" />
     <TooltipAppender Validator="ChoHasWillofChoTalent" Face="ChoTheWillofCho" />
+    <TooltipAppender Validator="ChoHasEnragedRegenerationTalent" Face="ChoEnragedRegeneration" />
+    <TooltipAppender Validator="ChoTalentHasFuelForTheFlame" Face="ChoFuelForTheFlameTalent" />
   </CButton>
   <CButton id="ChoUpheaval" parent="StormButtonParent">
     <Icon value="Assets\Textures\storm_ui_icon_Cho_Upheaval.dds" />
@@ -2672,7 +2750,7 @@
     <Icon value="Assets\Textures\storm_ui_icon_Cho_Upheaval.dds" />
   </CButton>
   <CButton id="ChoFuelForTheFlameTalent" parent="StormButtonParent">
-    <Icon value="Assets\Textures\storm_ui_icon_cho_consumingflame_var1.dds" />
+    <Icon value="Assets\Textures\storm_ui_icon_talent_autoattack_damage.dds" />
   </CButton>
   <CButton id="ChoConsumingFire" parent="StormButtonParent">
     <Icon value="Assets\Textures\storm_ui_icon_cho_consumingflame.dds" />
@@ -2725,8 +2803,8 @@
   <CButton id="ChoOgreHideActivated" parent="StormButtonParent">
     <Icon value="Assets\Textures\storm_ui_icon_cho_ogrehide.dds" />
     <TooltipAppender Validator="ChoHasCallousedHideTalent" Face="ChoCallousedHide" />
-    <TooltipAppender Validator="ChoHasEnragedRegenerationTalent" Face="ChoEnragedRegeneration" />
     <TooltipAppender Validator="ChoHasWillofChoTalent" Face="ChoTheWillofCho" />
+    <TooltipAppender Validator="ChoHasEnragedRegenerationTalent" Face="ChoEnragedRegeneration" />
   </CButton>
   <CButton id="GallShadowflame" parent="StormButtonParent">
     <Icon value="Assets\Textures\storm_ui_icon_Gall_Shadowflame.dds" />
@@ -2745,7 +2823,6 @@
     <TooltipAppender Validator="GallTalentHasShadowfury" Face="GallShadowboltVolleyShadowfuryTalent" />
   </CButton>
   <CButton id="GallDreadOrb" parent="StormButtonParent">
-    <TooltipAppender Validator="GallHasDoubleBackTalent" Face="GallDoubleBackTalent" />
     <TooltipAppender Validator="GallTalentHasRisingDread" Face="GallRisingDreadTalent" />
     <TooltipAppender Validator="GallTalentHasTwilightNova" Face="GallTwilightNovaTalent" />
     <TooltipAppender Validator="GallHasLeadenOrbTalent" Face="GallLeadenOrb" />
@@ -2801,8 +2878,7 @@
   </CButton>
   <CButton id="ChoTheWillofCho" parent="StormButtonParent">
     <TooltipFlags index="ShowUsage" value="0" />
-    <TooltipCooldownOverrideText value="WillofGallCooldownOverride" />
-    <Icon value="Assets\Textures\storm_ui_icon_cho_ogrehide.dds" />
+    <Icon value="Assets\Textures\storm_ui_icon_cho_ogrehide_var1.dds" />
   </CButton>
   <CCharacter id="Cho">
     <Race value="Unknown" />
@@ -2813,6 +2889,26 @@
     <Voice value="NaturalSoft Peter" />
     <Variations Model="ChoGallPortrait" Actor="ChoGallPortrait" />
   </CCharacter>
+  <CEffectSwitch id="GallTwilightFrenzyBuffResetSwitch">
+    <CaseArray Validator="GallTalentHasTwilightNova" Effect="GallTwilightFrenzyBuffResetTwilightNova" />
+    <CaseDefault value="GallTwilightFrenzyBuffReset" />
+  </CEffectSwitch>
+  <CEffectApplyBehavior id="GallTwilightFrenzyApplyBehavior">
+    <Behavior value="GallTwilightFrenzyBuff" />
+    <WhichUnit Value="Caster" />
+  </CEffectApplyBehavior>
+  <CEffectModifyPlayer id="GallTwilightFrenzyBuffApplyBonus">
+    <EffectArray Operation="Set" Reference="Abil,GallShadowflame,Cost[0].Cooldown.TimeUse" Value="2.000000" />
+    <EffectArray Operation="Set" Reference="Abil,GallDreadOrb,Cost[0].Cooldown.TimeUse" Value="2.000000" />
+  </CEffectModifyPlayer>
+  <CEffectModifyPlayer id="GallTwilightFrenzyBuffReset">
+    <EffectArray Operation="Set" Reference="Abil,GallShadowflame,Cost[0].Cooldown.TimeUse" Value="3.000000" />
+    <EffectArray Operation="Set" Reference="Abil,GallDreadOrb,Cost[0].Cooldown.TimeUse" Value="6.000000" />
+  </CEffectModifyPlayer>
+  <CEffectModifyPlayer id="GallTwilightFrenzyBuffResetTwilightNova">
+    <EffectArray Operation="Set" Reference="Abil,GallShadowflame,Cost[0].Cooldown.TimeUse" Value="3.000000" />
+    <EffectArray Operation="Set" Reference="Abil,GallDreadOrb,Cost[0].Cooldown.TimeUse" Value="5.000000" />
+  </CEffectModifyPlayer>
   <CEffectSet id="ChoConsumingBlazeBasicAttackSet">
     <ValidatorArray value="CasterNotBlindedAndTargetNotEvading" />
     <ValidatorArray value="ChoTargetHasConsumingBlazeDoT" />
@@ -2826,16 +2922,11 @@
     <ImpactUnit Value="Caster" />
     <Cost Abil="ChoConsumingBlaze,Execute" CooldownOperation="Add" CooldownTimeUse="-1" />
   </CEffectModifyUnit>
-  <CEffectModifyTokenCount id="ChoConsumingBlazeFuelfortheFlameTalentModifyTokenMinion" parent="BaseEffectModifyTokenCount">
-    <TokenId value="ChoFuelfortheFlameTokenCounter" />
-    <Value value="0.3" />
-    <EffectCategory index="Quest" value="1" />
-  </CEffectModifyTokenCount>
-  <CEffectModifyTokenCount id="ChoConsumingBlazeFuelfortheFlameTalentModifyTokenHero" parent="BaseEffectModifyTokenCount">
-    <TokenId value="ChoFuelfortheFlameTokenCounter" />
-    <Value value="3" />
-    <EffectCategory index="Quest" value="1" />
-  </CEffectModifyTokenCount>
+  <CEffectDamage id="ChoFuelForTheFlameExplosionDamage" parent="StormSpell">
+    <MultiplicativeModifierArray index="TargetIsHero" Validator="TargetIsHero" Modifier="1" Crit="1" />
+    <Amount value="45" />
+  </CEffectDamage>
+  <CEffectSet id="ChoFuelForTheFlameImpactSet" />
   <CEffectModifyBehaviorBuffDuration id="ChoConsumingBlazeModifyTargetDuration">
     <WhichUnit Value="Target" />
     <Behavior value="ChoConsumingBlazeDoT" />
@@ -2866,15 +2957,38 @@
   <CEffectModifyUnit id="ChoRuneBombRunedGauntletTalentModifyGallCooldowns">
     <ImpactUnit Effect="ChoGallLinkUnitsInitialSet" />
     <Cost Abil="GallShadowboltVolley,Execute" CooldownOperation="Add">
-      <Fraction Cooldown="-0.05" />
+      <Fraction Cooldown="-0.06" />
     </Cost>
     <Cost Abil="GallTwistingNether,Execute" CooldownOperation="Add">
-      <Fraction Cooldown="-0.05" />
+      <Fraction Cooldown="-0.06" />
     </Cost>
   </CEffectModifyUnit>
-  <CEffectCreatePersistent id="ChoWillofChoModifyTokenPersistent">
+  <CEffectApplyBehavior id="ChoSurgingFirstPowerSurgePostCastMoveSpeedBuffApplyBehavior">
+    <ValidatorArray value="ChoTalentHasPowerSurge" />
+    <WhichUnit Value="Caster" />
+    <Behavior value="ChoSurgingFirstPowerSurgePostCastMoveSpeedBuff" />
+  </CEffectApplyBehavior>
+  <CEffectApplyBehavior id="ChoSurgingFistPowerSurgeSlowApplyBehavior">
+    <ValidatorArray value="ChoTalentHasPowerSurge" />
+    <ValidatorArray value="TargetIsHero" />
+    <Behavior value="ChoSurgingFistPowerSurgeSlow" />
+  </CEffectApplyBehavior>
+  <CEffectApplyBehavior id="ChoTheWillOfChoDummyQuestCompletionApplyBehavior">
+    <WhichUnit Value="Caster" />
+    <Behavior value="ChoTheWillOfChoDummyQuestCompletionBehavior" />
+  </CEffectApplyBehavior>
+  <CEffectModifyTokenCount id="ChoWillofChoModifyToken" parent="BaseEffectModifyTokenCount">
+    <TokenId value="ChoWillofChoTokenCounter" />
+  </CEffectModifyTokenCount>
+  <CEffectCreatePersistent id="ChoWillofChoHeroTakedownModifyTokenPersistent">
     <WhichLocation Value="CasterUnit" />
-    <PeriodCount value="2" />
+    <PeriodCount value="1" />
+    <PeriodicEffectArray value="ChoWillofChoHeroTakedownModifyToken" />
+    <PeriodicPeriodArray value="0" />
+  </CEffectCreatePersistent>
+  <CEffectCreatePersistent id="ChoWillofChoMinionKillModifyTokenPersistent">
+    <WhichLocation Value="CasterUnit" />
+    <PeriodCount value="1" />
     <PeriodicEffectArray value="ChoWillofChoModifyToken" />
     <PeriodicPeriodArray value="0" />
   </CEffectCreatePersistent>
@@ -2909,6 +3023,11 @@
     <CaseArray Validator="GallHasPsychoticBreakActive" Effect="GallShadowBoltVolleyPrepPsychoticBreakDummy" />
     <CaseDefault value="GallShadowBoltVolleyPrepEffectChoSearch" />
   </CEffectSwitch>
+  <CEffectDamage id="ChoFuelForTheFlameDamage" parent="StormSpell">
+    <ValidatorArray value="ChoTalentHasFuelForTheFlame" />
+    <MultiplicativeModifierArray index="TargetIsHero" Validator="ChoHasFuelForTheFlameAndTargetIsHero" Modifier="1" Crit="1" />
+    <Amount value="21" />
+  </CEffectDamage>
   <CEffectApplyBehavior id="GallShoveApplyShoveDisablerBehavior">
     <WhichUnit Effect="ChoGallLinkUnitsInitialSet" />
     <Behavior value="GallShoveDisablerDummyBehavior" />
@@ -2993,9 +3112,9 @@
   <CEffectSet id="GallShoveTaskmasterTalentDamageResponseSet">
     <EffectArray value="GallShoveTaskmasterTalentModifyGallCooldowns" />
   </CEffectSet>
-  <CEffectModifyUnit id="ChoSurgingFistPowerSurgeTalentModifyCooldown">
+  <CEffectModifyUnit id="ChoSurgingFistUppercutTalentModifyCooldown">
     <ValidatorArray value="TargetIsHero" />
-    <ValidatorArray value="ChoTalentHasPowerSurge" />
+    <ValidatorArray value="ChoHasUppercutTalent" />
     <ImpactUnit Value="Caster" />
     <Cost Abil="ChoSurgingFistCast,Execute" CooldownOperation="Add" CooldownTimeUse="-5" />
   </CEffectModifyUnit>
@@ -3018,18 +3137,15 @@
   <CEffectDamage id="ChoSurgingFistUppercutTalentDamage" parent="StormSpellPercentDamage">
     <ValidatorArray value="TargetIsHero" />
     <ValidatorArray value="ChoHasUppercutTalent" />
-    <VitalFractionMax index="Life" value="0.07" />
+    <VitalFractionMax index="Life" value="0.05" />
   </CEffectDamage>
-  <CEffectModifyTokenCount id="ChoWillofChoModifyToken" parent="BaseEffectModifyTokenCount">
-    <TokenId value="ChoWillofChoTokenCounter" />
-  </CEffectModifyTokenCount>
   <CEffectModifyPlayer id="ChoWillofChoResetPlayer">
     <EffectArray Operation="Set" Reference="Behavior,ChoOgreHide,ArmorModification.AllArmorBonus" Value="25" />
     <EffectArray Operation="Set" Reference="Behavior,ChoOgreHideTwilightVeilTalentArmorBuff,ArmorModification.AllArmorBonus" Value="50" />
   </CEffectModifyPlayer>
   <CEffectModifyPlayer id="ChoWillofChoModifyPlayer">
     <EffectArray Reference="Behavior,ChoOgreHide,ArmorModification.AllArmorBonus" Value="1" />
-    <EffectArray Reference="Behavior,ChoOgreHideTwilightVeilTalentArmorBuff,ArmorModification.AllArmorBonus" Value="2" />
+    <EffectArray Reference="Behavior,ChoTheWillOfChoArmorBuff,ArmorModification.AllArmorBonus" Value="1" />
   </CEffectModifyPlayer>
   <CEffectModifyUnit id="GallNotHereThereSetShoveCooldown">
     <ImpactUnit Value="Caster" />
@@ -3079,12 +3195,12 @@
     <Behavior value="ChoOgreHideEnragedRegenerationTalentCarry" />
   </CEffectApplyBehavior>
   <CEffectApplyBehavior id="GallDreadOrbApplyDoubleBackTalentActive">
-    <ValidatorArray index="0" value="GallHasDoubleBackTalent" />
+    <ValidatorArray index="0" value="GallTalentHasRisingDread" />
     <WhichUnit Value="Caster" />
     <Behavior value="GallDreadOrbDoubleBackTalentActive" />
   </CEffectApplyBehavior>
   <CEffectSet id="GallDreadOrbDoubleBackTalentInitialSet">
-    <ValidatorArray value="GallHasDoubleBackTalent" />
+    <ValidatorArray value="GallTalentHasRisingDread" />
     <EffectArray value="GallDreadOrbApplyDoubleBackTalentActive" />
     <EffectArray value="GallDreadOrbDoubleBackTalentModifyCooldown" />
   </CEffectSet>
@@ -3099,13 +3215,13 @@
     <Upgrades Upgrade="GallDreadOrbDoubleBackTalentUpgrade" Count="1" />
   </CEffectModifyPlayer>
   <CEffectModifyPlayer id="GallDreadOrbDoubleBackTalentResetPlayer">
-    <ValidatorArray value="GallHasDoubleBackTalent" />
+    <ValidatorArray value="GallTalentHasRisingDread" />
     <EffectArray Operation="Set" Reference="Effect,GallDreadOrbLaunchMissile3,ImpactLocation.ProjectionMultiplier" Value="3" />
     <WhichPlayer Value="Caster" />
     <Upgrades Upgrade="GallDreadOrbDoubleBackTalentUpgrade" Count="-1" />
   </CEffectModifyPlayer>
   <CEffectRemoveBehavior id="GallDreadOrbRemoveDoubleBackTalentActive">
-    <ValidatorArray index="0" value="GallHasDoubleBackTalent" />
+    <ValidatorArray index="0" value="GallTalentHasRisingDread" />
     <BehaviorLink value="GallDreadOrbDoubleBackTalentActive" />
     <Count value="1" />
     <WhichUnit Value="Caster" />
@@ -3163,6 +3279,7 @@
   </CEffectCreatePersistent>
   <CEffectDamage id="GallRunicBlastRunicPersistenceTalentDamage" parent="StormSpell">
     <Amount value="30" />
+    <MultiplicativeModifierArray index="PsychoticBreak" Validator="GallPsychoticBreakHeroDamageCombine" Modifier="0.1" />
   </CEffectDamage>
   <CEffectEnumArea id="GallRunicBlastRunicPersistenceTalentSearch">
     <SearchFilters value="-;Player,Ally,Neutral,ImmuneToAOE,Missile,Item,Stasis,Dead,Hidden,Invulnerable" />
@@ -3219,23 +3336,12 @@
     <CaseArray Validator="GallTargetHasEdgeofMadnessTokenCounter" Effect="GallShadowflameEdgeofMadnessTalentIncrementSet" />
     <CaseDefault value="GallShadowflameEdgeofMadnessTalentApplicationSet" />
   </CEffectSwitch>
-  <CEffectSet id="ChoSearedFleshApplicationSet">
+  <CEffectSet id="ChoSearedFleshRemoveSelfMarkerAndTokenCountSet">
     <EffectArray value="ChoSearedFleshRemoveSelfMarker" />
     <EffectArray value="ChoSearedFleshResetTokenCount" />
-    <EffectArray value="ChoSearedFleshApplySelfMarker" />
   </CEffectSet>
-  <CEffectApplyBehavior id="ChoSearedFleshApplyTargetMarker">
-    <WhichUnit Effect="ChoSearedFleshApplicationSet" />
-    <Behavior value="ChoSearedFleshTargetMarker" />
-  </CEffectApplyBehavior>
   <CEffectModifyBehaviorBuffDuration id="ChoSearedFleshModifySelfMarkerDuration">
     <Behavior value="ChoSearedFleshSelfMarker" />
-    <Value value="5" />
-    <Operation value="Set" />
-  </CEffectModifyBehaviorBuffDuration>
-  <CEffectModifyBehaviorBuffDuration id="ChoSearedFleshModifyTargetMarkerDuration">
-    <WhichUnit Value="Target" />
-    <Behavior value="ChoSearedFleshTargetMarker" />
     <Value value="5" />
     <Operation value="Set" />
   </CEffectModifyBehaviorBuffDuration>
@@ -3245,9 +3351,8 @@
     <Value value="0" />
   </CEffectModifyTokenCount>
   <CEffectSet id="ChoSearedFleshRefreshSet">
+    <EffectArray value="ChoSearedFleshApplySelfMarker" />
     <EffectArray value="ChoSearedFleshModifyTokenCount" />
-    <EffectArray value="ChoSearedFleshModifySelfMarkerDuration" />
-    <EffectArray value="ChoSearedFleshModifyTargetMarkerDuration" />
   </CEffectSet>
   <CEffectApplyBehavior id="ChoSearedFleshApplySelfMarker">
     <WhichUnit Value="Caster" />
@@ -3261,18 +3366,11 @@
     <BehaviorLink value="ChoSearedFleshSelfMarker" />
     <Count value="1" />
   </CEffectRemoveBehavior>
-  <CEffectRemoveBehavior id="ChoSearedFleshRemoveTargetMarker">
-    <WhichUnit Effect="ChoSearedFleshApplicationSet" />
-    <BehaviorLink value="ChoSearedFleshTargetMarker" />
-    <Count value="1" />
-    <RequireCasterUnit Value="Caster" />
-  </CEffectRemoveBehavior>
   <CEffectSwitch id="ChoSearedFleshSwitch">
     <ValidatorArray value="ChoTalentHasSearedFlesh" />
-    <ValidatorArray value="TargetIsHero" />
     <ValidatorArray value="CasterNotBlindedAndTargetNotEvading" />
-    <CaseArray Validator="ChoTargetHasSearedFleshTargetMarker" Effect="ChoSearedFleshRefreshSet" />
-    <CaseDefault value="ChoSearedFleshApplicationSet" />
+    <CaseArray Validator="TargetIsHero" Effect="ChoSearedFleshRefreshSet" />
+    <CaseDefault value="ChoSearedFleshRemoveSelfMarkerAndTokenCountSet" />
   </CEffectSwitch>
   <CEffectModifyTokenCount id="ChoSurgingFistApplyUppercutTalentTokenCounter" parent="BaseEffectModifyTokenCount">
     <ValidatorArray value="ChoHasUppercutTalent" />
@@ -3288,10 +3386,10 @@
   <CEffectModifyUnit id="ChoRuneBombRunedGauntletTalentModifyChoCooldowns">
     <ImpactUnit Effect="ChoGallLinkUnitsInitialSet" Value="Caster" />
     <Cost Abil="ChoUpheaval,Execute" CooldownOperation="Add">
-      <Fraction Cooldown="-0.05" />
+      <Fraction Cooldown="-0.06" />
     </Cost>
     <Cost Abil="ChoHammerOfTwilight,Execute" CooldownOperation="Add">
-      <Fraction Cooldown="-0.05" />
+      <Fraction Cooldown="-0.06" />
     </Cost>
   </CEffectModifyUnit>
   <CEffectModifyTokenCount id="ChoSurgingFistResetUppercutTalentTokenCount" parent="BaseEffectModifyTokenCount">
@@ -3854,10 +3952,26 @@
     <EffectArray value="ChoConsumingBlazeSearchArea" />
     <EffectArray value="ChoConsumingBlazeSetWeaponCooldown" />
   </CEffectSet>
-  <CEffectCreatePersistent id="ChoTalentFuelfortheFlamesConsumingBlazeWhiffMonitor">
-    <InitialDelay value="0.0625" />
-    <InitialEffect value="ChoTalentFuelForTheFlameRemovePrimedBehaviorCaster" />
-  </CEffectCreatePersistent>
+  <CEffectEnumArea id="ChoFuelForTheFlameSearch">
+    <ValidatorArray value="TargetNotInvulnerableOrBenign" />
+    <ValidatorArray value="TargetNotStasis" />
+    <ValidatorArray value="ChoTalentHasFuelForTheFlame" />
+    <ValidatorArray value="CasterNotBlindedAndTargetNotEvading" />
+    <ImpactLocation Value="TargetPoint" />
+    <ExcludeArray Value="Target" />
+    <SearchFilters value="-;Player,Ally,Neutral,ImmuneToAOE,Missile,Stasis,Dead,Hidden,Invulnerable" />
+    <AreaArray Effect="ChoFuelForTheFlameExplosionDamage">
+      <Radius value="3.3" />
+    </AreaArray>
+    <RevealerParams HeightMap="Ground" Duration="0.5" ShapeExpansion="0.5">
+      <RevealFlags index="Unfog" value="1" />
+    </RevealerParams>
+    <SearchFlags index="DoActorSearch" value="1" />
+  </CEffectEnumArea>
+  <CEffectSwitch id="ChoConsumingBlazeApplyCasterHealerSwitch">
+    <ValidatorArray value="NoDestructibleBehavior" />
+    <CaseDefault value="ChoConsumingBlazeApplyCasterHealer" />
+  </CEffectSwitch>
   <CEffectEnumArea id="ChoConsumingBlazeSearchArea">
     <ImpactLocation Value="CasterPoint" />
     <SearchFilters value="-;Self,Player,Ally,ImmuneToAOE,Missile,Item,Stasis,Dead,Invulnerable" />
@@ -3878,20 +3992,13 @@
   <CEffectApplyBehavior id="ChoConsumingBlazeApplyDoTBehavior">
     <Behavior value="ChoConsumingBlazeDoT" />
   </CEffectApplyBehavior>
-  <CEffectSwitch id="ChoConsumingBlazeApplyCasterHealerSwitch">
-    <CaseArray Validator="ChoTalentHasFuelForTheFlamePrimedBehavior" Effect="ChoTalentFuelForTheFlameApplyHealer" />
-    <CaseDefault value="ChoConsumingBlazeApplyCasterHealer" />
-    <ValidatorArray value="NoDestructibleBehavior" />
-  </CEffectSwitch>
   <CEffectApplyBehavior id="ChoConsumingBlazeApplyCasterHealer">
     <WhichUnit Value="Source" />
     <Behavior value="ChoConsumingBlazeCasterHealer" />
   </CEffectApplyBehavior>
   <CEffectCreateHealer id="ChoConsumingBlazeCasterHeal" parent="StormSelfOnlyHealingSpell">
     <ImpactUnit Value="Caster" />
-    <RechargeVitalRate value="40">
-      <AccumulatorArray value="ChoFuelfortheFlameHealingAccumulator" />
-    </RechargeVitalRate>
+    <RechargeVitalRate value="40" />
     <MultiplicativeModifierArray index="0" Validator="ChoTargetisHeroandCasterHasConsumingFireTalent" Modifier="1.5" />
   </CEffectCreateHealer>
   <CEffectDamage id="ChoConsumingBlazeDamage" parent="StormSpellDot">
@@ -3941,25 +4048,6 @@
     <WhichUnit Effect="ChoGallLinkUnitsInitialSet" Value="Caster" />
     <BehaviorLink value="ChoOgreHide" />
     <Count value="1" />
-  </CEffectRemoveBehavior>
-  <CEffectApplyBehavior id="ChoTalentFuelForTheFlameApplyPrimedBehavior">
-    <ValidatorArray value="TargetisCho" />
-    <Behavior value="ChoTalentFuelForTheFlamePrimed" />
-  </CEffectApplyBehavior>
-  <CEffectApplyBehavior id="ChoTalentFuelForTheFlameApplyHealer">
-    <WhichUnit Value="Source" />
-    <Behavior value="ChoTalentFuelForTheFlameHealer" />
-  </CEffectApplyBehavior>
-  <CEffectSet id="ChoTalentFuelForTheFlameHealerInitialSet">
-    <EffectArray value="ChoConsumingBlazeTalentFireEaterApply" />
-    <EffectArray value="ChoTalentFuelForTheFlameRemovePrimedBehavior" />
-  </CEffectSet>
-  <CEffectRemoveBehavior id="ChoTalentFuelForTheFlameRemovePrimedBehavior">
-    <BehaviorLink value="ChoTalentFuelForTheFlamePrimed" />
-  </CEffectRemoveBehavior>
-  <CEffectRemoveBehavior id="ChoTalentFuelForTheFlameRemovePrimedBehaviorCaster">
-    <WhichUnit Value="Caster" />
-    <BehaviorLink value="ChoTalentFuelForTheFlamePrimed" />
   </CEffectRemoveBehavior>
   <CEffectSet id="ChoConsumingBlazeConsumingFireTalentImpactSet">
     <ValidatorArray value="TargetIsHero" />
@@ -4025,6 +4113,7 @@
     <EffectArray value="ChoSurgingFistRemoveRushingFlagBehavior" />
     <EffectArray value="ChoSurgingFistResetUnitRadius" />
     <EffectArray value="ChoSurgingFistApplyFrenziedFistsMasteryBuff" />
+    <EffectArray value="ChoSurgingFirstPowerSurgePostCastMoveSpeedBuffApplyBehavior" />
   </CEffectSet>
   <CEffectCreatePersistent id="ChoSurgingFistPathingMonitorPersistent">
     <FinalEffect value="ChoSurgingFistPathingMonitorUpdateSwitch" />
@@ -4145,8 +4234,9 @@
     <EffectArray value="ChoSurgingFistImpactOffsetLeftPersistent" />
     <EffectArray value="ChoSurgingFistImpactedDamage" />
     <EffectArray value="ChoSurgingFistUppercutTalentDamage" />
-    <EffectArray value="ChoSurgingFistPowerSurgeTalentModifyCooldown" />
+    <EffectArray value="ChoSurgingFistUppercutTalentModifyCooldown" />
     <EffectArray value="ChoEnragedRegenerationApplyHoT" />
+    <EffectArray value="ChoSurgingFistPowerSurgeSlowApplyBehavior" />
   </CEffectSet>
   <CEffectSet id="ChoSurgingFistImpactSetRight">
     <ValidatorArray value="noMarkers" />
@@ -4154,8 +4244,9 @@
     <EffectArray value="ChoSurgingFistImpactOffsetRightPersistent" />
     <EffectArray value="ChoSurgingFistImpactedDamage" />
     <EffectArray value="ChoSurgingFistUppercutTalentDamage" />
-    <EffectArray value="ChoSurgingFistPowerSurgeTalentModifyCooldown" />
+    <EffectArray value="ChoSurgingFistUppercutTalentModifyCooldown" />
     <EffectArray value="ChoEnragedRegenerationApplyHoT" />
+    <EffectArray value="ChoSurgingFistPowerSurgeSlowApplyBehavior" />
   </CEffectSet>
   <CEffectApplyBehavior id="ChoSurgingFistApplyKnockbackBehavior">
     <Behavior value="ChoSurgingFistKnockbackBehavior" />
@@ -4560,13 +4651,16 @@
   </CEffectApplyBehavior>
   <CEffectDamage id="GallShadowflameTalentEdgeOfMadnessCloseDamage" parent="StormSpell">
     <Amount value="176" />
+    <MultiplicativeModifierArray index="PsychoticBreak" Validator="GallPsychoticBreakHeroDamageCombine" Modifier="0.1" />
   </CEffectDamage>
   <CEffectDamage id="GallShadowflameTalentEdgeOfMadnessMidDamage" parent="StormSpell">
     <Amount value="162" />
+    <MultiplicativeModifierArray index="PsychoticBreak" Validator="GallPsychoticBreakHeroDamageCombine" Modifier="0.1" />
   </CEffectDamage>
   <CEffectDamage id="GallShadowflameDamage" parent="StormSpell">
     <Amount value="135" />
     <MultiplicativeModifierArray index="0" Validator="GallTargetHasEdgeofMadnessTokenCounter" Accumulator="GallShadowflameEdgeofMadnessTalentDamageAccumulator" Crit="1" />
+    <MultiplicativeModifierArray index="PsychoticBreak" Validator="GallPsychoticBreakHeroDamageCombine" Modifier="0.1" />
   </CEffectDamage>
   <CEffectModifyUnit id="GallTalentBoilingBloodTriggerDummy">
     <ValidatorArray value="ChoTargetHasConsumingBlazeDoT" />
@@ -4625,6 +4719,7 @@
   </CEffectSet>
   <CEffectDamage id="GallDreadOrbImpactDamage01" parent="StormSpell">
     <Amount value="126" />
+    <MultiplicativeModifierArray index="PsychoticBreak" Validator="GallPsychoticBreakHeroDamageCombine" Modifier="0.1" />
   </CEffectDamage>
   <CEffectCreatePersistent id="GallDreadOrbImpactRevealer">
     <ExpireDelay value="0.75" />
@@ -4684,6 +4779,7 @@
   <CEffectDamage id="GallDreadOrbImpactDamage02" parent="StormSpell">
     <Amount value="126" />
     <MultiplicativeModifierArray index="RisingDread" Validator="GallTalentHasRisingDread" Modifier="0.25" />
+    <MultiplicativeModifierArray index="PsychoticBreak" Validator="GallPsychoticBreakHeroDamageCombine" Modifier="0.1" />
   </CEffectDamage>
   <CEffectCreatePersistent id="GallDreadOrbMissile3CreatePersistent">
     <PeriodCount value="1" />
@@ -4752,9 +4848,8 @@
   </CEffectSet>
   <CEffectDamage id="GallDreadOrbImpactDamage03" parent="StormSpell">
     <Amount value="126" />
-    <MultiplicativeModifierArray index="RisingDead" Validator="GallTalentHasRisingDread" Modifier="0.5" Crit="1" />
-    <MultiplicativeModifierArray index="DoubleBackHeroic" Validator="GallDoubleBackTalentCombineHeroic" Modifier="0.5" Crit="1" />
-    <MultiplicativeModifierArray index="DoubleBackNonHeroic" Validator="GallDoubleBackTalentCombineNonHeroic" Modifier="2" Crit="1" />
+    <MultiplicativeModifierArray index="RisingDread" Validator="GallTalentHasRisingDread" Modifier="0.5" Crit="1" />
+    <MultiplicativeModifierArray index="PsychoticBreak" Validator="GallPsychoticBreakHeroDamageCombine" Modifier="0.1" />
   </CEffectDamage>
   <CEffectSet id="GallTalentSpeedOfTwilightHeroValidationSet">
     <ValidatorArray value="TargetIsHero" />
@@ -4899,6 +4994,7 @@
   <CEffectDamage id="GallRunicBlastImpactDamage" parent="StormSpell">
     <Amount value="210" />
     <FlatModifierArray index="0" Validator="GallHasBombsAwayTalent" Accumulator="GallBombsAwayTalentDamageAccumulator" />
+    <MultiplicativeModifierArray index="PsychoticBreak" Validator="GallPsychoticBreakHeroDamageCombine" Modifier="0.1" />
   </CEffectDamage>
   <CEffectSet id="GallTwistingNetherInitialSet">
     <EffectArray value="GallTwistingNetherApplyChannelingBehavior" />
@@ -4937,6 +5033,7 @@
   </CEffectSet>
   <CEffectDamage id="GallTwistingNetherDamage" parent="StormSpell">
     <Amount value="353" />
+    <MultiplicativeModifierArray index="PsychoticBreak" Validator="GallPsychoticBreakHeroDamageCombine" Modifier="0.1" />
   </CEffectDamage>
   <CEffectEnumArea id="GallTwistingNetherChannelingSearch">
     <SearchFilters value="Ground;Self,Player,Ally,Neutral,Missile,Item,Stasis,Dead,Hidden,Invulnerable" />
@@ -5028,6 +5125,7 @@
   </CEffectSet>
   <CEffectDamage id="GallShadowboltVolleyDamage" parent="StormSpell">
     <Amount value="87" />
+    <MultiplicativeModifierArray index="PsychoticBreak" Validator="GallPsychoticBreakHeroDamageCombine" Modifier="0.1" />
   </CEffectDamage>
   <CEffectRemoveBehavior id="GallShadowboltVolleyRemoveMissileScanBehavior">
     <WhichUnit Value="Source" />
@@ -5056,8 +5154,10 @@
     <Count value="1" />
   </CEffectRemoveBehavior>
   <CEffectSet id="ChoHeroWeaponImpactSet">
-    <EffectArray value="ChoSearedFleshSwitch" />
+    <EffectArray value="ChoFuelForTheFlameDamage" />
     <EffectArray value="ChoHeroWeaponDamage" />
+    <EffectArray value="ChoSearedFleshSwitch" />
+    <EffectArray value="ChoFuelForTheFlameSearch" />
     <EffectArray value="ChoConsumingBlazeBasicAttackSet" />
     <EffectArray value="ChoHeroWeaponCthunsGiftTalentApplySlow" />
     <EffectArray value="ChoEnragedRegenerationBasicAttackApplyHoT" />
@@ -5246,8 +5346,8 @@
     <PortraitPaired value="Assets\Textures\UI_targetportrait_Hero_cho.dds" />
     <PortraitPairedText value="Hero/Name/Cho" />
     <TalentTreeArray Talent="ChoConsumingFire" Tier="1" Column="1" />
-    <TalentTreeArray Talent="ChoFuelForTheFlame" Tier="1" Column="2" />
-    <TalentTreeArray Talent="ChoCallousedHide" Tier="1" Column="3" />
+    <TalentTreeArray Talent="ChoCallousedHide" Tier="1" Column="2" />
+    <TalentTreeArray Talent="ChoTheWillofCho" Tier="1" Column="3" />
     <TalentTreeArray Talent="ChoUppercut" Tier="2" Column="1" />
     <TalentTreeArray Talent="ChoRollback" Tier="2" Column="2" />
     <TalentTreeArray Talent="ChoSearedFlesh" Tier="2" Column="3" />
@@ -5268,7 +5368,7 @@
     <TalentTreeArray Talent="ChoFavorOfTheOldGods" Tier="7" Column="2">
       <PrerequisiteTalentArray value="ChoHeroicAbilityUpheaval" />
     </TalentTreeArray>
-    <TalentTreeArray Talent="ChoTheWillofCho" Tier="7" Column="3" />
+    <TalentTreeArray Talent="ChoFuelForTheFlame" Tier="7" Column="3" />
     <TalentTreeArray Talent="ChoHourofTwilight" Tier="7" Column="4" />
     <HeroAbilArray Abil="ChoSurgingFistCast" Button="ChoSurgingFist">
       <Flags index="ShowInHeroSelect" value="1" />
@@ -5332,6 +5432,22 @@
         <Entry value="ChoEnragedRegenerationCreateHealer" />
         <Field value="RechargeVitalRate" />
         <Value value="0.040000" />
+        <AffectedByOverdrive value="1" />
+      </Modifications>
+      <Modifications>
+        <Catalog value="Effect" />
+        <Entry value="ChoFuelForTheFlameDamage" />
+        <Field value="Amount" />
+        <Value value="0.040000" />
+        <AffectedByAbilityPower value="1" />
+        <AffectedByOverdrive value="1" />
+      </Modifications>
+      <Modifications>
+        <Catalog value="Effect" />
+        <Entry value="ChoFuelForTheFlameExplosionDamage" />
+        <Field value="Amount" />
+        <Value value="0.040000" />
+        <AffectedByAbilityPower value="1" />
         <AffectedByOverdrive value="1" />
       </Modifications>
     </LevelScalingArray>
@@ -5530,13 +5646,13 @@
       <TalentsArray value="ChoCthunsGift" />
     </TalentAIBuildsArray>
     <TalentAIBuildsArray ChanceToPick="16">
-      <TalentsArray value="ChoFuelForTheFlame" />
+      <TalentsArray value="ChoTheWillofCho" />
       <TalentsArray value="ChoUppercut" />
       <TalentsArray value="ChoPowerSurge" />
       <TalentsArray value="ChoHeroicAbilityHammerOfTwilight" />
       <TalentsArray value="ChoSurgingDash" />
       <TalentsArray value="ChoFrenziedFists" />
-      <TalentsArray value="ChoHourofTwilight" />
+      <TalentsArray value="ChoFuelForTheFlame" />
     </TalentAIBuildsArray>
     <TalentAIBuildsArray ChanceToPick="16">
       <TalentsArray value="ChoConsumingFire" />
@@ -5548,13 +5664,13 @@
       <TalentsArray value="ChoFavorOfTheOldGods" />
     </TalentAIBuildsArray>
     <TalentAIBuildsArray AIOnly="1" ChanceToPick="16">
-      <TalentsArray value="ChoFuelForTheFlame" />
+      <TalentsArray value="ChoTheWillofCho" />
       <TalentsArray value="ChoUppercut" />
       <TalentsArray value="ChoPowerSurge" />
       <TalentsArray value="ChoHeroicAbilityUpheaval" />
       <TalentsArray value="ChoSurgingDash" />
       <TalentsArray value="ChoFrenziedFists" />
-      <TalentsArray value="ChoFavorOfTheOldGods" />
+      <TalentsArray value="ChoFuelForTheFlame" />
     </TalentAIBuildsArray>
     <TalentAIBuildsArray AIOnly="1" ChanceToPick="16">
       <TalentsArray value="ChoCallousedHide" />
@@ -5618,7 +5734,7 @@
     <TalentTreeArray Talent="GallKeepMoving" Tier="1" Column="1" />
     <TalentTreeArray Talent="GallTaskmaster" Tier="1" Column="2" />
     <TalentTreeArray Talent="GallWeSeeYou" Tier="1" Column="3" />
-    <TalentTreeArray Talent="GallDoubleBack" Tier="2" Column="1" />
+    <TalentTreeArray Talent="GallRisingDread" Tier="2" Column="1" />
     <TalentTreeArray Talent="GallRunicPersistence" Tier="2" Column="2" />
     <TalentTreeArray Talent="GallBombsAway" Tier="2" Column="3" />
     <TalentTreeArray Talent="GallEdgeOfMadness" Tier="3" Column="1" />
@@ -5627,7 +5743,7 @@
     <TalentTreeArray Talent="GallHeroicAbilityShadowboltVolley" Tier="4" Column="1" />
     <TalentTreeArray Talent="GallHeroicAbilityTwistingNether" Tier="4" Column="2" />
     <TalentTreeArray Talent="GallSearingShadows" Tier="5" Column="1" />
-    <TalentTreeArray Talent="GallRisingDread" Tier="5" Column="2" />
+    <TalentTreeArray Talent="GallPsychoticBreak" Tier="5" Column="2" />
     <TalentTreeArray Talent="GallTwilightNova" Tier="5" Column="3" />
     <TalentTreeArray Talent="GallLeadenOrb" Tier="6" Column="1" />
     <TalentTreeArray Talent="GallDeafeningBlast" Tier="6" Column="2" />
@@ -5639,7 +5755,7 @@
       <PrerequisiteTalentArray value="GallHeroicAbilityTwistingNether" />
     </TalentTreeArray>
     <TalentTreeArray Talent="GallTheWillofGall" Tier="7" Column="3" />
-    <TalentTreeArray Talent="GallPsychoticBreak" Tier="7" Column="4" />
+    <TalentTreeArray Talent="GallTwilightFrenzy" Tier="7" Column="4" />
     <HeroAbilArray Abil="GallShadowflame" Button="GallShadowflame">
       <Flags index="ShowInHeroSelect" value="1" />
       <Flags index="AffectedByCooldownReduction" value="1" />
@@ -5917,10 +6033,10 @@
     </TalentAIBuildsArray>
     <TalentAIBuildsArray AIOnly="1" ChanceToPick="16">
       <TalentsArray value="GallWeSeeYou" />
-      <TalentsArray value="GallDoubleBack" />
+      <TalentsArray value="GallRisingDread" />
       <TalentsArray value="GallOgreRampage" />
       <TalentsArray value="GallHeroicAbilityTwistingNether" />
-      <TalentsArray value="GallRisingDread" />
+      <TalentsArray value="GallTwilightNova" />
       <TalentsArray value="GallLeadenOrb" />
       <TalentsArray value="GallPsychoticBreak" />
     </TalentAIBuildsArray>
@@ -5929,7 +6045,7 @@
       <TalentsArray value="GallBombsAway" />
       <TalentsArray value="GallDoubleTrouble" />
       <TalentsArray value="GallHeroicAbilityTwistingNether" />
-      <TalentsArray value="GallRisingDread" />
+      <TalentsArray value="GallTwilightNova" />
       <TalentsArray value="GallDeafeningBlast" />
       <TalentsArray value="GallPsychoticBreak" />
     </TalentAIBuildsArray>
@@ -6465,6 +6581,14 @@
     <SustainFade index="0" Time="205" />
     <SustainFade index="1" Time="1231" />
   </CSound>
+  <CTalent id="GallTwilightFrenzy">
+    <Face value="GallTwilightFrenzy" />
+    <RankArray>
+      <BehaviorArray value="GallTwilightFrenzyBehaviorAbility" />
+    </RankArray>
+    <Active value="1" />
+    <Abil value="GallTwilightFrenzy" />
+  </CTalent>
   <CTalent id="ChoCallousedHide">
     <Face value="ChoCallousedHide" />
     <Abil value="ChoOgreHide" />
@@ -6574,11 +6698,6 @@
   </CTalent>
   <CTalent id="ChoFuelForTheFlame">
     <Face value="ChoFuelForTheFlameTalent" />
-    <Abil value="ChoConsumingBlaze" />
-    <RankArray>
-      <BehaviorArray value="ChoFuelfortheFlameTokenCounter" />
-    </RankArray>
-    <QuestData StackBehavior="ChoFuelfortheFlameTokenCounter" />
   </CTalent>
   <CTalent id="ChoEnragedRegeneration">
     <Face value="ChoEnragedRegeneration" />
@@ -6644,6 +6763,9 @@
   <CTalent id="ChoPowerSurge">
     <Face value="ChoPowerSurgeTalent" />
     <Abil value="ChoSurgingFistCast" />
+    <RankArray>
+      <BehaviorArray value="ChoSurgingFirstPowerSurgeChannelMoveSpeedBuff" />
+    </RankArray>
   </CTalent>
   <CTalent id="ChoSearedFlesh">
     <Face value="ChoSearedFleshTalent" />
@@ -6968,9 +7090,19 @@
     <RankArray>
       <BehaviorArray value="ChoWillofChoCarry" />
       <BehaviorArray value="ChoWillofChoTokenCounter" />
+      <BehaviorArray value="ChoTheWillOfChoArmorBuff" />
     </RankArray>
     <Trait value="1" />
     <Abil value="ChoOgreHide" />
+    <AbilityModificationArray>
+      <Modifications>
+        <Type value="FlatModification" />
+        <Catalog value="Behavior" />
+        <Entry value="ChoTheWillOfChoArmorBuff" />
+        <Field value="ArmorModification.AllArmorBonus" />
+      </Modifications>
+    </AbilityModificationArray>
+    <QuestData StackBehavior="ChoWillofChoTokenCounter" TargetCount="300" />
   </CTalent>
   <CUnit id="ChoCThunsGiftMissile" parent="MISSILE_INVULNERABLE">
     <Mover value="MissileDefault" />
@@ -7148,10 +7280,33 @@
     <VisionHeight value="1" />
   </CUnit>
   <CUpgrade id="GallDreadOrbDoubleBackTalentUpgrade" />
+  <CValidatorPlayerTalent id="GallHasTwilightFrenzy">
+    <Find value="1" />
+    <Value value="GallTwilightFrenzy" />
+  </CValidatorPlayerTalent>
+  <CValidatorCombine id="GallPsychoticBreakHeroDamageCombine">
+    <Type value="And" />
+    <CombineArray value="GallTalentHasPsychoticBreak" />
+    <CombineArray value="TargetIsHero" />
+  </CValidatorCombine>
+  <CValidatorUnitCompareBehaviorCount id="ChoDoesNotHaveTheWillOfChoDummyQuestCompletionBehavior">
+    <WhichUnit Value="Caster" />
+    <Behavior value="ChoTheWillOfChoDummyQuestCompletionBehavior" />
+  </CValidatorUnitCompareBehaviorCount>
+  <CValidatorCombine id="ChoHasFuelForTheFlameAndTargetIsHero">
+    <Type value="And" />
+    <CombineArray value="ChoTalentHasFuelForTheFlame" />
+    <CombineArray value="TargetIsHero" />
+  </CValidatorCombine>
+  <CValidatorUnitCompareBehaviorCount id="ChoHasSurgingFistFakeChannelBehaviorPowerSurge">
+    <WhichUnit Value="Caster" />
+    <Value value="1" />
+    <Behavior value="ChoSurgingFistFakeChannel" />
+  </CValidatorUnitCompareBehaviorCount>
   <CValidatorCombine id="GallDoubleBackTalentCombineHeroic">
     <Type value="And" />
     <CombineArray value="TargetIsHero" />
-    <CombineArray value="GallHasDoubleBackTalent" />
+    <CombineArray value="GallTalentHasRisingDread" />
   </CValidatorCombine>
   <CValidatorCombine id="GallShoveDisablerCombine">
     <CombineArray value="Mounted" />
@@ -7251,7 +7406,7 @@
   <CValidatorCombine id="GallDoubleBackTalentCombineNonHeroic">
     <Type value="And" />
     <CombineArray value="TargetIsNotHeroic" />
-    <CombineArray value="GallHasDoubleBackTalent" />
+    <CombineArray value="GallTalentHasRisingDread" />
   </CValidatorCombine>
   <CValidatorPlayerTalent id="GallHasBombsAwayTalent">
     <WhichPlayer Value="Caster" />
@@ -7330,11 +7485,6 @@
     <Find value="1" />
     <Value value="ChoTheWillofCho" />
   </CValidatorPlayerTalent>
-  <CValidatorUnitCompareBehaviorCount id="ChoTargetHasSearedFleshTargetMarker">
-    <Compare value="GT" />
-    <Behavior value="ChoSearedFleshTargetMarker" />
-    <RequireCasterUnit Value="Caster" />
-  </CValidatorUnitCompareBehaviorCount>
   <CValidatorUnitCompareBehaviorCount id="GallDoesNotHaveGallShoveDisablerDummyBehavior">
     <WhichUnit Value="Caster" />
     <Behavior value="GallShoveDisablerDummyBehavior" />
@@ -7488,10 +7638,6 @@
     <Find value="1" />
     <Value value="ChoConsumingFire" />
   </CValidatorPlayerTalent>
-  <CValidatorUnitCompareBehaviorCount id="ChoTalentHasFuelForTheFlameHealerBehavior">
-    <WhichUnit Value="Caster" />
-    <Behavior value="ChoTalentFuelForTheFlameHealer" />
-  </CValidatorUnitCompareBehaviorCount>
   <CValidatorUnitCompareBehaviorCount id="ChoRuneBombHasDetonationBehavior">
     <WhichUnit Value="Source" />
     <Value value="1" />
@@ -7505,11 +7651,6 @@
     <Find value="1" />
     <Value value="ChoRuneBombTalentHasArcaneFueldBehavior" />
   </CValidatorPlayerRequirement>
-  <CValidatorUnitCompareBehaviorCount id="ChoTalentHasFuelForTheFlamePrimedBehavior">
-    <WhichUnit Value="Source" />
-    <Value value="1" />
-    <Behavior value="ChoTalentFuelForTheFlamePrimed" />
-  </CValidatorUnitCompareBehaviorCount>
   <CValidatorPlayerTalent id="ChoTalentHasFavorOfTheOldGods">
     <Find value="1" />
     <Value value="ChoFavorOfTheOldGods" />
@@ -7648,16 +7789,10 @@
   </CValidatorUnitCompareBehaviorCount>
   <CValidatorCombine id="ChoHasConsumingBlazeHealCombine">
     <CombineArray value="ChoHasConsumingBlazeCasterHealer" />
-    <CombineArray value="ChoHasConsumingBlazeFuelForTheFlameHealer" />
   </CValidatorCombine>
   <CValidatorUnitCompareBehaviorCount id="ChoHasConsumingBlazeCasterHealer">
     <Value value="1" />
     <Behavior value="ChoConsumingBlazeCasterHealer" />
-    <WhichUnit Value="Caster" />
-  </CValidatorUnitCompareBehaviorCount>
-  <CValidatorUnitCompareBehaviorCount id="ChoHasConsumingBlazeFuelForTheFlameHealer">
-    <Value value="1" />
-    <Behavior value="ChoTalentFuelForTheFlameHealer" />
     <WhichUnit Value="Caster" />
   </CValidatorUnitCompareBehaviorCount>
   <CValidatorPlayerTalent id="GallTalentHasGiantScorcher">
