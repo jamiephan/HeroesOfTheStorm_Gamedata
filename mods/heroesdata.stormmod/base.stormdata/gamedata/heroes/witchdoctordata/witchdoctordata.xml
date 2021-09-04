@@ -1,5 +1,13 @@
 <?xml version="1.0" encoding="us-ascii"?>
 <Catalog>
+  <CAbilEffectInstant id="WitchDoctorBadMedicine">
+    <PrepEffect value="DismountDecloakCasterSet" />
+    <Effect value="WitchDoctorBadMedicineCastSet" />
+    <Cost>
+      <Cooldown TimeUse="30" />
+    </Cost>
+    <CmdButtonArray index="Execute" DefaultButtonFace="WitchDoctorBadMedicine" />
+  </CAbilEffectInstant>
   <CAbilEffectInstant id="WitchDoctorGargantuanStompCommand">
     <Effect value="WitchDoctorGargantuanStompCommandEnumerator" />
     <Cost>
@@ -53,8 +61,8 @@
     <Flags index="ClearLastMoveTarget" value="1" />
     <Flags index="RequireTargetVision" value="0" />
     <Cost>
-      <Vital index="Energy" value="50" />
-      <Cooldown TimeUse="9" />
+      <Vital index="Energy" value="40" />
+      <Cooldown TimeUse="8" />
     </Cost>
     <Range value="8" />
     <CmdButtonArray index="Execute" DefaultButtonFace="WitchDoctorCorpseSpiders" />
@@ -229,6 +237,10 @@
     <TokenId value="WitchDoctorVoodooRitual" />
     <Scale value="6" />
   </CAccumulatorToken>
+  <CActorSound id="WitchDoctorBadMedicineCastSound" parent="SoundOneShot">
+    <On Terms="Effect.WitchDoctorBadMedicineCastSet.Start" Send="Create" />
+    <Sound value="WitchDoctor_BadMedicine_Cast" />
+  </CActorSound>
   <CActorMissile id="GargantuanThrowAttackMissile" parent="StormMissileWithDeath" unitName="GargantuanThrowMissile">
     <Model value="Invisible" />
   </CActorMissile>
@@ -1006,6 +1018,40 @@
   </CActorSplat>
   <CActorPortrait id="WitchDoctorPortrait" parent="StormCompositePortrait" />
   <CActorModel id="WitchDoctorPortraitAddition" parent="StormCompositePortraitAddition" />
+  <CBehaviorAbility id="WitchDoctorBadMedicineAbility">
+    <Face value="WitchDoctorBadMedicine" />
+    <Buttons Face="WitchDoctorBadMedicine" Type="AbilCmd" AbilCmd="WitchDoctorBadMedicine,Execute" />
+  </CBehaviorAbility>
+  <CBehaviorBuff id="WitchDoctorBadMedicineArmor" parent="StormArmor">
+    <Duration value="2" />
+    <ArmorModification>
+      <AllArmorBonus value="50" />
+    </ArmorModification>
+  </CBehaviorBuff>
+  <CBehaviorBuff id="WitchDoctorBadMedicineUnstoppable" parent="StormUnstoppableParent">
+    <Duration value="2" />
+  </CBehaviorBuff>
+  <CBehaviorBuff id="WitchDoctorBadMedicineSpeedBuff" parent="StormSprint">
+    <Duration value="2" />
+    <Modification>
+      <UnifiedMoveSpeedFactor value="0.2" />
+    </Modification>
+  </CBehaviorBuff>
+  <CBehaviorBuff id="WitchDoctorPlagueofToadsPandemicTalentDamageReduction" parent="StormDamageReduction">
+    <Duration value="6" />
+    <Modification>
+      <DamageDealtFraction index="Splash" value="-0.05" />
+      <DamageDealtFraction index="Basic" value="-0.05" />
+      <DamageDealtFraction index="Ability" value="-0.05" />
+    </Modification>
+    <MaxStackCount value="5" />
+  </CBehaviorBuff>
+  <CBehaviorBuff id="WitchDoctorCorpseSpidersWidowmakersTalentSlow" parent="StormSlowParent">
+    <Duration value="1.5" />
+    <Modification>
+      <UnifiedMoveSpeedFactor value="-0.3" />
+    </Modification>
+  </CBehaviorBuff>
   <CBehaviorTokenCounter id="WitchDoctorThingOfTheDeepQuestToken" parent="StormQuestToken">
     <Max value="100" />
     <AtMaxEvents index="0" EventId="QuestComplete" Effect="WitchDoctorThingOfTheDeepModifyPlayerTier2" />
@@ -1033,7 +1079,7 @@
   </CBehaviorBuff>
   <CBehaviorBuff id="WitchDoctorPlagueofToadsGuardianToadsArmorIncrease" parent="StormArmor">
     <BehaviorCategories index="BuffResistant" value="1" />
-    <Duration value="4" />
+    <Duration value="6" />
     <ArmorModification>
       <AllArmorBonus value="30" />
     </ArmorModification>
@@ -1048,7 +1094,7 @@
     <Duration value="0.25" />
   </CBehaviorBuff>
   <CBehaviorBuff id="WitchDoctorSuperstitionDamageResponse" parent="CarryBehaviorParent">
-    <DamageResponse Chance="1" Handled="WitchDoctorSuperstitionApplySpellArmorSuppressionBehavior" TargetFilters="Heroic;-">
+    <DamageResponse Chance="1" Handled="WitchDoctorSuperstitionDamageResponseSet" TargetFilters="Heroic;-">
       <Kind index="Splash" value="0" />
       <Kind index="Ability" value="0" />
     </DamageResponse>
@@ -1245,7 +1291,10 @@
   <CBehaviorTokenCounter id="WitchDoctorPlagueofToadsPandemicTalentTokenCounter" parent="StormQuestToken">
     <Face value="WitchDoctorPandemicToken" />
     <AtMaxEvents index="0" EventId="QuestComplete" Effect="WitchDoctorPlagueofToadsPandemicTalentCompletionModifyPlayer" />
-    <Max value="40" />
+    <Max value="80" />
+    <ConditionalEvents CompareValue="40">
+      <Event EventId="QuestMilestone" Effect="WitchDoctorPlagueofToadsPandemicTalentMilestoneModifyPlayer" />
+    </ConditionalEvents>
   </CBehaviorTokenCounter>
   <CBehaviorBuff id="WitchDoctorPlagueofToadsDoT" parent="StormDot">
     <MaxStackCount value="20" />
@@ -1471,6 +1520,15 @@
     <RemoveValidatorArray value="CasterNotPushPull" />
     <InfoFlags index="AlwaysUseGameText" value="1" />
   </CBehaviorBuff>
+  <CBehaviorBuff id="WitchDoctorRavenousSpiritAnnihilatingSpiritTalentHealingReduction" parent="StormHealReduction">
+    <InfoIcon value="Assets\Textures\storm_ui_icon_healthstone.dds" />
+    <Duration value="1" />
+    <FloaterHealingPreventedDisplayType value="DisplayAtCasterAggregate" />
+    <Modification>
+      <HealTakenAdditiveMultiplier index="Life" value="-0.5" />
+      <VitalRegenMultiplier index="Life" value="-0.5" />
+    </Modification>
+  </CBehaviorBuff>
   <CBehaviorBuff id="WitchDoctorZombieWallTimedLife">
     <Duration value="3" />
     <FinalEffect value="WitchDoctorZombieWallTimedLifeFinishSwitch" />
@@ -1497,6 +1555,9 @@
       <StateFlags index="SuppressCollision" value="1" />
     </Modification>
   </CBehaviorBuff>
+  <CButton id="WitchDoctorBadMedicine" parent="StormButtonParent">
+    <Icon value="Assets\Textures\storm_ui_icon_nazeebo_voodooritual_a.dds" />
+  </CButton>
   <CButton id="WitchDoctorThingOfTheDeepToken" parent="StormButtonParentTrait">
     <Icon value="Assets\Textures\storm_ui_icon_talent_elunesgrace.dds" />
     <HotkeyAlias value="WitchDoctorVoodooRitualTrait" />
@@ -1635,14 +1696,90 @@
     <Color value="255,128,0,128" />
     <Unit value="HeroWitchDoctor" />
   </CCharacter>
+  <CEffectApplyBehavior id="WitchDoctorBadMedicineApplyArmor">
+    <WhichUnit Value="Caster" />
+    <Behavior value="WitchDoctorBadMedicineArmor" />
+  </CEffectApplyBehavior>
+  <CEffectApplyBehavior id="WitchDoctorBadMedicineApplyUnstoppable">
+    <WhichUnit Value="Caster" />
+    <Behavior value="WitchDoctorBadMedicineUnstoppable" />
+  </CEffectApplyBehavior>
+  <CEffectApplyBehavior id="WitchDoctorBadMedicineApplySpeed">
+    <WhichUnit Value="Caster" />
+    <Behavior value="WitchDoctorBadMedicineSpeedBuff" />
+  </CEffectApplyBehavior>
+  <CEffectModifyTokenCount id="WitchDoctorBadMedicineModifyTokenCount" parent="BaseEffectModifyTokenCount">
+    <TokenId value="WitchDoctorVoodooRitual" />
+    <Value value="-5" />
+  </CEffectModifyTokenCount>
+  <CEffectModifyPlayer id="WitchDoctorPlagueofToadsPandemicTalentCompletionModifyPlayer">
+    <EffectArray Operation="Set" Reference="Effect,WitchDoctorPlagueofToadsPandemicTalentApplyDamageReduction,Chance" Value="1" />
+  </CEffectModifyPlayer>
+  <CEffectApplyBehavior id="WitchDoctorPlagueofToadsPandemicTalentApplyDamageReduction">
+    <ValidatorArray index="0" value="TargetIsHero" />
+    <Chance value="0" />
+    <Behavior value="WitchDoctorPlagueofToadsPandemicTalentDamageReduction" />
+  </CEffectApplyBehavior>
+  <CEffectSet id="WitchDoctorBadMedicineCastSet">
+    <ValidatorArray value="WitchDoctorHasGTE5StacksVoodooRitual" />
+    <EffectArray value="WitchDoctorBadMedicineModifyTokenCount" />
+    <EffectArray value="WitchDoctorBadMedicineApplyArmor" />
+    <EffectArray value="WitchDoctorBadMedicineApplySpeed" />
+    <EffectArray value="WitchDoctorBadMedicineApplyUnstoppable" />
+  </CEffectSet>
+  <CEffectApplyBehavior id="WitchDoctorRavenousSpiritAnnihilatingSpiritTalentApplyHealingReduction">
+    <ValidatorArray index="0" value="TargetIsHero" />
+    <Chance value="0" />
+    <Behavior value="WitchDoctorRavenousSpiritAnnihilatingSpiritTalentHealingReduction" />
+  </CEffectApplyBehavior>
+  <CEffectModifyUnit id="WitchDoctorRavenousSpiritAnnihilatingSpiritTalentModifyCooldown">
+    <ValidatorArray value="TargetIsHero" />
+    <Chance value="0" />
+    <ImpactUnit Value="Caster" />
+    <Cost Abil="WitchDoctorRavenousSpirit,Execute" CooldownOperation="Add" CooldownTimeUse="-0.75" />
+  </CEffectModifyUnit>
+  <CEffectIssueOrder id="WitchDoctorCorpseSpidersSuperstitionTalentSpawnIssueAttackOrder">
+    <Marker Link="Effect/WitchDoctorCorpseSpidersSpawnIssueAttackOrder" />
+    <Abil value="attack" />
+    <Player Value="Source" />
+    <Target Effect="WitchDoctorSuperstitionDamageResponseSet" Value="TargetUnit" />
+  </CEffectIssueOrder>
+  <CEffectSet id="WitchDoctorCorpseSpidersSuperstitionTalentSpawnSet">
+    <EffectArray value="CorpseSpidersApplyTimedLifeBehavior" />
+    <EffectArray value="WitchDoctorCorpseSpidersSuperstitionTalentSpawnIssueAttackOrder" />
+    <EffectArray value="WitchDoctorSoulHarvestApplyCarry" />
+    <EffectArray value="WitchDoctorVoodooRitualApplyDeathRitualTalentSummonCarry" />
+    <EffectArray value="WitchDoctorCorpseSpidersApplyWidowmakersDamageBonusCarryBehavior" />
+  </CEffectSet>
+  <CEffectCreateUnit id="WitchDoctorCorpseSpidersSuperstitionTalentSpawnSpider">
+    <ValidatorArray value="WitchDoctorDoesNotHaveSuperstitionSpellArmorSuppressionBehavior" />
+    <WhichLocation Value="CasterUnit" />
+    <SpawnEffect value="WitchDoctorCorpseSpidersSuperstitionTalentSpawnSet" />
+    <SpawnUnit value="WitchDoctorCorpseSpider" />
+    <SpawnRange value="3.75" />
+  </CEffectCreateUnit>
+  <CEffectApplyBehavior id="WitchDoctorCorpseSpidersWidowmakersTalentApplySlow" parent="StormSlowApply">
+    <Chance value="0" />
+    <Behavior value="WitchDoctorCorpseSpidersWidowmakersTalentSlow" />
+  </CEffectApplyBehavior>
+  <CEffectSet id="WitchDoctorSuperstitionDamageResponseSet">
+    <EffectArray value="WitchDoctorCorpseSpidersSuperstitionTalentSpawnSpider" />
+    <EffectArray value="WitchDoctorSuperstitionApplySpellArmorSuppressionBehavior" />
+  </CEffectSet>
+  <CEffectCreatePersistent id="WitchDoctorVoodooRitualBloodRitualTalentTakedownProcPersistent">
+    <WhichLocation Value="TargetUnit" />
+    <PeriodCount value="5" />
+    <PeriodicEffectArray value="WitchDoctorVoodooRitualProcSet" />
+    <PeriodicPeriodArray value="0" />
+  </CEffectCreatePersistent>
   <CEffectModifyBehaviorBuffDuration id="WitchDoctorPlagueofToadsGuardianToadsTalentModifyBuffDuration">
     <Behavior value="WitchDoctorPlagueofToadsGuardianToadsArmorIncrease" />
-    <Value value="1.5" />
+    <Value value="2" />
   </CEffectModifyBehaviorBuffDuration>
   <CEffectModifyBehaviorBuffDuration id="WitchDoctorPlagueofToadsGuardianToadsTalentSetMaxBuffDuration">
     <Behavior value="WitchDoctorPlagueofToadsGuardianToadsArmorIncrease" />
     <Operation value="Set" />
-    <Value value="4" />
+    <Value value="6" />
   </CEffectModifyBehaviorBuffDuration>
   <CEffectSwitch id="WitchDoctorPlagueofToadsGuardianToadsTalentSwitch">
     <ValidatorArray value="TargetIsHero" />
@@ -1679,8 +1816,8 @@
     <EffectArray value="WitchDoctorCorpseSpidersApplyWidowmakersQuestCompleteBehavior" />
   </CEffectSet>
   <CEffectModifyCatalogNumeric id="WitchDoctorCorpseSpidersWidowmakersQuestCompleteCatalogModify">
-    <CatalogModifications Operation="Subtract" Reference="Abil,WitchDoctorCorpseSpiders,Cost.Cooldown.TimeUse">
-      <Value value="2" />
+    <CatalogModifications Reference="Behavior,WitchDoctorCorpseSpidersTimedLife,Duration">
+      <Value value="1" />
     </CatalogModifications>
   </CEffectModifyCatalogNumeric>
   <CEffectApplyBehavior id="WitchDoctorCorpseSpidersApplyWidowmakersQuestCompleteBehavior">
@@ -1899,10 +2036,12 @@
     <EffectArray value="WitchDoctorVoodooRitualApplyDoTSwitch" />
     <EffectArray value="WitchDoctorRavenousSpiritDamage" />
     <EffectArray value="WitchDoctorReavnousSpiritAnnihilatingSpiritAddTokenCount" />
+    <EffectArray value="WitchDoctorRavenousSpiritAnnihilatingSpiritTalentApplyHealingReduction" />
   </CEffectSet>
   <CEffectSet id="WitchDoctorCorpseSpidersJarImpactSet">
     <EffectArray value="WitchDoctorVoodooRitualApplyDoTSwitch" />
     <EffectArray value="WitchDoctorCorpseSpidersJarDamage" />
+    <EffectArray value="WitchDoctorCorpseSpidersWidowmakersTalentApplySlow" />
   </CEffectSet>
   <CEffectApplyBehavior id="WitchDoctorVoodooRitualApplyDoTBehaviorHeroWeapon">
     <ValidatorArray index="0" value="CasterNotBlindedAndTargetNotEvading" />
@@ -1956,6 +2095,7 @@
     <ImpactUnit Effect="CorpseSpidersApplyTimedLifeBehavior" Value="Caster" />
     <Cost Abil="WitchDoctorPlagueofToads,Execute" ChargeTimeUse="-0.25" CooldownOperation="Add" />
     <Cost Abil="WitchDoctorZombieWall,Execute" CooldownOperation="Add" CooldownTimeUse="-0.25" />
+    <Cost Abil="WitchDoctorCorpseSpiders,Execute" CooldownOperation="Add" CooldownTimeUse="-0.125" />
     <ValidatorArray value="TargetIsHero" />
     <Chance value="0" />
   </CEffectModifyUnit>
@@ -1975,7 +2115,7 @@
     <WhichUnit Value="Caster" />
     <Behavior value="WitchDoctorPlagueofToadsGuardianToadsArmorIncrease" />
     <Flags index="UseDuration" value="1" />
-    <Duration value="1.5" />
+    <Duration value="2" />
   </CEffectApplyBehavior>
   <CEffectSet id="WitchDoctorZombieWallPersistentInitialSet">
     <EffectArray value="WitchDoctorZombieWallBirthSoundPersistent" />
@@ -2043,7 +2183,7 @@
   </CEffectSet>
   <CEffectCreatePersistent id="WitchDoctorCorpseSpidersSpiritofArachyrTalentSpawnPersistent">
     <ValidatorArray value="WitchDoctorSpiritofArachyrCombine" />
-    <PeriodCount value="2" />
+    <PeriodCount value="1" />
     <PeriodicEffectArray value="WitchDoctorCorpseSpidersSpiritofArachyrTalentSearch" />
     <PeriodicOffsetArray />
     <PeriodicPeriodArray value="0" />
@@ -2105,7 +2245,7 @@
     <WhichPlayer Value="Caster" />
     <EffectArray Reference="Behavior,WitchDoctorCorpseSpidersWidowmakersTalentCarry,Modification.DamageDealtFraction[Ability]" Value="0.005" />
   </CEffectModifyPlayer>
-  <CEffectModifyPlayer id="WitchDoctorPlagueofToadsPandemicTalentCompletionModifyPlayer">
+  <CEffectModifyPlayer id="WitchDoctorPlagueofToadsPandemicTalentMilestoneModifyPlayer">
     <EffectArray Reference="Effect,WitchDoctorPlagueofToadsInitialPersistent,PeriodCount" Value="2" />
     <EffectArray Reference="Effect,WitchDoctorPlagueofToadsDummySearch,AreaArray[0].Arc" Value="15.000000" />
     <EffectArray Operation="Set" Reference="Effect,WitchDoctorPlagueofToadsInitialPersistent,PeriodicOffsetArray[2]" Value="-0.750000,-3.000000,0.000000" />
@@ -2115,7 +2255,7 @@
   <CEffectModifyTokenCount id="WitchDoctorPlagueofToadsPandemicTalentModifyTokenCount" parent="BaseEffectModifyTokenCount">
     <ValidatorArray value="TargetIsHero" />
     <ValidatorArray value="WitchDoctorHasPandemic" />
-    <ValidatorArray value="WitchDoctorHasLessThan40StacksOfPlagueofToadsPandemic" />
+    <ValidatorArray value="WitchDoctorHasLessThan80StacksOfPlagueofToadsPandemic" />
     <EffectCategory index="Quest" value="1" />
     <TokenId value="WitchDoctorPlagueofToadsPandemicTalentTokenCounter" />
   </CEffectModifyTokenCount>
@@ -2273,6 +2413,7 @@
   <CEffectSet id="WitchDoctorPlagueofToadsExplodeImpactSet">
     <EffectArray value="WitchDoctorVoodooRitualApplyDoTSwitch" />
     <EffectArray value="WitchDoctorPlagueofToadsToadAffinityMasterySet" />
+    <EffectArray value="WitchDoctorPlagueofToadsPandemicTalentApplyDamageReduction" />
     <EffectArray value="WitchDoctorPlagueofToadsPandemicTalentModifyTokenCount" />
     <EffectArray value="WitchDoctorPlagueofToadsApplyDoT" />
     <EffectArray value="WitchDoctorPlagueofToadsGuardianToadsTalentSwitch" />
@@ -2292,6 +2433,7 @@
   <CEffectSet id="WitchDoctorPlagueofToadsExplodeImpactSet1">
     <EffectArray value="WitchDoctorVoodooRitualApplyDoTSwitch" />
     <EffectArray value="WitchDoctorPlagueofToadsToadAffinityMasterySet" />
+    <EffectArray value="WitchDoctorPlagueofToadsPandemicTalentApplyDamageReduction" />
     <EffectArray value="WitchDoctorPlagueofToadsPandemicTalentModifyTokenCount" />
     <EffectArray value="WitchDoctorPlagueofToadsApplyDoT2" />
     <EffectArray value="WitchDoctorPlagueofToadsGuardianToadsTalentSwitch" />
@@ -2311,6 +2453,7 @@
   <CEffectSet id="WitchDoctorPlagueofToadsExplodeImpactSet2">
     <EffectArray value="WitchDoctorVoodooRitualApplyDoTSwitch" />
     <EffectArray value="WitchDoctorPlagueofToadsToadAffinityMasterySet" />
+    <EffectArray value="WitchDoctorPlagueofToadsPandemicTalentApplyDamageReduction" />
     <EffectArray value="WitchDoctorPlagueofToadsPandemicTalentModifyTokenCount" />
     <EffectArray value="WitchDoctorPlagueofToadsApplyToadsofHugenessTalentDoT2" />
     <EffectArray value="WitchDoctorPlagueofToadsGuardianToadsTalentSwitch" />
@@ -2330,6 +2473,7 @@
   <CEffectSet id="WitchDoctorPlagueofToadsExplodeImpactSet3">
     <EffectArray value="WitchDoctorVoodooRitualApplyDoTSwitch" />
     <EffectArray value="WitchDoctorPlagueofToadsToadAffinityMasterySet" />
+    <EffectArray value="WitchDoctorPlagueofToadsPandemicTalentApplyDamageReduction" />
     <EffectArray value="WitchDoctorPlagueofToadsPandemicTalentModifyTokenCount" />
     <EffectArray value="WitchDoctorPlagueofToadsApplyToadsofHugenessTalentDoT3" />
     <EffectArray value="WitchDoctorPlagueofToadsGuardianToadsTalentSwitch" />
@@ -2349,6 +2493,7 @@
   <CEffectSet id="WitchDoctorPlagueofToadsExplodeImpactSet4">
     <EffectArray value="WitchDoctorVoodooRitualApplyDoTSwitch" />
     <EffectArray value="WitchDoctorPlagueofToadsToadAffinityMasterySet" />
+    <EffectArray value="WitchDoctorPlagueofToadsPandemicTalentApplyDamageReduction" />
     <EffectArray value="WitchDoctorPlagueofToadsPandemicTalentModifyTokenCount" />
     <EffectArray value="WitchDoctorPlagueofToadsApplyToadsofHugenessTalentDoT4" />
     <EffectArray value="WitchDoctorPlagueofToadsGuardianToadsTalentSwitch" />
@@ -2357,6 +2502,7 @@
   </CEffectSet>
   <CEffectSet id="WitchDoctorPlagueofToadsExplodeImpactSet5">
     <EffectArray value="WitchDoctorPlagueofToadsToadAffinityMasterySet" />
+    <EffectArray value="WitchDoctorPlagueofToadsPandemicTalentApplyDamageReduction" />
     <EffectArray value="WitchDoctorPlagueofToadsPandemicTalentModifyTokenCount" />
     <EffectArray value="WitchDoctorPlagueofToadsApplyDoT" />
     <EffectArray value="WitchDoctorPlagueofToadsGuardianToadsTalentSwitch" />
@@ -3051,30 +3197,77 @@
     </AreaArray>
   </CEffectEnumArea>
   <CHero id="WitchDoctor" parent="LegacyVOHero">
-    <AIComplexityTier value="Mid" />
     <AttributeId value="Witc" />
-    <ProductId value="10128" />
+    <Flags index="GoodForModeA" value="1" />
+    <Flags index="GoodForModeB" value="1" />
     <Role value="Specialist" />
+    <ExpandedRole value="RangedAssassin" />
     <RolesMultiClass value="Specialist" />
     <SelectScreenButtonImage value="Assets\Textures\storm_ui_ingame_heroselect_btn_witchdoctor.dds" />
-    <UniverseIcon value="Assets\Textures\UI_Glues_Store_GameIcon_D3.dds" />
     <ImageFacing value="Left" />
-    <HyperlinkId value="Nazeebo" />
-    <VariationIcon value="Assets\Textures\UI_Glues_Swatch_Purple.dds" />
     <IntroCutsceneSize value="Medium" />
-    <VariationArray value="WitchDoctorBlood" />
-    <VariationArray value="WitchDoctorToxic" />
-    <VariationArray value="WitchDoctorVar3" />
-    <VariationArray value="WitchDoctorVar4" />
-    <VariationArray value="WitchDoctorVar5" />
-    <VariationArray value="WitchDoctorVar6" />
+    <HeroAbilArray Abil="WitchDoctorCorpseSpiders" Button="WitchDoctorCorpseSpiders">
+      <Flags index="ShowInHeroSelect" value="1" />
+      <Flags index="AffectedByCooldownReduction" value="1" />
+    </HeroAbilArray>
+    <HeroAbilArray Abil="WitchDoctorZombieWall" Button="WitchDoctorZombieWall">
+      <Flags index="ShowInHeroSelect" value="1" />
+      <Flags index="AffectedByCooldownReduction" value="1" />
+    </HeroAbilArray>
+    <HeroAbilArray Abil="WitchDoctorPlagueofToads" Button="WitchDoctorPlagueOfToads">
+      <Flags index="ShowInHeroSelect" value="1" />
+      <Flags index="UsesCharges" value="1" />
+      <Flags index="AffectedByCooldownReduction" value="1" />
+    </HeroAbilArray>
+    <HeroAbilArray Abil="WitchDoctorGargantuan" Button="WitchDoctorGargantuan">
+      <Flags index="ShowInHeroSelect" value="1" />
+      <Flags index="AffectedByCooldownReduction" value="1" />
+      <Flags index="Heroic" value="1" />
+    </HeroAbilArray>
+    <HeroAbilArray Abil="WitchDoctorRavenousSpirit" Button="WitchDoctorRavenousSpirit">
+      <Flags index="ShowInHeroSelect" value="1" />
+      <Flags index="AffectedByCooldownReduction" value="1" />
+      <Flags index="Heroic" value="1" />
+    </HeroAbilArray>
+    <HeroAbilArray Button="WitchDoctorVoodooRitualTrait">
+      <Flags index="ShowInHeroSelect" value="1" />
+      <Flags index="Trait" value="1" />
+    </HeroAbilArray>
+    <HeroAbilArray Abil="WitchDoctorGargantuanStompCommand" Button="WitchDoctorGargantuanStomp">
+      <Flags index="AffectedByCooldownReduction" value="1" />
+      <Flags index="Heroic" value="1" />
+    </HeroAbilArray>
+    <HeroAbilArray Abil="WitchDoctorGargantuanStomp">
+      <Flags index="AffectedByCooldownReduction" value="1" />
+    </HeroAbilArray>
     <SkinArray value="MasterNazeebo" />
     <SkinArray value="WitchDoctorGrimskull" />
     <SkinArray value="WitchDoctorHarlequin" />
     <SkinArray value="WitchDoctorWinter" />
     <SkinArray value="WitchDoctorMadAxe18" />
+    <VoiceLineArray value="WitchDoctorBase_VoiceLine01" />
+    <VoiceLineArray value="WitchDoctorBase_VoiceLine02" />
+    <VoiceLineArray value="WitchDoctorBase_VoiceLine03" />
+    <VoiceLineArray value="WitchDoctorBase_VoiceLine04" />
+    <VoiceLineArray value="WitchDoctorBase_VoiceLine05" />
     <DefaultMount value="HorseCommon" />
-    <HeroSpecificUIArray Location="Status" DescName="Nazeebo/NazeeboFrame" />
+    <VOArray index="Cheer" value="WitchDoctor_VOX_Cheer" />
+    <VOArray index="GetHit" value="WitchDoctor_VOX_GetHitSmall" />
+    <VOArray index="MatchEnd" value="WitchDoctor_MatchEnd" />
+    <VOArray index="PingCapture" value="WitchDoctor_Ping_Capture" />
+    <VOArray index="PingCollect" value="WitchDoctor_Ping_Collect" />
+    <VOArray index="PingDefendStructure" value="WitchDoctor_Ping_DefendStructure" />
+    <VOArray index="PingDefendThing" value="WitchDoctor_Ping_DefendThing" />
+    <VOArray index="PingDestroyStructure" value="WitchDoctor_Ping_DestroyStructure" />
+    <VOArray index="PingDestroyThing" value="WitchDoctor_Ping_DestroyThing" />
+    <VOArray index="PingTransport" value="WitchDoctor_Ping_Transport" />
+    <VOArray index="PingTurnIn" value="WitchDoctor_Ping_TurnIn" />
+    <VOArray index="VOPing_AssistMe" value="WitchDoctor_VOPing_AssistMe" />
+    <VOArray index="VOPing_Danger" value="WitchDoctor_VOPing_Danger" />
+    <VOArray index="VOPing_Defend" value="WitchDoctor_VOPing_Defend" />
+    <VOArray index="VOPing_EnemyMissing" value="WitchDoctor_VOPing_EnemyMissing" />
+    <VOArray index="VOPing_OnMyWay" value="WitchDoctor_VOPing_OnMyWay" />
+    <VOArray index="VOPing_Retreat" value="WitchDoctor_VOPing_Retreat" />
     <TalentTreeArray Talent="WitchDoctorWidowmakers" Tier="1" Column="1" />
     <TalentTreeArray Talent="WitchDoctorPandemic" Tier="1" Column="2" />
     <TalentTreeArray Talent="WitchDoctorThingOfTheDeep" Tier="1" Column="3" />
@@ -3098,65 +3291,15 @@
     <TalentTreeArray Talent="WitchDoctorAnnihilatingSpirits" Tier="7" Column="2">
       <PrerequisiteTalentArray value="WitchDoctorHeroicAbilityRavenousSpirits" />
     </TalentTreeArray>
-    <TalentTreeArray Talent="GenericTalentFuryoftheStorm" Tier="7" Column="3" />
-    <TalentTreeArray Talent="WitchDoctorVileInfection" Tier="7" Column="4" />
-    <TalentAIBuildsArray ChanceToPick="16">
-      <TalentsArray value="WitchDoctorPandemic" />
-      <TalentsArray value="WitchDoctorBloodRitual" />
-      <TalentsArray value="WitchDoctorToadsofHugeness" />
-      <TalentsArray value="WitchDoctorHeroicAbilityRavenousSpirits" />
-      <TalentsArray value="GenericTalentIceBlock" />
-      <TalentsArray value="WitchDoctorRingOfPoison" />
-      <TalentsArray value="WitchDoctorAnnihilatingSpirits" />
-    </TalentAIBuildsArray>
-    <TalentAIBuildsArray ChanceToPick="16">
-      <TalentsArray value="WitchDoctorWidowmakers" />
-      <TalentsArray value="WitchDoctorHexedCrawlers" />
-      <TalentsArray value="WitchDoctorSpiritofArachyr" />
-      <TalentsArray value="WitchDoctorHeroicAbilityGargantuan" />
-      <TalentsArray value="GenericTalentIceBlock" />
-      <TalentsArray value="WitchDoctorSpiderColony" />
-      <TalentsArray value="WitchDoctorHumongoid" />
-    </TalentAIBuildsArray>
-    <TalentAIBuildsArray ChanceToPick="16">
-      <TalentsArray value="WitchDoctorThingOfTheDeep" />
-      <TalentsArray value="WitchDoctorBigVoodoo" />
-      <TalentsArray value="WitchDoctorSpiritofArachyr" />
-      <TalentsArray value="WitchDoctorHeroicAbilityGargantuan" />
-      <TalentsArray value="GenericTalentIceBlock" />
-      <TalentsArray value="WitchDoctorSpiderColony" />
-      <TalentsArray value="WitchDoctorVileInfection" />
-    </TalentAIBuildsArray>
-    <TalentAIBuildsArray ChanceToPick="16">
-      <TalentsArray value="WitchDoctorPandemic" />
-      <TalentsArray value="WitchDoctorBigVoodoo" />
-      <TalentsArray value="WitchDoctorToadsofHugeness" />
-      <TalentsArray value="WitchDoctorHeroicAbilityGargantuan" />
-      <TalentsArray value="WitchDoctorGuardianToads" />
-      <TalentsArray value="WitchDoctorRingOfPoison" />
-      <TalentsArray value="WitchDoctorVileInfection" />
-    </TalentAIBuildsArray>
-    <TalentAIBuildsArray AIOnly="1" ChanceToPick="16">
-      <TalentsArray value="WitchDoctorWidowmakers" />
-      <TalentsArray value="WitchDoctorHexedCrawlers" />
-      <TalentsArray value="WitchDoctorDeadRush" />
-      <TalentsArray value="WitchDoctorHeroicAbilityRavenousSpirits" />
-      <TalentsArray value="WitchDoctorSuperstition" />
-      <TalentsArray value="WitchDoctorSoulHarvest" />
-      <TalentsArray value="WitchDoctorAnnihilatingSpirits" />
-    </TalentAIBuildsArray>
-    <TalentAIBuildsArray AIOnly="1" ChanceToPick="16">
-      <TalentsArray value="WitchDoctorThingOfTheDeep" />
-      <TalentsArray value="WitchDoctorBigVoodoo" />
-      <TalentsArray value="WitchDoctorDeadRush" />
-      <TalentsArray value="WitchDoctorHeroicAbilityRavenousSpirits" />
-      <TalentsArray value="WitchDoctorGuardianToads" />
-      <TalentsArray value="WitchDoctorRingOfPoison" />
-      <TalentsArray value="GenericTalentFuryoftheStorm" />
-    </TalentAIBuildsArray>
+    <TalentTreeArray Talent="WitchDoctorVileInfection" Tier="7" Column="3" />
+    <TalentTreeArray Talent="WitchDoctorBadMedicine" Tier="7" Column="4" />
+    <VariationIcon value="Assets\Textures\UI_Glues_Swatch_Purple.dds" />
     <Difficulty value="Medium" />
+    <AIComplexityTier value="Mid" />
     <HeroTierAchievementId value="5216701565557861772" />
     <Universe value="Diablo" />
+    <UniverseIcon value="Assets\Textures\UI_Glues_Store_GameIcon_D3.dds" />
+    <ProductId value="10128" />
     <LevelScalingArray>
       <Modifications>
         <Catalog value="Effect" />
@@ -3400,77 +3543,80 @@
         <AffectedByOverdrive value="1" />
       </Modifications>
     </LevelScalingArray>
-    <VOArray index="Cheer" value="WitchDoctor_VOX_Cheer" />
-    <VOArray index="GetHit" value="WitchDoctor_VOX_GetHitSmall" />
-    <VOArray index="MatchEnd" value="WitchDoctor_MatchEnd" />
-    <VOArray index="PingCapture" value="WitchDoctor_Ping_Capture" />
-    <VOArray index="PingCollect" value="WitchDoctor_Ping_Collect" />
-    <VOArray index="PingDefendStructure" value="WitchDoctor_Ping_DefendStructure" />
-    <VOArray index="PingDefendThing" value="WitchDoctor_Ping_DefendThing" />
-    <VOArray index="PingDestroyStructure" value="WitchDoctor_Ping_DestroyStructure" />
-    <VOArray index="PingDestroyThing" value="WitchDoctor_Ping_DestroyThing" />
-    <VOArray index="PingTransport" value="WitchDoctor_Ping_Transport" />
-    <VOArray index="PingTurnIn" value="WitchDoctor_Ping_TurnIn" />
-    <VOArray index="VOPing_AssistMe" value="WitchDoctor_VOPing_AssistMe" />
-    <VOArray index="VOPing_OnMyWay" value="WitchDoctor_VOPing_OnMyWay" />
-    <VOArray index="VOPing_Danger" value="WitchDoctor_VOPing_Danger" />
-    <VOArray index="VOPing_EnemyMissing" value="WitchDoctor_VOPing_EnemyMissing" />
-    <VOArray index="VOPing_Defend" value="WitchDoctor_VOPing_Defend" />
-    <VOArray index="VOPing_Retreat" value="WitchDoctor_VOPing_Retreat" />
-    <HeroAbilArray Abil="WitchDoctorCorpseSpiders" Button="WitchDoctorCorpseSpiders">
-      <Flags index="ShowInHeroSelect" value="1" />
-      <Flags index="AffectedByCooldownReduction" value="1" />
-    </HeroAbilArray>
-    <HeroAbilArray Abil="WitchDoctorZombieWall" Button="WitchDoctorZombieWall">
-      <Flags index="ShowInHeroSelect" value="1" />
-      <Flags index="AffectedByCooldownReduction" value="1" />
-    </HeroAbilArray>
-    <HeroAbilArray Abil="WitchDoctorPlagueofToads" Button="WitchDoctorPlagueOfToads">
-      <Flags index="ShowInHeroSelect" value="1" />
-      <Flags index="UsesCharges" value="1" />
-      <Flags index="AffectedByCooldownReduction" value="1" />
-    </HeroAbilArray>
-    <HeroAbilArray Abil="WitchDoctorGargantuan" Button="WitchDoctorGargantuan">
-      <Flags index="ShowInHeroSelect" value="1" />
-      <Flags index="AffectedByCooldownReduction" value="1" />
-      <Flags index="Heroic" value="1" />
-    </HeroAbilArray>
-    <HeroAbilArray Abil="WitchDoctorRavenousSpirit" Button="WitchDoctorRavenousSpirit">
-      <Flags index="ShowInHeroSelect" value="1" />
-      <Flags index="AffectedByCooldownReduction" value="1" />
-      <Flags index="Heroic" value="1" />
-    </HeroAbilArray>
-    <HeroAbilArray Button="WitchDoctorVoodooRitualTrait">
-      <Flags index="ShowInHeroSelect" value="1" />
-      <Flags index="Trait" value="1" />
-    </HeroAbilArray>
-    <HeroAbilArray Abil="WitchDoctorGargantuanStompCommand" Button="WitchDoctorGargantuanStomp">
-      <Flags index="AffectedByCooldownReduction" value="1" />
-      <Flags index="Heroic" value="1" />
-    </HeroAbilArray>
-    <HeroAbilArray Abil="WitchDoctorGargantuanStomp">
-      <Flags index="AffectedByCooldownReduction" value="1" />
-    </HeroAbilArray>
+    <VariationArray value="WitchDoctorBlood" />
+    <VariationArray value="WitchDoctorToxic" />
+    <VariationArray value="WitchDoctorVar3" />
+    <VariationArray value="WitchDoctorVar4" />
+    <VariationArray value="WitchDoctorVar5" />
+    <VariationArray value="WitchDoctorVar6" />
+    <ReleaseDate Month="3" Day="13" />
+    <HyperlinkId value="Nazeebo" />
     <AllowedMountCategoryArray value="Ride" />
     <AllowedMountCategoryArray value="Ridebeast" />
     <AllowedMountCategoryArray value="Ridebike" />
     <AllowedMountCategoryArray value="Ridesurf" />
-    <Flags index="GoodForModeA" value="1" />
-    <Flags index="GoodForModeB" value="1" />
     <Ratings>
       <Damage value="8" />
       <Utility value="4" />
       <Survivability value="3" />
       <Complexity value="6" />
     </Ratings>
-    <VoiceLineArray value="WitchDoctorBase_VoiceLine01" />
-    <VoiceLineArray value="WitchDoctorBase_VoiceLine02" />
-    <VoiceLineArray value="WitchDoctorBase_VoiceLine03" />
-    <VoiceLineArray value="WitchDoctorBase_VoiceLine04" />
-    <VoiceLineArray value="WitchDoctorBase_VoiceLine05" />
+    <TalentAIBuildsArray ChanceToPick="16">
+      <TalentsArray value="WitchDoctorPandemic" />
+      <TalentsArray value="WitchDoctorBloodRitual" />
+      <TalentsArray value="WitchDoctorToadsofHugeness" />
+      <TalentsArray value="WitchDoctorHeroicAbilityRavenousSpirits" />
+      <TalentsArray value="GenericTalentIceBlock" />
+      <TalentsArray value="WitchDoctorRingOfPoison" />
+      <TalentsArray value="WitchDoctorAnnihilatingSpirits" />
+    </TalentAIBuildsArray>
+    <TalentAIBuildsArray ChanceToPick="16">
+      <TalentsArray value="WitchDoctorWidowmakers" />
+      <TalentsArray value="WitchDoctorHexedCrawlers" />
+      <TalentsArray value="WitchDoctorSpiritofArachyr" />
+      <TalentsArray value="WitchDoctorHeroicAbilityGargantuan" />
+      <TalentsArray value="GenericTalentIceBlock" />
+      <TalentsArray value="WitchDoctorSpiderColony" />
+      <TalentsArray value="WitchDoctorHumongoid" />
+    </TalentAIBuildsArray>
+    <TalentAIBuildsArray ChanceToPick="16">
+      <TalentsArray value="WitchDoctorThingOfTheDeep" />
+      <TalentsArray value="WitchDoctorBigVoodoo" />
+      <TalentsArray value="WitchDoctorSpiritofArachyr" />
+      <TalentsArray value="WitchDoctorHeroicAbilityGargantuan" />
+      <TalentsArray value="GenericTalentIceBlock" />
+      <TalentsArray value="WitchDoctorSpiderColony" />
+      <TalentsArray value="WitchDoctorVileInfection" />
+    </TalentAIBuildsArray>
+    <TalentAIBuildsArray ChanceToPick="16">
+      <TalentsArray value="WitchDoctorPandemic" />
+      <TalentsArray value="WitchDoctorBigVoodoo" />
+      <TalentsArray value="WitchDoctorToadsofHugeness" />
+      <TalentsArray value="WitchDoctorHeroicAbilityGargantuan" />
+      <TalentsArray value="WitchDoctorGuardianToads" />
+      <TalentsArray value="WitchDoctorRingOfPoison" />
+      <TalentsArray value="WitchDoctorVileInfection" />
+    </TalentAIBuildsArray>
+    <TalentAIBuildsArray AIOnly="1" ChanceToPick="16">
+      <TalentsArray value="WitchDoctorWidowmakers" />
+      <TalentsArray value="WitchDoctorHexedCrawlers" />
+      <TalentsArray value="WitchDoctorDeadRush" />
+      <TalentsArray value="WitchDoctorHeroicAbilityRavenousSpirits" />
+      <TalentsArray value="WitchDoctorSuperstition" />
+      <TalentsArray value="WitchDoctorSoulHarvest" />
+      <TalentsArray value="WitchDoctorAnnihilatingSpirits" />
+    </TalentAIBuildsArray>
+    <TalentAIBuildsArray AIOnly="1" ChanceToPick="16">
+      <TalentsArray value="WitchDoctorThingOfTheDeep" />
+      <TalentsArray value="WitchDoctorBigVoodoo" />
+      <TalentsArray value="WitchDoctorDeadRush" />
+      <TalentsArray value="WitchDoctorHeroicAbilityRavenousSpirits" />
+      <TalentsArray value="WitchDoctorGuardianToads" />
+      <TalentsArray value="WitchDoctorRingOfPoison" />
+      <TalentsArray value="GenericTalentFuryoftheStorm" />
+    </TalentAIBuildsArray>
+    <HeroSpecificUIArray Location="Status" DescName="Nazeebo/NazeeboFrame" />
     <Rarity value="Epic" />
-    <ReleaseDate Month="3" Day="13" />
-    <ExpandedRole value="RangedAssassin" />
   </CHero>
   <CHeroMastery id="WitchDoctorMasteryRing1" parent="MasteryRingRank1">
     <ProductId value="67010" />
@@ -3734,6 +3880,14 @@
   <CRewardHeroMastery id="WitchDoctorMasteryRing3">
     <License value="52243" />
   </CRewardHeroMastery>
+  <CTalent id="WitchDoctorBadMedicine">
+    <Face value="WitchDoctorBadMedicine" />
+    <Abil value="WitchDoctorBadMedicine" />
+    <RankArray>
+      <BehaviorArray value="WitchDoctorBadMedicineAbility" />
+    </RankArray>
+    <Active value="1" />
+  </CTalent>
   <CTalent id="WitchDoctorSoulHarvest">
     <Face value="WitchDoctorSoulHarvest" />
     <Abil value="WitchDoctorSoulHarvest" />
@@ -3798,6 +3952,32 @@
   <CTalent id="WitchDoctorSpiritofArachyr">
     <Face value="WitchDoctorSpiritofArachyr" />
     <Abil value="WitchDoctorCorpseSpiders" />
+    <AbilityModificationArray>
+      <Modifications>
+        <Type value="FlatModification" />
+        <Catalog value="Effect" />
+        <Entry value="NazeeboCorpseSpidersSpawnSpiderSearch" />
+        <Field value="RecycleCount" />
+        <FieldIsInteger value="1" />
+        <Value value="1.000000" />
+      </Modifications>
+      <Modifications>
+        <Type value="FlatModification" />
+        <Catalog value="Effect" />
+        <Entry value="NazeeboCorpseSpidersSpawnSpiderSearch" />
+        <Field value="MaxCount" />
+        <FieldIsInteger value="1" />
+        <Value value="1.000000" />
+      </Modifications>
+      <Modifications>
+        <Type value="FlatModification" />
+        <Catalog value="Effect" />
+        <Entry value="NazeeboCorpseSpidersSpawnSpiderSearch" />
+        <Field value="AreaArray[0].MaxCount" />
+        <FieldIsInteger value="1" />
+        <Value value="1.000000" />
+      </Modifications>
+    </AbilityModificationArray>
   </CTalent>
   <CTalent id="WitchDoctorBigVoodoo">
     <Face value="WitchDoctorBigVoodoo" />
@@ -3820,11 +4000,17 @@
     <AbilityModificationArray>
       <Modifications>
         <Type value="FlatModification" />
-        <Entry value="WitchDoctorCorpseSpiders" />
-        <Field value="Cost.Vital[Energy]" />
-        <Value value="-10.000000" />
+        <Catalog value="Effect" />
+        <Entry value="WitchDoctorCorpseSpidersWidowmakersTalentApplySlow" />
+        <Field value="Chance" />
+        <Value value="1.000000" />
       </Modifications>
-      <Modifications Type="FlatModification" Entry="WitchDoctorCorpseSpiders" Field="Cost.Cooldown.TimeUse" />
+      <Modifications>
+        <Type value="FlatModification" />
+        <Catalog value="Behavior" />
+        <Entry value="WitchDoctorCorpseSpidersTimedLife" />
+        <Field value="Duration" />
+      </Modifications>
     </AbilityModificationArray>
   </CTalent>
   <CTalent id="WitchDoctorVileInfection">
@@ -3871,8 +4057,14 @@
         <Field value="PeriodicOffsetArray[2]" />
         <StringReplacement value="-1,-3,0" />
       </Modifications>
+      <Modifications>
+        <Type value="FlatModification" />
+        <Catalog value="Effect" />
+        <Entry value="WitchDoctorPlagueofToadsPandemicTalentApplyDamageReduction" />
+        <Field value="Chance" />
+      </Modifications>
     </AbilityModificationArray>
-    <QuestData StackBehavior="WitchDoctorPlagueofToadsPandemicTalentTokenCounter" TargetCount="40" />
+    <QuestData StackBehavior="WitchDoctorPlagueofToadsPandemicTalentTokenCounter" TargetCount="80" />
   </CTalent>
   <CTalent id="WitchDoctorThingOfTheDeep">
     <Face value="WitchDoctorThingOfTheDeepTalent" />
@@ -4007,6 +4199,34 @@
         <Field value="Cost[0].Vital[Energy]" />
         <Value value="-40.000000" />
       </Modifications>
+      <Modifications>
+        <Type value="FlatModification" />
+        <Catalog value="Actor" />
+        <Entry value="GargantuanStompWarning" />
+        <Field value="Scale" />
+        <Value value="0.200000" />
+      </Modifications>
+      <Modifications>
+        <Type value="FlatModification" />
+        <Catalog value="Actor" />
+        <Entry value="NazeeboGargantuanStompWarningGroundSplat" />
+        <Field value="Scale" />
+        <Value value="0.250000" />
+      </Modifications>
+      <Modifications>
+        <Type value="FlatModification" />
+        <Catalog value="Effect" />
+        <Entry value="WitchDoctorGargantuanStompSearch" />
+        <Field value="AreaArray[0].Radius" />
+        <Value value="1.000000" />
+      </Modifications>
+      <Modifications>
+        <Type value="FlatModification" />
+        <Catalog value="Behavior" />
+        <Entry value="WitchDoctorGargantuanStompSlow" />
+        <Field value="Modification.UnifiedMoveSpeedFactor" />
+        <Value value="-0.200000" />
+      </Modifications>
     </AbilityModificationArray>
   </CTalent>
   <CTalent id="WitchDoctorHeroicAbilityRavenousSpirits">
@@ -4098,6 +4318,13 @@
         <Type value="FlatModification" />
         <Catalog value="Effect" />
         <Entry value="WitchDoctorReavnousSpiritAnnihilatingSpiritResetTokenCount" />
+        <Field value="Chance" />
+        <Value value="1.000000" />
+      </Modifications>
+      <Modifications>
+        <Type value="FlatModification" />
+        <Catalog value="Effect" />
+        <Entry value="WitchDoctorRavenousSpiritAnnihilatingSpiritTalentApplyHealingReduction" />
         <Field value="Chance" />
         <Value value="1.000000" />
       </Modifications>
@@ -4325,6 +4552,12 @@
     <HotkeyCategory value="Unit/Category/ZergUnits" />
   </CUnit>
   <CUpgrade id="WitchDoctorPlagueofToadsPandemicTalentCompletion" />
+  <CValidatorUnitCompareTokenCount id="WitchDoctorHasGTE5StacksVoodooRitual">
+    <WhichUnit Value="Caster" />
+    <Compare value="GE" />
+    <Value value="5" />
+    <TokenId value="WitchDoctorVoodooRitual" />
+  </CValidatorUnitCompareTokenCount>
   <CValidatorUnitCompareBehaviorDuration id="WitchDoctorGuardianToadsBuffDurationGTE25Seconds">
     <WhichUnit Value="Caster" />
     <Compare value="GT" />
@@ -4460,7 +4693,7 @@
   <CValidatorCombine id="WitchDoctorHasPlagueofToadsPandemicAndNotComplete">
     <Type value="And" />
     <CombineArray value="WitchDoctorHasPandemic" />
-    <CombineArray value="WitchDoctorHasLessThan40StacksOfPlagueofToadsPandemic" />
+    <CombineArray value="WitchDoctorHasLessThan80StacksOfPlagueofToadsPandemic" />
   </CValidatorCombine>
   <CValidatorCombine id="WitchDoctorHasVoodooRitualVileInfectionAndNotComplete">
     <Type value="And" />
@@ -4536,10 +4769,10 @@
     <Find value="1" />
     <Value value="WitchDoctorSpiritofArachyr" />
   </CValidatorPlayerTalent>
-  <CValidatorUnitCompareTokenCount id="WitchDoctorHasLessThan40StacksOfPlagueofToadsPandemic">
+  <CValidatorUnitCompareTokenCount id="WitchDoctorHasLessThan80StacksOfPlagueofToadsPandemic">
     <WhichUnit Value="Caster" />
     <Compare value="LT" />
-    <Value value="40" />
+    <Value value="80" />
     <TokenId value="WitchDoctorPlagueofToadsPandemicTalentTokenCounter" />
   </CValidatorUnitCompareTokenCount>
   <CValidatorCombine id="WitchDoctorSpiritofArachyrCombine">

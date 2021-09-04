@@ -184,7 +184,7 @@
     <PrepEffect value="DismountDecloakCasterSet" />
     <Effect value="DeckardAncientBlessingsAllySearch" />
     <Cost>
-      <Cooldown TimeUse="60" />
+      <Cooldown TimeUse="45" />
     </Cost>
     <CastOutroTime value="0.125" />
     <CmdButtonArray index="Execute" DefaultButtonFace="DeckardFortitudeOfTheFaithfulAncientBlessings" Requirements="DeckardHasAncientBlessings">
@@ -193,6 +193,12 @@
     </CmdButtonArray>
     <CursorEffect value="DeckardAncientBlessingsAllySearch" />
   </CAbilEffectInstant>
+  <CAccumulatorToken id="DeckardScrollofIdentifyTalentDamageAccumulator" parent="BaseAccumulator">
+    <ApplicationRule value="Add" />
+    <TokenId value="DeckardScrollOfIdentifyToken" />
+    <Scale value="2" />
+    <MaxAccumulation value="2000" />
+  </CAccumulatorToken>
   <CActorModel id="DeckardHealingPotionWarningSplat" parent="StormModelAnimationStyleContinuous">
     <On Terms="Effect.DeckardHealingPotionCreateWarningPersistent.Start" Send="Create" />
     <On Terms="Effect.DeckardHealingPotionCreateWarningPersistent.Stop" Send="Destroy Immediate" />
@@ -244,7 +250,7 @@
     <Sound value="Deckard_ScrollOfSealing_Impact_Talent_FieldStudy_Activate" />
   </CActorSound>
   <CActorSound id="DeckardScrollOfSealingImpactTalentIdentifySound" parent="SoundOneShot">
-    <On Terms="Behavior.DeckardScrollOfIdentifyArmorDecrease.Create" Send="Create" />
+    <On Terms="Behavior.DeckardScrollOfSealingScrollOfIdentifyTalentArmorDebuff.Create" Send="Create" />
     <Filter index="All" value="1" />
     <VisibleTo index="Self" value="1" />
     <Sound value="Deckard_ScrollOfSealing_Impact_Talent_Identify_Sound" />
@@ -1303,7 +1309,7 @@
     <TimeScaleSource Value="Caster" />
   </CBehaviorBuff>
   <CBehaviorBuff id="DeckardHoradricCubeSlow" parent="StormSlowParent">
-    <Duration value="1.75" />
+    <Duration value="2" />
     <Modification>
       <UnifiedMoveSpeedFactor value="-0.35" />
     </Modification>
@@ -1322,7 +1328,7 @@
     <SortIndex value="100" />
   </CBehaviorBuff>
   <CBehaviorBuff id="DeckardGemSapphireSlow" parent="StormSlowParent">
-    <Duration value="1.75" />
+    <Duration value="2" />
     <Modification>
       <UnifiedMoveSpeedFactor value="-0.65" />
     </Modification>
@@ -1367,7 +1373,7 @@
   </CBehaviorBuff>
   <CBehaviorBuff id="DeckardSuperHealingPotionActive" />
   <CBehaviorBuff id="DeckardPotionOfShieldingShield" parent="StormShield">
-    <DamageResponse Priority="45" ModifyLimit="122" />
+    <DamageResponse Priority="45" ModifyLimit="140" />
     <Duration value="6" />
   </CBehaviorBuff>
   <CBehaviorBuff id="DeckardBottomlessFlask">
@@ -1423,9 +1429,9 @@
     <InitialEffect value="DeckardLesserHealingPotionSearchForAllies" />
     <PeriodicEffect value="DeckardLesserHealingPotionSearchForAllies" />
   </CBehaviorBuff>
-  <CBehaviorBuff id="DeckardScrollOfIdentify" parent="StormReveal">
+  <CBehaviorBuff id="DeckardScrollOfSealingScrollOfIdentifyTalentReveal" parent="StormReveal">
     <InfoIcon value="Assets\Textures\storm_ui_icon_abathur_toxicNest.dds" />
-    <Duration value="8" />
+    <Duration value="4" />
   </CBehaviorBuff>
   <CBehaviorBuff id="DeckardFortitudeOfTheFaithfulArmor" parent="StormArmor">
     <Alignment value="Positive" />
@@ -1504,18 +1510,20 @@
   <CBehaviorBuff id="DeckardRespectTheElderlySilence" parent="StormSilence">
     <Duration value="3" />
   </CBehaviorBuff>
-  <CBehaviorBuff id="DeckardScrollOfIdentifyArmorDecrease" parent="StormArmor">
+  <CBehaviorBuff id="DeckardScrollOfSealingScrollOfIdentifyTalentArmorDebuff" parent="StormArmor">
     <BehaviorCategories index="DebuffVulnerable" value="1" />
     <Duration value="4" />
     <ArmorModification>
-      <AllArmorBonus value="-15" />
+      <AllArmorBonus value="-10" />
     </ArmorModification>
   </CBehaviorBuff>
   <CBehaviorTokenCounter id="DeckardScrollOfIdentifyToken" parent="StormQuestToken">
     <Face value="DeckardScrollOfIdentifyQuestToken" />
     <InfoIcon value="Assets\Textures\storm_ui_icon_deckard_scroll_of_sealing.dds" />
-    <AtMaxEvents Effect="DeckardScrollOfIdentifyCompleteModifyRevealDuration" />
-    <Max value="14" />
+    <Max value="1000" />
+    <ConditionalEvents Compare="GE" CompareValue="30">
+      <Event EventId="QuestComplete" Effect="DeckardScrollofSealingScrollofIdentifyTalentCompletionModifyPlayer" />
+    </ConditionalEvents>
   </CBehaviorTokenCounter>
   <CBehaviorBuff id="DeckardSafetyInNumbersArmor" parent="StormArmor">
     <Alignment value="Positive" />
@@ -1547,7 +1555,7 @@
   </CBehaviorBuff>
   <CBehaviorBuff id="DeckardRejuvenationPotionBuff">
     <Alignment value="Positive" />
-    <Duration value="4" />
+    <Duration value="3" />
     <Period value="0.5" />
     <PeriodicEffect value="DeckardRejuvenationPotionHeal" />
     <PeriodicDisplayEffect value="DeckardRejuvenationPotionHeal" />
@@ -1694,6 +1702,10 @@
     <WhichUnit Value="Caster" />
     <Behavior value="DeckardHoradricCubeDummyButtonFlash" />
   </CEffectApplyBehavior>
+  <CEffectDamage id="DeckardLorenadoImpactDamage" parent="StormSpell">
+    <ValidatorArray value="TargetIsHero" />
+    <Amount value="20" />
+  </CEffectDamage>
   <CEffectModifyUnit id="DeckardStayAWhileAndListenCastCanceledModifyUnit">
     <ImpactUnit Value="Caster" />
   </CEffectModifyUnit>
@@ -1716,6 +1728,7 @@
     <Amount value="150" />
     <SourceButtonFace value="DeckardScrollOfSealing" />
     <MultiplicativeModifierArray index="StoneCurse" Validator="DeckardScrollOfStoneCurseDamageBonus" Modifier="2" Crit="1" />
+    <FlatModifierArray index="0" Validator="DeckardHasScrollOfIdentifyTalent" Accumulator="DeckardScrollofIdentifyTalentDamageAccumulator" />
   </CEffectDamage>
   <CEffectSet id="DeckardScrollOfSealingEnemyImpactSet">
     <EffectArray value="DeckardScrollOfSealingRootSwitch" />
@@ -2140,9 +2153,9 @@
     <SearchFlags index="DoActorSearch" value="1" />
   </CEffectEnumArea>
   <CEffectCreateHealer id="DeckardHealingPotionPotionOfRevivalCreateHealer" parent="StormHealingSpell">
-    <RechargeVitalRate value="270" />
+    <RechargeVitalRate value="285" />
     <SourceButtonFace value="DeckardHealingPotion" />
-    <MultiplicativeModifierArray index="PotionOfRevival" Modifier="-0.5" />
+    <MultiplicativeModifierArray index="PotionOfRevival" Modifier="-0.25" />
   </CEffectCreateHealer>
   <CEffectSet id="DeckardHealingPotionFinalSet">
     <EffectArray value="DeckardHealingPotionUnitTrackerRemove" />
@@ -2156,8 +2169,9 @@
     <TrackedUnit Value="Source" />
   </CEffectRemoveTrackedUnit>
   <CEffectCreateHealer id="DeckardHealingPotionCreateHealer" parent="StormHealingSpell">
-    <RechargeVitalRate value="270" />
+    <RechargeVitalRate value="285" />
     <SourceButtonFace value="DeckardHealingPotion" />
+    <MultiplicativeModifierArray index="SuperLowHealth" Validator="DeckardSuperHealingHealthProcCombine" Modifier="0.25" Crit="1" />
   </CEffectCreateHealer>
   <CEffectSet id="DeckardAncientBlessingsInitialSet">
     <EffectArray value="DeckardAncientBlessingsAllyImpactSet" />
@@ -2540,7 +2554,8 @@
     <Behavior value="DeckardSuperHealingPotionActive" />
   </CEffectApplyBehavior>
   <CEffectCreateHealer id="DeckardSuperHealingPotionCreateHealer" parent="DeckardHealingPotionCreateHealer">
-    <MultiplicativeModifierArray index="SuperHealingPotion" Modifier="1.2" Crit="1" />
+    <MultiplicativeModifierArray index="SuperLowHealth" Validator="DeckardSuperHealingHealthProcCombine" Modifier="0.25" Crit="0" />
+    <MultiplicativeModifierArray index="SuperHealingPotion" Modifier="1" Crit="1" />
   </CEffectCreateHealer>
   <CEffectSet id="DeckardGemRubyLaunchPotionsSet">
     <EffectArray value="DeckardGemRubyLaunchPotions" />
@@ -2619,11 +2634,12 @@
     <EffectArray value="HeroRemovePushPullDebuffs" />
     <EffectArray value="DeckardLorenadoApplyKnocbackBehavior" />
     <EffectArray value="DeckardLorenadoImpactPersistent" />
-    <EffectArray value="DeckardMorenadosModifyCooldown" />
+    <EffectArray value="DeckardLorenadoMorenadosTalentModifyCooldown" />
     <EffectArray value="DeckardMorenadosCooldownApply" />
+    <EffectArray value="DeckardLorenadoImpactDamage" />
     <EffectArray value="AbilityImpactRevealDummyDamage" />
   </CEffectSet>
-  <CEffectModifyUnit id="DeckardMorenadosModifyCooldown">
+  <CEffectModifyUnit id="DeckardLorenadoMorenadosTalentModifyCooldown">
     <ValidatorArray value="DeckardMorenadosCooldownValidator" />
     <Chance value="0" />
     <ImpactUnit Value="Caster" />
@@ -2708,7 +2724,7 @@
   </CEffectApplyBehavior>
   <CEffectApplyBehavior id="DeckardScrollOfIdentifyApplyBehavior">
     <Chance value="0" />
-    <Behavior value="DeckardScrollOfIdentify" />
+    <Behavior value="DeckardScrollOfSealingScrollOfIdentifyTalentReveal" />
   </CEffectApplyBehavior>
   <CEffectApplyBehavior id="DeckardHoradricStaffActiveApply">
     <WhichUnit Value="Caster" />
@@ -2752,19 +2768,25 @@
     <ValidatorArray value="TargetNotDead" />
   </CEffectApplyBehavior>
   <CEffectApplyBehavior id="DeckardScrollOfIdentifyArmorDecreaseApply">
-    <Behavior value="DeckardScrollOfIdentifyArmorDecrease" />
+    <Behavior value="DeckardScrollOfSealingScrollOfIdentifyTalentArmorDebuff" />
     <ValidatorArray value="NotStructureTarget" />
     <ValidatorArray value="IsHeroAndNotVehicle" />
-    <ValidatorArray value="DeckardScrollOfIdentifyIsComplete" />
+    <ValidatorArray value="DeckardCasterHasGTE15ScrollOfIdentifyTokens" />
     <ValidatorArray value="DeckardHasScrollOfIdentifyTalent" />
   </CEffectApplyBehavior>
   <CEffectModifyTokenCount id="DeckardScrollOfIdentifyModifyToken" parent="BaseEffectModifyTokenCount">
-    <ValidatorArray value="DeckardScrollOfIdentifyIsNotComplete" />
     <ValidatorArray value="DeckardHasScrollOfIdentifyTalent" />
     <ValidatorArray value="TargetIsHero" />
     <EffectCategory index="Quest" value="1" />
     <TokenId value="DeckardScrollOfIdentifyToken" />
   </CEffectModifyTokenCount>
+  <CEffectModifyPlayer id="DeckardScrollofSealingScrollofIdentifyTalentCompletionModifyPlayer">
+    <ValidatorArray value="DeckardHasScrollOfIdentifyTalent" />
+    <WhichPlayer Value="Caster" />
+    <EffectArray Operation="Set" Reference="Behavior,DeckardScrollOfSealingScrollOfIdentifyTalentReveal,Duration" Value="6.000000" />
+    <EffectArray Operation="Set" Reference="Behavior,DeckardScrollOfSealingScrollOfIdentifyTalentArmorDebuff,ArmorModification.AllArmorBonus" Value="-15" />
+    <EffectArray Operation="Set" Reference="Behavior,DeckardScrollOfSealingScrollOfIdentifyTalentArmorDebuff,Duration" Value="6" />
+  </CEffectModifyPlayer>
   <CEffectModifyUnit id="DeckardSafetyInNumbersDummy">
     <ImpactUnit Value="Caster" />
     <Chance value="0" />
@@ -2772,11 +2794,6 @@
     <Cost Abil="DeckardHoradricCube,Execute" CooldownOperation="Add" CooldownTimeUse="-0.0625" />
     <Cost Abil="DeckardScrollOfSealing,Execute" CooldownOperation="Add" CooldownTimeUse="-0.0625" />
   </CEffectModifyUnit>
-  <CEffectModifyPlayer id="DeckardScrollOfIdentifyCompleteModifyRevealDuration">
-    <WhichPlayer Value="Caster" />
-    <EffectArray Reference="Behavior,DeckardScrollOfIdentify,Duration" Value="8.000000" />
-    <ValidatorArray value="DeckardHasScrollOfIdentifyTalent" />
-  </CEffectModifyPlayer>
   <CEffectApplyBehavior id="DeckardFieldStudyApply">
     <WhichUnit Value="Caster" />
     <Behavior value="DeckardFieldStudyBuff" />
@@ -2790,11 +2807,11 @@
     <Behavior value="DeckardRejuvenationPotionBuff" />
   </CEffectApplyBehavior>
   <CEffectCreateHealer id="DeckardRejuvenationPotionHeal" parent="StormHealingSpell">
-    <RechargeVitalRate value="13.5" />
+    <RechargeVitalRate value="19" />
     <SourceButtonFace value="DeckardRejuvenationPotion" />
   </CEffectCreateHealer>
   <CEffectCreateHealer id="DeckardRejuvenationPotionMana" parent="StormManaRestore">
-    <RechargeVitalRate value="10" />
+    <RechargeVitalRate value="15" />
     <ValidatorArray value="TargetIsManaUser" />
   </CEffectCreateHealer>
   <CEffectEnumArea id="DeckardHealingPotionSearchForAllies">
@@ -3037,6 +3054,16 @@
         <AffectedByOverdrive value="1" />
       </Modifications>
     </LevelScalingArray>
+    <LevelScalingArray Ability="DeckardLorenado">
+      <Modifications>
+        <Catalog value="Effect" />
+        <Entry value="DeckardLorenadoImpactDamage" />
+        <Field value="Amount" />
+        <Value value="0.040000" />
+        <AffectedByAbilityPower value="1" />
+        <AffectedByOverdrive value="1" />
+      </Modifications>
+    </LevelScalingArray>
     <AllowedMountCategoryArray value="Ride" />
     <AllowedMountCategoryArray value="Ridebeast" />
     <AllowedMountCategoryArray value="Ridebike" />
@@ -3137,7 +3164,7 @@
       <ThrowBandYaw value="-360,-360,-360,-360" />
       <ThrowBandPitch value="-360,-360,-360,-360" />
       <YawPitchRoll value="5759.6484" />
-      <FlightTime value="0.6125" />
+      <FlightTime value="0.5" />
     </MotionPhases>
     <MotionPhases>
       <Driver value="Guidance" />
@@ -3183,7 +3210,7 @@
       <ThrowBandYaw value="-360,-360,-360,-360" />
       <ThrowBandPitch value="-360,-360,-360,-360" />
       <YawPitchRoll value="5759.6484" />
-      <FlightTime value="0.4375" />
+      <FlightTime value="0.375" />
     </MotionPhases>
     <MotionPhases>
       <Driver value="Guidance" />
@@ -3696,7 +3723,7 @@
         <Value value="1.000000" />
       </Modifications>
     </AbilityModificationArray>
-    <QuestData StackBehavior="DeckardScrollOfIdentifyToken" TargetCount="20" />
+    <QuestData StackBehavior="DeckardScrollOfIdentifyToken" />
     <RankArray>
       <BehaviorArray value="DeckardScrollOfIdentifyToken" />
     </RankArray>
@@ -3734,7 +3761,7 @@
       <Modifications>
         <Type value="FlatModification" />
         <Catalog value="Effect" />
-        <Entry value="DeckardMorenadosModifyCooldown" />
+        <Entry value="DeckardLorenadoMorenadosTalentModifyCooldown" />
         <Field value="Chance" />
         <Value value="1.000000" />
       </Modifications>
@@ -3892,6 +3919,11 @@
     <Type value="And" />
     <CombineArray value="DeckardTargetPointLT1Range" />
     <CombineArray value="CasterLifeFull" />
+  </CValidatorCombine>
+  <CValidatorCombine id="DeckardSuperHealingHealthProcCombine">
+    <Type value="And" />
+    <CombineArray value="TargetLifeLT50Percent" />
+    <CombineArray value="DeckardHasSuperHealingPotionTalent" />
   </CValidatorCombine>
   <CValidatorLocationCompareRange id="DeckardTargetPointLT1Range">
     <Compare value="LT" />
@@ -4208,9 +4240,10 @@
     <Value value="14" />
     <TokenId value="DeckardScrollOfIdentifyToken" />
   </CValidatorUnitCompareTokenCount>
-  <CValidatorUnitCompareTokenCount id="DeckardScrollOfIdentifyIsComplete">
+  <CValidatorUnitCompareTokenCount id="DeckardCasterHasGTE15ScrollOfIdentifyTokens">
     <WhichUnit Value="Caster" />
-    <Value value="14" />
+    <Compare value="GE" />
+    <Value value="15" />
     <TokenId value="DeckardScrollOfIdentifyToken" />
   </CValidatorUnitCompareTokenCount>
   <CValidatorLocationEnumArea id="DeckardSafetyInNumbersHeroesNearby">
