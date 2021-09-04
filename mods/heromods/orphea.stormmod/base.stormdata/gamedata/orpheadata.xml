@@ -187,6 +187,10 @@
     <ShowProgressArray index="Cast" value="1" />
     <AbilityCategories index="BurstDamage" value="1" />
   </CAbilEffectTarget>
+  <CAccumulatorToken id="OrpheaOverflowingChaosChaoticAssaultTalentDamageAccumulator" parent="BaseAccumulator">
+    <TokenId value="OrpheaOverflowingChaosChaoticAssaultToken" />
+    <Scale value="0.5" />
+  </CAccumulatorToken>
   <CAccumulatorToken id="OrpheaOverflowingChaosLifeStealAccumulator" parent="BaseAccumulator">
     <ApplicationRule value="Add" />
     <TokenId value="OrpheaOverflowingChaosToken" />
@@ -1275,6 +1279,24 @@
   <CBehaviorAbility id="OrpheaLurkingTerrorItem">
     <Buttons Face="OrpheaLurkingTerror" Type="AbilCmd" AbilCmd="OrpheaLurkingTerror,Execute" />
   </CBehaviorAbility>
+  <CBehaviorBuff id="OrpheaLurkingTerrorSlow" parent="StormSlowParent">
+    <Duration value="1" />
+    <Modification>
+      <UnifiedMoveSpeedFactor value="-0.7" />
+    </Modification>
+  </CBehaviorBuff>
+  <CBehaviorBuff id="OrpheaOverflowingChaosAncestralStrengthTalentSlow" parent="StormSlowParent">
+    <Duration value="2.5" />
+    <Modification>
+      <UnifiedMoveSpeedFactor value="-0.2" />
+    </Modification>
+  </CBehaviorBuff>
+  <CBehaviorTokenCounter id="OrpheaOverflowingChaosChaoticAssaultTalentToken" parent="StormGenericToken">
+    <Face value="OrpheaOverflowingChaosToken" />
+    <InfoFlags index="Hidden" value="1" />
+    <TokenId value="OrpheaOverflowingChaosChaoticAssaultToken" />
+    <Max value="1" />
+  </CBehaviorTokenCounter>
   <CBehaviorBuff id="OrpheaShadowWaltzDashAttackSuppress">
     <Alignment value="Positive" />
     <Duration value="0.1875" />
@@ -1650,6 +1672,9 @@
     <Max value="1" />
     <InfoFlags index="Hidden" value="1" />
   </CBehaviorTokenCounter>
+  <CButton id="OrpheaChaoticAssault" parent="StormButtonParent">
+    <Icon value="assets\textures\storm_ui_icon_orphea_trait.dds" />
+  </CButton>
   <CButton id="OrpheaShadowWaltz" parent="StormButtonParent">
     <TooltipAppender Validator="OrpheaHasEnPointeTalent" Face="OrpheaEnPointe" />
     <TooltipAppender Validator="OrpheaHasAllegrissimoTalent" Face="OrpheaAllegrissimo" />
@@ -1675,12 +1700,14 @@
   <CButton id="OrpheaOverflowingChaos" parent="StormButtonParent">
     <Icon value="assets\textures\storm_ui_icon_orphea_trait.dds" />
     <TooltipAppender Validator="OrpheaHasAncestralStrengthTalent" Face="OrpheaAncestralStrength" />
+    <TooltipAppender Validator="OrpheaHasChaoticAssaultTalent" Face="OrpheaChaoticAssault" />
     <TooltipAppender Validator="OrpheaHasDeadMagicTalent" Face="OrpheaDeadMagic" />
     <TooltipAppender Validator="OrpheaHasEldritchConduitTalent" Face="OrpheaEldritchConduit" />
   </CButton>
   <CButton id="OrpheaOverflowingChaosInvasiveMiasma" parent="StormButtonParent">
     <Icon value="assets\textures\storm_ui_icon_orphea_trait.dds" />
     <TooltipAppender Validator="OrpheaHasAncestralStrengthTalent" Face="OrpheaAncestralStrength" />
+    <TooltipAppender Validator="OrpheaHasChaoticAssaultTalent" Face="OrpheaChaoticAssault" />
     <TooltipAppender Validator="OrpheaHasInvasiveMiasmaTalent" Face="OrpheaInvasiveMiasma" />
     <TooltipAppender Validator="OrpheaHasDeadMagicTalent" Face="OrpheaDeadMagic" />
     <TooltipAppender Validator="OrpheaHasEldritchConduitTalent" Face="OrpheaEldritchConduit" />
@@ -1800,6 +1827,25 @@
     <ValidatorArray value="OrpheaHasEngulfingOblivionTalent" />
   </CEffectApplyBehavior>
   <CEffectSet id="OrpheaDeterminationDummy" />
+  <CEffectApplyBehavior id="OrpheaLurkingTerrorSlowApply" parent="StormSlowApply">
+    <Behavior value="OrpheaLurkingTerrorSlow" />
+  </CEffectApplyBehavior>
+  <CEffectApplyBehavior id="OrpheaOverflowingChaosAncestralStrengthTalentSlowApply" parent="StormSlowApply">
+    <ValidatorArray value="TargetIsHero" />
+    <ValidatorArray value="OrpheaHasAncestralStrengthTalent" />
+    <ValidatorArray value="CasterNotBlindedAndTargetNotEvading" />
+    <Behavior value="OrpheaOverflowingChaosAncestralStrengthTalentSlow" />
+  </CEffectApplyBehavior>
+  <CEffectModifyTokenCount id="OrpheaOverflowingChaosChaoticAssaultTalentModifyToken" parent="BaseEffectModifyTokenCount">
+    <ValidatorArray value="TargetIsHero" />
+    <ValidatorArray value="OrpheaHasChaoticAssaultTalentAnd3OverflowingChaos" />
+    <TokenId value="OrpheaOverflowingChaosChaoticAssaultToken" />
+  </CEffectModifyTokenCount>
+  <CEffectModifyTokenCount id="OrpheaOverflowingChaosChaoticAssaultTalentResetToken" parent="BaseEffectModifyTokenCount">
+    <TokenId value="OrpheaOverflowingChaosChaoticAssaultToken" />
+    <Operation value="Set" />
+    <Value value="0" />
+  </CEffectModifyTokenCount>
   <CEffectSet id="OrpheaShadowWaltzExpireSet">
     <EffectArray value="OrpheaShadowWaltzCancelMoveOrder" />
     <EffectArray value="OrpheaShadowWaltzFinishApply" />
@@ -1826,6 +1872,7 @@
   <CEffectDamage id="OrpheaWeaponOverflowingChaosDamage" parent="StormWeapon">
     <Amount value="88">
       <AccumulatorArray value="OrpheaOverflowingChaosDamageAccumulator" />
+      <AccumulatorArray value="OrpheaOverflowingChaosChaoticAssaultTalentDamageAccumulator" />
     </Amount>
     <SourceButtonFace value="Attack" />
     <MultiplicativeModifierArray index="Determination" Validator="OrpheaHasDeterminationDamage" Modifier="0.15" Crit="1" />
@@ -1972,7 +2019,7 @@
   </CEffectModifyTokenCount>
   <CEffectSet id="OrpheaOverflowingChaosInitialSet">
     <EffectArray value="OrpheaOverflowingChaosModifyToken" />
-    <EffectArray value="OrpheaAncestralStrengthModifyToken" />
+    <EffectArray value="OrpheaOverflowingChaosChaoticAssaultTalentModifyToken" />
   </CEffectSet>
   <CEffectApplyBehavior id="OrpheaOverflowingChaosDamageApply">
     <Behavior value="OrpheaOverflowingChaosDamage" />
@@ -1986,6 +2033,7 @@
   <CEffectSet id="OrpheaOverflowingChaosApplySet">
     <EffectArray value="OrpheaOverflowingChaosDamageApply" />
     <EffectArray value="OrpheaOverflowingChaosResetToken" />
+    <EffectArray value="OrpheaOverflowingChaosChaoticAssaultTalentResetToken" />
     <ValidatorArray value="OrpheaHasMaxOverflowingChaos" />
   </CEffectSet>
   <CEffectCreatePersistent id="OrpheaChompCreateKnockbackPoint">
@@ -2221,7 +2269,8 @@
       <AccumulatorArray value="OrpheaMindDevourerAccumulator" />
     </Amount>
     <MultiplicativeModifierArray index="0" Validator="OrpheaAncestralStrengthDamageValidator" Modifier="0.2" Crit="1" />
-    <MultiplicativeModifierArray index="OrpheaGrowingNightmare" Validator="OrpheaHasGE2GrowingNightmareUnnamed" Modifier="0.6" />
+    <MultiplicativeModifierArray index="OrpheaGrowingNightmare" Validator="OrpheaHasGE2GrowingNightmareUnnamed" Modifier="0.6" Crit="1" />
+    <MultiplicativeModifierArray index="GrowingNightmarePassive" Validator="OrpheaHasGrowingNightmareTalent" Modifier="0.25" />
     <CritValidatorArray index="0" value="OrpheaHasGE2GrowingNightmareUnnamed" />
   </CEffectDamage>
   <CEffectApplyBehavior id="OrpheaDreadStunApply">
@@ -2373,14 +2422,17 @@
     <AmmoUnit value="OrpheaWeaponOverflowingChaosMissile" />
   </CEffectLaunchMissile>
   <CEffectSet id="OrpheaWeaponOverflowingChaosImpactSet">
+    <EffectArray value="OrpheaOverflowingChaosAncestralStrengthTalentSlowApply" />
     <EffectArray value="OrpheaWeaponOverflowingChaosDamage" />
   </CEffectSet>
   <CEffectSet id="OrpheaWeaponOverflowingChaosLaunchSet">
     <EffectArray value="LockFacingToUnit" />
+    <EffectArray value="OrpheaOverflowingChaosAncestralStrengthTalentSlowApply" />
     <EffectArray value="OrpheaWeaponOverflowingChaosDamage" />
     <EffectArray value="OrpheaDeadMagicSearchArea" />
     <EffectArray value="OrpheaEldritchConduitSwitch" />
     <EffectArray value="OrpheaOverflowingChaosResetToken" />
+    <EffectArray value="OrpheaOverflowingChaosChaoticAssaultTalentResetToken" />
     <EffectArray value="UniversalWeaponLaunchSet" />
     <ValidatorArray value="OrpheaOverflowingChaosAttackCombine" />
   </CEffectSet>
@@ -2762,6 +2814,7 @@
     <EffectArray value="OrpheaInsatiableImpactSet" />
     <EffectArray value="OrpheaAbyssalSymbiosisModifyToken" />
     <EffectArray value="CameraShakeHeavyCasterDummySet" />
+    <EffectArray value="OrpheaLurkingTerrorSlowApply" />
     <EffectArray value="ApplyAbilityImpactReveal" />
   </CEffectSet>
   <CEffectSet id="OrpheaInsatiableImpactSet">
@@ -2990,7 +3043,7 @@
     <TalentTreeArray Talent="OrpheaAncestralStrength" Tier="1" Column="3" />
     <TalentTreeArray Talent="OrpheaAllegrissimo" Tier="2" Column="1" />
     <TalentTreeArray Talent="OrpheaBackbiter" Tier="2" Column="2" />
-    <TalentTreeArray Talent="OrpheaFright" Tier="2" Column="3" />
+    <TalentTreeArray Talent="OrpheaChaoticAssault" Tier="2" Column="3" />
     <TalentTreeArray Talent="OrpheaInsatiable" Tier="3" Column="1" />
     <TalentTreeArray Talent="OrpheaRavenousHunger" Tier="3" Column="2" />
     <TalentTreeArray Talent="OrpheaMindDevourer" Tier="3" Column="3" />
@@ -3208,7 +3261,7 @@
     </TalentAIBuildsArray>
     <TalentAIBuildsArray ChanceToPick="16">
       <TalentsArray value="OrpheaGrowingNightmare" />
-      <TalentsArray value="OrpheaFright" />
+      <TalentsArray value="OrpheaChaoticAssault" />
       <TalentsArray value="OrpheaMindDevourer" />
       <TalentsArray value="OrpheaEternalFeast" />
       <TalentsArray value="OrpheaAbyssalSymbiosis" />
@@ -3235,7 +3288,7 @@
     </TalentAIBuildsArray>
     <TalentAIBuildsArray AIOnly="1" ChanceToPick="16">
       <TalentsArray value="OrpheaGrowingNightmare" />
-      <TalentsArray value="OrpheaFright" />
+      <TalentsArray value="OrpheaChaoticAssault" />
       <TalentsArray value="OrpheaMindDevourer" />
       <TalentsArray value="OrpheaEternalFeast" />
       <TalentsArray value="OrpheaAbyssalSymbiosis" />
@@ -3368,6 +3421,13 @@
   <CRewardHeroMastery id="OrpheaMasteryRing2">
     <License value="49874" />
   </CRewardHeroMastery>
+  <CTalent id="OrpheaChaoticAssault">
+    <Face value="OrpheaChaoticAssault" />
+    <RankArray>
+      <BehaviorArray value="OrpheaOverflowingChaosChaoticAssaultTalentToken" />
+    </RankArray>
+    <Trait value="1" />
+  </CTalent>
   <CTalent id="OrpheaEternalFeast">
     <Face value="OrpheaEternalFeast" />
     <Abil value="OrpheaEternalFeast" />
@@ -3600,6 +3660,15 @@
   <CUnit id="OrpheaDreadMissile" parent="MISSILE_INVULNERABLE" />
   <CUnit id="OrpheaMonsterRushMissile" parent="MISSILE_INVULNERABLE" />
   <CUnit id="OrpheaEternalFeastMissile" parent="MISSILE_INVULNERABLE" />
+  <CValidatorPlayerTalent id="OrpheaHasChaoticAssaultTalent">
+    <Find value="1" />
+    <Value value="OrpheaChaoticAssault" />
+  </CValidatorPlayerTalent>
+  <CValidatorCombine id="OrpheaHasChaoticAssaultTalentAnd3OverflowingChaos">
+    <Type value="And" />
+    <CombineArray value="OrpheaHasChaoticAssaultTalent" />
+    <CombineArray value="OrpheaHas3OverflowingChaos" />
+  </CValidatorCombine>
   <CValidatorUnitOrderQueue id="OrpheaNotCurrentlyCastingChomp">
     <AbilLink value="OrpheaChomp" />
     <Find value="0" />

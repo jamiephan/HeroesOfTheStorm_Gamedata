@@ -197,6 +197,11 @@
     <Scale value="0.15" />
     <MaxAccumulation value="0.3" />
   </CAccumulatorToken>
+  <CAccumulatorToken id="MaievSpiritofVengeanceVengefulKnivesTalentDamageAccumulator" parent="BaseTokenAccumulator">
+    <ApplicationRule value="Add" />
+    <TokenId value="MaievSpiritOfVengeanceVengefulKnivesToken" />
+    <Scale value="0.01" />
+  </CAccumulatorToken>
   <CAccumulatorToken id="MaievUmbralBindBondsOfJusticeDamageAccumulator" parent="BaseTokenAccumulator">
     <ApplicationRule value="Add" />
     <TokenId value="MaievUmbralBindBondsOfJusticeDamageToken" />
@@ -210,6 +215,8 @@
     <ApplicationRule value="Add" />
     <TokenId value="MaievUmbralBindCruelChainToken" />
     <Scale value="0.3" />
+    <MaxAccumulation value="1.2" />
+    <Offset value="-0.3" />
   </CAccumulatorToken>
   <CActorPortrait id="MaievPortrait" parent="StormCompositePortrait" />
   <CActorModel id="MaievPortraitAddition" parent="StormCompositePortraitAddition" />
@@ -428,7 +435,7 @@
   <CActorModel id="MaievSpiritOfVengeanceBlinkOutDirection" parent="StormModelAnimationStyleOneShot">
     <Flags index="VisionTestCenterOnly" value="1" />
     <InheritType value="OneShot" />
-    <On Terms="Effect.MaievSpiritOfVengeanceFinalSet.Start; At Source" Send="Create" />
+    <On Terms="Effect.MaievSpiritofVengeanceTeleportSet.Start; At Source" Send="Create" />
     <On Terms="ActorCreation" Send="RefSet ::scope.Launch ::Self" />
     <Host Subject="_Selectable" />
     <HostSiteOps Ops="SOpAttachCenterStationary SOpForwardCasterPoint SOp2DRotation" />
@@ -442,7 +449,7 @@
   </CActorModel>
   <CActorModel id="MaievSpiritOfVengeanceBlinkOutFX" parent="StormModelAnimationStyleOneShot">
     <Flags index="VisionTestCenterOnly" value="1" />
-    <On Terms="Effect.MaievSpiritOfVengeanceFinalSet.Start; At Source" Send="Create" />
+    <On Terms="Effect.MaievSpiritofVengeanceTeleportSet.Start; At Source" Send="Create" />
     <Host Subject="_Selectable" />
     <HostSiteOps Ops="SOpAttachCenter" HoldPosition="1" HoldRotation="1" />
   </CActorModel>
@@ -916,7 +923,7 @@
     <Sound value="Maiev_SpiritOfVengeanceBlink_In" />
   </CActorSound>
   <CActorSound id="MaievSpiritOfVengeanceBlinkOutSound" parent="SoundOneShot">
-    <On Terms="Effect.MaievSpiritOfVengeanceFinalSet.Start" Send="Create" />
+    <On Terms="Effect.MaievSpiritofVengeanceTeleportSet.Start" Send="Create" />
     <Sound value="Maiev_SpiritOfVengeanceBlink_Out" />
   </CActorSound>
   <CActorSound id="MaievSpiritOfVengeanceSuddenVengeanceImpactSound" parent="SoundOneShot">
@@ -1220,7 +1227,7 @@
   <CBehaviorBuff id="MaievSpiritOfVengeanceBlinkAvailable">
     <Alignment value="Positive" />
     <RemoveValidatorArray value="SourceNotDead" />
-    <CancelEffect value="MaievSpiritOfVengeanceFinalSet" />
+    <CancelEffect value="MaievSpiritofVengeanceFinalSet" />
   </CBehaviorBuff>
   <CBehaviorBuff id="MaievSpiritOfVengeanceRuthlessSpiritDamageBuffDuration" parent="CarryBehaviorParent">
     <BuffFlags index="RefreshStack" value="1" />
@@ -1253,8 +1260,13 @@
     <SortIndex value="60" />
     <MinStackCountDisplayed value="1" />
     <Max value="1000" />
-    <IncreaseEvents Effect="MaievSpiritOfVengeanceVengefulKnivesIncrementModifyPlayer" />
+    <DisplayDurationProxyBehavior value="MaievSpiritofVengeanceVengefulKnivesBuff" />
   </CBehaviorTokenCounter>
+  <CBehaviorBuff id="MaievSpiritofVengeanceVengefulKnivesBuff">
+    <Duration value="5" />
+    <FinalEffect value="MaievSpiritOfVengeanceVengefulKnivesResetTokenCount" />
+    <DisplayDuration index="Self" value="1" />
+  </CBehaviorBuff>
   <CBehaviorBuff id="MaievVaultOfTheWardensAirborneStasis">
     <Alignment value="Positive" />
     <BuffFlags index="RefreshStack" value="1" />
@@ -1365,10 +1377,9 @@
     </ConditionalEvents>
   </CBehaviorTokenCounter>
   <CBehaviorTokenCounter id="MaievUmbralBindCruelChainToken" parent="StormGenericToken">
-    <Alignment value="Positive" />
     <SortIndex value="60" />
-    <MinStackCountDisplayed value="1" />
     <Max value="5" />
+    <InfoFlags index="Hidden" value="1" />
   </CBehaviorTokenCounter>
   <CBehaviorBuff id="MaievUmbralBindCruelChainMoveSpeed" parent="StormSprint">
     <Duration value="2.5" />
@@ -1656,8 +1667,8 @@
     <Cost Abil="MaievSpiritOfVengeance,Execute" CooldownOperation="Add" CooldownTimeUse="-4" />
   </CEffectModifyUnit>
   <CEffectSet id="MaievSpiritOfVengeanceInitialSet">
+    <EffectArray value="MaievSpiritofVengeanceVengefulKnivesTalentRemoveBuff" />
     <EffectArray value="MaievSpiritOfVengeanceVengefulKnivesResetTokenCount" />
-    <EffectArray value="MaievSpiritOfVengeanceVengefulKnivesResetModifyPlayer" />
     <EffectArray value="MaievSpiritOfVengeanceLaunchMissileAdvanced" />
     <EffectArray value="MaievSpiritOfVengeanceBlinkModifyCooldown" />
     <EffectArray value="MaievSpiritOfVengeanceApplyCooldownBehavior" />
@@ -1702,12 +1713,17 @@
     <Count value="1" />
     <CancelBehavior value="1" />
   </CEffectRemoveBehavior>
-  <CEffectSet id="MaievSpiritOfVengeanceFinalSet">
+  <CEffectSet id="MaievSpiritofVengeanceFinalSet">
+    <EffectArray value="MaievSpiritofVengeanceExpirationSet" />
+    <EffectArray value="MaievSpiritofVengeanceTeleportSet" />
+  </CEffectSet>
+  <CEffectSet id="MaievSpiritofVengeanceTeleportSet">
     <ValidatorArray value="MaievSpiritOfVengeanceBlinkSourceNotDead" />
     <EffectArray value="MaievSpiritOfVengeanceBlinkTeleport" />
     <EffectArray value="MaievSpiritOfVengeanceSuddenVengeanceSearch" />
     <EffectArray value="MaievSpiritOfVengeanceShadowArmorArmorApplyBehavior" />
     <EffectArray value="MaievSpiritOfVengeanceBlinkSuicide" />
+    <EffectArray value="MaievSpiritofVengeanceVengefulKnivesBuffApply" />
   </CEffectSet>
   <CEffectDamage id="MaievSpiritOfVengeanceBlinkSuicide" parent="StormSuicideParent">
     <ImpactLocation Effect="MaievSpiritOfVengeanceBlinkAvailableApplyBehavior" />
@@ -1738,7 +1754,6 @@
     <EffectArray value="MaievSpiritOfVengeanceRuthlessSpiritModifyTokenCount" />
     <EffectArray value="MaievSpiritOfVengeanceRuthlessSpiritApplyDurationBehavior" />
     <EffectArray value="MaievSpiritOfVengeanceVengefulKnivesIncreaseTokenCount" />
-    <EffectArray value="MaievUmbralBindCruelChainIncreaseTokenCount" />
     <EffectArray value="MaievSpiritOfVengeanceShadowOrbVengeanceChargeModifyPlayer" />
     <EffectArray value="MaievShadowOrbShadowStrikeChargeModifyPlayer" />
   </CEffectSet>
@@ -1793,8 +1808,6 @@
   </CEffectEnumArea>
   <CEffectSet id="MaievSpiritOfVengeanceSuddenVengeanceImpactSet">
     <EffectArray value="MaievSpiritOfVengeanceSuddenVengeanceDamage" />
-    <EffectArray value="MaievSpiritOfVengeanceVengefulKnivesIncreaseTokenCount" />
-    <EffectArray value="MaievUmbralBindCruelChainIncreaseTokenCount" />
     <EffectArray value="MaievSpiritOfVengeanceShadowOrbVengeanceChargeModifyPlayer" />
     <EffectArray value="MaievShadowOrbShadowStrikeChargeModifyPlayer" />
   </CEffectSet>
@@ -1825,8 +1838,12 @@
   </CEffectModifyPlayer>
   <CEffectDamage id="MaievSpiritOfVengeanceVengefulKnivesDamage" parent="StormSpellPercentDamage">
     <ValidatorArray value="TargetIsHero" />
+    <ValidatorArray value="MaievCasterHasVengefulKnivesBuff" />
     <Chance value="0" />
     <SourceButtonFace value="MaievSpiritOfVengeanceVengefulKnives" />
+    <VitalFractionMax index="Life" value="0.01">
+      <AccumulatorArray value="MaievSpiritofVengeanceVengefulKnivesTalentDamageAccumulator" />
+    </VitalFractionMax>
   </CEffectDamage>
   <CEffectModifyUnit id="MaievSpiritOfVengeanceShadowOrbVengeanceModifyCooldown">
     <ValidatorArray value="MaievSpiritOfVengeanceCooldownNotAvailable" />
@@ -1846,6 +1863,20 @@
       </Charge>
     </Cost>
   </CEffectModifyPlayer>
+  <CEffectSet id="MaievSpiritofVengeanceExpirationSet">
+    <ValidatorArray value="MaievSpiritofVengeanceBlinkSourceIsDead" />
+    <EffectArray value="MaievSpiritOfVengeanceVengefulKnivesResetTokenCount" />
+  </CEffectSet>
+  <CEffectApplyBehavior id="MaievSpiritofVengeanceVengefulKnivesBuffApply">
+    <Chance value="0" />
+    <WhichUnit Value="Caster" />
+    <Behavior value="MaievSpiritofVengeanceVengefulKnivesBuff" />
+  </CEffectApplyBehavior>
+  <CEffectRemoveBehavior id="MaievSpiritofVengeanceVengefulKnivesTalentRemoveBuff">
+    <WhichUnit Value="Caster" />
+    <BehaviorLink value="MaievSpiritofVengeanceVengefulKnivesBuff" />
+    <Count value="1" />
+  </CEffectRemoveBehavior>
   <CEffectSet id="MaievWeaponUniversalSet">
     <EffectArray value="UniversalWeaponLaunchSet" />
     <EffectArray value="UniversalWeaponImpact" />
@@ -1880,7 +1911,7 @@
   </CEffectModifyUnit>
   <CEffectCreatePersistent id="MaievFanOfKnivesInitialPersistent">
     <OffsetVectorStartLocation Value="OriginPoint" />
-    <PeriodCount value="14" />
+    <PeriodCount value="12" />
     <PeriodicEffectArray value="MaievFanOfKnivesSuppressTurningApplyBehavior" />
     <PeriodicEffectArray value="MaievFanOfKnivesLeftKnife1Persistent" />
     <PeriodicEffectArray value="MaievFanOfKnivesLeftKnife2Persistent" />
@@ -1891,8 +1922,6 @@
     <PeriodicEffectArray value="MaievFanOfKnivesRightKnife3Persistent" />
     <PeriodicEffectArray value="MaievFanOfKnivesSearchArea" />
     <PeriodicEffectArray value="MaievFanOfKnivesResetTokenCount" />
-    <PeriodicEffectArray value="MaievSpiritOfVengeanceVengefulKnivesResetTokenCount" />
-    <PeriodicEffectArray value="MaievSpiritOfVengeanceVengefulKnivesResetModifyPlayer" />
     <PeriodicEffectArray value="MaievFanOfKnivesElunesWrathAvailableRemoveBehavior" />
     <PeriodicEffectArray value="MaievFanOfKnivesBladeDanceSearch" />
     <PeriodicOffsetArray />
@@ -1917,8 +1946,6 @@
     <PeriodicPeriodArray value="0" />
     <PeriodicPeriodArray value="0" />
     <PeriodicPeriodArray value="0.0625" />
-    <PeriodicPeriodArray value="0" />
-    <PeriodicPeriodArray value="0" />
     <PeriodicPeriodArray value="0" />
     <PeriodicPeriodArray value="0" />
     <PeriodicPeriodArray value="0" />
@@ -2015,7 +2042,6 @@
     <EffectArray value="MaievFanOfKnivesElunesWrathStaggerPersistent" />
     <EffectArray value="MaievFanOfKnivesBladedArmorArmorApplyBehavior" />
     <EffectArray value="MaievFanOfKnivesModifyTokenCount" />
-    <EffectArray value="MaievUmbralBindCruelChainIncreaseTokenCount" />
     <EffectArray value="MaievShadowOrbShadowStrikeChargeModifyPlayer" />
   </CEffectSet>
   <CEffectApplyBehavior id="MaievFanOfKnivesApplyImpactReveal">
@@ -2102,7 +2128,6 @@
   <CEffectSet id="MaievFanOfKnivesNaishasMementoFirstBounceImpactSet">
     <EffectArray value="MaievWeaponFanOfKnivesNaishasMementoBounceDamage" />
     <EffectArray value="MaievFanOfKnivesNaishasMementoSecondBounceSearch" />
-    <EffectArray value="MaievUmbralBindCruelChainPhysicalIncreaseTokenCount" />
     <EffectArray value="MaievShadowOrbHuntressChargeModifyPlayer" />
   </CEffectSet>
   <CEffectDamage id="MaievWeaponFanOfKnivesNaishasMementoBounceDamage" parent="MaievWeaponDamage">
@@ -2130,7 +2155,6 @@
   </CEffectLaunchMissile>
   <CEffectSet id="MaievFanOfKnivesNaishasMementoSecondBounceImpactSet">
     <EffectArray value="MaievWeaponFanOfKnivesNaishasMementoBounceDamage" />
-    <EffectArray value="MaievUmbralBindCruelChainPhysicalIncreaseTokenCount" />
     <EffectArray value="MaievShadowOrbHuntressChargeModifyPlayer" />
   </CEffectSet>
   <CEffectModifyTokenCount id="MaievFanOfKnivesPinDownModifyTokenCount" parent="BaseEffectModifyTokenCount">
@@ -2185,6 +2209,7 @@
     <EffectArray value="MaievUmbralBindTetherPersistent" />
     <EffectArray value="MaievWeaponUmbralBindSearchArea" />
     <EffectArray value="MaievUmbralBindCruelChainMoveSpeedApplyBehavior" />
+    <EffectArray value="MaievUmbralBindCruelChainIncreaseTokenCount" />
   </CEffectSet>
   <CEffectRemoveBehavior id="MaievUmbralBindRemovePrimedBehavior">
     <WhichUnit Value="Caster" />
@@ -2224,6 +2249,7 @@
     <EffectArray value="MaievUmbralBindTetherPersistent" />
     <EffectArray value="MaievUmbralBindBondsOfJusticeQuestIncreaseTokenCount" />
     <EffectArray value="MaievUmbralBindBondsOfJusticeDamageIncreaseTokenCount" />
+    <EffectArray value="MaievUmbralBindCruelChainIncreaseTokenCount" />
     <EffectArray value="MaievShadowOrbHuntressChargeModifyPlayer" />
   </CEffectSet>
   <CEffectSet id="MaievUmbralBindPullSet">
@@ -2333,9 +2359,10 @@
     <Behavior value="MaievUmbralBindCruelChainMoveSpeed" />
   </CEffectApplyBehavior>
   <CEffectModifyTokenCount id="MaievUmbralBindCruelChainIncreaseTokenCount" parent="BaseEffectModifyTokenCount">
-    <ValidatorArray value="MaievTargetHasUmbralBindTetherActive" />
     <Chance value="0" />
     <TokenId value="MaievUmbralBindCruelChainToken" />
+    <ValidatorArray value="TargetIsHero" />
+    <ValidatorArray value="CasterNotBlindedAndTargetNotEvading" />
   </CEffectModifyTokenCount>
   <CEffectModifyTokenCount id="MaievUmbralBindCruelChainPhysicalIncreaseTokenCount" parent="BaseEffectModifyTokenCount">
     <ValidatorArray value="MaievTargetHasUmbralBindTetherActive" />
@@ -2344,7 +2371,6 @@
     <TokenId value="MaievUmbralBindCruelChainToken" />
   </CEffectModifyTokenCount>
   <CEffectModifyTokenCount id="MaievUmbralBindCruelChainResetTokenCount" parent="BaseEffectModifyTokenCount">
-    <Chance value="0" />
     <TokenId value="MaievUmbralBindCruelChainToken" />
     <Operation value="Set" />
     <Value value="0" />
@@ -2458,7 +2484,6 @@
   </CEffectDamage>
   <CEffectSet id="MaievFanOfKnivesElunesWrathImpactSet">
     <EffectArray value="MaievFanOfKnivesElunesWrathDamage" />
-    <EffectArray value="MaievUmbralBindCruelChainIncreaseTokenCount" />
     <EffectArray value="MaievShadowOrbShadowStrikeChargeModifyPlayer" />
   </CEffectSet>
   <CEffectCreatePersistent id="MaievFanOfKnivesElunesWrathApplyDelayPersistent">
@@ -2585,7 +2610,6 @@
   </CEffectEnumArea>
   <CEffectSet id="MaievFanOfKnivesBladeDanceImpactSet">
     <EffectArray value="MaievFanOfKnivesBladeDanceDamage" />
-    <EffectArray value="MaievUmbralBindCruelChainPhysicalIncreaseTokenCount" />
     <EffectArray value="MaievShadowOrbHuntressChargeModifyPlayer" />
   </CEffectSet>
   <CEffectDamage id="MaievFanOfKnivesBladeDanceDamage" parent="StormWeapon">
@@ -2633,7 +2657,6 @@
   </CEffectApplyBehavior>
   <CEffectSet id="MaievShadowOrbShadowStrikeImpactSet">
     <EffectArray value="MaievShadowOrbShadowStrikeDamage" />
-    <EffectArray value="MaievUmbralBindCruelChainIncreaseTokenCount" />
     <EffectArray value="MaievShadowOrbShadowStrikeArmorApplyBehavior" />
     <EffectArray value="MaievShadowOrbShadowStrikeSlowApplyBehavior" />
     <EffectArray value="MaievShadowOrbShadowStrikeChargeModifyPlayer" />
@@ -2902,6 +2925,14 @@
     </TalentAIBuildsArray>
     <ExpandedRole value="MeleeAssassin" />
   </CHero>
+  <CHeroMastery id="MaievMasteryRing1" parent="MasteryRingRank1">
+    <ProductId value="66953" />
+    <HyperlinkId value="MaievMasteryRingRank1" />
+  </CHeroMastery>
+  <CHeroMastery id="MaievMasteryRing2" parent="MasteryRingRank2">
+    <ProductId value="67079" />
+    <HyperlinkId value="MaievMasteryRingRank2" />
+  </CHeroMastery>
   <CMoverSkillShot id="MaievSpiritOfVengeanceMissile">
     <Speed value="10.5" />
     <MinSpeed value="10.5" />
@@ -3046,6 +3077,12 @@
     <IconSlot value="23" />
     <Hero value="Maiev" />
   </CRewardPortrait>
+  <CRewardHeroMastery id="MaievMasteryRing1">
+    <License value="49830" />
+  </CRewardHeroMastery>
+  <CRewardHeroMastery id="MaievMasteryRing2">
+    <License value="49849" />
+  </CRewardHeroMastery>
   <CShapeArc id="MaievWardensCageSoundVisibilityShape">
     <Arc value="360" />
     <Radius value="5.25" />
@@ -3270,28 +3307,14 @@
       <Modifications>
         <Type value="FlatModification" />
         <Catalog value="Effect" />
-        <Entry value="MaievUmbralBindCruelChainIncreaseTokenCount" />
-        <Field value="Chance" />
-        <Value value="1.000000" />
-      </Modifications>
-      <Modifications>
-        <Type value="FlatModification" />
-        <Catalog value="Effect" />
-        <Entry value="MaievUmbralBindCruelChainPhysicalIncreaseTokenCount" />
-        <Field value="Chance" />
-        <Value value="1.000000" />
-      </Modifications>
-      <Modifications>
-        <Type value="FlatModification" />
-        <Catalog value="Effect" />
-        <Entry value="MaievUmbralBindCruelChainResetTokenCount" />
-        <Field value="Chance" />
-        <Value value="1.000000" />
-      </Modifications>
-      <Modifications>
-        <Type value="FlatModification" />
-        <Catalog value="Effect" />
         <Entry value="MaievUmbralBindCruelChainMoveSpeedApplyBehavior" />
+        <Field value="Chance" />
+        <Value value="1.000000" />
+      </Modifications>
+      <Modifications>
+        <Type value="FlatModification" />
+        <Catalog value="Effect" />
+        <Entry value="MaievUmbralBindCruelChainIncreaseTokenCount" />
         <Field value="Chance" />
         <Value value="1.000000" />
       </Modifications>
@@ -3334,21 +3357,14 @@
       <Modifications>
         <Type value="FlatModification" />
         <Catalog value="Effect" />
-        <Entry value="MaievSpiritOfVengeanceVengefulKnivesIncrementModifyPlayer" />
-        <Field value="Chance" />
-        <Value value="1.000000" />
-      </Modifications>
-      <Modifications>
-        <Type value="FlatModification" />
-        <Catalog value="Effect" />
-        <Entry value="MaievSpiritOfVengeanceVengefulKnivesResetModifyPlayer" />
-        <Field value="Chance" />
-        <Value value="1.000000" />
-      </Modifications>
-      <Modifications>
-        <Type value="FlatModification" />
-        <Catalog value="Effect" />
         <Entry value="MaievSpiritOfVengeanceVengefulKnivesDamage" />
+        <Field value="Chance" />
+        <Value value="1.000000" />
+      </Modifications>
+      <Modifications>
+        <Type value="FlatModification" />
+        <Catalog value="Effect" />
+        <Entry value="MaievSpiritofVengeanceVengefulKnivesBuffApply" />
         <Field value="Chance" />
         <Value value="1.000000" />
       </Modifications>
@@ -3480,6 +3496,15 @@
     <BehaviorArray Link="MaievContainmentDiscActiveTrackedUnit" />
     <InnerRadius value="0.125" />
   </CUnit>
+  <CValidatorUnitCompareBehaviorCount id="MaievCasterHasVengefulKnivesBuff">
+    <WhichUnit Value="Caster" />
+    <Compare value="GT" />
+    <Behavior value="MaievSpiritofVengeanceVengefulKnivesBuff" />
+  </CValidatorUnitCompareBehaviorCount>
+  <CValidatorUnitFilters id="MaievSpiritofVengeanceBlinkSourceIsDead">
+    <WhichUnit Effect="MaievSpiritOfVengeanceBlinkAvailableApplyBehavior" Value="Source" />
+    <Filters value="Dead;-" />
+  </CValidatorUnitFilters>
   <CValidatorUnitCompareBehaviorCount id="MaievTargetHasNoVaultOfTheWardensAirborneStasisBehavior">
     <Behavior value="MaievVaultOfTheWardensAirborneStasis" />
   </CValidatorUnitCompareBehaviorCount>
@@ -3859,18 +3884,4 @@
     <Period value="0.9" />
     <Effect value="MaievWeaponUniversalSet" />
   </CWeaponLegacy>
-  <CHeroMastery id="MaievMasteryRing1" parent="MasteryRingRank1">
-    <ProductId value="66953" />
-    <HyperlinkId value="MaievMasteryRingRank1" />
-  </CHeroMastery>
-  <CHeroMastery id="MaievMasteryRing2" parent="MasteryRingRank2">
-    <ProductId value="67079" />
-    <HyperlinkId value="MaievMasteryRingRank2" />
-  </CHeroMastery>
-  <CRewardHeroMastery id="MaievMasteryRing1">
-    <License value="49830" />
-  </CRewardHeroMastery>
-  <CRewardHeroMastery id="MaievMasteryRing2">
-    <License value="49849" />
-  </CRewardHeroMastery>
 </Catalog>

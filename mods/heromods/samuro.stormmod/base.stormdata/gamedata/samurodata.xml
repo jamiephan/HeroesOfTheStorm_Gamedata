@@ -61,7 +61,7 @@
     <Flags index="Transient" value="1" />
     <Cost>
       <Charge Link="Abil/SamuroIllusionMaster" />
-      <Cooldown Link="Abil/SamuroIllusionMaster" Location="Player" TimeUse="14" />
+      <Cooldown Link="Abil/SamuroIllusionMaster" Location="Player" TimeUse="8" />
     </Cost>
     <InterruptCost>
       <Charge Link="Abil/SamuroIllusionMaster" />
@@ -180,7 +180,7 @@
   <CAccumulatorToken id="SamuroCriticalStrikeBurningBladeWayOfIllusionDamageAccumulator" parent="BaseAccumulator">
     <ApplicationRule value="Add" />
     <TokenId value="SamuroMirrorImageWayOfIllusionQuestToken" />
-    <Scale value="0.1625" />
+    <Scale value="0.125" />
   </CAccumulatorToken>
   <CAccumulatorToken id="SamuroMirrorImageWayOfIllusionAttackDamageAccumulator" parent="BaseAccumulator">
     <ApplicationRule value="Add" />
@@ -1164,7 +1164,7 @@
     </DamageResponse>
     <ArmorModification>
       <ArmorSet index="Hero">
-        <ArmorMitigationTable index="Basic" value="30" />
+        <ArmorMitigationTable index="Basic" value="35" />
       </ArmorSet>
     </ArmorModification>
     <SortIndex value="20" />
@@ -1496,6 +1496,13 @@
     <ValidatorArray value="TargetIsHero" />
     <Behavior value="SamuroCriticalStrikeWayOfTheBladePhysicalArmorDebuff" />
   </CEffectApplyBehavior>
+  <CEffectEnumTrackedUnits id="SamuroHeroWeaponCriticalStrikePhantomPainTalentEnumerateDecrement">
+    <ValidatorArray value="TargetIsHero" />
+    <ValidatorArray value="CasterisNotSamuroMirrorImage" />
+    <ValidatorArray value="SamuroHasPhantomPainTalent" />
+    <BehaviorLink value="SamuroMirrorImageUnitTracker" />
+    <Effect value="SamuroCriticalStrikePhantomPainSubtractDamageModifyEffect" />
+  </CEffectEnumTrackedUnits>
   <CEffectModifyBehaviorBuffDuration id="SamuroHeroWeaponMirrorImageModifyTimedLifeDuration">
     <WhichUnit Value="Target" />
     <Behavior value="SamuroMirrorImageTimedLife" />
@@ -1507,6 +1514,13 @@
     <ValidatorArray value="CasterisNotSamuroMirrorImage" />
     <BehaviorLink value="SamuroMirrorImageUnitTracker" />
     <Effect value="SamuroHeroWeaponMirrorImageModifyTimedLifeDuration" />
+  </CEffectEnumTrackedUnits>
+  <CEffectEnumTrackedUnits id="SamuroHeroWeaponCriticalStrikePhantomPainTalentEnumerateIncrement">
+    <ValidatorArray value="TargetIsHero" />
+    <ValidatorArray value="CasterisNotSamuroMirrorImage" />
+    <ValidatorArray value="SamuroHasPhantomPainTalent" />
+    <BehaviorLink value="SamuroMirrorImageUnitTracker" />
+    <Effect value="SamuroCriticalStrikePhantomPainAddDamageModifyEffect" />
   </CEffectEnumTrackedUnits>
   <CEffectModifyBehaviorBuffDuration id="SamuroMirrorImageModifyTimedLifeDuration">
     <ValidatorArray value="TargetIsHero" />
@@ -1666,8 +1680,8 @@
     <EffectArray value="SamuroMirrorImageWayOfIllusionQuestCompleteDisableModification" />
   </CEffectSet>
   <CEffectModifyPlayer id="SamuroMirrorImageWayOfIllusionQuestCompleteModifyPlayer">
-    <EffectArray Reference="Effect,SamuroWeaponDamage,AmountArray" Value="20" />
-    <EffectArray Reference="Effect,SamuroCriticalStrikeBurningBladeSplashDamage,AmountArray" Value="20" />
+    <EffectArray Reference="Effect,SamuroWeaponDamage,AmountArray" Value="30" />
+    <EffectArray Reference="Effect,SamuroCriticalStrikeBurningBladeSplashDamage,AmountArray" Value="15" />
     <Chance value="0" />
   </CEffectModifyPlayer>
   <CEffectEnumTrackedUnits id="SamuroWindWalkEnumerateTrackUnitsOneWiththeWindTalent">
@@ -1901,6 +1915,7 @@
     <ValidatorArray value="CasterNotRooted" />
   </CEffectTeleport>
   <CEffectSet id="SamuroWeaponImpactCriticalStrikeSet">
+    <EffectArray value="SamuroHeroWeaponCriticalStrikePhantomPainTalentEnumerateIncrement" />
     <EffectArray value="SamuroCriticalStrikeBehaviorApplySwitch" />
     <EffectArray value="SamuroCriticalStrikeApplyDummyTargetBehavior" />
     <EffectArray value="SamuroWindWalkWayOfTheWindModifyCooldown" />
@@ -2049,6 +2064,7 @@
     <EffectArray value="SamuroWeaponDamageSwitch" />
     <EffectArray value="SamuroCriticalStrikeBurningBladeDamagePersistent" />
     <EffectArray value="SamuroWindwalkWhispersFromtheWindDamage" />
+    <EffectArray value="SamuroHeroWeaponCriticalStrikePhantomPainTalentEnumerateDecrement" />
     <ValidatorArray value="CasterIsSamuroOrIsNotDead" />
   </CEffectSet>
   <CEffectSet id="SamuroWeaponImpactSet">
@@ -2082,10 +2098,12 @@
   </CEffectDamage>
   <CEffectDamage id="SamuroCriticalStrikeBurningBladeSplashDamage" parent="StormSpell">
     <Amount value="51" />
-    <FlatModifierArray index="SamuroMirrorImageWayOfIllusion" Accumulator="SamuroMirrorImageWayOfIllusionAttackDamageAccumulator" />
+    <FlatModifierArray index="SamuroMirrorImageWayOfIllusion" Accumulator="SamuroCriticalStrikeBurningBladeWayOfIllusionDamageAccumulator" />
   </CEffectDamage>
   <CEffectDamage id="SamuroMirrorImageCriticalStrikeBurningBladeSplashDamage" parent="StormSpell">
-    <Amount value="5.5" />
+    <MultiplicativeModifierArray index="IllusionMaster" Validator="SamuroHasIllusionMasterTalent" Modifier="1" />
+    <MultiplicativeModifierArray index="BurningBladeDebuff" Modifier="-0.5" />
+    <Amount value="11" />
   </CEffectDamage>
   <CEffectSet id="SamuroIllusionMasterInitalSet">
     <ValidatorArray value="HasSamuroMirrorImageStackGreaterThan0OrIsMirrorImage" />
