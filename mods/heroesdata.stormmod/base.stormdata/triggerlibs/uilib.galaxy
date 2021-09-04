@@ -3079,6 +3079,10 @@ void libUIUI_gf_UIFloatingCombatTextCreateTextTag (int lp_displayPlayer, fixed l
     // Variable Initialization
 
     // Implementation
+    if ((UnitIsValid(lp_targetUnit) == false)) {
+        return ;
+    }
+
     if (((libUIUI_gv_uIDebugPanelShowAllCombatText == true) && (libCore_gv_dEBUGDebuggingEnabled == true))) {
         lv_itPlayer = 1;
         for ( ; ( (autoFFE582C5_ai >= 0 && lv_itPlayer <= autoFFE582C5_ae) || (autoFFE582C5_ai < 0 && lv_itPlayer >= autoFFE582C5_ae) ) ; lv_itPlayer += autoFFE582C5_ai ) {
@@ -3370,7 +3374,7 @@ void libUIUI_gf_UIFloatingCombatTextLeashing (unit lp_Unit) {
     // Variable Initialization
 
     // Implementation
-    if ((libUIUI_gv_floatingCombatText_SuppressLeashingText == false)) {
+    if (((UnitIsValid(lp_Unit) == true) && (libUIUI_gv_floatingCombatText_SuppressLeashingText == false))) {
         FloatingCombatElementCreateTextAtUnit(PlayerGroupAll(), "FloatingCombatElements/FloatingCombatElementTemplate", "", lp_Unit, StringExternal("Param/Value/lib_UIUI_3BE6264C"), libNtve_gv_FloatingCombatTextAutoRandomSeed);
     }
 
@@ -5581,8 +5585,12 @@ void libUIUI_gf_KillLogAnnounceKill (int lp_sourcePlayer, unit lp_target) {
     }
     else {
         lv_itemFrame = libUIUI_gf_KillLogAddNewItem(lp_sourcePlayer, libUIUI_ge_KillLogItemType_Kill);
+        if ((lv_itemFrame == c_invalidDialogControlId)) {
+            return ;
+        }
+
         DialogControlSendAnimationEvent(lv_itemFrame, PlayerGroupAll(), "FadeIn");
-        if ((libGame_gf_TeamNumberOfPlayer(UnitGetOwner(lp_target)) == libGame_gv_teamChaosIndex_C)) {
+        if (((libGame_gf_TeamNumberOfPlayer(UnitGetOwner(lp_target)) == libGame_gv_teamChaosIndex_C) && (lv_itemFrame != c_invalidDialogControlId))) {
             DialogControlSetAnimationState(lv_itemFrame, libGame_gf_PlayersOnTeamHeroes(libGame_gv_teamOrderIndex_C, false), "TgtColor", "Red");
             DialogControlSetAnimationState(lv_itemFrame, libGame_gf_PlayersOnTeamHeroes(libGame_gv_teamChaosIndex_C, false), "TgtColor", "Blue");
             DialogControlSetAnimationState(lv_itemFrame, PlayerGroupSingle(libCore_gv_oBSERVER_ObserverUIPlayer), "TgtColor", "Red");
@@ -11726,14 +11734,24 @@ bool libUIUI_gt_UIFloatingCombatTextMissed_Func (bool testConds, bool runActions
 
     if (((UnitTypeTestAttribute(UnitGetType(EventPlayerEffectUsedUnit(c_effectUnitSource)), c_unitAttributeHeroic) == true) || (UnitTypeTestAttribute(UnitGetType(EventPlayerEffectUsedUnit(c_effectUnitTarget)), c_unitAttributeHeroic) == true))) {
         if (((EventPlayerEffectUsed() == "BlindMissedDummy"))) {
-            PlayerGroupAdd(lv_players, EventPlayerEffectUsedUnitOwner(c_effectPlayerCaster));
-            PlayerGroupAdd(lv_players, EventPlayerEffectUsedUnitOwner(c_effectPlayerSource));
-            FloatingCombatElementCreateTextAtUnit(lv_players, "FloatingCombatElements/FloatingCombatElementTemplate", "", EventPlayerEffectUsedUnit(c_effectUnitTarget), StringExternal("Param/Value/lib_UIUI_23A2E25C"), libNtve_gv_FloatingCombatTextAutoRandomSeed);
+            if ((UnitIsValid(EventPlayerEffectUsedUnit(c_effectUnitTarget)) == false)) {
+                return true;
+            }
+            else {
+                PlayerGroupAdd(lv_players, EventPlayerEffectUsedUnitOwner(c_effectPlayerCaster));
+                PlayerGroupAdd(lv_players, EventPlayerEffectUsedUnitOwner(c_effectPlayerSource));
+                FloatingCombatElementCreateTextAtUnit(lv_players, "FloatingCombatElements/FloatingCombatElementTemplate", "", EventPlayerEffectUsedUnit(c_effectUnitTarget), StringExternal("Param/Value/lib_UIUI_23A2E25C"), libNtve_gv_FloatingCombatTextAutoRandomSeed);
+            }
         }
         else {
-            PlayerGroupAdd(lv_players, EventPlayerEffectUsedUnitOwner(c_effectPlayerTarget));
-            PlayerGroupAdd(lv_players, EventPlayerEffectUsedUnitOwner(c_effectPlayerCaster));
-            FloatingCombatElementCreateTextAtUnit(lv_players, "FloatingCombatElements/FloatingCombatElementTemplate", "", EventPlayerEffectUsedUnit(c_effectUnitSource), StringExternal("Param/Value/lib_UIUI_525777A6"), libNtve_gv_FloatingCombatTextAutoRandomSeed);
+            if ((UnitIsValid(EventPlayerEffectUsedUnit(c_effectUnitSource)) == false)) {
+                return true;
+            }
+            else {
+                PlayerGroupAdd(lv_players, EventPlayerEffectUsedUnitOwner(c_effectPlayerTarget));
+                PlayerGroupAdd(lv_players, EventPlayerEffectUsedUnitOwner(c_effectPlayerCaster));
+                FloatingCombatElementCreateTextAtUnit(lv_players, "FloatingCombatElements/FloatingCombatElementTemplate", "", EventPlayerEffectUsedUnit(c_effectUnitSource), StringExternal("Param/Value/lib_UIUI_525777A6"), libNtve_gv_FloatingCombatTextAutoRandomSeed);
+            }
         }
     }
 

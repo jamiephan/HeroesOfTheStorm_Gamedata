@@ -635,6 +635,7 @@ void libMapM_gf_JungleInitializeDoubloonSmallCampData (int lp_camp) {
     // Implementation
     lv_campTypeIndex = (libMapM_gv_jungleCreepCamps[lp_camp].lv_mapDataBattleshipSpawnType);
     libMapM_gv_jungleCreepCamps[lp_camp].lv_piratesNumberOfRanks = libMapM_gv_dataJungleCampMercData[lv_campTypeIndex].lv_numberOfRanks;
+    libMapM_gv_jungleCreepCamps[lp_camp].lv_mapDataCapturePointSplatModel = "TownMercCampCaptureBeaconSmall";
 }
 
 void libMapM_gf_JungleInitializeTryMeCampData (int lp_camp) {
@@ -690,13 +691,13 @@ void libMapM_gf_JungleInitializeCreepCamp (int lp_camp) {
 
     // Implementation
     libMapM_gv_jungleCreepCamps[lp_camp].lv_campOwnershipFlagUnit = UnitGroupUnit(UnitGroup("LootBannerSconce", c_playerAny, libMapM_gv_jungleCreepCamps[lp_camp].lv_mapDataDefenderLeashRegion, UnitFilter(0, 0, (1 << c_targetFilterMissile), (1 << (c_targetFilterDead - 32)) | (1 << (c_targetFilterHidden - 32))), 1), 1);
-    libMapM_gv_jungleCreepCamps[lp_camp].lv_campOwnershipFlagPosition = UnitGetPosition(libMapM_gv_jungleCreepCamps[lp_camp].lv_campOwnershipFlagUnit);
     if ((libMapM_gv_jungleCreepCamps[lp_camp].lv_campOwnershipFlagUnit == null)) {
         TriggerDebugOutput(1, StringExternal("Param/Value/lib_MapM_59C36C74"), true);
         libMapM_gv_jungleCreepCamps[lp_camp].lv_stateIsEnabled = false;
         return ;
     }
 
+    libMapM_gv_jungleCreepCamps[lp_camp].lv_campOwnershipFlagPosition = UnitGetPosition(libMapM_gv_jungleCreepCamps[lp_camp].lv_campOwnershipFlagUnit);
     libMapM_gf_JungleDropLootBannerinMercCamp(lp_camp, PlayerGroupSingle(libCore_gv_cOMPUTER_Hostile));
     if (((libMapM_gv_jungleCreepCamps[lp_camp].lv_mapDataMinimapIconUseTeamColor == true) || (libMapM_gv_jungleCreepCamps[lp_camp].lv_mapDataCampType == libMapM_ge_JungleCampTypes_MercCamp))) {
         libNtve_gf_CreateUnitsWithDefaultFacing(1, "JungleCampIconUnitTeamColor", c_unitCreateIgnorePlacement, 0, libMapM_gv_jungleCreepCamps[lp_camp].lv_mapDataCampCaptainSpawnPoint, null);
@@ -3096,12 +3097,12 @@ void libMapM_gf_MMRavenTributeCollectionThresholdReached (int lp_winningTeam) {
     }
 }
 
-void libMapM_gf_MMRavenCurseStart (int lp_cursedPlayer) {
+void libMapM_gf_MMRavenCurseStart (int lp_cursedPlayerID) {
     // Variable Declarations
     int lv_itPlayer;
     int lv_index;
     int lv_cursedTeam;
-    int lv_enemyTeam;
+    int lv_enemyTeamWinningTeam;
     int lv_townIndex;
     int lv_structureIndex;
     unit lv_structureUnit;
@@ -3118,29 +3119,31 @@ void libMapM_gf_MMRavenCurseStart (int lp_cursedPlayer) {
     // Variable Initialization
 
     // Implementation
-    lv_cursedTeam = libGame_gf_TeamNumberOfPlayer(lp_cursedPlayer);
-    lv_enemyTeam = libGame_gf_EnemyTeam(lv_cursedTeam);
+    lv_cursedTeam = libGame_gf_TeamNumberOfPlayer(lp_cursedPlayerID);
+    lv_enemyTeamWinningTeam = libGame_gf_EnemyTeam(lv_cursedTeam);
     libMapM_gf_MMRavenPlayCurseSound(lv_cursedTeam);
     SoundChannelMute(PlayerGroupAll(), c_soundCategoryAmbient, true);
     SoundtrackStop(PlayerGroupAll(), c_soundtrackCategoryMusic, true);
     libSond_gf_SoundtrackApplyNewDefaultSoundtrackForPlayerGroup("Storm_Music_RavenKing_Cursed", PlayerGroupAll());
-    libGame_gf_SendEventMapCursedHollowCurseStarts(lv_enemyTeam);
+    libGame_gf_SendEventMapCursedHollowCurseStarts(lv_enemyTeamWinningTeam);
     ActorSend(libMapM_gv_mapMechanicControllerActor, "Signal MM1On");
     ActorSend(libMapM_gv_mapMechanicControllerActor, "Signal RainOn");
-    libGame_gv_teams[lv_enemyTeam].lv_map_CursesPlacedOnEnemyTeam += 1;
+    libGame_gv_teams[lv_enemyTeamWinningTeam].lv_map_CursesPlacedOnEnemyTeam += 1;
     StatEventCreate("RavenCurseActivated");
     StatEventAddDataInt(StatEventLastCreated(), "Event", (libGame_gv_teams[1].lv_map_CursesPlacedOnEnemyTeam + libGame_gv_teams[2].lv_map_CursesPlacedOnEnemyTeam));
-    StatEventAddDataFixed(StatEventLastCreated(), "TeamID", lv_enemyTeam);
-    StatEventAddDataInt(StatEventLastCreated(), "TeamScore", libMapM_gv_mMRavenTeamStats[lv_enemyTeam].lv_triburteCollected);
+    StatEventAddDataFixed(StatEventLastCreated(), "TeamID", lv_enemyTeamWinningTeam);
+    StatEventAddDataInt(StatEventLastCreated(), "TeamScore", libMapM_gv_mMRavenTeamStats[lv_enemyTeamWinningTeam].lv_triburteCollected);
     StatEventAddDataInt(StatEventLastCreated(), "OpponentScore", libMapM_gv_mMRavenTeamStats[lv_cursedTeam].lv_triburteCollected);
     StatEventAddDataFixed(StatEventLastCreated(), "GameTime", libUIUI_gf_HeroesGameTime());
     StatEventSend(StatEventLastCreated());
-    libMapM_gf_PreCurseSiegeDamageCache(lv_enemyTeam);
-    libMapM_gv_mMRavenTeamStats[libGame_gf_TeamNumberOfPlayer(lp_cursedPlayer)].lv_cursed = true;
+    libMapM_gf_PreCurseSiegeDamageCache(lv_enemyTeamWinningTeam);
+    libMapM_gv_mMRavenTeamStats[libGame_gf_TeamNumberOfPlayer(lp_cursedPlayerID)].lv_cursed = true;
+    libAIAI_gf_AITeamDelegateActivateDeactivateMapReward(libAIAI_ge_AITeamDelegateActivateDeactivateMapToken_Activate);
+    libAIAI_gf_AITeamDelegateResetMapEventProgressforTeam(lv_enemyTeamWinningTeam);
     auto1E839FCC_ae = libGame_gv_townTownCount;
     lv_townIndex = 1;
     for ( ; ( (auto1E839FCC_ai >= 0 && lv_townIndex <= auto1E839FCC_ae) || (auto1E839FCC_ai < 0 && lv_townIndex >= auto1E839FCC_ae) ) ; lv_townIndex += auto1E839FCC_ai ) {
-        if ((libGame_gv_townTownData[lv_townIndex].lv_owner == lp_cursedPlayer)) {
+        if ((libGame_gv_townTownData[lv_townIndex].lv_owner == lp_cursedPlayerID)) {
             autoCEB3961F_ae = libGame_gv_townTownData[lv_townIndex].lv_structureCount;
             lv_structureIndex = 1;
             for ( ; ( (autoCEB3961F_ai >= 0 && lv_structureIndex <= autoCEB3961F_ae) || (autoCEB3961F_ai < 0 && lv_structureIndex >= autoCEB3961F_ae) ) ; lv_structureIndex += autoCEB3961F_ai ) {
@@ -3156,7 +3159,7 @@ void libMapM_gf_MMRavenCurseStart (int lp_cursedPlayer) {
         }
 
     }
-    auto4E0D066B_g = UnitGroup(null, lp_cursedPlayer, RegionEntireMap(), libCore_gv_filtersMinionsTownMinions, 0);
+    auto4E0D066B_g = UnitGroup(null, lp_cursedPlayerID, RegionEntireMap(), libCore_gv_filtersMinionsTownMinions, 0);
     auto4E0D066B_u = UnitGroupCount(auto4E0D066B_g, c_unitCountAll);
     for (;; auto4E0D066B_u -= 1) {
         auto4E0D066B_var = UnitGroupUnitFromEnd(auto4E0D066B_g, auto4E0D066B_u);
@@ -4347,6 +4350,7 @@ bool libMapM_gt_DataJungleCampDefenderDoubloons_Func (bool testConds, bool runAc
     lv_campType = (libMapM_ge_JungleCampDefenderTypes_Doubloons);
     libMapM_gv_dataJungleCampDefenderData[lv_campType].lv_campIsSoloable = true;
     libMapM_gv_dataJungleCampDefenderData[lv_campType].lv_defendersCoweronDeath = false;
+    libMapM_gv_dataJungleCampDefenderData[lv_campType].lv_aIGoalLink = "MercenaryCampDoubloon";
     libMapM_gv_dataJungleCampDefenderData[lv_campType].lv_initialSpawnDelay = libMapM_gv_genericMercCampInitialSpawnDelay_C;
     libMapM_gv_dataJungleCampDefenderData[lv_campType].lv_respawnTime = 150.0;
     libMapM_gv_dataJungleCampDefenderData[lv_campType].lv_numberOfCreeps = 2;
@@ -4449,6 +4453,7 @@ bool libMapM_gt_DataJungleCampDefenderSiegeGiants_Func (bool testConds, bool run
 
     lv_campType = (libMapM_ge_JungleCampDefenderTypes_SiegeGiants);
     libMapM_gv_dataJungleCampDefenderData[lv_campType].lv_campIsSoloable = true;
+    libMapM_gv_dataJungleCampDefenderData[lv_campType].lv_aIGoalLink = "MercenaryCampSiegeGiants";
     libMapM_gv_dataJungleCampDefenderData[lv_campType].lv_defendersCoweronDeath = true;
     libMapM_gv_dataJungleCampDefenderData[lv_campType].lv_initialSpawnDelay = libMapM_gv_genericMercCampInitialSpawnDelay_C;
     libMapM_gv_dataJungleCampDefenderData[lv_campType].lv_respawnTime = 180.0;
@@ -4554,6 +4559,7 @@ bool libMapM_gt_DataJungleCampDefenderKnights_Func (bool testConds, bool runActi
 
     lv_campType = (libMapM_ge_JungleCampDefenderTypes_Knights);
     libMapM_gv_dataJungleCampDefenderData[lv_campType].lv_campIsSoloable = true;
+    libMapM_gv_dataJungleCampDefenderData[lv_campType].lv_aIGoalLink = "MercenaryCampKnights";
     libMapM_gv_dataJungleCampDefenderData[lv_campType].lv_defendersCoweronDeath = false;
     libMapM_gv_dataJungleCampDefenderData[lv_campType].lv_initialSpawnDelay = libMapM_gv_genericMercCampInitialSpawnDelay_C;
     libMapM_gv_dataJungleCampDefenderData[lv_campType].lv_respawnTime = 240.0;
@@ -4660,6 +4666,7 @@ bool libMapM_gt_DataJungleCampDefenderGraveGolem_Func (bool testConds, bool runA
     lv_campType = (libMapM_ge_JungleCampDefenderTypes_GraveGolem);
     libMapM_gv_dataJungleCampDefenderData[lv_campType].lv_campIsSoloable = true;
     libMapM_gv_dataJungleCampDefenderData[lv_campType].lv_defendersCoweronDeath = false;
+    libMapM_gv_dataJungleCampDefenderData[lv_campType].lv_aIGoalLink = "MercenaryCampGraveGolem";
     libMapM_gv_dataJungleCampDefenderData[lv_campType].lv_initialSpawnDelay = libMapM_gv_genericMercBossCampInitialSpawnDelay_C;
     libMapM_gv_dataJungleCampDefenderData[lv_campType].lv_respawnTime = 300.0;
     libMapM_gv_dataJungleCampDefenderData[lv_campType].lv_numberOfCreeps = 1;
@@ -4879,6 +4886,7 @@ bool libMapM_gt_InitializeJungleCamps_Func (bool testConds, bool runActions) {
     int lv_i;
     int lv_camp;
     string lv_actorMessageString;
+    fixed lv_capturePointRadius;
 
     // Automatic Variable Declarations
     int auto7E730838_ae;
@@ -4887,6 +4895,7 @@ bool libMapM_gt_InitializeJungleCamps_Func (bool testConds, bool runActions) {
 
     // Variable Initialization
     lv_actorMessageString = "";
+    lv_capturePointRadius = libMapM_gv_bALJungleCampCaptureRadius;
 
     // Conditions
     if (testConds) {
@@ -4919,6 +4928,7 @@ bool libMapM_gt_InitializeJungleCamps_Func (bool testConds, bool runActions) {
 
         if ((libMapM_gv_jungleCreepCamps[lv_camp].lv_mapDataCampType == libMapM_ge_JungleCampTypes_DoubloonSmallCamp)) {
             libMapM_gf_JungleInitializeDoubloonSmallCampData(lv_camp);
+            lv_capturePointRadius = 1.7;
         }
 
         if ((libMapM_gv_jungleCreepCamps[lv_camp].lv_mapDataCampType == libMapM_ge_JungleCampTypes_TryMeCamp)) {
@@ -4934,7 +4944,7 @@ bool libMapM_gt_InitializeJungleCamps_Func (bool testConds, bool runActions) {
         }
 
         libMapM_gv_jungleCreepCamps[lv_camp].lv_captureCircleOfPowerUnit = UnitLastCreated();
-        libGame_gf_CapturePointCreate(UnitLastCreated(), libMapM_gv_bALJungleCampCaptureRadius, libMapM_gv_bALJungleCampCaptureTime, 0.0, libGame_ge_CapturePointDecay_DoNotDecay, libGame_ge_CapturePointDecay_Owner, false);
+        libGame_gf_CapturePointCreate(UnitLastCreated(), lv_capturePointRadius, libMapM_gv_bALJungleCampCaptureTime, 0.0, libGame_ge_CapturePointDecay_DoNotDecay, libGame_ge_CapturePointDecay_Owner, false);
         libMapM_gv_jungleCreepCamps[lv_camp].lv_captureCapturePointIndex = libGame_gf_LastCreatedCapturePoint();
         libGame_gf_CapturePointDisable(libMapM_gv_jungleCreepCamps[lv_camp].lv_captureCapturePointIndex);
         libMapM_gf_JungleInitializeCreepCamp(lv_camp);
@@ -5218,7 +5228,7 @@ bool libMapM_gt_JungleAllDefendersKilled_Func (bool testConds, bool runActions) 
 
     }
     if ((lv_camp > 0)) {
-        if ((libMapM_gv_jungleCreepCamps[lv_camp].lv_mapDataCampType == libMapM_ge_JungleCampTypes_MercCamp)) {
+        if (((libMapM_gv_jungleCreepCamps[lv_camp].lv_mapDataCampType == libMapM_ge_JungleCampTypes_MercCamp) || (libMapM_gv_jungleCreepCamps[lv_camp].lv_mapDataCampType == libMapM_ge_JungleCampTypes_DoubloonSmallCamp))) {
             if ((libMapM_gv_jungleCreepCamps[lv_camp].lv_defenderCampInstantlyGrantsReward == false)) {
                 libMapM_gf_JungleTurnOnCampCaptureBeacon(lv_camp);
             }
@@ -6210,6 +6220,7 @@ bool libMapM_gt_MMRavenSpawnTribute_Func (bool testConds, bool runActions) {
     libNtve_gf_CreateUnitsWithDefaultFacing(1, "RavenLordTributeWarning", c_unitCreateIgnorePlacement, libCore_gv_cOMPUTER_Neutral, lv_spawnPoint, null);
     libMapM_gv_mMRavenTributeWarning = UnitLastCreated();
     UnitGroupAdd(libMapM_gv_mMRavenTributeWarnings, UnitLastCreated());
+    libAIAI_gf_AITeamDelegateSetPeriodicMapValueAction(libAIAI_ge_AITeamDelegateMapNonEventMapValueOperations_Decrease);
     libMapM_gf_ShareVisionofUnitForBothTeams(UnitLastCreated());
     libNtve_gf_CreateUnitsWithDefaultFacing(1, "RavenLordTribute", c_unitCreateIgnorePlacement, libCore_gv_cOMPUTER_Neutral, lv_spawnPoint, null);
     UnitBehaviorAdd(UnitLastCreated(), "MapMechanicCoolUp", UnitLastCreated(), 1);
@@ -6226,6 +6237,7 @@ bool libMapM_gt_MMRavenSpawnTribute_Func (bool testConds, bool runActions) {
     libMapM_gf_ShareVisionofUnitForBothTeams(UnitLastCreated());
     ActorCreate(ActorScopeFromUnit(UnitLastCreated()), "UI_Game_Ping_Tribute_Ready", null, null, null);
     UnitGroupAddUnitGroup(libMapM_gv_mMRavenTributes, UnitLastCreatedGroup());
+    libAIAI_gf_AITeamDelegateActivateDeactivateMapEvent(libAIAI_ge_AITeamDelegateActivateDeactivateMapToken_Activate);
     TriggerEnable(libMapM_gt_MMRavenTributeObtained, true);
     libGame_gf_SendEventMapCursedHollowTributeSpawned(UnitLastCreated());
     libMapM_gv_mMRavenEventFirstTime = false;
@@ -6464,6 +6476,8 @@ bool libMapM_gt_MMRavenTributeObtained_Func (bool testConds, bool runActions) {
     UnitKill(lv_macGuffinUnit);
     libMapM_gv_mMRavenTeamStats[lv_collectedTeam].lv_triburteCollected += 1;
     libMapM_gv_mapMechanicUsedTracker[lv_collectedPlayer].lv_ravenTribute = true;
+    libAIAI_gf_AITeamDelegateActivateDeactivateMapEvent(libAIAI_ge_AITeamDelegateActivateDeactivateMapToken_Deactivate);
+    libAIAI_gf_AITeamDelegateAdjustMapEventProgressforTeam(1, lv_collectedTeam);
     StatEventCreate("TributeCollected");
     StatEventAddDataInt(StatEventLastCreated(), "Event", libMapM_gv_mMRavenTributesCollected);
     StatEventAddDataFixed(StatEventLastCreated(), "TeamID", lv_collectedTeam);
@@ -6584,6 +6598,7 @@ bool libMapM_gt_MMRavenCurseFinished_Func (bool testConds, bool runActions) {
     libMapM_gv_mMRavenTeamStats[1].lv_cursed = false;
     libMapM_gv_mMRavenTeamStats[2].lv_cursed = false;
     libMapM_gv_mMRavenCurseLifted = true;
+    libAIAI_gf_AITeamDelegateActivateDeactivateMapReward(libAIAI_ge_AITeamDelegateActivateDeactivateMapToken_Deactivate);
     libGame_gf_SpecialLightingEventEnd("StormRavenCourtCurseFinal", PlayerGroupAll(), 2.0);
     libMapM_gv_mMRavenTributeNextSpawnPoint = libMapM_gf_MMRavenRandomSpawnPoint();
     if ((libMapM_gv_mMRavenUseTributePreviews == true)) {

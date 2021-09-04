@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="us-ascii"?>
 <Catalog>
-  <const id="$BaseGuideTint" type="CActorMsgPayloadPtr" value="SetTintColor 225,160,25 0 OneShot BaseTint" />
+  <const id="$BaseGuideTint" value="SetTintColor 225,160,25 0 OneShot BaseTint" />
   <CActorAction default="1" id="GenericAttackBaseStorm" parent="GenericAttackBase">
     <Preload value="##id##" />
   </CActorAction>
@@ -100,6 +100,7 @@
     <AcceptedHostedPropTransfers index="Visibility" value="0" />
     <AcceptedHostedPropTransfers index="WarpGroup" value="0" />
     <Preload value="##id##" />
+    <ModelFlags index="AllowHitTest" value="0" />
     <ModelFlags index="AutomateGlobalLoops" value="1" />
     <TeamColorStyle value="DefaultSpellIndicatorColors" />
   </CActorModel>
@@ -112,7 +113,6 @@
     <Inherits index="Visibility" value="1" />
     <Host Subject="_Unit" />
     <HostSiteOps Ops="SOpAttachOrigin" />
-    <ModelFlags index="AllowHitTest" value="0" />
   </CActorModel>
   <CActorModel default="1" id="StormAnimAddition" parent="StormModelAnimationStyleOneShotUnit">
     <Terms value="Cap 1" />
@@ -147,6 +147,7 @@
     <On Terms="ActorCreation" Send="AnimBracketStart BSD Birth Stand Death" />
     <On Terms="ActorOrphan" Send="Destroy" />
     <On Terms="AnimBracketState.*.AfterClosing; !AnimBracketExitReason ModelSwap; AnimName BSD" Send="Destroy" />
+    <ModelFlags index="AllowHitTest" value="0" />
   </CActorModel>
   <CActorModel default="1" id="StormModelAnimationStyleContinuousUnitBase" parent="StormModelAnimationStyleContinuous">
     <Aliases value="_TimeStopAffectedActor" />
@@ -156,7 +157,6 @@
     <Inherits index="CloakEffect" value="1" />
     <Inherits index="Visibility" value="1" />
     <Host Subject="_Unit" />
-    <ModelFlags index="AllowHitTest" value="0" />
     <Macros value="EffectVisibilityMacro" />
   </CActorModel>
   <CActorModel default="1" id="StormModelAnimationStyleContinuousUnit" parent="StormModelAnimationStyleContinuousUnitBase">
@@ -322,7 +322,7 @@
   <CActorModel default="1" id="StormCompositePortraitAddition">
     <FogVisibility value="Visible" />
     <On Terms="ActorCreation" Send="AnimGroupApply Portrait" />
-    <On Terms="ActorCreation" Send="$Stand PlayForever" />
+    <On Terms="ActorCreation" Send="AnimPlay Stand Stand PlayForever" />
     <On Terms="ActorCreation" Send="AnimPlay Blink Blink PlayForever" />
     <On Terms="ActorCreation" Send="AnimPlay DefaultFace DefaultFace PlayForever" />
     <ModelFlags index="AutomateGlobalLoops" value="1" />
@@ -406,7 +406,7 @@
     <Macros value="StatusBarVisibilityMacro" />
     <Macros value="TimeStopMacro" />
     <Macros value="MasterTauntMacro" />
-    <On Terms="UnitBirth.*.Normal" Send="$Birth 0 0.000000" />
+    <On Terms="UnitBirth.*.Normal" Send="AnimPlay Birth Birth 0 0.000000" />
     <On Terms="UnitFidget" Send="AnimPlay Fidget Fidget 0 0.500000 0.300000" />
     <On Terms="UnitMovementUpdate.*.Walk" Send="AnimClear Fidget" />
     <On Terms="UnitDeathCustomize; ValidateUnit NotStructure; IsStatus InAir 1" Send="DeathCustomize AntiGravGeneric" />
@@ -512,8 +512,8 @@
     <On Terms="Behavior.VideoDebug.On" Target="Storm_HeroRing" Send="Destroy" />
     <On Terms="Behavior.VideoDebug.Off" Send="Create Storm_HeroRing" />
     <On Terms="Behavior.PulledVOXDummyBehavior.On" Send="Create PulledSound##id##" />
-    <On Terms="ActorCreation; ValidateUnit IsNotFlying; Option Shadow Low; $AllowBlobShadow" Send="Create GroundShadowSmall" />
-    <Remove Terms="ActorCreation; ValidateUnit IsNotFlying; Option Shadow Low; $AllowBlobShadow" Send="Create GroundShadow" />
+    <On Terms="ActorCreation; ValidateUnit IsNotFlying; Option Shadow Low; CompareField ::Main UnitFlags[ShowBlobShadow] Eq 1" Send="Create GroundShadowSmall" />
+    <Remove Terms="ActorCreation; ValidateUnit IsNotFlying; Option Shadow Low; CompareField ::Main UnitFlags[ShowBlobShadow] Eq 1" Send="Create GroundShadow" />
     <DeathCustoms ModelLink="PolymorphDeath" Name="Polymorph" />
     <DeathCustoms>
       <ActorModel value="##unitName##DeathRagdoll" />
@@ -761,7 +761,7 @@
     <Aliases value="_DeathModel" />
     <Host Subject="_Unit" />
     <HostSiteOps Ops="SOpAttachOriginStationary" />
-    <On Terms="ActorCreation" Send="$Death PlayForever,NonLooping" />
+    <On Terms="ActorCreation" Send="AnimPlay Death Death PlayForever,NonLooping" />
     <On Terms="Signal.*.Revive" Send="Destroy" />
   </CActorModel>
   <CActorModel default="1" id="StormFlailStun" parent="StormModelAddition">
@@ -817,7 +817,7 @@
   <CActorShield default="1" id="StormProtossShieldBase">
     <Aliases value="_StormShieldVisual" />
     <Inherits index="Visibility" value="1" />
-    <On Terms="ActorCreation" Send="$Birth" />
+    <On Terms="ActorCreation" Send="AnimPlay Birth Birth" />
     <On Terms="AnimDone; AnimName Birth" Send="Destroy" />
   </CActorShield>
   <CActorAction default="1" id="MeleeMinionAttackParent" parent="GenericAttackStorm">
@@ -1963,7 +1963,7 @@
   </CActorModel>
   <CActorModel id="HeadlessHorseman" parent="StormModelAnimationStyleOneShot">
     <Remove Terms="ActorCreation" Send="AnimBracketStart BSD Birth Stand Death ContentPlayOnce" />
-    <On Terms="ActorCreation" Send="$Stand,Victory 0 0.000000 0.000000" />
+    <On Terms="ActorCreation" Send="AnimPlay Stand Stand,Victory 0 0.000000 0.000000" />
     <On Terms="AnimDone; AnimPlayingName Stand" Send="Destroy" />
   </CActorModel>
   <CActorModel id="KingsCoreAttackAOEImpact" parent="StormModelAnimationStyleOneShotUnit">
@@ -3559,7 +3559,7 @@
     <On Terms="StatusOn.*.Animating; IsStatus Animating 9" Send="ModelSwap Storm_Doodad_Luxoria_MerchantTents_Death08" />
     <On Terms="StatusOn.*.Animating; IsStatus Animating 10" Send="ModelSwap Storm_Doodad_Luxoria_MerchantTents_Death09" />
     <On Terms="StatusOn.*.Animating; IsStatus Animating 11" Send="ModelSwap Storm_Doodad_Luxoria_MerchantTents_Death10" />
-    <On Terms="StatusOn.*.Animating" Send="$Death NonLooping" />
+    <On Terms="StatusOn.*.Animating" Send="AnimPlay Death Death NonLooping" />
     <On Terms="AnimDone.*.Complete; AnimName Death" Send="AnimPlay Dead Dead PlayForever,NonLooping" />
     <On Terms="StatusOn.*.Animating" Send="Create Storm_Doodad_Luxoria_MerchantTents_Death" />
   </CActorDoodad>
@@ -3578,9 +3578,9 @@
     <On Terms="Signal.*.DoodadImpacted; ModelVariation 0" Send="StatusSet Animating 1" />
     <On Terms="StatusOn.*.Animating" Send="DoodadPreserve" />
     <On Terms="StatusOn.*.Animating" Send="ModelSwap StormDoodadLuxoriaSnakeBarrelDeath" />
-    <On Terms="StatusOn.*.Animating" Send="$Death" />
+    <On Terms="StatusOn.*.Animating" Send="AnimPlay Death Death" />
     <On Terms="StatusOn.*.Animating" Send="Create Doodad_Luxoria_Breakable_SnakeBarrel_Death" />
-    <On Terms="StatusOn.*.Animating" Send="$Death" />
+    <On Terms="StatusOn.*.Animating" Send="AnimPlay Death Death" />
     <On Terms="AnimDone.*.Complete; AnimName Death" Send="Destroy Immediate" />
   </CActorDoodad>
   <CActorSound id="TalentBlockRechargeSound" parent="SoundOneShot">
@@ -3938,7 +3938,6 @@
     <Host Subject="_Hero" />
     <HostSiteOps Ops="SOpBasicScopeFollow" HoldRotation="1" />
     <Model value="GodRayModel" />
-    <ModelFlags index="AllowHitTest" value="0" />
     <Terms value="Cap 1" />
   </CActorModel>
   <CActorEventMacro id="UnitActorHostResetMacro">
@@ -4193,10 +4192,10 @@
     <AttachQuery Methods="Weapon 1" />
   </CActorSiteOpAttach>
   <CActorSiteOpAttach id="SOpAttachHardPointLeft">
-    <AttachQuery Methods="$GenericHardpointLaunchMethodsLeft" />
+    <AttachQuery Methods="AMFilterHardpointLeft" />
   </CActorSiteOpAttach>
   <CActorSiteOpAttach id="SOpAttachHardPointRight">
-    <AttachQuery Methods="$GenericHardpointLaunchMethodsRight" />
+    <AttachQuery Methods="AMFilterHardpointRight" />
   </CActorSiteOpAttach>
   <CActorModel id="RevealedBuff">
     <Inherits index="CloakEffect" value="1" />
@@ -4294,7 +4293,7 @@
     <On Terms="Signal.*.DoodadImpacted; IsStatus Impact 3" Send="StatusIncrement Impact" />
     <On Terms="AnimDone; AnimName MorphBStart" Send="StatusIncrement Impact" />
     <On Terms="AnimDone; AnimName MorphBStart" Send="AnimPlay MorphB Morph,B PlayForever,NonLooping" />
-    <On Terms="Signal.*.DoodadImpacted; IsStatus Impact 5" Send="$Death" />
+    <On Terms="Signal.*.DoodadImpacted; IsStatus Impact 5" Send="AnimPlay Death Death" />
     <On Terms="Signal.*.DoodadImpacted; IsStatus Impact 5" Send="AnimClear MorphB" />
     <On Terms="Signal.*.DoodadImpacted; IsStatus Impact 5" Send="StatusIncrement Impact" />
     <On Terms="AnimDone; AnimName Death" Send="AnimPlay Dead Dead PlayForever,NonLooping" />
@@ -4509,19 +4508,19 @@
   </CActorDoodad>
   <CActorDoodad id="Storm_Doodad_KingsCrest_ThinWave_Short">
     <On Terms="ActorCreation" Send="TimerSet 20.000000 Short" />
-    <On Terms="TimerExpired; TimerName Short" Send="$Spell" />
+    <On Terms="TimerExpired; TimerName Short" Send="AnimPlay Spell Spell" />
     <On Terms="TimerExpired; TimerName Short" Send="TimerSet 20.000000 Short" />
     <Model value="Storm_Doodad_KingsCrest_ThinWave" />
   </CActorDoodad>
   <CActorDoodad id="Storm_Doodad_KingsCrest_ThinWave_Long">
     <On Terms="ActorCreation" Send="TimerSet 30.000000 Long" />
-    <On Terms="TimerExpired; TimerName Long" Send="$Spell" />
+    <On Terms="TimerExpired; TimerName Long" Send="AnimPlay Spell Spell" />
     <On Terms="TimerExpired; TimerName Long" Send="TimerSet 30.000000 Long" />
     <Model value="Storm_Doodad_KingsCrest_ThinWave" />
   </CActorDoodad>
   <CActorDoodad id="Storm_Doodad_KingsCrest_ThinWave_Medium">
     <On Terms="ActorCreation" Send="TimerSet 25.000000 Medium" />
-    <On Terms="TimerExpired; TimerName Medium" Send="$Spell" />
+    <On Terms="TimerExpired; TimerName Medium" Send="AnimPlay Spell Spell" />
     <On Terms="TimerExpired; TimerName Medium" Send="TimerSet 25.000000 Medium" />
     <Model value="Storm_Doodad_KingsCrest_ThinWave" />
   </CActorDoodad>
@@ -4530,21 +4529,21 @@
   </CActorDoodad>
   <CActorDoodad id="Storm_Doodad_KingsCrest_WideWave_Medium">
     <On Terms="ActorCreation" Send="TimerSet 25.000000 Medium" />
-    <On Terms="TimerExpired; TimerName Medium" Send="$Spell" />
+    <On Terms="TimerExpired; TimerName Medium" Send="AnimPlay Spell Spell" />
     <On Terms="TimerExpired; TimerName Medium" Send="TimerSet 25.000000 Medium" />
     <On Terms="TimerExpired; TimerName Medium" Send="Create Storm_Doodad_KingsCrest_WideWave_Sound" />
     <Model value="Storm_Doodad_KingsCrest_WideWave" />
   </CActorDoodad>
   <CActorDoodad id="Storm_Doodad_KingsCrest_WideWave_Long">
     <On Terms="ActorCreation" Send="TimerSet 30.000000 Long" />
-    <On Terms="TimerExpired; TimerName Long" Send="$Spell" />
+    <On Terms="TimerExpired; TimerName Long" Send="AnimPlay Spell Spell" />
     <On Terms="TimerExpired; TimerName Long" Send="TimerSet 30.000000 Long" />
     <On Terms="TimerExpired; TimerName Long" Send="Create Storm_Doodad_KingsCrest_WideWave_Sound" />
     <Model value="Storm_Doodad_KingsCrest_WideWave" />
   </CActorDoodad>
   <CActorDoodad id="Storm_Doodad_KingsCrest_WideWave_Short">
     <On Terms="ActorCreation" Send="TimerSet 20.000000 Short" />
-    <On Terms="TimerExpired; TimerName Short" Send="$Spell" />
+    <On Terms="TimerExpired; TimerName Short" Send="AnimPlay Spell Spell" />
     <On Terms="TimerExpired; TimerName Short" Send="TimerSet 20.000000 Short" />
     <On Terms="TimerExpired; TimerName Short" Send="Create Storm_Doodad_KingsCrest_WideWave_Sound" />
   </CActorDoodad>
@@ -4663,7 +4662,7 @@
     <On Terms="Signal.*.DoodadImpacted; ModelVariation 1; IsStatus Animating 0" Send="ModelSwap Storm_Doodad_KingsCrest_FishBarrels_Death_01" />
     <On Terms="Signal.*.DoodadImpacted; ModelVariation 2; IsStatus Animating 0" Send="ModelSwap Storm_Doodad_KingsCrest_FishBarrels_Death_02" />
     <On Terms="Signal.*.DoodadImpacted; IsStatus Animating 0" Send="StatusSet Animating 1" />
-    <On Terms="Signal.*.DoodadImpacted" Send="$Death 0 -1.000000 -1.000000 1.000000 AsTimeScale" />
+    <On Terms="Signal.*.DoodadImpacted" Send="AnimPlay Death Death 0 -1.000000 -1.000000 1.000000 AsTimeScale" />
     <On Terms="AnimDone; AnimName Death" Send="Destroy" />
     <ModelFlags index="OutlineOccluder" value="1" />
     <EditorFlags index="NoAutoRotate" value="1" />
@@ -5708,7 +5707,7 @@
     <ModelFlags index="UpdateVisibility" value="0" />
     <InheritType value="OneShot" />
     <HostSiteOps Ops="SOpAttachCenter" HoldPosition="1" HoldRotation="1" />
-    <On Terms="ActorCreation" Send="$Death" />
+    <On Terms="ActorCreation" Send="AnimPlay Death Death" />
     <On Terms="AnimDone; AnimName Death" Send="Destroy" />
     <On Terms="ActorCreation" Send="Create HeroDeathFlareSound" />
   </CActorModel>
@@ -6290,29 +6289,29 @@
   </CActorEventMacro>
   <CActorEventMacro id="HeroTalentUseMacro">
     <On Terms="UnitDeath" Send="AnimClear ChannelSpell" />
-    <On Terms="Abil.TalentStoneskin.SourceCastStart; ValidateUnit DoesNotHaveSuppressTalentUseAnimationsBehavior; !AnimPlaying Spell" Send="$Spell,Omni" />
-    <On Terms="Abil.TalentBucketIceBlock.SourceCastStart; ValidateUnit DoesNotHaveSuppressTalentUseAnimationsBehavior" Send="$Spell,Omni" />
-    <On Terms="Abil.TalentBucketStormShield.SourceCastStart; ValidateUnit DoesNotHaveSuppressTalentUseAnimationsBehavior; !AnimPlaying Spell" Send="$Spell,Omni" />
-    <On Terms="Abil.TalentFirstAid.SourceCastStart; ValidateUnit DoesNotHaveSuppressTalentUseAnimationsBehavior; !AnimPlaying Spell" Send="$Spell,Omni" />
-    <On Terms="Abil.TalentRewind.SourceCastStart; ValidateUnit DoesNotHaveSuppressTalentUseAnimationsBehavior; !AnimPlaying Spell" Send="$Spell,Omni" />
-    <On Terms="Abil.TalentHardenedShield.SourceCastStart; ValidateUnit DoesNotHaveSuppressTalentUseAnimationsBehavior; !AnimPlaying Spell" Send="$Spell,Omni" />
-    <On Terms="Abil.TalentOverdrive.SourceCastStart; ValidateUnit DoesNotHaveSuppressTalentUseAnimationsBehavior; !AnimPlaying Spell" Send="$Spell,Omni" />
-    <On Terms="Abil.TalentArcanePower.SourceCastStart; ValidateUnit DoesNotHaveSuppressTalentUseAnimationsBehavior; !AnimPlaying Spell" Send="$Spell,Omni" />
-    <On Terms="Abil.Stoneform.SourceCastStart; ValidateUnit DoesNotHaveSuppressTalentUseAnimationsBehavior; !AnimPlaying Spell" Send="$Spell,Omni" />
-    <On Terms="Abil.TalentImposingPresence.SourceCastStart; ValidateUnit DoesNotHaveSuppressTalentUseAnimationsBehavior; !AnimPlaying Spell" Send="$Spell,Omni" />
-    <On Terms="Abil.TalentBucketCalldownMule.SourceCastStart; ValidateUnit DoesNotHaveSuppressTalentUseAnimationsBehavior; !AnimPlaying Spell" Send="$Spell,Omni" />
-    <On Terms="Abil.TalentHealingWard.SourceCastStart; ValidateUnit DoesNotHaveSuppressTalentUseAnimationsBehavior; !AnimPlaying Spell" Send="$Spell,Omni" />
-    <On Terms="Abil.HeroGenericSpellShield.SourceCastStart; ValidateUnit DoesNotHaveSuppressTalentUseAnimationsBehavior; !AnimPlaying Spell" Send="$Spell,Omni" />
-    <On Terms="Abil.TalentScoutingDrone.SourceCastStart; ValidateUnit DoesNotHaveSuppressTalentUseAnimationsBehavior; !AnimPlaying Spell" Send="$Spell,Forward" />
-    <On Terms="Abil.TalentBucketShrinkRay.SourceCastStart; ValidateUnit DoesNotHaveSuppressTalentUseAnimationsBehavior; !AnimPlaying Spell" Send="$Spell,Forward" />
-    <On Terms="Abil.TalentBucketPromote.SourceCastStart; ValidateUnit DoesNotHaveSuppressTalentUseAnimationsBehavior; !AnimPlaying Spell" Send="$Spell,Forward" />
-    <On Terms="Abil.Envenom.SourceCastStart; ValidateUnit DoesNotHaveSuppressTalentUseAnimationsBehavior; !AnimPlaying Spell" Send="$Spell,Forward" />
-    <On Terms="Abil.TalentBloodForBlood.SourceCastStart; ValidateUnit DoesNotHaveSuppressTalentUseAnimationsBehavior; !AnimPlaying Spell" Send="$Spell,Forward" />
-    <On Terms="Abil.TalentBucketBribe.SourceCastStart; ValidateUnit DoesNotHaveSuppressTalentUseAnimationsBehavior; !AnimPlaying Spell" Send="$Spell,Forward" />
-    <On Terms="Abil.FlashoftheStorms.SourceCastStart; ValidateUnit DoesNotHaveSuppressTalentUseAnimationsBehavior" Send="$Spell,Forward" />
-    <On Terms="Abil.TalentProtectiveShield.SourceCastStart; ValidateUnit DoesNotHaveSuppressTalentUseAnimationsBehavior; !AnimPlaying Spell" Send="$Spell,Forward" />
-    <On Terms="Abil.TalentCleanse.SourceCastStart; ValidateUnit DoesNotHaveSuppressTalentUseAnimationsBehavior" Send="$Spell,Forward" />
-    <On Terms="Abil.SeasonedMarksmanActivatable.SourceCastStart; ValidateUnit DoesNotHaveSuppressTalentUseAnimationsBehavior; !AnimPlaying Spell" Send="$Spell,Forward" />
+    <On Terms="Abil.TalentStoneskin.SourceCastStart; ValidateUnit DoesNotHaveSuppressTalentUseAnimationsBehavior; !AnimPlaying Spell" Send="AnimPlay Spell Spell,Omni" />
+    <On Terms="Abil.TalentBucketIceBlock.SourceCastStart; ValidateUnit DoesNotHaveSuppressTalentUseAnimationsBehavior" Send="AnimPlay Spell Spell,Omni" />
+    <On Terms="Abil.TalentBucketStormShield.SourceCastStart; ValidateUnit DoesNotHaveSuppressTalentUseAnimationsBehavior; !AnimPlaying Spell" Send="AnimPlay Spell Spell,Omni" />
+    <On Terms="Abil.TalentFirstAid.SourceCastStart; ValidateUnit DoesNotHaveSuppressTalentUseAnimationsBehavior; !AnimPlaying Spell" Send="AnimPlay Spell Spell,Omni" />
+    <On Terms="Abil.TalentRewind.SourceCastStart; ValidateUnit DoesNotHaveSuppressTalentUseAnimationsBehavior; !AnimPlaying Spell" Send="AnimPlay Spell Spell,Omni" />
+    <On Terms="Abil.TalentHardenedShield.SourceCastStart; ValidateUnit DoesNotHaveSuppressTalentUseAnimationsBehavior; !AnimPlaying Spell" Send="AnimPlay Spell Spell,Omni" />
+    <On Terms="Abil.TalentOverdrive.SourceCastStart; ValidateUnit DoesNotHaveSuppressTalentUseAnimationsBehavior; !AnimPlaying Spell" Send="AnimPlay Spell Spell,Omni" />
+    <On Terms="Abil.TalentArcanePower.SourceCastStart; ValidateUnit DoesNotHaveSuppressTalentUseAnimationsBehavior; !AnimPlaying Spell" Send="AnimPlay Spell Spell,Omni" />
+    <On Terms="Abil.Stoneform.SourceCastStart; ValidateUnit DoesNotHaveSuppressTalentUseAnimationsBehavior; !AnimPlaying Spell" Send="AnimPlay Spell Spell,Omni" />
+    <On Terms="Abil.TalentImposingPresence.SourceCastStart; ValidateUnit DoesNotHaveSuppressTalentUseAnimationsBehavior; !AnimPlaying Spell" Send="AnimPlay Spell Spell,Omni" />
+    <On Terms="Abil.TalentBucketCalldownMule.SourceCastStart; ValidateUnit DoesNotHaveSuppressTalentUseAnimationsBehavior; !AnimPlaying Spell" Send="AnimPlay Spell Spell,Omni" />
+    <On Terms="Abil.TalentHealingWard.SourceCastStart; ValidateUnit DoesNotHaveSuppressTalentUseAnimationsBehavior; !AnimPlaying Spell" Send="AnimPlay Spell Spell,Omni" />
+    <On Terms="Abil.HeroGenericSpellShield.SourceCastStart; ValidateUnit DoesNotHaveSuppressTalentUseAnimationsBehavior; !AnimPlaying Spell" Send="AnimPlay Spell Spell,Omni" />
+    <On Terms="Abil.TalentScoutingDrone.SourceCastStart; ValidateUnit DoesNotHaveSuppressTalentUseAnimationsBehavior; !AnimPlaying Spell" Send="AnimPlay Spell Spell,Forward" />
+    <On Terms="Abil.TalentBucketShrinkRay.SourceCastStart; ValidateUnit DoesNotHaveSuppressTalentUseAnimationsBehavior; !AnimPlaying Spell" Send="AnimPlay Spell Spell,Forward" />
+    <On Terms="Abil.TalentBucketPromote.SourceCastStart; ValidateUnit DoesNotHaveSuppressTalentUseAnimationsBehavior; !AnimPlaying Spell" Send="AnimPlay Spell Spell,Forward" />
+    <On Terms="Abil.Envenom.SourceCastStart; ValidateUnit DoesNotHaveSuppressTalentUseAnimationsBehavior; !AnimPlaying Spell" Send="AnimPlay Spell Spell,Forward" />
+    <On Terms="Abil.TalentBloodForBlood.SourceCastStart; ValidateUnit DoesNotHaveSuppressTalentUseAnimationsBehavior; !AnimPlaying Spell" Send="AnimPlay Spell Spell,Forward" />
+    <On Terms="Abil.TalentBucketBribe.SourceCastStart; ValidateUnit DoesNotHaveSuppressTalentUseAnimationsBehavior; !AnimPlaying Spell" Send="AnimPlay Spell Spell,Forward" />
+    <On Terms="Abil.FlashoftheStorms.SourceCastStart; ValidateUnit DoesNotHaveSuppressTalentUseAnimationsBehavior" Send="AnimPlay Spell Spell,Forward" />
+    <On Terms="Abil.TalentProtectiveShield.SourceCastStart; ValidateUnit DoesNotHaveSuppressTalentUseAnimationsBehavior; !AnimPlaying Spell" Send="AnimPlay Spell Spell,Forward" />
+    <On Terms="Abil.TalentCleanse.SourceCastStart; ValidateUnit DoesNotHaveSuppressTalentUseAnimationsBehavior" Send="AnimPlay Spell Spell,Forward" />
+    <On Terms="Abil.SeasonedMarksmanActivatable.SourceCastStart; ValidateUnit DoesNotHaveSuppressTalentUseAnimationsBehavior; !AnimPlaying Spell" Send="AnimPlay Spell Spell,Forward" />
   </CActorEventMacro>
   <CActorEventMacro id="GenericTeamcolorChangeMacro">
     <On Terms="Signal.*.OwnerNeutral" Send="SetPlayerId" />
@@ -6397,7 +6396,7 @@
     <On Terms="Effect.RegenGlobeFadeDummy.Start" Send="AnimGroupApply Unpowered" />
     <On Terms="Effect.RegenGlobePickupSet.Start" Send="AnimGroupRemove Unpowered" />
     <On Terms="Effect.RegenGlobePickupSet.Start" Send="Destroy Immediate" />
-    <On Terms="ActorCreation" Send="$Birth 0 0.000000 0.000000 1.000000 AsTimeScale" />
+    <On Terms="ActorCreation" Send="AnimPlay Birth Birth 0 0.000000 0.000000 1.000000 AsTimeScale" />
     <StatusBarGroups index="All" value="0" />
     <DeathArray index="Normal" ActorModel="RegenGlobeDeathActor" ActorModelLow="RegenGlobeDeathActor" AnimProps="Death,Unpowered" />
     <DeathActorModel value="RegenGlobeDeathActor" />
@@ -6406,7 +6405,7 @@
   <CActorUnit id="RegenGlobeNeutral" parent="GenericUnitStandard" unitName="RegenGlobeNeutral">
     <Model value="RegenGlobe" />
     <StatusBarGroups index="All" value="0" />
-    <On Terms="ActorCreation" Send="$Birth 0 0.000000 0.000000 1.000000 AsTimeScale" />
+    <On Terms="ActorCreation" Send="AnimPlay Birth Birth 0 0.000000 0.000000 1.000000 AsTimeScale" />
     <On Terms="Effect.RegenGlobeFadeDummy.Start" Send="AnimGroupApply Unpowered" />
     <On Terms="Effect.RegenGlobePickupSet.Start" Send="AnimGroupRemove Unpowered" />
     <On Terms="Effect.RegenGlobePickupSet.Start" Send="Destroy Immediate" />
@@ -6432,7 +6431,7 @@
     <PreHost value="_ActorAction" />
     <Model value="RegenGlobeMissile" />
     <On Terms="UnitBirth.RegenGlobeMissile" Send="Create" />
-    <On Terms="UnitBirth" Send="$Stand,Work PlayForever" />
+    <On Terms="UnitBirth" Send="AnimPlay Stand Stand,Work PlayForever" />
     <On Terms="UnitDeath" Send="Destroy" />
     <On Terms="ActorOrphan" Send="Destroy" />
   </CActorMissile>
@@ -6445,7 +6444,7 @@
     <Aliases value="_Unit" />
     <Aliases value="_Missile" />
     <On Terms="UnitBirth.RegenGlobeMissileNoEnemyVisibility" Send="Create" />
-    <On Terms="UnitBirth" Send="$Stand,Work PlayForever" />
+    <On Terms="UnitBirth" Send="AnimPlay Stand Stand,Work PlayForever" />
     <On Terms="UnitDeath" Send="Destroy" />
     <On Terms="ActorOrphan" Send="Destroy" />
     <Model value="Invisible" />
@@ -6574,7 +6573,7 @@
     <On Terms="TextureSelectById" Target="_MountAddition" Send="MessageForward" />
     <On Terms="UnitMovementUpdate.*.Walk" Target="_MountAddition" Send="MessageForward" />
     <On Terms="UnitMovementUpdate.*.Stand" Target="_MountAddition" Send="MessageForward" />
-    <On Terms="ActorCreation" Send="$Birth" />
+    <On Terms="ActorCreation" Send="AnimPlay Birth Birth" />
     <On Terms="UnitDeathCustomize" Send="Destroy" />
     <On Terms="ActorCreation" Target="_Hero" Send="Signal MountCreatedConfirmation" />
     <On Terms="ActorDestruction; HasStatus KillParticlesOnDeath" Send="DestroyParticles" />
@@ -6653,8 +6652,8 @@
     <Model value="StormProtossShieldDamage" />
   </CActorShield>
   <CActorShield id="StormProtossShieldFull" parent="StormProtossShieldBase">
-    <On Terms="ActorCreation" Send="$Birth,A" />
-    <Remove Terms="ActorCreation" Send="$Birth" />
+    <On Terms="ActorCreation" Send="AnimPlay Birth Birth,A" />
+    <Remove Terms="ActorCreation" Send="AnimPlay Birth Birth" />
   </CActorShield>
   <CActorShieldImpact id="StormShieldImpact">
     <VisualDirectionalFacer value="StormProtossShieldFacer" />
@@ -6684,8 +6683,8 @@
     <Model value="CoreStormProtossShieldDamage" />
   </CActorShield>
   <CActorShield id="CoreStormProtossShieldFull" parent="StormProtossShieldBase">
-    <On Terms="ActorCreation" Send="$Birth,A" />
-    <Remove Terms="ActorCreation" Send="$Birth" />
+    <On Terms="ActorCreation" Send="AnimPlay Birth Birth,A" />
+    <Remove Terms="ActorCreation" Send="AnimPlay Birth Birth" />
   </CActorShield>
   <CActorShieldImpact id="CoreStormShieldImpact">
     <VisualDirectionalFacer value="CoreStormProtossShieldFacer" />
@@ -6716,8 +6715,8 @@
     <On Terms="Effect.UseVehicleApplyVehicleBehavior.Start" Send="ModelSwap VehicleDragon" />
     <On Terms="Effect.UseVehicleApplyVehicleBehavior.Start" Send="AnimPlay DragonActive Stand,Morph 0 0.000000 0.000000 1.000000 AsTimeScale" />
     <On Terms="Behavior.VehicleDragonPotionStun.Off" Send="StatusDecrement StatusBarHide" />
-    <On Terms="Abil.VehicleDragonFireBreath.SourceCastStart" Send="$Spell,A 0 -1.000000 -1.000000 1.000000 AsTimeScale" />
-    <On Terms="Abil.VehicleDragonDragonRoar.SourceCastStart" Send="$Spell,B 0 -1.000000 -1.000000 1.000000 AsTimeScale" />
+    <On Terms="Abil.VehicleDragonFireBreath.SourceCastStart" Send="AnimPlay Spell Spell,A 0 -1.000000 -1.000000 1.000000 AsTimeScale" />
+    <On Terms="Abil.VehicleDragonDragonRoar.SourceCastStart" Send="AnimPlay Spell Spell,B 0 -1.000000 -1.000000 1.000000 AsTimeScale" />
     <On Terms="Behavior.VehicleDragonPotionStun.On" Send="ModelFlagsClear OutlineEmitter" />
     <On Terms="Behavior.VehicleDragonPotionStun.Off" Send="ModelFlagsSet OutlineEmitter" />
     <On Terms="UnitMovementUpdate.*.Walk" Send="AnimClear Charged" />
@@ -6904,7 +6903,6 @@
     <HostSiteOps Ops="SOpAttachCenter SOpMoveBy2" />
     <On Terms="Effect.DragonFireBreathPersistent.Start; At Caster" Send="Create" />
     <Host Subject="_Unit" />
-    <ModelFlags index="AllowHitTest" value="0" />
   </CActorModel>
   <CActorModel id="GardensDragonFireBreathImpact" parent="StormModelAnimationStyleOneShotUnit">
     <On Terms="Effect.DragonFireBreathDamage.Start; At Target" Send="Create" />
@@ -6924,8 +6922,8 @@
   <CActorModel id="GardensDragonFireBreathNapalm" parent="StormModelNoAnimsUnit">
     <On Terms="Effect.VehicleDragonDragonFireBreathPersistentBurn.Start; At Effect" Send="Create" />
     <On Terms="Effect.VehicleDragonDragonFireBreathPersistentBurn.Stop; FromEffectTreeDescendant" Send="Destroy" />
-    <On Terms="ActorCreation" Send="$Birth" />
-    <On Terms="AnimDone; AnimName Birth" Send="$Birth" />
+    <On Terms="ActorCreation" Send="AnimPlay Birth Birth" />
+    <On Terms="AnimDone; AnimName Birth" Send="AnimPlay Birth Birth" />
     <HostSiteOps Ops="SOpOriginPoint SOpForwardTargetPoint SOp2DRotation SgtHammerConcussiveBlastOffset SOpMoveForwardBy1" HoldPosition="1" HoldRotation="1" />
     <Host Subject="" />
   </CActorModel>
@@ -6935,7 +6933,7 @@
     <Sound value="Merc_DragonKnight_BreatheFire_Launch" />
   </CActorSound>
   <CActorUnit id="ElDruinsMightMasteryPathingBlocker" parent="StormMinionStandard" unitName="ElDruinsMightMasteryPathingBlocker">
-    <On Terms="UnitDeath.ElDruinsMightMasteryPathingBlocker" Send="$Death" />
+    <On Terms="UnitDeath.ElDruinsMightMasteryPathingBlocker" Send="AnimPlay Death Death" />
     <GroupIcon>
       <Image value="Assets\Textures\storm_ui_ingame_hero_icon_placeholder.dds" />
     </GroupIcon>
@@ -7119,7 +7117,7 @@
     <On Terms="ActorCreation" Send="AnimPlay Build Build" />
     <On Terms="ActorCreation" Send="TimerSet 0.500000 MakeVisible" />
     <On Terms="TimerExpired; TimerName MakeVisible" Send="AnimClear Build" />
-    <On Terms="TimerExpired; TimerName MakeVisible" Send="$Birth" />
+    <On Terms="TimerExpired; TimerName MakeVisible" Send="AnimPlay Birth Birth" />
   </CActorBeamSimple>
   <CActorBeamSimple id="ForceWallBeamLeftMid" parent="BeamSimpleAnimationStyleContinuous">
     <Model value="TassadarForceWallBeam" />
@@ -7131,7 +7129,7 @@
     <On Terms="ActorCreation" Send="AnimPlay Build Build" />
     <On Terms="ActorCreation" Send="TimerSet 0.500000 MakeVisible" />
     <On Terms="TimerExpired; TimerName MakeVisible" Send="AnimClear Build" />
-    <On Terms="TimerExpired; TimerName MakeVisible" Send="$Birth" />
+    <On Terms="TimerExpired; TimerName MakeVisible" Send="AnimPlay Birth Birth" />
   </CActorBeamSimple>
   <CActorBeamSimple id="ForceWallBeamRightEnd" parent="BeamSimpleAnimationStyleContinuous">
     <Model value="TassadarForceWallBeam" />
@@ -7143,7 +7141,7 @@
     <On Terms="ActorCreation" Send="AnimPlay Build Build" />
     <On Terms="ActorCreation" Send="TimerSet 0.500000 MakeVisible" />
     <On Terms="TimerExpired; TimerName MakeVisible" Send="AnimClear Build" />
-    <On Terms="TimerExpired; TimerName MakeVisible" Send="$Birth" />
+    <On Terms="TimerExpired; TimerName MakeVisible" Send="AnimPlay Birth Birth" />
   </CActorBeamSimple>
   <CActorBeamSimple id="ForceWallBeamRightMid" parent="BeamSimpleAnimationStyleContinuous">
     <Model value="TassadarForceWallBeam" />
@@ -7155,7 +7153,7 @@
     <On Terms="ActorCreation" Send="AnimPlay Build Build" />
     <On Terms="ActorCreation" Send="TimerSet 0.500000 MakeVisible" />
     <On Terms="TimerExpired; TimerName MakeVisible" Send="AnimClear Build" />
-    <On Terms="TimerExpired; TimerName MakeVisible" Send="$Birth" />
+    <On Terms="TimerExpired; TimerName MakeVisible" Send="AnimPlay Birth Birth" />
   </CActorBeamSimple>
   <CActorModel id="Storm_Effect_MinionWarpIn" parent="StormModelAnimationStyleOneShot">
     <Host Subject="_Target" />
@@ -7412,14 +7410,14 @@
     <LaunchSiteOps Ops="SOpAttachHarness" />
     <LaunchSite value="GenericAttackLaunchSite" />
     <LaunchSiteFallback value="GenericAttackLaunchFallbackSite" />
-    <LaunchAttachQuery Methods="$GenericAttackLaunchMethods" Fallback="Center" />
+    <LaunchAttachQuery Methods="AMFilterWeapon00" Fallback="Center" />
     <LaunchModel value="GenericAttackLaunchModel" />
     <LaunchSound value="GenericAttackLaunchSound" />
     <LaunchTerrainSquibModel value="GenericAttackLaunchTerrainSquibModel" />
     <LaunchTerrainSquibSound value="GenericAttackLaunchTerrainSquibSound" />
     <ContainerSiteOps Ops="SOpAttachHarness SOpForwardTargetPoint" />
     <ContainerSite value="GenericAttackLaunchSite" />
-    <ContainerAttachQuery Methods="$GenericBunkerAttackLaunchMethods" Fallback="Center" />
+    <ContainerAttachQuery Methods="AMFilterWeapon AMProximityTargetAll AMPortAllocatorBunker" Fallback="Center" />
     <ContainerAssets Model="FootmanMinionWeaponDamageBunkerAttackLaunch" Sound="FootmanMinionWeaponDamageBunkerAttackLaunch" />
     <ContainerModel value="GenericAttackLaunchModel" />
     <ContainerSound value="GenericAttackLaunchSound" />
@@ -7432,7 +7430,7 @@
     <ImpactSiteOps Ops="SOpAttachHarness SOpAttachVolumeStandard" />
     <ImpactSite value="GenericAttackImpactSite" />
     <ImpactSiteFallback value="GenericAttackImpactFallbackSite" />
-    <ImpactAttachQuery Methods="$GenericAttackTargetMethods" Fallback="Center" />
+    <ImpactAttachQuery Methods="AMVolumesTargets AMArcTestWeapon AMVolumesWeightedPick" Fallback="Center" />
     <ImpactReattachQuery Methods="AMVolumesRequery" Fallback="Center" />
     <ImpactPointSiteOps Ops="SOpTargetPointStationary" />
     <ImpactPointSite value="GenericAttackImpactPointSite" />
@@ -7443,7 +7441,7 @@
     <ImpactTerrainSquibSound value="GenericAttackImpactTerrainSquibSound" />
     <DamageSiteOps Ops="SOpAttachHarness SOpAttachVolumeStandard" />
     <DamageSite value="GenericAttackDamageSite" />
-    <DamageAttachQuery Methods="$GenericAttackTargetMethods" Fallback="Center" />
+    <DamageAttachQuery Methods="AMVolumesTargets AMArcTestWeapon AMVolumesWeightedPick" Fallback="Center" />
     <DamageReattachQuery Methods="AMVolumesRequery" Fallback="Center" />
     <DamageMap index="None" Model="FootmanMinionAttackDamage" Sound="FootmanMinionAttackDamage" ModelReaction="FootmanMinionAttackDamageReaction" />
     <DamageMap index="Shield" Sound="FootmanMinionAttackDamageShield" ModelReaction="FootmanMinionAttackDamageReactionShield" />
@@ -7472,7 +7470,7 @@
   <CActorUnit id="SkeletalPirate" parent="StormMinionStandard" unitName="SkeletalPirate">
     <On Terms="UnitDeath" Send="Create Merc_SkeletonMelee_Death_Vox" />
     <On Terms="Behavior.JungleCreepPassive.Off" Send="Create Merc_Pirate_Vox_Aggro" />
-    <On Terms="ActorCreation" Send="$Birth 0 0.000000 0.000000 1.000000 AsTimeScale" />
+    <On Terms="ActorCreation" Send="AnimPlay Birth Birth 0 0.000000 0.000000 1.000000 AsTimeScale" />
     <On Terms="ActorCreation" Send="SetMinimapVisibility" />
     <Model value="MercDefenderMurloc" />
     <BuildModel value="MercDefenderMurloc" />
@@ -7557,7 +7555,7 @@
     <On Terms="Effect.MercLanerOgreHealDummyVsKnights.Start; At Caster" Send="Create Merc_Sorcerer_Vox_Cast" />
     <On Terms="UnitDeath.MercLanerRangedMage" Send="Create Merc_Sorcerer_Vox_Death" />
     <On Terms="Effect.KnightSorcererCasterDamageResponseDummy.Start; At Caster" Send="Create Merc_Sorcerer_Vox_Gethit" />
-    <On Terms="Effect.KnightMagicVolleyLaunchPersistent.Start" Send="$Spell,A" />
+    <On Terms="Effect.KnightMagicVolleyLaunchPersistent.Start" Send="AnimPlay Spell Spell,A" />
     <On Terms="Effect.KnightMagicVolleyLaunchPersistent.Stop" Send="AnimClear Spell" />
     <On Terms="Effect.MercLaughDummy.Start" Send="Create Merc_Sorcerer_Vox_Laugh" />
     <DeathArray index="Normal" ModelLink="MercLanerRangedMageDeath" SoundLink="Merc_Sorcerer_Death" />
@@ -7805,7 +7803,7 @@
     <On Terms="ActorCreation" Send="StatusSet AnimationVariation 0" />
     <On Terms="WeaponStart.MercDefenderSiegeGiantWeapon.AttackStart" Send="AnimPlay Attack Attack" />
     <On Terms="Effect.MercDefenderSiegeModeMeleeAnimDummy.Start" Send="AnimPlay Attack Attack,Inferior" />
-    <On Terms="ActorCreation" Send="$Birth DontResetOnUnhide 0.000000 -1.000000 1.000000 AsTimeScale" />
+    <On Terms="ActorCreation" Send="AnimPlay Birth Birth DontResetOnUnhide 0.000000 -1.000000 1.000000 AsTimeScale" />
     <On Terms="ActorCreation" Send="AnimBracketStart Cover IGNORE Stand,Cover Stand,Cover,End" />
     <On Terms="AnimDone; AnimName Birth; TextureGroupsGlobal ContainsAll luxoria" Send="AnimBracketStart Cover IGNORE Stand,Cover Stand,Cover,End" />
     <On Terms="AnimDone; AnimName Birth; !TextureGroupsGlobal ContainsAll luxoria" Send="AnimPlay BirthEnd Stand,Cover,Taunt,End 0 -1.000000 -1.000000 1.000000 AsTimeScale" />
@@ -9132,7 +9130,7 @@
     <MinimapIcon value="Assets\Textures\storm_ui_minimapicon_healingfountain.dds" />
   </CActorUnit>
   <CActorModel id="MoonwellDeath" parent="UnitDeathModel">
-    <On Terms="ActorCreation" Send="$Death 0 -1.000000 -1.000000 1.000000 AsTimeScale" />
+    <On Terms="ActorCreation" Send="AnimPlay Death Death 0 -1.000000 -1.000000 1.000000 AsTimeScale" />
     <On Terms="AnimDone; AnimName Death" Send="AnimPlay Dead Dead PlayForever" />
     <Model value="TownMoonwellKingsCrestDeath" />
     <ModelFlags index="AutomateGlobalLoops" value="1" />
@@ -9694,7 +9692,7 @@
   <CActorModel id="CorePermanentInvulnerabilityModelAttachmentBase" parent="StormModelAddition">
     <On Terms="Signal.*.Deactivate" Send="ModelSwap CorePermanentInvulnerabilityDeathModel" />
     <On Terms="Signal.*.Deactivate" Send="Create Doodad_CoreShield_Death" />
-    <On Terms="Signal.*.Deactivate" Send="$Death 0 0.000000 0.000000 1.000000 AsTimeScale" />
+    <On Terms="Signal.*.Deactivate" Send="AnimPlay Death Death 0 0.000000 0.000000 1.000000 AsTimeScale" />
     <On Terms="AnimDone.*.Complete; AnimName Death" Send="Destroy" />
     <On Terms="ActorCreation" Send="Create CorePermanentInvulnerabilityBirthModel" />
     <On Terms="Signal.*.Activate" Send="AnimBracketStart Active Cover,Start Cover" />
@@ -10018,8 +10016,8 @@
     <On Terms="Signal.*.WatchTowerOwnerChaos" Send="Create WatchTowerChaosAreaMessage" />
     <On Terms="Signal.*.WatchTowerOwnerOrder" Send="Create WatchTowerOrderAreaMessage" />
     <On Terms="Signal.*.WatchTowerOwnerNeutral" Send="Create WatchTowerNeutralAreaMessage" />
-    <On Terms="Signal.*.OwnerOrder" Send="$Spell" />
-    <On Terms="Signal.*.OwnerChaos" Send="$Spell" />
+    <On Terms="Signal.*.OwnerOrder" Send="AnimPlay Spell Spell" />
+    <On Terms="Signal.*.OwnerChaos" Send="AnimPlay Spell Spell" />
     <MinimapIconType value="Hidden" />
   </CActorUnit>
   <CActorRegionCircle id="TributeNeutralAreaMessage">
@@ -10181,7 +10179,7 @@
     <On Terms="ActorCreation" Send="TimerSet 1.000000 RemoveFirstSnapshot" />
     <On Terms="ActorCreation" Send="SetVisibility" />
     <On Terms="Signal.*.Show" Send="SetVisibility 1" />
-    <On Terms="Signal.*.Hide" Send="$Spell" />
+    <On Terms="Signal.*.Hide" Send="AnimPlay Spell Spell" />
     <On Terms="AnimDone; AnimName Spell" Send="SetVisibility" />
     <On Terms="Signal.*.Snapshot" Send="RefSetFromMsg ::actor.SnapShot ::Sender" />
     <On Terms="TimerExpired; TimerName RemoveFirstSnapshot" Target="::actor.SnapShot" Send="Destroy" />
@@ -10223,7 +10221,6 @@
     <Host Subject="_Selectable" />
     <HostSiteOps Ops="SOpAttachCenterStationary SOpForwardCasterPoint" />
     <Model value="FlashoftheStormsFXOut" />
-    <ModelFlags index="AllowHitTest" value="0" />
     <Flags index="VisionTestCenterOnly" value="1" />
   </CActorModel>
   <CActorUnit id="JungleGraveGolemDefender" parent="StormCreepStandard" unitName="JungleGraveGolemDefender">
@@ -10235,15 +10232,15 @@
     <On Terms="WeaponStart.*.AttackStart; IsStatus WeaponNext 2" Send="StatusSet WeaponNext 0" />
     <On Terms="UnitMovementUpdate.*.Walk" Send="AnimClear Attack" />
     <On Terms="ModelEvent; ModelEventName AnimClear" Send="AnimClear Attack" />
-    <On Terms="AnimDone; AnimName StompStart" Send="$Spell,A,End" />
-    <On Terms="ActorCreation" Send="$Birth 0 0.000000 -1.000000 1.000000 AsTimeScale" />
-    <On Terms="Effect.UnderworldBossStunCreatePersistent.Start" Send="$Spell,A,Start PlayForever -1.000000 -1.000000 1.000000 AsTimeScale" />
+    <On Terms="AnimDone; AnimName StompStart" Send="AnimPlay Spell Spell,A,End" />
+    <On Terms="ActorCreation" Send="AnimPlay Birth Birth 0 0.000000 -1.000000 1.000000 AsTimeScale" />
+    <On Terms="Effect.UnderworldBossStunCreatePersistent.Start" Send="AnimPlay Spell Spell,A,Start PlayForever -1.000000 -1.000000 1.000000 AsTimeScale" />
     <On Terms="Effect.UnderworldBossStunCreatePersistent.Stop" Send="AnimClear Spell" />
     <On Terms="Effect.UnderworldBossStunAnimDummySet.Start" Send="AnimPlay SpellFinish Spell,A,End" />
-    <On Terms="Effect.WallCrushEffectCreatePersistent.Start" Send="$Spell,A,Start PlayForever -1.000000 -1.000000 1.000000 AsDuration" />
+    <On Terms="Effect.WallCrushEffectCreatePersistent.Start" Send="AnimPlay Spell Spell,A,Start PlayForever -1.000000 -1.000000 1.000000 AsDuration" />
     <On Terms="Effect.WallCrushEffectSearch.Start" Send="AnimClear Spell" />
-    <On Terms="Effect.WallCrushEffectSearch.Start" Send="$Spell,A,End" />
-    <On Terms="Abil.UnderworldBossRoots.SourceCastStart" Send="$Spell,C" />
+    <On Terms="Effect.WallCrushEffectSearch.Start" Send="AnimPlay Spell Spell,A,End" />
+    <On Terms="Abil.UnderworldBossRoots.SourceCastStart" Send="AnimPlay Spell Spell,C" />
     <On Terms="Abil.UnderworldBossRoots.SourceCastStart" Send="TimerSet 0.250000 RootsLaunchFX" />
     <On Terms="TimerExpired; TimerName RootsLaunchFX" Send="Create GraveGolemRootsLaunchFX" />
     <On Terms="Behavior.JungleCreepPassive.Off" Send="Create Merc_GraveGolem_Vox_Aggro" />
@@ -10271,15 +10268,15 @@
     <On Terms="WeaponStart.*.AttackStart; IsStatus WeaponNext 1" Send="AnimPlay Attack Attack,02" />
     <On Terms="UnitMovementUpdate.*.Walk" Send="AnimClear Attack" />
     <On Terms="ModelEvent; ModelEventName AnimClear" Send="AnimClear Attack" />
-    <On Terms="AnimDone; AnimName StompStart" Send="$Spell,A,End" />
-    <On Terms="ActorCreation" Send="$Birth 0 0.000000 -1.000000 1.000000 AsTimeScale" />
-    <On Terms="Effect.UnderworldBossStunCreatePersistent.Start" Send="$Spell,A,Start PlayForever -1.000000 -1.000000 1.000000 AsTimeScale" />
+    <On Terms="AnimDone; AnimName StompStart" Send="AnimPlay Spell Spell,A,End" />
+    <On Terms="ActorCreation" Send="AnimPlay Birth Birth 0 0.000000 -1.000000 1.000000 AsTimeScale" />
+    <On Terms="Effect.UnderworldBossStunCreatePersistent.Start" Send="AnimPlay Spell Spell,A,Start PlayForever -1.000000 -1.000000 1.000000 AsTimeScale" />
     <On Terms="Effect.UnderworldBossStunCreatePersistent.Stop" Send="AnimClear Spell" />
     <On Terms="Effect.UnderworldBossStunAnimDummySet.Start" Send="AnimPlay SpellFinish Spell,A,End" />
-    <On Terms="Effect.WallCrushEffectCreatePersistent.Start" Send="$Spell,A,Start PlayForever -1.000000 -1.000000 1.000000 AsDuration" />
+    <On Terms="Effect.WallCrushEffectCreatePersistent.Start" Send="AnimPlay Spell Spell,A,Start PlayForever -1.000000 -1.000000 1.000000 AsDuration" />
     <On Terms="Effect.WallCrushEffectSearch.Start" Send="AnimClear Spell" />
-    <On Terms="Effect.WallCrushEffectSearch.Start" Send="$Spell,A,End" />
-    <On Terms="Abil.UnderworldBossRoots.SourceCastStart" Send="$Spell,C" />
+    <On Terms="Effect.WallCrushEffectSearch.Start" Send="AnimPlay Spell Spell,A,End" />
+    <On Terms="Abil.UnderworldBossRoots.SourceCastStart" Send="AnimPlay Spell Spell,C" />
     <On Terms="Abil.UnderworldBossRoots.SourceCastStart" Send="TimerSet 0.250000 RootsLaunchFX" />
     <On Terms="TimerExpired; TimerName RootsLaunchFX" Send="Create GraveGolemRootsLaunchFX" />
     <On Terms="Effect.UnderworldBossStunCreatePersistent.Start" Send="Create MegaStunWarning" />
@@ -10320,7 +10317,6 @@
     <HostSiteOps Ops="SOpOriginPoint" HoldPosition="1" HoldRotation="1" />
     <AcceptedTransfers index="Position" value="0" />
     <AcceptedTransfers index="Rotation" value="0" />
-    <ModelFlags index="AllowHitTest" value="0" />
     <Inherits index="TeamColor" value="1" />
     <HostForProps Subject="_Unit" />
   </CActorModel>
@@ -10336,7 +10332,7 @@
   </CActorModel>
   <CActorUnit id="JungleBattleship" parent="StormCreepStandard" unitName="JungleBattleship">
     <On Terms="UnitMovementUpdate.*.Walk; AnimPlaying Attack" Send="AnimClear Attack" />
-    <On Terms="ActorCreation" Send="$Birth 0 0.000000" />
+    <On Terms="ActorCreation" Send="AnimPlay Birth Birth 0 0.000000" />
     <On Terms="UnitBirth" Send="Create BattleshipBirthSound" />
     <On Terms="AnimDone; AnimName Birth" Send="Create BattleshipIdleSound" />
     <On Terms="Effect.BattleshipExpirationDummyEffect.Start" Send="AnimBracketStop BSD" />
@@ -10459,7 +10455,7 @@
   <CActorAction id="MercLanerPirateMeleeAttack" parent="GenericAttackBaseStorm" effectAttack="MercLanerPirateMeleeDamage" />
   <CActorUnit id="MercDefenderRangedMage" parent="StormMinionStandard" unitName="MercDefenderRangedMage">
     <On Terms="WeaponStart.*.AttackStart" Send="AnimPlay Attack Attack,A" />
-    <On Terms="Effect.HealerDudeHeal.Start; At Caster" Send="$Spell 0 0.500000 0.500000 1.000000 AsDuration" />
+    <On Terms="Effect.HealerDudeHeal.Start; At Caster" Send="AnimPlay Spell Spell 0 0.500000 0.500000 1.000000 AsDuration" />
     <On Terms="UnitMovementUpdate.*.Walk; AnimPlaying Attack" Send="AnimClear Attack" />
     <On Terms="UnitMovementUpdate.*.Walk; AnimPlaying Spell" Send="AnimClear Spell" />
     <On Terms="UnitMovementUpdate.*.Walk; AnimPlaying Cover" Send="AnimBracketStop Cover" />
@@ -10473,10 +10469,10 @@
     <On Terms="Effect.MercLanerOgreHealDummyVsKnights.Start; At Caster" Send="Create Merc_Sorcerer_Vox_Cast" />
     <On Terms="UnitDeath.MercDefenderRangedMage" Send="Create Merc_Sorcerer_Vox_Death" />
     <On Terms="Effect.KnightSorcererCasterDamageResponseDummy.Start; At Caster" Send="Create Merc_Sorcerer_Vox_Gethit" />
-    <On Terms="Effect.KnightMagicVolleyLaunchPersistent.Start" Send="$Spell,A" />
+    <On Terms="Effect.KnightMagicVolleyLaunchPersistent.Start" Send="AnimPlay Spell Spell,A" />
     <On Terms="Effect.KnightMagicVolleyLaunchPersistent.Stop" Send="AnimClear Spell" />
     <On Terms="Effect.MercDefenderSorcererSoundDummy.Start" Send="Create Merc_Sorcerer_Vox_Eh" />
-    <On Terms="ActorCreation" Send="$Birth 0 0.000000 0.000000 1.000000 AsTimeScale" />
+    <On Terms="ActorCreation" Send="AnimPlay Birth Birth 0 0.000000 0.000000 1.000000 AsTimeScale" />
     <On Terms="ActorCreation" Send="Create MercDefenderRangedMageBirthModel" />
     <On Terms="ActorCreation; TextureGroupsGlobal ContainsAll luxoria" Send="Create MercDefenderRangedMageBirthModelWeapon" />
     <On Terms="AnimDone; TextureGroupsGlobal ContainsAll luxoria; AnimName Birth" Send="AnimBracketStart Cover Stand,Cover,Start Stand,Cover Stand,Cover,End" />
@@ -10622,7 +10618,7 @@
     <On Terms="UnitDeath.MercDefenderMeleeKnight" Send="Create Merc_BlackKnight_Vox_Death" />
     <On Terms="Behavior.JungleCreepPassive.Off" Send="Create Merc_BlackKnight_Vox_Aggro" />
     <On Terms="Effect.KnightMeleeDamageResponseDummy.Start; At Caster" Send="Create Merc_BlackKnight_Vox_GetHit_20" />
-    <On Terms="ActorCreation" Send="$Birth 0 0.000000 0.000000 1.000000 AsTimeScale" />
+    <On Terms="ActorCreation" Send="AnimPlay Birth Birth 0 0.000000 0.000000 1.000000 AsTimeScale" />
     <On Terms="ActorCreation" Send="Create MercDefenderMeleeKnightBirthModel" />
     <On Terms="ActorCreation" Send="Create MercDefenderMeleeKnightBirthSound" />
     <MinimapIconScale value="0.250000" />
@@ -10881,8 +10877,8 @@
     <BarOffset value="0" />
     <UnitFlags index="SuppressDefaultStatusBar" value="1" />
     <CustomUnitStatusFrame value="UnitStatus/CaptureBeaconSingleNotchUnitStatusFrame" />
-    <On Terms="Signal.*.OwnerOrder" Send="$Spell" />
-    <On Terms="Signal.*.OwnerChaos" Send="$Spell" />
+    <On Terms="Signal.*.OwnerOrder" Send="AnimPlay Spell Spell" />
+    <On Terms="Signal.*.OwnerChaos" Send="AnimPlay Spell Spell" />
     <On Terms="Signal.*.Show" Send="SetVisibility 1" />
     <On Terms="Signal.*.Hide" Send="SetVisibility" />
     <On Terms="Signal.*.CapturePointOwnerNeutral" Send="Create CapturePointNeutralAreaMessage" />
@@ -11182,10 +11178,10 @@
     <Macros value="PreTargetHaloMacro" />
     <On Terms="UnitHighlightLocal.*.Start" Send="StatusIncrement PreTargetingTint" />
     <On Terms="UnitHighlightLocal.*.Stop" Send="StatusDecrement PreTargetingTint" />
-    <On Terms="Effect.DocksTreasureChestResponseDummy.Start" Send="$Spell,A 0 -1.000000 -1.000000 1.000000 AsTimeScale" />
+    <On Terms="Effect.DocksTreasureChestResponseDummy.Start" Send="AnimPlay Spell Spell,A 0 -1.000000 -1.000000 1.000000 AsTimeScale" />
     <On Terms="Effect.DocksTreasureChestResponseDummy.Start" Send="TimerSet 1.000000 NoLoopTimer" />
     <On Terms="TimerExpired; TimerName NoLoopTimer" Send="AnimClear Spell" />
-    <On Terms="Effect.TreasureChestDrop1DoubloonPersistent.Start" Send="$Spell,B 0 -1.000000 -1.000000 1.000000 AsTimeScale" />
+    <On Terms="Effect.TreasureChestDrop1DoubloonPersistent.Start" Send="AnimPlay Spell Spell,B 0 -1.000000 -1.000000 1.000000 AsTimeScale" />
     <On Terms="ActorCreation" Send="Create TreasureChestLoopSound" />
     <On Terms="ActorDestruction" Target="TreasureChestLoopSound" Send="Destroy Immediate" />
     <On Terms="UnitBirth.DocksTreasureChest" Send="AnimPlay BSD Birth" />
@@ -11447,14 +11443,14 @@
     <LaunchSiteOps Ops="SOpAttachHarness" />
     <LaunchSite value="GenericAttackLaunchSite" />
     <LaunchSiteFallback value="GenericAttackLaunchFallbackSite" />
-    <LaunchAttachQuery Methods="$GenericAttackLaunchMethods" Fallback="Center" />
+    <LaunchAttachQuery Methods="AMFilterWeapon00" Fallback="Center" />
     <LaunchModel value="GenericAttackLaunchModel" />
     <LaunchSound value="GenericAttackLaunchSound" />
     <LaunchTerrainSquibModel value="GenericAttackLaunchTerrainSquibModel" />
     <LaunchTerrainSquibSound value="GenericAttackLaunchTerrainSquibSound" />
     <ContainerSiteOps Ops="SOpAttachHarness SOpForwardTargetPoint" />
     <ContainerSite value="GenericAttackLaunchSite" />
-    <ContainerAttachQuery Methods="$GenericBunkerAttackLaunchMethods" Fallback="Center" />
+    <ContainerAttachQuery Methods="AMFilterWeapon AMProximityTargetAll AMPortAllocatorBunker" Fallback="Center" />
     <ContainerAssets Model="UnderworldMinionWeaponDamageBunkerAttackLaunch" Sound="UnderworldMinionWeaponDamageBunkerAttackLaunch" />
     <ContainerModel value="GenericAttackLaunchModel" />
     <ContainerSound value="GenericAttackLaunchSound" />
@@ -11467,7 +11463,7 @@
     <ImpactSiteOps Ops="SOpAttachHarness SOpAttachVolumeStandard" />
     <ImpactSite value="GenericAttackImpactSite" />
     <ImpactSiteFallback value="GenericAttackImpactFallbackSite" />
-    <ImpactAttachQuery Methods="$GenericAttackTargetMethods" Fallback="Center" />
+    <ImpactAttachQuery Methods="AMVolumesTargets AMArcTestWeapon AMVolumesWeightedPick" Fallback="Center" />
     <ImpactReattachQuery Methods="AMVolumesRequery" Fallback="Center" />
     <ImpactPointSiteOps Ops="SOpTargetPointStationary" />
     <ImpactPointSite value="GenericAttackImpactPointSite" />
@@ -11478,7 +11474,7 @@
     <ImpactTerrainSquibSound value="GenericAttackImpactTerrainSquibSound" />
     <DamageSiteOps Ops="SOpAttachHarness SOpAttachVolumeStandard" />
     <DamageSite value="GenericAttackDamageSite" />
-    <DamageAttachQuery Methods="$GenericAttackTargetMethods" Fallback="Center" />
+    <DamageAttachQuery Methods="AMVolumesTargets AMArcTestWeapon AMVolumesWeightedPick" Fallback="Center" />
     <DamageReattachQuery Methods="AMVolumesRequery" Fallback="Center" />
     <DamageMap index="None" Model="UnderworldMinionAttackDamage" Sound="UnderworldMinionAttackDamage" ModelReaction="UnderworldMinionAttackDamageReaction" />
     <DamageMap index="Shield" Sound="UnderworldMinionAttackDamageShield" ModelReaction="UnderworldMinionAttackDamageReactionShield" />
@@ -11547,17 +11543,17 @@
     <On Terms="UnitMovementUpdate.*.Walk" Send="AnimClear AttackRight" />
     <On Terms="ModelEvent; ModelEventName AnimClear" Send="AnimClear AttackLeft" />
     <On Terms="ModelEvent; ModelEventName AnimClear" Send="AnimClear AttackRight" />
-    <On Terms="WeaponStart.UnderworldSummonedBossSiege.AttackStart" Send="$Spell,B 0 -1.000000 -1.000000 1.000000 AsTimeScale" />
+    <On Terms="WeaponStart.UnderworldSummonedBossSiege.AttackStart" Send="AnimPlay Spell Spell,B 0 -1.000000 -1.000000 1.000000 AsTimeScale" />
     <On Terms="WeaponStart.*.AttackStart" Send="Create MinesBossAttackLaunch" />
-    <On Terms="Effect.UnderworldBossStunCreatePersistent.Start" Send="$Spell,A,Start PlayForever -1.000000 -1.000000 1.000000 AsTimeScale" />
+    <On Terms="Effect.UnderworldBossStunCreatePersistent.Start" Send="AnimPlay Spell Spell,A,Start PlayForever -1.000000 -1.000000 1.000000 AsTimeScale" />
     <On Terms="Effect.UnderworldBossStunCreatePersistent.Stop" Send="AnimClear Spell" />
     <On Terms="Effect.UnderworldBossStunAnimDummySet.Start" Send="AnimPlay SpellFinish Spell,A,End" />
     <On Terms="UnitDeathCustomize; ModelName UnderworldSummonedBoss" Send="DeathCustomize Variation0" />
     <On Terms="UnitDeathCustomize; ModelName UnderworldSummonedBossBetter" Send="DeathCustomize Variation1" />
-    <On Terms="Effect.WallCrushEffectCreatePersistent.Start" Send="$Spell,A,Start PlayForever -1.000000 -1.000000 1.000000 AsDuration" />
+    <On Terms="Effect.WallCrushEffectCreatePersistent.Start" Send="AnimPlay Spell Spell,A,Start PlayForever -1.000000 -1.000000 1.000000 AsDuration" />
     <On Terms="Effect.WallCrushEffectSearch.Start" Send="AnimClear Spell" />
-    <On Terms="Effect.WallCrushEffectSearch.Start" Send="$Spell,A,End" />
-    <On Terms="Abil.UnderworldBossRoots.SourceCastStart" Send="$Spell,C" />
+    <On Terms="Effect.WallCrushEffectSearch.Start" Send="AnimPlay Spell Spell,A,End" />
+    <On Terms="Abil.UnderworldBossRoots.SourceCastStart" Send="AnimPlay Spell Spell,C" />
     <On Terms="Abil.UnderworldBossRoots.SourceCastStart" Send="TimerSet 0.250000 RootsLaunchFX" />
     <On Terms="Effect.UnderworldBossStunCreatePersistent.Start" Send="Create MegaStunWarning" />
     <On Terms="Effect.UnderworldBossStunCreatePersistent.Stop" Target="MegaStunWarning" Send="Destroy Immediate" />
@@ -11585,14 +11581,14 @@
     <On Terms="ModelEvent; ModelEventName AnimClear" Send="AnimClear AttackLeft" />
     <On Terms="ModelEvent; ModelEventName AnimClear" Send="AnimClear AttackRight" />
     <On Terms="WeaponStart.*.AttackStart" Send="Create MinesBossAttackLaunch" />
-    <On Terms="Effect.UnderworldBossStunCreatePersistent.Start" Send="$Spell,A,Start PlayForever -1.000000 -1.000000 1.000000 AsTimeScale" />
+    <On Terms="Effect.UnderworldBossStunCreatePersistent.Start" Send="AnimPlay Spell Spell,A,Start PlayForever -1.000000 -1.000000 1.000000 AsTimeScale" />
     <On Terms="Effect.UnderworldBossStunCreatePersistent.Stop" Send="AnimClear Spell" />
     <On Terms="Effect.UnderworldBossStunAnimDummySet.Start" Send="AnimPlay SpellFinish Spell,A,End" />
-    <On Terms="Effect.WallCrushEffectCreatePersistent.Start" Send="$Spell,A,Start" />
+    <On Terms="Effect.WallCrushEffectCreatePersistent.Start" Send="AnimPlay Spell Spell,A,Start" />
     <On Terms="Effect.WallCrushEffectSearch.Start" Send="AnimClear Spell" />
-    <On Terms="Effect.WallCrushEffectSearch.Start" Send="$Spell,A,End" />
+    <On Terms="Effect.WallCrushEffectSearch.Start" Send="AnimPlay Spell Spell,A,End" />
     <On Terms="Behavior.JungleCreepPassive.Off" Send="Create Merc_GraveGolem_Vox_Aggro" />
-    <On Terms="Abil.UnderworldBossRoots.SourceCastStart" Send="$Spell,C" />
+    <On Terms="Abil.UnderworldBossRoots.SourceCastStart" Send="AnimPlay Spell Spell,C" />
     <On Terms="Abil.UnderworldBossRoots.SourceCastStart" Send="TimerSet 0.250000 RootsLaunchFX" />
     <On Terms="Effect.UnderworldBossStunCreatePersistent.Start" Send="Create MegaStunWarning" />
     <On Terms="Effect.UnderworldBossStunCreatePersistent.Stop" Target="MegaStunWarning" Send="Destroy Immediate" />
@@ -11662,7 +11658,7 @@
   <CActorUnit id="GenericFlairUnit" parent="GenericUnitMinimal" unitName="GenericFlairUnit">
     <Model value="Invisible" />
     <StatusBarGroups index="All" value="0" />
-    <On Terms="ActorCreation" Send="$Birth" />
+    <On Terms="ActorCreation" Send="AnimPlay Birth Birth" />
   </CActorUnit>
   <CActorUnit id="RavenLordTribute" parent="StormUnitBase" unitName="RavenLordTribute">
     <Macros value="PreTargetHaloMacro" />
@@ -11670,7 +11666,7 @@
     <On Terms="UnitHighlightLocal.*.Stop" Send="StatusDecrement PreTargetingTint" />
     <On Terms="ActorCreation" Send="StatusSet TributeCaptureOrder 0" />
     <On Terms="ActorCreation" Send="StatusSet TributeCaptureChaos 0" />
-    <On Terms="ActorCreation" Send="$Birth 0 0.000000" />
+    <On Terms="ActorCreation" Send="AnimPlay Birth Birth 0 0.000000" />
     <On Terms="StatusOn.*.TributeCaptureOrder; IsStatus TributeCaptureChaos 0" Send="Create TributeOrderAreaMessage" />
     <On Terms="StatusOn.*.TributeCaptureChaos; IsStatus TributeCaptureOrder 0" Send="Create TributeChaosAreaMessage" />
     <On Terms="StatusOff.*.TributeCaptureOrder; IsStatus TributeCaptureChaos 5" Send="Create TributeChaosAreaMessage" />
@@ -11686,7 +11682,7 @@
     <On Terms="StatusOff.*.TributeCaptureOrder; IsStatus TributeCaptureChaos 0" Send="Create TributeNeutralAreaMessage" />
     <On Terms="StatusOff.*.TributeCaptureChaos; IsStatus TributeCaptureOrder 0" Send="Create TributeNeutralAreaMessage" />
     <On Terms="Signal.*.TributeOwnerNeutral" Send="Create TributeNeutralAreaMessage" />
-    <On Terms="Behavior.MapMechanicCoolUp.Off" Send="$Birth 0 0.000000" />
+    <On Terms="Behavior.MapMechanicCoolUp.Off" Send="AnimPlay Birth Birth 0 0.000000" />
     <MinimapIcon value="Assets\Textures\storm_ui_minimapicon_raventribute.dds" />
     <StatusBarFlags index="Shields" value="0" />
     <StatusBarFlags index="Life" value="0" />
@@ -11708,7 +11704,7 @@
     <MinimapIconTintColor value="255,128,255,255" />
   </CActorUnit>
   <CActorUnit id="RavenLordTributePreview" parent="StormUnitBase" unitName="RavenLordTributePreview">
-    <On Terms="ActorCreation" Send="$Birth 0 0.000000" />
+    <On Terms="ActorCreation" Send="AnimPlay Birth Birth 0 0.000000" />
     <StatusBarFlags index="Shields" value="0" />
     <StatusBarFlags index="Life" value="0" />
     <StatusBarFlags index="Energy" value="0" />
@@ -11736,8 +11732,8 @@
     <HostSiteOps Ops="SOpAttachOverhead" />
     <Model value="CurseofEluneUnits" />
     <On Terms="Behavior.RavenLordsCurseUnits.On" Send="Create" />
-    <On Terms="Behavior.RavenLordsCurseUnits.Off" Send="$Death" />
-    <On Terms="ActorCreation" Send="$Birth" />
+    <On Terms="Behavior.RavenLordsCurseUnits.Off" Send="AnimPlay Death Death" />
+    <On Terms="ActorCreation" Send="AnimPlay Birth Birth" />
     <On Terms="AnimDone; AnimName Death" Send="Destroy Immediate" />
   </CActorModel>
   <CActorModel id="RavenLordTributeWarning" parent="StormModelAnimationStyleContinuous">
@@ -11759,8 +11755,8 @@
     <HostSiteOps Ops="SOpAttachOverhead" />
     <Model value="CurseofEluneBuilding" />
     <On Terms="Behavior.RavenLordsCurseStructures.On" Send="Create" />
-    <On Terms="Behavior.RavenLordsCurseStructures.Off" Send="$Death" />
-    <On Terms="ActorCreation" Send="$Birth" />
+    <On Terms="Behavior.RavenLordsCurseStructures.Off" Send="AnimPlay Death Death" />
+    <On Terms="ActorCreation" Send="AnimPlay Birth Birth" />
     <On Terms="AnimDone; AnimName Death" Send="Destroy Immediate" />
     <FogVisibility value="Visible" />
   </CActorModel>
@@ -11925,7 +11921,6 @@
     <Host Subject="_Selectable" />
     <HostSiteOps Ops="SOpAttachCenterStationary SOpForwardCasterPoint" />
     <Model value="FlashoftheStormsFXOut" />
-    <ModelFlags index="AllowHitTest" value="0" />
     <Flags index="VisionTestCenterOnly" value="1" />
   </CActorModel>
   <CActorModel id="BoltoftheStormsUnitCopyModel">
@@ -11937,7 +11932,7 @@
     <On Terms="ActorCreation" Send="AnimHookSet HookedBaseline _Unit ::Baseline" />
     <On Terms="ActorCreation" Send="AnimHookClear HookedBaseline" />
     <On Terms="ActorCreation" Send="RefClear ::Host" />
-    <On Terms="ActorCreation" Send="$Spell,Forward" />
+    <On Terms="ActorCreation" Send="AnimPlay Spell Spell,Forward" />
     <On Terms="ActorCreation" Send="SetTintColor 64,64,255 0.500000" />
     <On Terms="ActorCreation" Send="SetOpacity 0.100000 0.250000" />
     <On Terms="ActorCreation" Send="TimerSet 0.250000 OpacityTimer" />
@@ -12205,7 +12200,7 @@
     <Inherits index="Visibility" value="1" />
     <On Terms="Behavior.TalentBucketStormShield.On" Send="Create" />
     <On Terms="Behavior.TalentBucketStormShield.Off" Send="AnimBracketStop BSD" />
-    <On Terms="Effect.TalentBucketStormShieldApplyBehavior.Start" Send="$Birth 0 -1.000000 -1.000000 1.000000 AsTimeScale" />
+    <On Terms="Effect.TalentBucketStormShieldApplyBehavior.Start" Send="AnimPlay Birth Birth 0 -1.000000 -1.000000 1.000000 AsTimeScale" />
     <Host Subject="_Unit" />
     <HostSiteOps Ops="SOpAttachCenterSoft" HoldRotation="1" />
     <AutoScaleFactor value="1.000000" />
@@ -12835,7 +12830,7 @@
     <RandomScaleRange value="1.000000,1.000000" />
     <Aliases value="_MMAnimMonitor" />
     <Macros value="StormDoodadMMAnimMonitor" />
-    <Remove Terms="ActorCreation" Send="$Stand PlayForever,RandomStartOffset" />
+    <Remove Terms="ActorCreation" Send="AnimPlay Stand Stand PlayForever,RandomStartOffset" />
     <On Terms="ActorCreation" Send="AnimBracketStop BSD" />
     <On Terms="ActorCreation" Send="AnimPlay On Dead PlayForever" />
     <On Terms="ActorCreation" Send="StatusIncrement MM1On" />
@@ -12855,8 +12850,8 @@
     <RandomScaleRange value="1.000000,1.000000" />
     <Aliases value="_MMAnimMonitor" />
     <Macros value="StormDoodadMMAnimMonitor" />
-    <Remove Terms="ActorCreation" Send="$Stand PlayForever,RandomStartOffset" />
-    <Remove Terms="ActorCreation" Send="$Stand PlayForever,RandomStartOffset" />
+    <Remove Terms="ActorCreation" Send="AnimPlay Stand Stand PlayForever,RandomStartOffset" />
+    <Remove Terms="ActorCreation" Send="AnimPlay Stand Stand PlayForever,RandomStartOffset" />
     <On Terms="ActorCreation" Send="AnimBracketStop BSD" />
     <On Terms="ActorCreation" Send="AnimPlay On Dead PlayForever" />
     <On Terms="ActorCreation" Send="StatusIncrement MM1On" />
@@ -13813,9 +13808,9 @@
     <MinimapIconType value="MapMechanic" />
   </CActorUnit>
   <CActorDoodad id="UnderworldSummonedBossSummonEffect">
-    <Remove Terms="ActorCreation" Send="$Stand PlayForever,RandomStartOffset" />
-    <On Terms="ActorCreation" Send="$Birth" />
-    <On Terms="AnimDone; AnimName Birth" Send="$Death 0 -1.000000 -1.000000 1.000000 AsTimeScale" />
+    <Remove Terms="ActorCreation" Send="AnimPlay Stand Stand PlayForever,RandomStartOffset" />
+    <On Terms="ActorCreation" Send="AnimPlay Birth Birth" />
+    <On Terms="AnimDone; AnimName Birth" Send="AnimPlay Death Death 0 -1.000000 -1.000000 1.000000 AsTimeScale" />
     <On Terms="AnimDone; AnimName Death" Send="Destroy Immediate" />
     <FogVisibility value="Visible" />
   </CActorDoodad>
@@ -13980,25 +13975,25 @@
   </CActorDoodad>
   <CActorUnit id="Storm_Critter_KingsCrest_Peasant_Vendor_A" parent="GenericUnitMinimal" unitName="Storm_Critter_KingsCrest_Peasant_Vendor_A">
     <StatusBarGroups index="All" value="0" />
-    <On Terms="ActorCreation" Send="$Birth" />
+    <On Terms="ActorCreation" Send="AnimPlay Birth Birth" />
     <On Terms="Behavior.PeasantCower.On" Send="AnimPlay Cower Spell,A AssetDrivenLooping" />
     <On Terms="Behavior.PeasantCower.Off" Send="AnimClear Cower" />
   </CActorUnit>
   <CActorUnit id="Storm_Critter_KingsCrest_Peasant_Vendor_B" parent="GenericUnitMinimal" unitName="Storm_Critter_KingsCrest_Peasant_Vendor_B">
     <StatusBarGroups index="All" value="0" />
-    <On Terms="ActorCreation" Send="$Birth" />
+    <On Terms="ActorCreation" Send="AnimPlay Birth Birth" />
     <On Terms="Behavior.PeasantCower.On" Send="AnimPlay Cower Spell,A AssetDrivenLooping" />
     <On Terms="Behavior.PeasantCower.Off" Send="AnimClear Cower" />
   </CActorUnit>
   <CActorUnit id="Storm_Critter_KingsCrest_Peasant_Vendor_C" parent="GenericUnitMinimal" unitName="Storm_Critter_KingsCrest_Peasant_Vendor_C">
     <StatusBarGroups index="All" value="0" />
-    <On Terms="ActorCreation" Send="$Birth" />
+    <On Terms="ActorCreation" Send="AnimPlay Birth Birth" />
     <On Terms="Behavior.PeasantCower.On" Send="AnimPlay Cower Spell,A AssetDrivenLooping" />
     <On Terms="Behavior.PeasantCower.Off" Send="AnimClear Cower" />
   </CActorUnit>
   <CActorUnit id="Storm_Critter_KingsCrest_Peasant_Vendor_D" parent="GenericUnitMinimal" unitName="Storm_Critter_KingsCrest_Peasant_Vendor_D">
     <StatusBarGroups index="All" value="0" />
-    <On Terms="ActorCreation" Send="$Birth" />
+    <On Terms="ActorCreation" Send="AnimPlay Birth Birth" />
     <On Terms="Behavior.PeasantCower.On" Send="AnimPlay Cower Spell,A AssetDrivenLooping" />
     <On Terms="Behavior.PeasantCower.Off" Send="AnimClear Cower" />
   </CActorUnit>
@@ -14015,7 +14010,7 @@
     <On Terms="StatusOn.*.Animating" Send="DoodadPreserve" />
     <On Terms="StatusOn.*.Animating" Send="ModelSwap StormDoodadLuxoriaPalmPillarDeath" />
     <On Terms="StatusOn.*.Animating" Send="Create Doodad_Luxoria_Breakable_PalmPillar_Death" />
-    <On Terms="StatusOn.*.Animating" Send="$Death PlayForever,NonLooping" />
+    <On Terms="StatusOn.*.Animating" Send="AnimPlay Death Death PlayForever,NonLooping" />
     <On Terms="AnimDone.*.Complete; AnimName Death" Send="AnimPlay Dead Dead PlayForever,NonLooping" />
   </CActorDoodad>
   <CActorDoodad id="Storm_Doodad_Luxoria_Table">
@@ -14030,7 +14025,7 @@
     <On Terms="StatusOn.*.Animating; IsStatus Animating 1" Send="ModelSwap StormDoodadLuxoriaVendorRackDeath00" />
     <On Terms="StatusOn.*.Animating; IsStatus Animating 2" Send="ModelSwap StormDoodadLuxoriaVendorRackDeath01" />
     <On Terms="StatusOn.*.Animating" Send="Create Doodad_Luxoria_Breakable_VendorRack_Death" />
-    <On Terms="StatusOn.*.Animating" Send="$Death" />
+    <On Terms="StatusOn.*.Animating" Send="AnimPlay Death Death" />
     <On Terms="AnimDone.*.Complete; AnimName Death" Send="Destroy Immediate" />
   </CActorDoodad>
   <CActorDoodad id="Storm_Doodad_CyberWorld_TreeB">
@@ -14273,7 +14268,7 @@
     <On Terms="Signal.*.DoodadImpacted; IsStatus Animating 0; ModelVariation 1" Send="ModelSwap Storm_Doodad_KingsCrest_Manhole_DeathRagdoll_01" />
     <On Terms="Signal.*.DoodadImpacted; IsStatus Animating 0; ModelVariation 2" Send="ModelSwap Storm_Doodad_KingsCrest_Manhole_DeathRagdoll_02" />
     <On Terms="Signal.*.DoodadImpacted; IsStatus Animating 0; ModelVariation 3" Send="ModelSwap Storm_Doodad_KingsCrest_Manhole_DeathRagdoll_03" />
-    <On Terms="Signal.*.DoodadImpacted; IsStatus Animating 0" Send="$Death 0 -1.000000 -1.000000 1.000000 AsTimeScale" />
+    <On Terms="Signal.*.DoodadImpacted; IsStatus Animating 0" Send="AnimPlay Death Death 0 -1.000000 -1.000000 1.000000 AsTimeScale" />
     <On Terms="Signal.*.DoodadImpacted; IsStatus Animating 0" Send="StatusSet Animating 1" />
     <On Terms="AnimDone; AnimName Death" Send="AnimPlay Dead Dead PlayForever" />
   </CActorDoodad>
@@ -14779,7 +14774,7 @@
   <CActorDoodad id="Storm_Effect_KingsCrest_Weather_Sunrays">
     <EditorModel value="WeatherHelper" />
     <RandomScaleRange value="1.000000,1.000000" />
-    <Remove Terms="ActorCreation" Send="$Stand PlayForever,RandomStartOffset" />
+    <Remove Terms="ActorCreation" Send="AnimPlay Stand Stand PlayForever,RandomStartOffset" />
     <On Terms="StatusOn.*.MM2On" Send="AnimBracketStart On Birth Stand Death" />
     <On Terms="TimerExpired; TimerName SetFireToTheRays" Send="AnimBracketStop On" />
     <On Terms="StatusOn.*.MM2On" Send="TimerSet 30.000000 SetFireToTheRays" />
@@ -14794,7 +14789,7 @@
   <CActorDoodad id="Storm_KingsCrest_Weather_Sunrays_Small_DragonShrine">
     <Aliases value="_CapturePointVisual" />
     <Aliases value="_MMAnimMonitor" />
-    <Remove Terms="ActorCreation" Send="$Stand PlayForever,RandomStartOffset" />
+    <Remove Terms="ActorCreation" Send="AnimPlay Stand Stand PlayForever,RandomStartOffset" />
     <On Terms="Signal.*.OwnerNeutral" Send="AnimBracketStop On" />
     <On Terms="Signal.*.OwnerOrder" Send="AnimBracketStart On Birth Stand Death" />
     <On Terms="Signal.*.OwnerChaos" Send="AnimBracketStart On Birth Stand Death" />
@@ -14809,9 +14804,9 @@
     <Aliases value="_MMAnimMonitor" />
     <EditorCategories value="DoodadType:Environment" />
     <TexSets value="Char" />
-    <Remove Terms="ActorCreation" Send="$Stand PlayForever,RandomStartOffset" />
+    <Remove Terms="ActorCreation" Send="AnimPlay Stand Stand PlayForever,RandomStartOffset" />
     <On Terms="StatusOn.*.MM1On" Send="AnimPlay On Stand PlayForever" />
-    <On Terms="StatusOff.*.MM1On" Send="$Death NonLooping" />
+    <On Terms="StatusOff.*.MM1On" Send="AnimPlay Death Death NonLooping" />
     <On Terms="StatusOff.*.MM1On" Send="AnimClear On" />
     <Macros value="StormDoodadMMAnimMonitor" />
     <FogVisibility value="Visible" />
@@ -14819,7 +14814,7 @@
   <CActorDoodad id="Storm_Effect_KingsCrest_Rain">
     <RandomScaleRange value="1.000000,1.000000" />
     <EditorModel value="WeatherHelper" />
-    <Remove Terms="ActorCreation" Send="$Stand PlayForever,RandomStartOffset" />
+    <Remove Terms="ActorCreation" Send="AnimPlay Stand Stand PlayForever,RandomStartOffset" />
     <On Terms="ActorCreation" Send="StatusIncrement MM1On" />
     <On Terms="StatusOn.*.MM1On" Send="AnimBracketStart On Birth Stand Death" />
     <On Terms="StatusOff.*.MM1On" Send="AnimBracketStop On" />
@@ -14848,7 +14843,7 @@
     <RandomScaleRange value="1.000000,1.000000" />
     <On Terms="ActorCreation" Send="Create StormDoodadRavenCourtPillarAnimMonitor" />
     <On Terms="StatusOn.*.NumUnits; AnimPlaying Stand" Send="AnimClear Stand" />
-    <On Terms="StatusOn.*.NumUnits; AnimPlaying Stand" Send="$Death" />
+    <On Terms="StatusOn.*.NumUnits; AnimPlaying Stand" Send="AnimPlay Death Death" />
     <On Terms="AnimDone; AnimName Death" Send="AnimPlay Dead Dead PlayForever" />
   </CActorDoodad>
   <CActorDoodad id="Storm_Doodad_KingsCrest_Docks_WatchTowerPillar">
@@ -14959,30 +14954,30 @@
     <VisibleToAtCreation index="Target" value="1" />
   </CActorSound>
   <CActorUnit id="TestHeroMelee" parent="StormHeroStandard" unitName="TestHeroMelee">
-    <On Terms="Abil.TestDummyAbilityA.SourceCastStart" Send="$Spell,A" />
-    <On Terms="Abil.TestDummyAbilityC.SourceCastStart" Send="$Spell,B" />
-    <On Terms="Abil.TestDummyAbilityB.SourceCastStart" Send="$Spell,C" />
-    <On Terms="Abil.TestDummyAbilityD.SourceCastStart" Send="$Spell,D" />
+    <On Terms="Abil.TestDummyAbilityA.SourceCastStart" Send="AnimPlay Spell Spell,A" />
+    <On Terms="Abil.TestDummyAbilityC.SourceCastStart" Send="AnimPlay Spell Spell,B" />
+    <On Terms="Abil.TestDummyAbilityB.SourceCastStart" Send="AnimPlay Spell Spell,C" />
+    <On Terms="Abil.TestDummyAbilityD.SourceCastStart" Send="AnimPlay Spell Spell,D" />
     <WalkAnimMoveSpeed value="4" />
   </CActorUnit>
   <CActorUnit id="TestHeroMeleePredictive" parent="StormHeroBasePredictive" unitName="TestHeroMeleePredictive">
-    <On Terms="Abil.TestDummyAbilityA.SourceCastStart" Send="$Spell,A" />
-    <On Terms="Abil.TestDummyAbilityC.SourceCastStart" Send="$Spell,B" />
-    <On Terms="Abil.TestDummyAbilityB.SourceCastStart" Send="$Spell,C" />
-    <On Terms="Abil.TestDummyAbilityD.SourceCastStart" Send="$Spell,D" />
+    <On Terms="Abil.TestDummyAbilityA.SourceCastStart" Send="AnimPlay Spell Spell,A" />
+    <On Terms="Abil.TestDummyAbilityC.SourceCastStart" Send="AnimPlay Spell Spell,B" />
+    <On Terms="Abil.TestDummyAbilityB.SourceCastStart" Send="AnimPlay Spell Spell,C" />
+    <On Terms="Abil.TestDummyAbilityD.SourceCastStart" Send="AnimPlay Spell Spell,D" />
   </CActorUnit>
   <CActorUnit id="TestHeroRanged" parent="StormHeroStandard" unitName="TestHeroRanged">
-    <On Terms="Abil.TestDummyAbilityA.SourceCastStart" Send="$Spell,A" />
-    <On Terms="Abil.TestDummyAbilityC.SourceCastStart" Send="$Spell,B" />
-    <On Terms="Abil.TestDummyAbilityB.SourceCastStart" Send="$Spell,C" />
-    <On Terms="Abil.TestDummyAbilityD.SourceCastStart" Send="$Spell,D" />
+    <On Terms="Abil.TestDummyAbilityA.SourceCastStart" Send="AnimPlay Spell Spell,A" />
+    <On Terms="Abil.TestDummyAbilityC.SourceCastStart" Send="AnimPlay Spell Spell,B" />
+    <On Terms="Abil.TestDummyAbilityB.SourceCastStart" Send="AnimPlay Spell Spell,C" />
+    <On Terms="Abil.TestDummyAbilityD.SourceCastStart" Send="AnimPlay Spell Spell,D" />
     <WalkAnimMoveSpeed value="4" />
   </CActorUnit>
   <CActorUnit id="TestHeroRangedPredictive" parent="StormHeroBasePredictive" unitName="TestHeroRangedPredictive">
-    <On Terms="Abil.TestDummyAbilityA.SourceCastStart" Send="$Spell,A" />
-    <On Terms="Abil.TestDummyAbilityC.SourceCastStart" Send="$Spell,B" />
-    <On Terms="Abil.TestDummyAbilityB.SourceCastStart" Send="$Spell,C" />
-    <On Terms="Abil.TestDummyAbilityD.SourceCastStart" Send="$Spell,D" />
+    <On Terms="Abil.TestDummyAbilityA.SourceCastStart" Send="AnimPlay Spell Spell,A" />
+    <On Terms="Abil.TestDummyAbilityC.SourceCastStart" Send="AnimPlay Spell Spell,B" />
+    <On Terms="Abil.TestDummyAbilityB.SourceCastStart" Send="AnimPlay Spell Spell,C" />
+    <On Terms="Abil.TestDummyAbilityD.SourceCastStart" Send="AnimPlay Spell Spell,D" />
   </CActorUnit>
   <CActorQueryResponse id="BuildingCrushQueryResponse">
     <Subject Filters="Doodad" />
@@ -14992,7 +14987,7 @@
     <On Terms="ActorCreation" Send="Create CritterExplosionTerrainDeform" />
   </CActorModel>
   <CActorModel id="FoliageFXCreepDevour">
-    <On Terms="ActorCreation" Send="$Death" />
+    <On Terms="ActorCreation" Send="AnimPlay Death Death" />
     <On Terms="AnimDone; AnimName Death" Send="Destroy" />
   </CActorModel>
   <CActorBeamSimple id="HunterSeekerTrackingBeam" parent="BeamSimpleAnimationStyleContinuous">
@@ -15137,7 +15132,7 @@
     <On Terms="StatusOn.*.Animating; IsStatus Animating 3" Send="ModelSwap StormDoodadLuxoriaObeliskBrokenDeath02" />
     <On Terms="StatusOn.*.Animating; IsStatus Animating 4" Send="ModelSwap StormDoodadLuxoriaObeliskBrokenDeath03" />
     <On Terms="StatusOn.*.Animating" Send="Create Storm_Doodad_Luxoria_ObeliskBroken_Death" />
-    <On Terms="StatusOn.*.Animating" Send="$Death PlayForever,NonLooping" />
+    <On Terms="StatusOn.*.Animating" Send="AnimPlay Death Death PlayForever,NonLooping" />
     <On Terms="AnimDone.*.Complete; AnimName Death" Send="AnimPlay Dead Dead PlayForever,NonLooping" />
   </CActorDoodad>
   <CActorDoodad id="Storm_Doodad_Luxoria_Pyramid">
@@ -15233,7 +15228,7 @@
     <ModelFlags index="AutomateGlobalLoops" value="1" />
   </CActorModelMaterial>
   <CActorShadow id="GroundShadow">
-    <On Terms="OptionsChange; Option Shadow Low; Scope Unit; ValidateUnit NotHeroicandNotFlying; $AllowBlobShadow" Send="Create" />
+    <On Terms="OptionsChange; Option Shadow Low; Scope Unit; ValidateUnit NotHeroicandNotFlying; CompareField ::Main UnitFlags[ShowBlobShadow] Eq 1" Send="Create" />
     <Inherits index="Opacity" value="1" />
   </CActorShadow>
   <CActorShadow id="GroundShadowLarge">
@@ -15245,7 +15240,7 @@
     <Inherits index="CloakEffect" value="1" />
     <Inherits index="Visibility" value="1" />
     <On Terms="AbilMorph.*.Finish; ValidateUnit IsFlying" Send="Destroy" />
-    <On Terms="OptionsChange; Option Shadow Low; Scope Unit; ValidateUnit UsesLargeBlobShadow; $AllowBlobShadow" Send="Create" />
+    <On Terms="OptionsChange; Option Shadow Low; Scope Unit; ValidateUnit UsesLargeBlobShadow; CompareField ::Main UnitFlags[ShowBlobShadow] Eq 1" Send="Create" />
     <On Terms="OptionsChange; Option Shadow Medium" Send="Destroy" />
     <On Terms="OptionsChange; Option Shadow High" Send="Destroy" />
     <On Terms="OptionsChange; Option Shadow Ultra" Send="Destroy" />
@@ -15254,9 +15249,9 @@
   <CActorShadow id="GroundShadowSmall">
     <Inherits index="CloakEffect" value="1" />
     <Inherits index="Visibility" value="1" />
-    <On Terms="AbilMorph.*.Finish; ValidateUnit IsHeroNotFlyingNotLargeShadow; Option Shadow Low; $AllowBlobShadow" Send="Create" />
+    <On Terms="AbilMorph.*.Finish; ValidateUnit IsHeroNotFlyingNotLargeShadow; Option Shadow Low; CompareField ::Main UnitFlags[ShowBlobShadow] Eq 1" Send="Create" />
     <On Terms="AbilMorph.*.Finish; ValidateUnit IsFlying" Send="Destroy" />
-    <On Terms="OptionsChange; Option Shadow Low; Scope Unit; ValidateUnit IsHeroNotFlyingNotLargeShadow; $AllowBlobShadow" Send="Create" />
+    <On Terms="OptionsChange; Option Shadow Low; Scope Unit; ValidateUnit IsHeroNotFlyingNotLargeShadow; CompareField ::Main UnitFlags[ShowBlobShadow] Eq 1" Send="Create" />
     <On Terms="OptionsChange; Option Shadow Medium" Send="Destroy" />
     <On Terms="OptionsChange; Option Shadow High" Send="Destroy" />
     <On Terms="OptionsChange; Option Shadow Ultra" Send="Destroy" />
@@ -15298,28 +15293,28 @@
   </CActorEventMacro>
   <CActorDoodad id="StormWinterVeilVictorySnowman">
     <FogVisibility value="Visible" />
-    <On Terms="ActorCreation" Send="$Birth" />
+    <On Terms="ActorCreation" Send="AnimPlay Birth Birth" />
     <On Terms="ActorCreation" Send="AnimSetPaused Birth" />
     <On Terms="ActorCreation" Send="SetVisibility" />
     <On Terms="ActorCreation" Send="TimerSet 0.000000,0.250000 Delay" />
     <On Terms="TimerExpired; TimerName Delay" Send="AnimSetPaused Birth 0" />
     <On Terms="TimerExpired; TimerName Delay" Send="SetVisibility 1" />
     <On Terms="TimerExpired; TimerName Delay" Send="Create StormWinterVeilVictorySnowmanBirthSound" />
-    <On Terms="AnimDone; AnimName Birth" Send="$Stand,Dance PlayForever" />
+    <On Terms="AnimDone; AnimName Birth" Send="AnimPlay Stand Stand,Dance PlayForever" />
     <On Terms="AnimDone; AnimName Birth" Send="Create StormWinterVeilVictorySnowmanDanceSound" />
     <On Terms="AnimPlay; AnimName Stand; IsStatus Alternate 1" Send="AnimSetTime Stand 1.000000" />
-    <Remove Terms="ActorCreation" Send="$Stand PlayForever,RandomStartOffset" />
+    <Remove Terms="ActorCreation" Send="AnimPlay Stand Stand PlayForever,RandomStartOffset" />
   </CActorDoodad>
   <CActorDoodad id="StormWinterVeilVictorySnowfall">
     <FogVisibility value="Visible" />
     <On Terms="ActorCreation" Send="AnimBracketStart BSD Birth Stand Death" />
     <On Terms="ActorCreation" Send="Create StormWinterVeilVictorySnowfallSound" />
-    <Remove Terms="ActorCreation" Send="$Stand PlayForever,RandomStartOffset" />
+    <Remove Terms="ActorCreation" Send="AnimPlay Stand Stand PlayForever,RandomStartOffset" />
   </CActorDoodad>
   <CActorDoodad id="StormWinterVeilVictoryGoblinSanta">
     <On Terms="ActorCreation" Send="AnimBracketStart BSD Birth Stand Death" />
     <On Terms="ActorCreation" Send="Create StormWinterVeilVictoryGoblinSantaSound" />
-    <Remove Terms="ActorCreation" Send="$Stand PlayForever,RandomStartOffset" />
+    <Remove Terms="ActorCreation" Send="AnimPlay Stand Stand PlayForever,RandomStartOffset" />
     <FogVisibility value="Visible" />
   </CActorDoodad>
   <CActorUnit id="HeroTestHero" parent="StormHeroBase" unitName="HeroTestHero">

@@ -267,7 +267,7 @@
     <HostSiteOps Ops="SOpAttachWeaponLeft" />
   </CActorModel>
   <CActorModelMaterial id="WizardDiamondSkinGlaze" parent="ModelAnimationStyleContinuous">
-    <On Terms="Effect.WizardTeleportDiamondSkinApplyBehavior.Start; At Caster" Send="$Birth" />
+    <On Terms="Effect.WizardTeleportDiamondSkinApplyBehavior.Start; At Caster" Send="AnimPlay Birth Birth" />
     <ModelFlags index="AutomateGlobalLoops" value="1" />
   </CActorModelMaterial>
   <CActorRegionCircle id="WizardGuideRegionCircle" parent="StormGuideRegionCircle">
@@ -338,27 +338,6 @@
     <ModelFlags index="AutomateGlobalLoops" value="1" />
   </CActorModelMaterial>
   <CActorUnit id="HeroWizard" parent="StormHeroBase" unitName="HeroWizard">
-    <AnimBlendTime value="0.150000" />
-    <DeathArray index="Normal" SoundLink="WizardBase_Death" />
-    <PortraitActor value="WizardPortrait" />
-    <PortraitModel value="WizardPortrait" />
-    <AbilSoundArray AbilCmd="WizardMagicMissiles,Execute" Sound="StormNoSound" />
-    <AbilSoundArray AbilCmd="WizardArcaneOrb,Execute" Sound="StormNoSound" />
-    <AbilSoundArray AbilCmd="WizardTeleport,Execute" Sound="StormNoSound" />
-    <AbilSoundArray AbilCmd="WizardDisintegrate,Execute" Sound="WizardBase_Ultimate1Used" />
-    <AbilSoundArray AbilCmd="WizardWaveOfForce,Execute" Sound="WizardBase_Ultimate2Used" />
-    <ErrorArray Error="NotEnoughEnergy" Sound="WizardBase_LowMana" />
-    <SoundArray index="Ready" value="WizardBase_Revive" />
-    <SoundArray index="Yes" value="WizardBase_Yes" />
-    <SoundArray index="Attack" value="WizardBase_Attack" />
-    <SoundArray index="Pissed" value="WizardBase_Pissed" />
-    <UnitIcon value="Assets\Textures\UI_targetportrait_Hero_Wizard.dds" />
-    <HeroIcon value="Assets\Textures\UI_targetportrait_Hero_Wizard.dds" />
-    <GroupIcon>
-      <Image value="Assets\Textures\storm_ui_ingame_partyframe_wizard.dds" />
-    </GroupIcon>
-    <MinimapIcon value="Assets\Textures\storm_ui_minimapicon_Wizard.dds" />
-    <MinimapIconBackgroundScale value="0.950000" />
     <On Terms="ActorCreation" Send="StatusSet AttackOrder 0" />
     <On Terms="UnitMovementUpdate.*.Walk; AnimPlaying Attack" Send="AnimClear Attack" />
     <On Terms="WeaponStart.*.AttackStart; IsStatus AttackOrder 2" Send="AnimPlay Attack Attack,C" />
@@ -366,43 +345,48 @@
     <On Terms="WeaponStart.*.AttackStart; IsStatus AttackOrder 0" Send="AnimPlay Attack Attack,A" />
     <On Terms="Effect.WizardWeaponLaunchSwitch.Start; At Caster" Send="StatusIncrement AttackOrder" />
     <On Terms="StatusIncrement; IsStatus AttackOrder 3" Send="StatusSet AttackOrder 0" />
-    <On Terms="Behavior.WizardTeleportDiamondSkinBuff.On" Send="ModelMaterialApply WizardDiamondSkinGlaze" />
-    <On Terms="Behavior.WizardTeleportDiamondSkinBuff.Off" Target="WizardDiamondSkinGlaze" Send="AnimBracketStop BSD" />
+    <On Terms="Abil.WizardMagicMissiles.SourceCastStart" Send="AnimPlay Spell Spell,A 0 -1.000000 -1.000000 1.000000 AsTimeScale" />
+    <On Terms="Abil.WizardArcaneOrb.SourceCastStart" Send="AnimPlay Spell Spell,B 0 -1.000000 -1.000000 1.000000 AsTimeScale" />
+    <On Terms="Abil.WizardTeleport.SourceCastStart" Send="AnimPlay Spell Spell,C 0 -1.000000 -1.000000 1.000000 AsTimeScale" />
+    <On Terms="Abil.WizardTeleport.SourceCastStart" Send="ModelMaterialApply WizardTeleportGlaze" />
     <On Terms="Effect.WizardDisintegrateApplyControllerBehavior.Start" Send="Create DisintegrateTargetSiteModel" />
     <On Terms="Effect.WizardArchonPurePowerDisintegrateApplyControllerBehavior.Start" Send="Create DisintegrateTargetSiteModel" />
-    <On Terms="Abil.WizardDisintegrate.SourceCastStart" Send="$Spell,D,Start 0 -1.000000 -1.000000 1.000000 AsTimeScale" />
-    <On Terms="AnimDone; AnimPlaying Spell Spell,D,Start" Send="$Spell,D 0 -1.000000 -1.000000 1.000000 AsTimeScale" />
+    <On Terms="Abil.WizardDisintegrate.SourceCastStart" Send="AnimPlay Spell Spell,D,Start 0 -1.000000 -1.000000 1.000000 AsTimeScale" />
+    <On Terms="AnimDone; AnimPlaying Spell Spell,D,Start" Send="AnimPlay Spell Spell,D 0 -1.000000 -1.000000 1.000000 AsTimeScale" />
     <On Terms="Behavior.WizardDisintegrateController.Off; AnimPlaying Spell D" Send="AnimClear Spell" />
-    <On Terms="Effect.WizardArchonPurePowerDisintegrateStartBeamSet.Start" Send="$Spell,D PlayForever -1.000000 -1.000000 1.000000 AsTimeScale" />
+    <On Terms="Effect.WizardArchonPurePowerDisintegrateStartBeamSet.Start" Send="AnimPlay Spell Spell,D PlayForever -1.000000 -1.000000 1.000000 AsTimeScale" />
     <On Terms="Behavior.WizardArchonPurePowerDisintegrateControllerBehavior.Off; AnimPlaying Spell D,Alternate" Send="AnimClear Spell" />
+    <On Terms="Abil.WizardWaveOfForce.SourceCastStart" Send="AnimPlay Spell Spell,F 0 -1.000000 -1.000000 1.000000 AsTimeScale" />
+    <On Terms="AnimPlay; AnimPlaying Dance Dance" Send="Create WizardDanceFX" />
+    <On Terms="AnimDone; AnimName Dance" Target="WizardDanceFX" Send="AnimBracketStop BSD" />
+    <On Terms="AnimPlay; AnimPlaying Spell Dance" Send="Create WizardDanceFX" />
+    <On Terms="AnimClear; AnimName Spell" Target="WizardDanceFX" Send="AnimBracketStop BSD" />
+    <On Terms="Abil.Hearthstone.SourceCastStart; IsStatus WizardSpecialQAnim 1" Send="Create Wizard_VolleyBall_Hearth_Sound" />
+    <On Terms="Abil.Hearthstone.SourceCastStop" Target="Wizard_VolleyBall_Hearth_Sound" Send="Destroy Immediate" />
+    <On Terms="Behavior.WizardTeleportDiamondSkinBuff.On" Send="ModelMaterialApply WizardDiamondSkinGlaze" />
+    <On Terms="Behavior.WizardTeleportDiamondSkinBuff.Off" Target="WizardDiamondSkinGlaze" Send="AnimBracketStop BSD" />
     <On Terms="Behavior.WizardArchonPurePowerInitialDelay.On" Send="AnimGroupRemove Ready" />
     <On Terms="Behavior.WizardArchonPurePowerInitialDelay.On" Send="AnimClear Ready" />
     <On Terms="Behavior.WizardArchonPurePowerInitialDelay.On" Send="StatusSet ArchonMode 1" />
-    <On Terms="Behavior.WizardArchonPurePowerInitialDelay.On" Send="$Birth" />
+    <On Terms="Behavior.WizardArchonPurePowerInitialDelay.On" Send="AnimPlay Birth Birth" />
     <On Terms="Behavior.WizardArchonPurePowerInitialDelay.On" Send="AnimClear Attack" />
     <On Terms="Behavior.WizardArchonPurePowerInitialDelay.On" Send="AnimClear Spell" />
     <On Terms="Behavior.WizardArchonPurePowerInitialDelay.On" Send="TimerSet 0.312500 TransitionTimer" />
-    <On Terms="TimerExpired; TimerName TransitionTimer" Send="AnimGroupApply Alternate" />
-    <On Terms="TimerExpired; TimerName TransitionTimer" Send="ModelSwap HeroWizardMorphArchon" />
-    <On Terms="TimerExpired; TimerName TransitionTimer" Send="TimerSet 0.062500 MorphOn" />
-    <On Terms="TimerExpired; TimerName TransitionTimer" Target="HeroWizardMorphArchon" Send="$Birth" />
-    <On Terms="TimerExpired; TimerName TransitionTimer" Send="PhysicsTerminate" />
-    <On Terms="TimerExpired; TimerName TransitionTimer" Send="TimerSet 0.062500 PhysicsRestart" />
+    <On Terms="TimerExpired; TimerName TransitionTimer; ValidateUnit HasArchonPurePowerBuff" Send="AnimGroupApply Alternate" />
+    <On Terms="TimerExpired; TimerName TransitionTimer; ValidateUnit HasArchonPurePowerBuff" Send="ModelSwap HeroWizardMorphArchon" />
+    <On Terms="TimerExpired; TimerName TransitionTimer; ValidateUnit HasArchonPurePowerBuff" Target="HeroWizardMorphArchon" Send="AnimPlay Birth Birth" />
+    <On Terms="TimerExpired; TimerName TransitionTimer; ValidateUnit HasArchonPurePowerBuff" Send="PhysicsTerminate" />
+    <On Terms="TimerExpired; TimerName TransitionTimer; ValidateUnit HasArchonPurePowerBuff" Send="TimerSet 0.062500 PhysicsRestart" />
     <On Terms="TimerExpired; TimerName PhysicsRestart" Send="PhysicsInitialize" />
     <On Terms="Behavior.WizardArchonPurePowerBuff.Off" Send="AnimGroupRemove Alternate" />
     <On Terms="Behavior.WizardArchonPurePowerBuff.Off" Send="DestroyParticles" />
     <On Terms="Behavior.WizardArchonPurePowerBuff.Off" Send="ModelSwap HeroWizard" />
-    <On Terms="Behavior.WizardArchonPurePowerBuff.Off; ValidateUnit WizardDoesNotHaveArchonNoOutroAnimSource" Send="$Spell,F,Alternate" />
+    <On Terms="Behavior.WizardArchonPurePowerBuff.Off; ValidateUnit WizardDoesNotHaveArchonNoOutroAnimSource" Send="AnimPlay Spell Spell,F,Alternate" />
     <On Terms="Behavior.WizardArchonPurePowerBuff.Off" Send="StatusSet ArchonMode 0" />
     <On Terms="Behavior.WizardArchonPurePowerBuff.Off" Send="TimerSet 5.000000 StandReadyOutroDuration" />
     <On Terms="Behavior.WizardArchonPurePowerBuff.Off" Send="PhysicsTerminate" />
     <On Terms="Behavior.WizardArchonPurePowerBuff.Off" Send="TimerSet 0.062500 PhysicsRestart" />
     <On Terms="TimerExpired; TimerName PhysicsRestart" Send="PhysicsInitialize" />
-    <On Terms="Abil.WizardMagicMissiles.SourceCastStart" Send="$Spell,A 0 -1.000000 -1.000000 1.000000 AsTimeScale" />
-    <On Terms="Abil.WizardArcaneOrb.SourceCastStart" Send="$Spell,B 0 -1.000000 -1.000000 1.000000 AsTimeScale" />
-    <On Terms="Abil.WizardTeleport.SourceCastStart" Send="$Spell,C 0 -1.000000 -1.000000 1.000000 AsTimeScale" />
-    <On Terms="Abil.WizardTeleport.SourceCastStart" Send="ModelMaterialApply WizardTeleportGlaze" />
-    <On Terms="Abil.WizardWaveOfForce.SourceCastStart" Send="$Spell,F 0 -1.000000 -1.000000 1.000000 AsTimeScale" />
     <On Terms="Effect.WizardArcaneOrbAoESet.Start; AnimPlaying Spell Spell,F" Target="WizardTriumvirateActive" Send="SetOpacity" />
     <On Terms="Abil.WizardWaveOfForce.SourceCastStart" Target="WizardTriumvirateActive" Send="SetOpacity" />
     <On Terms="Abil.WizardWaveOfForce.SourceCastStart" Target="WizardAetherWalkerActive" Send="SetOpacity" />
@@ -415,12 +399,6 @@
     <On Terms="AnimDone; AnimName Spell; !ValidateUnit WizardCasterHasArchonOrDisintegrateCombine" Target="WizardAetherWalkerActive" Send="SetOpacity 1.000000" />
     <On Terms="AnimDone; AnimName Spell; !ValidateUnit WizardCasterHasArchonOrDisintegrateCombine" Target="WizardPowerHungryActive" Send="SetOpacity 1.000000" />
     <On Terms="AnimDone; AnimName Spell; !ValidateUnit WizardCasterHasArchonOrDisintegrateCombine" Target="WizardAstralPresenceActive" Send="SetOpacity 1.000000" />
-    <On Terms="AnimPlay; AnimPlaying Dance Dance" Send="Create WizardDanceFX" />
-    <On Terms="AnimDone; AnimName Dance" Target="WizardDanceFX" Send="AnimBracketStop BSD" />
-    <On Terms="AnimPlay; AnimPlaying Spell Dance" Send="Create WizardDanceFX" />
-    <On Terms="AnimClear; AnimName Spell" Target="WizardDanceFX" Send="AnimBracketStop BSD" />
-    <On Terms="Abil.Hearthstone.SourceCastStart; IsStatus WizardSpecialQAnim 1" Send="Create Wizard_VolleyBall_Hearth_Sound" />
-    <On Terms="Abil.Hearthstone.SourceCastStop" Target="Wizard_VolleyBall_Hearth_Sound" Send="Destroy Immediate" />
     <On Terms="Abil.attack.ReadyStart; !ValidateUnit Mounted; !HasStatus ArchonMode" Send="Signal AnimGroupApplyReady" />
     <On Terms="Abil.attack.ReadyStart; !ValidateUnit Mounted; !HasStatus ArchonMode" Send="Signal AnimClearReady" />
     <On Terms="WeaponStart.*.AttackStart; !HasStatus ArchonMode" Send="Signal AnimGroupApplyReady" />
@@ -467,6 +445,27 @@
     <On Terms="Signal.*.AnimNotifyLoopDoneNever" Send="AnimNotifyLoopDone ::Baseline Never Persistent" />
     <Macros value="RemoveReadyAnimationMacro" />
     <Macros value="RemoveModelSwapRestartGlobalLoopsMacro" />
+    <AnimBlendTime value="0.150000" />
+    <DeathArray index="Normal" SoundLink="WizardBase_Death" />
+    <PortraitActor value="WizardPortrait" />
+    <PortraitModel value="WizardPortrait" />
+    <AbilSoundArray AbilCmd="WizardMagicMissiles,Execute" Sound="StormNoSound" />
+    <AbilSoundArray AbilCmd="WizardArcaneOrb,Execute" Sound="StormNoSound" />
+    <AbilSoundArray AbilCmd="WizardTeleport,Execute" Sound="StormNoSound" />
+    <AbilSoundArray AbilCmd="WizardDisintegrate,Execute" Sound="WizardBase_Ultimate1Used" />
+    <AbilSoundArray AbilCmd="WizardWaveOfForce,Execute" Sound="WizardBase_Ultimate2Used" />
+    <ErrorArray Error="NotEnoughEnergy" Sound="WizardBase_LowMana" />
+    <SoundArray index="Ready" value="WizardBase_Revive" />
+    <SoundArray index="Yes" value="WizardBase_Yes" />
+    <SoundArray index="Attack" value="WizardBase_Attack" />
+    <SoundArray index="Pissed" value="WizardBase_Pissed" />
+    <UnitIcon value="Assets\Textures\UI_targetportrait_Hero_Wizard.dds" />
+    <HeroIcon value="Assets\Textures\UI_targetportrait_Hero_Wizard.dds" />
+    <GroupIcon>
+      <Image value="Assets\Textures\storm_ui_ingame_partyframe_wizard.dds" />
+    </GroupIcon>
+    <MinimapIcon value="Assets\Textures\storm_ui_minimapicon_Wizard.dds" />
+    <MinimapIconBackgroundScale value="0.950000" />
   </CActorUnit>
   <CActorModelMaterial id="WizardTeleportGlaze" parent="ModelAnimationStyleOneShot">
     <On Terms="ActorCreation" Send="AnimBracketStart BSD IGNORE IGNORE Death ContentPlayOnce" />
@@ -612,9 +611,9 @@
     <DamageSiteOps Ops="SOpAttachHarness SOpAttachVolumeStandard SOpJainaImpact" />
   </CActorAction>
   <CActorMissile id="WizardCannoneerWeaponAttackMissile" parent="StormMissileWithDeathEarly" unitName="WizardCannoneerWeaponMissile">
-    <On Terms="BehaviorLevel.WizardCannoneerTrackerSource.Start; Level 1" Send="$Spell,A PlayForever" />
-    <On Terms="BehaviorLevel.WizardCannoneerTrackerSource.Start; Level 2" Send="$Spell,B PlayForever" />
-    <On Terms="BehaviorLevel.WizardCannoneerTrackerSource.Start; Level 3" Send="$Spell,C PlayForever" />
+    <On Terms="BehaviorLevel.WizardCannoneerTrackerSource.Start; Level 1" Send="AnimPlay Spell Spell,A PlayForever" />
+    <On Terms="BehaviorLevel.WizardCannoneerTrackerSource.Start; Level 2" Send="AnimPlay Spell Spell,B PlayForever" />
+    <On Terms="BehaviorLevel.WizardCannoneerTrackerSource.Start; Level 3" Send="AnimPlay Spell Spell,C PlayForever" />
   </CActorMissile>
   <CActorAction id="WizardCannoneerWeaponAttack" parent="RangedHeroAttackMissile" effectImpact="WizardCannoneerWeaponDamage" effectLaunch="WizardCannoneerWeaponLaunchMissile">
     <LaunchAttachQuery Methods="AMFilterWeaponRight" />
@@ -657,7 +656,7 @@
     <DeathArray index="Normal" ModelLink="Invisible" />
   </CActorMissile>
   <CActorMissile id="WizardMagicMissilesMissileLeft" parent="StormMissileWithDeathEarly" unitName="WizardMagicMissilesMissileLeft">
-    <On Terms="ActorCreation" Send="$Spell,A PlayForever,NonLooping 0.000000 0.000000 1.000000 AsTimeScale" />
+    <On Terms="ActorCreation" Send="AnimPlay Spell Spell,A PlayForever,NonLooping 0.000000 0.000000 1.000000 AsTimeScale" />
     <On Terms="MotionPhaseStart; MotionPhase 1" Send="HostSiteOpsSet ::Host" />
     <On Terms="UnitDeathCustomize; !HasStatus MoverStopped" Send="DeathCustomize Variation0" />
     <On Terms="MoverStopped" Send="TimerSet 0.062500 Stop" />
@@ -674,7 +673,7 @@
     <DeathArray index="Normal" ModelLink="Invisible" />
   </CActorMissile>
   <CActorMissile id="WizardMagicMissilesMissileRight" parent="StormMissileWithDeathEarly" unitName="WizardMagicMissilesMissileRight">
-    <On Terms="ActorCreation" Send="$Spell,A PlayForever,NonLooping 0.000000 0.000000 1.000000 AsTimeScale" />
+    <On Terms="ActorCreation" Send="AnimPlay Spell Spell,A PlayForever,NonLooping 0.000000 0.000000 1.000000 AsTimeScale" />
     <On Terms="UnitDeathCustomize; !HasStatus MoverStopped" Send="DeathCustomize Variation0" />
     <On Terms="MoverStopped" Send="TimerSet 0.062500 Stop" />
     <On Terms="TimerExpired; TimerName Stop" Send="StatusSet MoverStopped 1" />
@@ -689,7 +688,7 @@
     <DeathArray index="Normal" ModelLink="Invisible" />
   </CActorMissile>
   <CActorMissile id="WizardMagicMissilesMissileLeftTA" parent="StormMissileWithDeathEarly" unitName="WizardMagicMissilesMissileLeftTA">
-    <On Terms="ActorCreation" Send="$Spell,B PlayForever,NonLooping 0.000000 0.000000 1.000000 AsTimeScale" />
+    <On Terms="ActorCreation" Send="AnimPlay Spell Spell,B PlayForever,NonLooping 0.000000 0.000000 1.000000 AsTimeScale" />
     <On Terms="MotionPhaseStart; MotionPhase 1" Send="HostSiteOpsSet ::Host" />
     <On Terms="UnitDeathCustomize; !HasStatus MoverStopped" Send="DeathCustomize Variation0" />
     <On Terms="MoverStopped" Send="StatusSet MoverStopped 1" />
@@ -705,7 +704,7 @@
     <DeathArray index="Normal" ModelLink="Invisible" />
   </CActorMissile>
   <CActorMissile id="WizardMagicMissilesMissileRightTA" parent="StormMissileWithDeathEarly" unitName="WizardMagicMissilesMissileRightTA">
-    <On Terms="ActorCreation" Send="$Spell,B PlayForever,NonLooping 0.000000 0.000000 1.000000 AsTimeScale" />
+    <On Terms="ActorCreation" Send="AnimPlay Spell Spell,B PlayForever,NonLooping 0.000000 0.000000 1.000000 AsTimeScale" />
     <On Terms="UnitDeathCustomize; !HasStatus MoverStopped" Send="DeathCustomize Variation0" />
     <On Terms="MoverStopped" Send="StatusSet MoverStopped 1" />
     <DeathCustoms>
@@ -1053,7 +1052,7 @@
   </CActorModel>
   <CActorModel id="WizardTeleportDiamondSkinBuff" parent="StormModelAnimationStyleContinuousUnit">
     <On Terms="Behavior.WizardTeleportDiamondSkinBuff.On" Send="Create" />
-    <On Terms="Effect.WizardTeleportDiamondSkinApplyBehavior.Start; At Caster" Send="$Birth" />
+    <On Terms="Effect.WizardTeleportDiamondSkinApplyBehavior.Start; At Caster" Send="AnimPlay Birth Birth" />
     <On Terms="Behavior.WizardTeleportDiamondSkinBuff.Off" Send="HostSiteOpsSet ::Host SOpAttachCenter 1 1" />
     <On Terms="Behavior.WizardTeleportDiamondSkinBuff.Off" Send="AnimBracketStop BSD" />
     <HostSiteOps Ops="SOpAttachCenter" HoldRotation="1" />
@@ -1396,7 +1395,7 @@
     <On Terms="ActorCreation" Send="Create WizardWaveOfForceCloneCast" />
     <On Terms="ActorCreation" Send="TimerSet 0.010000 LaunchSoundDelay" />
     <On Terms="TimerExpired; TimerName LaunchSoundDelay" Send="Create WizardWaveOfForceLaunchSound" />
-    <On Terms="ActorCreation" Send="$Spell,E 0 0.000000 0.000000" />
+    <On Terms="ActorCreation" Send="AnimPlay Spell Spell,E 0 0.000000 0.000000" />
     <On Terms="ActorCreation" Send="SetOpacity" />
     <On Terms="ActorCreation" Send="SetOpacity 0.500000 0.250000" />
     <On Terms="ActorCreation" Send="TimerSet 0.250000 Delay" />
@@ -1818,9 +1817,8 @@
     <Alignment value="Positive" />
     <BehaviorCategories index="Restorable" value="1" />
     <RemoveValidatorArray value="WizardHasArchonPurePower" />
-    <Duration value="-1" />
-    <InitialEffect value="WizardArchonPurePowerInitialSet" />
-    <FinalEffect value="WizardArchonPurePowerCancelSet" />
+    <InitialEffect value="WizardArchonPurePowerBuffInitialSet" />
+    <FinalEffect value="WizardArchonPurePowerBuffFinalSet" />
     <Modification>
       <StateFlags index="SuppressFidgeting" value="1" />
       <AbilLinkDisableArray value="WizardMagicMissiles" />
@@ -2187,15 +2185,22 @@
     <EffectArray value="WizardDisintegrateCasterRemoveBehavior" />
     <EffectArray value="DismountDecloakCasterSet" />
   </CEffectSet>
-  <CEffectSet id="WizardArchonPurePowerInitialSet">
+  <CEffectSet id="WizardArchonPurePowerBuffInitialSet">
     <EffectArray value="DismountDecloakCasterSet" />
     <EffectArray value="WizardArchonPurePowerApplyInitialDelay" />
   </CEffectSet>
-  <CEffectSet id="WizardArchonPurePowerCancelSet">
+  <CEffectSet id="WizardArchonPurePowerBuffFinalSet">
     <EffectArray value="WizardArchonPurePowerDisintegrateCancelOrder" />
     <EffectArray value="WizardArchonPurePowerDisintegrateCancelSet" />
     <EffectArray value="WizardArchonPurePowerApplyFinalDelay" />
   </CEffectSet>
+  <CEffectSet id="HearthstoneSpecialCaseSet">
+    <EffectArray value="WizardArchonPurePowerBuffRemoveBehavior" />
+  </CEffectSet>
+  <CEffectRemoveBehavior id="WizardArchonPurePowerBuffRemoveBehavior">
+    <WhichUnit Value="Caster" />
+    <BehaviorLink value="WizardArchonPurePowerBuff" />
+  </CEffectRemoveBehavior>
   <CEffectSet id="WizardArchonPurePowerDisintegrateCancelSet">
     <EffectArray value="WizardArchonPurePowerDisintegrateControllerRemoveBehavior" />
     <EffectArray value="WizardArchonPurePowerDisintegrateCasterRemoveBehavior" />
@@ -3229,6 +3234,7 @@
     <Behavior value="WizardArchonPurePowerInitialDelay" />
   </CEffectApplyBehavior>
   <CEffectApplyBehavior id="WizardArchonPurePowerApplyFinalDelay">
+    <ValidatorArray value="HallOfStormsCasterDoesNotHaveProtectionBuff" />
     <WhichUnit Value="Caster" />
     <Behavior value="WizardArchonPurePowerFinalDelay" />
   </CEffectApplyBehavior>
@@ -3658,6 +3664,7 @@
     <VoiceLineArray value="WizardBase_VoiceLine05" />
     <Rarity value="Epic" />
     <AIComplexityTier value="Low" />
+    <ExpandedRole value="RangedAssassin" />
   </CHero>
   <CMoverMissile id="WizardHeroWeaponMissileMover">
     <MotionPhases>

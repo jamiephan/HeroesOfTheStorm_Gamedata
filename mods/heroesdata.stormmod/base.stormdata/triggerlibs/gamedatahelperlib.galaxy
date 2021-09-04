@@ -46,6 +46,12 @@ void libGDHL_InitVariables () {
         libGDHL_gv_abathurDeepTunnelPings[init_i] = c_invalidPingId;
     }
     libGDHL_gv_heroAbathurSpikeBurstSplatScalar = 1.0;
+    for (init_i = 0; init_i <= libCore_gv_bALMaxPlayers; init_i += 1) {
+        libGDHL_gv_abathurMonstrosityDeepTunnelPingTextLockoutTimer[init_i] = TimerCreate();
+    }
+    for (init_i = 0; init_i <= libCore_gv_bALMaxPlayers; init_i += 1) {
+        libGDHL_gv_abathurMonstrosityDeepTunnelPings[init_i] = c_invalidPingId;
+    }
     libGDHL_gv_heroAbathurMonstrosityTimedLifeIncrease = 3.0;
     libGDHL_gv_heroAbathurMonstrosityHealthIncreasePerLevel = 3.6;
     libGDHL_gv_heroAbathurEvolutionCompleteStacksCarryover = 0.25;
@@ -400,6 +406,7 @@ void libGDHL_gf_HeroAbathurIncrementHeroCountFunction () {
         TriggerEnable(libGDHL_gt_HeroAbathurSymbiotedMonstrositySymbioted, true);
         TriggerEnable(libGDHL_gt_HeroAbathurDeepTunnelPing, true);
         TriggerEnable(libGDHL_gt_HeroAbathurSymbioteMinimapIcon, true);
+        TriggerEnable(libGDHL_gt_HeroAbathurMonstrosityDeepTunnelPing, true);
     }
 
 }
@@ -436,6 +443,7 @@ void libGDHL_gf_HeroAbathurDecrementHeroCountFunction () {
         TriggerEnable(libGDHL_gt_HeroAbathurSymbiotedMonstrositySymbioted, false);
         TriggerEnable(libGDHL_gt_HeroAbathurDeepTunnelPing, false);
         TriggerEnable(libGDHL_gt_HeroAbathurSymbioteMinimapIcon, false);
+        TriggerEnable(libGDHL_gt_HeroAbathurMonstrosityDeepTunnelPing, false);
     }
 
 }
@@ -2671,10 +2679,6 @@ void libGDHL_gf_HeroMurkyRespawnLogicCheck (int lp_player) {
         UnitBehaviorRemove(lv_murky, "HallOfStormsProtectionBuff", 1);
         libGame_gv_heroDeathMurkyRespawnEggPoint[lp_player] = UnitGetPosition(libGame_gv_heroDeathMurkyRespawnEggs[lp_player]);
         UnitSetPosition(lv_murky, libGame_gv_heroDeathMurkyRespawnEggPoint[lp_player], false);
-        if ((PlayerHasTalent(lp_player, "MurkyEggHunt") == true)) {
-            UnitBehaviorAdd(lv_murky, "MurkyEggHuntCloak", lv_murky, 1);
-        }
-
         if ((PlayerHasTalent(lp_player, "MurkyEggShell") == true)) {
             UnitCreateEffectUnit(lv_murky, "MurkyEggShellProcSet", lv_murky);
         }
@@ -2691,6 +2695,11 @@ void libGDHL_gf_HeroMurkyRespawnLogicCheck (int lp_player) {
 
     }
     UnitModifyCooldown(lv_murky, "Abil/MurkyRespawnEgg", -60.0, c_cooldownOperationAdd);
+    if ((PlayerHasTalent(lp_player, "MurkyEggHunt") == true)) {
+        Wait(0.0625, c_timeGame);
+        UnitBehaviorAdd(lv_murky, "MurkyEggHuntCloak", lv_murky, 1);
+    }
+
 }
 
 void libGDHL_gf_HeroNecromancerIncrementHeroCountFunction () {
@@ -3994,7 +4003,6 @@ void libGDHL_gf_HeroWizardIncrementHeroCountFunction () {
     if ((libGDHL_gv_heroWizardTriggerRegistrationVariable == 1)) {
         TriggerEnable(libGDHL_gt_HeroWizardCriticalMassCDReduction, true);
         TriggerEnable(libGDHL_gt_HeroWizardDominance, true);
-        TriggerEnable(libGDHL_gt_HeroWizardRemoveArchononHearth, true);
         TriggerEnable(libGDHL_gt_HeroWizardIllusionistDamageCheck, true);
     }
 
@@ -4011,7 +4019,6 @@ void libGDHL_gf_HeroWizardDecrementHeroCountFunction () {
     if ((libGDHL_gv_heroWizardTriggerRegistrationVariable == 0)) {
         TriggerEnable(libGDHL_gt_HeroWizardCriticalMassCDReduction, false);
         TriggerEnable(libGDHL_gt_HeroWizardDominance, false);
-        TriggerEnable(libGDHL_gt_HeroWizardRemoveArchononHearth, false);
         TriggerEnable(libGDHL_gt_HeroWizardIllusionistDamageCheck, false);
     }
 
@@ -4995,10 +5002,7 @@ bool libGDHL_gt_HeroAbathurCarapaceRegenerativeMicrobes_Func (bool testConds, bo
 
     lv_abathurPlayer = EventPlayerEffectUsedUnitOwner(c_effectPlayerCaster);
     lv_abathur = libGame_gv_players[lv_abathurPlayer].lv_heroUnit;
-    if ((PlayerHasTalent(lv_abathurPlayer, "AbathurMasteryRegenerativeMicrobes") == true)) {
-        UnitCreateEffectUnit(lv_abathur, "RegenerativeMicrobesApplyBehavior", EventPlayerEffectUsedUnit(c_effectUnitTarget));
-    }
-
+    UnitCreateEffectUnit(lv_abathur, "RegenerativeMicrobesApplyBehavior", EventPlayerEffectUsedUnit(c_effectUnitTarget));
     return true;
 }
 
@@ -5008,6 +5012,7 @@ void libGDHL_gt_HeroAbathurCarapaceRegenerativeMicrobes_Init () {
     TriggerEnable(libGDHL_gt_HeroAbathurCarapaceRegenerativeMicrobes, false);
     TriggerAddEventPlayerEffectUsed(libGDHL_gt_HeroAbathurCarapaceRegenerativeMicrobes, c_playerAny, "CarapaceEvolutionApplyShield");
     TriggerAddEventPlayerEffectUsed(libGDHL_gt_HeroAbathurCarapaceRegenerativeMicrobes, c_playerAny, "CarapaceEvolutionApplyShieldHivemind");
+    TriggerAddEventPlayerEffectUsed(libGDHL_gt_HeroAbathurCarapaceRegenerativeMicrobes, c_playerAny, "AbathurSymbioteApplyCarapaceNetworkedCarapaceTalentShield");
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -5639,6 +5644,62 @@ void libGDHL_gt_HeroAbathurSymbioteHivemindStab_Init () {
 }
 
 //--------------------------------------------------------------------------------------------------
+// Trigger: Hero - Abathur - Monstrosity Deep Tunnel Ping
+//--------------------------------------------------------------------------------------------------
+bool libGDHL_gt_HeroAbathurMonstrosityDeepTunnelPing_Func (bool testConds, bool runActions) {
+    // Variable Declarations
+    unit lv_monstrosity;
+    int lv_abathurPlayer;
+    playergroup lv_alliedPlayers;
+    point lv_location;
+
+    // Automatic Variable Declarations
+    // Variable Initialization
+    lv_monstrosity = EventUnit();
+    lv_abathurPlayer = UnitGetOwner(EventUnit());
+    lv_alliedPlayers = PlayerGroupEmpty();
+    lv_location = EventUnitTargetPoint();
+
+    // Actions
+    if (!runActions) {
+        return true;
+    }
+
+    if ((TimerGetRemaining(libUIUI_gv_pingInputSuppressionTimer[lv_abathurPlayer]) > 0.0)) {
+        return true;
+    }
+
+    if ((TimerGetRemaining(libUIUI_gv_pingLockoutTimer[lv_abathurPlayer]) > 0.0)) {
+        return true;
+    }
+
+    libUIUI_gf_PingIncrementPingCountAndManageTimersForPlayer(lv_abathurPlayer);
+    lv_alliedPlayers = libGame_gf_PlayersOnTeamHeroes(libGame_gf_TeamNumberOfPlayer(lv_abathurPlayer), false);
+    libNtve_gf_CreatePingFacingAngleWithType(lv_alliedPlayers, "DehakaBrushStalkerShrubClusterModelMiniMap", lv_location, Color(0.00, 5.49, 73.33), 3.0, 270.0, -1, -1);
+    UnitCreateEffectPoint(lv_monstrosity, "DehakaBrushstalkerDummyPing", lv_location);
+    TextExpressionSetToken("Param/Expression/lib_GDHL_D54A5ECE", "A", UnitTypeGetName(UnitGetType(lv_monstrosity)));
+    TextTagCreate(TextExpressionAssemble("Param/Expression/lib_GDHL_D54A5ECE"), 24, lv_location, 2.0, true, false, libGame_gf_PlayersOnTeamHeroes(libGame_gf_TeamNumberOfPlayer(lv_abathurPlayer), false));
+    TextTagSetTime(TextTagLastCreated(), c_textTagTimeDuration, 3.0);
+    libGDHL_gv_abathurMonstrosityDeepTunnelPings[lv_abathurPlayer] = PingLastCreated();
+    PingSetScale(PingLastCreated(), 0.2);
+    if ((TimerGetRemaining(libGDHL_gv_abathurMonstrosityDeepTunnelPingTextLockoutTimer[lv_abathurPlayer]) > 0.0)) {
+    }
+    else {
+        TextExpressionSetToken("Param/Expression/lib_GDHL_09007EC9", "A", StringExternal("Param/Value/lib_GDHL_2804A2A6"));
+        UIDisplayMessage(lv_alliedPlayers, c_messageAreaChat, TextExpressionAssemble("Param/Expression/lib_GDHL_09007EC9"));
+        TimerStart(libGDHL_gv_abathurMonstrosityDeepTunnelPingTextLockoutTimer[lv_abathurPlayer], 10.0, false, c_timeGame);
+    }
+    return true;
+}
+
+//--------------------------------------------------------------------------------------------------
+void libGDHL_gt_HeroAbathurMonstrosityDeepTunnelPing_Init () {
+    libGDHL_gt_HeroAbathurMonstrosityDeepTunnelPing = TriggerCreate("libGDHL_gt_HeroAbathurMonstrosityDeepTunnelPing_Func");
+    TriggerEnable(libGDHL_gt_HeroAbathurMonstrosityDeepTunnelPing, false);
+    TriggerAddEventUnitAbility(libGDHL_gt_HeroAbathurMonstrosityDeepTunnelPing, null, AbilityCommand("AbathurMonstrosityDeepTunnel", 0), c_abilEffectStageCast, false);
+}
+
+//--------------------------------------------------------------------------------------------------
 // Trigger: Hero - Abathur - Monstrosity - Add Minion Kill Stacks
 //--------------------------------------------------------------------------------------------------
 bool libGDHL_gt_HeroAbathurMonstrosityAddMinionKillStacks_Func (bool testConds, bool runActions) {
@@ -5914,12 +5975,9 @@ bool libGDHL_gt_HeroAbathurSymbiotedMonstrositySymbioted_Func (bool testConds, b
     libGDHL_gv_abathurMonstrosity[libGDHL_gf_AbathurSymbioteAbathurPlayer()] = libGDHL_gf_AbathurSymbioteTarget();
     libGDHL_gv_abathurSymbioteMonstrosity[libGDHL_gf_AbathurSymbioteAbathurPlayer()] = libGDHL_gf_AbathurSymbioteUnit();
     UnitBehaviorRemove(libGDHL_gf_AbathurSymbioteUnit(), "AbathurSymbioteSuppressAttack", 1);
-    if ((PlayerHasTalent(libGDHL_gf_AbathurSymbioteAbathurPlayer(), "AbathurMasteryEvolutionComplete") == true)) {
-        UnitBehaviorAdd(libGDHL_gf_AbathurSymbioteUnit(), "AbathurMonstrosityDeepTunnelCarry", libGDHL_gf_AbathurSymbioteUnit(), 1);
-        lv_deepTunnelCD = UnitGetCooldown(libGDHL_gf_AbathurSymbioteTarget(), "Abil/AbathurMonstrosityDeepTunnel");
-        UnitModifyCooldown(libGDHL_gf_AbathurSymbioteUnit(), "Abil/AbathurMonstrosityDeepTunnelRedirect", lv_deepTunnelCD, c_cooldownOperationSet);
-    }
-
+    UnitBehaviorAdd(libGDHL_gf_AbathurSymbioteUnit(), "AbathurMonstrosityDeepTunnelCarry", libGDHL_gf_AbathurSymbioteUnit(), 1);
+    lv_deepTunnelCD = UnitGetCooldown(libGDHL_gf_AbathurSymbioteTarget(), "Abil/AbathurMonstrosityDeepTunnel");
+    UnitModifyCooldown(libGDHL_gf_AbathurSymbioteUnit(), "Abil/AbathurMonstrosityDeepTunnelRedirect", lv_deepTunnelCD, c_cooldownOperationSet);
     return true;
 }
 
@@ -11375,20 +11433,11 @@ bool libGDHL_gt_HeroLiLiCloudSerpentTurretSerpentSummonandSimplifiedAI_Func (boo
     UnitBehaviorAdd(lv_cloudSerpent, "LiLiCloudSerpentUnitTracker", lv_owningUnit, 1);
     UnitBehaviorAdd(lv_cloudSerpent, "LiLiBlindingWindSurgingWindsCloudSerpentAbilityPower", lv_caster, 1);
     UnitCreateEffectUnit(lv_cloudSerpent, "LiLiCloudSerpentAddTrackedUnit", lv_owningUnit);
-    UnitCreateEffectUnit(lv_owningUnit, "LiLiCloudSerpentApplyUnitLinkSerpent", lv_cloudSerpent);
     UnitBehaviorAdd(lv_cloudSerpent, "CloudSerpentMinionBehavior", lv_caster, 1);
-    if ((PlayerHasTalent(lv_liLiPlayer, "LiLiBlessingsOfYulon") == true)) {
-        UnitBehaviorAdd(lv_cloudSerpent, "LiLiCloudSerpentBlessingsOfYulon", lv_owningUnit, 1);
-    }
-
-    if ((PlayerHasTalent(lv_liLiPlayer, "LiLiMasteryCloudSerpentLightningSerpent") == true)) {
-        UnitBehaviorAdd(lv_cloudSerpent, "CloudSerpentLightningSerpentBehavior", lv_owningUnit, 1);
-    }
-
-    if ((PlayerHasTalent(lv_liLiPlayer, "LiLiMasteryCloudSerpentSerpentSidekick") == true)) {
-        UnitBehaviorAdd(lv_cloudSerpent, "LiLiCloudSerpentSerpentSidekickOwnerBehavior", lv_owningUnit, 1);
-    }
-
+    UnitBehaviorAdd(lv_cloudSerpent, "LiLiCloudSerpentBlessingsOfYulon", lv_caster, 1);
+    UnitBehaviorAdd(lv_cloudSerpent, "CloudSerpentLightningSerpentBehavior", lv_caster, 1);
+    UnitBehaviorAdd(lv_cloudSerpent, "LiLiCloudSerpentSerpentSidekickOwnerBehavior", lv_caster, 1);
+    UnitCreateEffectUnit(lv_owningUnit, "LiLiCloudSerpentApplyUnitLinkSerpent", lv_cloudSerpent);
     CatalogFieldValueSet(c_gameCatalogBehavior, "CloudSerpentMinionSpeedBoost", "Modification.UnifiedMoveSpeedFactor", lv_owningPlayer, CatalogFieldValueGet(c_gameCatalogBehavior, "Mounted", "Modification.UnifiedMoveSpeedFactor", lv_owningPlayer));
     CatalogFieldValueSet(c_gameCatalogEffect, "CloudSerpentWeaponDamage", "Amount", lv_owningPlayer, CatalogFieldValueGet(c_gameCatalogEffect, "CloudSerpentWeaponDamage", "Amount", lv_liLiPlayer));
     CatalogFieldValueSet(c_gameCatalogEffect, "LiLiCloudSerpentLightningSerpentTalentDamage", "Amount", lv_owningPlayer, CatalogFieldValueGet(c_gameCatalogEffect, "LiLiCloudSerpentLightningSerpentTalentDamage", "Amount", lv_liLiPlayer));
@@ -15398,9 +15447,6 @@ bool libGDHL_gt_HeroMalfurionInnervateCDR_Func (bool testConds, bool runActions)
     fixed lv_newChargeAmount;
 
     // Automatic Variable Declarations
-    int auto2AFE4DF1_ae;
-    const int auto2AFE4DF1_ai = 1;
-
     // Variable Initialization
     lv_cDRAmount = -0.5;
     lv_cooldownLink = "";
@@ -15412,22 +15458,7 @@ bool libGDHL_gt_HeroMalfurionInnervateCDR_Func (bool testConds, bool runActions)
     }
 
     lv_hero = EventPlayerEffectUsedUnit(c_effectUnitTarget);
-    lv_heroIndex = libCore_gf_GetHeroIndexForUnitType(UnitGetType(lv_hero));
-    auto2AFE4DF1_ae = libGame_gv_players[lv_heroIndex].lv_heroData.lv_numberOfAbilities;
-    lv_itAbility = 1;
-    for ( ; ( (auto2AFE4DF1_ai >= 0 && lv_itAbility <= auto2AFE4DF1_ae) || (auto2AFE4DF1_ai < 0 && lv_itAbility >= auto2AFE4DF1_ae) ) ; lv_itAbility += auto2AFE4DF1_ai ) {
-        if ((libGame_gv_players[lv_heroIndex].lv_heroData.lv_abilities[lv_itAbility].lv_isAffectedByCooldownReduction == true) && (libGame_gv_players[lv_heroIndex].lv_heroData.lv_abilities[lv_itAbility].lv_isHeroic == false) && (libGame_gv_players[lv_heroIndex].lv_heroData.lv_abilities[lv_itAbility].lv_isTrait == false) && (libGame_gv_players[lv_heroIndex].lv_heroData.lv_abilities[lv_itAbility].lv_isMountReplacement == false)) {
-            lv_abilLink = libGame_gv_players[lv_heroIndex].lv_heroData.lv_abilities[lv_itAbility].lv_ability;
-            lv_cooldownLink = CatalogFieldValueGet(c_gameCatalogAbil, lv_abilLink, "Cost[" + IntToString(0) + "].Cooldown.Link", UnitGetOwner(lv_hero));
-            UnitModifyCooldown(lv_hero, lv_cooldownLink, lv_cDRAmount, c_cooldownOperationAdd);
-            if ((libGame_gv_players[lv_heroIndex].lv_heroData.lv_abilities[lv_itAbility].lv_usesCharges == true)) {
-                lv_chargeLink = CatalogFieldValueGet(c_gameCatalogAbil, lv_abilLink, "Cost[" + IntToString(0) + "].Charge.Link", UnitGetOwner(lv_hero));
-                UnitAddChargeRegenRemaining(lv_hero, lv_chargeLink, lv_cDRAmount);
-            }
-
-        }
-
-    }
+    libGame_gf_StormUniversalModifyCooldownonUnitCDRforAbilities(lv_hero, lv_cDRAmount, false, false, false);
     return true;
 }
 
@@ -24468,48 +24499,6 @@ void libGDHL_gt_HeroWizardDominance_Init () {
 }
 
 //--------------------------------------------------------------------------------------------------
-// Trigger: Hero - Wizard - Remove Archon on Hearth
-//--------------------------------------------------------------------------------------------------
-bool libGDHL_gt_HeroWizardRemoveArchononHearth_Func (bool testConds, bool runActions) {
-    // Variable Declarations
-    int lv_player;
-    unit lv_unit;
-
-    // Automatic Variable Declarations
-    // Variable Initialization
-    lv_player = libGame_gf_HeroPortedBackToTownPlayer();
-    lv_unit = libGame_gv_players[lv_player].lv_heroUnit;
-
-    // Conditions
-    if (testConds) {
-        if (!((UnitGetType(lv_unit) == "HeroWizard"))) {
-            return false;
-        }
-
-        if (!((UnitBehaviorCount(lv_unit, "WizardArchonPurePowerBuff") == 1))) {
-            return false;
-        }
-    }
-
-    // Actions
-    if (!runActions) {
-        return true;
-    }
-
-    UnitBehaviorAdd(lv_unit, "WizardArchonNoOutroAnim", lv_unit, 1);
-    UnitBehaviorRemove(lv_unit, "WizardArchonPurePowerBuff", 1);
-    PlayerAddCooldown(lv_player, "Abil/WizardArchonPurePower", 10.0);
-    return true;
-}
-
-//--------------------------------------------------------------------------------------------------
-void libGDHL_gt_HeroWizardRemoveArchononHearth_Init () {
-    libGDHL_gt_HeroWizardRemoveArchononHearth = TriggerCreate("libGDHL_gt_HeroWizardRemoveArchononHearth_Func");
-    TriggerEnable(libGDHL_gt_HeroWizardRemoveArchononHearth, false);
-    libGame_gf_HeroPortedBackToTown(libGDHL_gt_HeroWizardRemoveArchononHearth);
-}
-
-//--------------------------------------------------------------------------------------------------
 // Trigger: Hero - Wizard - Illusionist - Damage Check
 //--------------------------------------------------------------------------------------------------
 bool libGDHL_gt_HeroWizardIllusionistDamageCheck_Func (bool testConds, bool runActions) {
@@ -24545,7 +24534,7 @@ bool libGDHL_gt_HeroWizardIllusionistDamageCheck_Func (bool testConds, bool runA
         return true;
     }
 
-    lv_damageTaken = EventUnitDamageAbsorbed();
+    lv_damageTaken = EventUnitDamageAmount();
     lv_totalHealth = UnitGetPropertyFixed(lv_unit, c_unitPropLifeMax, c_unitPropCurrent);
     lv_percentDamageTaken = (lv_damageTaken/lv_totalHealth);
     if ((lv_percentDamageTaken > libGDHL_gv_illusionistProcPercentageConstant)) {
@@ -24560,7 +24549,6 @@ void libGDHL_gt_HeroWizardIllusionistDamageCheck_Init () {
     libGDHL_gt_HeroWizardIllusionistDamageCheck = TriggerCreate("libGDHL_gt_HeroWizardIllusionistDamageCheck_Func");
     TriggerEnable(libGDHL_gt_HeroWizardIllusionistDamageCheck, false);
     TriggerAddEventUnitDamaged(libGDHL_gt_HeroWizardIllusionistDamageCheck, null, c_unitDamageTypeAny, c_unitDamageEither, null);
-    TriggerAddEventUnitDamageAbsorbed(libGDHL_gt_HeroWizardIllusionistDamageCheck, null, null);
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -26197,6 +26185,7 @@ void libGDHL_InitTriggers () {
     libGDHL_gt_HeroAbathurLocustNestCast_Init();
     libGDHL_gt_HeroAbathurSymbioteHivemindSingleTarget_Init();
     libGDHL_gt_HeroAbathurSymbioteHivemindStab_Init();
+    libGDHL_gt_HeroAbathurMonstrosityDeepTunnelPing_Init();
     libGDHL_gt_HeroAbathurMonstrosityAddMinionKillStacks_Init();
     libGDHL_gt_HeroAbathurMonstrositySymbioteendHooktoAI_Init();
     libGDHL_gt_HeroAbathurMonstrosityDeselectedHooktoAI_Init();
@@ -26587,7 +26576,6 @@ void libGDHL_InitTriggers () {
     libGDHL_gt_HeroWitchDoctorVileInfectionTaken_Init();
     libGDHL_gt_HeroWizardCriticalMassCDReduction_Init();
     libGDHL_gt_HeroWizardDominance_Init();
-    libGDHL_gt_HeroWizardRemoveArchononHearth_Init();
     libGDHL_gt_HeroWizardIllusionistDamageCheck_Init();
     libGDHL_gt_HeroUtherArmorofFaithProc_Init();
     libGDHL_gt_HeroUtherBlessedChampionTargetProc_Init();

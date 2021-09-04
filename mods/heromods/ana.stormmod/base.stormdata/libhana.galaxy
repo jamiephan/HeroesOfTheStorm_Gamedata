@@ -281,9 +281,6 @@ bool libHANA_gt_HeroAnaNanoBoostCDR_Func (bool testConds, bool runActions) {
     string lv_chargeLink;
 
     // Automatic Variable Declarations
-    int auto1446B6FD_ae;
-    const int auto1446B6FD_ai = 1;
-
     // Variable Initialization
     lv_hero = EventUnit();
     lv_heroIndex = libCore_gf_GetHeroIndexForUnitType(UnitGetType(lv_hero));
@@ -297,21 +294,10 @@ bool libHANA_gt_HeroAnaNanoBoostCDR_Func (bool testConds, bool runActions) {
     }
 
     while ((UnitHasBehavior2(lv_hero, "AnaNanoBoostBuff") == true)) {
-        auto1446B6FD_ae = libGame_gv_players[lv_heroIndex].lv_heroData.lv_numberOfAbilities;
-        lv_itAbility = 1;
-        for ( ; ( (auto1446B6FD_ai >= 0 && lv_itAbility <= auto1446B6FD_ae) || (auto1446B6FD_ai < 0 && lv_itAbility >= auto1446B6FD_ae) ) ; lv_itAbility += auto1446B6FD_ai ) {
-            if ((libGame_gv_players[lv_heroIndex].lv_heroData.lv_abilities[lv_itAbility].lv_isAffectedByCooldownReduction == true) && (libGame_gv_players[lv_heroIndex].lv_heroData.lv_abilities[lv_itAbility].lv_isHeroic == false) && (libGame_gv_players[lv_heroIndex].lv_heroData.lv_abilities[lv_itAbility].lv_isTrait == false) && (libGame_gv_players[lv_heroIndex].lv_heroData.lv_abilities[lv_itAbility].lv_isMountReplacement == false)) {
-                lv_abilLink = libGame_gv_players[lv_heroIndex].lv_heroData.lv_abilities[lv_itAbility].lv_ability;
-                lv_cooldownLink = CatalogFieldValueGet(c_gameCatalogAbil, lv_abilLink, "Cost[" + IntToString(0) + "].Cooldown.Link", lv_ownerOfHero);
-                UnitModifyCooldown(lv_hero, lv_cooldownLink, libHANA_gv_hero_Ana_NanoBoostCDRAmount_C, c_cooldownOperationAdd);
-                if ((libGame_gv_players[lv_heroIndex].lv_heroData.lv_abilities[lv_itAbility].lv_usesCharges == true)) {
-                    lv_chargeLink = CatalogFieldValueGet(c_gameCatalogAbil, lv_abilLink, "Cost[" + IntToString(0) + "].Charge.Link", lv_ownerOfHero);
-                    UnitAddChargeRegenRemaining(lv_hero, lv_chargeLink, libHANA_gv_hero_Ana_NanoBoostCDRAmount_C);
-                }
-
-            }
-
+        while ((UnitHasBehaviorWithCategoryFlag(lv_hero, c_behaviorCategoryTimeStop) == true)) {
+            Wait(0.0625, c_timeGame);
         }
+        libGame_gf_StormUniversalModifyCooldownonUnitCDRforAbilities(lv_hero, libHANA_gv_hero_Ana_NanoBoostCDRAmount_C, false, false, false);
         Wait(0.0625, c_timeGame);
     }
     return true;
@@ -409,7 +395,10 @@ bool libHANA_gt_HeroAnaEyeOfHorusRadiusTargeter_Func (bool testConds, bool runAc
         lv_eyeOfHorusAdjustedDistance = (lv_eyeOfHorusDistance-(lv_targetRadius-(lv_targetImpactDistance*lv_eyeOfHorusPositionAdjustmentFactor)));
     }
     lv_eyeOfHorusPointAdjusted = PointWithOffsetPolar(lv_posOfAna, lv_eyeOfHorusAdjustedDistance, UnitGetFacing(lv_anaUnit));
-    UnitCreateEffectPoint(lv_anaUnit, "AnaEyeOfHorusRadiusTargetHitDummyImpact", lv_eyeOfHorusPointAdjusted);
+    if (((UnitTypeTestAttribute(UnitGetType(lv_targetUnit), c_unitAttributeStructure) == true) && (libNtve_gf_PlayerIsEnemy(UnitGetOwner(lv_anaUnit), UnitGetOwner(lv_targetUnit), libNtve_ge_PlayerRelation_Enemy) == true))) {
+        UnitCreateEffectPoint(lv_anaUnit, "AnaEyeOfHorusRadiusTargetHitDummyImpact", lv_eyeOfHorusPointAdjusted);
+    }
+
     if ((libGame_gf_TeamNumberOfPlayer(UnitGetOwner(lv_anaUnit)) == libGame_gf_TeamNumberOfPlayer(UnitGetOwner(lv_targetUnit)))) {
         UnitCreateEffectPoint(lv_anaUnit, "AnaEyeOfHorusRadiusTargetHitDummyImpactAlly", lv_eyeOfHorusPointAdjusted);
     }

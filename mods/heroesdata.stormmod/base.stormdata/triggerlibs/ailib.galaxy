@@ -63,6 +63,10 @@ void libAIAI_InitVariables () {
     libAIAI_gv_aIAttackAbilMerc = AbilityCommand("StormMercenaryAttack", 0);
     libAIAI_gv_aIAttackAbilBoss = AbilityCommand("StormVehicleAttack", 0);
     libAIAI_gv_aIStopAbil = AbilityCommand("stop", 0);
+    libAIAI_gv_aITeamDelegateNonEventMapIncreaseAmount = 1;
+    libAIAI_gv_aITeamDelegateNonEventMapDecreaseAmount = -4;
+    libAIAI_gv_aITeamDelegateNonEventMapValuePeriodicRateChange = libAIAI_ge_AITeamDelegateMapNonEventMapValueOperations_Increase;
+    libAIAI_gv_aITeamDelegatePeriodicMapValueAdjustmentTimer = TimerCreate();
 }
 
 // Custom Script
@@ -2279,6 +2283,137 @@ bool libAIAI_gf_AIIsPointBehindEnemyGateEstimate (point lp_selfPosition, int lp_
     return true;
 }
 
+void libAIAI_gf_AITeamDelegateSetMapValueIncreaseAmount (int lp_value) {
+    // Automatic Variable Declarations
+    // Implementation
+    libAIAI_gv_aITeamDelegateNonEventMapIncreaseAmount = lp_value;
+}
+
+void libAIAI_gf_AITeamDelegateSetMapValueDecreaseAmount (int lp_value) {
+    // Automatic Variable Declarations
+    // Implementation
+    libAIAI_gv_aITeamDelegateNonEventMapIncreaseAmount = lp_value;
+}
+
+void libAIAI_gf_AITeamDelegateSetPeriodicMapValueAction (int lp_modificationType) {
+    // Automatic Variable Declarations
+    // Implementation
+    libAIAI_gv_aITeamDelegateNonEventMapValuePeriodicRateChange = lp_modificationType;
+}
+
+void libAIAI_gf_AITeamDelegateAdjustMapNonEventValue (int lp_Adjustment) {
+    // Variable Declarations
+    int lv_adjustmentAmount;
+
+    // Automatic Variable Declarations
+    int auto8F843238_val;
+    const int autoFE9CF8B3_ae = libCore_gv_bALMaxTeams;
+    int autoFE9CF8B3_var;
+
+    // Variable Initialization
+
+    // Implementation
+    auto8F843238_val = lp_Adjustment;
+    if (auto8F843238_val == libAIAI_ge_AITeamDelegateMapNonEventMapValueOperations_Disabled) {
+        return ;
+    }
+    else if (auto8F843238_val == libAIAI_ge_AITeamDelegateMapNonEventMapValueOperations_Increase) {
+        lv_adjustmentAmount = libAIAI_gv_aITeamDelegateNonEventMapIncreaseAmount;
+    }
+    else if (auto8F843238_val == libAIAI_ge_AITeamDelegateMapNonEventMapValueOperations_Decrease) {
+        lv_adjustmentAmount = libAIAI_gv_aITeamDelegateNonEventMapDecreaseAmount;
+    }
+    else {
+    }
+    autoFE9CF8B3_var = 1;
+    for ( ; autoFE9CF8B3_var <= autoFE9CF8B3_ae; autoFE9CF8B3_var += 1 ) {
+        libGame_gf_ModifyTokenCount(lv_adjustmentAmount, "AIMapTokenNonEventMapValue", libGame_gv_teams[autoFE9CF8B3_var].lv_core);
+    }
+}
+
+void libAIAI_gf_AITeamDelegateResetMapNonEventValue () {
+    // Variable Declarations
+    int lv_adjustmentAmount;
+
+    // Automatic Variable Declarations
+    const int autoE8EBA587_ae = libCore_gv_bALMaxTeams;
+    int autoE8EBA587_var;
+
+    // Variable Initialization
+
+    // Implementation
+    autoE8EBA587_var = 1;
+    for ( ; autoE8EBA587_var <= autoE8EBA587_ae; autoE8EBA587_var += 1 ) {
+        libGame_gf_ResetTokenCount("AIMapTokenNonEventMapValue", libGame_gv_teams[autoE8EBA587_var].lv_core);
+    }
+}
+
+void libAIAI_gf_AITeamDelegateAdjustMapEventProgressforTeam (int lp_Adjustment, int lp_teamID) {
+    // Automatic Variable Declarations
+    // Implementation
+    libGame_gf_ModifyTokenCount(lp_Adjustment, "AIMapTokenMapEventProgress", libGame_gv_teams[lp_teamID].lv_core);
+}
+
+void libAIAI_gf_AITeamDelegateResetMapEventProgressforTeam (int lp_teamID) {
+    // Automatic Variable Declarations
+    // Implementation
+    libGame_gf_ResetTokenCount("AIMapTokenMapEventProgress", libGame_gv_teams[lp_teamID].lv_core);
+}
+
+void libAIAI_gf_AITeamDelegateActivateDeactivateMapEvent (int lp_activateDeactivate) {
+    // Automatic Variable Declarations
+    const int autoE8307016_ae = libCore_gv_bALMaxTeams;
+    int autoE8307016_var;
+    const int auto16E09EAD_ae = libCore_gv_bALMaxTeams;
+    int auto16E09EAD_var;
+
+    // Implementation
+    if ((lp_activateDeactivate == libAIAI_ge_AITeamDelegateActivateDeactivateMapToken_Activate)) {
+        auto16E09EAD_var = 1;
+        for ( ; auto16E09EAD_var <= auto16E09EAD_ae; auto16E09EAD_var += 1 ) {
+            libGame_gf_ModifyTokenCount(1, "AIMapTokenMapEventActive", libGame_gv_teams[auto16E09EAD_var].lv_core);
+        }
+        libAIAI_gf_AITeamDelegateResetMapNonEventValue();
+        libAIAI_gf_AITeamDelegateSetPeriodicMapValueAction(libAIAI_ge_AITeamDelegateMapNonEventMapValueOperations_Disabled);
+    }
+    else {
+        autoE8307016_var = 1;
+        for ( ; autoE8307016_var <= autoE8307016_ae; autoE8307016_var += 1 ) {
+            libGame_gf_ResetTokenCount("AIMapTokenMapEventActive", libGame_gv_teams[autoE8307016_var].lv_core);
+        }
+        if ((UnitGetTokenCount(libGame_gv_teams[libGame_gv_teamOrderIndex_C].lv_core, ("AIMapTokenMapRewardActive")) != 0.0)) {
+        }
+        else {
+            libAIAI_gf_AITeamDelegateSetPeriodicMapValueAction(libAIAI_ge_AITeamDelegateMapNonEventMapValueOperations_Increase);
+        }
+    }
+}
+
+void libAIAI_gf_AITeamDelegateActivateDeactivateMapReward (int lp_activateDeactivate) {
+    // Automatic Variable Declarations
+    const int auto63E344D9_ae = libCore_gv_bALMaxTeams;
+    int auto63E344D9_var;
+    const int autoFFA547FE_ae = libCore_gv_bALMaxTeams;
+    int autoFFA547FE_var;
+
+    // Implementation
+    if ((lp_activateDeactivate == libAIAI_ge_AITeamDelegateActivateDeactivateMapToken_Activate)) {
+        autoFFA547FE_var = 1;
+        for ( ; autoFFA547FE_var <= autoFFA547FE_ae; autoFFA547FE_var += 1 ) {
+            libGame_gf_ModifyTokenCount(1, "AIMapTokenMapRewardActive", libGame_gv_teams[autoFFA547FE_var].lv_core);
+        }
+        libAIAI_gf_AITeamDelegateResetMapNonEventValue();
+        libAIAI_gf_AITeamDelegateSetPeriodicMapValueAction(libAIAI_ge_AITeamDelegateMapNonEventMapValueOperations_Disabled);
+    }
+    else {
+        auto63E344D9_var = 1;
+        for ( ; auto63E344D9_var <= auto63E344D9_ae; auto63E344D9_var += 1 ) {
+            libGame_gf_ResetTokenCount("AIMapTokenMapRewardActive", libGame_gv_teams[auto63E344D9_var].lv_core);
+        }
+        libAIAI_gf_AITeamDelegateSetPeriodicMapValueAction(libAIAI_ge_AITeamDelegateMapNonEventMapValueOperations_Increase);
+    }
+}
+
 void libAIAI_gf_AITeamDelegateModifyHeroStatusTokensforTeam (int lp_addRemove, int lp_tokenValue, int lp_teamID, int lp_livingDeadToken) {
     // Variable Declarations
     int lv_modifiedTokenValue;
@@ -3116,6 +3251,46 @@ void libAIAI_gt_HeroAILostVikingsDebuggingUpdate_Init () {
 }
 
 //--------------------------------------------------------------------------------------------------
+// Trigger: [AI] - Team Delegate: Start Periodic Map Value Adjustment Timer
+//--------------------------------------------------------------------------------------------------
+bool libAIAI_gt_AITeamDelegateStartPeriodicMapValueAdjustmentTimer_Func (bool testConds, bool runActions) {
+    // Automatic Variable Declarations
+    // Actions
+    if (!runActions) {
+        return true;
+    }
+
+    TimerStart(libAIAI_gv_aITeamDelegatePeriodicMapValueAdjustmentTimer, libAIAI_gv_aITeamDelegatePeriodicMapValueAdjustmentInterval_C, true, c_timeGame);
+    return true;
+}
+
+//--------------------------------------------------------------------------------------------------
+void libAIAI_gt_AITeamDelegateStartPeriodicMapValueAdjustmentTimer_Init () {
+    libAIAI_gt_AITeamDelegateStartPeriodicMapValueAdjustmentTimer = TriggerCreate("libAIAI_gt_AITeamDelegateStartPeriodicMapValueAdjustmentTimer_Func");
+    TriggerAddEventTimer(libAIAI_gt_AITeamDelegateStartPeriodicMapValueAdjustmentTimer, libGame_gv_openTheGatesTimer);
+}
+
+//--------------------------------------------------------------------------------------------------
+// Trigger: [AI] - Team Delegate: Periodic Map Value Adjustment
+//--------------------------------------------------------------------------------------------------
+bool libAIAI_gt_AITeamDelegatePeriodicMapValueAdjustment_Func (bool testConds, bool runActions) {
+    // Automatic Variable Declarations
+    // Actions
+    if (!runActions) {
+        return true;
+    }
+
+    libAIAI_gf_AITeamDelegateAdjustMapNonEventValue(libAIAI_gv_aITeamDelegateNonEventMapValuePeriodicRateChange);
+    return true;
+}
+
+//--------------------------------------------------------------------------------------------------
+void libAIAI_gt_AITeamDelegatePeriodicMapValueAdjustment_Init () {
+    libAIAI_gt_AITeamDelegatePeriodicMapValueAdjustment = TriggerCreate("libAIAI_gt_AITeamDelegatePeriodicMapValueAdjustment_Func");
+    TriggerAddEventTimer(libAIAI_gt_AITeamDelegatePeriodicMapValueAdjustment, libAIAI_gv_aITeamDelegatePeriodicMapValueAdjustmentTimer);
+}
+
+//--------------------------------------------------------------------------------------------------
 // Trigger: [AI] - Team Delegate: Initialize Minion Threat Values
 //--------------------------------------------------------------------------------------------------
 bool libAIAI_gt_AITeamDelegateInitializeMinionThreatValues_Func (bool testConds, bool runActions) {
@@ -3262,6 +3437,8 @@ void libAIAI_InitTriggers () {
     libAIAI_gt_HeroAITownDataInitialized_Init();
     libAIAI_gt_DEBUGSetAIBuild_Init();
     libAIAI_gt_HeroAILostVikingsDebuggingUpdate_Init();
+    libAIAI_gt_AITeamDelegateStartPeriodicMapValueAdjustmentTimer_Init();
+    libAIAI_gt_AITeamDelegatePeriodicMapValueAdjustment_Init();
     libAIAI_gt_AITeamDelegateInitializeMinionThreatValues_Init();
     libAIAI_gt_AITeamDelegateInitializeLaneStatusforTeam_Init();
     libAIAI_gt_AITeamDelegateUpdateTeamTalentTierDifferences_Init();
