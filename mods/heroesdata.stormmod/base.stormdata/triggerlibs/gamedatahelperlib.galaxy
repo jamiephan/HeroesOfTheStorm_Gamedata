@@ -664,6 +664,7 @@ void libGDHL_gf_HeroArtanisIncrementHeroCountFunction () {
         TriggerEnable(libGDHL_gt_HeroArtanisSpearofAdunPurifierBeamRedirectTarget2ElectricBoogaloo, true);
         TriggerEnable(libGDHL_gt_HeroArtanisSpearofAdunPurifierBeamUnitCreated, true);
         TriggerEnable(libGDHL_gt_HeroArtanisBladeDashPhasePrismCast, true);
+        TriggerEnable(libGDHL_gt_HeroArtanisProtectorofAiurHeroTakedownProc, true);
     }
 
 }
@@ -682,6 +683,7 @@ void libGDHL_gf_HeroArtanisDecrementHeroCountFunction () {
         TriggerEnable(libGDHL_gt_HeroArtanisSpearofAdunPurifierBeamRedirectTarget2ElectricBoogaloo, false);
         TriggerEnable(libGDHL_gt_HeroArtanisSpearofAdunPurifierBeamUnitCreated, false);
         TriggerEnable(libGDHL_gt_HeroArtanisBladeDashPhasePrismCast, false);
+        TriggerEnable(libGDHL_gt_HeroArtanisProtectorofAiurHeroTakedownProc, false);
     }
 
 }
@@ -6203,6 +6205,50 @@ void libGDHL_gt_HeroAbathurSymbioteMinimapIcon_Init () {
     libGDHL_gt_HeroAbathurSymbioteMinimapIcon = TriggerCreate("libGDHL_gt_HeroAbathurSymbioteMinimapIcon_Func");
     TriggerEnable(libGDHL_gt_HeroAbathurSymbioteMinimapIcon, false);
     TriggerAddEventPlayerEffectUsed(libGDHL_gt_HeroAbathurSymbioteMinimapIcon, c_playerAny, "SymbioteApplyHostBehavior");
+}
+
+//--------------------------------------------------------------------------------------------------
+// Trigger: Hero - Artanis - Protector of Aiur - Hero Takedown Proc
+//--------------------------------------------------------------------------------------------------
+bool libGDHL_gt_HeroArtanisProtectorofAiurHeroTakedownProc_Func (bool testConds, bool runActions) {
+    // Variable Declarations
+    int lv_artanisPlayer;
+    unit lv_artanisUnit;
+
+    // Automatic Variable Declarations
+    // Variable Initialization
+    lv_artanisPlayer = libGame_gf_HeroParticipatedInTakedownKillingPlayer();
+    lv_artanisUnit = libGame_gv_players[lv_artanisPlayer].lv_heroUnit;
+
+    // Conditions
+    if (testConds) {
+        if (!((lv_artanisPlayer >= 1))) {
+            return false;
+        }
+
+        if (!((lv_artanisPlayer <= libCore_gv_bALMaxPlayers))) {
+            return false;
+        }
+
+        if (!((PlayerHasTalent(lv_artanisPlayer, "ArtanisProtectorOfAiur") == true))) {
+            return false;
+        }
+    }
+
+    // Actions
+    if (!runActions) {
+        return true;
+    }
+
+    UnitCreateEffectUnit(lv_artanisUnit, "ArtanisProtectorOfAiurAddTakedownsTokenCount", lv_artanisUnit);
+    return true;
+}
+
+//--------------------------------------------------------------------------------------------------
+void libGDHL_gt_HeroArtanisProtectorofAiurHeroTakedownProc_Init () {
+    libGDHL_gt_HeroArtanisProtectorofAiurHeroTakedownProc = TriggerCreate("libGDHL_gt_HeroArtanisProtectorofAiurHeroTakedownProc_Func");
+    TriggerEnable(libGDHL_gt_HeroArtanisProtectorofAiurHeroTakedownProc, false);
+    libGame_gf_HeroParticipatedInTakedown(libGDHL_gt_HeroArtanisProtectorofAiurHeroTakedownProc);
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -18226,7 +18272,7 @@ bool libGDHL_gt_HeroNovaHoloCloneDamageDuplication_Func (bool testConds, bool ru
 
     // Automatic Variable Declarations
     // Variable Initialization
-    lv_damage = (EventUnitDamageAbsorbed() + EventUnitDamageAmount());
+    lv_damage = (EventUnitDamageBehaviorShield() + EventUnitDamageAmount());
     lv_image = EventUnit();
     lv_imageOwner = UnitGetOwner(lv_image);
     lv_caster = EventUnitDamageSourceUnit();
@@ -26641,6 +26687,7 @@ void libGDHL_InitTriggers () {
     libGDHL_gt_HeroAbathurMonstrosityAddSymbioteStacks_Init();
     libGDHL_gt_HeroAbathurSymbiotedMonstrositySymbioted_Init();
     libGDHL_gt_HeroAbathurSymbioteMinimapIcon_Init();
+    libGDHL_gt_HeroArtanisProtectorofAiurHeroTakedownProc_Init();
     libGDHL_gt_HeroArtanisBladeDashPhasePrismCast_Init();
     libGDHL_gt_HeroArtanisTwinBladesZealotChargeTargeting_Init();
     libGDHL_gt_HeroArtanisSpearofAdunPurifierBeamSetTarget_Init();

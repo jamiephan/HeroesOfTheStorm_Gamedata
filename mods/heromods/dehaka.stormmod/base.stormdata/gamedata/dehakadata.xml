@@ -985,6 +985,21 @@
   <CActorSiteOpAttach id="SOpAttachLaunch">
     <AttachQuery Methods="Launch 0" Fallback="Center" />
   </CActorSiteOpAttach>
+  <CBehaviorBuff id="DehakaBrushstalkerPackLeaderArmorCarryBehavior" parent="CarryBehaviorParent">
+    <Period value="0.0625" />
+    <InitialEffect value="DehakaBrushstalkerPackLeaderArmorApplyBehavior" />
+    <PeriodicEffect value="DehakaBrushstalkerPackLeaderArmorApplyBehavior" />
+  </CBehaviorBuff>
+  <CBehaviorBuff id="DehakaBrushstalkerPackLeaderArmorBehavior" parent="StormArmorPermanent">
+    <Alignment value="Positive" />
+    <DisableValidatorArray value="SourceNotDead" />
+    <BuffFlags index="RemoveDamageResponseExhausted" value="0" />
+    <BuffFlags index="RefreshStack" value="1" />
+    <Duration value="5" />
+    <ArmorModification>
+      <AllArmorBonus value="20" />
+    </ArmorModification>
+  </CBehaviorBuff>
   <CBehaviorBuff id="DehakaDarkSwarmPrimalSwarmTalentDebuff" parent="StormArmor">
     <Duration value="0.75" />
     <ArmorModification>
@@ -1350,9 +1365,9 @@
     </Modification>
   </CBehaviorBuff>
   <CBehaviorBuff id="DehakaDragTalentParalyzingEnzymesSlow" parent="StormSlowParent">
-    <Duration value="2" />
+    <Duration value="2.5" />
     <Modification>
-      <UnifiedMoveSpeedFactor value="-0.5" />
+      <UnifiedMoveSpeedFactor value="-0.3" />
     </Modification>
   </CBehaviorBuff>
   <CBehaviorBuff id="DehakaBrushstalkerCarry" parent="CarryBehaviorParent">
@@ -1416,6 +1431,10 @@
     </ArmorModification>
     <Duration value="3.5" />
   </CBehaviorBuff>
+  <CButton id="DehakaPackLeaderBrushstalker" parent="StormButtonParent">
+    <Icon value="Assets\Textures\storm_ui_icon_dehaka_brushstalker.dds" />
+    <HotkeyAlias value="DehakaBrushstalkerApexPredatorTalent" />
+  </CButton>
   <CButton id="DehakaCancelBurrow" parent="StormButtonParent">
     <Icon value="Assets\Textures\hud_btn_bg_ability_cancel.dds" />
     <HotkeyAlias value="DehakaBurrow" />
@@ -1466,12 +1485,12 @@
   <CButton id="DehakaBrushstalker" parent="StormButtonParent">
     <Icon value="Assets\Textures\storm_ui_icon_dehaka_mount.dds" />
     <TooltipAppender Validator="DehakaHasEssenceCollectionEnhancedAgilityTalent" Face="DehakaEssenceCollectionTalentEnhancedAgility" />
+    <TooltipAppender Validator="DehakaHasBrushstalkerPackLeaderTalent" Face="DehakaPackLeaderBrushstalker" />
     <TooltipAppender Validator="DehakaHasBrushstalkerApexPredator" Face="DehakaBrushstalkerApexPredatorTalent" />
   </CButton>
   <CButton id="DehakaDrag" parent="StormButtonParent">
     <Icon value="Assets\Textures\storm_ui_icon_dehaka_drag.dds" />
     <TooltipAppender Validator="DehakaHasDragFeedingFrenzyTalent" Face="DehakaDragTalentFeedingFrenzy" />
-    <TooltipAppender Validator="DehakaHasDragConstrictionTalent" Face="DehakaDragTalentConstriction" />
     <TooltipAppender Validator="DehakaHasDragParalyzingEnzymesTalent" Face="DehakaDragTalentParalyzingEnzymes" />
     <TooltipAppender Validator="DehakaHasDragElongatedTongueTalent" Face="DehakaDragTalentElongatedTongue" />
   </CButton>
@@ -1511,9 +1530,6 @@
     <Icon value="Assets\Textures\storm_ui_icon_dehaka_essencecollection.dds" />
   </CButton>
   <CButton id="DehakaDragTalentParalyzingEnzymes" parent="StormButtonParent">
-    <Icon value="Assets\Textures\storm_ui_icon_dehaka_drag.dds" />
-  </CButton>
-  <CButton id="DehakaDragTalentConstriction" parent="StormButtonParent">
     <Icon value="Assets\Textures\storm_ui_icon_dehaka_drag_var1.dds" />
   </CButton>
   <CButton id="DehakaDarkSwarmTalentSymbiosis" parent="StormButtonParent">
@@ -1558,6 +1574,12 @@
   <CEffectSet id="DehakaBrushstalkerDummyPing">
     <TargetLocationType value="Point" />
   </CEffectSet>
+  <CEffectApplyBehavior id="DehakaBrushstalkerPackLeaderArmorApplyBehavior">
+    <ValidatorArray value="DehakaHasBrushstalkerPackLeaderTalent" />
+    <ValidatorArray value="SourceInShrub" />
+    <WhichUnit Value="Caster" />
+    <Behavior value="DehakaBrushstalkerPackLeaderArmorBehavior" />
+  </CEffectApplyBehavior>
   <CEffectModifyUnit id="DehakaBrushstalkerTeleportFailRefund">
     <ImpactUnit Value="Caster" />
     <Cost Abil="DehakaBrushstalker,Execute" CooldownOperation="Set" />
@@ -1932,7 +1954,7 @@
     <SearchFlags index="DoActorSearch" value="1" />
   </CEffectEnumArea>
   <CEffectDamage id="DehakaDarkSwarmDamage" parent="StormSpell">
-    <Amount value="47" />
+    <Amount value="49" />
     <MultiplicativeModifierArray index="FerociousStalker" Validator="DehakaHasFerociousStalkerBehavior" Modifier="0.5" Crit="1" />
   </CEffectDamage>
   <CEffectCreatePersistent id="DehakaDragMissileScanPersistent">
@@ -2553,16 +2575,16 @@
     <TalentTreeArray Talent="DehakaEssenceCollectionOneWhoCollectsTalent" Tier="2" Column="2" />
     <TalentTreeArray Talent="DehakaEssenceCollectionTalentHeroStalker" Tier="2" Column="3" />
     <TalentTreeArray Talent="DehakaDragTalentFeedingFrenzy" Tier="3" Column="1" />
-    <TalentTreeArray Talent="DehakaDragTalentConstriction" Tier="3" Column="2" />
+    <TalentTreeArray Talent="DehakaDragTalentParalyzingEnzymes" Tier="3" Column="2" />
     <TalentTreeArray Talent="DehakaDarkSwarmTalentSymbiosis" Tier="3" Column="3" />
     <TalentTreeArray Talent="DehakaHeroicAbilityIsolation" Tier="4" Column="1" />
     <TalentTreeArray Talent="DehakaHeroicAbilityAdaptation" Tier="4" Column="2" />
     <TalentTreeArray Talent="DehakaPrimalRage" Tier="5" Column="1" />
     <TalentTreeArray Talent="DehakaBrushstalkerFerociousStalker" Tier="5" Column="2" />
     <TalentTreeArray Talent="DehakaPrimalSwarm" Tier="5" Column="3" />
-    <TalentTreeArray Talent="DehakaDragTalentParalyzingEnzymes" Tier="6" Column="1" />
-    <TalentTreeArray Talent="DehakaDragTalentElongatedTongue" Tier="6" Column="2" />
-    <TalentTreeArray Talent="DehakaTunnelingClaws" Tier="6" Column="3" />
+    <TalentTreeArray Talent="DehakaDragTalentElongatedTongue" Tier="6" Column="1" />
+    <TalentTreeArray Talent="DehakaTunnelingClaws" Tier="6" Column="2" />
+    <TalentTreeArray Talent="DehakaPackLeaderBrushstalkerTalent" Tier="6" Column="3" />
     <TalentTreeArray Talent="DehakaIsolationTalentContagion" Tier="7" Column="1">
       <PrerequisiteTalentArray value="DehakaHeroicAbilityIsolation" />
     </TalentTreeArray>
@@ -2669,10 +2691,10 @@
     <TalentAIBuildsArray ChanceToPick="16">
       <TalentsArray value="DehakaEssenceCollectionTalentTissueRegeneration" />
       <TalentsArray value="DehakaEssenceCollectionOneWhoCollectsTalent" />
-      <TalentsArray value="DehakaDragTalentConstriction" />
+      <TalentsArray value="DehakaDragTalentParalyzingEnzymes" />
       <TalentsArray value="DehakaHeroicAbilityIsolation" />
       <TalentsArray value="DehakaPrimalSwarm" />
-      <TalentsArray value="DehakaDragTalentParalyzingEnzymes" />
+      <TalentsArray value="DehakaPackLeaderBrushstalkerTalent" />
       <TalentsArray value="DehakaEssenceClaws" />
     </TalentAIBuildsArray>
     <TalentAIBuildsArray ChanceToPick="16">
@@ -2696,7 +2718,7 @@
     <TalentAIBuildsArray AIOnly="1" ChanceToPick="16">
       <TalentsArray value="DehakaEssenceCollectionTalentEnhancedAgility" />
       <TalentsArray value="DehakaBurrowTalentLurkerStrain" />
-      <TalentsArray value="DehakaDragTalentConstriction" />
+      <TalentsArray value="DehakaDragTalentParalyzingEnzymes" />
       <TalentsArray value="DehakaHeroicAbilityIsolation" />
       <TalentsArray value="DehakaPrimalRage" />
       <TalentsArray value="DehakaTunnelingClaws" />
@@ -2705,10 +2727,10 @@
     <TalentAIBuildsArray AIOnly="1" ChanceToPick="16">
       <TalentsArray value="DehakaEssenceCollectionTalentTissueRegeneration" />
       <TalentsArray value="DehakaEssenceCollectionTalentHeroStalker" />
-      <TalentsArray value="DehakaDragTalentConstriction" />
+      <TalentsArray value="DehakaDragTalentParalyzingEnzymes" />
       <TalentsArray value="DehakaHeroicAbilityAdaptation" />
       <TalentsArray value="DehakaPrimalSwarm" />
-      <TalentsArray value="DehakaDragTalentParalyzingEnzymes" />
+      <TalentsArray value="DehakaPackLeaderBrushstalkerTalent" />
       <TalentsArray value="DehakaAdaptationChangeIsSurvivalTalent" />
     </TalentAIBuildsArray>
     <Difficulty value="Medium" />
@@ -2720,6 +2742,18 @@
     <Rarity value="Legendary" />
     <ExpandedRole value="Bruiser" />
   </CHero>
+  <CHeroMastery id="DehakaMasteryRing1" parent="MasteryRingRank1">
+    <ProductId value="66939" />
+    <HyperlinkId value="DehakaMasteryRingRank1" />
+  </CHeroMastery>
+  <CHeroMastery id="DehakaMasteryRing2" parent="MasteryRingRank2">
+    <ProductId value="67078" />
+    <HyperlinkId value="DehakaMasteryRingRank2" />
+  </CHeroMastery>
+  <CHeroMastery id="DehakaMasteryRing3" parent="MasteryRingRank3">
+    <ProductId value="72980" />
+    <HyperlinkId value="DehakaMasteryRingRank3" />
+  </CHeroMastery>
   <CLight id="Home_Dehaka" parent="default">
     <ToDInfoArray index="0" Id="Home_Dehaka" OperatorHDR="4">
       <Param index="HDRSpecMultiplier" value="2.000000" />
@@ -2900,6 +2934,22 @@
     <IconSlot value="19" />
     <Hero value="Dehaka" />
   </CRewardPortrait>
+  <CRewardHeroMastery id="DehakaMasteryRing1">
+    <License value="49828" />
+  </CRewardHeroMastery>
+  <CRewardHeroMastery id="DehakaMasteryRing2">
+    <License value="49829" />
+  </CRewardHeroMastery>
+  <CRewardHeroMastery id="DehakaMasteryRing3">
+    <License value="52223" />
+  </CRewardHeroMastery>
+  <CTalent id="DehakaPackLeaderBrushstalkerTalent">
+    <Face value="DehakaPackLeaderBrushstalker" />
+    <Abil value="DehakaBrushstalker" />
+    <RankArray>
+      <BehaviorArray value="DehakaBrushstalkerPackLeaderArmorCarryBehavior" />
+    </RankArray>
+  </CTalent>
   <CTalent id="DehakaEssenceClaws">
     <Face value="DehakaEssenceClaws" />
     <Abil value="DehakaEssenceCollection" />
@@ -3111,12 +3161,6 @@
         <Field value="Chance" />
         <Value value="1.000000" />
       </Modifications>
-    </AbilityModificationArray>
-  </CTalent>
-  <CTalent id="DehakaDragTalentConstriction">
-    <Face value="DehakaDragTalentConstriction" />
-    <Abil value="DehakaDrag" />
-    <AbilityModificationArray>
       <Modifications>
         <Type value="FlatModification" />
         <Catalog value="Behavior" />
@@ -3321,6 +3365,11 @@
   <CValidatorUnitOrderQueue id="CasterCastingDrag">
     <AbilLink value="DehakaDrag" />
   </CValidatorUnitOrderQueue>
+  <CValidatorPlayerTalent id="DehakaHasBrushstalkerPackLeaderTalent">
+    <WhichPlayer Value="Caster" />
+    <Find value="1" />
+    <Value value="DehakaPackLeaderBrushstalkerTalent" />
+  </CValidatorPlayerTalent>
   <CValidatorCombine id="RemoveSuppressTurningBehavior">
     <CombineArray value="CasterCastingIsolation" />
     <CombineArray value="CasterCastingDrag" />
@@ -3728,11 +3777,6 @@
     <Find value="1" />
     <Value value="DehakaDragTalentParalyzingEnzymes" />
   </CValidatorPlayerTalent>
-  <CValidatorPlayerTalent id="DehakaHasDragConstrictionTalent">
-    <WhichPlayer Value="Caster" />
-    <Find value="1" />
-    <Value value="DehakaDragTalentConstriction" />
-  </CValidatorPlayerTalent>
   <CValidatorPlayerTalent id="DehakaHasDragFeedingFrenzyTalent">
     <WhichPlayer Value="Caster" />
     <Find value="1" />
@@ -3820,25 +3864,4 @@
     <Arc value="360" />
     <Effect value="DehakaHeroWeaponDragSet" />
   </CWeaponLegacy>
-  <CHeroMastery id="DehakaMasteryRing1" parent="MasteryRingRank1">
-    <ProductId value="66939" />
-    <HyperlinkId value="DehakaMasteryRingRank1" />
-  </CHeroMastery>
-  <CHeroMastery id="DehakaMasteryRing2" parent="MasteryRingRank2">
-    <ProductId value="67078" />
-    <HyperlinkId value="DehakaMasteryRingRank2" />
-  </CHeroMastery>
-  <CHeroMastery id="DehakaMasteryRing3" parent="MasteryRingRank3">
-    <ProductId value="72980" />
-    <HyperlinkId value="DehakaMasteryRingRank3" />
-  </CHeroMastery>
-  <CRewardHeroMastery id="DehakaMasteryRing1">
-    <License value="49828" />
-  </CRewardHeroMastery>
-  <CRewardHeroMastery id="DehakaMasteryRing2">
-    <License value="49829" />
-  </CRewardHeroMastery>
-  <CRewardHeroMastery id="DehakaMasteryRing3">
-    <License value="52223" />
-  </CRewardHeroMastery>
 </Catalog>

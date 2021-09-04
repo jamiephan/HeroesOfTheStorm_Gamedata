@@ -40,7 +40,6 @@ void libHAMA_gf_HeroAmazonIncrementHeroCountFunction () {
     if ((libHAMA_gv_heroAmazonTriggerRegistrationVariable == 1)) {
         TriggerEnable(libHAMA_gt_HeroAmazonSurgeofLightDamageTaken, true);
         TriggerEnable(libHAMA_gt_HeroAmazonSurgeofLightResetCharge, true);
-        TriggerEnable(libHAMA_gt_HeroAmazonInnerLightCheckforCC, true);
     }
 
 }
@@ -56,7 +55,6 @@ void libHAMA_gf_HeroAmazonDecrementHeroCountFunction () {
     if ((libHAMA_gv_heroAmazonTriggerRegistrationVariable == 0)) {
         TriggerEnable(libHAMA_gt_HeroAmazonSurgeofLightDamageTaken, false);
         TriggerEnable(libHAMA_gt_HeroAmazonSurgeofLightResetCharge, false);
-        TriggerEnable(libHAMA_gt_HeroAmazonInnerLightCheckforCC, false);
     }
 
 }
@@ -210,69 +208,11 @@ void libHAMA_gt_HeroAmazonSurgeofLightResetCharge_Init () {
     TriggerAddEventUnitBehaviorChange(libHAMA_gt_HeroAmazonSurgeofLightResetCharge, null, "AmazonAvoidanceSurgeOfLightAbilityReady", c_unitBehaviorChangeDestroy);
 }
 
-//--------------------------------------------------------------------------------------------------
-// Trigger: Hero - Amazon - Inner Light (Check for CC)
-//--------------------------------------------------------------------------------------------------
-bool libHAMA_gt_HeroAmazonInnerLightCheckforCC_Func (bool testConds, bool runActions) {
-    // Variable Declarations
-    int lv_amazonPlayer;
-    unit lv_amazonUnit;
-
-    // Automatic Variable Declarations
-    // Variable Initialization
-    lv_amazonPlayer = EventPlayer();
-    lv_amazonUnit = EventUnit();
-
-    // Conditions
-    if (testConds) {
-        if (!((lv_amazonPlayer > 0))) {
-            return false;
-        }
-
-        if (!((lv_amazonPlayer <= libCore_gv_bALMaxPlayers))) {
-            return false;
-        }
-
-        if (!((PlayerHasTalent(lv_amazonPlayer, "AmazonInnerLight") == true))) {
-            return false;
-        }
-
-        if (!((UnitGetType(lv_amazonUnit) == "HeroAmazon"))) {
-            return false;
-        }
-
-        if (!((UnitHasBehavior2(lv_amazonUnit, "AmazonBlindingLightInnerLightCooldown") == false))) {
-            return false;
-        }
-
-        if (!((UnitHasBehaviorWithCategoryFlag(lv_amazonUnit, c_behaviorCategoryBuffUnstoppable) == false))) {
-            return false;
-        }
-    }
-
-    // Actions
-    if (!runActions) {
-        return true;
-    }
-
-    UnitCreateEffectUnit(lv_amazonUnit, "AmazonBlindingLightInnerLightApplySet", lv_amazonUnit);
-    return true;
-}
-
-//--------------------------------------------------------------------------------------------------
-void libHAMA_gt_HeroAmazonInnerLightCheckforCC_Init () {
-    libHAMA_gt_HeroAmazonInnerLightCheckforCC = TriggerCreate("libHAMA_gt_HeroAmazonInnerLightCheckforCC_Func");
-    TriggerEnable(libHAMA_gt_HeroAmazonInnerLightCheckforCC, false);
-    TriggerAddEventUnitBehaviorChangeFromCategory(libHAMA_gt_HeroAmazonInnerLightCheckforCC, null, c_behaviorCategoryStun, c_unitBehaviorChangeCreate);
-    TriggerAddEventUnitBehaviorChangeFromCategory(libHAMA_gt_HeroAmazonInnerLightCheckforCC, null, c_behaviorCategoryDebuffRoot, c_unitBehaviorChangeCreate);
-}
-
 void libHAMA_InitTriggers () {
     libHAMA_gt_AmazonHeroSpecificCommandCardPanelInitialize_Init();
     libHAMA_gt_AmazonUIInitialize_Init();
     libHAMA_gt_HeroAmazonSurgeofLightDamageTaken_Init();
     libHAMA_gt_HeroAmazonSurgeofLightResetCharge_Init();
-    libHAMA_gt_HeroAmazonInnerLightCheckforCC_Init();
 }
 
 //--------------------------------------------------------------------------------------------------

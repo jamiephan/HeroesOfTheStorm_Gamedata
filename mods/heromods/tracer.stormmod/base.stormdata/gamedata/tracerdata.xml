@@ -16,6 +16,9 @@
         <TimeUse value="9" />
       </Charge>
       <Cooldown TimeUse="0.125" />
+      <CostEventEffectArray index="ChargeDecrease" value="TracerHeroWeaponLeechingRoundsTalentRemoveToken" />
+      <CostEventEffectArray index="ChargeIncrease" value="TracerHeroWeaponLeechingRoundsTalentAddToken" />
+      <CostEventEffectArray index="ChargeRegen" value="TracerHeroWeaponLeechingRoundsTalentAddToken" />
     </Cost>
     <MoveLocation ProjectionDistanceScale="4" />
     <CmdButtonArray index="Execute" DefaultButtonFace="TracerBlink" Requirements="TracerBlinkAvailable">
@@ -35,7 +38,14 @@
   <CAbilEffectInstant id="TracerMelee">
     <Effect value="TracerMeleeInitialSet" />
     <Cost>
-      <Cooldown TimeUse="8" />
+      <Charge>
+        <CountMax value="1" />
+        <CountStart value="1" />
+        <CountUse value="1" />
+        <HideCount value="1" />
+        <TimeUse value="8" />
+      </Charge>
+      <Cooldown TimeUse="2" />
     </Cost>
     <CmdButtonArray index="Execute" DefaultButtonFace="TracerMelee" />
     <PrepEffect value="DismountDecloakCasterSet" />
@@ -101,6 +111,7 @@
   <CAbilEffectTarget id="TracerSmartTargetingRightClick" parent="SmartTargetingRightClickParent">
     <Effect value="TracerSmartCommandChannelPersistent" />
     <CmdButtonArray index="Execute" DefaultButtonFace="TracerSmartTargetingRightClick" />
+    <Range value="5" />
   </CAbilEffectTarget>
   <CAbilEffectTarget id="TracerTargetingAttackClick">
     <Effect value="TracerTargetingAttackSwitch" />
@@ -124,7 +135,7 @@
     <Flags index="ClearLastAttackTargetOutOfRange" value="1" />
     <Flags index="ClearLastMoveTarget" value="1" />
     <Cost>
-      <Cooldown TimeUse="30" />
+      <Cooldown TimeUse="20" />
     </Cost>
   </CAbilEffectInstant>
   <CAbilEffectInstant id="TracerReload">
@@ -137,14 +148,53 @@
     <Effect value="TracerReloadCastSet" />
     <Flags index="Transient" value="1" />
   </CAbilEffectInstant>
+  <CAccumulatorToken id="TracerLeechingRoundsTalentHealingAccumulator" parent="BaseAccumulator">
+    <MaxAccumulation value="0.15" />
+    <ApplicationRule value="Add" />
+    <TokenId value="TracerLeechingRoundsTalentToken" />
+    <Scale value="0.05" />
+  </CAccumulatorToken>
   <CAccumulatorToken id="TracerUntouchableAccumulator" parent="BaseTokenAccumulator">
     <MinAccumulation value="0" />
     <MaxAccumulation value="0.3" />
     <ApplicationRule value="Add" />
     <TokenId value="TracerUntouchableQuestToken" />
-    <Scale value="0.02" />
+    <Scale value="0.05" />
     <UnitSource Value="Source" />
   </CAccumulatorToken>
+  <CActorModel id="TracerRecallAfterimagePoint" parent="StormModelAnimationStyleOneShot">
+    <InheritType value="OneShot" />
+    <Inherits index="Visibility" value="1" />
+    <Remove Terms="ActorCreation" Send="AnimBracketStart BSD Birth Stand Death ContentPlayOnce" />
+    <On Terms="ActorCreation" Send="AnimHookSet HookedBaseline ::Creator ::Baseline" />
+    <On Terms="ActorCreation; ValidatePlayer TracerDoesNotHaveTelefragTalent" Send="TimerSet 2.875000 Kill" />
+    <On Terms="ActorCreation; ValidatePlayer TracerHasTelefragTalent" Send="TimerSet 0.875000 Kill" />
+    <On Terms="TimerExpired; TimerName Kill" Send="AnimSetPausedAll 0" />
+    <On Terms="ActorCreation" Send="TimerSet 6.000000 Pause" />
+    <On Terms="ActorCreation" Send="SetVisibility" />
+    <On Terms="ActorCreation" Send="ModelMaterialApply GlazeChromaBlue" />
+    <On Terms="ActorCreation" Send="TimerSet 0.062500 Pause" />
+    <On Terms="TimerExpired; TimerName Pause" Send="AnimSetPausedAll" />
+    <On Terms="TimerExpired; TimerName Pause" Send="AnimHookClear HookedBaseline" />
+    <On Terms="TimerExpired; TimerName Kill" Send="TimerSet 0.125000 ReallyKill" />
+    <On Terms="TimerExpired; TimerName ReallyKill" Send="AnimSetPausedAll" />
+    <On Terms="TimerExpired; TimerName Kill; PassChance 30.000000" Send="SetVisibility 1" />
+    <On Terms="TimerExpired; TimerName Kill" Send="SetOpacity 0.010000 0.187500" />
+    <On Terms="ActorCreation" Send="SetOpacity 0.150000" />
+    <On Terms="TimerExpired; TimerName ReallyKill" Send="TimerSet 0.125000 SuperDuperReallyKill" />
+    <On Terms="TimerExpired; TimerName SuperDuperReallyKill" Send="Destroy" />
+    <Host Subject="::Creator" />
+    <HostSiteOps Ops="SOpTargetPointStationary" HoldPosition="1" HoldRotation="1" />
+    <Model value="HeroTracerSlowed" />
+    <ModelFlags index="AutomateGlobalLoops" value="0" />
+    <Filter index="Ally" value="1" />
+    <Filter index="Neutral" value="1" />
+    <Filter index="Enemy" value="1" />
+  </CActorModel>
+  <CActorSound id="TracerRecallTelefragProcSound" parent="SoundOneShot">
+    <On Terms="Effect.TracerRecallTelefragTalentSearch.Start" Send="Create" />
+    <Sound value="Tracer_Recall_Telefrag_Proc" />
+  </CActorSound>
   <CActorSound id="TracerPulseBombGroundChargeSound" parent="SoundContinuous">
     <On Terms="Effect.TracerPulseBombUnitImpactPersistent.Stop; FromEffectTreeDescendant" Send="Destroy Immediate" />
     <On Terms="Effect.TracerPulseBombGroundImpactPersistent.Stop" Send="Destroy Immediate" />
@@ -252,7 +302,7 @@
     <On Terms="ActorCreation; !ValidateUnit TracerWeaponImpactScaleThreshold" Send="AnimPlay Spell Spell,A" />
     <On Terms="Effect.TracerHeroWeaponImpactSet.Start; ValidateUnit TracerWeaponImpactScaleThreshold" Send="AnimPlay Spell Spell,B" />
     <On Terms="Effect.TracerHeroWeaponImpactSet.Start; !ValidateUnit TracerWeaponImpactScaleThreshold" Send="AnimPlay Spell Spell,A" />
-    <On Terms="Effect.TracerRicochetImpactSet.Start; At Target" Send="Create" />
+    <On Terms="Effect.TracerHeroWeaponRicochetTalentImpactSet.Start; At Target" Send="Create" />
     <On Terms="TimerExpired; TimerName PeriodicTimer" Send="Destroy" />
     <On Terms="ActorCreation" Send="TimerSet 0.062500 BulletSpray" />
     <On Terms="TimerExpired; TimerName BulletSpray; ValidateUnit TracerWeaponImpactScaleThreshold" Send="AnimPlay Spell Spell,B" />
@@ -317,6 +367,9 @@
     <HostSiteOps Ops="SOpMoveUpBy2" HoldPosition="1" HoldRotation="1" />
     <Inherits index="Visibility" value="1" />
     <Host Subject="_Unit" />
+    <On index="0" Terms="ActorCreation; ValidatePlayer TracerDoesNotHaveTelefragTalent" />
+    <On Terms="ActorCreation; ValidatePlayer TracerHasTelefragTalent" Send="SetScale 1.700000,1.700000,1.000000" />
+    <On Terms="ActorCreation; ValidatePlayer TracerHasTelefragTalent" Send="AnimBracketStart BSD Birth Stand Death ContentPlayOnce 0.675000 AsTimeScale" />
   </CActorModel>
   <CActorSound id="RecallPartingGiftLaunchSound" parent="SoundOneShot">
     <On Terms="Behavior.TracerRecallModelMissileBehavior.On; ValidatePlayer TracerHasPartingGiftTalent" Send="Create" />
@@ -536,10 +589,10 @@
   </CActorSound>
   <CActorSound id="TracerRicochetProcSound" parent="SoundOneShot">
     <Sound value="Tracer_Ricochet_Impact" />
-    <On Terms="Effect.TracerRicochetImpactSet.Start; At Target" Send="Create" />
+    <On Terms="Effect.TracerHeroWeaponRicochetTalentImpactSet.Start; At Target" Send="Create" />
   </CActorSound>
   <CActorSound id="TracerRicochetProcSoundLockedAndLoaded" parent="SoundOneShot">
-    <On Terms="Effect.TracerRicochetImpactSetLockedAndLoaded.Start; At Target" Send="Create" />
+    <On Terms="Effect.TracerHeroWeaponRicochetLockedAndLoadedTalentImpactSet.Start; At Target" Send="Create" />
     <Sound value="Tracer_LockedandLoaded_Ricochet_Impact" />
   </CActorSound>
   <CActorSound id="TracerMeleeBulletSprayCastSound" parent="SoundOneShot">
@@ -828,6 +881,22 @@
     <Inherits index="CloakEffect" value="0" />
     <Macros value="RemovePolymorphMacroEffects" />
   </CActorModel>
+  <CActorModel id="TracerHeroWeaponTracerRoundsFX" parent="StormModelAddition">
+    <Terms value="Cap 1" />
+    <On Terms="Behavior.TracerTracerRoundsRevealer.Create" Send="Create" />
+    <On Terms="Behavior.TracerTracerRoundsRevealer.Destroy" Send="Destroy" />
+    <On Terms="ActorCreation" Send="SetOpacity 0.400000" />
+    <On Terms="ActorCreation" Send="TimerSet 0.250000 PeriodicTimer" />
+    <On Terms="TimerExpired; TimerName PeriodicTimer" Send="TimerSet 0.250000 PeriodicTimer" />
+    <On Terms="Effect.TracerHeroWeaponImpactSet.Start" Send="TimerSet 0.250000 HideTimer" />
+    <On Terms="Effect.TracerHeroWeaponImpactSet.Start" Send="SetVisibility" />
+    <On Terms="TimerExpired; TimerName HideTimer" Send="SetVisibility 1" />
+    <On Terms="TimerExpired; TimerName PeriodicTimer; AnimIs" Send="StatusIncrement Anim" />
+    <On Terms="TimerExpired; TimerName PeriodicTimer; IsStatus Anim 0" Send="AnimPlay Spell A" />
+    <On Terms="TimerExpired; TimerName PeriodicTimer; IsStatus Anim 1" Send="AnimPlay Spell B" />
+    <On Terms="TimerExpired; TimerName PeriodicTimer; IsStatus Anim 1" Send="StatusSet AnimPlay 0" />
+    <HostSiteOps Ops="SOpAttachCenter" />
+  </CActorModel>
   <CActorSquib id="TracerWeaponLoopingTargetSoundSquib">
     <On Terms="Behavior.TracerHeroWeaponShootingTargetBehavior.On" Send="Create" />
     <Host Subject="_Unit" />
@@ -959,7 +1028,7 @@
   <CActorSound id="TracerWeaponLoopingTargetEndSound" parent="SoundOneShot">
     <Sound value="Tracer_Attack_Ranged_PLR_Impact_End" />
   </CActorSound>
-  <CActorAction id="TracerHeroWeaponRicochetActionActor" parent="RangedHeroAttackPoint" effectImpact="TracerHeroWeaponRicochetImpactSwitch" effectLaunch="TracerHeroWeaponRicochetLaunchMissile">
+  <CActorAction id="TracerHeroWeaponRicochetActionActor" parent="RangedHeroAttackPoint" effectImpact="TracerHeroWeaponRicochetTalentImpactSwitch" effectLaunch="TracerHeroWeaponRicochetLaunchMissile">
     <Missile value="TracerWeaponRicochetMissile" />
     <ImpactMap index="None" Model="TracerHeroWeaponRicochetImpactFX" />
   </CActorAction>
@@ -1109,6 +1178,46 @@
     <ActionFlags index="AlignedImpactsAndDamages" value="1" />
     <ActionFlags index="LaunchForceSite" value="1" />
   </CActorAction>
+  <CBehaviorBuff id="TracerBlinkChronoTriggersTalentBuff">
+    <Face value="TracerChronoTriggers" />
+    <Alignment value="Positive" />
+    <Duration value="1" />
+    <InitialEffect value="TracerBlinkChronoTriggersTalentModifyPlayer" />
+    <FinalEffect value="TracerBlinkChronoTriggersTalentResetPlayer" />
+    <DisplayDuration index="Self" value="1" />
+  </CBehaviorBuff>
+  <CBehaviorBuff id="TracerBlinkJumperTalentCarry" parent="CarryBehaviorParent">
+    <DisableValidatorArray value="TracerBlinkCharge3Used" />
+    <Period value="0.25" />
+    <PeriodicEffect value="TracerBlinkJumperTalentModifyUnit" />
+  </CBehaviorBuff>
+  <CBehaviorBuff id="TracerBlinkJumperTalentShield" parent="StormShield">
+    <MaxStackCount value="3" />
+    <Duration value="3" />
+    <DamageResponse>
+      <ModifyLimitVitalMaxFractionArray index="Life" value="0.06" />
+    </DamageResponse>
+  </CBehaviorBuff>
+  <CBehaviorBuff id="TracerMeleeHeavyHandedTalentArmorDebuff" parent="StormArmor">
+    <Duration value="4" />
+    <ArmorModification>
+      <AllArmorBonus value="-15" />
+    </ArmorModification>
+  </CBehaviorBuff>
+  <CBehaviorBuff id="TracerPulseBombPulseGeneratorTalentBuff">
+    <Duration value="1.5" />
+    <Period value="0.25" />
+    <PeriodCount value="6" />
+    <PeriodicEffect value="TracerPulseBombPulseGeneratorTalentCreateHealer" />
+    <PeriodicDisplayEffect value="TracerPulseBombPulseGeneratorTalentCreateHealer" />
+  </CBehaviorBuff>
+  <CBehaviorBuff id="TracerRecallTelefragTalentKnockbackPushPull" parent="PushPullParent">
+    <Duration value="0.1274" />
+    <Modification>
+      <MoveSpeedMaximum value="20" />
+      <MoveSpeedMinimum value="20" />
+    </Modification>
+  </CBehaviorBuff>
   <CBehaviorUnitTracker id="TracerRecallUnitAITrackingBehavior">
     <MaxTrackedUnits value="1" />
     <UnitAddedAtMaxRule value="ReplaceOldest" />
@@ -1122,7 +1231,7 @@
   <CBehaviorBuff id="TracerHeroWeaponShootingCasterBehavior">
     <RemoveValidatorArray value="TracerDoesNotHaveHeroWeaponDisablerHoldFire" />
     <RemoveValidatorArray value="TracerIsNotReloadingCaster" />
-    <RemoveValidatorArray value="TracerAttackTargetInRange" />
+    <RemoveValidatorArray value="TracerAttackTargetInRangeCombine" />
     <RemoveValidatorArray value="CasterNotDazedOrDeadOrFearedOrPolymorphedOrRootedOrStasisOrStunnedExceptTimeStop" />
     <RemoveValidatorArray value="CasterNotTimeStopped" />
     <RemoveValidatorArray value="TracerIsNotLockedandLoadedReloadingCaster" />
@@ -1134,7 +1243,7 @@
   <CBehaviorBuff id="TracerHeroWeaponShootingTargetBehavior">
     <RemoveValidatorArray value="TracerDoesNotHaveHeroWeaponDisablerHoldFire" />
     <RemoveValidatorArray value="TracerIsNotReloadingCaster" />
-    <RemoveValidatorArray value="TracerAttackTargetInRange" />
+    <RemoveValidatorArray value="TracerAttackTargetInRangeCombine" />
     <RemoveValidatorArray value="CasterNotDazedOrDeadOrPolymorphedOrSilencedOrStasisOrStunnedExceptTimeStop" />
     <RemoveValidatorArray value="CasterNotTimeStopped" />
     <RemoveValidatorArray value="TracerCasterHasHeroWeaponShootingCasterBehavior" />
@@ -1303,7 +1412,7 @@
   <CBehaviorBuff id="TracerPulseBombChargeIncrementStacks">
     <BehaviorFlags index="Permanent" value="1" />
     <BehaviorFlags index="EnabledWhileDead" value="1" />
-    <MaxStackCount value="10" />
+    <MaxStackCount value="8" />
     <RemoveValidatorArray value="TracerDoesNotHavePulseBombChargeController" />
   </CBehaviorBuff>
   <CBehaviorBuff id="TracerPulseBombDummyBehavior">
@@ -1327,7 +1436,7 @@
   <CBehaviorBuff id="TracerRecallActive" parent="StormStasisIceBlock">
     <BehaviorCategories index="Restorable" value="1" />
     <BehaviorCategories index="HideNameplate" value="1" />
-    <Duration value="0.75" />
+    <Duration value="1.25" />
     <Modification>
       <StateFlags index="SuppressCollision" value="1" />
       <AbilLinkEnableArray value="TracerSmartTargetingRightClick" />
@@ -1336,6 +1445,7 @@
       <AbilLinkEnableArray value="TracerLockedandLoadedFailReload" />
     </Modification>
     <InfoFlags index="AlwaysUseGameText" value="1" />
+    <FinalEffect value="TracerRecallTelefragTalentSearch" />
   </CBehaviorBuff>
   <CBehaviorBuff id="TracerRecallPrepInvuln">
     <Duration value="0.0625" />
@@ -1356,7 +1466,7 @@
   </CBehaviorBuff>
   <CBehaviorBuff id="TracerRecallModelMissileBehavior" parent="CarryBehaviorParent" />
   <CBehaviorBuff id="TracerRecallVisualFXDummyUnitTimedLife" parent="StormTimedLife">
-    <Duration value="0.75" />
+    <Duration value="1.25" />
     <RemoveValidatorArray value="TracerCasterHasRecallActive" />
     <TimeScaleSource Value="Caster" />
     <FinalEffect value="TimedLifeFate" />
@@ -1379,6 +1489,10 @@
     <Period value="0.0625" />
     <PeriodicEffect value="TracerReloadCastSet" />
   </CBehaviorBuff>
+  <CBehaviorTokenCounter id="TracerLeechingRoundsTalentTokenCounter" parent="StormGenericToken">
+    <TokenId value="TracerLeechingRoundsTalentToken" />
+    <Max value="3" />
+  </CBehaviorTokenCounter>
   <CBehaviorBuff id="TracerStickyBombSlow" parent="StormSlowParent">
     <Duration value="3" />
     <Modification>
@@ -1386,7 +1500,7 @@
     </Modification>
   </CBehaviorBuff>
   <CBehaviorTokenCounter id="TracerUntouchableQuestToken" parent="StormQuestToken">
-    <Max value="15" />
+    <Max value="6" />
   </CBehaviorTokenCounter>
   <CBehaviorBuff id="TracerUntouchableBuff" parent="CarryBehaviorParent">
     <Alignment value="Positive" />
@@ -1397,7 +1511,8 @@
     </Modification>
   </CBehaviorBuff>
   <CBehaviorBuff id="TracerTracerRoundsRevealer" parent="StormReveal">
-    <Duration value="4" />
+    <Duration value="3" />
+    <InitialEffect value="TracerHeroWeaponTracerRoundsRevealerPersistent" />
   </CBehaviorBuff>
   <CBehaviorBuff id="TracerWeaponDisabler2GameLoops">
     <Duration value="0.125" />
@@ -1419,11 +1534,25 @@
     <Icon value="Assets\Textures\storm_ui_icon_tracer_blink_c.dds" />
     <HotkeyAlias value="TracerReload" />
   </CButton>
+  <CButton id="TracerChronoTriggers" parent="StormButtonParentTrait">
+    <TooltipVitalName index="Energy" value="" />
+    <Icon value="Assets\Textures\storm_ui_icon_tracer_blink.dds" />
+    <HotkeyAlias value="TracerReload" />
+  </CButton>
   <CButton id="TracerCompositionBPulseBomb" parent="StormButtonParent">
     <Icon value="Assets\Textures\storm_ui_icon_tracer_pulsebomb.dds" />
   </CButton>
+  <CButton id="TracerPulseGenerator" parent="StormButtonParent">
+    <Icon value="Assets\Textures\storm_ui_icon_tracer_combo_q_r.dds" />
+  </CButton>
   <CButton id="TracerGetStuffedMelee" parent="StormButtonParent">
     <Icon value="Assets\Textures\storm_ui_icon_tracer_melee.dds" />
+  </CButton>
+  <CButton id="TracerOneTwoPunch" parent="StormButtonParent">
+    <Icon value="Assets\Textures\storm_ui_icon_tracer_melee.dds" />
+  </CButton>
+  <CButton id="TracerHeavyHanded" parent="StormButtonParent">
+    <Icon value="Assets\Textures\storm_ui_icon_tracer_melee_b.dds" />
   </CButton>
   <CButton id="TracerSlipstreamRecall" parent="StormButtonParent">
     <Icon value="Assets\Textures\storm_ui_icon_tracer_recall.dds" />
@@ -1436,7 +1565,7 @@
   </CButton>
   <CButton id="TracerJumper" parent="StormButtonParentTrait">
     <TooltipVitalName index="Energy" value="" />
-    <Icon value="Assets\Textures\storm_ui_icon_tracer_blink_b.dds" />
+    <Icon value="Assets\Textures\storm_ui_icon_tracer_blink.dds" />
     <HotkeyAlias value="TracerReload" />
   </CButton>
   <CButton id="TracerIsthataHealthPack" parent="StormButtonParentTrait">
@@ -1455,8 +1584,11 @@
   </CButton>
   <CButton id="TracerPartingGift" parent="StormButtonParentTrait">
     <TooltipVitalName index="Energy" value="" />
-    <Icon value="Assets\Textures\storm_ui_icon_tracer_recall.dds" />
+    <Icon value="Assets\Textures\storm_ui_icon_tracer_combo_e_r.dds" />
     <HotkeyAlias value="TracerReload" />
+  </CButton>
+  <CButton id="TracerTelefrag" parent="StormButtonParent">
+    <Icon value="Assets\Textures\storm_ui_icon_tracer_recall.dds" />
   </CButton>
   <CButton id="TracerSmartTargeting">
     <Icon value="Assets\Textures\btn-command-attack.dds" />
@@ -1468,8 +1600,7 @@
     <Icon value="Assets\Textures\storm_ui_icon_tracer_recall.dds" />
   </CButton>
   <CButton id="TracerUntouchable" parent="StormButtonParentTrait">
-    <TooltipVitalName index="Energy" value="" />
-    <Icon value="Assets\Textures\storm_ui_icon_talent_autoattack_damage.dds" />
+    <Icon value="Assets\Textures\storm_ui_icon_tracer_blink_d.dds" />
   </CButton>
   <CButton id="TracerSleightofHand" parent="StormButtonParent">
     <Icon value="Assets\Textures\storm_ui_icon_tracer_reload.dds" />
@@ -1479,16 +1610,20 @@
     <HotkeyAlias value="TracerFocusFire" />
   </CButton>
   <CButton id="TracerLeechingRounds" parent="StormButtonParent">
-    <Icon value="Assets\Textures\storm_ui_icon_talent_autoattack_heal.dds" />
+    <Icon value="Assets\Textures\storm_ui_icon_tracer_combo_q_trait.dds" />
     <HotkeyAlias value="TracerFocusFire" />
   </CButton>
   <CButton id="TracerMelee" parent="StormButtonParent">
+    <TooltipAppender Validator="TracerHasOneTwoPunchTalent" Face="TracerOneTwoPunch" />
     <TooltipAppender Validator="TracerHasPulseStrikeTalentMelee" Face="TracerPulseStrikeMelee" />
     <TooltipAppender Validator="TracerHasBulletSprayMelee" Face="TracerBulletSprayMelee" />
+    <TooltipAppender Validator="TracerHasHeavyHandedTalentMelee" Face="TracerHeavyHanded" />
     <TooltipAppender Validator="TracerHasGetStuffedTalentMelee" Face="TracerGetStuffedMelee" />
     <Icon value="Assets\Textures\storm_ui_icon_tracer_melee.dds" />
+    <TooltipCooldownOverrideText value="Tracer/MeleeTooltipCooldownOverrideText" />
   </CButton>
   <CButton id="TracerPulseBomb" parent="StormButtonParentTrait">
+    <TooltipAppender Validator="TracerHasPulseGeneratorTalent" Face="TracerPulseGenerator" />
     <TooltipAppender Validator="TracerHasStickyBombTalent" Face="TracerStickyBomb" />
     <TooltipAppender Validator="TracerHasQuantumSpikeTalent" Face="TracerQuantumSpike" />
     <TooltipAppender Validator="TracerHasPulseRoundsTalent" Face="TracerPulseRounds" />
@@ -1502,14 +1637,15 @@
     <Icon value="Assets\Textures\storm_ui_icon_tracer_pulsebomb.dds" />
   </CButton>
   <CButton id="TracerRecall" parent="StormButtonParentTrait">
-    <TooltipAppender Validator="TracerHasSlipstreamTalentRecall" Face="TracerSlipstreamRecall" />
     <TooltipAppender Validator="TracerHasPartingGiftTalent" Face="TracerPartingGift" />
+    <TooltipAppender Validator="TracerHasTelefragTalent" Face="TracerTelefrag" />
     <TooltipAppender Validator="TracerHasTotalRecallTalentRecall" Face="TracerTotalRecallRecall" />
     <TooltipVitalName index="Energy" value="" />
     <Icon value="Assets\Textures\storm_ui_icon_tracer_recall.dds" />
     <HotkeyAlias value="TracerReload" />
   </CButton>
   <CButton id="TracerReload" parent="StormButtonParentTrait">
+    <TooltipAppender Validator="TracerHasLeechingRoundsTalent" Face="TracerLeechingRounds" />
     <TooltipAppender Validator="TracerHasSleightofHandTalent" Face="TracerSleightofHand" />
     <TooltipAppender Validator="TracerHasFocusFireTalent" Face="TracerFocusFire" />
     <TooltipAppender Validator="TracerHasLockedandLoadedTalent" Face="TracerLockedandLoaded" />
@@ -1521,7 +1657,7 @@
   </CButton>
   <CButton id="TracerSpatialEcho" parent="StormButtonParentTrait">
     <TooltipVitalName index="Energy" value="" />
-    <Icon value="Assets\Textures\storm_ui_icon_tracer_blink_d.dds" />
+    <Icon value="Assets\Textures\storm_ui_icon_tracer_blink_c.dds" />
     <HotkeyAlias value="TracerReload" />
   </CButton>
   <CButton id="TracerQuantumSpike" parent="StormButtonParentTrait">
@@ -1538,21 +1674,64 @@
   </CButton>
   <CButton id="TracerBlink" parent="StormButtonParentTrait">
     <TooltipAppender Validator="TracerHasJumperTalent" Face="TracerJumper" />
-    <TooltipAppender Validator="TracerHasBulletTimeTalent" Face="TracerBulletTime" />
-    <TooltipAppender Validator="TracerHasSpatialEchoTalent" Face="TracerSpatialEcho" />
+    <TooltipAppender Validator="TracerHasUntouchableTalent" Face="TracerUntouchable" />
+    <TooltipAppender Validator="TracerHasChronoTriggers" Face="TracerChronoTriggers" />
     <TooltipVitalName index="Energy" value="" />
     <Icon value="Assets\Textures\storm_ui_icon_tracer_blink_empty.dds" />
   </CButton>
   <CButton id="TracerUntouchableQuestToken" parent="StormButtonParent">
-    <Icon value="Assets\Textures\storm_ui_icon_talent_autoattack_damage.dds" />
+    <Icon value="Assets\Textures\storm_ui_icon_tracer_blink_d.dds" />
   </CButton>
   <CEffectLaunchMissile id="HallOfStormsKnockbackLaunchMissile">
     <ValidatorArray value="TracerCasterIsNotTracerRecallUnitCombine" />
   </CEffectLaunchMissile>
+  <CEffectApplyBehavior id="TracerBlinkChronoTriggersTalentApplyBuff">
+    <Chance value="0" />
+    <WhichUnit Value="Caster" />
+    <Behavior value="TracerBlinkChronoTriggersTalentBuff" />
+  </CEffectApplyBehavior>
+  <CEffectModifyPlayer id="TracerBlinkChronoTriggersTalentModifyPlayer">
+    <EffectArray Operation="Set" Reference="Weapon,TracerHeroWeapon,Cost.Vital[Energy]" Value="0" />
+  </CEffectModifyPlayer>
+  <CEffectModifyPlayer id="TracerBlinkChronoTriggersTalentResetPlayer">
+    <EffectArray Operation="Set" Reference="Weapon,TracerHeroWeapon,Cost.Vital[Energy]" Value="2" />
+  </CEffectModifyPlayer>
+  <CEffectApplyBehavior id="TracerBlinkJumperTalentApplyShield">
+    <Chance value="0" />
+    <WhichUnit Value="Caster" />
+    <Behavior value="TracerBlinkJumperTalentShield" />
+  </CEffectApplyBehavior>
+  <CEffectModifyUnit id="TracerBlinkJumperTalentModifyUnit">
+    <Cost Abil="TracerBlink,Execute" ChargeTimeUse="-0.3125" CooldownOperation="Add" />
+  </CEffectModifyUnit>
+  <CEffectSet id="TracerHeroWeaponTracerRoundsProcSet">
+    <EffectArray value="TracerHeroWeaponApplyTracerRoundsMasteryReveal" />
+  </CEffectSet>
+  <CEffectCreatePersistent id="TracerHeroWeaponTracerRoundsRevealerPersistent">
+    <WhichLocation Value="TargetUnit" />
+    <Flags index="PersistUntilDestroyed" value="1" />
+    <PeriodicValidator value="TracerTargetHasTracerRoundsRevealerDebuff" />
+    <PeriodicPeriodArray value="0.125" />
+    <RevealRadius value="4" />
+    <RevealFlags index="Unfog" value="1" />
+  </CEffectCreatePersistent>
+  <CEffectModifyUnit id="TracerHeroWeaponTelefragTalentModifyUnit">
+    <ValidatorArray value="TargetIsHero" />
+    <Chance value="0" />
+    <ImpactUnit Value="Caster" />
+    <Cost Abil="TracerRecall,Execute" CooldownOperation="Add" CooldownTimeUse="-0.1875" />
+  </CEffectModifyUnit>
+  <CEffectModifyUnit id="TracerBlinkChronoTriggersTalentModifyUnit">
+    <Chance value="0" />
+    <ImpactUnit Value="Caster" />
+    <VitalArray index="Energy">
+      <Change value="6" />
+    </VitalArray>
+  </CEffectModifyUnit>
   <CEffectSet id="TracerHeroWeaponTalentSet">
     <EffectArray value="TracerPulseBombHeroWeaponAttackChargePulseRoundsMasteryIncrementPersistent" />
     <EffectArray value="TracerHeroWeaponApplyTracerRoundsMasteryReveal" />
-    <EffectArray value="TracerBlinkBulletTimeMasteryModifyUnit" />
+    <EffectArray value="TracerHeroWeaponTelefragTalentModifyUnit" />
     <EffectArray value="TracerHeroWeaponRicochetInitialSet" />
     <EffectArray value="TracerHeroWeaponApplyLeechingRoundsActiveTalent" />
     <EffectArray value="TracerHeroWeaponFocusFireMasteryApplyIncrementCooldown" />
@@ -1656,6 +1835,26 @@
     <ImpactUnit Value="Caster" />
     <ModifyFlags index="ClearLastAcquiredPassiveTarget" value="1" />
   </CEffectModifyUnit>
+  <CEffectModifyUnit id="TracerIsThataHealthPackModifyUnit">
+    <ValidatorArray value="TracerTargetHasIsThataHealthPackTalent" />
+    <Cost Abil="TracerPulseBomb,Execute" ChargeCountUse="-4" CooldownOperation="Add" />
+  </CEffectModifyUnit>
+  <CEffectModifyBehaviorBuffDuration id="TracerIsThataHealthPackModifyHealingFountainCooldown">
+    <ValidatorArray value="TracerTargetHasIsThataHealthPackTalent" />
+    <WhichUnit Value="Target" />
+    <Behavior value="HealingFountainCooldown" />
+    <Value value="-10" />
+  </CEffectModifyBehaviorBuffDuration>
+  <CEffectApplyBehavior id="TracerMeleeHeavyHandedTalentApplyArmorDebuff" parent="ApplyVulnerableBehaviorParent">
+    <ValidatorArray value="TargetIsHero" />
+    <Chance value="0" />
+    <Behavior value="TracerMeleeHeavyHandedTalentArmorDebuff" />
+  </CEffectApplyBehavior>
+  <CEffectModifyUnit id="TracerRecallPartingGiftTalentModifyUnit">
+    <ValidatorArray value="TargetIsHero" />
+    <ImpactUnit Value="Caster" />
+    <Cost Abil="TracerPulseBomb,Execute" ChargeCountUse="-5" CooldownOperation="Add" />
+  </CEffectModifyUnit>
   <CEffectSwitch id="TracerMeleeApplyPulseBombChargesSwitch">
     <CaseArray Validator="TargetIsHero" Effect="TracerMeleeApplyPulseBombChargesHero" />
     <CaseDefault value="TracerMeleeApplyPulseBombCharges" />
@@ -1683,7 +1882,7 @@
   </CEffectCreatePersistent>
   <CEffectDamage id="TracerPulseBombCompositionBQuantumSpikePercentDamage" parent="StormSpellPercentDamage">
     <Marker Link="Effect/TracerPulseBombCompositionBQuantumSpikeDamage" />
-    <VitalFractionMax index="Life" value="0.035" />
+    <VitalFractionMax index="Life" value="0.03" />
   </CEffectDamage>
   <CEffectCreatePersistent id="TracerPulseBombInitialMissileScanPersistent">
     <Marker Link="Effect/TracerPulseBombMissileScanPersistent" />
@@ -1693,18 +1892,37 @@
     <PeriodicOffsetArray Y="-0.62" />
     <PeriodicPeriodArray value="0" />
   </CEffectCreatePersistent>
+  <CEffectApplyBehavior id="TracerPulseBombPulseGeneratorTalentApplyBuff">
+    <ValidatorArray index="0" value="TargetIsHero" />
+    <WhichUnit Value="Caster" />
+    <Behavior value="TracerPulseBombPulseGeneratorTalentBuff" />
+  </CEffectApplyBehavior>
+  <CEffectModifyUnit id="TracerPulseBombPulseGeneratorTalentModifyUnit">
+    <ImpactUnit Value="Caster" />
+    <Cost Abil="TracerBlink,Execute" ChargeCountUse="-1" CooldownOperation="Add" />
+  </CEffectModifyUnit>
+  <CEffectCreateHealer id="TracerPulseBombPulseGeneratorTalentCreateHealer" parent="StormSelfOnlyHealingSpell">
+    <RechargeVitalFraction value="0.0415" />
+  </CEffectCreateHealer>
+  <CEffectSet id="TracerPulseBombPulseGeneratorTalentProcSet">
+    <ValidatorArray value="TargetIsHero" />
+    <Chance value="0" />
+    <EffectArray value="TracerPulseBombPulseGeneratorTalentModifyUnit" />
+    <EffectArray value="TracerPulseBombPulseGeneratorTalentApplyBuff" />
+  </CEffectSet>
   <CEffectDamage id="TracerPulseBombQuantumSpikeMasteryAoEDamage">
-    <Amount value="360" />
+    <Amount value="144" />
     <SourceButtonFace value="TracerPulseBomb" />
   </CEffectDamage>
   <CEffectDamage id="TracerPulseBombQuantumSpikeMasteryPercentDamage" parent="StormSpellPercentDamage">
     <Marker Link="Effect/TracerPulseBombQuantumSpikeMasteryDamage" />
-    <VitalFractionMax index="Life" value="0.07" />
+    <VitalFractionMax index="Life" value="0.06" />
     <SourceButtonFace value="TracerQuantumSpike" />
+    <ValidatorArray value="TargetIsHero" />
   </CEffectDamage>
   <CEffectDamage id="TracerPulseBombQuantumSpikeMasteryAoEPercentDamage" parent="StormSpellPercentDamage">
     <Marker Link="Effect/TracerPulseBombQuantumSpikeMasteryAoEDamage" />
-    <VitalFractionMax index="Life" value="0.7" />
+    <VitalFractionMax index="Life" value="0.6" />
     <SourceButtonFace value="TracerQuantumSpike" />
   </CEffectDamage>
   <CEffectApplyBehavior id="TracerHeroWeaponLockedAndLoadedApplySoundDummy">
@@ -1733,6 +1951,44 @@
   <CEffectApplyBehavior id="TracerRecallApplyVisualDummyFXTimedLife">
     <Behavior value="TracerRecallVisualFXDummyUnitTimedLife" />
   </CEffectApplyBehavior>
+  <CEffectApplyForce id="TracerRecallTelefragTalentApplyForce">
+    <Amount value="50" />
+    <MassFraction value="0" />
+  </CEffectApplyForce>
+  <CEffectApplyBehavior id="TracerRecallTelefragTalentApplyPushPull">
+    <Behavior value="TracerRecallTelefragTalentKnockbackPushPull" />
+  </CEffectApplyBehavior>
+  <CEffectDamage id="TracerRecallTelefragTalentDamage" parent="StormSpell">
+    <Amount value="160" />
+  </CEffectDamage>
+  <CEffectSet id="TracerRecallTelefragTalentImpactSet">
+    <EffectArray value="TracerRecallTelefragTalentDamage" />
+    <EffectArray value="TracerRecallTelefragTalentKnockbackPersistent" />
+  </CEffectSet>
+  <CEffectCreatePersistent id="TracerRecallTelefragTalentKnockbackPersistent">
+    <ValidatorArray value="TargetNotUnstoppable" />
+    <WhichLocation Value="TargetUnit" />
+    <InitialEffect value="TracerRecallTelefragTalentKnockbackPersistentInitialSet" />
+    <PeriodCount value="2" />
+    <PeriodicValidator value="HasTelefragPushPull" />
+    <PeriodicEffectArray value="TracerRecallTelefragTalentApplyForce" />
+    <PeriodicPeriodArray value="0.0625" />
+  </CEffectCreatePersistent>
+  <CEffectSet id="TracerRecallTelefragTalentKnockbackPersistentInitialSet">
+    <EffectArray value="HeroRemovePushPullDebuffs" />
+    <EffectArray value="TracerRecallTelefragTalentApplyPushPull" />
+  </CEffectSet>
+  <CEffectModifyUnit id="TracerRecallTelefragTalentModifyUnit">
+    <ImpactUnit Value="Caster" />
+    <Cost Abil="TracerRecall,Execute" CooldownOperation="Add" CooldownTimeUse="-6" />
+  </CEffectModifyUnit>
+  <CEffectEnumArea id="TracerRecallTelefragTalentSearch">
+    <SearchFilters value="-;Self,Player,Ally,ImmuneToAOE,Missile,Item,Stasis,Dead,Hidden,Invulnerable" />
+    <AreaArray Effect="TracerRecallTelefragTalentImpactSet">
+      <Radius value="3" />
+    </AreaArray>
+    <Chance value="0" />
+  </CEffectEnumArea>
   <CEffectCreatePersistent id="TracerRecallTeleportDelayPersistent">
     <InitialDelay value="0.0625" />
     <InitialEffect value="TracerRecallTeleport" />
@@ -1744,6 +2000,13 @@
     <SpawnUnit value="TracerRecallVisualFXDummyUnit" />
     <SpawnEffect value="TracerRecallApplyVisualDummyFXTimedLife" />
   </CEffectCreateUnit>
+  <CEffectModifyTokenCount id="TracerHeroWeaponLeechingRoundsTalentAddToken" parent="BaseEffectModifyTokenCount">
+    <TokenId value="TracerLeechingRoundsTalentToken" />
+  </CEffectModifyTokenCount>
+  <CEffectModifyTokenCount id="TracerHeroWeaponLeechingRoundsTalentRemoveToken" parent="BaseEffectModifyTokenCount">
+    <TokenId value="TracerLeechingRoundsTalentToken" />
+    <Value value="-1" />
+  </CEffectModifyTokenCount>
   <CEffectCreatePersistent id="TracerSmartCommandChannelPersistent">
     <WhichLocation Value="TargetUnit" />
     <Flags index="Channeled" value="1" />
@@ -1797,6 +2060,7 @@
   <CEffectApplyBehavior id="TracerHeroWeaponApplyTracerRoundsMasteryReveal">
     <ValidatorArray index="0" value="TracerHasTracerRoundsTalent" />
     <ValidatorArray value="CasterNotBlindedAndTargetNotEvading" />
+    <ValidatorArray value="TargetIsHero" />
     <Behavior value="TracerTracerRoundsRevealer" />
   </CEffectApplyBehavior>
   <CEffectApplyBehavior id="TracerHeroWeaponApplyTargetingBehavior">
@@ -1813,7 +2077,10 @@
     <ValidatorArray index="0" value="TracerDoesNotHaveHeroWeaponCasterTargerFinderDisabler" />
   </CEffectApplyBehavior>
   <CEffectDamage id="TracerHeroWeaponDamageHero" parent="StormWeapon">
-    <Amount value="26" />
+    <Amount value="24" />
+    <LeechFraction index="Life" value="0.15">
+      <AccumulatorArray value="TracerLeechingRoundsTalentHealingAccumulator" />
+    </LeechFraction>
   </CEffectDamage>
   <CEffectSet id="TracerDeathSet">
     <EffectArray value="TracerArtWeaponRemoveCasterSoundDummyLoopBehavior" />
@@ -1830,10 +2097,16 @@
     <Behavior value="TracerFocusFireIncrementCooldown" />
   </CEffectApplyBehavior>
   <CEffectDamage id="TracerHeroWeaponFocusFireMasteryDamage" parent="StormWeapon">
-    <Amount value="91" />
+    <Amount value="84" />
+    <Flags index="Crit" value="1" />
+    <LeechFraction index="Life" value="0.15" />
   </CEffectDamage>
   <CEffectDamage id="TracerHeroWeaponFocusFireMasteryDamageHero" parent="StormWeapon">
-    <Amount value="91" />
+    <Amount value="84" />
+    <Flags index="Crit" value="1" />
+    <LeechFraction index="Life" value="0.15">
+      <AccumulatorArray value="TracerLeechingRoundsTalentHealingAccumulator" />
+    </LeechFraction>
   </CEffectDamage>
   <CEffectSwitch id="TracerHeroWeaponHeroDamageSwitch">
     <CaseArray Validator="TargetIsHero" Effect="TracerHeroWeaponDamageHero" />
@@ -1859,6 +2132,7 @@
   </CEffectApplyBehavior>
   <CEffectSet id="TracerBlinkCastSet">
     <EffectArray value="TracerBlinkInitialPersistent" />
+    <EffectArray value="TracerBlinkChronoTriggersTalentApplyBuff" />
     <TargetLocationType value="Point" />
     <ValidatorArray value="CasterNotRooted" />
     <ValidatorArray value="TracerHasNoRecallPrepInvuln" />
@@ -1876,28 +2150,31 @@
     <EffectArray value="TracerBlinkApplySpeedBuff" />
     <EffectArray value="TracerBlinkApplySuppressTurningBuff" />
     <EffectArray value="TracerBlinkApplyDummyStackingCasterBehavior" />
+    <EffectArray value="TracerBlinkJumperTalentApplyShield" />
+  </CEffectSet>
+  <CEffectSwitch id="TracerHeroWeaponRicochetTalentImpactSwitch">
+    <CaseArray Validator="TracerHasLockedAndLoadedActive" Effect="TracerHeroWeaponRicochetLockedAndLoadedTalentImpactSet" />
+    <CaseDefault value="TracerHeroWeaponRicochetTalentImpactSet" />
+  </CEffectSwitch>
+  <CEffectSet id="TracerHeroWeaponRicochetLockedAndLoadedTalentImpactSet">
+    <EffectArray value="TracerHeroWeaponHeroDamageSwitch" />
+    <EffectArray value="ApplyAbilityImpactReveal" />
+    <EffectArray value="TracerHeroWeaponApplyTracerRoundsMasteryReveal" />
+    <EffectArray value="TracerHeroWeaponTelefragTalentModifyUnit" />
   </CEffectSet>
   <CEffectCreatePersistent id="TracerHeroWeaponCreateTargetingPersistent">
     <WhichLocation Value="TargetUnit" />
     <Flags index="PersistUntilDestroyed" value="1" />
   </CEffectCreatePersistent>
+  <CEffectSet id="TracerHeroWeaponRicochetTalentImpactSet">
+    <EffectArray value="TracerHeroWeaponHeroDamageSwitch" />
+    <EffectArray value="ApplyAbilityImpactReveal" />
+    <EffectArray value="TracerHeroWeaponApplyTracerRoundsMasteryReveal" />
+    <EffectArray value="TracerHeroWeaponTelefragTalentModifyUnit" />
+  </CEffectSet>
   <CEffectCreatePersistent id="TracerBlinkOffsetPersistent">
     <InitialEffect value="TracerBlinkOffsetSet" />
   </CEffectCreatePersistent>
-  <CEffectSwitch id="TracerHeroWeaponRicochetImpactSwitch">
-    <CaseArray Validator="TracerHasLockedAndLoadedActive" Effect="TracerRicochetImpactSetLockedAndLoaded" />
-    <CaseDefault value="TracerRicochetImpactSet" />
-  </CEffectSwitch>
-  <CEffectSet id="TracerRicochetImpactSetLockedAndLoaded">
-    <EffectArray value="TracerHeroWeaponHeroDamageSwitch" />
-    <EffectArray value="ApplyAbilityImpactReveal" />
-    <EffectArray value="TracerHeroWeaponApplyTracerRoundsMasteryReveal" />
-  </CEffectSet>
-  <CEffectSet id="TracerRicochetImpactSet">
-    <EffectArray value="TracerHeroWeaponHeroDamageSwitch" />
-    <EffectArray value="ApplyAbilityImpactReveal" />
-    <EffectArray value="TracerHeroWeaponApplyTracerRoundsMasteryReveal" />
-  </CEffectSet>
   <CEffectSet id="TracerHeroWeaponRicochetInitialSet">
     <Chance value="0" />
     <EffectArray value="TracerHeroWeaponRicochetTargetSearch" />
@@ -1905,7 +2182,7 @@
   </CEffectSet>
   <CEffectLaunchMissile id="TracerHeroWeaponRicochetLaunchMissile">
     <LaunchLocation Effect="TracerHeroWeaponImpactSet" Value="TargetUnit" />
-    <ImpactEffect value="TracerHeroWeaponRicochetImpactSwitch" />
+    <ImpactEffect value="TracerHeroWeaponRicochetTalentImpactSwitch" />
     <AmmoUnit value="TracerArtWeaponRicochetMissile" />
     <Movers Link="HeroMissileSpeed70" />
     <ValidatorArray index="0" value="noMarkers" />
@@ -1935,11 +2212,11 @@
   <CEffectModifyUnit id="TracerMeleeApplyPulseBombChargesHero">
     <ValidatorArray value="TracerDoesNotHaveBulletSprayPulseBombChargeLimiter" />
     <ImpactUnit Value="Caster" />
-    <Cost Abil="TracerPulseBomb,Execute" ChargeCountUse="-10" CooldownOperation="Add" />
+    <Cost Abil="TracerPulseBomb,Execute" ChargeCountUse="-12" CooldownOperation="Add" />
   </CEffectModifyUnit>
   <CEffectModifyUnit id="TracerMeleeApplyPulseBombCharges">
     <ImpactUnit Value="Caster" />
-    <Cost Abil="TracerPulseBomb,Execute" ChargeCountUse="-5" CooldownOperation="Add" />
+    <Cost Abil="TracerPulseBomb,Execute" ChargeCountUse="-6" CooldownOperation="Add" />
     <ValidatorArray value="TracerDoesNotHaveBulletSprayPulseBombChargeLimiter" />
   </CEffectModifyUnit>
   <CEffectModifyUnit id="TracerMeleeApplyQuantumSpikeMasteryPulseBombCharges">
@@ -1989,7 +2266,7 @@
     <ValidatorArray value="TargetIsHero" />
     <Chance value="0" />
     <ImpactUnit Value="Caster" />
-    <Cost Abil="TracerPulseBomb,Execute" ChargeCountUse="-10" CooldownOperation="Add" />
+    <Cost Abil="TracerPulseBomb,Execute" ChargeCountUse="-12" CooldownOperation="Add" />
   </CEffectModifyUnit>
   <CEffectDamage id="TracerMeleeDamage" parent="StormSpell">
     <Amount value="220" />
@@ -2011,6 +2288,7 @@
     </AreaArray>
   </CEffectEnumArea>
   <CEffectSet id="TracerMeleeImpactSet">
+    <EffectArray value="TracerMeleeHeavyHandedTalentApplyArmorDebuff" />
     <EffectArray value="TracerMeleeCreateRevealPersistent" />
     <EffectArray value="TracerMeleeApplyPulseBombChargesSwitch" />
     <EffectArray value="TracerMeleePulseStrikeApplyPulseBombCharges" />
@@ -2051,10 +2329,10 @@
     <ValidatorArray value="TargetIsHero" />
   </CEffectSwitch>
   <CEffectDamage id="TracerPulseBombCompositionBPulseBombAoEDamage" parent="StormSpell">
-    <Amount value="90" />
+    <Amount value="77" />
   </CEffectDamage>
   <CEffectDamage id="TracerPulseBombCompositionBPulseBombDamage" parent="StormSpell">
-    <Amount value="180" />
+    <Amount value="144" />
   </CEffectDamage>
   <CEffectSet id="TracerPulseBombCompositionBPulseBombGroundExplosionImpactSetCenter">
     <EffectArray value="TracerPulseBombCompositionBPulseBombDamage" />
@@ -2088,7 +2366,7 @@
     <EffectArray value="TracerPulseBombStickyBombMasteryApplySlowBehavior" />
   </CEffectSet>
   <CEffectDamage id="TracerPulseBombCompositionBQuantumSpikeDamage" parent="StormSpell">
-    <Amount value="180" />
+    <Amount value="144" />
   </CEffectDamage>
   <CEffectSet id="TracerPulseBombCompositionBQuantumSpikeExplosionImpactSet">
     <EffectArray value="TracerPulseBombCompositionBPulseBombAoEDamage" />
@@ -2189,7 +2467,7 @@
     <PeriodicPeriodArray value="0" />
   </CEffectCreatePersistent>
   <CEffectDamage id="TracerPulseBombQuantumSpikeMasteryDamage" parent="StormSpell">
-    <Amount value="360" />
+    <Amount value="288" />
     <SourceButtonFace value="TracerPulseBomb" />
   </CEffectDamage>
   <CEffectSet id="TracerPulseBombQuantumSpikeMasteryExpirationSet">
@@ -2213,6 +2491,7 @@
   </CEffectCreatePersistent>
   <CEffectSet id="TracerPulseBombQuantumSpikeMasteryGroundExplosionImpactSet">
     <EffectArray value="TracerPulseBombAoEDamage" />
+    <EffectArray value="TracerPulseBombQuantumSpikeMasteryPercentDamage" />
   </CEffectSet>
   <CEffectEnumArea id="TracerPulseBombQuantumSpikeMasteryGroundExplosionSearch">
     <SearchFilters value="-;Self,Player,Ally,Neutral,ImmuneToAOE,Missile,Item,Stasis,Dead,Hidden,Invulnerable" />
@@ -2239,7 +2518,7 @@
     <Chance value="0" />
   </CEffectApplyBehavior>
   <CEffectDamage id="TracerPulseBombAoEDamage" parent="StormSpell">
-    <Amount value="180" />
+    <Amount value="144" />
     <SourceButtonFace value="TracerPulseBomb" />
   </CEffectDamage>
   <CEffectSet id="TracerPulseBombGroundExplosionImpactSet">
@@ -2322,7 +2601,7 @@
     <PeriodicPeriodArray value="0.0625" />
   </CEffectCreatePersistent>
   <CEffectDamage id="TracerRecallPartingGiftClusterDamage" parent="StormSpell">
-    <Amount value="240" />
+    <Amount value="250" />
   </CEffectDamage>
   <CEffectDestroyPersistent id="TracerRecallPartingGiftClusterDestroyMissileScanPersistent">
     <WhichLocation Value="SourceUnit" />
@@ -2333,6 +2612,7 @@
   <CEffectSet id="TracerRecallPartingGiftClusterImpactSet">
     <ValidatorArray value="noMarkers" />
     <EffectArray value="TracerRecallPartingGiftClusterDamage" />
+    <EffectArray value="TracerRecallPartingGiftTalentModifyUnit" />
     <EffectArray value="TracerRecallPartingGiftClusterDestroyMissileScanPersistent" />
     <EffectArray value="StormSuicide" />
   </CEffectSet>
@@ -2440,7 +2720,8 @@
     <Behavior value="TracerBlinkSpeedBuff" />
   </CEffectApplyBehavior>
   <CEffectDamage id="TracerHeroWeaponDamage" parent="StormWeapon">
-    <Amount value="26" />
+    <Amount value="24" />
+    <LeechFraction index="Life" value="0.15" />
   </CEffectDamage>
   <CEffectModifyUnit id="TracerPulseBombApplyCharge">
     <ImpactUnit Value="Caster" />
@@ -2483,7 +2764,7 @@
     <EffectArray value="TracerPulseBombRemoveChargeIncrementStacks" />
   </CEffectSet>
   <CEffectDamage id="TracerPulseBombDamage" parent="StormSpell">
-    <Amount value="360" />
+    <Amount value="288" />
     <SourceButtonFace value="TracerPulseBomb" />
   </CEffectDamage>
   <CEffectDestroyPersistent id="TracerPulseBombDestroyMissileScanPersistent">
@@ -2549,10 +2830,10 @@
   <CEffectRemoveBehavior id="TracerPulseBombRemoveChargeIncrementStacks">
     <WhichUnit Value="Caster" />
     <BehaviorLink value="TracerPulseBombChargeIncrementStacks" />
-    <Count value="10" />
+    <Count value="8" />
   </CEffectRemoveBehavior>
   <CEffectSwitch id="TracerPulseBombChargeIncrementSwitch">
-    <CaseArray Validator="TracerHas9StacksPulseBombChargeIncrementStacks" Effect="TracerPulseBombChargeIncrementSet" />
+    <CaseArray Validator="TracerHas7StacksPulseBombChargeIncrementStacks" Effect="TracerPulseBombChargeIncrementSet" />
     <CaseDefault value="TracerPulseBombApplyChargeIncrementStack" />
   </CEffectSwitch>
   <CEffectEnumArea id="TracerPulseBombUnitExplosionSearch">
@@ -2578,6 +2859,7 @@
   </CEffectEnumArea>
   <CEffectSet id="TracerPulseBombQuantumSpikeMasteryExplosionImpactSet">
     <EffectArray value="TracerPulseBombAoEDamage" />
+    <EffectArray value="TracerPulseBombQuantumSpikeMasteryPercentDamage" />
   </CEffectSet>
   <CEffectCreatePersistent id="TracerPulseBombMissileScanController">
     <WhichLocation Value="OriginPoint" />
@@ -2594,6 +2876,7 @@
     <EffectArray value="TracerPulseBombDestroyMissileScanPersistent" />
     <EffectArray value="TracerPulseBombDestroyPulseRoundsMissileScanPersistent" />
     <EffectArray value="TracerPulseBombDestroyMissileScanController" />
+    <EffectArray value="TracerPulseBombPulseGeneratorTalentProcSet" />
     <EffectArray value="StormSuicide" />
   </CEffectSet>
   <CEffectLaunchMissile id="TracerPulseBombLaunchMissile">
@@ -2770,6 +3053,7 @@
     </HeroAbilArray>
     <HeroAbilArray Abil="TracerMelee" Button="TracerMelee">
       <Flags index="ShowInHeroSelect" value="1" />
+      <Flags index="UsesCharges" value="1" />
       <Flags index="AffectedByCooldownReduction" value="1" />
       <Flags index="AffectedByOverdrive" value="1" />
     </HeroAbilArray>
@@ -2786,27 +3070,28 @@
       <Flags index="Heroic" value="1" />
     </HeroAbilArray>
     <DefaultMount value="HorseCommon" />
-    <TalentTreeArray Talent="TracerPulseStrikeMelee" Tier="1" Column="1" />
-    <TalentTreeArray Talent="TracerSlipstreamRecall" Tier="1" Column="2" />
+    <TalentTreeArray Talent="TracerOneTwoPunch" Tier="1" Column="1" />
+    <TalentTreeArray Talent="TracerPartingGift" Tier="1" Column="2" />
     <TalentTreeArray Talent="TracerTracerRounds" Tier="1" Column="3" />
-    <TalentTreeArray Talent="TracerPartingGift" Tier="2" Column="1" />
-    <TalentTreeArray Talent="TracerIsthataHealthPack" Tier="2" Column="2" />
-    <TalentTreeArray Talent="TracerUntouchable" Tier="2" Column="3" />
-    <TalentTreeArray Talent="TracerJumper" Tier="3" Column="1" />
-    <TalentTreeArray Talent="TracerBulletTime" Tier="3" Column="2" />
-    <TalentTreeArray Talent="TracerSpatialEcho" Tier="3" Column="3" />
+    <TalentTreeArray Talent="TracerLeechingRounds" Tier="2" Column="1" />
+    <TalentTreeArray Talent="TracerPulseGenerator" Tier="2" Column="2" />
+    <TalentTreeArray Talent="TracerIsThataHealthPack" Tier="2" Column="3" />
+    <TalentTreeArray Talent="TracerSleightofHand" Tier="3" Column="1" />
+    <TalentTreeArray Talent="TracerFocusFire" Tier="3" Column="2" />
+    <TalentTreeArray Talent="TracerLockedandLoaded" Tier="3" Column="3" />
     <TalentTreeArray Talent="TracerStickyBomb" Tier="4" Column="1" />
     <TalentTreeArray Talent="TracerQuantumSpike" Tier="4" Column="2" />
     <TalentTreeArray Talent="TracerPulseRounds" Tier="4" Column="3" />
-    <TalentTreeArray Talent="TracerBulletSprayMelee" Tier="5" Column="1" />
-    <TalentTreeArray Talent="TracerRicochetHeroWeapon" Tier="5" Column="2" />
-    <TalentTreeArray Talent="TracerLeechingRounds" Tier="5" Column="3" />
-    <TalentTreeArray Talent="TracerSleightofHand" Tier="6" Column="1" />
-    <TalentTreeArray Talent="TracerFocusFire" Tier="6" Column="2" />
-    <TalentTreeArray Talent="TracerLockedandLoaded" Tier="6" Column="3" />
-    <TalentTreeArray Talent="TracerGetStuffedMelee" Tier="7" Column="1" />
-    <TalentTreeArray Talent="TracerTotalRecallRecall" Tier="7" Column="2" />
-    <TalentTreeArray Talent="TracerCompositionBPulseBomb" Tier="7" Column="3" />
+    <TalentTreeArray Talent="TracerJumper" Tier="5" Column="1" />
+    <TalentTreeArray Talent="TracerUntouchable" Tier="5" Column="2" />
+    <TalentTreeArray Talent="TracerTelefrag" Tier="5" Column="3" />
+    <TalentTreeArray Talent="TracerBulletSprayMelee" Tier="6" Column="1" />
+    <TalentTreeArray Talent="TracerHeavyHanded" Tier="6" Column="2" />
+    <TalentTreeArray Talent="TracerRicochetHeroWeapon" Tier="6" Column="3" />
+    <TalentTreeArray Talent="TracerChronoTriggers" Tier="7" Column="1" />
+    <TalentTreeArray Talent="TracerGetStuffedMelee" Tier="7" Column="2" />
+    <TalentTreeArray Talent="TracerTotalRecallRecall" Tier="7" Column="3" />
+    <TalentTreeArray Talent="TracerCompositionBPulseBomb" Tier="7" Column="4" />
     <VariationIcon value="Assets\Textures\UI_Glues_Swatch_Orange_Bright.dds" />
     <VariationArray value="TracerVar1" />
     <VariationArray value="TracerVar2" />
@@ -2898,6 +3183,14 @@
         <AffectedByAbilityPower value="1" />
         <AffectedByOverdrive value="1" />
       </Modifications>
+      <Modifications>
+        <Catalog value="Effect" />
+        <Entry value="TracerRecallTelefragTalentDamage" />
+        <Field value="Amount" />
+        <Value value="0.040000" />
+        <AffectedByAbilityPower value="1" />
+        <AffectedByOverdrive value="1" />
+      </Modifications>
     </LevelScalingArray>
     <LevelScalingArray>
       <Modifications>
@@ -2967,57 +3260,57 @@
     <HeroSpecificUIArray Location="CommandButton03Status" DescName="Tracer/TracerPulseBombChargeButtonOverrideFrame" />
     <Universe value="Overwatch" />
     <TalentAIBuildsArray ChanceToPick="16">
-      <TalentsArray value="TracerSlipstreamRecall" />
-      <TalentsArray value="TracerPartingGift" />
-      <TalentsArray value="TracerSpatialEcho" />
+      <TalentsArray value="TracerOneTwoPunch" />
+      <TalentsArray value="TracerPulseGenerator" />
+      <TalentsArray value="TracerSleightofHand" />
       <TalentsArray value="TracerQuantumSpike" />
+      <TalentsArray value="TracerJumper" />
       <TalentsArray value="TracerBulletSprayMelee" />
+      <TalentsArray value="TracerGetStuffedMelee" />
+    </TalentAIBuildsArray>
+    <TalentAIBuildsArray ChanceToPick="16">
+      <TalentsArray value="TracerTracerRounds" />
+      <TalentsArray value="TracerLeechingRounds" />
       <TalentsArray value="TracerFocusFire" />
+      <TalentsArray value="TracerPulseRounds" />
+      <TalentsArray value="TracerUntouchable" />
+      <TalentsArray value="TracerRicochetHeroWeapon" />
+      <TalentsArray value="TracerChronoTriggers" />
+    </TalentAIBuildsArray>
+    <TalentAIBuildsArray ChanceToPick="16">
+      <TalentsArray value="TracerPartingGift" />
+      <TalentsArray value="TracerPulseGenerator" />
+      <TalentsArray value="TracerSleightofHand" />
+      <TalentsArray value="TracerQuantumSpike" />
+      <TalentsArray value="TracerTelefrag" />
+      <TalentsArray value="TracerHeavyHanded" />
       <TalentsArray value="TracerTotalRecallRecall" />
     </TalentAIBuildsArray>
     <TalentAIBuildsArray ChanceToPick="16">
       <TalentsArray value="TracerTracerRounds" />
-      <TalentsArray value="TracerUntouchable" />
-      <TalentsArray value="TracerBulletTime" />
-      <TalentsArray value="TracerPulseRounds" />
-      <TalentsArray value="TracerLeechingRounds" />
-      <TalentsArray value="TracerSleightofHand" />
-      <TalentsArray value="TracerCompositionBPulseBomb" />
-    </TalentAIBuildsArray>
-    <TalentAIBuildsArray ChanceToPick="16">
-      <TalentsArray value="TracerPulseStrikeMelee" />
-      <TalentsArray value="TracerPartingGift" />
-      <TalentsArray value="TracerJumper" />
-      <TalentsArray value="TracerPulseRounds" />
-      <TalentsArray value="TracerRicochetHeroWeapon" />
-      <TalentsArray value="TracerSleightofHand" />
-      <TalentsArray value="TracerTotalRecallRecall" />
-    </TalentAIBuildsArray>
-    <TalentAIBuildsArray ChanceToPick="16">
-      <TalentsArray value="TracerSlipstreamRecall" />
-      <TalentsArray value="TracerIsthataHealthPack" />
-      <TalentsArray value="TracerSpatialEcho" />
-      <TalentsArray value="TracerStickyBomb" />
-      <TalentsArray value="TracerBulletSprayMelee" />
+      <TalentsArray value="TracerIsThataHealthPack" />
       <TalentsArray value="TracerFocusFire" />
+      <TalentsArray value="TracerStickyBomb" />
+      <TalentsArray value="TracerJumper" />
+      <TalentsArray value="TracerRicochetHeroWeapon" />
       <TalentsArray value="TracerCompositionBPulseBomb" />
     </TalentAIBuildsArray>
     <TalentAIBuildsArray AIOnly="1" ChanceToPick="16">
       <TalentsArray value="TracerTracerRounds" />
-      <TalentsArray value="TracerIsthataHealthPack" />
-      <TalentsArray value="TracerJumper" />
-      <TalentsArray value="TracerQuantumSpike" />
-      <TalentsArray value="TracerRicochetHeroWeapon" />
-      <TalentsArray value="TracerFocusFire" />
+      <TalentsArray value="TracerIsThataHealthPack" />
+      <TalentsArray value="TracerSleightofHand" />
+      <TalentsArray value="TracerPulseRounds" />
+      <TalentsArray value="TracerUntouchable" />
+      <TalentsArray value="TracerHeavyHanded" />
       <TalentsArray value="TracerGetStuffedMelee" />
     </TalentAIBuildsArray>
     <TalentAIBuildsArray AIOnly="1" ChanceToPick="16">
-      <TalentsArray value="TracerSlipstreamRecall" />
-      <TalentsArray value="TracerPartingGift" />
-      <TalentsArray value="TracerBulletTime" />
-      <TalentsArray value="TracerStickyBomb" />
-      <TalentsArray value="TracerBulletSprayMelee" />
+      <TalentsArray value="TracerOneTwoPunch" />
+      <TalentsArray value="TracerIsThataHealthPack" />
       <TalentsArray value="TracerSleightofHand" />
+      <TalentsArray value="TracerStickyBomb" />
+      <TalentsArray value="TracerTelefrag" />
+      <TalentsArray value="TracerBulletSprayMelee" />
       <TalentsArray value="TracerGetStuffedMelee" />
     </TalentAIBuildsArray>
     <Difficulty value="Hard" />
@@ -3255,6 +3548,19 @@
     <Face value="TracerBulletTime" />
     <Abil value="TracerBlink" />
   </CTalent>
+  <CTalent id="TracerChronoTriggers">
+    <Face value="TracerChronoTriggers" />
+    <Abil value="TracerBlink" />
+    <AbilityModificationArray>
+      <Modifications>
+        <Type value="FlatModification" />
+        <Catalog value="Effect" />
+        <Entry value="TracerBlinkChronoTriggersTalentApplyBuff" />
+        <Field value="Chance" />
+        <Value value="1.000000" />
+      </Modifications>
+    </AbilityModificationArray>
+  </CTalent>
   <CTalent id="TracerCompositionBPulseBomb">
     <Face value="TracerCompositionBPulseBomb" />
     <Abil value="TracerPulseBomb" />
@@ -3263,6 +3569,19 @@
         <Type value="FlatModification" />
         <Catalog value="Effect" />
         <Entry value="TracerPulseBombCompositionBGroundImpactSwitch" />
+        <Field value="Chance" />
+        <Value value="1.000000" />
+      </Modifications>
+    </AbilityModificationArray>
+  </CTalent>
+  <CTalent id="TracerPulseGenerator">
+    <Face value="TracerPulseGenerator" />
+    <Abil value="TracerPulseBomb" />
+    <AbilityModificationArray>
+      <Modifications>
+        <Type value="FlatModification" />
+        <Catalog value="Effect" />
+        <Entry value="TracerPulseBombPulseGeneratorTalentProcSet" />
         <Field value="Chance" />
         <Value value="1.000000" />
       </Modifications>
@@ -3281,9 +3600,48 @@
       </Modifications>
       <Modifications>
         <Type value="FlatModification" />
+        <Catalog value="Effect" />
+        <Entry value="TracerMeleePulseStrikeApplyPulseBombCharges" />
+        <Field value="Chance" />
+        <Value value="1.000000" />
+      </Modifications>
+    </AbilityModificationArray>
+  </CTalent>
+  <CTalent id="TracerOneTwoPunch">
+    <Face value="TracerOneTwoPunch" />
+    <Abil value="TracerMelee" />
+    <AbilityModificationArray>
+      <Modifications>
+        <Type value="FlatModification" />
         <Entry value="TracerMelee" />
-        <Field value="Cost[0].Cooldown.TimeUse" />
-        <Value value="-3.000000" />
+        <Field value="Cost[0].Charge.CountMax" />
+        <Value value="1.000000" />
+      </Modifications>
+      <Modifications>
+        <Type value="FlatModification" />
+        <Entry value="TracerMelee" />
+        <Field value="Cost[0].Charge.HideCount" />
+        <FieldIsInteger value="1" />
+        <Value value="-1.000000" />
+      </Modifications>
+      <Modifications>
+        <Type value="FlatModification" />
+        <Entry value="TracerMelee" />
+        <Field value="Cost[0].Charge.TimeUse" />
+        <Value value="-1.000000" />
+      </Modifications>
+    </AbilityModificationArray>
+  </CTalent>
+  <CTalent id="TracerHeavyHanded">
+    <Face value="TracerHeavyHanded" />
+    <Abil value="TracerMelee" />
+    <AbilityModificationArray>
+      <Modifications>
+        <Type value="FlatModification" />
+        <Catalog value="Effect" />
+        <Entry value="TracerMeleeHeavyHandedTalentApplyArmorDebuff" />
+        <Field value="Chance" />
+        <Value value="1.000000" />
       </Modifications>
     </AbilityModificationArray>
   </CTalent>
@@ -3304,48 +3662,7 @@
       </Modifications>
     </AbilityModificationArray>
   </CTalent>
-  <CTalent id="TracerRicochetHeroWeapon">
-    <Face value="TracerRicochetHeroWeapon" />
-    <AbilityModificationArray>
-      <Modifications>
-        <Type value="FlatModification" />
-        <Catalog value="Effect" />
-        <Entry value="TracerHeroWeaponRicochetInitialSet" />
-        <Field value="Chance" />
-        <Value value="0.500000" />
-      </Modifications>
-    </AbilityModificationArray>
-  </CTalent>
-  <CTalent id="TracerJumper">
-    <Face value="TracerJumper" />
-    <Abil value="TracerBlink" />
-    <RankArray>
-      <BehaviorArray value="JumperInitialBehavior" />
-    </RankArray>
-    <AbilityModificationArray>
-      <Modifications>
-        <Type value="FlatModification" />
-        <Entry value="TracerBlink" />
-        <Field value="Cost[0].Charge.CountMax" />
-        <FieldIsInteger value="1" />
-        <Value value="1.000000" />
-      </Modifications>
-      <Modifications>
-        <Type value="StringReplacement" />
-        <Catalog value="Button" />
-        <Entry value="TracerBlink" />
-        <Field value="Icon" />
-        <StringReplacement value="Assets\Textures\storm_ui_icon_tracer_blink_b_empty.dds" />
-      </Modifications>
-      <Modifications>
-        <Type value="FlatModification" />
-        <Entry value="TracerBlink" />
-        <Field value="Cost[0].Charge.TimeUse" />
-        <Value value="2.000000" />
-      </Modifications>
-    </AbilityModificationArray>
-  </CTalent>
-  <CTalent id="TracerIsthataHealthPack">
+  <CTalent id="TracerIsThataHealthPack">
     <Face value="TracerIsthataHealthPack" />
     <AbilityModificationArray>
       <Modifications>
@@ -3368,6 +3685,34 @@
         <Entry value="MoonwellDrinkL2ModifyHealthCreateHealer" />
         <Field value="RechargeVitalFraction" />
         <Value value="2.000000" />
+      </Modifications>
+    </AbilityModificationArray>
+  </CTalent>
+  <CTalent id="TracerRicochetHeroWeapon">
+    <Face value="TracerRicochetHeroWeapon" />
+    <AbilityModificationArray>
+      <Modifications>
+        <Type value="FlatModification" />
+        <Catalog value="Effect" />
+        <Entry value="TracerHeroWeaponRicochetInitialSet" />
+        <Field value="Chance" />
+        <Value value="0.600000" />
+      </Modifications>
+    </AbilityModificationArray>
+  </CTalent>
+  <CTalent id="TracerJumper">
+    <Face value="TracerJumper" />
+    <Abil value="TracerBlink" />
+    <RankArray>
+      <BehaviorArray value="TracerBlinkJumperTalentCarry" />
+    </RankArray>
+    <AbilityModificationArray>
+      <Modifications>
+        <Type value="FlatModification" />
+        <Catalog value="Effect" />
+        <Entry value="TracerBlinkJumperTalentApplyShield" />
+        <Field value="Chance" />
+        <Value value="1.000000" />
       </Modifications>
     </AbilityModificationArray>
   </CTalent>
@@ -3403,6 +3748,71 @@
     <Face value="TracerPartingGift" />
     <Abil value="TracerRecall" />
   </CTalent>
+  <CTalent id="TracerTelefrag">
+    <Face value="TracerTelefrag" />
+    <Abil value="TracerRecall" />
+    <AbilityModificationArray>
+      <Modifications>
+        <Type value="FlatModification" />
+        <Catalog value="Effect" />
+        <Entry value="TracerRecallTelefragTalentSearch" />
+        <Field value="Chance" />
+        <Value value="1.000000" />
+      </Modifications>
+      <Modifications>
+        <Type value="FlatModification" />
+        <Catalog value="Effect" />
+        <Entry value="TracerHeroWeaponTelefragTalentModifyUnit" />
+        <Field value="Chance" />
+        <Value value="1.000000" />
+      </Modifications>
+    </AbilityModificationArray>
+  </CTalent>
+  <CTalent id="TracerUntouchable">
+    <Face value="TracerUntouchable" />
+    <Abil value="TracerBlink" />
+    <RankArray>
+      <BehaviorArray value="TracerUntouchableQuestToken" />
+      <BehaviorArray value="TracerUntouchableBuff" />
+    </RankArray>
+    <AbilityModificationArray>
+      <Modifications>
+        <Type value="FlatModification" />
+        <Entry value="TracerBlink" />
+        <Field value="MoveLocation.ProjectionDistanceScale" />
+        <Value value="1.330000" />
+      </Modifications>
+      <Modifications>
+        <Type value="FlatModification" />
+        <Catalog value="Actor" />
+        <Entry value="TracerBlinkGuide" />
+        <Field value="Height" />
+        <Value value="1.330000" />
+      </Modifications>
+      <Modifications>
+        <Type value="FlatModification" />
+        <Catalog value="Behavior" />
+        <Entry value="TracerBlinkSpeedBuff" />
+        <Field value="Modification.MoveSpeedMaximum" />
+        <Value value="18.000000" />
+      </Modifications>
+      <Modifications>
+        <Type value="FlatModification" />
+        <Catalog value="Behavior" />
+        <Entry value="TracerBlinkSpeedBuff" />
+        <Field value="Modification.MoveSpeedMinimum" />
+        <Value value="18.000000" />
+      </Modifications>
+      <Modifications>
+        <Type value="FlatModification" />
+        <Catalog value="Behavior" />
+        <Entry value="TracerBlinkSpeedBuff" />
+        <Field value="Duration" />
+        <Value value="0.030000" />
+      </Modifications>
+    </AbilityModificationArray>
+    <QuestData StackBehavior="TracerUntouchableQuestToken" TargetCount="10" />
+  </CTalent>
   <CTalent id="TracerSleightofHand">
     <Face value="TracerSleightofHand" />
     <Abil value="TracerReload" />
@@ -3435,44 +3845,38 @@
   <CTalent id="TracerTotalRecallRecall">
     <Face value="TracerTotalRecallRecall" />
     <Abil value="TracerRecall" />
-    <AbilityModificationArray>
-      <Modifications>
-        <Type value="FlatModification" />
-        <Entry value="TracerRecall" />
-        <Field value="Cost[0].Cooldown.TimeUse" />
-        <Value value="8.000000" />
-      </Modifications>
-    </AbilityModificationArray>
-  </CTalent>
-  <CTalent id="TracerUntouchable">
-    <Face value="TracerUntouchable" />
-    <RankArray>
-      <BehaviorArray value="TracerUntouchableQuestToken" />
-      <BehaviorArray value="TracerUntouchableBuff" />
-    </RankArray>
-    <QuestData StackBehavior="TracerUntouchableQuestToken" TargetCount="15" />
   </CTalent>
   <CTalent id="TracerTracerRounds">
     <Face value="TracerTracerRounds" />
-  </CTalent>
-  <CTalent id="TracerLeechingRounds">
-    <Face value="TracerLeechingRounds" />
     <AbilityModificationArray>
       <Modifications>
         <Type value="FlatModification" />
-        <Catalog value="Effect" />
-        <Entry value="TracerHeroWeaponDamageHero" />
-        <Field value="LeechFraction[Life]" />
-        <Value value="0.200000" />
+        <Catalog value="Weapon" />
+        <Entry value="TracerHeroWeapon" />
+        <Field value="Range" />
+        <Value value="0.500000" />
       </Modifications>
       <Modifications>
         <Type value="FlatModification" />
-        <Catalog value="Effect" />
-        <Entry value="TracerHeroWeaponFocusFireMasteryDamageHero" />
-        <Field value="LeechFraction[Life]" />
-        <Value value="0.200000" />
+        <Catalog value="Weapon" />
+        <Entry value="TracerHeroWeapon" />
+        <Field value="MinScanRange" />
+        <Value value="0.500000" />
+      </Modifications>
+      <Modifications>
+        <Type value="FlatModification" />
+        <Entry value="TracerSmartTargetingRightClick" />
+        <Field value="Range" />
+        <Value value="0.500000" />
       </Modifications>
     </AbilityModificationArray>
+  </CTalent>
+  <CTalent id="TracerLeechingRounds">
+    <Face value="TracerLeechingRounds" />
+    <RankArray>
+      <BehaviorArray value="TracerLeechingRoundsTalentTokenCounter" />
+    </RankArray>
+    <Abil value="TracerBlink" />
   </CTalent>
   <CTalent id="TracerStickyBomb">
     <Face value="TracerStickyBomb" />
@@ -3631,8 +4035,8 @@
     <BehaviorArray Link="HeroWeaponCasterTargetFinderDisablerMounted" />
     <BehaviorArray Link="TracerHasFullAmmo" />
     <BehaviorArray Link="TracerRecallUnitAITrackingBehavior" />
-    <LifeStart value="1280" />
-    <LifeMax value="1280" />
+    <LifeStart value="1330" />
+    <LifeMax value="1330" />
     <AbilArray index="1" Link="TracerAttack" />
     <AbilArray Link="TracerReload" />
     <AbilArray Link="TracerBlink" />
@@ -3661,7 +4065,7 @@
     <EnergyRegenRate value="0" />
     <Radius value="0.625" />
     <AIEvalFactor value="1.2" />
-    <LifeRegenRate value="5.332" />
+    <LifeRegenRate value="2.707" />
     <EffectArray index="Death" value="TracerDeathSet" />
     <InitializerFunction value="libTrac_gf_HeroTracerIncrementHeroCountFunction" />
     <DestructionFunction value="libTrac_gf_HeroTracerDecrementHeroCountFunction" />
@@ -3698,9 +4102,23 @@
     <InfoTooltipPriority value="0" />
     <EffectArray Operation="Set" Reference="Button,TracerBlink,Icon" Value="Assets\Textures\storm_ui_icon_tracer_blink_b_empty.dds" />
   </CUpgrade>
+  <CValidatorUnitCompareBehaviorCount id="HasTelefragPushPull">
+    <Value value="1" />
+    <Behavior value="TracerRecallTelefragTalentKnockbackPushPull" />
+  </CValidatorUnitCompareBehaviorCount>
   <CValidatorCombine id="HallOfStormsKnockbackExceptionCombine">
     <CombineArray value="TracerTargetIsNotTracerRecallUnitCombine" />
   </CValidatorCombine>
+  <CValidatorLocationEnumArea id="TracerAttackTargetInRangeTracerRoundsTalent">
+    <WhichLocation Value="CasterUnit" />
+    <AreaArray Count="1" Validator="TracerTargetHasHeroWeaponTargetBehavior">
+      <Radius value="5.5" />
+    </AreaArray>
+    <SearchFlags index="ExtendByUnitRadius" value="1" />
+    <SearchFlags index="OffsetAreaByAngle" value="0" />
+    <LaunchLocation Value="SourceUnit" />
+    <SearchFilters value="Visible;Player,Ally,Neutral,Stasis,Invulnerable" />
+  </CValidatorLocationEnumArea>
   <CValidatorUnitType id="TracerCasterIsTracer">
     <WhichUnit Value="Caster" />
     <Value value="HeroTracer" />
@@ -3710,6 +4128,67 @@
     <Value value="TracerRecallUnitAITracking" />
     <Find value="0" />
   </CValidatorUnitType>
+  <CValidatorUnitCompareChargeUsed id="TracerHas2BlinkChargesUsed">
+    <Compare value="GT" />
+    <ChargeLink value="Abil/TracerBlink" />
+    <Location value="Unit" />
+    <Ability value="TracerBlink" />
+    <Value value="1" />
+  </CValidatorUnitCompareChargeUsed>
+  <CValidatorUnitCompareBehaviorCount id="TracerHasChronoTriggersBuff">
+    <WhichUnit Value="Caster" />
+    <Value value="1" />
+    <Behavior value="TracerBlinkChronoTriggersTalentBuff" />
+  </CValidatorUnitCompareBehaviorCount>
+  <CValidatorPlayerTalent id="TracerHasHeavyHandedTalentMelee">
+    <WhichPlayer Value="Caster" />
+    <Find value="1" />
+    <Value value="TracerHeavyHanded" />
+  </CValidatorPlayerTalent>
+  <CValidatorUnitCompareBehaviorCount id="TracerHasJumperCarryBehaviorActive">
+    <WhichUnit Value="Source" />
+    <Compare value="GT" />
+    <Behavior value="TracerBlinkJumperTalentCarry" />
+  </CValidatorUnitCompareBehaviorCount>
+  <CValidatorPlayerTalent id="TracerHasOneTwoPunchTalent">
+    <WhichPlayer Value="Caster" />
+    <Find value="1" />
+    <Value value="TracerOneTwoPunch" />
+  </CValidatorPlayerTalent>
+  <CValidatorPlayerTalent id="TracerHasPulseGeneratorTalent">
+    <WhichPlayer Value="Caster" />
+    <Find value="1" />
+    <Value value="TracerPulseGenerator" />
+  </CValidatorPlayerTalent>
+  <CValidatorPlayerTalent id="TracerHasUntouchableTalent">
+    <WhichPlayer Value="Caster" />
+    <Find value="1" />
+    <Value value="TracerUntouchable" />
+  </CValidatorPlayerTalent>
+  <CValidatorPlayerTalent id="TracerHasTelefragTalent">
+    <WhichPlayer Value="Caster" />
+    <Find value="1" />
+    <Value value="TracerTelefrag" />
+  </CValidatorPlayerTalent>
+  <CValidatorPlayerTalent id="TracerDoesNotHaveTelefragTalent">
+    <WhichPlayer Value="Caster" />
+    <Value value="TracerTelefrag" />
+  </CValidatorPlayerTalent>
+  <CValidatorPlayerTalent id="TracerHasChronoTriggers">
+    <WhichPlayer Value="Caster" />
+    <Find value="1" />
+    <Value value="TracerChronoTriggers" />
+  </CValidatorPlayerTalent>
+  <CValidatorPlayerTalent id="TracerTargetHasIsThataHealthPackTalent">
+    <WhichPlayer Value="Target" />
+    <Find value="1" />
+    <Value value="TracerIsThataHealthPack" />
+  </CValidatorPlayerTalent>
+  <CValidatorUnitCompareBehaviorCount id="TracerTargetHasTracerRoundsRevealerDebuff">
+    <Compare value="GE" />
+    <Value value="1" />
+    <Behavior value="TracerTracerRoundsRevealer" />
+  </CValidatorUnitCompareBehaviorCount>
   <CValidatorUnitCompareOrderCount id="TracerHasNoMeleeOrder">
     <AbilLink value="TracerMelee" />
   </CValidatorUnitCompareOrderCount>
@@ -3778,11 +4257,6 @@
     <CombineArray value="SourceIsMounted" />
     <CombineArray value="SourceIsCloaked" />
   </CValidatorCombine>
-  <CValidatorLocationCompareRange id="TracerAttackTargetNearby">
-    <WhichLocation Effect="TracerHeroWeaponApplyShootingBehavior" Value="TargetUnit" />
-    <Compare value="LE" />
-    <Range value="5.5" />
-  </CValidatorLocationCompareRange>
   <CValidatorUnitType id="TracerCasterIsNotTracerRecallDummyUnit">
     <WhichUnit Value="Caster" />
     <Value value="TracerRecallDummyUnit" />
@@ -3817,6 +4291,15 @@
     <CombineArray value="TracerTargetHasHeroWeaponTargetBehavior" />
     <CombineArray value="TracerCasterHasHeroWeaponShootingCasterBehavior" />
     <Type value="And" />
+  </CValidatorCombine>
+  <CValidatorCombine id="TracerTracerRoundsRangeCheckCombine">
+    <Type value="And" />
+    <CombineArray value="TracerHasTracerRoundsTalent" />
+    <CombineArray value="TracerAttackTargetInRangeTracerRoundsTalent" />
+  </CValidatorCombine>
+  <CValidatorCombine id="TracerAttackTargetInRangeCombine">
+    <CombineArray value="TracerAttackTargetInRange" />
+    <CombineArray value="TracerTracerRoundsRangeCheckCombine" />
   </CValidatorCombine>
   <CValidatorUnitCompareField id="TracerWeaponImpactScaleThreshold">
     <Compare value="GT" />
@@ -3868,7 +4351,7 @@
   </CValidatorUnitOrderTargetType>
   <CValidatorLocationEnumArea id="TracerAttackTargetInRange">
     <AreaArray Count="1" Validator="TracerTargetHasHeroWeaponTargetBehavior">
-      <Radius value="5.5" />
+      <Radius value="5" />
     </AreaArray>
     <SearchFlags index="ExtendByUnitRadius" value="1" />
     <SearchFlags index="OffsetAreaByAngle" value="0" />
@@ -4100,10 +4583,10 @@
     <Behavior value="TracerHeroWeaponTargeting" />
     <RequireCasterUnit Value="Caster" />
   </CValidatorUnitCompareBehaviorCount>
-  <CValidatorUnitCompareBehaviorCount id="TracerHas9StacksPulseBombChargeIncrementStacks">
+  <CValidatorUnitCompareBehaviorCount id="TracerHas7StacksPulseBombChargeIncrementStacks">
     <WhichUnit Value="Caster" />
     <Compare value="GE" />
-    <Value value="9" />
+    <Value value="7" />
     <Behavior value="TracerPulseBombChargeIncrementStacks" />
   </CValidatorUnitCompareBehaviorCount>
   <CValidatorUnitCompareChargeUsed id="TracerHasAmmo">
@@ -4221,8 +4704,6 @@
     <Icon value="Assets\Textures\storm_temp_btn-upgrade-terran-infantryweaponslevel2.dds" />
     <DisplayEffect value="TracerHeroWeaponDamage" />
     <ChaseFilters value="-;Player,Ally,Neutral,Enemy" />
-    <MinScanRange value="5.5" />
-    <Range value="5.5" />
     <Arc value="360" />
     <Cost>
       <Vital index="Energy" value="2" />
@@ -4235,7 +4716,6 @@
     <LegacyOptions index="Uninterruptible" value="0" />
     <LegacyOptions index="NoDeceleration" value="1" />
     <AllowedMovement value="Moving" />
-    <UninterruptibleDelay value="0" />
     <UninterruptibleDuration value="0" />
   </CWeaponLegacy>
 </Catalog>
