@@ -15681,7 +15681,17 @@ void libGame_gt_ExperienceGlobeScaling_Init () {
 // Trigger: Experience Globe - Spawn
 //--------------------------------------------------------------------------------------------------
 bool libGame_gt_ExperienceGlobeSpawn_Func (bool testConds, bool runActions) {
+    // Variable Declarations
+    unit lv_unit;
+    int lv_unitOwner;
+    int lv_killingPlayer;
+
     // Automatic Variable Declarations
+    // Variable Initialization
+    lv_unit = EventUnit();
+    lv_unitOwner = EventPlayer();
+    lv_killingPlayer = libNtve_gf_KillingPlayer();
+
     // Conditions
     if (testConds) {
         if (!(((libGame_gv_oldXPCheat == false) && (UnitHasBehavior2(EventUnit(), "ExperienceGlobeSpawn") == true)))) {
@@ -15694,15 +15704,20 @@ bool libGame_gt_ExperienceGlobeSpawn_Func (bool testConds, bool runActions) {
         return true;
     }
 
-    if ((UnitGetOwner(EventUnit()) == libCore_gv_cOMPUTER_TeamOrder)) {
-        PlayerCreateEffectPoint(libCore_gv_cOMPUTER_TeamChaos, "HeroGenericGenerateExperienceGlobeCreateUnit", UnitGetPosition(EventUnit()));
+    if ((libNtve_gf_KillingPlayer() >= 1) && (libNtve_gf_KillingPlayer() <= libCore_gv_bALMaxPlayers) && (libGame_gf_TeamNumberOfPlayer(lv_killingPlayer) != libGame_gf_TeamNumberOfPlayer(EventPlayer()))) {
+        UnitCreateEffectUnit(lv_unit, "ExperienceGlobeDummyImpactSetLastHit", libGame_gv_players[lv_killingPlayer].lv_heroUnit);
     }
     else {
-        if ((UnitGetOwner(EventUnit()) == libCore_gv_cOMPUTER_TeamChaos)) {
-            PlayerCreateEffectPoint(libCore_gv_cOMPUTER_TeamOrder, "HeroGenericGenerateExperienceGlobeCreateUnit", UnitGetPosition(EventUnit()));
+        if ((UnitGetOwner(lv_unit) == libCore_gv_cOMPUTER_TeamOrder)) {
+            PlayerCreateEffectPoint(libCore_gv_cOMPUTER_TeamChaos, "HeroGenericGenerateExperienceGlobeCreateUnit", UnitGetPosition(lv_unit));
         }
         else {
-            TriggerDebugOutput(1, StringExternal("Param/Value/lib_Game_C11D8B82"), true);
+            if ((UnitGetOwner(lv_unit) == libCore_gv_cOMPUTER_TeamChaos)) {
+                PlayerCreateEffectPoint(libCore_gv_cOMPUTER_TeamOrder, "HeroGenericGenerateExperienceGlobeCreateUnit", UnitGetPosition(lv_unit));
+            }
+            else {
+                TriggerDebugOutput(1, StringExternal("Param/Value/lib_Game_C11D8B82"), true);
+            }
         }
     }
     return true;
@@ -15754,7 +15769,12 @@ bool libGame_gt_ExperienceGlobeGrantXP_Func (bool testConds, bool runActions) {
         	libGame_gf_GrantXPToPlayer(lv_xPAmount, lv_itPlayer, libGame_ge_XPSources_Minion);
     }
     libGame_gf_ScoreValuesRecordXPContributionForPlayer(lv_targetPlayer, lv_xPAmount, true);
-    libUIUI_gf_UIFloatingCombatTextH16MidXP(lv_targetPlayer, EventPlayerEffectUsedUnit(c_effectUnitSource), libCore_ge_FloatingTextType_XPSmall, FixedToInt(lv_xPAmount));
+    if ((EventPlayerEffectUsed() == "ExperienceGlobeDummyImpactSetLastHit")) {
+        libUIUI_gf_UIFloatingCombatTextH16MidXP(lv_targetPlayer, EventPlayerEffectUsedUnit(c_effectUnitSource), libCore_ge_FloatingTextType_XPSmall, FixedToInt(lv_xPAmount));
+    }
+    else {
+        libUIUI_gf_UIFloatingCombatTextH16MidXP(lv_targetPlayer, EventPlayerEffectUsedUnit(c_effectUnitSource), libCore_ge_FloatingTextType_XPSmall, FixedToInt(lv_xPAmount));
+    }
     return true;
 }
 
@@ -15762,6 +15782,7 @@ bool libGame_gt_ExperienceGlobeGrantXP_Func (bool testConds, bool runActions) {
 void libGame_gt_ExperienceGlobeGrantXP_Init () {
     libGame_gt_ExperienceGlobeGrantXP = TriggerCreate("libGame_gt_ExperienceGlobeGrantXP_Func");
     TriggerAddEventPlayerEffectUsed(libGame_gt_ExperienceGlobeGrantXP, c_playerAny, "ExperienceGlobeDummyImpactSetMinion");
+    TriggerAddEventPlayerEffectUsed(libGame_gt_ExperienceGlobeGrantXP, c_playerAny, "ExperienceGlobeDummyImpactSetLastHit");
 }
 
 //--------------------------------------------------------------------------------------------------

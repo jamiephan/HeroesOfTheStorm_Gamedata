@@ -14,6 +14,16 @@
     <PrepEffect value="DismountDecloakCasterSet" />
     <Arc value="360" />
   </CAbilEffectTarget>
+  <CAbilEffectInstant id="AurielResurrectSelf">
+    <Effect value="AurielResurrectSelfDummy" />
+    <Flags index="Transient" value="1" />
+    <Cost>
+      <Charge Link="Abil/AurielResurrect" />
+      <Cooldown Link="Abil/AurielResurrect" TimeUse="80" />
+    </Cost>
+    <CmdButtonArray index="Execute" DefaultButtonFace="AurielResurrectSelf" Requirements="AurielResurrectSelfRequirement" ShowValidator="IsDead" />
+    <SharedFlags index="ExecutableWhileDead" value="1" />
+  </CAbilEffectInstant>
   <CAbilEffectTarget id="AurielSacredSweep">
     <PrepEffect value="DismountDecloakCasterSet" />
     <Effect value="AurielSacredSweepInitialSet" />
@@ -75,7 +85,7 @@
     <CastIntroTime value="0.5" />
     <ShowProgressArray index="Cast" value="1" />
     <UninterruptibleArray index="Cast" value="1" />
-    <CmdButtonArray index="Execute" DefaultButtonFace="AurielResurrect" Requirements="Ultimate1Unlocked" />
+    <CmdButtonArray index="Execute" DefaultButtonFace="AurielResurrect" Requirements="Ultimate1Unlocked" ShowValidator="SourceNotDead" />
   </CAbilEffectTarget>
   <CAbilEffectTarget id="AurielCrystalAegis">
     <PrepEffect value="DismountDecloakCasterSet" />
@@ -565,6 +575,8 @@
   <CActorModel id="AurielResurrectChannelFX" parent="StormModelAnimationStyleOneShot">
     <On Terms="Behavior.AurielResurrectMarkerBehavior.On" Send="Create" />
     <On Terms="Behavior.AurielResurrectMarkerBehavior.Off" Send="AnimBracketStop BSD" />
+    <On Terms="Behavior.AurielResurrectSelfMarkerBehavior.On" Send="Create" />
+    <On Terms="Behavior.AurielResurrectSelfMarkerBehavior.Off" Send="AnimBracketStop BSD" />
     <Inherits index="Visibility" value="1" />
     <FogVisibility value="Hidden" />
     <Host Subject="_Unit" />
@@ -582,6 +594,8 @@
   <CActorSound id="AurielResurrectLaunchSound" parent="SoundContinuous">
     <On Terms="Behavior.AurielResurrectMarkerBehavior.On" Send="Create" />
     <On Terms="Behavior.AurielResurrectMarkerBehavior.Off" Send="Destroy" />
+    <On Terms="Behavior.AurielResurrectSelfMarkerBehavior.On" Send="Create" />
+    <On Terms="Behavior.AurielResurrectSelfMarkerBehavior.Off" Send="Destroy" />
     <Sound value="Auriel_Resurrect_Launch" />
   </CActorSound>
   <CActorSound id="AurielResurrectSpiritSound" parent="SoundContinuous">
@@ -669,6 +683,8 @@
     <On Terms="Behavior.AurielResurrectMarkerBehavior.On" Send="Create" />
     <On Terms="ActorCreation" Send="ModelMaterialApplyTo ::Main" />
     <On Terms="Behavior.AurielResurrectMarkerBehavior.Off" Send="AnimBracketStop BSD" />
+    <On Terms="Behavior.AurielResurrectSelfMarkerBehavior.On" Send="Create" />
+    <On Terms="Behavior.AurielResurrectSelfMarkerBehavior.Off" Send="AnimBracketStop BSD" />
     <ModelFlags index="AutomateGlobalLoops" value="1" />
   </CActorModelMaterial>
   <CActorRange id="AurielResurrectGuide" parent="StormRangeAbilPlusSplat" abil="AurielResurrect" />
@@ -687,6 +703,8 @@
     <On Terms="ActorCreation" Send="AnimGroupApply A" />
     <On Terms="Effect.AurielResurrectInitialDummy.Start" Send="AnimGroupRemove A" />
     <On Terms="TimerExpired; TimerName Death" Send="AnimBracketStop BSD" />
+    <On Terms="Abil.AurielResurrectSelf.SourceCastStart" Send="Create" />
+    <On Terms="Abil.AurielResurrectSelf.SourceCastStop" Send="TimerSet 0.062500 Death" />
     <HostSiteOps Ops="SOpAttachCenter" />
   </CActorModel>
   <CActorModel id="AurielCrystalAegisCastFX" parent="StormModelAnimationStyleOneShotUnit">
@@ -922,6 +940,9 @@
     <Max value="65535" />
   </CBehaviorTokenCounter>
   <CBehaviorBuff id="AurielResurrectActivelyResurrecting">
+    <Duration value="5" />
+  </CBehaviorBuff>
+  <CBehaviorBuff id="AurielResurrectSelfMarkerBehavior">
     <Duration value="5" />
   </CBehaviorBuff>
   <CBehaviorBuff id="AurielResurrectNotRezzable" />
@@ -1187,6 +1208,16 @@
   <CButton id="AurielReservoirofHopeRayofHeavenQuestToken" parent="StormButtonParent">
     <Icon value="Assets\Textures\storm_ui_icon_auriel_rayofheaven.dds" />
   </CButton>
+  <CButton id="AurielResurrectSelf">
+    <TooltipAppender Validator="AurielResurrectLightSpeedHasTalent" Face="AurielLightSpeedResurrectTalent" />
+    <TooltipFlags index="ShowTime" value="0" />
+    <TooltipFlags index="ShowRequirements" value="0" />
+    <TooltipFlags index="ShowAutocast" value="0" />
+    <TooltipVitalName index="Energy" value="UI/Tooltip/Abil/Mana" />
+    <Icon value="Assets\Textures\storm_ui_icon_auriel_resurrect.dds" />
+    <HotkeyAlias value="AurielResurrect" />
+    <SimpleDisplayText value="Button/Simple/AurielResurrectSelf" />
+  </CButton>
   <CButton id="AurielSearingLightRayOfHeavenTalent">
     <Icon value="Assets\Textures\storm_ui_icon_auriel_rayofheaven.dds" />
     <SimpleDisplayText value="Button/Simple/AurielSearingLightRayOfHeavenTalent" />
@@ -1306,6 +1337,10 @@
   <CButton id="AurielDetainmentStrikeRepeatedOffenseQuestToken" parent="StormButtonParent">
     <Icon value="Assets\Textures\storm_ui_icon_auriel_restrainingblow_a.dds" />
   </CButton>
+  <CEffectApplyBehavior id="AurielResurrectApplySelfMarkerBehavior">
+    <Behavior value="AurielResurrectSelfMarkerBehavior" />
+  </CEffectApplyBehavior>
+  <CEffectSet id="AurielResurrectSelfDummy" />
   <CEffectSet id="RegenGlobeImpactSet">
     <EffectArray value="AurielRayOfHeavenGlimmerofHopeApplyPrimedBehavior" />
   </CEffectSet>
@@ -2588,12 +2623,28 @@
       <AdaptableParabolaClearance value="3,-1" />
     </MotionPhases>
   </CMoverMissile>
+  <CRequirement id="AurielResurrectSelfRequirement">
+    <NodeArray index="Use" Link="AndEqCountBehaviorUltimate1UnlockedCompleteOnlyAtUnit1EqCountUnitAurielResurrectSpiritCompleteOnly1" />
+    <NodeArray index="Show" Link="AndGTECountBehaviorUltimate1UnlockedCompleteOnlyAtUnit14236449987EqCountBehaviorHeroicAbility1SurpressedCompleteOnlyAtUnit01081602903" />
+  </CRequirement>
   <CRequirement id="AurielRayOfHeavenHasHealingStoredBehavior">
     <NodeArray index="Use" Link="EqOrCountBehaviorAurielRayOfHeavenLowHealingStoredCompleteOnlyAtUnitCountBehaviorAurielRayOfHeavenHighHealingStoredCompleteOnlyAtUnitCountBehaviorAurielRayOfHeavenMaxHealingStoredCompleteOnlyAtUnit1" />
   </CRequirement>
   <CRequirement id="AurielRayOfHeavenHasEnergyStoredBehavior">
     <NodeArray index="Use" Link="EqCountBehaviorAurielRayOfHeavenEnergyStoredCompleteOnlyAtUnit1" />
   </CRequirement>
+  <CRequirementAnd id="AndEqCountBehaviorUltimate1UnlockedCompleteOnlyAtUnit1EqCountUnitAurielResurrectSpiritCompleteOnly1">
+    <OperandArray value="EqCountBehaviorUltimate1UnlockedCompleteOnlyAtUnit1" />
+    <OperandArray value="EqCountUnitAurielResurrectSpiritCompleteOnly1" />
+  </CRequirementAnd>
+  <CRequirementCountUnit id="CountUnitAurielResurrectSpiritCompleteOnly">
+    <Flags index="TechTreeCheat" value="0" />
+    <Count Link="AurielResurrectSpirit" State="CompleteOnly" />
+  </CRequirementCountUnit>
+  <CRequirementEq id="EqCountUnitAurielResurrectSpiritCompleteOnly1">
+    <OperandArray index="0" value="CountUnitAurielResurrectSpiritCompleteOnly" />
+    <OperandArray index="1" value="1" />
+  </CRequirementEq>
   <CRequirementCountBehavior id="CountBehaviorAurielRayOfHeavenEnergyStoredCompleteOnlyAtUnit">
     <Flags index="TechTreeCheat" value="0" />
     <Count Link="AurielRayOfHeavenEnergyStored" State="CompleteOnlyAtUnit" />
@@ -3096,12 +3147,14 @@
     <AbilArray Link="AurielRayOfHeaven" />
     <AbilArray Link="AurielBestowHope" />
     <AbilArray Link="AurielResurrect" />
+    <AbilArray Link="AurielResurrectSelf" />
     <WeaponArray Link="AurielHeroWeapon" />
     <Radius value="0.625" />
     <InnerRadius value="0.625" />
     <LifeRegenRate value="3.539" />
     <CardLayouts index="0">
       <LayoutButtons index="1" Face="HearthstoneNoMana" Type="AbilCmd" AbilCmd="Hearthstone,Execute" Slot="Hearth" />
+      <LayoutButtons Face="AurielResurrectSelf" Type="AbilCmd" AbilCmd="AurielResurrectSelf,Execute" ShowInGlossary="0" Slot="Heroic" />
       <LayoutButtons Face="AurielResurrect" Type="AbilCmd" AbilCmd="AurielResurrect,Execute" Slot="Heroic" />
       <LayoutButtons Face="AurielCrystalAegis" Type="AbilCmd" AbilCmd="AurielCrystalAegis,Execute" Slot="Heroic" />
       <LayoutButtons Face="AurielSacredSweep" Type="AbilCmd" AbilCmd="AurielSacredSweep,Execute" Slot="Ability1" />

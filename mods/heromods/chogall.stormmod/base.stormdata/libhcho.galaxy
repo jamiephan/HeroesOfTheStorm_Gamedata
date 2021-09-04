@@ -100,6 +100,7 @@ void libHCHO_gf_HeroChoGallIncrementHeroCountFunction () {
         TriggerEnable(libHCHO_gt_HeroChoHourofTwilightDeathTimerReduction, true);
         TriggerEnable(libHCHO_gt_HeroChoGallTryMeModeSetLevelSpecialCase, true);
         TriggerEnable(libHCHO_gt_HeroChoRuneBombRunicFeedbackDamageResponses, true);
+        TriggerEnable(libHCHO_gt_HeroGallDreadOrbEnragedRegenerationDamageResponse, true);
     }
 
 }
@@ -161,6 +162,7 @@ void libHCHO_gf_HeroChoGallDecrementHeroCountFunction () {
         TriggerEnable(libHCHO_gt_HeroChoHourofTwilightDeathTimerReduction, false);
         TriggerEnable(libHCHO_gt_HeroChoGallTryMeModeSetLevelSpecialCase, false);
         TriggerEnable(libHCHO_gt_HeroChoRuneBombRunicFeedbackDamageResponses, false);
+        TriggerEnable(libHCHO_gt_HeroGallDreadOrbEnragedRegenerationDamageResponse, false);
     }
 
 }
@@ -797,6 +799,58 @@ void libHCHO_gt_HeroChoRuneBombRunicFeedbackDamageResponses_Init () {
 }
 
 //--------------------------------------------------------------------------------------------------
+// Trigger: Hero - Gall - Dread Orb - Enraged Regeneration Damage Response
+//--------------------------------------------------------------------------------------------------
+bool libHCHO_gt_HeroGallDreadOrbEnragedRegenerationDamageResponse_Func (bool testConds, bool runActions) {
+    // Variable Declarations
+    unit lv_unit;
+    unit lv_gall;
+    int lv_gallPlayer;
+    unit lv_cho;
+    int lv_choPlayer;
+
+    // Automatic Variable Declarations
+    // Variable Initialization
+    lv_unit = EventUnit();
+    lv_gall = EventUnitDamageSourceUnit();
+    lv_gallPlayer = UnitGetOwner(lv_gall);
+    lv_cho = libGDHL_gv_chogallPairs[libGame_gf_TeamNumberOfPlayer(lv_gallPlayer)].lv_choUnit;
+    lv_choPlayer = UnitGetOwner(lv_cho);
+
+    // Conditions
+    if (testConds) {
+        if (!((PlayerHasTalent(lv_choPlayer, "ChoEnragedRegeneration") == true))) {
+            return false;
+        }
+
+        if (!((UnitBehaviorCount(lv_gall, "ChoOgreRage") >= 1))) {
+            return false;
+        }
+
+        if (!((UnitTypeTestAttribute(UnitGetType(lv_unit), c_unitAttributeHeroic) == true))) {
+            return false;
+        }
+    }
+
+    // Actions
+    if (!runActions) {
+        return true;
+    }
+
+    UnitCreateEffectUnit(lv_gall, "GallDreadOrbEnragedRegenerationTalentApplyHealingDebuff", lv_unit);
+    return true;
+}
+
+//--------------------------------------------------------------------------------------------------
+void libHCHO_gt_HeroGallDreadOrbEnragedRegenerationDamageResponse_Init () {
+    libHCHO_gt_HeroGallDreadOrbEnragedRegenerationDamageResponse = TriggerCreate("libHCHO_gt_HeroGallDreadOrbEnragedRegenerationDamageResponse_Func");
+    TriggerEnable(libHCHO_gt_HeroGallDreadOrbEnragedRegenerationDamageResponse, false);
+    TriggerAddEventUnitDamaged(libHCHO_gt_HeroGallDreadOrbEnragedRegenerationDamageResponse, null, c_unitDamageTypeAbility, c_unitDamageEither, "GallDreadOrbImpactDamage01");
+    TriggerAddEventUnitDamaged(libHCHO_gt_HeroGallDreadOrbEnragedRegenerationDamageResponse, null, c_unitDamageTypeAbility, c_unitDamageEither, "GallDreadOrbImpactDamage02");
+    TriggerAddEventUnitDamaged(libHCHO_gt_HeroGallDreadOrbEnragedRegenerationDamageResponse, null, c_unitDamageTypeAbility, c_unitDamageEither, "GallDreadOrbImpactDamage03");
+}
+
+//--------------------------------------------------------------------------------------------------
 // Trigger: Hero - Cho - Fuel for the Flame Minion Kill Proc
 //--------------------------------------------------------------------------------------------------
 bool libHCHO_gt_HeroChoFuelfortheFlameMinionKillProc_Func (bool testConds, bool runActions) {
@@ -1014,7 +1068,7 @@ bool libHCHO_gt_HeroChoSurgingFistDistanceTracker_Func (bool testConds, bool run
     // Variable Initialization
     lv_base = -4.0;
     lv_i = lv_base;
-    lv_scale = 0.1875;
+    lv_scale = 0.375;
     lv_surgingDashTalentScale = 0.3125;
     lv_cho = EventUnit();
     lv_player = UnitGetOwner(lv_cho);
@@ -2724,6 +2778,7 @@ void libHCHO_InitTriggers () {
     libHCHO_gt_HeroChoMoltenBlockOverlayOn_Init();
     libHCHO_gt_HeroChoMoltenBlockOverlayOff_Init();
     libHCHO_gt_HeroChoRuneBombRunicFeedbackDamageResponses_Init();
+    libHCHO_gt_HeroGallDreadOrbEnragedRegenerationDamageResponse_Init();
     libHCHO_gt_HeroChoFuelfortheFlameMinionKillProc_Init();
     libHCHO_gt_HeroChoFuelfortheFlameHeroKillProc_Init();
     libHCHO_gt_SurgingFistFakeCastActivated_Init();

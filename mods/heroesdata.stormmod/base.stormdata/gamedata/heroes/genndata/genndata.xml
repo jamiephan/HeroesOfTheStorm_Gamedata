@@ -140,6 +140,14 @@
     <UninterruptibleArray index="Finish" value="1" />
     <SetLastTarget value="Attack" />
   </CAbilEffectTarget>
+  <CAccumulatorVitals id="GreymaneCursedBulletGilneanRouletteTalentCurrentHealthAccumulator" parent="BaseVitalAccumulator">
+    <MaxAccumulation value="1095.3" />
+    <ApplicationRule value="Add" />
+    <Ratio value="0.3" />
+    <VitalType value="Life" />
+    <UnitSource Value="Target" />
+    <ModificationType value="PerUnit" />
+  </CAccumulatorVitals>
   <CAccumulatorToken id="GreymaneGoForTheThroatUnleashedAccumulator" parent="BaseTokenAccumulator">
     <Scale value="0.35" />
     <TokenId value="GreymaneGoForTheThroatUnleashedToken" />
@@ -1342,6 +1350,16 @@
     <Variations Model="GreymanePortrait" Actor="GreymanePortrait" />
     <Unit value="HeroGreymane" />
   </CCharacter>
+  <CEffectModifyUnit id="GreymaneGoForTheThroatUnleashedTalentModifyCooldowns">
+    <ValidatorArray value="GreymaneHasUnleashedTalent" />
+    <ImpactUnit Value="Caster" />
+    <Cost Abil="GreymaneDarkflight,Execute" CooldownOperation="Set" />
+    <Cost Abil="GreymaneDisengage,Execute" CooldownOperation="Set" />
+    <Cost Abil="GreymaneGilneanCocktail,Execute" CooldownOperation="Set" />
+    <Cost Abil="GreymaneRazorSwipe,Execute" CooldownOperation="Set" />
+    <Cost Abil="GreymaneInnerBeast,Execute" CooldownOperation="Set" />
+    <Cost Abil="GreymaneGoForTheThroat,Execute" CooldownOperation="Set" />
+  </CEffectModifyUnit>
   <CEffectModifyTokenCount id="GreymaneWizenedDuelistResetTokenCounter" parent="BaseEffectModifyTokenCount">
     <TokenId value="GreymaneWizenedDuelistTokenCounter" />
     <Operation value="Set" />
@@ -1385,9 +1403,11 @@
     <ValidatorArray value="GreymaneHasCursedBulletGilneanRoulette" />
     <ImpactUnit Value="Caster" />
     <Cost Abil="GreymaneCursedBullet,Execute" CooldownOperation="Add" CooldownTimeUse="-5" />
+    <Chance value="0" />
   </CEffectModifyUnit>
   <CEffectDamage id="GreymaneCursedBulletDamagePercentDamage" parent="StormSpellPercentDamage">
-    <FlatModifierArray index="GreymaneCursedBullet" Accumulator="GreymaneCursedBulletCurrentHealthAccumulator" />
+    <FlatModifierArray index="GreymaneCursedBullet" Validator="GreymaneDoesNotHaveCursedBulletGilneanRoulette" Accumulator="GreymaneCursedBulletCurrentHealthAccumulator" />
+    <FlatModifierArray index="GilneanRoulette" Validator="GreymaneHasCursedBulletGilneanRoulette" Accumulator="GreymaneCursedBulletGilneanRouletteTalentCurrentHealthAccumulator" />
   </CEffectDamage>
   <CEffectRemoveBehavior id="GreymaneDarkflightThickSkinRemoveArmor">
     <WhichUnit Value="Source" />
@@ -1634,7 +1654,7 @@
   <CEffectSet id="GreymaneGoForTheThroatModifyCooldownSet">
     <EffectArray value="GoForTheThroatFreeCarryApply" />
     <EffectArray value="GreymaneGoForTheThroatFreeApply" />
-    <EffectArray value="GreymaneGoForTheThroatUnleashedIncrementTokenCount" />
+    <EffectArray value="GreymaneGoForTheThroatUnleashedTalentModifyCooldowns" />
   </CEffectSet>
   <CEffectSet id="GreymaneGoForTheThroatSoundDummy" />
   <CEffectSet id="GreymaneHuntersBlunderbussImpactSet">
@@ -1725,7 +1745,6 @@
   <CEffectSet id="GreymaneCursedBulletDestroyMissileSet">
     <EffectArray value="GreymaneCursedBulletScanDestroyPersistent" />
     <EffectArray value="StormSuicide" />
-    <ValidatorArray value="GreymaneDoesNotHaveCursedBulletGilneanRoulette" />
   </CEffectSet>
   <CEffectSet id="GreymaneCursedBulletImpactSet">
     <EffectArray value="GreymaneCursedBulletDamagePercentDamage" />
@@ -1989,7 +2008,7 @@
   </CEffectDamage>
   <CEffectModifyPlayer id="GreymaneGilneanCocktailIncendiaryElixirQuestCompleteModification">
     <WhichPlayer Value="Caster" />
-    <EffectArray Operation="Subtract" Reference="Abil,GreymaneGilneanCocktail,Cost[0].Cooldown.TimeUse" Value="4.000000" />
+    <EffectArray Operation="Subtract" Reference="Abil,GreymaneGilneanCocktail,Cost[0].Cooldown.TimeUse" Value="2.000000" />
     <EffectArray Operation="Set" Reference="Effect,GreymaneGilneanCocktailIncendiaryElixirQuestIncrement,Chance" Value="0" />
   </CEffectModifyPlayer>
   <CEffectModifyPlayer id="GreymaneGilneanCocktailIncendiaryElixirQuestIncrementModification">
@@ -2079,6 +2098,7 @@
   </CEffectSet>
   <CEffectDamage id="GreymaneRazorSwipeDamage" parent="StormSpell">
     <Amount value="126" />
+    <MultiplicativeModifierArray index="ToothAndClaw" Validator="GreymaneHasToothAndClaw" Modifier="1" />
   </CEffectDamage>
   <CEffectSet id="GreymaneInnerBeastCastSet">
     <EffectArray value="GreymaneInnerBeastApplyBehavior" />
@@ -2270,7 +2290,6 @@
   <CEffectSet id="GreymaneGoForTheThroatFreeCastFinalSet">
     <EffectArray value="GreymaneGoForTheThroatResetPlayerCooldown" />
     <EffectArray value="GreymaneGoForTheThroatResetFreeCastAbilityCooldown" />
-    <EffectArray value="GreymaneGoForTheThroatUnleashedResetTokenCount" />
   </CEffectSet>
   <CEffectSet id="GreymaneGoForTheThroatRangeImpactSet">
     <EffectArray value="GreymaneGoForTheThroatBaseImpactSet" />
@@ -2342,7 +2361,7 @@
     <InitialEffect value="GreymaneGoForTheThroatRemoveFizzleBehavior" />
   </CEffectCreatePersistent>
   <CEffectDamage id="GreymaneGoForTheThroatDamage" parent="StormSpell">
-    <MultiplicativeModifierArray index="GreymaneGoForTheThroatUnleashed" Accumulator="GreymaneGoForTheThroatUnleashedAccumulator" />
+    <MultiplicativeModifierArray index="Unleashed" Validator="GreymaneHasUnleashedTalent" Modifier="0.25" />
     <Amount value="355" />
   </CEffectDamage>
   <CEffectIssueOrder id="GreymaneGoForTheThroatIssueAttackOrder">
@@ -2562,6 +2581,13 @@
         <Value value="0.040000" />
         <AffectedByOverdrive value="1" />
       </Modifications>
+      <Modifications>
+        <Catalog value="Accumulator" />
+        <Entry value="GreymaneCursedBulletGilneanRouletteTalentCurrentHealthAccumulator" />
+        <Field value="MaxAccumulation" />
+        <Value value="0.040000" />
+        <AffectedByOverdrive value="1" />
+      </Modifications>
     </LevelScalingArray>
     <LevelScalingArray>
       <Modifications>
@@ -2711,7 +2737,18 @@
     <VoiceLineArray index="2" value="GreymaneBase_VoiceLine03_W" />
     <VoiceLineArray index="3" value="GreymaneBase_VoiceLine04_W" />
     <VoiceLineArray index="4" value="GreymaneBase_VoiceLine05_W" />
+    <LevelScalingArray index="6" Ability="GreymaneCursedBullet">
+      <Modifications index="1" removed="1" />
+    </LevelScalingArray>
   </CHero>
+  <CHeroMastery id="GreymaneMasteryRing1" parent="MasteryRingRank1">
+    <ProductId value="66985" />
+    <HyperlinkId value="GreymaneMasteryRingRank1" />
+  </CHeroMastery>
+  <CHeroMastery id="GreymaneMasteryRing2" parent="MasteryRingRank2">
+    <ProductId value="67127" />
+    <HyperlinkId value="GreymaneMasteryRingRank2" />
+  </CHeroMastery>
   <CLight id="Home_Greymane" parent="default">
     <ToDInfoArray index="0" Id="Home_Greymane" OperatorHDR="4">
       <AmbientColor X="0.152941" Y="0.145098" Z="0.254902" />
@@ -3032,6 +3069,12 @@
     <IconSlot value="9" />
     <Hero value="Greymane" />
   </CRewardPortrait>
+  <CRewardHeroMastery id="GreymaneMasteryRing1">
+    <License value="50017" />
+  </CRewardHeroMastery>
+  <CRewardHeroMastery id="GreymaneMasteryRing2">
+    <License value="49981" />
+  </CRewardHeroMastery>
   <CShapeArc id="GreymaneGilneanCocktailDraughtOverflowingImpactArc">
     <Arc value="74.9926" />
     <Radius value="6" />
@@ -3203,7 +3246,12 @@
         <Field value="Chance" />
         <Value value="1.000000" />
       </Modifications>
-      <Modifications Type="FlatModification" Entry="GreymaneGilneanCocktail" Field="Cost[0].Cooldown.TimeUse" />
+      <Modifications>
+        <Type value="FlatModification" />
+        <Entry value="GreymaneGilneanCocktail" />
+        <Field value="Cost[0].Cooldown.TimeUse" />
+        <Value value="-2.000000" />
+      </Modifications>
       <Modifications>
         <Type value="FlatModification" />
         <Catalog value="Effect" />
@@ -3411,9 +3459,7 @@
   </CTalent>
   <CTalent id="GreymaneGoForTheThroatUnleashed">
     <Face value="GreymaneUnleashed" />
-    <RankArray>
-      <BehaviorArray value="GreymaneGoForTheThroatUnleashedToken" />
-    </RankArray>
+    <RankArray />
     <Abil value="GreymaneGoForTheThroat" />
   </CTalent>
   <CTalent id="GreymaneCursedBulletGilneanRoulette">
@@ -3421,11 +3467,10 @@
     <AbilityModificationArray>
       <Modifications>
         <Type value="FlatModification" />
-        <Catalog value="Effect" />
-        <Entry value="GreymaneCursedBulletMissileScanSearch" />
-        <Field value="AreaArray[0].MaxCount" />
+        <Entry value="GreymaneCursedBullet" />
+        <Field value="Cost[0].Cooldown.TimeUse" />
         <FieldIsInteger value="1" />
-        <Value value="4.000000" />
+        <Value value="-20.000000" />
       </Modifications>
     </AbilityModificationArray>
     <Abil value="GreymaneCursedBullet" />
@@ -3601,9 +3646,6 @@
   <CValidatorCombine id="GreymaneGoForTheThroatViableKillVitalCheckCombine">
     <CombineArray value="GreymaneGoForTheThroatDamageCombine" />
     <CombineArray value="GreymaneGoForTheThroatUnleashedDamage1Combine" />
-    <CombineArray value="GreymaneGoForTheThroatUnleashedDamage2Combine" />
-    <CombineArray value="GreymaneGoForTheThroatUnleashedDamage3Combine" />
-    <CombineArray value="GreymaneGoForTheThroatUnleashedDamage4Combine" />
   </CValidatorCombine>
   <CValidatorCombine id="GreymaneGoForTheThroatDamageCombine">
     <Type value="And" />
@@ -3613,7 +3655,7 @@
   <CValidatorCombine id="GreymaneGoForTheThroatUnleashedDamage1Combine">
     <Type value="And" />
     <CombineArray value="GreymaneGoForTheThroatUnleashedDamage1VitalCompare" />
-    <CombineArray value="GreymaneHas1StackUnleashedTalentDamageStack" />
+    <CombineArray value="GreymaneHasUnleashedTalent" />
   </CValidatorCombine>
   <CValidatorCombine id="GreymaneGoForTheThroatUnleashedDamage2Combine">
     <Type value="And" />
@@ -3636,7 +3678,7 @@
   </CValidatorUnitCompareVital>
   <CValidatorUnitCompareVital id="GreymaneGoForTheThroatUnleashedDamage1VitalCompare">
     <Compare value="LE" />
-    <Value value="479.25" />
+    <Value value="443.75" />
   </CValidatorUnitCompareVital>
   <CValidatorUnitCompareVital id="GreymaneGoForTheThroatUnleashedDamage2VitalCompare">
     <Compare value="LE" />
@@ -3704,7 +3746,6 @@
   </CValidatorUnitCompareBehaviorCount>
   <CValidatorCombine id="GreymaneNoGoForTheThroatFreeCarryOrHasUnleashed">
     <CombineArray value="GreymaneNoGoForTheThroatFreeCarry" />
-    <CombineArray value="GreymaneHasUnleashedTalent" />
   </CValidatorCombine>
   <CValidatorUnitCompareBehaviorCount id="GreymaneDoesNotHaveGilneanCocktailCyclicalNatureMarker">
     <WhichUnit Value="Caster" />
@@ -3970,18 +4011,4 @@
     <Period value="1" />
     <Effect value="HeroGreymaneWorgenWeaponImpactSet" />
   </CWeaponLegacy>
-  <CHeroMastery id="GreymaneMasteryRing1" parent="MasteryRingRank1">
-    <ProductId value="66985" />
-    <HyperlinkId value="GreymaneMasteryRingRank1" />
-  </CHeroMastery>
-  <CHeroMastery id="GreymaneMasteryRing2" parent="MasteryRingRank2">
-    <ProductId value="67127" />
-    <HyperlinkId value="GreymaneMasteryRingRank2" />
-  </CHeroMastery>
-  <CRewardHeroMastery id="GreymaneMasteryRing1">
-    <License value="50017" />
-  </CRewardHeroMastery>
-  <CRewardHeroMastery id="GreymaneMasteryRing2">
-    <License value="49981" />
-  </CRewardHeroMastery>
 </Catalog>
