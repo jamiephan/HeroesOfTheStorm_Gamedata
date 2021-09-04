@@ -1119,7 +1119,7 @@
     <Alignment value="Positive" />
     <AtMaxEvents EventId="ItHungersCooldownReset" />
     <AtMaxEvents EventId="ItHungersManaRefund" Effect="StukovLurkingArmItHungersRestoreManaCost" />
-    <Max value="12" />
+    <Max value="10" />
   </CBehaviorTokenCounter>
   <CBehaviorTokenCounter id="StukovHealingPathogenOneGoodSpreadToken" parent="StormGenericToken">
     <Alignment value="Positive" />
@@ -1564,6 +1564,17 @@
     <Chance value="0" />
     <Behavior value="StukovBioKillSwitchBioticArmorPhysicalArmorBehavior" />
   </CEffectApplyBehavior>
+  <CEffectModifyUnit id="StukovBioKillSwitchTargetedExcisionTalentModifyCooldowns">
+    <ImpactUnit Value="Caster" />
+    <Cost Abil="StukovLurkingArm,Execute" CooldownOperation="Add" CooldownTimeUse="-1.5" />
+    <Cost Abil="StukovHealingPathogen,Execute" CooldownOperation="Add" CooldownTimeUse="-1.5" />
+    <Cost Abil="StukovWeightedPustule,Execute" CooldownOperation="Add" CooldownTimeUse="-1.5" />
+  </CEffectModifyUnit>
+  <CEffectSet id="StukovBioKillSwitchTargetedExcisionTalentSet">
+    <ValidatorArray value="StukovHas1StackOfTargetedExcisionBehavior" />
+    <EffectArray value="StukovBioKillSwitchTargetedExcisionSubtractCooldown" />
+    <EffectArray value="StukovBioKillSwitchTargetedExcisionTalentModifyCooldowns" />
+  </CEffectSet>
   <CEffectModifyUnit id="StukovBioKillSwitchTheLongPitchSubtractCooldown">
     <ImpactUnit Value="Caster" />
     <Cost Abil="StukovHealingPathogen,Execute" CooldownOperation="Add" CooldownTimeUse="-0.0625" />
@@ -1663,6 +1674,16 @@
     <ValidatorArray value="StukovHasLongPitchTalent" />
     <Behavior value="StukovBasicAbilityCooldownReductionTheLongPitch" />
   </CEffectApplyBehavior>
+  <CEffectCreatePersistent id="StukovWeightedPustulePoppinPustulesTalentApplicationDelay">
+    <WhichLocation Value="TargetUnit" />
+    <InitialDelay value="0.0625" />
+    <InitialEffect value="StukovWeightedPustulePoppinPustulesTalentApplicationSet" />
+  </CEffectCreatePersistent>
+  <CEffectSet id="StukovWeightedPustulePoppinPustulesTalentApplicationSet">
+    <ValidatorArray value="TargetNotDeadAndNoSpecialDeathState" />
+    <EffectArray value="StukovWeightedPustuleApplySlowControllerBehavior" />
+    <EffectArray value="StukovWeightedPustuleApplyDoTBehavior" />
+  </CEffectSet>
   <CEffectSet id="StukovWeightedPustuleDoTFinalSet">
     <EffectArray value="StukovWeightedPustuleRemoveTrackedUnit" />
     <EffectArray value="StukovWeightedPustuleDamage" />
@@ -1676,7 +1697,6 @@
     <EffectArray value="StukovMassiveShoveRemoveRevealerBehavior" />
   </CEffectSet>
   <CEffectModifyUnit id="StukovBioKillSwitchTargetedExcisionSubtractCooldown">
-    <ValidatorArray value="StukovHas1StackOfTargetedExcisionBehavior" />
     <ImpactUnit Value="Caster" />
     <Cost Abil="StukovBioKillSwitch,Execute" CooldownOperation="Set" CooldownTimeUse="5" />
   </CEffectModifyUnit>
@@ -1696,7 +1716,7 @@
   </CEffectApplyBehavior>
   <CEffectSet id="StukovBioKillSwitchInitialSet">
     <ValidatorArray value="StukovBioKillSwitchTargetsAvailable" />
-    <EffectArray value="StukovBioKillSwitchTargetedExcisionSubtractCooldown" />
+    <EffectArray value="StukovBioKillSwitchTargetedExcisionTalentSet" />
     <EffectArray value="StukovTheLongPitchCooldownReductionApplyBehavior" />
     <EffectArray value="StukovLurkingArmBioExplosionUnitEnum" />
     <EffectArray value="StukovLurkingArmLingeringSpinesRemoveBehavior" />
@@ -1706,6 +1726,7 @@
   <CEffectSet id="StukovBioKillSwitchPoppinPustulesSplashSet">
     <EffectArray value="StukovBioKillswitchPoppinPustulesSplashDamage" />
     <EffectArray value="StukovBioKillSwitchPoppinPustulesApplySlowBehavior" />
+    <EffectArray value="StukovWeightedPustulePoppinPustulesTalentApplicationDelay" />
   </CEffectSet>
   <CEffectSet id="StukovHeroWeaponLaunchSet">
     <EffectArray value="UniversalWeaponLaunchSet" />
@@ -2585,7 +2606,7 @@
   </CEffectApplyBehavior>
   <CEffectCreateHealer id="StukovHealingPathogenHealer" parent="StormHealingSpell">
     <MultiplicativeModifierArray index="0" Validator="StukovHasTopOffTalentAndStukovTargetLifeAtThreshold" Modifier="0.3" />
-    <MultiplicativeModifierArray index="1" Validator="StukovHasUniversalCarrierTalent" Modifier="-0.5" />
+    <MultiplicativeModifierArray index="1" Validator="StukovHasUniversalCarrierTalent" Modifier="-0.4" />
     <RechargeVitalRate value="37" />
   </CEffectCreateHealer>
   <CEffectCreateHealer id="StukovHealingPathogenSuperstrainHealer" parent="StormHealingSpell">
@@ -2662,6 +2683,7 @@
   <CEffectModifyPlayer id="StukovWeightedPustuleFetidTouchQuestTier1Modification">
     <WhichPlayer Value="Caster" />
     <EffectArray Operation="Subtract" Reference="Abil,StukovWeightedPustule,Cost[0].Cooldown.TimeUse" Value="2.500000" />
+    <EffectArray Operation="Set" Reference="Abil,StukovWeightedPustule,Cost.Vital[Energy]" Value="25" />
   </CEffectModifyPlayer>
   <CEffectModifyPlayer id="StukovWeightedPustuleFetidTouchQuestTier2Modification">
     <WhichPlayer Value="Caster" />
@@ -2752,8 +2774,8 @@
     <EffectArray value="StukovBioKillSwitchApplySlowBehavior" />
     <EffectArray value="StukovBioKillSwitchVirulentReactionApplyRootBehavior" />
     <EffectArray value="StukovBioKillswitchDamage" />
-    <EffectArray value="StukovBioKillSwitchPoppinPustulesSplashSearch" />
     <EffectArray value="StukovBioKillSwitchRemoveWeightedPustuleSet" />
+    <EffectArray value="StukovBioKillSwitchPoppinPustulesSplashSearch" />
   </CEffectSet>
   <CHero id="Stukov">
     <AIComplexityTier value="Mid" />
@@ -4757,7 +4779,7 @@
   </CValidatorUnitCompareBehaviorDuration>
   <CValidatorUnitCompareTokenCount id="StukovHas12ItHungersTokens">
     <WhichUnit Value="Caster" />
-    <Value value="12" />
+    <Value value="10" />
     <TokenId value="StukovLurkingArmItHungersTokenCounter" />
   </CValidatorUnitCompareTokenCount>
   <CValidatorUnitCompareBehaviorCount id="StukovHas1StackOfPoppinPustulesBehavior">
@@ -4796,7 +4818,7 @@
     <Value Value="TargetUnit" />
   </CValidatorLocationCompareRange>
   <CValidatorUnitCompareTokenCount id="StukovLurkingArmCasterHasMaxTokensItHungers">
-    <Value value="12" />
+    <Value value="10" />
     <TokenId value="StukovLurkingArmItHungersTokenCounter" />
     <WhichUnit Value="Caster" />
   </CValidatorUnitCompareTokenCount>
