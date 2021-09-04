@@ -1280,6 +1280,19 @@
     <Aliases value="_DeathMaterial" />
     <MaterialType value="Replacement" />
   </CActorModelMaterial>
+  <CActorAction id="ExperienceGlobeMissileReducedXPLaunchMissileActionActor" parent="GenericAttackPointStorm" effectImpact="ExperienceGlobeDummyImpactSetReducedXP" effectLaunch="ExperienceGlobeReducedXPLaunchMissile">
+    <LaunchSiteOps Ops="SOpMoveUpBy2" />
+    <LaunchAssets Model="ExperienceGlobeMissileLaunchMissileActionActorLaunch" Sound="ExperienceGlobeMissileLaunchMissileActionActorLaunch" />
+    <Beam value="ExperienceGlobeMissileLaunchMissileActionActorBeam" />
+    <Missile value="ExperienceGlobeMissileUnit" />
+    <ImpactSiteOps Ops="SOpAttachCenter" />
+    <ImpactAttachQuery Methods="AMFilterCenter" />
+    <ImpactMap index="None" Model="ExperienceGlobeMissileLaunchMissileActionActorImpact" Sound="ExperienceGlobeMissileLaunchMissileActionActorImpact" ModelReaction="ExperienceGlobeMissileLaunchMissileActionActorImpactReaction" />
+    <ImpactMap index="Shield" Sound="ExperienceGlobeMissileLaunchMissileActionActorImpactShield" ModelReaction="ExperienceGlobeMissileLaunchMissileActionActorImpactReactionShield" />
+    <DamageMap index="None" Model="ExperienceGlobeMissileLaunchMissileActionActorDamage" Sound="ExperienceGlobeMissileLaunchMissileActionActorDamage" ModelReaction="ExperienceGlobeMissileLaunchMissileActionActorDamageReaction" />
+    <DamageMap index="Shield" Sound="ExperienceGlobeMissileLaunchMissileActionActorDamageShield" ModelReaction="ExperienceGlobeMissileLaunchMissileActionActorDamageReactionShield" />
+    <ShieldFlashType value="None" />
+  </CActorAction>
   <CActorSound id="CursedHollowCowCurseDebuffSound" parent="SoundOneShot">
     <On Terms="Effect.CursedHollowCoreCurseApplyBehavior.Start; At Target" Send="Create" />
     <Sound value="CursedHollowCoreDebuffSound" />
@@ -1360,7 +1373,7 @@
   <CActorSound id="ExperienceGlobePickupSound" parent="SoundOneShot">
     <Filter index="All" value="1" />
     <VisibleToAtCreation index="Target" value="1" />
-    <On Terms="Effect.ExperienceGlobeLaunchMissile.Start; At Caster" Send="Create" />
+    <On Terms="Effect.ExperienceGlobeMissileLaunchSwitch.Start; At Caster" Send="Create" />
     <Sound value="ExperienceGlobePickup" />
   </CActorSound>
   <CActorModel id="ExperienceGlobeMissileImpact" parent="StormModelAnimationStyleOneShotUnit">
@@ -1414,6 +1427,8 @@
     <On Terms="UnitMovementUpdate.*.Walk" Target="ExperienceGlobeAlly" Send="Signal Moving" />
     <On Terms="UnitMovementUpdate.*.Stand" Target="ExperienceGlobeEnemy" Send="Signal Stopped" />
     <On Terms="UnitMovementUpdate.*.Stand" Target="ExperienceGlobeAlly" Send="Signal Stopped" />
+    <On Terms="Behavior.HeroGenericExperienceGlobeReducedXPCarry.On" Target="ExperienceGlobeEnemy" Send="Signal Reduce" />
+    <On Terms="Behavior.HeroGenericExperienceGlobeReducedXPCarry.On" Target="ExperienceGlobeAlly" Send="Signal Reduce" />
     <Model value="Invisible" />
     <HostSiteOps Ops="SOpMoveUpBy1Dot5" />
   </CActorUnit>
@@ -1429,6 +1444,10 @@
     <On Terms="Signal.*.ExpirePulse" Send="AnimPlay Stand Stand,Work PlayForever" />
     <On Terms="Signal.*.Moving" Send="AnimPlay StandB Stand,B PlayForever" />
     <On Terms="Signal.*.Stopped" Send="AnimClear StandB" />
+    <On Terms="Signal.*.Reduce" Send="SetScale 0.700000 0.250000" />
+    <On Terms="Signal.*.Reduce" Send="AnimClear Stand" />
+    <On Terms="Signal.*.Reduce" Send="AnimClear StandB" />
+    <On Terms="Signal.*.Reduce" Send="AnimBracketStart BSD Birth Stand Death" />
     <Host Subject="_Unit" />
     <Aliases value="_ExperienceGlobeArt" />
   </CActorModel>
@@ -1444,6 +1463,11 @@
     <On Terms="Signal.*.ExpirePulse" Send="AnimPlay Stand Stand,Work PlayForever" />
     <On Terms="Signal.*.Moving" Send="AnimPlay StandB Stand,B PlayForever" />
     <On Terms="Signal.*.Stopped" Send="AnimClear StandB" />
+    <On Terms="Signal.*.Reduce" Send="SetScale 0.700000 0.250000" />
+    <On Terms="Signal.*.Reduce" Send="SetTintColor 128,128,192 0.250000" />
+    <On Terms="Signal.*.Reduce" Send="AnimClear Stand" />
+    <On Terms="Signal.*.Reduce" Send="AnimClear StandB" />
+    <On Terms="Signal.*.Reduce" Send="AnimBracketStart BSD Birth Stand Death" />
     <Host Subject="_Unit" />
     <Aliases value="_ExperienceGlobeArt" />
     <FogVisibility value="Visible" />
@@ -3219,8 +3243,6 @@
     <On Terms="Behavior.HardenedShield.Off" Send="AnimBracketStop BSD" />
     <On Terms="Behavior.BarbarianIgnorePain.On" Send="Create" />
     <On Terms="Behavior.BarbarianIgnorePain.Off" Send="AnimBracketStop BSD" />
-    <On Terms="Behavior.StitchesShamblingHorrorArmor.On" Send="Create" />
-    <On Terms="Behavior.StitchesShamblingHorrorArmor.Off" Send="AnimBracketStop BSD" />
     <HostSiteOps Ops="SOpAttachCenter" HoldRotation="1" />
     <Model value="HardenedShieldBuff" />
   </CActorModel>
@@ -3270,8 +3292,6 @@
     <On Terms="Behavior.HardenedShield.Off" Send="Destroy" />
     <On Terms="Behavior.BarbarianIgnorePain.On" Send="Create" />
     <On Terms="Behavior.BarbarianIgnorePain.Off" Send="Destroy" />
-    <On Terms="Behavior.StitchesShamblingHorrorArmor.On" Send="Create" />
-    <On Terms="Behavior.StitchesShamblingHorrorArmor.Off" Send="Destroy" />
     <Sound value="Talent_HardenedShield_Cast_Self" />
   </CActorSound>
   <CActorUnit id="TalentArcanePower" parent="StormItemBase">
@@ -5028,6 +5048,7 @@
     <On Terms="Effect.BarbarianLeapSmallSearchArea.Start; At Effect" Send="Create" />
     <On Terms="Effect.BarbarianAncientSpearMissileScan.Start; At Effect" Send="Create" />
     <On Terms="Effect.BarbarianSeismicSlamSecondarySearch.Start; At Effect" Send="Create" />
+    <On Terms="Effect.BarbarianSeismicSlamShatteredGroundSecondarySearch.Start; At Effect" Send="Create" />
     <On Terms="Effect.StitchesHookMissileScan.Start; At Effect" Send="Create" />
     <On Terms="Effect.OverkillTargetedSearch.Start; At Effect" Send="Create" />
     <On Terms="Effect.OdinNuclearBlastSearchArea.Start; At Effect" Send="Create" />

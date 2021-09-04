@@ -197,10 +197,12 @@
   </CActorSound>
   <CActorSound id="BarbarianSeismicSlamShatteredGroundGroundImpactSound" parent="SoundOneShot">
     <On Terms="Effect.BarbarianSeismicSlamSecondarySearch.Start; At Effect" Send="Create" />
+    <On Terms="Effect.BarbarianSeismicSlamShatteredGroundSecondarySearch.Start; At Effect" Send="Create" />
     <Sound value="BarbarianSeismicSlamShatteredGroundGroundImpact" />
   </CActorSound>
   <CActorSound id="BarbarianSeismicSlamDebrisSound" parent="SoundOneShot">
     <On Terms="Effect.BarbarianSeismicSlamSecondarySearch.Start; At Effect" Send="Create" />
+    <On Terms="Effect.BarbarianSeismicSlamShatteredGroundSecondarySearch.Start; At Effect" Send="Create" />
     <Sound value="BarbarianSeismicSlamDebris" />
   </CActorSound>
   <CActorSound id="BarbarianWhirlwindGustCastSound" parent="SoundOneShot">
@@ -364,6 +366,7 @@
   </CActorModel>
   <CActorSound id="BarbarianSeismicSlamSecondaryGroundImpactSound" parent="SoundOneShot">
     <On Terms="Effect.BarbarianSeismicSlamSecondarySearch.Start; At Effect" Send="Create" />
+    <On Terms="Effect.BarbarianSeismicSlamShatteredGroundSecondarySearch.Start; At Effect" Send="Create" />
     <Sound value="BarbarianSeismicSlamShatteredGroundGroundImpact" />
   </CActorSound>
   <CActorPortrait id="BarbarianSkinWrathFemalePortrait" parent="StormCompositePortrait" />
@@ -432,6 +435,7 @@
   </CActorModel>
   <CActorForceCylinder id="BarbarianSeismicSlamCylinder">
     <On Terms="Effect.BarbarianSeismicSlamSecondarySearch.Start" Send="Create" />
+    <On Terms="Effect.BarbarianSeismicSlamShatteredGroundSecondarySearch.Start" Send="Create" />
     <HostSiteOps Ops="SOpTargetPoint" />
     <Duration value="0.150000" />
     <Magnitude value="30.000000" />
@@ -466,7 +470,7 @@
   </CActorSplat>
   <CActorModel id="BarbarianSeismicSlamSecondaryImpactModel" parent="StormModelAnimationStyleOneShotUnit">
     <On Terms="Effect.BarbarianSeismicSlamSecondaryDamage.Start; At Target" Send="Create" />
-    <On Terms="Effect.BarbarianSeismicSlamSecondaryShatteredGroundDamage.Start; At Target" Send="Create" />
+    <On Terms="Effect.BarbarianSeismicSlamShatteredGroundSecondaryDamage.Start; At Target" Send="Create" />
     <HostSiteOps Ops="SOpAttachCenter" HoldRotation="1" />
     <Model value="BarbarianSeismicSlamShatteredGroundSecondaryImpact" />
     <Scale value="0.750000" />
@@ -489,6 +493,7 @@
   </CActorSplat>
   <CActorModel id="BarbarianSeismicSlamSecondaryGroundImpactModel" parent="StormModelAnimationStyleOneShot">
     <On Terms="Effect.BarbarianSeismicSlamSecondarySearch.Start; At Effect" Send="Create" />
+    <On Terms="Effect.BarbarianSeismicSlamShatteredGroundSecondarySearch.Start; At Effect" Send="Create" />
     <HostSiteOps Ops="SOpForwardCasterPoint SOp180" />
     <Model value="BarbarianSeismicSlamShatteredGroundGroundImpact" />
   </CActorModel>
@@ -1105,13 +1110,52 @@
   <CButton id="BarbarianIgnorePain" parent="StormButtonParent">
     <Icon value="Assets\Textures\storm_ui_icon_sonya_ignorepain.dds" />
   </CButton>
+  <CEffectCreatePersistent id="BarbarianSeismicSlamShatteredGroundSecondaryCleavePersistent">
+    <OffsetVectorStartLocation Value="CasterPoint" />
+    <InitialEffect value="BarbarianSeismicSlamShatteredGroundSecondarySearch" />
+    <PeriodCount value="2" />
+    <PeriodicEffectArray value="BarbarianSeismicSlamShatteredGroundSecondarySearch" />
+    <PeriodicOffsetArray Y="-2" />
+    <PeriodicOffsetArray Y="-4" />
+    <PeriodicOffsetArray Y="-6" />
+    <PeriodicOffsetArray Y="-8" />
+    <PeriodicPeriodArray value="0.15" />
+  </CEffectCreatePersistent>
+  <CEffectSet id="BarbarianSeismicSlamShatteredGroundSecondaryImpactSet">
+    <ValidatorArray value="noMarkers" />
+    <EffectArray value="BarbarianSeismicSlamShatteredGroundSecondaryDamage" />
+    <EffectArray value="BarbarianSeismicSlamGiantSlammerTalentProcDamage" />
+    <EffectArray value="ApplyAbilityImpactReveal" />
+  </CEffectSet>
+  <CEffectEnumArea id="BarbarianSeismicSlamShatteredGroundSecondarySearch">
+    <LaunchLocation Value="OriginUnit" />
+    <ImpactLocation Value="TargetPoint" />
+    <SearchFilters value="-;Player,Ally,Neutral,ImmuneToAOE,Missile,Stasis,Dead,Hidden,Invulnerable" />
+    <AreaArray Effect="BarbarianSeismicSlamShatteredGroundSecondaryImpactSet">
+      <RectangleWidth value="3" />
+      <RectangleHeight value="2" />
+    </AreaArray>
+    <RevealerParams Duration="0.75" ShapeExpansion="1">
+      <RevealFlags index="Unfog" value="1" />
+    </RevealerParams>
+  </CEffectEnumArea>
+  <CEffectSwitch id="BarbarianSeismicSlamSecondarySwitch">
+    <CaseArray Validator="HasShatteredGroundAndTargetIsHero" Effect="BarbarianSeismicSlamShatteredGroundSecondarySet" />
+    <CaseDefault value="BarbarianSeismicSlamSecondarySet" />
+  </CEffectSwitch>
+  <CEffectSet id="BarbarianSeismicSlamShatteredGroundSecondarySet">
+    <EffectArray value="BarbarianSeismicSlamShatteredGroundSecondaryCleavePersistent" />
+    <EffectArray value="BarbarianSeismicSlamCameraShakeCasterSwitch" />
+    <EffectArray value="BarbarianSeismicSlamCameraShakeTargetSwitch" />
+    <EffectArray value="BarbarianFuryTraitApplyMoveSpeedBuff" />
+  </CEffectSet>
   <CEffectDamage id="BarbarianHeroWeaponGiantSlammerTalentProcDamage" parent="StormSpellPercentDamage">
     <ValidatorArray value="TargetIsHero" />
     <ValidatorArray value="TargetNotInvulnerable" />
     <ValidatorArray value="BarbarianHasGiantSlammerTalent" />
     <ValidatorArray value="CasterNotBlindedAndTargetNotEvading" />
     <VitalFractionMax index="Life" value="0.015" />
-    <LeechFraction index="Life" value="1" />
+    <LeechFraction index="Life" value="0.6" />
   </CEffectDamage>
   <CEffectModifyUnit id="BarbarianAncientSpearMysticalSpearTalentModifyCooldown">
     <ImpactUnit Value="Caster" />
@@ -1214,7 +1258,7 @@
     <ValidatorArray value="BarbarianHasGiantSlammerTalent" />
     <ValidatorArray value="TargetIsHero" />
     <VitalFractionMax index="Life" value="0.015" />
-    <LeechFraction index="Life" value="1" />
+    <LeechFraction index="Life" value="0.6" />
   </CEffectDamage>
   <CEffectModifyPlayer id="BarbarianSeismicSlamFuriousBlowTalentResetPlayer">
     <EffectArray Operation="Set" Reference="Abil,BarbarianSeismicSlam,Cost.Vital[Energy]" Value="25" />
@@ -1366,6 +1410,14 @@
     <CaseArray Validator="TargetIsHero" Effect="BarbarianWhirlwindHeroDamage" />
     <CaseDefault value="BarbarianWhirlwindDamage" />
   </CEffectSwitch>
+  <CEffectDamage id="BarbarianSeismicSlamShatteredGroundSecondaryDamage" parent="StormSpell">
+    <ValidatorArray value="DoesNotHaveBarbarianBashSuppression" />
+    <MultiplicativeModifierArray index="BattleRage" Validator="BarbarianTargetIsMercenaryandCasterHasBattleRage" Modifier="0.25" />
+    <MultiplicativeModifierArray index="ShatteredGround" Validator="HasBarbarianMasteryShatteredGroundSeismicSlam" Modifier="2.5" />
+    <MultiplicativeModifierArray index="OriginalTargetIsHero" Modifier="2.5" Crit="1" />
+    <ImpactLocation Value="TargetUnit" />
+    <Amount value="44" />
+  </CEffectDamage>
   <CEffectModifyUnit id="BarbarianWhirlwindModifyCooldown">
     <ImpactUnit Value="Source" />
     <Cost Abil="BarbarianWhirlwind,Execute" CooldownOperation="Set" CooldownTimeUse="5" />
@@ -1391,16 +1443,6 @@
     <WhichUnit Value="Caster" />
     <Behavior value="BarbarianFuryTraitMoveSpeedBuff" />
   </CEffectApplyBehavior>
-  <CEffectSwitch id="BarbarianSeismicSlamSecondaryDamageSwitch">
-    <CaseArray Validator="HasBarbarianMasteryShatteredGroundSeismicSlam" Effect="BarbarianSeismicSlamSecondaryShatteredGroundDamage" />
-    <CaseDefault value="BarbarianSeismicSlamSecondaryDamage" />
-  </CEffectSwitch>
-  <CEffectDamage id="BarbarianSeismicSlamSecondaryShatteredGroundDamage" parent="StormSpell">
-    <ValidatorArray value="DoesNotHaveBarbarianBashSuppression" />
-    <ImpactLocation Value="TargetUnit" />
-    <Amount value="220" />
-    <MultiplicativeModifierArray index="BattleRage" Validator="BarbarianTargetIsMercenaryandCasterHasBattleRage" Modifier="0.25" />
-  </CEffectDamage>
   <CEffectSet id="BarbarianSeismicSlamSecondarySet">
     <EffectArray value="BarbarianSeismicSlamSecondaryCleavePersistent" />
     <EffectArray value="BarbarianSeismicSlamCameraShakeCasterSwitch" />
@@ -1562,6 +1604,7 @@
     <ImpactLocation Value="TargetUnit" />
     <Amount value="44" />
     <MultiplicativeModifierArray index="BattleRage" Validator="BarbarianTargetIsMercenaryandCasterHasBattleRage" Modifier="0.25" />
+    <MultiplicativeModifierArray index="ShatteredGround" Validator="HasBarbarianMasteryShatteredGroundSeismicSlam" Modifier="2.5" />
   </CEffectDamage>
   <CEffectSet id="BarbarianSeismicSlamDummySet" />
   <CEffectCreatePersistent id="BarbarianSeismicSlamSecondaryCleavePersistent">
@@ -1576,7 +1619,7 @@
     <PeriodicPeriodArray value="0.15" />
   </CEffectCreatePersistent>
   <CEffectSet id="BarbarianSeismicSlamSecondaryImpactSet">
-    <EffectArray value="BarbarianSeismicSlamSecondaryDamageSwitch" />
+    <EffectArray value="BarbarianSeismicSlamSecondaryDamage" />
     <EffectArray value="BarbarianSeismicSlamGiantSlammerTalentProcDamage" />
     <EffectArray value="ApplyAbilityImpactReveal" />
     <ValidatorArray value="noMarkers" />
@@ -1784,7 +1827,7 @@
     <EffectArray value="BarbarianSeismicSlamModifyWeaponCooldown" />
     <EffectArray value="BarbarianSeismicSlamDummySet" />
     <EffectArray value="BarbarianSeismicSlamIssueAttackOrder" />
-    <EffectArray value="BarbarianSeismicSlamSecondarySet" />
+    <EffectArray value="BarbarianSeismicSlamSecondarySwitch" />
     <EffectArray value="BarbarianSeismicSlamImpactTalentSet" />
     <EffectArray value="ApplyAbilityImpactReveal" />
     <Marker>
@@ -1905,7 +1948,7 @@
   <CEffectDamage id="BarbarianSeismicSlamDamage" parent="StormSpell">
     <ImpactLocation Value="TargetUnit" />
     <Amount value="176" />
-    <MultiplicativeModifierArray index="FuriousBlows" Validator="BarbarianHasGTE4FuriousBlowToken" Modifier="0.5" Crit="1" />
+    <MultiplicativeModifierArray index="FuriousBlows" Validator="BarbarianHasGTE4FuriousBlowToken" Modifier="0.4" Crit="1" />
     <MultiplicativeModifierArray index="BattleRage" Validator="BarbarianTargetIsMercenaryandCasterHasBattleRage" Modifier="0.25" />
   </CEffectDamage>
   <CEffectCreatePersistent id="BarbarianWhirlwindCreatePersistent">
@@ -2109,6 +2152,12 @@
     <VOArray index="PingDestroyThing" value="Barbarian_Ping_DestroyThing" />
     <VOArray index="PingTransport" value="Barbarian_Ping_Transport" />
     <VOArray index="PingTurnIn" value="Barbarian_Ping_TurnIn" />
+    <VOArray index="VOPing_AssistMe" value="Barbarian_VOPing_AssistMe" />
+    <VOArray index="VOPing_Danger" value="Barbarian_VOPing_Danger" />
+    <VOArray index="VOPing_Defend" value="Barbarian_VOPing_Defend" />
+    <VOArray index="VOPing_EnemyMissing" value="Barbarian_VOPing_EnemyMissing" />
+    <VOArray index="VOPing_OnMyWay" value="Barbarian_VOPing_OnMyWay" />
+    <VOArray index="VOPing_Retreat" value="Barbarian_VOPing_Retreat" />
     <Difficulty value="Medium" />
     <HeroTierAchievementId value="5216701565563773679" />
     <Gender value="Female" />
@@ -2194,7 +2243,7 @@
       </Modifications>
       <Modifications>
         <Catalog value="Effect" />
-        <Entry value="BarbarianSeismicSlamSecondaryShatteredGroundDamage" />
+        <Entry value="BarbarianSeismicSlamShatteredGroundSecondaryDamage" />
         <Field value="Amount" />
         <Value value="0.040000" />
         <AffectedByAbilityPower value="1" />
@@ -2757,17 +2806,17 @@
     <Find value="1" />
     <Value value="BarbarianRampage" />
   </CValidatorPlayerTalent>
-  <CValidatorUnitCompareBehaviorCount id="BarbarianCasterHasShotOfFuryTalentBuff">
-    <WhichUnit Value="Caster" />
-    <Compare value="GT" />
-    <Behavior value="BarbarianSeismicSlamShotOfFuryTalentBuff" />
-  </CValidatorUnitCompareBehaviorCount>
   <CValidatorUnitCompareTokenCount id="BarbarianHasGTE4FuriousBlowToken">
     <WhichUnit Value="Caster" />
     <Compare value="GE" />
     <Value value="4" />
     <TokenId value="BarbarianFuriousBlowsTokenCounter" />
   </CValidatorUnitCompareTokenCount>
+  <CValidatorUnitCompareBehaviorCount id="BarbarianCasterHasShotOfFuryTalentBuff">
+    <WhichUnit Value="Caster" />
+    <Compare value="GT" />
+    <Behavior value="BarbarianSeismicSlamShotOfFuryTalentBuff" />
+  </CValidatorUnitCompareBehaviorCount>
   <CValidatorPlayerTalent id="BarbarianHasNervesOfSteelTalent">
     <Find value="1" />
     <Value value="BarbarianNervesOfSteel" />

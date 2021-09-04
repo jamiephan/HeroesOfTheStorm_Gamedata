@@ -312,6 +312,7 @@ void libIGHS_gf_PrepareHeroPicksRoleLocked () {
                     lv_heroCandidate = libIGHS_gf_GetRandomShufflePickEnabledHero(false);
                 }
                 libIGHS_gv_shuffleSettings.lv_players[lv_player].lv_heroPickOptions[lv_pick] = lv_heroCandidate;
+                TriggerDebugOutput(1, StringExternal("Param/Value/lib_IGHS_B3DA6013"), true);
             }
         }
     }
@@ -533,6 +534,10 @@ string libIGHS_gf_GetRandomShufflePickEnabledHero (bool lp_usingCrazyMode) {
 bool libIGHS_gf_IsHeroValidforShufflePick (string lp_hero, bool lp_usingCrazyMode) {
     // Automatic Variable Declarations
     // Implementation
+    if ((GameIsHeroDisabled(lp_hero) == true)) {
+        return false;
+    }
+
     if ((lp_usingCrazyMode == true) && (CatalogFieldValueGet(c_gameCatalogHero, lp_hero, "Flags[" + IntToString(c_heroFlagGoodForModeB) + "]", c_playerAny) == "1")) {
         return true;
     }
@@ -635,6 +640,7 @@ void libIGHS_gf_AddHeroToCuratedHeroList (string lp_hero, int lp_team) {
 
 void libIGHS_gf_AddAllValidHeroesToCuratedHeroList () {
     // Variable Declarations
+    string lv_hero;
     int lv_heroIndex;
 
     // Automatic Variable Declarations
@@ -647,8 +653,9 @@ void libIGHS_gf_AddAllValidHeroesToCuratedHeroList () {
     autoA9C35C69_ae = (libCore_gf_GetHeroTotalCount() - 1);
     lv_heroIndex = 1;
     for ( ; ( (autoA9C35C69_ai >= 0 && lv_heroIndex <= autoA9C35C69_ae) || (autoA9C35C69_ai < 0 && lv_heroIndex >= autoA9C35C69_ae) ) ; lv_heroIndex += autoA9C35C69_ai ) {
-        if ((CatalogFieldValueGet(c_gameCatalogHero, libCore_gf_GetHeroFromIndex(lv_heroIndex), "Flags[" + IntToString(c_heroFlagGoodForModeA) + "]", c_playerAny) == "1")) {
-            libIGHS_gf_AddHeroToCuratedHeroList(libCore_gf_GetHeroFromIndex(lv_heroIndex), 0);
+        lv_hero = libCore_gf_GetHeroFromIndex(lv_heroIndex);
+        if ((GameIsHeroDisabled(lv_hero) == false) && (CatalogFieldValueGet(c_gameCatalogHero, lv_hero, "Flags[" + IntToString(c_heroFlagGoodForModeA) + "]", c_playerAny) == "1")) {
+            libIGHS_gf_AddHeroToCuratedHeroList(lv_hero, 0);
         }
 
     }

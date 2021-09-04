@@ -155,6 +155,45 @@
     <EffectArray value="CursedHollowCoreCurseDamage" />
     <EffectArray value="CursedHollowCoreCurseApplyBehavior" />
   </CEffectSet>
+  <CEffectApplyBehavior id="ExperienceGlobeApplyXPReductionCoolup">
+    <Chance value="0" />
+    <WhichUnit Value="Caster" />
+    <Behavior value="HeroGenericExperienceGlobeReducedXPCoolup" />
+  </CEffectApplyBehavior>
+  <CEffectApplyBehavior id="ExperienceGlobeApplyXPReductionCarry">
+    <WhichUnit Value="Caster" />
+    <Behavior value="HeroGenericExperienceGlobeReducedXPCarry" />
+  </CEffectApplyBehavior>
+  <CEffectSet id="ExperienceGlobeDummyImpactSetReducedXP" />
+  <CEffectLaunchMissile id="ExperienceGlobeReducedXPLaunchMissile">
+    <ValidatorArray index="0" value="ExperienceGlobeLaunchMissileTargetFilters" />
+    <LaunchLocation Value="CasterUnit" />
+    <ImpactEffect value="ExperienceGlobeDummyImpactSetReducedXP" />
+    <ImpactRange value="0.375" />
+    <AmmoUnit value="ExperienceGlobeMissile" />
+  </CEffectLaunchMissile>
+  <CEffectSet id="ExperienceGlobeTimedLifeInitialSet">
+    <EffectArray value="ExperienceGlobeApplySearchBehavior" />
+    <EffectArray value="ExperienceGlobeApplyXPReductionCoolup" />
+  </CEffectSet>
+  <CEffectSwitch id="ExperienceGlobeMissileLaunchSwitch">
+    <CaseArray Validator="CasterHasReducedXPCarry" Effect="ExperienceGlobeReducedXPLaunchMissile" />
+    <CaseDefault value="ExperienceGlobeLaunchMissile" />
+  </CEffectSwitch>
+  <CEffectSet id="HeroGenericExperienceGlobeModifyBehaviorsDurationSet">
+    <EffectArray value="HeroGenericExperienceGlobeModifyTimedLifeDuration" />
+    <EffectArray value="HeroGenericExperienceGlobeModifyXPReductionCoolupDuration" />
+  </CEffectSet>
+  <CEffectModifyBehaviorBuffDuration id="HeroGenericExperienceGlobeModifyXPReductionCoolupDuration">
+    <WhichUnit Value="Source" />
+    <Behavior value="HeroGenericExperienceGlobeReducedXPCoolup" />
+    <Value value="0.1875" />
+  </CEffectModifyBehaviorBuffDuration>
+  <CEffectDamage id="KillMinionValidation" parent="StormSuicideParent">
+    <ValidatorArray value="TargetMinion" />
+    <ImpactLocation Value="TargetUnitOrPoint" />
+    <Flags index="NoKillCredit" value="0" />
+  </CEffectDamage>
   <CEffectDamage id="MapMechanicVolskayaCoreSkyLaserInitialDamage" parent="StormSpellPercentDamage">
     <ValidatorArray value="TargetIsHero" />
     <ValidatorArray value="noMarkers" />
@@ -208,6 +247,7 @@
   <CEffectSwitch id="ExperienceGlobeTowerSpawnDummyImpactSwitch">
     <CaseArray Validator="CasterIsExperienceGlobeL2Tower" Effect="ExperienceGlobeDummyImpactSetL2Tower" />
     <CaseArray Validator="CasterIsExperienceGlobeL3Tower" Effect="ExperienceGlobeDummyImpactSetL3Tower" />
+    <CaseArray Validator="CasterHasReducedXPCarry" Effect="ExperienceGlobeDummyImpactSetReducedXP" />
     <CaseArray Validator="CasterIsExperienceGlobeMinion" Effect="ExperienceGlobeDummyImpactSetMinion" />
   </CEffectSwitch>
   <CEffectSet id="ExperienceGlobeL3TowerSpawnDummy" />
@@ -298,7 +338,7 @@
     <ValidatorArray value="TargetNotDeadAndNoSpecialDeathState" />
     <ValidatorArray value="TargetIsNotDeathwingDragonflightUnit" />
     <EffectArray value="HeroGenericExperienceGlobeTimedLifeInitialRemoveSourceBehavior" />
-    <EffectArray value="ExperienceGlobeLaunchMissile" />
+    <EffectArray value="ExperienceGlobeMissileLaunchSwitch" />
     <EffectArray value="StormSuicide" />
   </CEffectSet>
   <CEffectEnumArea id="ExperienceGlobePickupSearch">
@@ -925,6 +965,12 @@
     <EffectArray value="GreymaneWorgenFormRemoveBehavior" />
     <EffectArray value="MedicHealingBeamRemoveCastingBuff" />
     <ValidatorArray value="HeroNotInCombat" />
+    <ValidatorArray value="CasterNotRooted" />
+    <ValidatorArray value="UserCategoryCasterNotPushPull" />
+    <ValidatorArray value="CasterHasMountAbility" />
+  </CEffectSet>
+  <CEffectSet id="HeroGenericMountAbilityInitialSetNoCombatValidator">
+    <EffectArray value="MountApplyMountBehavior" />
     <ValidatorArray value="CasterNotRooted" />
     <ValidatorArray value="UserCategoryCasterNotPushPull" />
     <ValidatorArray value="CasterHasMountAbility" />
@@ -4318,6 +4364,7 @@
     <ValidatorArray value="UnitIsMacGuffin" />
     <ValidatorArray value="MacGuffinActivated" />
     <ValidatorArray value="MacGuffinNotInUse" />
+    <ValidatorArray value="TargetDoesNotHaveMapMechanicCoolUp" />
     <InitialEffect value="CaptureMacGuffinInitialSet" />
     <PeriodicEffectArray value="CaptureMacGuffinPeriodicSet" />
     <TimeScaleSource Value="Caster" />
@@ -4340,6 +4387,7 @@
     <ValidatorArray value="MacGuffinActivated" />
     <ValidatorArray value="MacGuffinNotInUse" />
     <ValidatorArray value="StarCraftEventTargetArtifactNotBeingChanneledOnByOtherPlayers" />
+    <ValidatorArray value="TargetDoesNotHaveMapMechanicCoolUp" />
     <InitialEffect value="CaptureMacGuffinTwoInitialSet" />
     <PeriodicEffectArray value="CaptureMacGuffinTwoPeriodicSet" />
     <TimeScaleSource Value="Caster" />
@@ -5769,7 +5817,7 @@
     <Behavior value="Mounted" />
     <WhichUnit Value="Caster" />
     <ValidatorArray index="0" value="CasterNotRooted" />
-    <ValidatorArray value="HeroNotInCombat" />
+    <ValidatorArray value="NotinCombatorHasSwiftStormCombine" />
   </CEffectApplyBehavior>
   <CEffectSet id="MountRemoveMountBehaviorSet">
     <EffectArray value="MountRemoveMountBehavior" />

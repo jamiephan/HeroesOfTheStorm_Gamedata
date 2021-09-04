@@ -177,10 +177,16 @@
       <Flags index="AllowSelfCast" value="0" />
     </CmdButtonArray>
   </CAbilEffectTarget>
+  <CAccumulatorToken id="FalstadThunderstrikesAccumulator" parent="BaseAccumulator">
+    <MaxAccumulation value="1.5" />
+    <ApplicationRule value="Add" />
+    <TokenId value="FalstadThunderstrikesToken" />
+    <Scale value="0.25" />
+  </CAccumulatorToken>
   <CAccumulatorToken id="FalstadDishonorableDischargeAccumulator" parent="BaseAccumulator">
     <MaxAccumulation value="10" />
     <TokenId value="FalstadDishonorableDischargeToken" />
-    <Scale value="0.01" />
+    <Scale value="0.0075" />
   </CAccumulatorToken>
   <CAccumulatorToken id="FalstadFrequentFlyerAccumulator" parent="BaseAccumulator">
     <MaxAccumulation value="1000" />
@@ -197,7 +203,7 @@
     <MaxAccumulation value="65535" />
     <ApplicationRule value="Add" />
     <TokenId value="FalstadHammerangGatheringStormQuestToken" />
-    <Scale value="0.002" />
+    <Scale value="0.004" />
   </CAccumulatorToken>
   <CActorSplat id="FalstadWingmanRangeSplat" parent="StormRangeSplat">
     <Scale value="6.000000" />
@@ -594,6 +600,8 @@
     <VisibleToAtCreation index="Target" value="1" />
     <HostSiteOps Ops="SOpBasicScopeFollow" />
     <IconArcLength value="5.000000" />
+    <Icon value="Assets\Textures\storm_fx_falstad_base_thunderstorm_range.dds" />
+    <IconSize X="2.000000" Y="1.000000" />
   </CActorRange>
   <CActorSound id="FalstadLightningRodLaunchSound" parent="SoundOneShot">
     <On Terms="Effect.FalstadLightningRodInitialDamage.Start; At Target" Send="Create" />
@@ -911,6 +919,19 @@
   <CActorSound id="PulledSoundHeroFalstad" parent="SoundOneShot">
     <Sound value="Falstad_VOX_Pulled" />
   </CActorSound>
+  <CBehaviorBuff id="FalstadDishonorableDischargeQuestCompleteCarryBehavior">
+    <BehaviorFlags index="Permanent" value="1" />
+    <BehaviorFlags index="EnabledWhileDead" value="1" />
+    <BehaviorCategories index="Permanent" value="1" />
+    <RemoveValidatorArray value="FalstadHasLightningRodDishonorableDischargeTalent" />
+  </CBehaviorBuff>
+  <CBehaviorTokenCounter id="FalstadThunderstrikesTokenCounter" parent="StormGenericToken">
+    <Alignment value="Positive" />
+    <InfoFlags index="Hidden" value="1" />
+    <BehaviorCategories index="Permanent" value="1" />
+    <TokenId value="FalstadThunderstrikesToken" />
+    <Max value="10" />
+  </CBehaviorTokenCounter>
   <CBehaviorBuff id="FalstadDishonorableDischargeStacksBehavior">
     <RemoveValidatorArray value="FalstadCasterHasLightningRodCasterBehavior" />
     <MaxStackCount value="3" />
@@ -918,14 +939,14 @@
   </CBehaviorBuff>
   <CBehaviorTokenCounter id="FalstadDishonorableDischargeToken" parent="StormGenericToken">
     <Face value="DishonorableDischarge" />
-    <Max value="75" />
+    <Max value="100" />
     <Alignment value="Positive" />
     <BehaviorCategories index="Quest" value="1" />
     <SortIndex value="10" />
     <MinStackCountDisplayed value="0" />
     <IncreaseEvents EventId="QuestIncrease" />
     <DecreaseEvents EventId="QuestDecrease" />
-    <AtMaxEvents EventId="QuestComplete" />
+    <AtMaxEvents EventId="QuestComplete" Effect="FalstadFalstadDishonorableDischargeApplyQuestCompleteCarryBehavior" ValidRange="100,100" />
     <AtMinEvents EventId="QuestReset" />
   </CBehaviorTokenCounter>
   <CBehaviorTokenCounter id="FalstadFrequentFlyerTokenCounter" parent="StormQuestToken">
@@ -1113,8 +1134,10 @@
     </AINotifySettings>
   </CBehaviorBuff>
   <CBehaviorBuff id="FalstadLightningRodCasterConfirmBehavior">
-    <Duration value="1.125" />
+    <Duration value="0.3125" />
     <ExpireEffect value="FalstadLightningRodRemoveCasterBehavior" />
+    <Period value="0.25" />
+    <PeriodicEffect value="FalstadLightningRodConfirmTargetSearch" />
   </CBehaviorBuff>
   <CBehaviorBuff id="FalstadLightningRodConductor">
     <Duration value="4.25" />
@@ -1129,12 +1152,12 @@
     <MaxStackCount value="7" />
   </CBehaviorBuff>
   <CBehaviorBuff id="FalstadLightningRodTargetConfirmBehavior">
-    <Duration value="1.125" />
+    <Duration value="0.3125" />
     <ExpireEffect value="FalstadLightningRodRemoveTargetBehavior" />
   </CBehaviorBuff>
   <CBehaviorBuff id="FalstadLightningRodThunderstrikesDelay">
     <Duration value="0.5" />
-    <FinalEffect value="FalstadLightningRodApplyThunderstrikesStack" />
+    <FinalEffect value="FalstadThunderstrikesAddToken" />
   </CBehaviorBuff>
   <CBehaviorBuff id="FalstadLightningRodThunderstrikesRemovalDelay">
     <Duration value="0.125" />
@@ -1434,6 +1457,46 @@
     <Age value="40" />
     <Unit value="HeroFalstad" />
   </CCharacter>
+  <CEffectApplyBehavior id="FalstadFalstadDishonorableDischargeApplyQuestCompleteCarryBehavior">
+    <WhichUnit Value="Caster" />
+    <Behavior value="FalstadDishonorableDischargeQuestCompleteCarryBehavior" />
+  </CEffectApplyBehavior>
+  <CEffectModifyBehaviorBuffDuration id="FalstadLightningRodAddCasterConfirmDuration">
+    <Behavior value="FalstadLightningRodCasterConfirmBehavior" />
+    <Value value="0.25" />
+  </CEffectModifyBehaviorBuffDuration>
+  <CEffectModifyBehaviorBuffDuration id="FalstadLightningRodAddTargetConfirmDuration">
+    <Marker Link="Effect/FalstadLightningRodAddCasterConfirmDuration" />
+    <WhichUnit Value="Target" />
+    <Behavior value="FalstadLightningRodTargetConfirmBehavior" />
+    <Value value="0.25" />
+  </CEffectModifyBehaviorBuffDuration>
+  <CEffectSet id="FalstadLightningRodConfirmSet">
+    <ValidatorArray value="FalstadTargetHasLightningRodConductor" />
+    <EffectArray value="FalstadLightningRodAddCasterConfirmDuration" />
+    <EffectArray value="FalstadLightningRodAddTargetConfirmDuration" />
+  </CEffectSet>
+  <CEffectEnumArea id="FalstadLightningRodConfirmTargetSearch">
+    <ValidatorArray value="CasterNotStasis" />
+    <Marker Link="Effect/FalstadLightningRodConductorTargetSearch" />
+    <SearchFilters value="-;Player,Ally,Neutral,Item,Stasis,Dead,Invulnerable" />
+    <AreaArray MaxCount="1" Effect="FalstadLightningRodConfirmSet">
+      <Radius value="8" />
+    </AreaArray>
+    <SearchFlags index="CenterAtLaunch" value="1" />
+    <SearchFlags index="ExtendByUnitRadius" value="1" />
+    <SearchFlags index="OffsetAreaByAngle" value="0" />
+  </CEffectEnumArea>
+  <CEffectModifyTokenCount id="FalstadThunderstrikesAddToken" parent="BaseEffectModifyTokenCount">
+    <ContextUnit Value="Caster" />
+    <TokenId value="FalstadThunderstrikesToken" />
+  </CEffectModifyTokenCount>
+  <CEffectModifyTokenCount id="FalstadThunderstrikesResetToken" parent="BaseEffectModifyTokenCount">
+    <ContextUnit Value="Caster" />
+    <TokenId value="FalstadThunderstrikesToken" />
+    <Operation value="Set" />
+    <Value value="0" />
+  </CEffectModifyTokenCount>
   <CEffectModifyUnit id="FalstadDishonorableDischargeHeroTakedownCooldownRefresh">
     <Cost Abil="FalstadLightningRod,Execute" CooldownOperation="Set" />
   </CEffectModifyUnit>
@@ -1499,12 +1562,6 @@
     <ImpactUnit Value="Caster" />
     <Cost Abil="FalstadHammerang,Execute" CooldownOperation="Add" CooldownTimeUse="-2" />
   </CEffectModifyUnit>
-  <CEffectModifyBehaviorBuffDuration id="FalstadLightningRodDishonorableDischargeAddSlowDuration">
-    <ValidatorArray value="FalstadHasLightningRodDishonorableDischargeTalent" />
-    <WhichUnit Value="Target" />
-    <Behavior value="HammerangSlow" />
-    <Value value="1" />
-  </CEffectModifyBehaviorBuffDuration>
   <CEffectSet id="FalstadHammerangBOOMerangImpactSet">
     <EffectArray value="FalstadHammerangBOOMerangDamage" />
     <EffectArray value="FalstadHammerangCripplingHammerApplyBehavior" />
@@ -1784,7 +1841,6 @@
     <EffectArray value="FalstadBarrelRollFreeRollRemoveBehavior" />
     <EffectArray value="FalstadLightningRodApplyCasterConfirmBehavior" />
     <EffectArray value="FalstadLightningRodApplyTargetConfirmBehavior" />
-    <EffectArray value="FalstadLightningRodDishonorableDischargeAddSlowDuration" />
   </CEffectSet>
   <CEffectApplyBehavior id="FalstadLightningRodApplyCasterBehavior">
     <WhichUnit Value="Caster" />
@@ -1792,11 +1848,6 @@
   </CEffectApplyBehavior>
   <CEffectApplyBehavior id="FalstadLightningRodApplyConductorBehavior">
     <Behavior value="FalstadLightningRodConductor" />
-  </CEffectApplyBehavior>
-  <CEffectApplyBehavior id="FalstadLightningRodApplyThunderstrikesStack">
-    <ValidatorArray index="0" value="HasFalstadMasteryLightningRodThunderstrikes" />
-    <Behavior value="FalstadLightningRodThunderstrikesStacking" />
-    <WhichUnit Value="Caster" />
   </CEffectApplyBehavior>
   <CEffectEnumArea id="FalstadLightningRodConductorTargetSearch">
     <SearchFilters value="-;Player,Ally,Neutral,Item,Stasis,Dead,Invulnerable" />
@@ -1821,16 +1872,14 @@
   <CEffectSet id="FalstadLightningRodImpactSet">
     <ValidatorArray value="FalstadTargetHasLightningRodConductor" />
     <EffectArray value="ApplyAbilityImpactReveal" />
-    <EffectArray value="FalstadLightningRodDamageSwitch" />
+    <EffectArray value="FalstadLightningRodDamage" />
     <EffectArray value="FalstadLightningRodApplyThunderstrikesDelay" />
     <EffectArray value="FalstadLightningRodApplyStaticShield" />
     <EffectArray value="FalstadLightningRodPersistentRevealer" />
-    <EffectArray value="FalstadLightningRodApplyCasterConfirmBehavior" />
-    <EffectArray value="FalstadLightningRodApplyTargetConfirmBehavior" />
-    <EffectArray value="FalstadLightningRodDishonorableDischargeAddSlowDuration" />
     <EffectArray value="FalstadDishonorableDischargeStrikesSwitch" />
   </CEffectSet>
   <CEffectSet id="FalstadLightningRodInitialSet">
+    <EffectArray value="FalstadThunderstrikesResetToken" />
     <EffectArray value="FalstadLightningRodApplyConductorBehavior" />
     <EffectArray value="FalstadLightningRodApplyCasterBehavior" />
     <EffectArray value="ApplyAbilityImpactReveal" />
@@ -1844,30 +1893,39 @@
     <Amount value="75" />
     <MultiplicativeModifierArray index="LightningRodPvE" Validator="TargetIsMinionORTargetIsMercLanerORTargetIsMercDefenderAndNotAMonster" Modifier="1" />
     <MultiplicativeModifierArray index="Dishonorable Discharge" Validator="FalstadHasLightningRodDishonorableDischargeTalent" Accumulator="FalstadDishonorableDischargeAccumulator" />
+    <MultiplicativeModifierArray index="Thunderstrikes" Accumulator="FalstadThunderstrikesAccumulator" />
   </CEffectDamage>
   <CEffectDamage id="FalstadLightningRodDamageThunderstrikes1Stack" parent="FalstadLightningRodDamage">
     <Amount value="90" />
+    <MultiplicativeModifierArray removed="1" />
   </CEffectDamage>
   <CEffectDamage id="FalstadLightningRodDamageThunderstrikes2Stacks" parent="FalstadLightningRodDamage">
     <Amount value="105" />
+    <MultiplicativeModifierArray removed="1" />
   </CEffectDamage>
   <CEffectDamage id="FalstadLightningRodDamageThunderstrikes3Stacks" parent="FalstadLightningRodDamage">
     <Amount value="120" />
+    <MultiplicativeModifierArray removed="1" />
   </CEffectDamage>
   <CEffectDamage id="FalstadLightningRodDamageThunderstrikes4Stacks" parent="FalstadLightningRodDamage">
     <Amount value="135" />
+    <MultiplicativeModifierArray removed="1" />
   </CEffectDamage>
   <CEffectDamage id="FalstadLightningRodDamageThunderstrikes5Stacks" parent="FalstadLightningRodDamage">
     <Amount value="150" />
+    <MultiplicativeModifierArray removed="1" />
   </CEffectDamage>
   <CEffectDamage id="FalstadLightningRodDamageThunderstrikes6Stacks" parent="FalstadLightningRodDamage">
     <Amount value="165" />
+    <MultiplicativeModifierArray removed="1" />
   </CEffectDamage>
   <CEffectDamage id="FalstadLightningRodDamageThunderstrikes7Stacks" parent="FalstadLightningRodDamage">
     <Amount value="180" />
+    <MultiplicativeModifierArray removed="1" />
   </CEffectDamage>
   <CEffectDamage id="FalstadLightningRodInitialDamage" parent="FalstadLightningRodDamage">
     <Amount value="107" />
+    <MultiplicativeModifierArray removed="1" />
   </CEffectDamage>
   <CEffectIssueOrder id="FalstadLightningRodIssueAttackOrder">
     <WhichUnit Value="Caster" />
@@ -2717,6 +2775,12 @@
     <VOArray index="PingDestroyThing" value="Falstad_Ping_DestroyThing" />
     <VOArray index="PingTransport" value="Falstad_Ping_Transport" />
     <VOArray index="PingTurnIn" value="Falstad_Ping_TurnIn" />
+    <VOArray index="VOPing_AssistMe" value="Falstad_VOPing_AssistMe" />
+    <VOArray index="VOPing_Danger" value="Falstad_VOPing_Danger" />
+    <VOArray index="VOPing_Defend" value="Falstad_VOPing_Defend" />
+    <VOArray index="VOPing_EnemyMissing" value="Falstad_VOPing_EnemyMissing" />
+    <VOArray index="VOPing_OnMyWay" value="Falstad_VOPing_OnMyWay" />
+    <VOArray index="VOPing_Retreat" value="Falstad_VOPing_Retreat" />
     <HeroAbilArray Abil="FalstadHammerang" Button="FalstadHammerang">
       <Flags index="ShowInHeroSelect" value="1" />
       <Flags index="AffectedByCooldownReduction" value="1" />
@@ -2955,7 +3019,7 @@
         <Type value="FlatModification" />
         <Entry value="FalstadLightningRod" />
         <Field value="Cost.Cooldown.TimeUse" />
-        <Value value="-3.000000" />
+        <Value value="-2.000000" />
       </Modifications>
     </AbilityModificationArray>
     <QuestData StackBehavior="FalstadDishonorableDischargeToken" />
@@ -3161,6 +3225,13 @@
         <Field value="AreaArray[0].Radius" />
         <Value value="1.250000" />
       </Modifications>
+      <Modifications>
+        <Type value="MultiplyLevelModification" />
+        <Catalog value="Effect" />
+        <Entry value="FalstadLightningRodConfirmTargetSearch" />
+        <Field value="AreaArray[0].Radius" />
+        <Value value="1.250000" />
+      </Modifications>
     </AbilityModificationArray>
     <Abil value="FalstadLightningRod" />
   </CTalent>
@@ -3179,6 +3250,9 @@
       </Modifications>
     </AbilityModificationArray>
     <Abil value="FalstadLightningRod" />
+    <RankArray>
+      <BehaviorArray value="FalstadThunderstrikesTokenCounter" />
+    </RankArray>
   </CTalent>
   <CTalent id="FalstadMasteryMightyGustWindTunnel">
     <Face value="FalstadWindTunnelTalent" />

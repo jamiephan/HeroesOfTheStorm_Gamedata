@@ -46,15 +46,6 @@
     </Cost>
     <CmdButtonArray index="Execute" DefaultButtonFace="LucioItemSummerAnthem" />
   </CAbilEffectInstant>
-  <CAbilEffectInstant id="LucioAmpItUpUpToEleven">
-    <PrepEffect value="DismountDecloakCasterSet" />
-    <Effect value="LucioAmpItUpUpToElevenCastSet" />
-    <Flags index="NoDeceleration" value="1" />
-    <Cost>
-      <Cooldown TimeUse="60" />
-    </Cost>
-    <CmdButtonArray index="Execute" DefaultButtonFace="LucioAmpItUpUpToEleven" />
-  </CAbilEffectInstant>
   <CAbilBehavior id="LucioCrossfade">
     <CmdButtonArray index="On" DefaultButtonFace="LucioCrossfadeActivateHealingBoost">
       <Flags index="ToSelection" value="1" />
@@ -130,7 +121,7 @@
       <Cooldown TimeUse="20" />
     </Cost>
     <Placeholder value="LucioBoombox" />
-    <Range value="5" />
+    <Range value="10" />
     <Arc value="360" />
     <ProducedUnitArray value="LucioBoombox" />
     <CmdButtonArray index="Execute" DefaultButtonFace="LucioBoomboxBoombox" />
@@ -914,11 +905,6 @@
     <On Terms="Behavior.LucioAmpItUp.Off" Send="Destroy" />
     <Sound value="Lucio_AmpItUp_Cast" />
   </CActorSound>
-  <CActorSound id="LucioUpToElevenCastSound" parent="SoundOneShot">
-    <On Terms="Abil.LucioAmpItUpUpToEleven.SourceCastStart" Send="Create" />
-    <On Terms="Effect.LucioUpToElevenBoomboxSoundDummy.Start; At Target" Send="Create" />
-    <Sound value="Lucio_AmpItUp_UptoEleven_Cast" />
-  </CActorSound>
   <CActorRange id="LucioUpTheFrequencyRange">
     <Filter index="All" value="1" />
     <VisibleTo index="Self" value="1" />
@@ -1177,7 +1163,7 @@
   </CActorRange>
   <CActorRange id="LucioBoomboxRange" parent="StormRangeAbilPlusSplat" abil="LucioBoombox" />
   <CActorSplat id="LucioBoomboxRangeSplat" parent="StormRangeSplat">
-    <Scale value="5.000000" />
+    <Scale value="10.000000" />
   </CActorSplat>
   <CActorSound id="LucioBoomboxBirthSound" parent="SoundOneShot">
     <On Terms="UnitBirth.LucioBoombox" Send="Create" />
@@ -1224,13 +1210,27 @@
   <CActorSound id="LucioAmptItUpBonusTrackImpactSound" parent="SoundOneShot">
     <Sound value="Lucio_AmptItUpBonusTrack_Impact" />
   </CActorSound>
-  <CBehaviorAbility id="LucioAmpItUpUpToElevenItem">
-    <Buttons Face="LucioAmpItUpUpToEleven" Type="AbilCmd" AbilCmd="LucioAmpItUpUpToEleven,Execute" />
-  </CBehaviorAbility>
+  <CBehaviorBuff id="LucioBoomboxArmorBehavior" parent="StormArmor">
+    <RemoveValidatorArray value="LucioCrossfadeCombine" />
+    <RemoveValidatorArray value="CasterNotDead" />
+    <ArmorModification>
+      <AllArmorBonus value="5" />
+    </ArmorModification>
+  </CBehaviorBuff>
+  <CBehaviorBuff id="LucioBoomboxArmorControllerBehavior" parent="CarryBehaviorParent">
+    <Period value="0.125" />
+    <PeriodicEffect value="LucioBoomboxArmorSearchArea" />
+  </CBehaviorBuff>
+  <CBehaviorTokenCounter id="LucioBoomboxPartyMixToken" parent="StormGenericToken">
+    <Max value="1" />
+  </CBehaviorTokenCounter>
   <CBehaviorUnitTracker id="LucioBoomboxUnitTracker">
     <BehaviorFlags index="Permanent" value="1" />
     <MaxTrackedUnits value="1" />
   </CBehaviorUnitTracker>
+  <CBehaviorBuff id="LucioCrossfadePartyMixDummyButtonBehavior" parent="CarryBehaviorParent">
+    <MaxStackCount value="30000" />
+  </CBehaviorBuff>
   <CBehaviorBuff id="LucioHighFiveAvailableBehavior">
     <RemoveValidatorArray value="LucioTargetDoesNotHaveHighFiveTrackingBehavior" />
     <Duration value="0.25" />
@@ -1802,6 +1802,14 @@
     <IncreaseEvents index="0" EventId="" Effect="LucioCrossfadePartyMixApplyPingSuppressor" />
     <SortIndex value="10" />
   </CBehaviorTokenCounter>
+  <CBehaviorTokenCounter id="LucioCrossfadePartyMixManaQuestToken" parent="StormQuestToken">
+    <IncreaseEvents index="0" EventId="" Effect="LucioCrossfadePartyMixApplyPingSuppressor" />
+    <Max value="30000" />
+    <DeltaEvents Delta="60" FireForEachDelta="1">
+      <Event EventId="QuestIncrease" Effect="LucioCrossfadePartyMixSet" />
+    </DeltaEvents>
+    <InfoFlags index="Hidden" value="1" />
+  </CBehaviorTokenCounter>
   <CBehaviorTokenCounter id="LucioCrossfadeAllyToken" parent="StormGenericToken">
     <Max value="20" />
   </CBehaviorTokenCounter>
@@ -1830,7 +1838,7 @@
   <CBehaviorBuff id="LucioWallRideSlipArmor" parent="StormArmor">
     <BehaviorCategories index="BuffResistant" value="1" />
     <ArmorModification>
-      <AllArmorBonus value="20" />
+      <AllArmorBonus value="15" />
     </ArmorModification>
   </CBehaviorBuff>
   <CBehaviorBuff id="LucioAmpItUpSynaesthesiaAuditivaCastTracker">
@@ -2030,25 +2038,34 @@
     <Voice value="ATT Mike" />
     <Variations Model="LucioPortrait" Actor="LucioPortrait" />
   </CCharacter>
-  <CEffectModifyBehaviorBuffDuration id="LucioAmpItUpUpToElevenModifyBaseDuration">
-    <Behavior value="LucioAmpItUp" />
-    <Value value="2" />
-  </CEffectModifyBehaviorBuffDuration>
-  <CEffectModifyBehaviorBuffDuration id="LucioAmpItUpUpToElevenModifyCrossfadeDuration">
-    <Behavior value="LucioAmpItUpCrossfadeSpeedBoostTarget" />
-    <Value value="2" />
-  </CEffectModifyBehaviorBuffDuration>
-  <CEffectSet id="LucioAmpItUpUpToElevenCastSet">
+  <CEffectModifyBehaviorBuffDuration id="LucioAmpItUpUpToElevenModfifyBehaviorDuration">
     <ValidatorArray value="LucioCrossfadeCasterHasAmpItUp" />
     <ValidatorArray value="LucioHasAmpItUpUpToElevenTalent" />
-    <EffectArray value="LucioAmpItUpUpToElevenModifyBaseDuration" />
-    <EffectArray value="LucioAmpItUpUpToElevenModifyCrossfadeDuration" />
-    <EffectArray value="LucioUpToElevenBoomboxEnumerateTrackedUnits" />
-  </CEffectSet>
+    <ValidatorArray value="TargetIsHero" />
+    <Behavior value="LucioAmpItUp" />
+    <Value value="0.3" />
+  </CEffectModifyBehaviorBuffDuration>
   <CEffectAddTrackedUnit id="LucioBoomboxAddTrackedUnit">
     <BehaviorLink value="LucioBoomboxUnitTracker" />
     <TrackedUnit Value="Target" />
   </CEffectAddTrackedUnit>
+  <CEffectApplyBehavior id="LucioBoomboxApplyArmorBehavior">
+    <Behavior value="LucioBoomboxArmorBehavior" />
+  </CEffectApplyBehavior>
+  <CEffectModifyTokenCount id="LucioBoomboxPartyMixAddToken" parent="BaseEffectModifyTokenCount">
+    <TokenId value="LucioBoomboxPartyMixToken" />
+  </CEffectModifyTokenCount>
+  <CEffectApplyBehavior id="LucioCrossfadePartyMixApplyDummyButtonBehavior">
+    <Behavior value="LucioCrossfadePartyMixDummyButtonBehavior" />
+  </CEffectApplyBehavior>
+  <CEffectModifyPlayer id="LucioCrossfadePartyMixModifyPlayer">
+    <EffectArray Reference="Unit,HeroLucio,EnergyMax" Value="10" />
+    <EffectArray Reference="Unit,HeroLucio,EnergyStart" Value="10" />
+  </CEffectModifyPlayer>
+  <CEffectSet id="LucioCrossfadePartyMixSet">
+    <EffectArray value="LucioCrossfadePartyMixModifyPlayer" />
+    <EffectArray value="LucioCrossfadePartyMixApplyDummyButtonBehavior" />
+  </CEffectSet>
   <CEffectApplyBehavior id="LucioHighFiveApplyAvailableBehavior">
     <Behavior value="LucioHighFiveAvailableBehavior" />
     <ValidatorArray index="0" value="LucioTargetDoesNotHaveHighFiveCooldown" />
@@ -2156,7 +2173,7 @@
   </CEffectApplyBehavior>
   <CEffectDamage id="LucioHighFiveMixingFireDamage" parent="StormSpell">
     <ValidatorArray value="TargetIsEnemyHero" />
-    <Amount value="225" />
+    <Amount value="160" />
     <Chance value="0" />
   </CEffectDamage>
   <CEffectSet id="LucioHighFiveMixingFireImpactSet">
@@ -2182,7 +2199,7 @@
   <CEffectCreateHealer id="LucioHighFiveSelfHealCreateHealer" parent="StormHealingParent">
     <MultiplicativeModifierArray index="HouseParty" Validator="LucioHasPassiveHousePartyTalent" Accumulator="LucioCrossfadeHousePartyAccumulator" />
     <ImpactUnit Value="Caster" />
-    <RechargeVitalRate value="125" />
+    <RechargeVitalRate value="80" />
     <AmountScoreArray index="0" Validator="TargetIsHero" Value="SelfHealing" />
   </CEffectCreateHealer>
   <CEffectApplyBehavior id="LucioPushOffCasterBehaviorApply">
@@ -2255,6 +2272,7 @@
   <CEffectSet id="LucioPushOffScanImpactSet">
     <EffectArray value="LucioPushOffEffectSwitch" />
     <EffectArray value="LucioPushOffDamage" />
+    <EffectArray value="LucioAmpItUpUpToElevenModfifyBehaviorDuration" />
     <ValidatorArray value="noMarkers" />
   </CEffectSet>
   <CEffectCreatePersistent id="LucioPushOffScanPersistent">
@@ -2285,11 +2303,6 @@
     <BehaviorLink value="LucioSkateCrossfadeUnitTracker" />
     <Effect value="LucioSoundwaveSoothingBeatsCreateHealer" />
   </CEffectEnumTrackedUnits>
-  <CEffectEnumTrackedUnits id="LucioUpToElevenBoomboxEnumerateTrackedUnits">
-    <BehaviorLink value="LucioBoomboxUnitTracker" />
-    <Effect value="LucioUpToElevenBoomboxSoundDummy" />
-  </CEffectEnumTrackedUnits>
-  <CEffectModifyUnit id="LucioUpToElevenBoomboxSoundDummy" />
   <CEffectSet id="LucioWallRidePeriodicEffectSet" />
   <CEffectModifyUnit id="LucioWallRidePushOffSupersonicModifyPlayerCooldown">
     <ValidatorArray value="LucioHasPushOffSupersonicTalent" />
@@ -2399,6 +2412,7 @@
     <EffectArray value="LucioSoundwaveGoodVibrationsSet" />
     <EffectArray value="LucioSoundwaveSoothingBeatsEnumerateTrackedUnits" />
     <EffectArray value="LucioSoundwaveSubwooferImpactSet" />
+    <EffectArray value="LucioAmpItUpUpToElevenModfifyBehaviorDuration" />
   </CEffectSet>
   <CEffectDamage id="LucioSoundwaveDamage" parent="StormSpell">
     <Amount value="105" />
@@ -2501,6 +2515,13 @@
       <Radius value="15" />
     </AreaArray>
   </CEffectEnumArea>
+  <CEffectEnumArea id="LucioBoomboxArmorSearchArea">
+    <ImpactLocation Value="TargetUnit" />
+    <SearchFilters value="Heroic;Neutral,Enemy,Structure,ImmuneToFriendlyAbilities,Missile,Stasis,Dead" />
+    <AreaArray Effect="LucioBoomboxApplyArmorBehavior">
+      <Radius value="7" />
+    </AreaArray>
+  </CEffectEnumArea>
   <CEffectEnumArea id="LucioCrossfadeSpeedBoostSearchArea">
     <ImpactLocation Value="TargetUnit" />
     <SearchFilters value="Heroic;Neutral,Enemy,Structure,ImmuneToFriendlyAbilities,Missile,Stasis,Dead" />
@@ -2590,10 +2611,12 @@
   <CEffectSet id="LucioCrossfadeHealingBoostPeriodicSet">
     <EffectArray value="LucioCrossfadeHealingBoostHealSwitch" />
     <EffectArray value="LucioCrossfadePartyMixModifyQuestToken" />
+    <EffectArray value="LucioCrossfadePartyMixModifyManaQuestToken" />
     <EffectArray value="LucioCrossfadeAddTrackedUnit" />
   </CEffectSet>
   <CEffectSet id="LucioCrossfadeSpeedBoostPeriodicSet">
     <EffectArray value="LucioCrossfadePartyMixModifyQuestToken" />
+    <EffectArray value="LucioCrossfadePartyMixModifyManaQuestToken" />
     <EffectArray value="LucioCrossfadeAddTrackedUnit" />
   </CEffectSet>
   <CEffectApplyBehavior id="LucioCrossfadeBeatMixingApplyDelay">
@@ -2621,6 +2644,14 @@
     <TokenId value="LucioCrossfadePartyMixQuestToken" />
     <Value value="0.125" />
   </CEffectModifyTokenCount>
+  <CEffectModifyTokenCount id="LucioCrossfadePartyMixModifyManaQuestToken" parent="BaseEffectModifyTokenCount">
+    <ValidatorArray value="TargetIsHero" />
+    <ValidatorArray value="IsNotSelf" />
+    <ValidatorArray value="DoesNotHavePregameSuppressionBehavior" />
+    <Chance value="0" />
+    <TokenId value="LucioCrossfadePartyMixManaQuestToken" />
+    <Value value="0.125" />
+  </CEffectModifyTokenCount>
   <CEffectModifyPlayer id="LucioCrossfadePartyMixQuestCompleteModifyPlayer">
     <WhichPlayer Value="Caster" />
     <EffectArray Reference="Effect,LucioCrossfadeHealingBoostSearchArea,AreaArray[0].Radius" Value="1.4" />
@@ -2637,6 +2668,7 @@
     <EffectArray Operation="Set" Reference="Effect,LucioCrossfadePartyMixModifyQuestToken,Chance" Value="0" />
     <EffectArray Reference="Effect,LucioAmpItUpSonicAmplifierBringItTogetherSearchArea,AreaArray[0].Radius" Value="1.4" />
     <EffectArray Reference="Effect,LucioAmpItUpSynaesthesiaAuditivaSearchArea,AreaArray[0].Radius" Value="1.4" />
+    <EffectArray Reference="Effect,LucioBoomboxArmorSearchArea,AreaArray[0].Radius" Value="1.4" />
   </CEffectModifyPlayer>
   <CEffectCreateHealer id="LucioAmpItUpCrossfadeHealingBoostHeal" parent="StormHealingSpell">
     <RechargeVitalRate value="14" />
@@ -3805,7 +3837,7 @@
         <Catalog value="Behavior" />
         <Entry value="LucioHighFiveCooldownBehavior" />
         <Field value="Duration" />
-        <Value value="0.500000" />
+        <Value value="0.300000" />
       </Modifications>
       <Modifications>
         <Type value="FlatModification" />
@@ -3825,7 +3857,7 @@
         <Type value="MultiplyLevelModification" />
         <Entry value="LucioHighFive" />
         <Field value="Cost.Vital[Energy]" />
-        <Value value="0.500000" />
+        <Value value="0.300000" />
       </Modifications>
     </AbilityModificationArray>
   </CTalent>
@@ -3991,7 +4023,7 @@
     <Abil value="LucioCrossfade" />
     <RankArray>
       <BehaviorArray value="LucioCrossfadePartyMixQuestToken" />
-      <BehaviorArray value="LucioCrossfadePartyMixIncrementerToken" />
+      <BehaviorArray value="LucioCrossfadePartyMixManaQuestToken" />
     </RankArray>
     <AbilityModificationArray>
       <Modifications>
@@ -4049,6 +4081,14 @@
         <Catalog value="Actor" />
         <Entry value="LucioCrossfadePulseSpeed" />
         <Field value="Scale" />
+      </Modifications>
+      <Modifications>
+        <Type value="FlatModification" />
+        <Catalog value="Effect" />
+        <Entry value="LucioCrossfadePartyMixModifyManaQuestToken" />
+        <Field value="Chance" />
+        <FieldIsInteger value="1" />
+        <Value value="1.000000" />
       </Modifications>
     </AbilityModificationArray>
     <QuestData StackBehavior="LucioCrossfadePartyMixQuestToken" TargetCount="480" />
@@ -4491,12 +4531,17 @@
   </CUnit>
   <CUnit id="LucioWeaponMissile" parent="MISSILE_INVULNERABLE" />
   <CUnit id="LucioBoombox" parent="StormSummonPassive">
-    <LifeStart value="350" />
-    <LifeMax value="350" />
+    <LifeStart value="600" />
+    <LifeMax value="600" />
     <Radius value="0.25" />
     <InnerRadius value="0.25" />
     <Sight value="7.25" />
+    <BehaviorArray Link="LucioBoomboxArmorControllerBehavior" />
   </CUnit>
+  <CValidatorUnitCompareDetectRange id="LucioBoombox9RangeValidator">
+    <Compare value="LE" />
+    <Value value="9" />
+  </CValidatorUnitCompareDetectRange>
   <CValidatorCombine id="TargetIsAlliedHeroAndDoesNotHaveUntargetableFriendlyAbilities">
     <Type value="And" />
     <CombineArray value="TargetIsAlliedHero" />

@@ -99,7 +99,7 @@
         <HideCount value="1" />
         <TimeUse value="10" />
       </Charge>
-      <Cooldown TimeUse="2" />
+      <Cooldown TimeUse="0.5" />
     </Cost>
     <CmdButtonArray index="Execute" DefaultButtonFace="DemonHunterVault">
       <Flags index="AllowSelfCast" value="0" />
@@ -119,23 +119,42 @@
     <CmdButtonArray index="Execute" DefaultButtonFace="DemonHunterStrafe" Requirements="Ultimate1Unlocked" />
     <PrepEffect value="DismountDecloakCasterSet" />
   </CAbilEffectInstant>
-  <CAccumulatorToken id="DemonHunterGloomSpellArmorAccumulator" parent="BaseAccumulator">
+  <CAccumulatorToken id="DemonHunterCreedOfTheHunterLoanAccumulator" parent="BaseAccumulator">
+    <MaxAccumulation value="0.2" />
+    <ApplicationRule value="Add" />
+    <TokenId value="DemonHunterCreedoftheHunterLoanTokenCounter" />
+    <Scale value="0.05" />
+  </CAccumulatorToken>
+  <CAccumulatorToken id="DemonHunterMultishotFireAtWillQuestAccumulator" parent="BaseAccumulator">
+    <MaxAccumulation value="32000" />
+    <ApplicationRule value="Add" />
+    <TokenId value="DemonHunterMultishotFireAtWillQuestTokenCounter" />
+    <Scale value="4" />
+  </CAccumulatorToken>
+  <CAccumulatorToken id="DemonHunterTemperedByDisciplineAccumulator" parent="BaseAccumulator">
+    <MaxAccumulation value="0.2" />
+    <ApplicationRule value="Add" />
+    <TokenId value="DemonHunterTemperedByDisciplineTokenCounter" />
+    <Scale value="0.02" />
+  </CAccumulatorToken>
+  <CAccumulatorToken id="DemonHunterGloomActiveSpellArmorAccumulator" parent="BaseAccumulator">
     <MaxAccumulation value="30" />
     <ApplicationRule value="Add" />
     <TokenId value="DemonHunterGloomTokenCounter" />
     <Scale value="3" />
   </CAccumulatorToken>
-  <CAccumulatorToken id="DemonHunterMultishotTalentPunishmentTokenAccumulator" parent="BaseAccumulator">
-    <SourceEffect value="MultishotDamage" />
-    <MaxAccumulation value="0.4" />
-    <TokenId value="DemonHunterMultishotTalentPunishmentToken" />
-    <Scale value="0.04" />
+  <CAccumulatorToken id="DemonHunterGloomHPSAccumulator" parent="BaseAccumulator">
+    <MaxAccumulation value="25" />
+    <ApplicationRule value="Add" />
+    <TokenId value="DemonHunterGloomHPSToken" />
+    <Scale value="2.5" />
   </CAccumulatorToken>
   <CAccumulatorToken id="DemonHunterHungeringArrowPuncturingArrowTalentAccumulator" parent="BaseAccumulator">
     <SourceEffect value="HungeringArrowDamage1" />
     <ApplicationRule value="Add" />
     <TokenId value="DemonHunterPuncturingArrowTalentQuestTokenCounter" />
-    <Scale value="5" />
+    <Scale value="6" />
+    <MaxAccumulation value="6000" />
   </CAccumulatorToken>
   <CActorModel id="HatredEnrageModel" parent="ModelAnimationStyleContinuousUNIT">
     <Inherits index="CloakEffect" value="1" />
@@ -832,21 +851,35 @@
   <CActorSound id="PulledSoundHeroDemonHunter" parent="SoundOneShot">
     <Sound value="DemonHunter_VOX_Pulled" />
   </CActorSound>
-  <CBehaviorBuff id="DemonHunterHatredTemperedDisciplineCarry" parent="CarryBehaviorParent">
-    <DisableValidatorArray value="DemonHunterHasGTE10StacksHatred" />
+  <CBehaviorBuff id="DemonHunterFrostShotSlowBehavior" parent="StormSlowParent">
+    <Duration value="2.5" />
     <Modification>
-      <VitalDamageLeechArray index="Life">
-        <KindArray index="Basic" value="0.25" />
-      </VitalDamageLeechArray>
-      <VitalDamageLeechScoreArray Value="SelfHealing" />
+      <UnifiedMoveSpeedFactor value="-0.2" />
     </Modification>
   </CBehaviorBuff>
+  <CBehaviorBuff id="DemonHunterMultishotPunishmentCarryBehavior" parent="CarryBehaviorParent">
+    <DisableValidatorArray value="DemonHunterHasGTE10StacksHatred" />
+    <Period value="0.25" />
+    <PeriodicEffect value="DemonHunterMultishotPunishmentModifyCooldown" />
+  </CBehaviorBuff>
+  <CBehaviorTokenCounter id="DemonHunterCreedoftheHunterLoanTokenCounter" parent="StormGenericToken">
+    <Max value="4" />
+    <Init value="4" />
+  </CBehaviorTokenCounter>
+  <CBehaviorTokenCounter id="DemonHunterMultishotFireAtWillQuestTokenCounter" parent="StormQuestToken">
+    <Face value="DemonHunterMultishotFireAtWillToken" />
+    <Max value="30000" />
+    <InfoTooltipPriority value="10" />
+  </CBehaviorTokenCounter>
+  <CBehaviorTokenCounter id="DemonHunterTemperedByDisciplineTokenCounter" parent="StormGenericToken">
+    <Max value="10" />
+  </CBehaviorTokenCounter>
   <CBehaviorBuff id="DemonHunterHatredSeethingHatredTalentCarry" parent="CarryBehaviorParent">
     <DisableValidatorArray value="DemonHunterHasGTE10StacksHatred" />
     <Modification>
-      <HealDealtAdditiveMultiplier index="Life" value="0.15" />
-      <HealDealtAdditiveMultiplier index="Shields" value="0.15" />
-      <DamageDealtFraction index="Ability" value="0.15" />
+      <DamageDealtFraction index="Splash" value="0.1" />
+      <DamageDealtFraction index="Basic" value="0.1" />
+      <DamageDealtFraction index="Ability" value="0.1" />
     </Modification>
   </CBehaviorBuff>
   <CBehaviorTokenCounter id="DemonHunterGloomTokenCounter" parent="StormGenericToken">
@@ -856,7 +889,7 @@
     <Face value="DemonHunterGloomItem" />
     <Buttons Face="DemonHunterGloomItem" Type="AbilCmd" AbilCmd="DemonHunterGloom,Execute" />
   </CBehaviorAbility>
-  <CBehaviorBuff id="DemonHunterHatredTalentRancorCarry" parent="CarryBehaviorParent">
+  <CBehaviorBuff id="DemonHunterRainOfVengeanceStormOfVengeanceCarryBehavior" parent="CarryBehaviorParent">
     <DisableValidatorArray value="DemonHunterHas10StacksHatred" />
     <Modification>
       <AdditiveAttackSpeedFactor value="0.3" />
@@ -866,19 +899,21 @@
     <Duration value="5" />
     <FinalEffect value="DemonHunterGloomResetSpellArmorToken" />
   </CBehaviorBuff>
-  <CBehaviorBuff id="DemonHunterHatredTemperedByDisciplineTalentBuff">
-    <RemoveValidatorArray value="DemonHunterHas10StacksHatred" />
-    <InitialEffect value="DemonHunterHatredTemperedByDisciplineTalentModifyPlayer" />
-    <FinalEffect value="DemonHunterHatredTemperedByDisciplineTalentResetPlayer" />
-  </CBehaviorBuff>
-  <CBehaviorBuff id="DemonHunterFarflightQuiver" parent="CarryBehaviorParent">
+  <CBehaviorBuff id="DemonHunterFarflightQuiverBaseRangeIncrease" parent="CarryBehaviorParent">
     <Modification>
-      <WeaponRange value="2.2" />
-      <WeaponScanBonus value="2.2" />
+      <WeaponRange value="1.1" />
+      <WeaponScanBonus value="1.1" />
+    </Modification>
+  </CBehaviorBuff>
+  <CBehaviorBuff id="DemonHunterFarflightQuiverMaxRangeIncrease" parent="CarryBehaviorParent">
+    <DisableValidatorArray value="DemonHunterHasGTE10StacksHatred" />
+    <Modification>
+      <WeaponRange value="1.65" />
+      <WeaponScanBonus value="1.65" />
     </Modification>
   </CBehaviorBuff>
   <CBehaviorBuff id="DemonHunterVaultTalentDeathDealerDeathResponse">
-    <Duration value="0.0625" />
+    <Duration value="1.5" />
     <DamageResponse>
       <Chance value="1" />
       <Handled value="DemonHunterVaultDeathDealerTalentDeathProcSet" />
@@ -890,83 +925,89 @@
   </CBehaviorBuff>
   <CBehaviorBuff id="DemonHunterVaultDamageBoost">
     <BehaviorCategories index="BuffAutoattackDPS" value="1" />
-    <Aliases value="RangedDamageCrit" />
     <Duration value="2" />
     <DamageResponse Chance="1" Handled="DemonHunterVaultRemoveDamageBoost" Location="Attacker">
       <Kind index="Ability" value="0" />
       <ProvideCategories index="Proc" value="1" />
     </DamageResponse>
   </CBehaviorBuff>
-  <CBehaviorTokenCounter id="DemonHunterMultishotTalentPunishmentTokenCounter">
+  <CBehaviorTokenCounter id="DemonHunterGloomHPSTokenCounter">
     <BehaviorFlags index="Permanent" value="1" />
     <BehaviorFlags index="EnabledWhileDead" value="1" />
-    <TokenId value="DemonHunterMultishotTalentPunishmentToken" />
-    <Max value="10" />
+    <TokenId value="DemonHunterGloomHPSToken" />
     <IncreaseEvents />
     <AtMaxEvents />
+    <Max value="10" />
   </CBehaviorTokenCounter>
   <CBehaviorBuff id="DemonHunterHatredTalentGloomCarry" parent="StormArmorPermanent">
     <ArmorModification>
       <ArmorSet index="Hero">
         <ArmorMitigationTable index="Ability" value="20">
-          <AccumulatorArray value="DemonHunterGloomSpellArmorAccumulator" />
+          <AccumulatorArray value="DemonHunterGloomActiveSpellArmorAccumulator" />
         </ArmorMitigationTable>
       </ArmorSet>
       <ArmorSet index="Merc">
         <ArmorMitigationTable index="Ability" value="20">
-          <AccumulatorArray value="DemonHunterGloomSpellArmorAccumulator" />
+          <AccumulatorArray value="DemonHunterGloomActiveSpellArmorAccumulator" />
         </ArmorMitigationTable>
       </ArmorSet>
       <ArmorSet index="Monster">
         <ArmorMitigationTable index="Ability" value="20">
-          <AccumulatorArray value="DemonHunterGloomSpellArmorAccumulator" />
+          <AccumulatorArray value="DemonHunterGloomActiveSpellArmorAccumulator" />
         </ArmorMitigationTable>
       </ArmorSet>
       <ArmorSet index="Summon">
         <ArmorMitigationTable index="Ability" value="20">
-          <AccumulatorArray value="DemonHunterGloomSpellArmorAccumulator" />
+          <AccumulatorArray value="DemonHunterGloomActiveSpellArmorAccumulator" />
         </ArmorMitigationTable>
       </ArmorSet>
       <ArmorSet index="Structure">
         <ArmorMitigationTable index="Ability" value="20">
-          <AccumulatorArray value="DemonHunterGloomSpellArmorAccumulator" />
+          <AccumulatorArray value="DemonHunterGloomActiveSpellArmorAccumulator" />
         </ArmorMitigationTable>
       </ArmorSet>
       <ArmorSet index="Minion">
         <ArmorMitigationTable index="Ability" value="20">
-          <AccumulatorArray value="DemonHunterGloomSpellArmorAccumulator" />
+          <AccumulatorArray value="DemonHunterGloomActiveSpellArmorAccumulator" />
         </ArmorMitigationTable>
       </ArmorSet>
     </ArmorModification>
+    <Period value="1" />
+    <PeriodicEffect value="DemonHunterGloomCreateHealer" />
   </CBehaviorBuff>
   <CBehaviorTokenCounter id="DemonHunterCaltropsTokenCounter" parent="StormQuestToken">
     <Face value="DemonHunterVaultTalentCaltropsQuestToken" />
-    <AtMaxEvents index="0" EventId="QuestComplete" Effect="DemonHunterVaultCaltropsTalentCompletionSet" />
-    <Max value="160" />
+    <Max value="35000" />
     <DeltaEvents Delta="5">
       <Event EventId="QuestIncrease" />
+    </DeltaEvents>
+    <DeltaEvents Delta="20" FireForEachDelta="1">
+      <Event EventId="QuestComplete" Effect="DemonHunterVaultCaltropsModifyPlayer" />
     </DeltaEvents>
     <IncreaseEvents index="0" EventId="" />
   </CBehaviorTokenCounter>
   <CBehaviorBuff id="DemonHunterHatredCreedoftheHunterTalentCarry" parent="CarryBehaviorParent">
     <FinalEffect value="DemonHunterHeroWeaponCreedoftheHunterTalentQuestResetPlayer" />
     <Modification>
-      <AdditiveAttackSpeedFactor value="0.1" />
+      <AdditiveAttackSpeedFactor value="0">
+        <AccumulatorArray value="DemonHunterCreedOfTheHunterLoanAccumulator" />
+      </AdditiveAttackSpeedFactor>
     </Modification>
   </CBehaviorBuff>
   <CBehaviorTokenCounter id="DemonHunterCreedoftheHunterTokenCounter" parent="StormQuestToken">
     <Face value="DemonHunterCreedoftheHunterToken" />
     <IncreaseEvents index="0" EventId="" />
-    <AtMaxEvents index="0" EventId="QuestComplete" Effect="DemonHunterHeroWeaponCreedoftheHunterTalentModifyPlayer" />
-    <Max value="100" />
+    <Max value="250" />
     <DeltaEvents Delta="5">
       <Event EventId="QuestIncrease" />
+    </DeltaEvents>
+    <DeltaEvents Delta="50" FireForEachDelta="1">
+      <Event EventId="QuestComplete" Effect="DemonHunterHeroWeaponCreedoftheHunterTalentModifyPlayer" />
     </DeltaEvents>
   </CBehaviorTokenCounter>
   <CBehaviorTokenCounter id="DemonHunterPuncturingArrowTalentQuestTokenCounter" parent="StormQuestToken">
     <Face value="DemonHunterPuncturingArrowQuestToken" />
-    <AtMaxEvents index="0" EventId="QuestComplete" Effect="DemonHunterHungeringArrowPuncturingArrowTalentQuestCompleteModifyPlayer" />
-    <Max value="20" />
+    <Max value="1000" />
   </CBehaviorTokenCounter>
   <CBehaviorBuff id="HungeringArrowInvisibleMarker">
     <Duration value="0.125" />
@@ -983,12 +1024,6 @@
     <PeriodicEffect value="MultishotArsenalGrenadeSearchSet" />
     <Face value="DemonHunterMultishotArsenalTalent" />
   </CBehaviorBuff>
-  <CBehaviorBuff id="FrostShotSlow" parent="StormSlowParent">
-    <Duration value="1.5" />
-    <Modification>
-      <UnifiedMoveSpeedFactor value="-0.25" />
-    </Modification>
-  </CBehaviorBuff>
   <CBehaviorBuff id="NewHatredStack" parent="StormSprint">
     <Face value="DemonHunterNewHatredStackFace" />
     <InfoIcon value="Assets\Textures\storm_ui_icon_valla_hatred.dds" />
@@ -1000,7 +1035,7 @@
     <Modification>
       <UnifiedMoveSpeedFactor value="0.01" />
       <DamageDealtFraction index="Basic" value="0.08" />
-      <VitalDamageLeechScoreArray Value="SelfHealing" />
+      <VitalDamageLeechScoreArray Value="Healing" />
     </Modification>
     <RemoveValidatorArray value="TargetNotDead" />
     <InfoFlags index="AlwaysUseGameText" value="1" />
@@ -1013,16 +1048,6 @@
     <PeriodicEffect value="DemonHunterVaultCaltropsTalentModifyTokenCount" />
     <FinalEffect value="DemonHunterHatredRemoveStackSet" />
   </CBehaviorBuff>
-  <CBehaviorBuff id="HotPursuit">
-    <Alignment value="Positive" />
-    <BehaviorFlags index="Permanent" value="1" />
-    <InfoIcon value="Assets\Textures\storm_ui_temp_icon_sprint.dds" />
-    <DisableValidatorArray value="DemonHunterHasGTE10StacksHatred" />
-    <Modification>
-      <UnifiedMoveSpeedFactor value="0.2" />
-      <VitalRegenArray index="Energy" value="4" />
-    </Modification>
-  </CBehaviorBuff>
   <CBehaviorBuff id="Strafe">
     <Alignment value="Positive" />
     <BehaviorCategories index="Restorable" value="1" />
@@ -1032,7 +1057,7 @@
     <Duration value="4" />
     <Period value="0.125" />
     <InitialEffect value="DemonHunterStrafeWeaponSearch" />
-    <PeriodicEffect value="DemonHunterStrafeWeaponSearch" />
+    <PeriodicEffect value="DemonHunterStrafePeriodicEffectSet" />
     <Modification>
       <StateFlags index="SuppressCloak" value="1" />
       <AbilLinkDisableArray value="DemonHunterHungeringArrow" />
@@ -1081,16 +1106,6 @@
     <Duration value="1" />
     <Modification>
       <UnifiedMoveSpeedFactor value="-0.4" />
-    </Modification>
-  </CBehaviorBuff>
-  <CBehaviorBuff id="StrafeDamageReduction">
-    <InfoIcon value="Assets\Textures\ui_Storm_icon_DemonicGaze.dds" />
-    <BuffFlags index="UpdateDurationWhileDisabled" value="1" />
-    <Duration value="4.5625" />
-    <PeriodCount value="0" />
-    <PeriodicEffect value="ApplyStrafeApplyBehavior" />
-    <Modification>
-      <DamageDealtFraction index="Basic" value="-0.25" />
     </Modification>
   </CBehaviorBuff>
   <CBehaviorBuff id="StrafeBasicAttackMissileScan">
@@ -1142,8 +1157,8 @@
     <Alignment value="Positive" />
     <DisableValidatorArray value="CasterNotStasis" />
     <RemoveValidatorArray value="CasterNotDeadOrSilencedOrStunned" />
+    <RemoveValidatorArray value="DemonHunterHasStrafeBuff" />
     <BuffFlags index="UpdateDurationWhileDisabled" value="1" />
-    <Duration value="3" />
     <Period value="0.25" />
     <InitialEffect value="DemonHunterStrafeDeathSiphonBehaviorSearch" />
     <PeriodicEffect value="DemonHunterStrafeDeathSiphonBehaviorSearch" />
@@ -1169,6 +1184,19 @@
       <BehaviorLinkDisableArray value="DemonHunterCaltrops" />
     </Modification>
   </CBehaviorBuff>
+  <CButton id="DemonHunterVaultAcrobat" parent="StormButtonParent">
+    <Icon value="Assets\Textures\storm_ui_icon_valla_vault.dds" />
+  </CButton>
+  <CButton id="DemonHunterFarflightQuiver" parent="StormButtonParent">
+    <Icon value="Assets\Textures\storm_ui_icon_valla_hatred.dds" />
+  </CButton>
+  <CButton id="DemonHunterMultishotFireAtWillToken" parent="StormButtonParent">
+    <Icon value="Assets\Textures\storm_ui_icon_valla_multishot.dds" />
+    <HotkeyAlias value="DemonHunterMultishotFireAtWill" />
+  </CButton>
+  <CButton id="DemonHunterMultishotFireAtWill" parent="StormButtonParent">
+    <Icon value="Assets\Textures\storm_ui_icon_valla_multishot.dds" />
+  </CButton>
   <CButton id="DemonHunterManticore" parent="StormButtonParent">
     <Icon value="Assets\Textures\storm_ui_icon_talent_autoattack_damage.dds" />
     <HotkeyAlias value="DemonHunterHatredHotPursuitTalent" />
@@ -1179,10 +1207,6 @@
   </CButton>
   <CButton id="DemonHunterGloomItem" parent="StormButtonParent">
     <Icon value="Assets\Textures\storm_ui_icon_valla_hatred_var1.dds" />
-    <HotkeyAlias value="DemonHunterHatredHotPursuitTalent" />
-  </CButton>
-  <CButton id="DemonHunterFarflightQuiver" parent="StormButtonParent">
-    <Icon value="Assets\Textures\storm_ui_icon_talent_autoattack_range.dds" />
     <HotkeyAlias value="DemonHunterHatredHotPursuitTalent" />
   </CButton>
   <CButton id="DemonHunterGloom" parent="StormButtonParent">
@@ -1219,17 +1243,16 @@
     <Icon value="Assets\Textures\storm_ui_icon_valla_vault.dds" />
     <HotkeyAlias value="DemonHunterVaultTumbleTalentSimple" />
   </CButton>
-  <CButton id="DemonHunterMultishotFrostShotTalent" parent="StormButtonParent">
-    <Icon value="Assets\Textures\storm_ui_icon_valla_multishot.dds" />
+  <CButton id="DemonHunterHungeringArrowFrostShotTalent" parent="StormButtonParent">
+    <Icon value="Assets\Textures\storm_ui_icon_valla_siphoningarrow.dds" />
     <HotkeyAlias value="DemonHunterMultishotArsenalTalent" />
   </CButton>
   <CButton id="DemonHunterHungeringArrowSiphoningArrowTalent" parent="StormButtonParent">
-    <Icon value="Assets\Textures\storm_ui_icon_valla_hungeringarrow.dds" />
+    <Icon value="Assets\Textures\storm_ui_icon_valla_siphoningarrow.dds" />
     <HotkeyAlias value="DemonHunterHungeringArrowPuncturingArrowTalent" />
   </CButton>
   <CButton id="DemonHunterHatredPunishmentTalent" parent="StormButtonParent">
     <Icon value="Assets\Textures\storm_ui_icon_valla_multishot.dds" />
-    <HotkeyAlias value="DemonHunterHatredRancorTalent" />
   </CButton>
   <CButton id="DemonHunterStrafeDeathSiphonTalent" parent="StormButtonParent">
     <Icon value="Assets\Textures\storm_ui_icon_valla_strafe.dds" />
@@ -1238,7 +1261,7 @@
     <Icon value="Assets\Textures\storm_ui_icon_valla_rainofvengeance.dds" />
   </CButton>
   <CButton id="DemonHunterVaultRepeatingArrowTalent" parent="StormButtonParent">
-    <Icon value="Assets\Textures\storm_ui_icon_valla_vault_a.dds" />
+    <Icon value="Assets\Textures\storm_ui_icon_valla_repeatingarrow.dds" />
   </CButton>
   <CButton id="DemonHunterDeathDealer" parent="StormButtonParent">
     <Icon value="Assets\Textures\storm_ui_icon_valla_vault.dds" />
@@ -1252,9 +1275,6 @@
   <CButton id="DemonHunterHungeringArrowPuncturingArrowTalent" parent="StormButtonParent">
     <Icon value="Assets\Textures\storm_ui_icon_valla_hungeringarrow.dds" />
   </CButton>
-  <CButton id="DemonHunterVaultCaltropsTalent" parent="StormButtonParent">
-    <Icon value="Assets\Textures\storm_ui_icon_valla_vault.dds" />
-  </CButton>
   <CButton id="DemonHunterMultishotArsenalTalent" parent="StormButtonParent">
     <Icon value="Assets\Textures\storm_ui_icon_valla_multishot.dds" />
   </CButton>
@@ -1264,28 +1284,31 @@
   <CButton id="DemonHunterHatred" parent="StormButtonParentTrait">
     <Icon value="Assets\Textures\storm_ui_icon_valla_hatred.dds" />
     <HotkeyAlias value="DemonHunterHatredRancorTalent" />
-    <TooltipAppender Validator="DemonHunterHasHotPursuit" Face="DemonHunterHatredHotPursuitTalent" />
     <TooltipAppender Validator="DemonHunterHasCreedoftheHunter" Face="DemonHunterCreedoftheHunter" />
-    <TooltipAppender Validator="DemonHunterHasRancor" Face="DemonHunterHatredRancorTalent" />
+    <TooltipAppender Validator="DemonHunterHasHotPursuit" Face="DemonHunterHatredHotPursuitTalent" />
     <TooltipAppender Validator="DemonHunterHasTemperedByDiscipline" Face="DemonHunterHatredTemperedByDisciplineTalent" />
     <TooltipAppender Validator="DemonHunterHasGloom" Face="DemonHunterGloom" />
     <TooltipAppender Validator="DemonHunterHasSeethingHatred" Face="DemonHunterSeethingHatred" />
+    <TooltipAppender Validator="DemonHunterHasFarflightQuiver" Face="DemonHunterFarflightQuiver" />
   </CButton>
   <CButton id="DemonHunterStrafe" parent="StormButtonParent">
     <Icon value="Assets\Textures\storm_ui_icon_valla_strafe.dds" />
     <TooltipAppender Validator="DemonHunterHasDeathSiphon" Face="DemonHunterStrafeDeathSiphonTalent" />
   </CButton>
   <CButton id="DemonHunterHungeringArrow" parent="StormButtonParent">
-    <TooltipAppender Validator="DemonHunterHasCostEffectiveMaterials" Face="DemonHunterHungeringArrowMonsterHunterTalent" />
     <TooltipAppender Validator="DemonHunterHasPuncturingArrow" Face="DemonHunterHungeringArrowPuncturingArrowTalent" />
+    <TooltipAppender Validator="DemonHunterHasCostEffectiveMaterials" Face="DemonHunterHungeringArrowMonsterHunterTalent" />
+    <TooltipAppender Validator="DemonHunterHasFrostShot" Face="DemonHunterHungeringArrowFrostShotTalent" />
     <TooltipAppender Validator="DemonHunterHasSiphoningArrow" Face="DemonHunterHungeringArrowSiphoningArrowTalent" />
     <Icon value="Assets\Textures\storm_ui_icon_valla_hungeringarrow.dds" />
   </CButton>
   <CButton id="DemonHunterMultishot" parent="StormButtonParent">
     <Icon value="Assets\Textures\storm_ui_icon_valla_multishot.dds" />
-    <TooltipAppender Validator="DemonHunterHasPunishment" Face="DemonHunterHatredPunishmentTalent" />
+    <TooltipAppender Validator="DemonHunterHasMultishotFireAtWillTalent" Face="DemonHunterMultishotFireAtWill" />
     <TooltipAppender Validator="DemonHunterHasArsenal" Face="DemonHunterMultishotArsenalTalent" />
-    <TooltipAppender Validator="DemonHunterHasFrostShot" Face="DemonHunterMultishotFrostShotTalent" />
+    <TooltipAppender Validator="DemonHunterHasFrostShot" Face="DemonHunterHungeringArrowFrostShotTalent" />
+    <TooltipAppender Validator="DemonHunterHasSiphoningArrow" Face="DemonHunterHungeringArrowSiphoningArrowTalent" />
+    <TooltipAppender Validator="DemonHunterHasPunishment" Face="DemonHunterHatredPunishmentTalent" />
   </CButton>
   <CButton id="DemonHunterRainOfVengeance" parent="StormButtonParent">
     <Icon value="Assets\Textures\storm_ui_icon_valla_rainofvengeance.dds" />
@@ -1293,9 +1316,9 @@
   </CButton>
   <CButton id="DemonHunterVault" parent="StormButtonParent">
     <Icon value="Assets\Textures\storm_ui_icon_valla_vault.dds" />
-    <TooltipAppender Validator="DemonHunterHasCaltrops" Face="DemonHunterVaultCaltropsTalent" />
     <TooltipAppender Validator="DemonHunterHasRepeatingArrow" Face="DemonHunterVaultRepeatingArrowTalent" />
     <TooltipAppender Validator="DemonHunterHasDeathDealer" Face="DemonHunterDeathDealer" />
+    <TooltipAppender Validator="DemonHunterHasVaultAcrobatTalent" Face="DemonHunterVaultAcrobat" />
     <TooltipCooldownOverrideText value="DemonHunterVaultCooldownOverride" />
   </CButton>
   <CCharacter id="DemonHunter">
@@ -1311,17 +1334,85 @@
     <Age value="20" />
     <Unit value="HeroDemonHunter" />
   </CCharacter>
+  <CEffectModifyBehaviorBuffDuration id="DemonHunterStrafeDeathSiphonAddBuffDuration">
+    <ValidatorArray value="DemonHunterHasDeathSiphon" />
+    <ValidatorArray value="TargetIsHero" />
+    <Chance value="0" />
+    <Behavior value="DemonHunterStrafeDeathSiphonSearchBehavior" />
+    <Value value="0.125" />
+  </CEffectModifyBehaviorBuffDuration>
+  <CEffectApplyBehavior id="DemonHunterFrostShotApplySlowBehavior">
+    <ValidatorArray index="0" value="DemonHunterHasFrostShot" />
+    <Behavior value="DemonHunterFrostShotSlowBehavior" />
+  </CEffectApplyBehavior>
+  <CEffectModifyTokenCount id="DemonHunterCreedoftheHunterRemoveLoanToken" parent="BaseEffectModifyTokenCount">
+    <TokenId value="DemonHunterCreedoftheHunterLoanTokenCounter" />
+    <Value value="-1" />
+  </CEffectModifyTokenCount>
+  <CEffectSet id="DemonHunterHungeringArrowInitialHeroDamageSet">
+    <EffectArray value="DemonHunterHungeringArrowHeroDamage1" />
+    <EffectArray value="DemonHunterHungeringArrowPuncturingArrowCreateManaHealer" />
+  </CEffectSet>
+  <CEffectCreateHealer id="DemonHunterHungeringArrowPuncturingArrowCreateManaHealer" parent="StormManaRestore">
+    <ValidatorArray value="TargetIsHero" />
+    <ValidatorArray value="DemonHunterHasPuncturingArrow" />
+    <ImpactUnit Value="Caster" />
+    <RechargeVitalRate value="40" />
+  </CEffectCreateHealer>
+  <CEffectApplyBehavior id="DemonHunterMultishotFireAtWillAddHatredBehaviorCount">
+    <ValidatorArray index="0" value="DemonHunterHasMultishotFireAtWillTalent" />
+    <ValidatorArray value="TargetIsHero" />
+    <WhichUnit Value="Caster" />
+    <Behavior value="NewHatredStack" />
+    <Count value="2" />
+  </CEffectApplyBehavior>
+  <CEffectModifyPlayer id="DemonHunterVaultCaltropsModifyPlayer">
+    <WhichPlayer Value="Caster" />
+    <EffectArray Reference="Effect,DemonHunterHeroWeaponDamage,AmountArray" Value="1" />
+  </CEffectModifyPlayer>
+  <CEffectCreateHealer id="DemonHunterMultishotArsenalCreateManaHealer" parent="StormManaRestore">
+    <ValidatorArray value="DemonHunterHasArsenal" />
+    <ValidatorArray value="TargetIsHero" />
+    <ImpactUnit Value="Caster" />
+    <RechargeVitalRate value="25" />
+  </CEffectCreateHealer>
+  <CEffectModifyTokenCount id="DemonHunterMultishotFireAtWillAddQuestTokenCount" parent="BaseEffectModifyTokenCount">
+    <ValidatorArray value="DemonHunterHasMultishotFireAtWillTalent" />
+    <ValidatorArray value="TargetIsHero" />
+    <TokenId value="DemonHunterMultishotFireAtWillQuestTokenCounter" />
+  </CEffectModifyTokenCount>
+  <CEffectModifyBehaviorBuffDuration id="DemonHunterStrafeDeathSiphonAddBaseBuffDuration">
+    <ValidatorArray value="DemonHunterHasDeathSiphon" />
+    <ValidatorArray value="TargetIsHero" />
+    <Chance value="0" />
+    <Behavior value="Strafe" />
+    <Value value="0.125" />
+  </CEffectModifyBehaviorBuffDuration>
+  <CEffectSet id="DemonHunterStrafePeriodicEffectSet">
+    <EffectArray value="DemonHunterStrafeWeaponSearch" />
+  </CEffectSet>
+  <CEffectCreateHealer id="DemonHunterGloomCreateHealer" parent="StormSelfOnlyHealingSpell">
+    <ImpactUnit Value="Caster" />
+    <RechargeVitalRate value="0">
+      <AccumulatorArray value="DemonHunterGloomHPSAccumulator" />
+    </RechargeVitalRate>
+  </CEffectCreateHealer>
+  <CEffectCreateHealer id="DemonHunterHungeringArrowSiphoningArrowHungeringArrowCreateHealer" parent="StormSelfOnlyHealingSpellPercent">
+    <ValidatorArray value="TargetIsHero" />
+    <ValidatorArray value="DemonHunterHasSiphoningArrow" />
+    <ImpactUnit Value="Caster" />
+    <RechargeVitalFraction value="0.04" />
+  </CEffectCreateHealer>
+  <CEffectCreateHealer id="DemonHunterHungeringArrowSiphoningArrowMultishotCreateHealer" parent="StormSelfOnlyHealingSpellPercent">
+    <ValidatorArray value="TargetIsHero" />
+    <ValidatorArray value="DemonHunterHasSiphoningArrow" />
+    <ImpactUnit Value="Caster" />
+    <RechargeVitalFraction value="0.02" />
+  </CEffectCreateHealer>
   <CEffectSwitch id="DemonHunterVaultDeathDealerManaRestoreSwitch">
     <CaseArray Validator="DemonHunterHas160StacksofCaltrops" Effect="DemonHunterVaultDeathDealerTalentDeathProcRestore25Mana" />
     <CaseDefault value="DemonHunterVaultDeathDealerTalentDeathProcRestore50Mana" />
   </CEffectSwitch>
-  <CEffectSet id="DemonHunterVaultCaltropsTalentCompletionSet">
-    <EffectArray value="DemonHunterVaultCaltropsTalentModifyPlayer" />
-    <EffectArray value="DemonHunterVaultCaltropsTalentManaCostReductionModifyPlayer" />
-  </CEffectSet>
-  <CEffectModifyPlayer id="DemonHunterVaultCaltropsTalentManaCostReductionModifyPlayer">
-    <EffectArray Operation="Set" Reference="Abil,DemonHunterVault,Cost.Vital[Energy]" Value="25" />
-  </CEffectModifyPlayer>
   <CEffectApplyBehavior id="DemonHunterGloomDurationApplyBuff">
     <WhichUnit Value="Caster" />
     <Behavior value="DemonHunterGloomDurationBuff" />
@@ -1345,17 +1436,23 @@
   <CEffectSet id="DemonHunterHatredDecrementSingleStackSet">
     <ValidatorArray value="CasterHasStacksofNewHatred" />
     <EffectArray value="DemonHunterHatredRemoveSingleStack" />
-    <EffectArray value="DemonHunterMultishotPunishmentTalentDecrementSingleTokenCount" />
     <EffectArray value="DemonHunterGloomIncrementSpellArmorToken" />
+    <EffectArray value="DemonHunterTemperedByDisciplineDecrementSingleTokenCount" />
+    <EffectArray value="DemonHunterGloomHPSDecrementSingleTokenCount" />
   </CEffectSet>
   <CEffectRemoveBehavior id="DemonHunterHatredRemoveDuration">
     <WhichUnit Value="Caster" />
     <BehaviorLink value="NewHatredDurationController" />
     <Count value="1" />
   </CEffectRemoveBehavior>
-  <CEffectModifyTokenCount id="DemonHunterMultishotPunishmentTalentDecrementSingleTokenCount" parent="BaseEffectModifyTokenCount">
-    <ValidatorArray value="DemonHunterHasPunishment" />
-    <TokenId value="DemonHunterMultishotTalentPunishmentToken" />
+  <CEffectModifyTokenCount id="DemonHunterGloomHPSDecrementSingleTokenCount" parent="BaseEffectModifyTokenCount">
+    <ValidatorArray value="DemonHunterHasGloom" />
+    <TokenId value="DemonHunterGloomHPSToken" />
+    <Value value="-1" />
+  </CEffectModifyTokenCount>
+  <CEffectModifyTokenCount id="DemonHunterTemperedByDisciplineDecrementSingleTokenCount" parent="BaseEffectModifyTokenCount">
+    <ValidatorArray value="DemonHunterHasTemperedByDiscipline" />
+    <TokenId value="DemonHunterTemperedByDisciplineTokenCounter" />
     <Value value="-1" />
   </CEffectModifyTokenCount>
   <CEffectRemoveBehavior id="DemonHunterHatredRemoveSingleStack">
@@ -1397,7 +1494,7 @@
     <EffectArray Operation="Set" Reference="Behavior,DemonHunterHatredTalentGloomCarry,DamageResponse.ModifyFraction" Value="0.8" />
   </CEffectModifyPlayer>
   <CEffectSwitch id="DemonHunterHungeringArrowDamageSwitch1">
-    <CaseArray Validator="TargetIsHero" Effect="DemonHunterHungeringArrowHeroDamage1" />
+    <CaseArray Validator="TargetIsHero" Effect="DemonHunterHungeringArrowInitialHeroDamageSet" />
     <CaseDefault value="HungeringArrowDamage1" />
   </CEffectSwitch>
   <CEffectSwitch id="DemonHunterHungeringArrowDamageSwitch2">
@@ -1418,12 +1515,15 @@
   </CEffectSwitch>
   <CEffectDamage id="DemonHunterHungeringArrowHeroDamage3" parent="StormSpell">
     <Amount value="80" />
+    <MultiplicativeModifierArray index="FrostShot" Validator="DemonHunterFrostShotHasTalentAndIsSlowed" Modifier="0.25" Crit="1" />
   </CEffectDamage>
   <CEffectDamage id="DemonHunterHungeringArrowHeroDamage4" parent="StormSpell">
     <Amount value="80" />
+    <MultiplicativeModifierArray index="FrostShot" Validator="DemonHunterFrostShotHasTalentAndIsSlowed" Modifier="0.25" Crit="1" />
   </CEffectDamage>
   <CEffectDamage id="DemonHunterHungeringArrowHeroDamage5" parent="StormSpell">
     <Amount value="80" />
+    <MultiplicativeModifierArray index="FrostShot" Validator="DemonHunterFrostShotHasTalentAndIsSlowed" Modifier="0.25" Crit="1" />
   </CEffectDamage>
   <CEffectSet id="DemonHunterGloomCastSet">
     <ValidatorArray value="DemonHunterCasterDoesNotHaveGloomDuration" />
@@ -1434,9 +1534,18 @@
     <Amount value="140">
       <AccumulatorArray value="DemonHunterHungeringArrowPuncturingArrowTalentAccumulator" />
     </Amount>
+    <MultiplicativeModifierArray index="FrostShot" Validator="DemonHunterFrostShotHasTalentAndIsSlowed" Modifier="0.25" Crit="1" />
   </CEffectDamage>
+  <CEffectModifyUnit id="DemonHunterStormOfVengeanceModifyHeroicCooldown">
+    <ValidatorArray value="CasterNotBlindedAndTargetNotEvading" />
+    <ValidatorArray value="TargetIsHero" />
+    <Chance value="0" />
+    <ImpactUnit Value="Caster" />
+    <Cost Abil="DemonHunterRainOfVengeance,Execute" ChargeTimeUse="-5" />
+  </CEffectModifyUnit>
   <CEffectDamage id="DemonHunterHungeringArrowHeroDamage2" parent="StormSpell">
     <Amount value="80" />
+    <MultiplicativeModifierArray index="FrostShot" Validator="DemonHunterFrostShotHasTalentAndIsSlowed" Modifier="0.25" Crit="1" />
   </CEffectDamage>
   <CEffectModifyUnit id="DemonHunterHeroWeaponManticoreTalentDummyModifyUnit">
     <ValidatorArray value="DemonHunterHasManticore" />
@@ -1450,25 +1559,11 @@
     <Flags index="Crit" value="1" />
     <VitalFractionMax index="Life" value="0.05" />
   </CEffectDamage>
-  <CEffectApplyBehavior id="DemonHunterHatredTemperedByDisciplineTalentApplyBuff">
-    <Behavior value="DemonHunterHatredTemperedByDisciplineTalentBuff" />
-  </CEffectApplyBehavior>
-  <CEffectModifyPlayer id="DemonHunterHatredTemperedByDisciplineTalentModifyPlayer">
-    <EffectArray Reference="Behavior,NewHatredStack,Modification.VitalDamageLeechArray[Life].KindArray[Basic]" Value="0.01" />
-  </CEffectModifyPlayer>
-  <CEffectModifyPlayer id="DemonHunterHatredTemperedByDisciplineTalentResetPlayer">
-    <EffectArray Operation="Subtract" Reference="Behavior,NewHatredStack,Modification.VitalDamageLeechArray[Life].KindArray[Basic]" Value="0.01" />
-  </CEffectModifyPlayer>
-  <CEffectModifyUnit id="DemonHunterRainofVengeanceStormofVengeanceTalentModifyCooldown">
-    <ValidatorArray value="DemonHunterHasStormofVengeance" />
-    <ValidatorArray value="CasterNotBlindedAndTargetNotEvading" />
-    <ImpactUnit Value="Caster" />
-    <Cost Abil="DemonHunterRainOfVengeance,Execute" ChargeTimeUse="-5" />
-  </CEffectModifyUnit>
   <CEffectSet id="DemonHunterNewHatredStack10StackRefreshSet">
     <ValidatorArray value="DemonHunterHas10StacksHatred" />
     <EffectArray value="NewHatredDurationControllerApplyBehavior" />
-    <EffectArray value="DemonHunterMultishotPunishmentTalentIncrementTokenCount" />
+    <EffectArray value="DemonHunterTemperedByDisciplineIncrementTokenCount" />
+    <EffectArray value="DemonHunterGloomHPSIncrementTokenCount" />
   </CEffectSet>
   <CEffectApplyBehavior id="DemonHunterVaultApplyDeathDealerTalentDeathResponse">
     <ValidatorArray index="0" value="DemonHunterHasDeathDealer" />
@@ -1479,11 +1574,6 @@
     <ValidatorArray index="0" value="DemonHunterHasDeathDealer" />
     <BehaviorLink value="DemonHunterVaultTalentDeathDealerDeathResponse" />
   </CEffectRemoveBehavior>
-  <CEffectModifyUnit id="DemonHunterMultishotArsenalTalentModifyCooldown">
-    <ValidatorArray value="TargetIsHero" />
-    <ImpactUnit Value="Caster" />
-    <Cost Abil="DemonHunterMultishot,Execute" CooldownOperation="Add" CooldownTimeUse="-2" />
-  </CEffectModifyUnit>
   <CEffectSet id="DemonHunterVaultDeathDealerTalentDeathProcSet">
     <EffectArray value="DemonHunterVaultDeathDealerTalentDeathProcModifyUnit" />
     <EffectArray value="DemonHunterVaultDeathDealerManaRestoreSwitch" />
@@ -1512,49 +1602,51 @@
   </CEffectRemoveBehavior>
   <CEffectSet id="DemonHunterHatredRemoveStackSet">
     <EffectArray value="NewHatredRemoveStackRemoveBehavior" />
-    <EffectArray value="DemonHunterMultishotPunishmentTalentDecrementTokenCount" />
+    <EffectArray value="DemonHunterTemperedByDisciplineDecrementTokenCount" />
+    <EffectArray value="DemonHunterGloomHPSDecrementTokenCount" />
   </CEffectSet>
-  <CEffectModifyTokenCount id="DemonHunterMultishotPunishmentTalentIncrementTokenCount" parent="BaseEffectModifyTokenCount">
-    <ValidatorArray value="DemonHunterPunishmentIncrementCombine" />
-    <TokenId value="DemonHunterMultishotTalentPunishmentToken" />
+  <CEffectModifyTokenCount id="DemonHunterGloomHPSIncrementTokenCount" parent="BaseEffectModifyTokenCount">
+    <ValidatorArray value="DemonHunterHasGloom" />
+    <TokenId value="DemonHunterGloomHPSToken" />
   </CEffectModifyTokenCount>
-  <CEffectModifyTokenCount id="DemonHunterMultishotPunishmentTalentDecrementTokenCount" parent="BaseEffectModifyTokenCount">
-    <ValidatorArray value="DemonHunterHasPunishment" />
-    <TokenId value="DemonHunterMultishotTalentPunishmentToken" />
+  <CEffectModifyTokenCount id="DemonHunterTemperedByDisciplineIncrementTokenCount" parent="BaseEffectModifyTokenCount">
+    <ValidatorArray value="DemonHunterHasTemperedByDiscipline" />
+    <TokenId value="DemonHunterTemperedByDisciplineTokenCounter" />
+  </CEffectModifyTokenCount>
+  <CEffectModifyTokenCount id="DemonHunterGloomHPSDecrementTokenCount" parent="BaseEffectModifyTokenCount">
+    <ValidatorArray value="DemonHunterHasGloom" />
+    <TokenId value="DemonHunterGloomHPSToken" />
+    <Value value="-10" />
+  </CEffectModifyTokenCount>
+  <CEffectModifyTokenCount id="DemonHunterTemperedByDisciplineDecrementTokenCount" parent="BaseEffectModifyTokenCount">
+    <ValidatorArray value="DemonHunterHasTemperedByDiscipline" />
+    <TokenId value="DemonHunterTemperedByDisciplineTokenCounter" />
     <Value value="-10" />
   </CEffectModifyTokenCount>
   <CEffectModifyPlayer id="DemonHunterHeroWeaponCreedoftheHunterTalentModifyPlayer">
-    <EffectArray Reference="Behavior,NewHatredStack,Modification.DamageDealtFraction[Basic]" Value="0.02" />
+    <EffectArray Reference="Behavior,NewHatredStack,Modification.DamageDealtFraction[Basic]" Value="0.01" />
   </CEffectModifyPlayer>
   <CEffectModifyTokenCount id="DemonHunterHeroWeaponCreedoftheHunterTalentModifyTokenCount" parent="BaseEffectModifyTokenCount">
     <ValidatorArray value="TargetIsHero" />
     <ValidatorArray value="DemonHunterHasCreedoftheHunter" />
-    <ValidatorArray value="DEmonHunterNotAt100StacksofCreedoftheHunter" />
     <ValidatorArray value="CasterNotBlindedAndTargetNotEvading" />
     <TokenId value="DemonHunterCreedoftheHunterTokenCounter" />
   </CEffectModifyTokenCount>
   <CEffectModifyPlayer id="DemonHunterHeroWeaponCreedoftheHunterTalentQuestResetPlayer">
-    <EffectArray Operation="Set" Reference="Behavior,NewHatredStack,Modification.DamageDealtFraction[Basic]" Value="0.06" />
+    <EffectArray Operation="Set" Reference="Behavior,NewHatredStack,Modification.DamageDealtFraction[Basic]" Value="0.08" />
     <EffectArray Operation="Set" Reference="Behavior,NewHatredStack,Modification.UnifiedMoveSpeedFactor" Value="0.01" />
   </CEffectModifyPlayer>
   <CEffectModifyTokenCount id="DemonHunterHungeringArrowPuncturingArrowTalentModifyTokenCount" parent="BaseEffectModifyTokenCount">
     <ValidatorArray value="TargetIsHero" />
     <ValidatorArray value="DemonHunterHasPuncturingArrow" />
-    <ValidatorArray value="DemonHunterDoesNotHave100StacksPuncturingArrow" />
     <EffectCategory index="Quest" value="1" />
     <TokenId value="DemonHunterPuncturingArrowTalentQuestTokenCounter" />
   </CEffectModifyTokenCount>
-  <CEffectModifyPlayer id="DemonHunterHungeringArrowPuncturingArrowTalentQuestCompleteModifyPlayer">
-    <EffectArray Operation="Set" Reference="Effect,HungeringArrowSearch3,Chance" Value="1" />
-    <EffectArray Reference="Effect,HungeringArrowDamage1,AmountArray" Value="75" />
-    <EffectArray Reference="Effect,DemonHunterHungeringArrowHeroDamage1,AmountArray" Value="75" />
-  </CEffectModifyPlayer>
-  <CEffectModifyPlayer id="DemonHunterVaultCaltropsTalentModifyPlayer">
+  <CEffectModifyPlayer id="DemonHunterVaultDeathDealerModifyPlayer">
     <EffectArray Operation="Subtract" Reference="Abil,DemonHunterVault,Cost.Charge.TimeUse" Value="5.000000" />
   </CEffectModifyPlayer>
   <CEffectModifyTokenCount id="DemonHunterVaultCaltropsTalentModifyTokenCount" parent="BaseEffectModifyTokenCount">
     <ValidatorArray value="DemonHunterHasCaltrops" />
-    <ValidatorArray value="DemonHunterDoesNotHave160StacksofCaltrops" />
     <ValidatorArray value="DemonHunterHasGTE10StacksHatred" />
     <WhichUnit Value="Target" />
     <TokenId value="DemonHunterCaltropsTokenCounter" />
@@ -1645,15 +1737,13 @@
   </CEffectRemoveBehavior>
   <CEffectSet id="NewHatredStackSet">
     <EffectArray value="NewHatredDurationControllerApplyBehavior" />
-    <EffectArray value="DemonHunterMultishotPunishmentTalentIncrementTokenCount" />
+    <EffectArray value="DemonHunterTemperedByDisciplineIncrementTokenCount" />
+    <EffectArray value="DemonHunterGloomHPSIncrementTokenCount" />
   </CEffectSet>
-  <CEffectApplyBehavior id="MultishotApplyFrostShotMasterySlow" parent="StormSlowApply">
-    <Chance value="0" />
-    <Behavior value="FrostShotSlow" />
-  </CEffectApplyBehavior>
   <CEffectDamage id="CaltropsDamage" parent="StormSpell">
     <Amount value="60" />
     <Visibility value="Hidden" />
+    <SourceButtonFace value="DemonHunterVaultAcrobat" />
   </CEffectDamage>
   <CEffectCreatePersistent id="DemonHunterStrafeDeathSiphonCreatePersistent">
     <WhichLocation Value="CasterPoint" />
@@ -1702,12 +1792,12 @@
     <AreaArray MaxCount="1" Effect="MultishotArsenalGrenadeImpactSet">
       <Radius value="0.5" />
     </AreaArray>
-    <MaxCount value="1" />
+    <MaxCount value="3" />
   </CEffectEnumArea>
   <CEffectSet id="MultishotArsenalGrenadeImpactSet">
     <ValidatorArray value="noMarkers" />
     <EffectArray value="MultishotArsenalGrenadeDamage" />
-    <EffectArray value="DemonHunterMultishotArsenalTalentModifyCooldown" />
+    <EffectArray value="DemonHunterMultishotArsenalCreateManaHealer" />
     <EffectArray value="StormSuicide" />
   </CEffectSet>
   <CEffectSet id="HungeringArrowLaunchEffectSet">
@@ -1795,6 +1885,7 @@
   <CEffectSet id="HungeringArrowImpactSet5">
     <EffectArray value="DemonHunterHungeringArrowDamageSwitch5" />
     <EffectArray value="HungeringArrowCreatePersistentImpactReveal5" />
+    <EffectArray value="DemonHunterHungeringArrowSiphoningArrowHungeringArrowCreateHealer" />
   </CEffectSet>
   <CEffectLaunchMissile id="HungeringArrowLaunch4">
     <LaunchLocation Effect="HungeringArrowImpactSet4" />
@@ -1806,6 +1897,8 @@
   </CEffectLaunchMissile>
   <CEffectDamage id="HungeringArrowDamage5" parent="StormSpell">
     <Amount value="80" />
+    <MultiplicativeModifierArray index="MonsterHunter" Validator="DemonHunterMonsterHunterPVECombine" Modifier="1.5" Crit="1" />
+    <MultiplicativeModifierArray index="FrostShot" Validator="DemonHunterFrostShotHasTalentAndIsSlowed" Modifier="0.25" Crit="1" />
   </CEffectDamage>
   <CEffectEnumArea id="HungeringArrowSearch4">
     <LaunchLocation Effect="HungeringArrowImpactSet4" />
@@ -1921,14 +2014,7 @@
     <EffectArray value="DemonHunterHungeringArrowDamageSwitch4" />
     <EffectArray value="HungeringArrowSearch4" />
     <EffectArray value="HungeringArrowCreatePersistentImpactReveal4" />
-  </CEffectSet>
-  <CEffectApplyBehavior id="ApplyStrafeDamageDebuff">
-    <WhichUnit Value="Caster" />
-    <Behavior value="StrafeDamageReduction" />
-  </CEffectApplyBehavior>
-  <CEffectSet id="StrafeApplySet">
-    <EffectArray value="ApplyStrafeDamageDebuff" />
-    <EffectArray value="DemonHunterHatredSwitch" />
+    <EffectArray value="DemonHunterHungeringArrowSiphoningArrowHungeringArrowCreateHealer" />
   </CEffectSet>
   <CEffectLaunchMissile id="StrafeBasicAttackTargetedLaunchMissile">
     <ValidatorArray index="0" value="TargetNotDead" />
@@ -1948,6 +2034,7 @@
     <ValidatorArray value="DemonHunterNoStrafeLimiterBuff" />
     <EffectArray value="StrafeBasicAttackTargetedLaunchMissile" />
     <EffectArray value="StrafeApplyLimiterBuff" />
+    <EffectArray value="DemonHunterStrafeDeathSiphonAddBaseBuffDuration" />
   </CEffectSet>
   <CEffectApplyBehavior id="StrafeApplyLimiterBuff">
     <Behavior value="StrafeLimiterBuff" />
@@ -1984,6 +2071,7 @@
     <EffectArray value="HungeringArrowSearch1" />
     <EffectArray value="DemonHunterHungeringArrowImpactSet1Secondary" />
     <EffectArray value="DemonHunterHungeringArrowPuncturingArrowTalentModifyTokenCount" />
+    <EffectArray value="DemonHunterHungeringArrowSiphoningArrowHungeringArrowCreateHealer" />
   </CEffectSet>
   <CEffectApplyBehavior id="HungeringArrowApplyBehaviorInvisibleMarker">
     <Behavior value="HungeringArrowInvisibleMarker" />
@@ -2012,6 +2100,7 @@
     <EffectArray value="DemonHunterHungeringArrowDamageSwitch2" />
     <EffectArray value="HungeringArrowSearch2" />
     <EffectArray value="HungeringArrowCreatePersistentImpactReveal2" />
+    <EffectArray value="DemonHunterHungeringArrowSiphoningArrowHungeringArrowCreateHealer" />
   </CEffectSet>
   <CEffectSet id="HungeringArrowDummyImpact" />
   <CEffectApplyBehavior id="HungeringArrowApplyMissileScan">
@@ -2022,20 +2111,33 @@
     <EffectArray value="DemonHunterHungeringArrowDamageSwitch3" />
     <EffectArray value="HungeringArrowSearch3" />
     <EffectArray value="HungeringArrowCreatePersistentImpactReveal3" />
+    <EffectArray value="DemonHunterHungeringArrowSiphoningArrowHungeringArrowCreateHealer" />
   </CEffectSet>
   <CEffectDamage id="HungeringArrowDamage1" parent="StormSpell">
     <Amount value="140">
       <AccumulatorArray value="DemonHunterHungeringArrowPuncturingArrowTalentAccumulator" />
     </Amount>
+    <MultiplicativeModifierArray index="MonsterHunter" Validator="DemonHunterMonsterHunterPVECombine" Modifier="1.5" Crit="1" />
+    <MultiplicativeModifierArray index="FrostShot" Validator="DemonHunterFrostShotHasTalentAndIsSlowed" Modifier="0.25" Crit="1" />
   </CEffectDamage>
   <CEffectDamage id="HungeringArrowDamage2" parent="StormSpell">
     <Amount value="80" />
+    <MultiplicativeModifierArray index="MonsterHunter" Validator="DemonHunterMonsterHunterPVECombine" Modifier="1.5" Crit="1" />
+    <MultiplicativeModifierArray index="FrostShot" Validator="DemonHunterFrostShotHasTalentAndIsSlowed" Modifier="0.25" Crit="1" />
   </CEffectDamage>
   <CEffectDamage id="HungeringArrowDamage3" parent="StormSpell">
     <Amount value="80" />
+    <MultiplicativeModifierArray index="MonsterHunter" Validator="DemonHunterMonsterHunterPVECombine" Modifier="1.5" Crit="1" />
+    <MultiplicativeModifierArray index="FrostShot" Validator="DemonHunterFrostShotHasTalentAndIsSlowed" Modifier="0.25" Crit="1" />
   </CEffectDamage>
+  <CEffectModifyUnit id="DemonHunterMultishotPunishmentModifyCooldown">
+    <Chance value="0" />
+    <Cost Abil="DemonHunterMultishot,Execute" CooldownOperation="Add" CooldownTimeUse="-0.125" />
+  </CEffectModifyUnit>
   <CEffectDamage id="HungeringArrowDamage4" parent="StormSpell">
     <Amount value="80" />
+    <MultiplicativeModifierArray index="MonsterHunter" Validator="DemonHunterMonsterHunterPVECombine" Modifier="1.5" Crit="1" />
+    <MultiplicativeModifierArray index="FrostShot" Validator="DemonHunterFrostShotHasTalentAndIsSlowed" Modifier="0.25" Crit="1" />
   </CEffectDamage>
   <CEffectRemoveBehavior id="HungeringArrowRemoveMissileScan">
     <WhichUnit Value="Source" />
@@ -2148,13 +2250,16 @@
     <SearchFlags index="OffsetAreaByAngle" value="0" />
   </CEffectEnumArea>
   <CEffectDamage id="MultishotDamage" parent="StormSpell">
-    <MultiplicativeModifierArray index="0" Accumulator="DemonHunterMultishotTalentPunishmentTokenAccumulator" />
-    <AmountArray index="Quest" value="172" />
+    <AmountArray index="Quest" value="165" />
+    <FlatModifierArray index="FireAtWill" Validator="DemonHunterHasMultishotFireAtWillTalent" Accumulator="DemonHunterMultishotFireAtWillQuestAccumulator" />
   </CEffectDamage>
   <CEffectSet id="MultishotImpactSet">
     <EffectArray value="MultishotDamage" />
-    <EffectArray value="MultishotApplyFrostShotMasterySlow" />
     <EffectArray value="ApplyAbilityImpactReveal" />
+    <EffectArray value="DemonHunterHungeringArrowSiphoningArrowMultishotCreateHealer" />
+    <EffectArray value="DemonHunterMultishotFireAtWillAddQuestTokenCount" />
+    <EffectArray value="DemonHunterMultishotFireAtWillAddHatredBehaviorCount" />
+    <EffectArray value="DemonHunterFrostShotApplySlowBehavior" />
     <ValidatorArray value="noMarkers" />
   </CEffectSet>
   <CEffectCreatePersistent id="MultishotPersistent">
@@ -2317,6 +2422,7 @@
   <CEffectDamage id="DemonHunterStrafeDeathSiphonDamage" parent="StormSpell">
     <Amount value="34" />
     <LeechFraction index="Life" value="0.25" />
+    <LeechValidator index="Life" value="DemonHunterHasDeathSiphon" />
   </CEffectDamage>
   <CEffectEnumArea id="DemonHunterStrafeDeathSiphonBehaviorSearch">
     <ValidatorArray value="CasterNotStasis" />
@@ -2349,10 +2455,10 @@
     <EffectArray value="UniversalWeaponImpact" />
     <EffectArray value="DemonHunterVaultApplyDeathDealerTalentDeathResponse" />
     <EffectArray value="DemonHunterHeroWeaponDamage" />
-    <EffectArray value="DemonHunterVaultRemoveDeathDealerTalentDeathResponse" />
     <EffectArray value="DemonHunterNewHatredApplyStackSet" />
     <EffectArray value="DemonHunterHeroWeaponCreedoftheHunterTalentModifyTokenCount" />
-    <EffectArray value="DemonHunterRainofVengeanceStormofVengeanceTalentModifyCooldown" />
+    <EffectArray value="DemonHunterFarflightQuiverModifyCooldown" />
+    <EffectArray value="DemonHunterStormOfVengeanceModifyHeroicCooldown" />
     <EffectArray value="DemonHunterHeroWeaponManticoreTalentDummyModifyUnit" />
   </CEffectSet>
   <CEffectModifyUnit id="DemonHunterVaultMasteryModifyCooldown">
@@ -2366,7 +2472,12 @@
     <EffectArray value="DemonHunterHungeringArrowDestroyInitialPersistantDestroyPersistant" />
   </CEffectSet>
   <CEffectDamage id="DemonHunterHeroWeaponDamage" parent="StormWeapon">
-    <Amount value="75" />
+    <Amount value="70" />
+    <LeechValidator index="Life" value="DemonHunterHasTemperedByDiscipline" />
+    <LeechFraction index="Life" value="0.1">
+      <AccumulatorArray value="DemonHunterTemperedByDisciplineAccumulator" />
+    </LeechFraction>
+    <MultiplicativeModifierArray index="VaultCrit" Validator="DemonHunterVaultDamageBonusCombine" Crit="1" />
   </CEffectDamage>
   <CEffectLaunchMissile id="DemonHunterHeroWeaponLaunchMissile">
     <ValidatorArray index="0" value="TargetNotDead" />
@@ -2396,9 +2507,6 @@
   </CEffectEnumArea>
   <CEffectDamage id="DemonHunterStrafeBasicWeaponDamage" parent="StormSpell">
     <Amount value="60" />
-  </CEffectDamage>
-  <CEffectDamage id="DemonHunterWeaponDamage" parent="StormWeapon">
-    <Amount value="75" />
   </CEffectDamage>
   <CEffectLaunchMissile id="DemonHunterWeaponLaunchMissile">
     <ValidatorArray index="0" value="TargetNotDead" />
@@ -2508,21 +2616,21 @@
     <VariationArray value="DemonHunterGreen" />
     <VariationArray value="DemonHunterPink" />
     <VariationArray value="DemonHunterBaseVar3" />
-    <TalentTreeArray Talent="DemonHunterMasteryMonsterHunterHungeringArrow" Tier="1" Column="1" />
-    <TalentTreeArray Talent="DemonHunterMasteryCaltrops" Tier="1" Column="2" />
-    <TalentTreeArray Talent="DemonHunterCombatStyleHotPursuit" Tier="1" Column="3" />
-    <TalentTreeArray Talent="DemonHunterMasteryPuncturingArrow" Tier="2" Column="1" />
-    <TalentTreeArray Talent="DemonHunterPunishment" Tier="2" Column="2" />
-    <TalentTreeArray Talent="DemonHunterCreedoftheHunter" Tier="2" Column="3" />
-    <TalentTreeArray Talent="DemonHunterMasteryArsenal" Tier="3" Column="1" />
-    <TalentTreeArray Talent="DemonHunterDeathDealer" Tier="3" Column="2" />
-    <TalentTreeArray Talent="DemonHunterMasteryRepeatingArrowVault" Tier="3" Column="3" />
+    <TalentTreeArray Talent="DemonHunterMasteryPuncturingArrow" Tier="1" Column="1" />
+    <TalentTreeArray Talent="DemonHunterMultishotFireAtWill" Tier="1" Column="2" />
+    <TalentTreeArray Talent="DemonHunterCreedoftheHunter" Tier="1" Column="3" />
+    <TalentTreeArray Talent="DemonHunterMasteryArsenal" Tier="2" Column="1" />
+    <TalentTreeArray Talent="DemonHunterDeathDealer" Tier="2" Column="2" />
+    <TalentTreeArray Talent="DemonHunterMasteryRepeatingArrowVault" Tier="2" Column="3" />
+    <TalentTreeArray Talent="DemonHunterMasteryMonsterHunterHungeringArrow" Tier="3" Column="1" />
+    <TalentTreeArray Talent="DemonHunterMasteryFrostShot" Tier="3" Column="2" />
+    <TalentTreeArray Talent="DemonHunterCombatStyleHotPursuit" Tier="3" Column="3" />
     <TalentTreeArray Talent="DemonHunterHeroicAbilityStrafe" Tier="4" Column="1" />
     <TalentTreeArray Talent="DemonHunterHeroicAbilityRainofVengeance" Tier="4" Column="2" />
     <TalentTreeArray Talent="DemonHunterMasterySiphoningArrow" Tier="5" Column="1" />
     <TalentTreeArray Talent="DemonHunterCombatStyleTemperedByDiscipline" Tier="5" Column="2" />
     <TalentTreeArray Talent="DemonHunterGloom" Tier="5" Column="3" />
-    <TalentTreeArray Talent="DemonHunterMasteryFrostShot" Tier="6" Column="1" />
+    <TalentTreeArray Talent="DemonHunterPunishment" Tier="6" Column="1" />
     <TalentTreeArray Talent="DemonHunterSeethingHatred" Tier="6" Column="2" />
     <TalentTreeArray Talent="DemonHunterManticore" Tier="6" Column="3" />
     <TalentTreeArray Talent="DemonHunterMasteryDeathSiphon" Tier="7" Column="1">
@@ -2531,61 +2639,61 @@
     <TalentTreeArray Talent="DemonHunterMasteryStormofVengeance" Tier="7" Column="2">
       <PrerequisiteTalentArray value="DemonHunterHeroicAbilityRainofVengeance" />
     </TalentTreeArray>
-    <TalentTreeArray Talent="DemonHunterCombatStyleRancor" Tier="7" Column="3" />
+    <TalentTreeArray Talent="DemonHunterVaultAcrobat" Tier="7" Column="3" />
     <TalentTreeArray Talent="DemonHunterFarflightQuiver" Tier="7" Column="4" />
     <TalentAIBuildsArray ChanceToPick="16">
-      <TalentsArray value="DemonHunterCombatStyleHotPursuit" />
       <TalentsArray value="DemonHunterCreedoftheHunter" />
-      <TalentsArray value="DemonHunterDeathDealer" />
+      <TalentsArray value="DemonHunterMasteryArsenal" />
+      <TalentsArray value="DemonHunterCombatStyleHotPursuit" />
       <TalentsArray value="DemonHunterHeroicAbilityStrafe" />
-      <TalentsArray value="DemonHunterCombatStyleTemperedByDiscipline" />
-      <TalentsArray value="DemonHunterManticore" />
-      <TalentsArray value="DemonHunterCombatStyleRancor" />
-    </TalentAIBuildsArray>
-    <TalentAIBuildsArray ChanceToPick="16">
-      <TalentsArray value="DemonHunterCombatStyleHotPursuit" />
-      <TalentsArray value="DemonHunterCreedoftheHunter" />
-      <TalentsArray value="DemonHunterDeathDealer" />
-      <TalentsArray value="DemonHunterHeroicAbilityRainofVengeance" />
       <TalentsArray value="DemonHunterCombatStyleTemperedByDiscipline" />
       <TalentsArray value="DemonHunterManticore" />
       <TalentsArray value="DemonHunterFarflightQuiver" />
     </TalentAIBuildsArray>
     <TalentAIBuildsArray ChanceToPick="16">
-      <TalentsArray value="DemonHunterCombatStyleHotPursuit" />
-      <TalentsArray value="DemonHunterMasteryPuncturingArrow" />
+      <TalentsArray value="DemonHunterCreedoftheHunter" />
       <TalentsArray value="DemonHunterMasteryRepeatingArrowVault" />
+      <TalentsArray value="DemonHunterMasteryMonsterHunterHungeringArrow" />
       <TalentsArray value="DemonHunterHeroicAbilityRainofVengeance" />
       <TalentsArray value="DemonHunterMasterySiphoningArrow" />
+      <TalentsArray value="DemonHunterPunishment" />
+      <TalentsArray value="DemonHunterVaultAcrobat" />
+    </TalentAIBuildsArray>
+    <TalentAIBuildsArray ChanceToPick="16">
+      <TalentsArray value="DemonHunterMultishotFireAtWill" />
+      <TalentsArray value="DemonHunterMasteryArsenal" />
       <TalentsArray value="DemonHunterMasteryFrostShot" />
+      <TalentsArray value="DemonHunterHeroicAbilityRainofVengeance" />
+      <TalentsArray value="DemonHunterMasterySiphoningArrow" />
+      <TalentsArray value="DemonHunterPunishment" />
       <TalentsArray value="DemonHunterMasteryStormofVengeance" />
     </TalentAIBuildsArray>
     <TalentAIBuildsArray ChanceToPick="16">
-      <TalentsArray value="DemonHunterMasteryCaltrops" />
-      <TalentsArray value="DemonHunterPunishment" />
-      <TalentsArray value="DemonHunterMasteryArsenal" />
-      <TalentsArray value="DemonHunterHeroicAbilityStrafe" />
-      <TalentsArray value="DemonHunterCombatStyleTemperedByDiscipline" />
-      <TalentsArray value="DemonHunterMasteryFrostShot" />
-      <TalentsArray value="DemonHunterFarflightQuiver" />
-    </TalentAIBuildsArray>
-    <TalentAIBuildsArray AIOnly="1" ChanceToPick="16">
-      <TalentsArray value="DemonHunterMasteryMonsterHunterHungeringArrow" />
       <TalentsArray value="DemonHunterMasteryPuncturingArrow" />
-      <TalentsArray value="DemonHunterMasteryArsenal" />
+      <TalentsArray value="DemonHunterMasteryRepeatingArrowVault" />
+      <TalentsArray value="DemonHunterMasteryMonsterHunterHungeringArrow" />
       <TalentsArray value="DemonHunterHeroicAbilityStrafe" />
-      <TalentsArray value="DemonHunterGloom" />
-      <TalentsArray value="DemonHunterSeethingHatred" />
+      <TalentsArray value="DemonHunterMasterySiphoningArrow" />
+      <TalentsArray value="DemonHunterPunishment" />
       <TalentsArray value="DemonHunterMasteryDeathSiphon" />
     </TalentAIBuildsArray>
     <TalentAIBuildsArray AIOnly="1" ChanceToPick="16">
-      <TalentsArray value="DemonHunterMasteryMonsterHunterHungeringArrow" />
       <TalentsArray value="DemonHunterCreedoftheHunter" />
-      <TalentsArray value="DemonHunterMasteryArsenal" />
+      <TalentsArray value="DemonHunterDeathDealer" />
+      <TalentsArray value="DemonHunterCombatStyleHotPursuit" />
       <TalentsArray value="DemonHunterHeroicAbilityRainofVengeance" />
       <TalentsArray value="DemonHunterCombatStyleTemperedByDiscipline" />
       <TalentsArray value="DemonHunterSeethingHatred" />
-      <TalentsArray value="DemonHunterCombatStyleRancor" />
+      <TalentsArray value="DemonHunterMasteryStormofVengeance" />
+    </TalentAIBuildsArray>
+    <TalentAIBuildsArray AIOnly="1" ChanceToPick="16">
+      <TalentsArray value="DemonHunterMultishotFireAtWill" />
+      <TalentsArray value="DemonHunterMasteryArsenal" />
+      <TalentsArray value="DemonHunterMasteryFrostShot" />
+      <TalentsArray value="DemonHunterHeroicAbilityStrafe" />
+      <TalentsArray value="DemonHunterGloom" />
+      <TalentsArray value="DemonHunterSeethingHatred" />
+      <TalentsArray value="DemonHunterVaultAcrobat" />
     </TalentAIBuildsArray>
     <HeroTierAchievementId value="5216701565553692664" />
     <Gender value="Female" />
@@ -2776,6 +2884,12 @@
     <VOArray index="PingDestroyThing" value="DemonHunter_Ping_DestroyThing" />
     <VOArray index="PingTransport" value="DemonHunter_Ping_Transport" />
     <VOArray index="PingTurnIn" value="DemonHunter_Ping_TurnIn" />
+    <VOArray index="VOPing_AssistMe" value="DemonHunter_VOPing_AssistMe" />
+    <VOArray index="VOPing_Danger" value="DemonHunter_VOPing_Danger" />
+    <VOArray index="VOPing_Defend" value="DemonHunter_VOPing_Defend" />
+    <VOArray index="VOPing_EnemyMissing" value="DemonHunter_VOPing_EnemyMissing" />
+    <VOArray index="VOPing_OnMyWay" value="DemonHunter_VOPing_OnMyWay" />
+    <VOArray index="VOPing_Retreat" value="DemonHunter_VOPing_Retreat" />
     <HeroAbilArray Abil="DemonHunterHungeringArrow" Button="DemonHunterHungeringArrow">
       <Flags index="ShowInHeroSelect" value="1" />
       <Flags index="AffectedByCooldownReduction" value="1" />
@@ -2977,30 +3091,62 @@
     <Arc value="49.9987" />
     <Radius value="8.75" />
   </CShapeArc>
+  <CTalent id="DemonHunterVaultAcrobat">
+    <Face value="DemonHunterVaultAcrobat" />
+    <Abil value="DemonHunterVault" />
+    <AbilityModificationArray>
+      <Modifications>
+        <Type value="FlatModification" />
+        <Entry value="DemonHunterVault" />
+        <Field value="Cost[0].Charge.HideCount" />
+        <FieldIsInteger value="1" />
+        <Value value="-1.000000" />
+      </Modifications>
+      <Modifications>
+        <Type value="FlatModification" />
+        <Entry value="DemonHunterVault" />
+        <Field value="Cost.Charge[0].CountStart" />
+        <Value value="2.000000" />
+      </Modifications>
+      <Modifications>
+        <Type value="FlatModification" />
+        <Entry value="DemonHunterVault" />
+        <Field value="Cost.Charge[0].CountMax" />
+        <Value value="2.000000" />
+      </Modifications>
+      <Modifications>
+        <Type value="FlatModification" />
+        <Catalog value="Effect" />
+        <Entry value="VaultCaltropsMasteryCreatePersistent" />
+        <Field value="Chance" />
+        <Value value="1.000000" />
+      </Modifications>
+    </AbilityModificationArray>
+  </CTalent>
+  <CTalent id="DemonHunterFarflightQuiver">
+    <Face value="DemonHunterFarflightQuiver" />
+    <RankArray>
+      <BehaviorArray value="DemonHunterFarflightQuiverBaseRangeIncrease" />
+      <BehaviorArray value="DemonHunterFarflightQuiverMaxRangeIncrease" />
+    </RankArray>
+    <Trait value="1" />
+  </CTalent>
+  <CTalent id="DemonHunterMultishotFireAtWill">
+    <Face value="DemonHunterMultishotFireAtWill" />
+    <Abil value="DemonHunterMultishot" />
+    <QuestData StackBehavior="DemonHunterMultishotFireAtWillQuestTokenCounter" />
+    <RankArray>
+      <BehaviorArray value="DemonHunterMultishotFireAtWillQuestTokenCounter" />
+    </RankArray>
+  </CTalent>
   <CTalent id="DemonHunterManticore">
     <Face value="DemonHunterManticore" />
   </CTalent>
   <CTalent id="DemonHunterSeethingHatred">
     <Face value="DemonHunterSeethingHatred" />
     <Trait value="1" />
-    <AbilityModificationArray>
-      <Modifications>
-        <Type value="FlatModification" />
-        <Catalog value="Effect" />
-        <Entry value="NewHatredAttackStackApplyBehavior" />
-        <Field value="Count" />
-        <FieldIsInteger value="1" />
-        <Value value="1.000000" />
-      </Modifications>
-    </AbilityModificationArray>
     <RankArray>
       <BehaviorArray value="DemonHunterHatredSeethingHatredTalentCarry" />
-    </RankArray>
-  </CTalent>
-  <CTalent id="DemonHunterFarflightQuiver">
-    <Face value="DemonHunterFarflightQuiver" />
-    <RankArray>
-      <BehaviorArray value="DemonHunterFarflightQuiver" />
     </RankArray>
   </CTalent>
   <CTalent id="DemonHunterCreedoftheHunter">
@@ -3008,8 +3154,9 @@
     <RankArray>
       <BehaviorArray value="DemonHunterCreedoftheHunterTokenCounter" />
       <BehaviorArray value="DemonHunterHatredCreedoftheHunterTalentCarry" />
+      <BehaviorArray value="DemonHunterCreedoftheHunterLoanTokenCounter" />
     </RankArray>
-    <QuestData StackBehavior="DemonHunterCreedoftheHunterTokenCounter" TargetCount="100" />
+    <QuestData StackBehavior="DemonHunterCreedoftheHunterTokenCounter" TargetCount="250" />
     <Trait value="1" />
   </CTalent>
   <CTalent id="DemonHunterGloom">
@@ -3019,36 +3166,44 @@
       <BehaviorArray value="DemonHunterHatredTalentGloomCarry" />
       <BehaviorArray value="DemonHunterGloomItem" />
       <BehaviorArray value="DemonHunterGloomTokenCounter" />
+      <BehaviorArray value="DemonHunterGloomHPSTokenCounter" />
     </RankArray>
     <Active value="1" />
   </CTalent>
   <CTalent id="DemonHunterCombatStyleHotPursuit">
     <Face value="DemonHunterHatredHotPursuitTalent" />
-    <RankArray>
-      <BehaviorArray value="HotPursuit" />
-    </RankArray>
     <Trait value="1" />
     <AbilityModificationArray>
       <Modifications>
         <Type value="FlatModification" />
         <Catalog value="Behavior" />
-        <Entry value="HotPursuit" />
+        <Entry value="NewHatredStack" />
         <Field value="Modification.UnifiedMoveSpeedFactor" />
+        <Value value="0.015000" />
       </Modifications>
     </AbilityModificationArray>
   </CTalent>
   <CTalent id="DemonHunterPunishment">
     <Face value="DemonHunterHatredPunishmentTalent" />
     <Abil value="DemonHunterMultishot" />
-    <RankArray>
-      <BehaviorArray value="DemonHunterMultishotTalentPunishmentTokenCounter" />
-    </RankArray>
     <Trait value="1" />
+    <RankArray>
+      <BehaviorArray value="DemonHunterMultishotPunishmentCarryBehavior" />
+    </RankArray>
+    <AbilityModificationArray>
+      <Modifications>
+        <Type value="FlatModification" />
+        <Catalog value="Effect" />
+        <Entry value="DemonHunterMultishotPunishmentModifyCooldown" />
+        <Field value="Chance" />
+        <Value value="1.000000" />
+      </Modifications>
+    </AbilityModificationArray>
   </CTalent>
   <CTalent id="DemonHunterCombatStyleTemperedByDiscipline">
     <Face value="DemonHunterHatredTemperedByDisciplineTalent" />
     <RankArray>
-      <BehaviorArray value="DemonHunterHatredTemperedDisciplineCarry" />
+      <BehaviorArray value="DemonHunterTemperedByDisciplineTokenCounter" />
     </RankArray>
     <Trait value="1" />
   </CTalent>
@@ -3097,193 +3252,29 @@
   <CTalent id="DemonHunterMasteryMonsterHunterHungeringArrow">
     <Face value="DemonHunterHungeringArrowMonsterHunterTalent" />
     <Abil value="DemonHunterHungeringArrow" />
-    <AbilityModificationArray>
-      <Modifications>
-        <Type value="FlatModification" />
-        <Entry value="DemonHunterHungeringArrow" />
-        <Field value="Cost[0].Vital[Energy]" />
-        <Value value="-40.000000" />
-      </Modifications>
-      <Modifications>
-        <Type value="FlatModification" />
-        <Catalog value="Effect" />
-        <Entry value="HungeringArrowDamage1" />
-        <Field value="AttributeFactor[Minion]" />
-        <Value value="1.500000" />
-      </Modifications>
-      <Modifications>
-        <Type value="FlatModification" />
-        <Catalog value="Effect" />
-        <Entry value="HungeringArrowDamage2" />
-        <Field value="AttributeFactor[Minion]" />
-        <Value value="1.500000" />
-      </Modifications>
-      <Modifications>
-        <Type value="FlatModification" />
-        <Catalog value="Effect" />
-        <Entry value="HungeringArrowDamage3" />
-        <Field value="AttributeFactor[Minion]" />
-        <Value value="1.500000" />
-      </Modifications>
-      <Modifications>
-        <Type value="FlatModification" />
-        <Catalog value="Effect" />
-        <Entry value="HungeringArrowDamage4" />
-        <Field value="AttributeFactor[Minion]" />
-        <Value value="1.500000" />
-      </Modifications>
-      <Modifications>
-        <Type value="FlatModification" />
-        <Catalog value="Effect" />
-        <Entry value="HungeringArrowDamage5" />
-        <Field value="AttributeFactor[Minion]" />
-        <Value value="1.500000" />
-      </Modifications>
-      <Modifications>
-        <Type value="FlatModification" />
-        <Catalog value="Effect" />
-        <Entry value="HungeringArrowDamage1" />
-        <Field value="AttributeFactor[Creep]" />
-        <Value value="1.500000" />
-      </Modifications>
-      <Modifications>
-        <Type value="FlatModification" />
-        <Catalog value="Effect" />
-        <Entry value="HungeringArrowDamage2" />
-        <Field value="AttributeFactor[Creep]" />
-        <Value value="1.500000" />
-      </Modifications>
-      <Modifications>
-        <Type value="FlatModification" />
-        <Catalog value="Effect" />
-        <Entry value="HungeringArrowDamage3" />
-        <Field value="AttributeFactor[Creep]" />
-        <Value value="1.500000" />
-      </Modifications>
-      <Modifications>
-        <Type value="FlatModification" />
-        <Catalog value="Effect" />
-        <Entry value="HungeringArrowDamage4" />
-        <Field value="AttributeFactor[Creep]" />
-        <Value value="1.500000" />
-      </Modifications>
-      <Modifications>
-        <Type value="FlatModification" />
-        <Catalog value="Effect" />
-        <Entry value="HungeringArrowDamage5" />
-        <Field value="AttributeFactor[Creep]" />
-        <Value value="1.500000" />
-      </Modifications>
-      <Modifications>
-        <Type value="FlatModification" />
-        <Catalog value="Effect" />
-        <Entry value="HungeringArrowDamage1" />
-        <Field value="AttributeFactor[MapBoss]" />
-        <Value value="1.500000" />
-      </Modifications>
-      <Modifications>
-        <Type value="FlatModification" />
-        <Catalog value="Effect" />
-        <Entry value="HungeringArrowDamage2" />
-        <Field value="AttributeFactor[MapBoss]" />
-        <Value value="1.500000" />
-      </Modifications>
-      <Modifications>
-        <Type value="FlatModification" />
-        <Catalog value="Effect" />
-        <Entry value="HungeringArrowDamage3" />
-        <Field value="AttributeFactor[MapBoss]" />
-        <Value value="1.500000" />
-      </Modifications>
-      <Modifications>
-        <Type value="FlatModification" />
-        <Catalog value="Effect" />
-        <Entry value="HungeringArrowDamage4" />
-        <Field value="AttributeFactor[MapBoss]" />
-        <Value value="1.500000" />
-      </Modifications>
-      <Modifications>
-        <Type value="FlatModification" />
-        <Catalog value="Effect" />
-        <Entry value="HungeringArrowDamage5" />
-        <Field value="AttributeFactor[MapBoss]" />
-        <Value value="1.500000" />
-      </Modifications>
-      <Modifications>
-        <Type value="FlatModification" />
-        <Catalog value="Effect" />
-        <Entry value="HungeringArrowDamage1" />
-        <Field value="AttributeFactor[MapCreature]" />
-        <Value value="1.500000" />
-      </Modifications>
-      <Modifications>
-        <Type value="FlatModification" />
-        <Catalog value="Effect" />
-        <Entry value="HungeringArrowDamage2" />
-        <Field value="AttributeFactor[MapCreature]" />
-        <Value value="1.500000" />
-      </Modifications>
-      <Modifications>
-        <Type value="FlatModification" />
-        <Catalog value="Effect" />
-        <Entry value="HungeringArrowDamage3" />
-        <Field value="AttributeFactor[MapCreature]" />
-        <Value value="1.500000" />
-      </Modifications>
-      <Modifications>
-        <Type value="FlatModification" />
-        <Catalog value="Effect" />
-        <Entry value="HungeringArrowDamage4" />
-        <Field value="AttributeFactor[MapCreature]" />
-        <Value value="1.500000" />
-      </Modifications>
-      <Modifications>
-        <Type value="FlatModification" />
-        <Catalog value="Effect" />
-        <Entry value="HungeringArrowDamage5" />
-        <Field value="AttributeFactor[MapCreature]" />
-        <Value value="1.500000" />
-      </Modifications>
-      <Modifications>
-        <Type value="FlatModification" />
-        <Catalog value="Effect" />
-        <Entry value="HungeringArrowDamage1" />
-        <Field value="AttributeFactor[Merc]" />
-        <Value value="1.500000" />
-      </Modifications>
-      <Modifications>
-        <Type value="FlatModification" />
-        <Catalog value="Effect" />
-        <Entry value="HungeringArrowDamage2" />
-        <Field value="AttributeFactor[Merc]" />
-        <Value value="1.500000" />
-      </Modifications>
-      <Modifications>
-        <Type value="FlatModification" />
-        <Catalog value="Effect" />
-        <Entry value="HungeringArrowDamage3" />
-        <Field value="AttributeFactor[Merc]" />
-        <Value value="1.500000" />
-      </Modifications>
-      <Modifications>
-        <Type value="FlatModification" />
-        <Catalog value="Effect" />
-        <Entry value="HungeringArrowDamage4" />
-        <Field value="AttributeFactor[Merc]" />
-        <Value value="1.500000" />
-      </Modifications>
-      <Modifications>
-        <Type value="FlatModification" />
-        <Catalog value="Effect" />
-        <Entry value="HungeringArrowDamage5" />
-        <Field value="AttributeFactor[Merc]" />
-        <Value value="1.500000" />
-      </Modifications>
-    </AbilityModificationArray>
   </CTalent>
   <CTalent id="DemonHunterMasteryStormofVengeance">
     <Face value="DemonHunterRainOfVengeanceStormOfVengeanceTalent" />
+    <RankArray>
+      <BehaviorArray value="DemonHunterRainOfVengeanceStormOfVengeanceCarryBehavior" />
+    </RankArray>
     <Abil value="DemonHunterRainOfVengeance" />
+    <AbilityModificationArray>
+      <Modifications>
+        <Type value="FlatModification" />
+        <Catalog value="Behavior" />
+        <Entry value="NewHatredStack" />
+        <Field value="Modification.AdditiveAttackSpeedFactor" />
+        <Value value="0.020000" />
+      </Modifications>
+      <Modifications>
+        <Type value="FlatModification" />
+        <Catalog value="Effect" />
+        <Entry value="DemonHunterStormOfVengeanceModifyHeroicCooldown" />
+        <Field value="Chance" />
+        <Value value="1.000000" />
+      </Modifications>
+    </AbilityModificationArray>
   </CTalent>
   <CTalent id="DemonHunterMasteryTumble">
     <Face value="DemonHunterVaultTumbleTalent" />
@@ -3306,15 +3297,8 @@
     <Abil value="DemonHunterVault" />
   </CTalent>
   <CTalent id="DemonHunterMasteryFrostShot">
-    <Face value="DemonHunterMultishotFrostShotTalent" />
+    <Face value="DemonHunterHungeringArrowFrostShotTalent" />
     <AbilityModificationArray>
-      <Modifications>
-        <Type value="FlatModification" />
-        <Catalog value="Effect" />
-        <Entry value="MultishotApplyFrostShotMasterySlow" />
-        <Field value="Chance" />
-        <Value value="1.000000" />
-      </Modifications>
       <Modifications>
         <Type value="CatalogReplacement" />
         <Catalog value="Sound" />
@@ -3327,84 +3311,11 @@
         <Entry value="DemonHunter_MultiShot_Impact" />
         <StringReplacement value="DemonHunter_FrostShot_Impact" />
       </Modifications>
-      <Modifications>
-        <Type value="FlatModification" />
-        <Catalog value="Effect" />
-        <Entry value="MultishotPersistent" />
-        <Field value="PeriodCount" />
-        <FieldIsInteger value="1" />
-        <Value value="2.000000" />
-      </Modifications>
-      <Modifications>
-        <Type value="MultiplyLevelModification" />
-        <Catalog value="Effect" />
-        <Entry value="MultishotDummyVisualGuide" />
-        <Field value="AreaArray[0].Radius" />
-        <Value value="1.235000" />
-      </Modifications>
-      <Modifications>
-        <Type value="MultiplyLevelModification" />
-        <Catalog value="Actor" />
-        <Entry value="DemonHunterMultishotModel" />
-        <Field value="Scale" />
-        <Value value="1.250000" />
-      </Modifications>
-      <Modifications>
-        <Type value="FlatModification" />
-        <Catalog value="Effect" />
-        <Entry value="MultishotArsenalGrenadePersistent" />
-        <Field value="Chance" />
-        <Value value="-1.000000" />
-      </Modifications>
-      <Modifications>
-        <Type value="FlatModification" />
-        <Catalog value="Effect" />
-        <Entry value="MultishotArsenalGrenadePersistentIncreasedRange" />
-        <Field value="Chance" />
-        <Value value="1.000000" />
-      </Modifications>
     </AbilityModificationArray>
-    <Abil value="DemonHunterMultishot" />
+    <Abil value="DemonHunterHungeringArrow" />
   </CTalent>
   <CTalent id="DemonHunterMasterySiphoningArrow">
     <Face value="DemonHunterHungeringArrowSiphoningArrowTalent" />
-    <AbilityModificationArray TooltipAddendum="Talents/DemonHunter/HungeringArrow/DevouringArrow">
-      <Modifications>
-        <Type value="FlatModification" />
-        <Catalog value="Effect" />
-        <Entry value="DemonHunterHungeringArrowHeroDamage1" />
-        <Field value="LeechFraction[Life]" />
-        <Value value="0.750000" />
-      </Modifications>
-      <Modifications>
-        <Type value="FlatModification" />
-        <Catalog value="Effect" />
-        <Entry value="DemonHunterHungeringArrowHeroDamage2" />
-        <Field value="LeechFraction[Life]" />
-        <Value value="0.750000" />
-      </Modifications>
-      <Modifications>
-        <Type value="FlatModification" />
-        <Catalog value="Effect" />
-        <Entry value="DemonHunterHungeringArrowHeroDamage3" />
-        <Field value="LeechFraction[Life]" />
-        <Value value="0.750000" />
-      </Modifications>
-      <Modifications>
-        <Type value="FlatModification" />
-        <Catalog value="Effect" />
-        <Entry value="DemonHunterHungeringArrowHeroDamage4" />
-        <Field value="LeechFraction[Life]" />
-        <Value value="0.750000" />
-      </Modifications>
-      <Modifications>
-        <Type value="FlatModification" />
-        <Catalog value="Effect" />
-        <Entry value="DemonHunterHungeringArrowHeroDamage5" />
-        <Field value="LeechFraction[Life]" />
-        <Value value="0.750000" />
-      </Modifications>
-    </AbilityModificationArray>
     <Abil value="DemonHunterHungeringArrow" />
   </CTalent>
   <CTalent id="DemonHunterMasteryDeathSiphon">
@@ -3427,15 +3338,30 @@
       <Modifications>
         <Type value="FlatModification" />
         <Catalog value="Effect" />
-        <Entry value="DemonHunterStrafeBasicWeaponDamage" />
-        <Field value="LeechFraction[Life]" />
-        <Value value="0.250000" />
+        <Entry value="DemonHunterStrafeDeathSiphonAddBuffDuration" />
+        <Field value="Chance" />
+        <Value value="1.000000" />
+      </Modifications>
+      <Modifications>
+        <Type value="FlatModification" />
+        <Catalog value="Effect" />
+        <Entry value="DemonHunterStrafeDeathSiphonAddBaseBuffDuration" />
+        <Field value="Chance" />
+        <Value value="1.000000" />
       </Modifications>
     </AbilityModificationArray>
   </CTalent>
   <CTalent id="DemonHunterDeathDealer">
     <Face value="DemonHunterDeathDealer" />
     <Abil value="DemonHunterVault" />
+    <AbilityModificationArray>
+      <Modifications>
+        <Type value="FlatModification" />
+        <Entry value="DemonHunterVault" />
+        <Field value="Cost.Charge.TimeUse" />
+        <Value value="-5.000000" />
+      </Modifications>
+    </AbilityModificationArray>
   </CTalent>
   <CTalent id="DemonHunterMasteryRepeatingArrowVault">
     <Face value="DemonHunterVaultRepeatingArrowTalent" />
@@ -3447,13 +3373,19 @@
         <Field value="Chance" />
         <Value value="1.000000" />
       </Modifications>
+      <Modifications>
+        <Type value="FlatModification" />
+        <Entry value="DemonHunterVault" />
+        <Field value="Cost.Vital[Energy]" />
+        <Value value="-50.000000" />
+      </Modifications>
     </AbilityModificationArray>
     <Abil value="DemonHunterVault" />
   </CTalent>
   <CTalent id="DemonHunterCombatStyleRancor">
     <Face value="DemonHunterHatredRancorTalent" />
     <RankArray>
-      <BehaviorArray value="DemonHunterHatredTalentRancorCarry" />
+      <BehaviorArray value="DemonHunterRainOfVengeanceStormOfVengeanceCarryBehavior" />
     </RankArray>
     <AbilityModificationArray>
       <Modifications>
@@ -3480,7 +3412,7 @@
       <BehaviorArray value="DemonHunterPuncturingArrowTalentQuestTokenCounter" />
     </RankArray>
     <Abil value="DemonHunterHungeringArrow" />
-    <QuestData StackBehavior="DemonHunterPuncturingArrowTalentQuestTokenCounter" TargetCount="100" />
+    <QuestData StackBehavior="DemonHunterPuncturingArrowTalentQuestTokenCounter" TargetCount="1000" />
     <AbilityModificationArray>
       <Modifications>
         <Type value="FlatModification" />
@@ -3499,6 +3431,7 @@
         <Catalog value="Effect" />
         <Entry value="HungeringArrowSearch3" />
         <Field value="Chance" />
+        <Value value="1.000000" />
       </Modifications>
     </AbilityModificationArray>
   </CTalent>
@@ -3543,6 +3476,42 @@
         <Type value="FlatModification" />
         <Catalog value="Effect" />
         <Entry value="MultishotArsenalGrenadeSet" />
+        <Field value="Chance" />
+        <Value value="1.000000" />
+      </Modifications>
+      <Modifications>
+        <Type value="FlatModification" />
+        <Catalog value="Effect" />
+        <Entry value="MultishotPersistent" />
+        <Field value="PeriodCount" />
+        <FieldIsInteger value="1" />
+        <Value value="2.000000" />
+      </Modifications>
+      <Modifications>
+        <Type value="MultiplyLevelModification" />
+        <Catalog value="Effect" />
+        <Entry value="MultishotDummyVisualGuide" />
+        <Field value="AreaArray[0].Radius" />
+        <Value value="1.235000" />
+      </Modifications>
+      <Modifications>
+        <Type value="MultiplyLevelModification" />
+        <Catalog value="Actor" />
+        <Entry value="DemonHunterMultishotModel" />
+        <Field value="Scale" />
+        <Value value="1.250000" />
+      </Modifications>
+      <Modifications>
+        <Type value="FlatModification" />
+        <Catalog value="Effect" />
+        <Entry value="MultishotArsenalGrenadePersistent" />
+        <Field value="Chance" />
+        <Value value="-1.000000" />
+      </Modifications>
+      <Modifications>
+        <Type value="FlatModification" />
+        <Catalog value="Effect" />
+        <Entry value="MultishotArsenalGrenadePersistentIncreasedRange" />
         <Field value="Chance" />
         <Value value="1.000000" />
       </Modifications>
@@ -3616,7 +3585,38 @@
     <HeroPlaystyleFlags index="RoleAutoAttacker" value="1" />
     <HeroPlaystyleFlags index="RoleCaster" value="1" />
     <HeroPlaystyleFlags index="WaveClearer" value="1" />
+    <EffectArray index="Death" value="DemonHunterCreedoftheHunterRemoveLoanToken" />
   </CUnit>
+  <CValidatorCombine id="DemonHunterVaultDamageBonusCombine">
+    <Type value="And" />
+    <CombineArray value="DemonHunterHasVaultDamageBoost" />
+    <CombineArray value="CasterHasStacksofNewHatred" />
+  </CValidatorCombine>
+  <CValidatorCombine id="DemonHunterFrostShotHasTalentAndIsSlowed">
+    <CombineArray value="DemonHunterHasFrostShot" />
+    <CombineArray value="TargetIsSlowed" />
+    <Type value="And" />
+  </CValidatorCombine>
+  <CValidatorCombine id="DemonHunterHasPuncturingArrowAndIsHero">
+    <Type value="And" />
+    <CombineArray value="DemonHunterHasPuncturingArrow" />
+    <CombineArray value="TargetIsHero" />
+  </CValidatorCombine>
+  <CValidatorPlayerTalent id="DemonHunterHasVaultAcrobatTalent">
+    <WhichPlayer Value="Caster" />
+    <Find value="1" />
+    <Value value="DemonHunterVaultAcrobat" />
+  </CValidatorPlayerTalent>
+  <CValidatorCombine id="DemonHunterMonsterHunterPVECombine">
+    <CombineArray value="DemonHunterHasMonsterHunter" />
+    <CombineArray value="TargetisMinionOrMercOrMonster" />
+    <Type value="And" />
+  </CValidatorCombine>
+  <CValidatorPlayerTalent id="DemonHunterHasMultishotFireAtWillTalent">
+    <WhichPlayer Value="Caster" />
+    <Find value="1" />
+    <Value value="DemonHunterMultishotFireAtWill" />
+  </CValidatorPlayerTalent>
   <CValidatorUnitCompareBehaviorCount id="DemonHunterCasterDoesNotHaveGloomDuration">
     <WhichUnit Value="Caster" />
     <Behavior value="DemonHunterGloomDurationBuff" />
@@ -3691,11 +3691,11 @@
     <WhichUnit Value="Source" />
   </CValidatorUnitCompareBehaviorCount>
   <CValidatorUnitCompareBehaviorCount id="DemonHunterDoesNotHaveRancorActive">
-    <Behavior value="DemonHunterHatredTalentRancorCarry" />
+    <Behavior value="DemonHunterRainOfVengeanceStormOfVengeanceCarryBehavior" />
   </CValidatorUnitCompareBehaviorCount>
   <CValidatorUnitCompareBehaviorCount id="DemonHunterHasRancorActive">
     <Value value="1" />
-    <Behavior value="DemonHunterHatredTalentRancorCarry" />
+    <Behavior value="DemonHunterRainOfVengeanceStormOfVengeanceCarryBehavior" />
   </CValidatorUnitCompareBehaviorCount>
   <CValidatorCombine id="DemonHunterHasRancorTalentNotActive">
     <Type value="And" />
@@ -3741,29 +3741,11 @@
     <Value value="1" />
     <Behavior value="DemonHunterVaultDamageBoost" />
   </CValidatorUnitCompareBehaviorCount>
-  <CValidatorUnitCompareBehaviorCount id="DemonHunterHasLTE9StacksPunishment">
-    <WhichUnit Value="Caster" />
-    <Compare value="LE" />
-    <Value value="9" />
-    <Behavior value="DemonHunterMultishotTalentPunishmentTokenCounter" />
-  </CValidatorUnitCompareBehaviorCount>
-  <CValidatorCombine id="DemonHunterPunishmentIncrementCombine">
-    <Type value="And" />
-    <CombineArray value="DemonHunterHasPunishment" />
-    <CombineArray value="DemonHunterHasLTE9StacksPunishment" />
-    <CombineArray value="CasterNotDead" />
-  </CValidatorCombine>
   <CValidatorPlayerTalent id="DemonHunterHasGloom">
     <WhichPlayer Value="Caster" />
     <Find value="1" />
     <Value value="DemonHunterGloom" />
   </CValidatorPlayerTalent>
-  <CValidatorUnitCompareBehaviorCount id="DemonHunterDoesNotHave100StacksPuncturingArrow">
-    <WhichUnit Value="Caster" />
-    <Compare value="NE" />
-    <Value value="100" />
-    <Behavior value="DemonHunterPuncturingArrowTalentQuestTokenCounter" />
-  </CValidatorUnitCompareBehaviorCount>
   <CValidatorUnitCompareBehaviorCount id="DemonHunterDoesNotHave160StacksofCaltrops">
     <WhichUnit Value="Caster" />
     <Compare value="NE" />
@@ -3785,12 +3767,6 @@
     <Compare value="GE" />
     <Value value="10" />
     <Behavior value="NewHatredStack" />
-  </CValidatorUnitCompareBehaviorCount>
-  <CValidatorUnitCompareBehaviorCount id="DEmonHunterNotAt100StacksofCreedoftheHunter">
-    <WhichUnit Value="Caster" />
-    <Compare value="NE" />
-    <Value value="100" />
-    <Behavior value="DemonHunterCreedoftheHunterTokenCounter" />
   </CValidatorUnitCompareBehaviorCount>
   <CValidatorPlayerTalent id="DemonHunterDoesNotHaveDeathSiphon">
     <WhichPlayer Value="Caster" />
@@ -3831,6 +3807,11 @@
     <Find value="1" />
     <Value value="DemonHunterMasteryArsenal" />
   </CValidatorPlayerTalent>
+  <CValidatorPlayerTalent id="DemonHunterHasFarflightQuiver">
+    <WhichPlayer Value="Caster" />
+    <Find value="1" />
+    <Value value="DemonHunterFarflightQuiver" />
+  </CValidatorPlayerTalent>
   <CValidatorPlayerTalent id="DemonHunterHasDeathSiphon">
     <WhichPlayer Value="Caster" />
     <Find value="1" />
@@ -3860,6 +3841,11 @@
     <WhichPlayer Value="Caster" />
     <Find value="1" />
     <Value value="DemonHunterCombatStyleHotPursuit" />
+  </CValidatorPlayerTalent>
+  <CValidatorPlayerTalent id="DemonHunterHasMonsterHunter">
+    <WhichPlayer Value="Caster" />
+    <Find value="1" />
+    <Value value="DemonHunterMasteryMonsterHunterHungeringArrow" />
   </CValidatorPlayerTalent>
   <CValidatorPlayerTalent id="DemonHunterHasCaltrops">
     <WhichPlayer Value="Caster" />

@@ -22,7 +22,7 @@
     <Flags index="ReApproachable" value="0" />
     <Cost>
       <Vital index="Energy" value="25" />
-      <Cooldown TimeUse="4" />
+      <Cooldown TimeUse="5" />
     </Cost>
     <InterruptArray index="Cast" value="1" />
     <InterruptArray index="Channel" value="1" />
@@ -39,7 +39,7 @@
     <PrepEffect value="DismountDecloakCasterSet" />
     <Effect value="AnduinFlashHealDesperatePrayerCastSet" />
     <Cost>
-      <Cooldown TimeUse="30" />
+      <Cooldown TimeUse="40" />
     </Cost>
     <TargetFilters value="Heroic;Neutral,Enemy,Creep,Structure,ImmuneToFriendlyAbilities,Missile,Item,Stasis,Dead" />
     <Range value="$AnduinFlashHealRange" />
@@ -63,7 +63,7 @@
     <Flags index="RequireTargetVision" value="0" />
     <Cost>
       <Vital index="Energy" value="50" />
-      <Cooldown TimeUse="9" />
+      <Cooldown TimeUse="10" />
     </Cost>
     <Range value="500" />
     <Arc value="360" />
@@ -221,12 +221,23 @@
     <TokenId value="AnduinDivineStarHitsToken" />
     <Scale value="0.25" />
   </CAccumulatorToken>
+  <CAccumulatorToken id="AnduinPiercingLightTalentDamageAccumulator" parent="BaseTokenAccumulator">
+    <MaxAccumulation value="0.1" />
+    <ApplicationRule value="Add" />
+    <TokenId value="AnduinChastisePiercingLightTalentTokenCounter" />
+    <Scale value="0.01" />
+  </CAccumulatorToken>
   <CAccumulatorToken id="AnduinPushForwardMoveSpeedAccumulator" parent="BaseTokenAccumulator">
     <MaxAccumulation value="0.2" />
     <ApplicationRule value="Add" />
     <TokenId value="AnduinPushForwardToken" />
     <Scale value="0.025" />
     <UnitSource Value="Target" />
+  </CAccumulatorToken>
+  <CAccumulatorToken id="AnduinPushForwardHealingAccumulator" parent="BaseTokenAccumulator">
+    <MaxAccumulation value="0.4" />
+    <TokenId value="AnduinPushForwardToken" />
+    <Scale value="0.05" />
   </CAccumulatorToken>
   <CActorUnit id="HeroAnduin" parent="StormHeroStandard" unitName="HeroAnduin">
     <On Terms="WeaponStart.*.AttackStart; IsStatus AttackOrder 1" Send="AnimPlay Attack Attack,B" />
@@ -1149,6 +1160,41 @@
     <Driver value="AnduinWeaponLaunchMissile" />
     <Keyword value="Launch" />
   </CAttachMethodPattern>
+  <CBehaviorBuff id="AnduinChastiseCensureTalentStun" parent="StormStun">
+    <Duration value="0.75" />
+  </CBehaviorBuff>
+  <CBehaviorBuff id="AnduinChastisePiercingLightTalentCarry" parent="CarryBehaviorParent">
+    <Modification>
+      <HealDealtAdditiveMultiplier index="Life" value="0">
+        <AccumulatorArray value="AnduinPiercingLightTalentDamageAccumulator" />
+      </HealDealtAdditiveMultiplier>
+      <HealDealtAdditiveMultiplier index="Shields" value="0">
+        <AccumulatorArray value="AnduinPiercingLightTalentDamageAccumulator" />
+      </HealDealtAdditiveMultiplier>
+      <DamageDealtFraction index="Ability" value="0">
+        <AccumulatorArray value="AnduinPiercingLightTalentDamageAccumulator" />
+      </DamageDealtFraction>
+    </Modification>
+  </CBehaviorBuff>
+  <CBehaviorBuff id="AnduinChastisePiercingLightTalentPierceMarker">
+    <Duration value="1.25" />
+  </CBehaviorBuff>
+  <CBehaviorTokenCounter id="AnduinChastisePiercingLightTalentTokenCounter" parent="StormQuestToken">
+    <Face value="AnduinPiercingLightToken" />
+    <Max value="10" />
+  </CBehaviorTokenCounter>
+  <CBehaviorBuff id="AnduinDivineStarMoralCompassTalentCarry" parent="CarryBehaviorParent">
+    <BehaviorFlags index="Permanent" value="0" />
+    <BehaviorFlags index="EnabledWhileDead" value="0" />
+    <Modification>
+      <WeaponRange value="1.1" />
+      <WeaponScanBonus value="1.1" />
+    </Modification>
+  </CBehaviorBuff>
+  <CBehaviorBuff id="AnduinDivineStarPowerWordShieldTalentAllyShield" parent="StormShield">
+    <Duration value="4" />
+    <DamageResponse ModifyLimit="128" />
+  </CBehaviorBuff>
   <CBehaviorBuff id="AnduinFlashHealEvenhandedBlessingsUICasterBehavior">
     <BehaviorFlags index="Permanent" value="1" />
     <DisableValidatorArray value="CasterNotDeadOrStasis" />
@@ -1171,6 +1217,9 @@
     <PeriodicDisplayEffect value="AnduinFlashHealHeal" />
     <Duration value="1" />
   </CBehaviorBuff>
+  <CBehaviorUnitTracker id="AnduinFlashHealRenewTalentUnitTracker">
+    <MaxTrackedUnits value="10" />
+  </CBehaviorUnitTracker>
   <CBehaviorBuff id="AnduinLeapOfFaithEnchantBootsLionsSpeedHoT">
     <Alignment value="Positive" />
     <RemoveValidatorArray value="TargetNotSpecialDeathState" />
@@ -1186,11 +1235,12 @@
   <CBehaviorBuff id="AnduinFlashHealRenewHoT">
     <Alignment value="Positive" />
     <Period value="1" />
-    <PeriodCount value="5" />
     <PeriodicDisplayEffect value="AnduinFlashHealRenewHeal" />
     <Duration value="5" />
     <PeriodicEffect value="AnduinFlashHealRenewHeal" />
     <RemoveValidatorArray value="TargetNotSpecialDeathState" />
+    <InitialEffect value="AnduinFlashHealRenewTalentAddTrackedUnit" />
+    <FinalEffect value="AnduinFlashHealRenewTalentRemoveTrackedUnit" />
   </CBehaviorBuff>
   <CBehaviorBuff id="AnduinHolyWordSalvationLightofStormwindTalentInvulnerable" parent="StormInvulnerable">
     <DisplayDuration index="Self" value="0" />
@@ -1204,6 +1254,18 @@
     <Period value="0.25" />
     <PeriodicEffect value="AnduinHolyWordSalvationHeal" />
   </CBehaviorBuff>
+  <CBehaviorBuff id="AnduinLightBombInnerFireTalentArmor" parent="StormArmor">
+    <Duration value="3" />
+    <ArmorModification>
+      <AllArmorBonus value="50" />
+    </ArmorModification>
+  </CBehaviorBuff>
+  <CBehaviorBuff id="AnduinLightBombInnerFireTalentMoveSpeed" parent="StormSprint">
+    <Duration value="3" />
+    <Modification>
+      <UnifiedMoveSpeedFactor value="0.4" />
+    </Modification>
+  </CBehaviorBuff>
   <CBehaviorBuff id="AnduinPushForwardMoveSpeed" parent="StormSprint">
     <Duration value="6" />
     <Modification>
@@ -1213,7 +1275,6 @@
     </Modification>
     <FinalEffect value="AnduinPushForwardResetTokenCount" />
     <Period value="0.25" />
-    <PeriodicEffect value="AnduinChastisePushForwardCooldownReduction" />
   </CBehaviorBuff>
   <CBehaviorBuff id="AnduinPushForwardAbilityDamageResponse">
     <BehaviorFlags index="Permanent" value="1" />
@@ -1270,8 +1331,8 @@
     <RemoveValidatorArray value="AnduinIsCastingFlashHealDesperatePrayer" />
   </CBehaviorBuff>
   <CBehaviorTokenCounter id="AnduinLightwellToken" parent="StormGenericToken">
-    <Max value="10" />
-    <Init value="10" />
+    <Max value="15" />
+    <Init value="15" />
   </CBehaviorTokenCounter>
   <CBehaviorAbility id="AnduinLightwell">
     <Buttons Face="AnduinLightwell" Type="AbilCmd" AbilCmd="AnduinLightwell,Execute" />
@@ -1483,6 +1544,13 @@
     <MaxStackCount value="5" />
     <MaxStackCountPerCaster value="1" />
   </CBehaviorBuff>
+  <CButton id="AnduinPiercingLightToken" parent="StormButtonParent">
+    <Icon value="Assets\Textures\storm_ui_icon_anduin_chastise_a.dds" />
+    <HotkeyAlias value="AnduinPiercingLight" />
+  </CButton>
+  <CButton id="AnduinSurgeofLight" parent="StormButtonParent">
+    <Icon value="Assets\Textures\storm_ui_icon_anduin_chastise.dds" />
+  </CButton>
   <CButton id="AnduinFlashHeal" parent="StormButtonParent">
     <Icon value="Assets\Textures\storm_ui_icon_anduin_flash_heal.dds" />
     <TooltipAppender Validator="AnduinHasFlashHealRenewTalent" Face="AnduinFlashHealRenew" />
@@ -1492,8 +1560,9 @@
   </CButton>
   <CButton id="AnduinChastise" parent="StormButtonParent">
     <Icon value="Assets\Textures\storm_ui_icon_anduin_chastise.dds" />
-    <TooltipAppender Validator="AnduinHasChastiseHolyReachTalent" Face="AnduinChastiseHolyReach" />
-    <TooltipAppender Validator="AnduinHasPushForwardTalent" Face="AnduinPushForward" />
+    <TooltipAppender Validator="AnduinHasSurgeofLightTalent" Face="AnduinSurgeofLight" />
+    <TooltipAppender Validator="AnduinHasPiercingLightTalent" Face="AnduinPiercingLight" />
+    <TooltipAppender Validator="AnduinHasCensureTalent" Face="AnduinCensure" />
   </CButton>
   <CButton id="AnduinLightwell" parent="StormButtonParent">
     <Icon value="Assets\Textures\storm_ui_icon_anduin_lightwell.dds" />
@@ -1525,7 +1594,7 @@
     <TooltipAppender Validator="AnduinHasDivineStarHolyNovaTalent" Face="AnduinDivineStarHolyNova" />
   </CButton>
   <CButton id="AnduinFlashHealRenew" parent="StormButtonParent">
-    <Icon value="Assets\Textures\storm_ui_icon_anduin_flash_heal_a.dds" />
+    <Icon value="Assets\Textures\storm_ui_icon_anduin_flash_heal.dds" />
   </CButton>
   <CButton id="AnduinBoldStrategy" parent="StormButtonParent">
     <Icon value="Assets\Textures\storm_ui_icon_anduin_bold_strategy.dds" />
@@ -1546,7 +1615,7 @@
     <Icon value="Assets\Textures\storm_ui_icon_anduin_leap_of_faith.dds" />
   </CButton>
   <CButton id="AnduinPushForward" parent="StormButtonParent">
-    <Icon value="Assets\Textures\storm_ui_icon_anduin_chastise.dds" />
+    <Icon value="Assets\Textures\storm_ui_icon_anduin_varians_legacy.dds" />
   </CButton>
   <CButton id="AnduinPushForwardToken" parent="StormButtonParent">
     <Icon value="Assets\Textures\storm_ui_icon_anduin_varians_legacy.dds" />
@@ -1568,13 +1637,19 @@
     <Icon value="Assets\Textures\storm_ui_icon_anduin_flash_heal.dds" />
   </CButton>
   <CButton id="AnduinInnerFire" parent="StormButtonParent">
-    <Icon value="Assets\Textures\storm_ui_icon_anduin_varians_legacy.dds" />
+    <Icon value="Assets\Textures\storm_ui_icon_anduin_light_bomb.dds" />
   </CButton>
   <CButton id="AnduinFlashHealInnerFocus" parent="StormButtonParent">
     <Icon value="Assets\Textures\storm_ui_icon_anduin_inner_focus.dds" />
   </CButton>
   <CButton id="AnduinHolyWordSalvationLightOfStormwind" parent="StormButtonParent">
     <Icon value="Assets\Textures\storm_ui_icon_anduin_holy_word_salvation.dds" />
+  </CButton>
+  <CButton id="AnduinPiercingLight" parent="StormButtonParent">
+    <Icon value="Assets\Textures\storm_ui_icon_anduin_chastise_a.dds" />
+  </CButton>
+  <CButton id="AnduinCensure" parent="StormButtonParent">
+    <Icon value="Assets\Textures\storm_ui_icon_anduin_chastise.dds" />
   </CButton>
   <CButton id="AnduinVariansLegacy" parent="StormButtonParent">
     <Icon value="Assets\Textures\storm_ui_icon_anduin_varians_legacy.dds" />
@@ -1695,6 +1770,69 @@
       <Value index="Colorblind" value="AnduinHolyWordSalvationTimerColor" />
     </ColorEntry>
   </CColorStyle>
+  <CEffectApplyBehavior id="AnduinChastiseCensureTalentApplyStun">
+    <Chance value="0" />
+    <Behavior value="AnduinChastiseCensureTalentStun" />
+  </CEffectApplyBehavior>
+  <CEffectModifyTokenCount id="AnduinChastisePiercingLightTalentAddToken" parent="BaseEffectModifyTokenCount">
+    <ValidatorArray value="AnduinCasterHasChastisePiercingLightTalentPierceMarker" />
+    <TokenId value="AnduinChastisePiercingLightTalentTokenCounter" />
+  </CEffectModifyTokenCount>
+  <CEffectModifyTokenCount id="AnduinChastisePiercingLightTalentAddBonusToken" parent="BaseEffectModifyTokenCount">
+    <ValidatorArray value="AnduinCasterDoesNotHaveChastisePiercingLightTalentPierceMarker" />
+    <CollationId value="AnduinChastisePiercingLightTalentAddToken" />
+    <TokenId value="AnduinChastisePiercingLightTalentTokenCounter" />
+  </CEffectModifyTokenCount>
+  <CEffectApplyBehavior id="AnduinChastisePiercingLightTalentApplyPierceMarker">
+    <Chance value="0" />
+    <WhichUnit Value="Caster" />
+    <Behavior value="AnduinChastisePiercingLightTalentPierceMarker" />
+  </CEffectApplyBehavior>
+  <CEffectRemoveBehavior id="AnduinChastisePiercingLightTalentRemovePierceMarker">
+    <Chance value="0" />
+    <WhichUnit Value="Caster" />
+    <BehaviorLink value="AnduinChastisePiercingLightTalentPierceMarker" />
+    <Count value="1" />
+  </CEffectRemoveBehavior>
+  <CEffectModifyUnit id="AnduinChastiseSurgeofLightTalentModifyUnitCooldown">
+    <Chance value="0" />
+    <ImpactUnit Value="Caster" />
+    <Cost Abil="AnduinChastise,Execute" CooldownOperation="Add" CooldownTimeUse="-0.5" />
+  </CEffectModifyUnit>
+  <CEffectModifyUnit id="AnduinChastiseSurgeofLightTalentModifyUnitEnergy">
+    <ImpactUnit Value="Caster" />
+    <VitalArray index="Energy">
+      <Change value="25" />
+    </VitalArray>
+    <FloaterCreation value="Force" />
+  </CEffectModifyUnit>
+  <CEffectModifyUnit id="AnduinDesperatePrayerLeapofFaithModifyCooldown">
+    <ValidatorArray value="TargetLifeLT50Percent" />
+    <Chance value="0" />
+    <ImpactUnit Value="Caster" />
+    <Cost Abil="AnduinFlashHealDesperatePrayer,Execute" CooldownOperation="Add" CooldownTimeUse="-20" />
+  </CEffectModifyUnit>
+  <CEffectEnumArea id="AnduinDivineStarPowerWordShieldTalentAllySearch">
+    <Chance value="0" />
+    <SearchFilters value="Heroic;Player,Neutral,Enemy,ImmuneToAOE,ImmuneToFriendlyAbilities,Missile,Item,Stasis,Dead,Hidden" />
+    <AreaArray Effect="AnduinDivineStarPowerWordShieldTalentAllySearchImpactSet">
+      <RectangleWidth value="2.25" />
+      <RectangleHeight value="2.25" />
+    </AreaArray>
+    <SearchFlags index="DoActorSearch" value="1" />
+  </CEffectEnumArea>
+  <CEffectSet id="AnduinDivineStarMissileSearchSet">
+    <EffectArray value="AnduinDivineStarMissileScan" />
+    <EffectArray value="AnduinDivineStarPowerWordShieldTalentAllySearch" />
+    <TargetLocationType value="UnitOrPoint" />
+  </CEffectSet>
+  <CEffectSet id="AnduinDivineStarPowerWordShieldTalentAllySearchImpactSet">
+    <ValidatorArray value="noMarkers" />
+    <EffectArray value="AnduinDivineStarPowerWordShieldTalentApplyAllyShield" />
+  </CEffectSet>
+  <CEffectApplyBehavior id="AnduinDivineStarPowerWordShieldTalentApplyAllyShield">
+    <Behavior value="AnduinDivineStarPowerWordShieldTalentAllyShield" />
+  </CEffectApplyBehavior>
   <CEffectModifyUnit id="AnduinDivineStarSpeedOfThePiousCooldownReduction">
     <ValidatorArray value="AnduinHasDivineStarSpeedOfThePiousTalent" />
     <ValidatorArray value="TargetLifeNotFull" />
@@ -1749,7 +1887,7 @@
     <RechargeVitalRate value="270" />
     <SourceButtonFace value="AnduinFlashHeal" />
     <MultiplicativeModifierArray index="InnerFocus" Validator="AnduinCasterHasFlashHealInnerFocusActive" Modifier="0.4" />
-    <MultiplicativeModifierArray index="EvenhandedBlessings" Validator="AnduinFlashHealTargetNotBeingTrackedandHasEvenhandedBlessingsTalent" Modifier="0.2" Crit="1" />
+    <MultiplicativeModifierArray index="EvenhandedBlessings" Validator="AnduinFlashHealTargetNotBeingTrackedandHasEvenhandedBlessingsTalent" Modifier="0.1" Crit="1" />
     <CritValidatorArray index="0" value="AnduinFlashHealCritCheckCombine" />
   </CEffectCreateHealer>
   <CEffectSet id="AnduinFlashHealCancelSet">
@@ -1757,6 +1895,46 @@
     <EffectArray value="AnduinFlashHealHealthPreviewRemoveBehavior" />
   </CEffectSet>
   <CEffectModifyUnit id="AnduinFlashHealCancelDummy" />
+  <CEffectAddTrackedUnit id="AnduinFlashHealRenewTalentAddTrackedUnit">
+    <BehaviorLink value="AnduinFlashHealRenewTalentUnitTracker" />
+    <TrackedUnit Value="Target" />
+  </CEffectAddTrackedUnit>
+  <CEffectEnumTrackedUnits id="AnduinFlashHealRenewTalentEnumerateTrackedUnits">
+    <ValidatorArray value="TargetIsHero" />
+    <ValidatorArray value="CasterNotBlindedAndTargetNotEvading" />
+    <Chance value="0" />
+    <BehaviorLink value="AnduinFlashHealRenewTalentUnitTracker" />
+    <Effect value="AnduinFlashHealRenewTalentRefreshDuration" />
+  </CEffectEnumTrackedUnits>
+  <CEffectModifyBehaviorBuffDuration id="AnduinFlashHealRenewTalentRefreshDuration">
+    <WhichUnit Value="Target" />
+    <Behavior value="AnduinFlashHealRenewHoT" />
+    <Operation value="Set" />
+    <Value value="5" />
+  </CEffectModifyBehaviorBuffDuration>
+  <CEffectRemoveTrackedUnit id="AnduinFlashHealRenewTalentRemoveTrackedUnit">
+    <BehaviorLink value="AnduinFlashHealRenewTalentUnitTracker" />
+    <TrackedUnit Value="Source" />
+  </CEffectRemoveTrackedUnit>
+  <CEffectSet id="AnduinHeroWeaponPursuedByGraceTalentProcSet">
+    <ValidatorArray value="TargetIsHero" />
+    <EffectArray value="AnduinHeroWeaponPursuedbyGraceTalentModifyCooldown" />
+    <EffectArray value="AnduinPursuedByGraceHealSearch" />
+  </CEffectSet>
+  <CEffectModifyUnit id="AnduinHeroWeaponPursuedbyGraceTalentModifyCooldown">
+    <ValidatorArray value="TargetIsHero" />
+    <ImpactUnit Value="Caster" />
+    <Cost Abil="AnduinChastise,Execute" CooldownOperation="Add" CooldownTimeUse="-0.5" />
+    <Chance value="0" />
+  </CEffectModifyUnit>
+  <CEffectCreatePersistent id="AnduinHeroWeaponSurgeofLightTalentDelayPersistent">
+    <ValidatorArray value="AnduinTargetHasChastiseRoot" />
+    <Chance value="0" />
+    <WhichLocation Value="TargetUnit" />
+    <InitialDelay value="0.0625" />
+    <InitialEffect value="AnduinWeaponLaunchMissile" />
+    <FinalEffect value="AnduinChastiseSurgeofLightTalentModifyUnitEnergy" />
+  </CEffectCreatePersistent>
   <CEffectModifyUnit id="AnduinHolyWordSalvationLightOfStormwindCooldownReduction">
     <ImpactUnit Value="Caster" />
     <Cost Abil="AnduinHolyWordSalvation,Execute" CooldownOperation="Add" CooldownTimeUse="-60" />
@@ -1782,7 +1960,6 @@
   </CEffectCreateHealer>
   <CEffectApplyBehavior id="AnduinFlashHealRenewApplyHoT">
     <Behavior value="AnduinFlashHealRenewHoT" />
-    <ValidatorArray value="AnduinCasterHasFlashHealRenewToken" />
     <Chance value="0" />
   </CEffectApplyBehavior>
   <CEffectSwitch id="AnduinHolyWordSalvationBuffSwitch">
@@ -1796,6 +1973,17 @@
     <ValidatorArray value="AnduinHasLeapOfFaithEnchantBootsLionsSpeedTalent" />
     <Behavior value="AnduinLeapOfFaithEnchantBootsLionsSpeedHoT" />
   </CEffectApplyBehavior>
+  <CEffectApplyBehavior id="AnduinLightBombInnerFireTalentApplyMoveSpeed">
+    <Behavior value="AnduinLightBombInnerFireTalentMoveSpeed" />
+  </CEffectApplyBehavior>
+  <CEffectApplyBehavior id="AnduinLightBombInnerFireTalentApplyArmor">
+    <Behavior value="AnduinLightBombInnerFireTalentArmor" />
+  </CEffectApplyBehavior>
+  <CEffectSet id="AnduinLightBombInnerFireTalentApplySet">
+    <Chance value="0" />
+    <EffectArray value="AnduinLightBombInnerFireTalentApplyArmor" />
+    <EffectArray value="AnduinLightBombInnerFireTalentApplyMoveSpeed" />
+  </CEffectSet>
   <CEffectSet id="AnduinPushForwardSet">
     <EffectArray value="AnduinPushForwardMoveSpeedApplyBehavior" />
     <EffectArray value="AnduinPushForwardIncreaseTokenCount" />
@@ -1825,7 +2013,7 @@
   </CEffectAddTrackedUnit>
   <CEffectModifyUnit id="AnduinFlashHealEvenhandedBlessingsCooldownRefund">
     <ImpactUnit Value="Caster" />
-    <Cost Abil="AnduinFlashHeal,Execute" CooldownOperation="Multiply" CooldownTimeUse="0.5" />
+    <Cost Abil="AnduinFlashHeal,Execute" CooldownOperation="Multiply" CooldownTimeUse="0.6" />
   </CEffectModifyUnit>
   <CEffectSet id="AnduinFlashHealEvenhandedBlessingsRefundSet">
     <EffectArray value="AnduinFlashHealEvenhandedBlessingsCooldownRefund" />
@@ -1870,7 +2058,7 @@
     <ValidatorArray value="TargetLifeNotFull" />
   </CEffectSet>
   <CEffectCreateHealer id="AnduinFlashHealDesperatePrayerHeal" parent="StormHealingSpell">
-    <RechargeVitalRate value="540" />
+    <RechargeVitalRate value="360" />
     <SourceButtonFace value="AnduinFlashHealDesperatePrayer" />
   </CEffectCreateHealer>
   <CEffectApplyBehavior id="AnduinFlashHealDesperatePrayerTimerApplyBehavior">
@@ -1896,7 +2084,7 @@
     <SharedFlags index="TravelValidation" value="1" />
     <SharedFlags index="DynamicSearchArea" value="1" />
     <AmmoUnit value="AnduinDivineStarMissile" />
-    <SearchEffect value="AnduinDivineStarMissileScan" />
+    <SearchEffect value="AnduinDivineStarMissileSearchSet" />
     <ImpactEffect value="AnduinDivineStarMissileImpactPersistent" />
     <LaunchEffect value="AnduinDivineStarLaunchSet" />
   </CEffectLaunchMissile>
@@ -1995,7 +2183,7 @@
     <Chance value="0" />
     <ImpactLocation Value="SourcePoint" />
     <SearchFilters value="Heroic;Player,Ally,Neutral,ImmuneToAOE,Missile,Item,Stasis,Dead,Hidden" />
-    <AreaArray MaxCount="2" Effect="AnduinWeaponDivineStarMoralCompassLaunchMissile">
+    <AreaArray Effect="AnduinWeaponDivineStarMoralCompassLaunchMissile">
       <Radius value="3" />
     </AreaArray>
     <TargetSorts>
@@ -2014,9 +2202,11 @@
     <Movers Link="AnduinWeaponMissile" />
   </CEffectLaunchMissile>
   <CEffectSet id="AnduinWeaponDivineStarMoralCompassImpactSet">
+    <EffectArray value="AnduinChastiseSurgeofLightTalentModifyUnitCooldown" />
     <EffectArray value="AnduinWeaponDamage" />
-    <EffectArray value="AnduinFlashHealRenewIncreaseTokenCount" />
+    <EffectArray value="AnduinFlashHealRenewTalentEnumerateTrackedUnits" />
     <EffectArray value="AnduinVariansLegacyDoTApplyBehavior" />
+    <EffectArray value="AnduinHeroWeaponPursuedByGraceTalentProcSet" />
   </CEffectSet>
   <CEffectApplyBehavior id="AnduinDivineStarPowerWordShieldApplyShield">
     <Behavior value="AnduinDivineStarPowerWordShieldShield" />
@@ -2052,7 +2242,7 @@
     </AreaArray>
   </CEffectEnumArea>
   <CEffectDamage id="AnduinDivineStarHolyNovaDamage" parent="StormSpell">
-    <Amount value="105" />
+    <Amount value="150" />
     <SourceButtonFace value="AnduinDivineStarHolyNova" />
   </CEffectDamage>
   <CEffectCreateHealer id="AnduinDivineStarHolyNovaHeal" parent="StormHealingSpell">
@@ -2078,6 +2268,9 @@
     <PeriodicOffsetArray Y="-10.85" />
     <PeriodicPeriodArray value="0" />
     <InitialEffect value="AnduinChastiseAINotifyEffectSet" />
+    <Marker>
+      <MatchFlags index="Id" value="1" />
+    </Marker>
   </CEffectCreatePersistent>
   <CEffectLaunchMissile id="AnduinChastiseDummyLaunchMissile">
     <AmmoUnit value="AnduinChastiseDummyMissile" />
@@ -2145,15 +2338,20 @@
   <CEffectApplyBehavior id="AnduinChastiseDummyMissileDestructionApplyBehavior">
     <WhichUnit Value="Caster" />
     <Behavior value="AnduinChastiseDummyMissileDestructionBehavior" />
+    <ValidatorArray index="0" value="AnduinCasterDoesNotHaveChastisePiercingLightTalentPierceMarker" />
   </CEffectApplyBehavior>
   <CEffectSet id="AnduinChastiseImpactSet">
     <EffectArray value="AnduinChastiseDamage" />
+    <EffectArray value="AnduinChastiseCensureTalentApplyStun" />
     <EffectArray value="AnduinChastiseApplyRoot" />
     <EffectArray value="AnduinChastiseDummyMissileEnumerateTrackedUnit" />
     <EffectArray value="AnduinChastiseApplyImpactReveal" />
     <EffectArray value="AnduinChastiseHolyReachApplyBehavior" />
     <EffectArray value="AnduinChastiseDummyMissileDestructionApplyBehavior" />
+    <EffectArray value="AnduinChastisePiercingLightTalentAddBonusToken" />
     <EffectArray value="AnduinChastiseDestroyPersistent" />
+    <EffectArray value="AnduinChastisePiercingLightTalentRemovePierceMarker" />
+    <ValidatorArray value="noMarkers" />
   </CEffectSet>
   <CEffectEnumTrackedUnits id="AnduinChastiseDummyMissileEnumerateTrackedUnit">
     <BehaviorLink value="AnduinChastiseDummyMissileTrackedUnit" />
@@ -2178,12 +2376,14 @@
     <Effect value="AnduinChastiseSearchPersistent" />
     <Count value="1" />
     <RequireCaster Effect="AnduinChastiseSearchPersistent" Value="Caster" />
+    <ValidatorArray value="AnduinCasterDoesNotHaveChastisePiercingLightTalentPierceMarker" />
   </CEffectDestroyPersistent>
   <CEffectDamage id="AnduinChastiseDamage" parent="StormSpell">
     <Amount value="175" />
     <SourceButtonFace value="AnduinChastise" />
   </CEffectDamage>
   <CEffectSet id="AnduinChastiseAINotifyEffectSet">
+    <EffectArray value="AnduinChastisePiercingLightTalentApplyPierceMarker" />
     <EffectArray value="AnduinChastiseAINotifyEffectPersistentOffsetPersistent1" />
     <EffectArray value="AnduinChastiseAINotifyEffectPersistentOffsetPersistent2" />
   </CEffectSet>
@@ -2301,7 +2501,7 @@
     <ValidatorArray value="noMarkers" />
   </CEffectSet>
   <CEffectCreateHealer id="AnduinLightwellHeal" parent="StormHealingSpell">
-    <RechargeVitalRate value="75" />
+    <RechargeVitalRate value="50" />
     <SourceButtonFace value="AnduinLightwell" />
   </CEffectCreateHealer>
   <CEffectModifyTokenCount id="AnduinLightwellReduceTokenCount" parent="BaseEffectModifyTokenCount">
@@ -2355,6 +2555,7 @@
     <EffectArray value="AnduinLeapOfFaithAbortMissileTarget" />
     <EffectArray value="AnduinLeapOfFaithApplyDaze" />
     <EffectArray value="AnduinLeapOfFaithApplyStun" />
+    <EffectArray value="AnduinDesperatePrayerLeapofFaithModifyCooldown" />
     <EffectArray value="AnduinLeapOfFaithLaunchTargetAsMissile" />
     <EffectArray value="CameraShakeMediumTauntingTotemSet" />
     <EffectArray value="AnduinLeapOfFaithEnchantBootsLionsSpeedHoTApplyBehavior" />
@@ -2435,6 +2636,7 @@
   </CEffectApplyBehavior>
   <CEffectSet id="AnduinLightBombInitialSet">
     <EffectArray value="AnduinLightBombInitialPersistent" />
+    <EffectArray value="AnduinLightBombInnerFireTalentApplySet" />
   </CEffectSet>
   <CEffectCreatePersistent id="AnduinLightBombInitialPersistent">
     <PeriodicPeriodArray value="1.5" />
@@ -2500,7 +2702,8 @@
     </TargetSorts>
   </CEffectEnumArea>
   <CEffectCreateHealer id="AnduinPursuedByGraceHeal" parent="StormHealingSpell">
-    <RechargeVitalRate value="35" />
+    <MultiplicativeModifierArray index="PushForward" Accumulator="AnduinPushForwardHealingAccumulator" />
+    <RechargeVitalRate value="26" />
     <SourceButtonFace value="AnduinPursuedByGrace" />
   </CEffectCreateHealer>
   <CEffectSet id="AnduinBlessedRecoveryDummyCastSet">
@@ -2533,8 +2736,8 @@
   </CEffectApplyBehavior>
   <CEffectSet id="AnduinWeaponAttackSet">
     <EffectArray value="UniversalWeaponLaunchSet" />
-    <EffectArray value="AnduinChastiseHolyReachHealSearch" />
     <EffectArray value="AnduinWeaponLaunchMissile" />
+    <EffectArray value="AnduinHeroWeaponSurgeofLightTalentDelayPersistent" />
   </CEffectSet>
   <CEffectLaunchMissile id="AnduinWeaponLaunchMissile">
     <ValidatorArray index="0" value="TargetNotDead" />
@@ -2544,31 +2747,26 @@
     <AmmoUnit value="AnduinWeaponMissile" />
     <ImpactRange value="0.25" />
     <Movers Link="AnduinWeaponMissile" />
-    <LaunchEffect value="AnduinWeaponChastiseHolyReachTransferBheavior" />
   </CEffectLaunchMissile>
   <CEffectSet id="AnduinWeaponImpactSet">
     <EffectArray value="UniversalWeaponImpact" />
+    <EffectArray value="AnduinChastiseSurgeofLightTalentModifyUnitCooldown" />
     <EffectArray value="AnduinWeaponDamage" />
-    <EffectArray value="AnduinFlashHealRenewIncreaseTokenCount" />
+    <EffectArray value="AnduinFlashHealRenewTalentEnumerateTrackedUnits" />
     <EffectArray value="AnduinVariansLegacyDoTApplyBehavior" />
+    <EffectArray value="AnduinHeroWeaponPursuedByGraceTalentProcSet" />
   </CEffectSet>
   <CEffectDamage id="AnduinWeaponDamage" parent="StormWeapon">
     <Amount value="85" />
     <SourceButtonFace value="Attack" />
     <MultiplicativeModifierArray index="HolyReach" Validator="AnduinSourceHasChastiseHolyReachBehavior" Modifier="0.75" Crit="1" />
-    <MultiplicativeModifierArray index="MoralCompass" Validator="AnduinSourceIsDivineStarMoralCompassMissile" Modifier="-0.3" />
   </CEffectDamage>
   <CHero id="Anduin">
     <AttributeId value="Andu" />
-    <SkinArray value="AnduinSciFi19" />
-    <SkinArray value="AnduinCraft20" />
-    <VariationArray value="AnduinBaseVar1" />
-    <VariationArray value="AnduinBaseVar2" />
-    <VariationArray value="AnduinBaseVar3" />
-    <VariationArray value="AnduinBaseVar4" />
     <Flags index="GoodForModeA" value="1" />
     <Role value="Support" />
     <ExpandedRole value="Healer" />
+    <RolesMultiClass value="Support" />
     <HeroAbilArray Abil="AnduinFlashHeal" Button="AnduinFlashHeal">
       <Flags index="ShowInHeroSelect" value="1" />
       <Flags index="AffectedByCooldownReduction" value="1" />
@@ -2606,36 +2804,41 @@
       <Flags index="AffectedByOverdrive" value="1" />
       <Flags index="Trait" value="1" />
     </HeroAbilArray>
+    <SkinArray value="AnduinSciFi19" />
+    <SkinArray value="AnduinCraft20" />
     <VoiceLineArray value="AnduinBase_VoiceLine01" />
     <VoiceLineArray value="AnduinBase_VoiceLine02" />
     <VoiceLineArray value="AnduinBase_VoiceLine03" />
     <VoiceLineArray value="AnduinBase_VoiceLine04" />
     <VoiceLineArray value="AnduinBase_VoiceLine05" />
     <DefaultMount value="HorseCommon" />
-    <TalentTreeArray Talent="AnduinFlashHealRenew" Tier="1" Column="1" />
-    <TalentTreeArray Talent="AnduinPursuedByGrace" Tier="1" Column="2" />
-    <TalentTreeArray Talent="AnduinBoldStrategy" Tier="1" Column="3" />
+    <TalentTreeArray Talent="AnduinFlashHealEvenhandedBlessings" Tier="1" Column="1" />
+    <TalentTreeArray Talent="AnduinDivineStarPowerWordShield" Tier="1" Column="2" />
+    <TalentTreeArray Talent="AnduinLightwell" Tier="1" Column="3" />
     <TalentTreeArray Talent="AnduinDivineStarMoralCompass" Tier="2" Column="1" />
-    <TalentTreeArray Talent="AnduinChastiseHolyReach" Tier="2" Column="2" />
-    <TalentTreeArray Talent="AnduinInnerFire" Tier="2" Column="3" />
+    <TalentTreeArray Talent="AnduinSurgeofLight" Tier="2" Column="2" />
+    <TalentTreeArray Talent="AnduinPiercingLight" Tier="2" Column="3" />
     <TalentTreeArray Talent="AnduinFlashHealBindingHeal" Tier="3" Column="1" />
-    <TalentTreeArray Talent="AnduinDivineStarPowerWordShield" Tier="3" Column="2" />
-    <TalentTreeArray Talent="AnduinBlessedRecovery" Tier="3" Column="3" />
+    <TalentTreeArray Talent="AnduinBlessedRecovery" Tier="3" Column="2" />
+    <TalentTreeArray Talent="AnduinFlashHealDesperatePrayer" Tier="3" Column="3" />
     <TalentTreeArray Talent="AnduinHolyWordSalvation" Tier="4" Column="1" />
     <TalentTreeArray Talent="AnduinLightBomb" Tier="4" Column="2" />
     <TalentTreeArray Talent="AnduinDivineStarSpeedOfThePious" Tier="5" Column="1" />
     <TalentTreeArray Talent="AnduinPushForward" Tier="5" Column="2" />
     <TalentTreeArray Talent="AnduinLeapOfFaithEnchantBootsLionsSpeed" Tier="5" Column="3" />
-    <TalentTreeArray Talent="AnduinFlashHealEvenhandedBlessings" Tier="6" Column="1" />
+    <TalentTreeArray Talent="AnduinFlashHealRenew" Tier="6" Column="1" />
     <TalentTreeArray Talent="AnduinDivineStarHolyNova" Tier="6" Column="2" />
-    <TalentTreeArray Talent="AnduinFlashHealInnerFocus" Tier="6" Column="3" />
-    <TalentTreeArray Talent="AnduinLightwell" Tier="6" Column="4" />
+    <TalentTreeArray Talent="AnduinLeapOfFaithGlyphOfFaith" Tier="6" Column="3" />
     <TalentTreeArray Talent="AnduinHolyWordSalvationLightOfStormwind" Tier="7" Column="1">
       <PrerequisiteTalentArray value="AnduinHolyWordSalvation" />
     </TalentTreeArray>
-    <TalentTreeArray Talent="AnduinLeapOfFaithGlyphOfFaith" Tier="7" Column="2" />
-    <TalentTreeArray Talent="AnduinVariansLegacy" Tier="7" Column="3" />
-    <TalentTreeArray Talent="AnduinFlashHealDesperatePrayer" Tier="7" Column="4" />
+    <TalentTreeArray Talent="AnduinInnerFire" Tier="7" Column="2">
+      <PrerequisiteTalentArray value="AnduinLightBomb" />
+    </TalentTreeArray>
+    <TalentTreeArray Talent="AnduinCensure" Tier="7" Column="3" />
+    <TalentTreeArray Talent="AnduinVariansLegacy" Tier="7" Column="4" />
+    <Difficulty value="Medium" />
+    <AIComplexityTier value="Mid" />
     <Universe value="Warcraft" />
     <UniverseIcon value="Assets\Textures\ui_glues_store_gameicon_wow.dds" />
     <ProductId value="47240" />
@@ -2753,6 +2956,14 @@
         <AffectedByOverdrive value="1" />
       </Modifications>
       <Modifications>
+        <Catalog value="Behavior" />
+        <Entry value="AnduinDivineStarPowerWordShieldTalentAllyShield" />
+        <Field value="DamageResponse.ModifyLimit" />
+        <Value value="0.040000" />
+        <AffectedByAbilityPower value="1" />
+        <AffectedByOverdrive value="1" />
+      </Modifications>
+      <Modifications>
         <Catalog value="Effect" />
         <Entry value="AnduinDivineStarHolyNovaDamage" />
         <Field value="Amount" />
@@ -2825,76 +3036,77 @@
         <AffectedByOverdrive value="1" />
       </Modifications>
     </LevelScalingArray>
-    <TalentAIBuildsArray ChanceToPick="16">
-      <TalentsArray value="AnduinFlashHealRenew" />
-      <TalentsArray value="AnduinDivineStarMoralCompass" />
-      <TalentsArray value="AnduinFlashHealBindingHeal" />
-      <TalentsArray value="AnduinHolyWordSalvation" />
-      <TalentsArray value="AnduinLeapOfFaithEnchantBootsLionsSpeed" />
-      <TalentsArray value="AnduinFlashHealEvenhandedBlessings" />
-      <TalentsArray value="AnduinLeapOfFaithGlyphOfFaith" />
-    </TalentAIBuildsArray>
-    <TalentAIBuildsArray ChanceToPick="16">
-      <TalentsArray value="AnduinPursuedByGrace" />
-      <TalentsArray value="AnduinInnerFire" />
-      <TalentsArray value="AnduinDivineStarPowerWordShield" />
-      <TalentsArray value="AnduinLightBomb" />
-      <TalentsArray value="AnduinPushForward" />
-      <TalentsArray value="AnduinDivineStarHolyNova" />
-      <TalentsArray value="AnduinVariansLegacy" />
-    </TalentAIBuildsArray>
-    <TalentAIBuildsArray ChanceToPick="16">
-      <TalentsArray value="AnduinBoldStrategy" />
-      <TalentsArray value="AnduinChastiseHolyReach" />
-      <TalentsArray value="AnduinBlessedRecovery" />
-      <TalentsArray value="AnduinHolyWordSalvation" />
-      <TalentsArray value="AnduinDivineStarSpeedOfThePious" />
-      <TalentsArray value="AnduinFlashHealInnerFocus" />
-      <TalentsArray value="AnduinFlashHealDesperatePrayer" />
-    </TalentAIBuildsArray>
-    <TalentAIBuildsArray ChanceToPick="16">
-      <TalentsArray value="AnduinBoldStrategy" />
-      <TalentsArray value="AnduinInnerFire" />
-      <TalentsArray value="AnduinDivineStarPowerWordShield" />
-      <TalentsArray value="AnduinLightBomb" />
-      <TalentsArray value="AnduinLeapOfFaithEnchantBootsLionsSpeed" />
-      <TalentsArray value="AnduinLightwell" />
-      <TalentsArray value="AnduinVariansLegacy" />
-    </TalentAIBuildsArray>
-    <TalentAIBuildsArray AIOnly="1" ChanceToPick="16">
-      <TalentsArray value="AnduinFlashHealRenew" />
-      <TalentsArray value="AnduinChastiseHolyReach" />
-      <TalentsArray value="AnduinFlashHealBindingHeal" />
-      <TalentsArray value="AnduinHolyWordSalvation" />
-      <TalentsArray value="AnduinDivineStarSpeedOfThePious" />
-      <TalentsArray value="AnduinLightwell" />
-      <TalentsArray value="AnduinHolyWordSalvationLightOfStormwind" />
-    </TalentAIBuildsArray>
-    <TalentAIBuildsArray AIOnly="1" ChanceToPick="16">
-      <TalentsArray value="AnduinPursuedByGrace" />
-      <TalentsArray value="AnduinDivineStarMoralCompass" />
-      <TalentsArray value="AnduinBlessedRecovery" />
-      <TalentsArray value="AnduinLightBomb" />
-      <TalentsArray value="AnduinPushForward" />
-      <TalentsArray value="AnduinFlashHealInnerFocus" />
-      <TalentsArray value="AnduinVariansLegacy" />
-    </TalentAIBuildsArray>
+    <VariationArray value="AnduinBaseVar1" />
+    <VariationArray value="AnduinBaseVar2" />
+    <VariationArray value="AnduinBaseVar3" />
+    <VariationArray value="AnduinBaseVar4" />
+    <ReleaseDate Month="4" Day="30" Year="2019" />
     <AllowedMountCategoryArray value="Ride" />
     <AllowedMountCategoryArray value="Ridebeast" />
     <AllowedMountCategoryArray value="Ridebike" />
     <AllowedMountCategoryArray value="Ridesurf" />
-    <HeroSpecificUIArray Location="HeroSpecificStackingBuffsStatus" DescName="Anduin/AnduinStacksFrameContainer" />
-    <Rarity value="Legendary" />
-    <RolesMultiClass value="Support" />
-    <Difficulty value="Medium" />
-    <AIComplexityTier value="Mid" />
-    <ReleaseDate Month="4" Day="30" Year="2019" />
     <Ratings>
       <Damage value="2" />
       <Utility value="7" />
       <Survivability value="4" />
       <Complexity value="4" />
     </Ratings>
+    <TalentAIBuildsArray ChanceToPick="16">
+      <TalentsArray value="AnduinFlashHealEvenhandedBlessings" />
+      <TalentsArray value="AnduinPiercingLight" />
+      <TalentsArray value="AnduinFlashHealBindingHeal" />
+      <TalentsArray value="AnduinHolyWordSalvation" />
+      <TalentsArray value="AnduinLeapOfFaithEnchantBootsLionsSpeed" />
+      <TalentsArray value="AnduinFlashHealRenew" />
+      <TalentsArray value="AnduinHolyWordSalvationLightOfStormwind" />
+    </TalentAIBuildsArray>
+    <TalentAIBuildsArray ChanceToPick="16">
+      <TalentsArray value="AnduinDivineStarPowerWordShield" />
+      <TalentsArray value="AnduinDivineStarMoralCompass" />
+      <TalentsArray value="AnduinBlessedRecovery" />
+      <TalentsArray value="AnduinLightBomb" />
+      <TalentsArray value="AnduinDivineStarSpeedOfThePious" />
+      <TalentsArray value="AnduinDivineStarHolyNova" />
+      <TalentsArray value="AnduinInnerFire" />
+    </TalentAIBuildsArray>
+    <TalentAIBuildsArray ChanceToPick="16">
+      <TalentsArray value="AnduinLightwell" />
+      <TalentsArray value="AnduinSurgeofLight" />
+      <TalentsArray value="AnduinBlessedRecovery" />
+      <TalentsArray value="AnduinHolyWordSalvation" />
+      <TalentsArray value="AnduinDivineStarSpeedOfThePious" />
+      <TalentsArray value="AnduinFlashHealRenew" />
+      <TalentsArray value="AnduinVariansLegacy" />
+    </TalentAIBuildsArray>
+    <TalentAIBuildsArray ChanceToPick="16">
+      <TalentsArray value="AnduinFlashHealEvenhandedBlessings" />
+      <TalentsArray value="AnduinSurgeofLight" />
+      <TalentsArray value="AnduinFlashHealDesperatePrayer" />
+      <TalentsArray value="AnduinLightBomb" />
+      <TalentsArray value="AnduinPushForward" />
+      <TalentsArray value="AnduinLeapOfFaithGlyphOfFaith" />
+      <TalentsArray value="AnduinCensure" />
+    </TalentAIBuildsArray>
+    <TalentAIBuildsArray AIOnly="1" ChanceToPick="16">
+      <TalentsArray value="AnduinDivineStarPowerWordShield" />
+      <TalentsArray value="AnduinPiercingLight" />
+      <TalentsArray value="AnduinBlessedRecovery" />
+      <TalentsArray value="AnduinHolyWordSalvation" />
+      <TalentsArray value="AnduinDivineStarSpeedOfThePious" />
+      <TalentsArray value="AnduinDivineStarHolyNova" />
+      <TalentsArray value="AnduinCensure" />
+    </TalentAIBuildsArray>
+    <TalentAIBuildsArray AIOnly="1" ChanceToPick="16">
+      <TalentsArray value="AnduinLightwell" />
+      <TalentsArray value="AnduinDivineStarMoralCompass" />
+      <TalentsArray value="AnduinFlashHealBindingHeal" />
+      <TalentsArray value="AnduinLightBomb" />
+      <TalentsArray value="AnduinPushForward" />
+      <TalentsArray value="AnduinDivineStarHolyNova" />
+      <TalentsArray value="AnduinInnerFire" />
+    </TalentAIBuildsArray>
+    <HeroSpecificUIArray Location="HeroSpecificStackingBuffsStatus" DescName="Anduin/AnduinStacksFrameContainer" />
+    <Rarity value="Legendary" />
   </CHero>
   <CHeroMastery id="AnduinMasteryRing1" parent="MasteryRingRank1">
     <ProductId value="66932" />
@@ -4283,6 +4495,26 @@
     <OffsetFadeIn Volume="-96.000000" />
     <OffsetFadeIn Time="10" />
   </CSound>
+  <CTalent id="AnduinSurgeofLight">
+    <Face value="AnduinSurgeofLight" />
+    <Abil value="AnduinChastise" />
+    <AbilityModificationArray>
+      <Modifications>
+        <Type value="FlatModification" />
+        <Catalog value="Effect" />
+        <Entry value="AnduinHeroWeaponSurgeofLightTalentDelayPersistent" />
+        <Field value="Chance" />
+        <Value value="1.000000" />
+      </Modifications>
+      <Modifications>
+        <Type value="FlatModification" />
+        <Catalog value="Effect" />
+        <Entry value="AnduinChastiseSurgeofLightTalentModifyUnitCooldown" />
+        <Field value="Chance" />
+        <Value value="1.000000" />
+      </Modifications>
+    </AbilityModificationArray>
+  </CTalent>
   <CTalent id="AnduinHolyWordSalvation">
     <Face value="AnduinHolyWordSalvation" />
     <Abil value="AnduinHolyWordSalvation" />
@@ -4340,16 +4572,9 @@
     <Face value="AnduinFlashHealRenew" />
     <Abil value="AnduinFlashHeal" />
     <RankArray>
-      <BehaviorArray value="AnduinFlashHealRenewToken" />
+      <BehaviorArray value="AnduinFlashHealRenewTalentUnitTracker" />
     </RankArray>
     <AbilityModificationArray>
-      <Modifications>
-        <Type value="FlatModification" />
-        <Catalog value="Effect" />
-        <Entry value="AnduinFlashHealRenewIncreaseTokenCount" />
-        <Field value="Chance" />
-        <Value value="1.000000" />
-      </Modifications>
       <Modifications>
         <Type value="FlatModification" />
         <Catalog value="Effect" />
@@ -4360,7 +4585,7 @@
       <Modifications>
         <Type value="FlatModification" />
         <Catalog value="Effect" />
-        <Entry value="AnduinFlashHealRenewReduceTokenCount" />
+        <Entry value="AnduinFlashHealRenewTalentEnumerateTrackedUnits" />
         <Field value="Chance" />
         <Value value="1.000000" />
       </Modifications>
@@ -4368,10 +4593,16 @@
   </CTalent>
   <CTalent id="AnduinPursuedByGrace">
     <Face value="AnduinPursuedByGrace" />
-    <RankArray>
-      <BehaviorArray value="AnduinPursuedByGraceAbilityDamageResponse" />
-      <BehaviorArray value="AnduinPursuedByGracePhysicalDamageResponse" />
-    </RankArray>
+    <RankArray />
+    <AbilityModificationArray>
+      <Modifications>
+        <Type value="FlatModification" />
+        <Catalog value="Effect" />
+        <Entry value="AnduinHeroWeaponPursuedByGraceTalentProcSet" />
+        <Field value="Chance" />
+        <Value value="1.000000" />
+      </Modifications>
+    </AbilityModificationArray>
   </CTalent>
   <CTalent id="AnduinDivineStarMoralCompass">
     <Face value="AnduinDivineStarMoralCompass" />
@@ -4385,6 +4616,9 @@
         <Value value="1.000000" />
       </Modifications>
     </AbilityModificationArray>
+    <RankArray>
+      <BehaviorArray value="AnduinDivineStarMoralCompassTalentCarry" />
+    </RankArray>
   </CTalent>
   <CTalent id="AnduinDivineStarPowerWordShield">
     <Face value="AnduinDivineStarPowerWordShield" />
@@ -4394,6 +4628,13 @@
         <Type value="FlatModification" />
         <Catalog value="Effect" />
         <Entry value="AnduinDivineStarPowerWordShieldApplyShield" />
+        <Field value="Chance" />
+        <Value value="1.000000" />
+      </Modifications>
+      <Modifications>
+        <Type value="FlatModification" />
+        <Catalog value="Effect" />
+        <Entry value="AnduinDivineStarPowerWordShieldTalentAllySearch" />
         <Field value="Chance" />
         <Value value="1.000000" />
       </Modifications>
@@ -4451,7 +4692,7 @@
       <BehaviorArray value="AnduinPushForwardPhysicalDamageResponse" />
       <BehaviorArray value="AnduinPushForwardToken" />
     </RankArray>
-    <Abil value="AnduinChastise" />
+    <Trait value="1" />
   </CTalent>
   <CTalent id="AnduinDivineStarSpeedOfThePious">
     <Face value="AnduinDivineStarSpeedOfThePious" />
@@ -4531,9 +4772,16 @@
   </CTalent>
   <CTalent id="AnduinInnerFire">
     <Face value="AnduinInnerFire" />
-    <RankArray>
-      <BehaviorArray value="AnduinInnerFireAttackSpeedBehavior" />
-    </RankArray>
+    <Abil value="AnduinLightBomb" />
+    <AbilityModificationArray>
+      <Modifications>
+        <Type value="FlatModification" />
+        <Catalog value="Effect" />
+        <Entry value="AnduinLightBombInnerFireTalentApplySet" />
+        <Field value="Chance" />
+        <Value value="1.000000" />
+      </Modifications>
+    </AbilityModificationArray>
   </CTalent>
   <CTalent id="AnduinFlashHealInnerFocus">
     <Face value="AnduinFlashHealInnerFocus" />
@@ -4572,6 +4820,51 @@
   <CTalent id="AnduinHolyWordSalvationLightOfStormwind">
     <Face value="AnduinHolyWordSalvationLightOfStormwind" />
     <Abil value="AnduinHolyWordSalvation" />
+  </CTalent>
+  <CTalent id="AnduinPiercingLight">
+    <Face value="AnduinPiercingLight" />
+    <Abil value="AnduinChastise" />
+    <AbilityModificationArray>
+      <Modifications>
+        <Type value="FlatModification" />
+        <Catalog value="Effect" />
+        <Entry value="AnduinChastisePiercingLightTalentApplyPierceMarker" />
+        <Field value="Chance" />
+        <Value value="1.000000" />
+      </Modifications>
+      <Modifications>
+        <Type value="FlatModification" />
+        <Catalog value="Effect" />
+        <Entry value="AnduinChastisePiercingLightTalentRemovePierceMarker" />
+        <Field value="Chance" />
+        <Value value="1.000000" />
+      </Modifications>
+    </AbilityModificationArray>
+    <RankArray>
+      <BehaviorArray value="AnduinChastisePiercingLightTalentTokenCounter" />
+      <BehaviorArray value="AnduinChastisePiercingLightTalentCarry" />
+    </RankArray>
+    <QuestData StackBehavior="AnduinChastisePiercingLightTalentTokenCounter" TargetCount="10" IgnoreTargetCount="0" />
+  </CTalent>
+  <CTalent id="AnduinCensure">
+    <Face value="AnduinCensure" />
+    <Abil value="AnduinChastise" />
+    <AbilityModificationArray>
+      <Modifications>
+        <Type value="FlatModification" />
+        <Catalog value="Effect" />
+        <Entry value="AnduinChastiseCensureTalentApplyStun" />
+        <Field value="Chance" />
+        <Value value="1.000000" />
+      </Modifications>
+      <Modifications>
+        <Type value="FlatModification" />
+        <Catalog value="Behavior" />
+        <Entry value="AnduinChastiseRoot" />
+        <Field value="Duration" />
+        <Value value="0.500000" />
+      </Modifications>
+    </AbilityModificationArray>
   </CTalent>
   <CTalent id="AnduinVariansLegacy">
     <Face value="AnduinVariansLegacy" />
@@ -4660,6 +4953,30 @@
   <CUnit id="AnduinLightwellPlacementDummy" parent="StormSummonFigment">
     <Mover value="Fly" />
   </CUnit>
+  <CValidatorPlayerTalent id="AnduinHasPiercingLightTalent">
+    <WhichPlayer Value="Caster" />
+    <Find value="1" />
+    <Value value="AnduinPiercingLight" />
+  </CValidatorPlayerTalent>
+  <CValidatorPlayerTalent id="AnduinHasSurgeofLightTalent">
+    <WhichPlayer Value="Caster" />
+    <Find value="1" />
+    <Value value="AnduinSurgeofLight" />
+  </CValidatorPlayerTalent>
+  <CValidatorPlayerTalent id="AnduinHasCensureTalent">
+    <WhichPlayer Value="Caster" />
+    <Find value="1" />
+    <Value value="AnduinCensure" />
+  </CValidatorPlayerTalent>
+  <CValidatorUnitCompareBehaviorCount id="AnduinCasterHasChastisePiercingLightTalentPierceMarker">
+    <WhichUnit Value="Caster" />
+    <Value value="1" />
+    <Behavior value="AnduinChastisePiercingLightTalentPierceMarker" />
+  </CValidatorUnitCompareBehaviorCount>
+  <CValidatorUnitCompareBehaviorCount id="AnduinCasterDoesNotHaveChastisePiercingLightTalentPierceMarker">
+    <WhichUnit Value="Caster" />
+    <Behavior value="AnduinChastisePiercingLightTalentPierceMarker" />
+  </CValidatorUnitCompareBehaviorCount>
   <CValidatorLocationCompareRange id="AnduinFlashHealEvenhandedBlessingsTargetIsNearCaster">
     <Compare value="LE" />
     <Range value="24" />
@@ -4780,6 +5097,11 @@
     <Range value="6.25" />
     <Value Effect="AnduinHolyWordSalvationCreatePersistent" Value="TargetPoint" />
   </CValidatorLocationCompareRange>
+  <CValidatorUnitCompareBehaviorCount id="AnduinTargetHasChastiseRoot">
+    <Compare value="GE" />
+    <Value value="1" />
+    <Behavior value="AnduinChastiseRoot" />
+  </CValidatorUnitCompareBehaviorCount>
   <CValidatorUnitCompareBehaviorCount id="AnduinTargetHasNoHolyWordSalvationUnkillableBehavior">
     <Behavior value="AnduinHolyWordSalvationUnkillable" />
   </CValidatorUnitCompareBehaviorCount>
@@ -4942,7 +5264,7 @@
     <DisplayEffect value="AnduinWeaponDamage" />
     <MinScanRange value="5.5" />
     <Range value="5.5" />
-    <Period value="1.2" />
+    <Period value="1" />
     <Effect value="AnduinWeaponAttackSet" />
   </CWeaponLegacy>
 </Catalog>

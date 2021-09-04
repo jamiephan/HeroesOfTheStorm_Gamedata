@@ -66,8 +66,8 @@
     <Flags index="RequireTargetVision" value="0" />
     <Flags index="TargetVectorLock" value="1" />
     <Cost>
-      <Vital index="Energy" value="65" />
-      <Cooldown TimeUse="10" />
+      <Vital index="Energy" value="60" />
+      <Cooldown TimeUse="9" />
     </Cost>
     <Range value="500" />
     <CastIntroTime value="0.1" />
@@ -100,17 +100,6 @@
     <PrepEffect value="DismountDecloakCasterSet" />
     <CursorEffect value="RaynorHyperionDummySearch" />
   </CAbilEffectTarget>
-  <CAbilEffectInstant id="RaynorHeavySlugs">
-    <Effect value="PenetratingRoundHeavySlugsInitialSet" />
-    <Flags index="NoDeceleration" value="1" />
-    <Cost>
-      <Charge Link="Abil/HeavySlugs" />
-      <Cooldown Link="Abil/HeavySlugs" Location="Player" TimeUse="30" />
-    </Cost>
-    <CmdButtonArray index="Execute" DefaultButtonFace="RaynorPenetratingRoundHeavySlugsHotbar">
-      <Flags index="AllowSelfCast" value="1" />
-    </CmdButtonArray>
-  </CAbilEffectInstant>
   <CAbilEffectInstant id="RaynorBountyHunter">
     <PrepEffect value="DismountDecloakCasterSet" />
     <Effect value="RaynorBountyHunterActivationSet" />
@@ -126,19 +115,19 @@
     <MaxAccumulation value="9001" />
     <ApplicationRule value="Add" />
     <TokenId value="RaynorGiveEmSomePepperVeteranMarksmanQuestToken" />
-    <Scale value="0.01" />
+    <Scale value="0.0075" />
   </CAccumulatorToken>
-  <CAccumulatorToken id="RaynorPenetratingRoundDebilitatingRoundsAccumulator" parent="BaseTokenAccumulator">
-    <MaxAccumulation value="1" />
+  <CAccumulatorToken id="RaynorGiveEmSomePepperVeteranMarksmanLoanAccumulator" parent="BaseAccumulator">
+    <MaxAccumulation value="0.6" />
     <ApplicationRule value="Add" />
-    <TokenId value="RaynorPenetratingRoundDebilitatingRoundsTokenCounter" />
-    <Scale value="-0.2" />
+    <TokenId value="RaynorGiveEmSomePepperVeteranMarksmanLoanToken" />
+    <Scale value="0.15" />
   </CAccumulatorToken>
   <CAccumulatorToken id="RaynorBehemothArmorHealthAccumulator" parent="BaseAccumulator">
     <MaxAccumulation value="390000" />
     <ApplicationRule value="Add" />
     <TokenId value="RaynorBehemothArmorTokenCounter" />
-    <Scale value="5" />
+    <Scale value="8" />
   </CAccumulatorToken>
   <CActorSound id="Raynor_BountyHunter_Activate" parent="SoundOneShot">
     <On Terms="Effect.RaynorGiveEmSomePepperBountyHunterSetTokenCount.Start; At Caster" Send="Create" />
@@ -148,11 +137,6 @@
   <CActorSound id="Raynor_BountyHunter_Activate_NPC" parent="SoundOneShot">
     <On Terms="Effect.RaynorGiveEmSomePepperBountyHunterSetTokenCount.Start; At Caster" Send="Create" />
     <Filter index="Self" value="1" />
-  </CActorSound>
-  <CActorSound id="Raynor_HeavySlugs_Activate" parent="SoundOneShot">
-    <On Terms="Behavior.RaynorPenetratingRoundHeavySlugsMissileBehavior.On" Send="Create" />
-    <Filter index="All" value="1" />
-    <VisibleTo index="Self" value="1" />
   </CActorSound>
   <CActorSound id="Raynor_PenetratingRound_HeavySlugs_Slow" parent="SoundOneShot">
     <On Terms="Behavior.RaynorPenetratingRoundHeavySlugsSlow.On" Send="Create" />
@@ -630,10 +614,6 @@
     <Filter index="All" value="1" />
     <VisibleTo index="Self" value="1" />
   </CActorSound>
-  <CActorUnit id="RaynorHeavySlugsItem" parent="StormItemBase" unitName="RaynorHeavySlugs">
-    <Preload index="0" value="ScoutingDroneItem" />
-    <HighlightTooltip value="Unit/Name/Bogus" />
-  </CActorUnit>
   <CActorUnit id="RaynorBountyHunterItem" parent="StormItemBase" unitName="RaynorBountyHunter">
     <Preload index="0" value="ScoutingDroneItem" />
     <HighlightTooltip value="Unit/Name/Bogus" />
@@ -643,37 +623,94 @@
     <Base value="::RollingIndex" />
     <Driver value="RaynorBansheeMissilesLaunchMissile" />
   </CAttachMethodPattern>
+  <CBehaviorBuff id="RaynorPenetratingRoundLineEmUpTokenResetBehavior">
+    <Duration value="1" />
+    <FinalEffect value="RaynorPenetratingRoundLineEmUpRemoveTokens" />
+  </CBehaviorBuff>
+  <CBehaviorBuff id="RaynorAdrenalineRushRaidersRollInitialUnstoppableBehavior">
+    <Alignment value="Positive" />
+    <BehaviorCategories index="BuffUnstoppable" value="1" />
+    <DisplayDuration index="Self" value="1" />
+    <DisplayDuration index="Ally" value="1" />
+    <DisplayDuration index="Neutral" value="1" />
+    <DisplayDuration index="Enemy" value="1" />
+    <BuffFlags index="UpdateDurationWhileDisabled" value="1" />
+    <Duration value="1" />
+    <FinalEffect value="RaynorAdrenalineRushRaidersRollApplyFinalUnstoppableBehavior" />
+    <Modification>
+      <StateFlags index="Unstoppable" value="1" />
+    </Modification>
+  </CBehaviorBuff>
+  <CBehaviorBuff id="RaynorAdrenalineRushRaidersRollFinalUnstoppableBehavior">
+    <Alignment value="Positive" />
+    <Cost>
+      <Charge Link="Behavior/RaynorAdrenalineRushRaidersRollInitialUnstoppableBehavior" />
+      <Cooldown Link="Behavior/RaynorAdrenalineRushRaidersRollInitialUnstoppableBehavior" />
+    </Cost>
+    <BehaviorCategories index="BuffUnstoppable" value="1" />
+    <DisplayDuration index="Self" value="1" />
+    <DisplayDuration index="Ally" value="1" />
+    <DisplayDuration index="Neutral" value="1" />
+    <DisplayDuration index="Enemy" value="1" />
+    <RemoveValidatorArray value="CasterVitalityLE70Percent" />
+    <BuffFlags index="UpdateDurationWhileDisabled" value="1" />
+    <Duration value="2" />
+    <FinalEffect value="RaynorAdrenalineRushRaidersRollRemoveBehavior" />
+    <Modification>
+      <StateFlags index="Unstoppable" value="1" />
+    </Modification>
+    <DamageResponse>
+      <Cost>
+        <Charge Link="Behavior/RaynorAdrenalineRushRaidersRollInitialUnstoppableBehavior" />
+        <Cooldown Link="Behavior/RaynorAdrenalineRushRaidersRollInitialUnstoppableBehavior" />
+      </Cost>
+    </DamageResponse>
+    <HealResponse>
+      <Cost>
+        <Charge Link="Behavior/RaynorAdrenalineRushRaidersRollInitialUnstoppableBehavior" />
+        <Cooldown Link="Behavior/RaynorAdrenalineRushRaidersRollInitialUnstoppableBehavior" />
+      </Cost>
+    </HealResponse>
+  </CBehaviorBuff>
+  <CBehaviorBuff id="RaynorGiveEmSomePepperCavalrysArrivedBehavior">
+    <BuffFlags index="RefreshStack" value="1" />
+    <BuffFlags index="UpdateDurationWhileDisabled" value="1" />
+    <Duration value="2.5" />
+  </CBehaviorBuff>
+  <CBehaviorBuff id="RaynorHyperionPepperedAssaultArmorReductionBehavior" parent="StormArmor">
+    <RemoveValidatorArray value="RaynorHasHyperionPepperedAssualtandHyperionIsAlive" />
+    <ArmorModification>
+      <AllArmorBonus value="-15" />
+    </ArmorModification>
+  </CBehaviorBuff>
+  <CBehaviorBuff id="RaynorHyperionIndomitableResolveUnstoppableBehavior" parent="StormUnstoppableParent">
+    <RemoveValidatorArray value="RaynorHasHyperionActiveBehavior" />
+    <Period value="0.5" />
+    <PeriodicEffect value="RaynorHyperionIndomitableResolveCreateHealer" />
+  </CBehaviorBuff>
+  <CBehaviorTokenCounter id="RaynorRallyingCryTokenCounter" parent="StormGenericToken">
+    <Face value="RaynorRallyingCryToken" />
+    <Alignment value="Positive" />
+    <SortIndex value="50" />
+    <AtMaxEvents Effect="RaynorRallyingCryProcSet" />
+    <Max value="12" />
+    <MinStackCountDisplayed value="1" />
+  </CBehaviorTokenCounter>
   <CBehaviorBuff id="RaynorRaynorsRaidersSuppressFinalCooldown">
     <BehaviorFlags index="EnabledWhileDead" value="1" />
   </CBehaviorBuff>
-  <CBehaviorAbility id="RaynorHeavySlugsItem">
-    <Buttons Face="RaynorPenetratingRoundHeavySlugsHotbar" Type="AbilCmd" AbilCmd="RaynorHeavySlugs,Execute" />
-  </CBehaviorAbility>
   <CBehaviorBuff id="RaynorBountyHunterCarryBehavior">
     <BehaviorFlags index="Permanent" value="1" />
     <BehaviorFlags index="EnabledWhileDead" value="1" />
   </CBehaviorBuff>
-  <CBehaviorBuff id="RaynorGiveEmSomePepperWeakSpotAcquiredArmorDebuff" parent="StormArmor">
+  <CBehaviorBuff id="RaynorDuskWingArmorDebuff" parent="StormArmor">
     <BehaviorCategories index="DebuffVulnerable" value="1" />
-    <Duration value="2" />
-    <ArmorModification>
-      <AllArmorBonus value="-25" />
+    <BuffFlags index="RefreshStack" value="1" />
+    <MaxStackCount value="10" />
+    <Duration value="1" />
+    <ArmorModification StackCount="10">
+      <AllArmorBonus value="-2.5" />
     </ArmorModification>
-  </CBehaviorBuff>
-  <CBehaviorBuff id="RaynorHyperionIndomitableResolveUnstoppable" parent="StormUnstoppableParent">
-    <Duration value="2" />
-  </CBehaviorBuff>
-  <CBehaviorBuff id="RaynorPenetratingRoundHeavySlugsMissileBehavior">
-    <BehaviorFlags index="Permanent" value="1" />
-    <BehaviorFlags index="EnabledWhileDead" value="1" />
-  </CBehaviorBuff>
-  <CBehaviorBuff id="RaynorPenetratingRoundHeavySlugsSlow" parent="StormSlowParent">
-    <Duration value="6" />
-    <Modification>
-      <UnifiedMoveSpeedFactor value="-0.2">
-        <AccumulatorArray value="RaynorPenetratingRoundDebilitatingRoundsAccumulator" />
-      </UnifiedMoveSpeedFactor>
-    </Modification>
   </CBehaviorBuff>
   <CBehaviorBuff id="RaynorRaynorsRaidersHealController" parent="CarryBehaviorParent">
     <Period value="1" />
@@ -698,7 +735,7 @@
     <BehaviorFlags index="Permanent" value="1" />
     <BehaviorFlags index="EnabledWhileDead" value="1" />
     <Modification>
-      <UnifiedMoveSpeedFactor value="0.08" />
+      <UnifiedMoveSpeedFactor value="0.1" />
     </Modification>
   </CBehaviorBuff>
   <CBehaviorBuff id="RaynorInspireAttackSpeedPvE">
@@ -706,18 +743,29 @@
     <Modification>
       <AdditiveAttackSpeedFactor value="0.3" />
     </Modification>
+    <Period value="1" />
+    <PeriodicEffect value="RaynorExterminatorModifyPvEAttackSpeedBehavior" />
   </CBehaviorBuff>
   <CBehaviorBuff id="RaynorInspireMoveSpeedPvE" parent="StormSprint">
     <Duration value="4" />
     <Modification>
       <UnifiedMoveSpeedFactor value="0.1" />
     </Modification>
+    <Period value="1" />
+    <PeriodicEffect value="RaynorExterminatorModifyPvEMoveSpeedBehavior" />
   </CBehaviorBuff>
   <CBehaviorTokenCounter id="RaynorGiveEmSomePepperVeteranMarksmanQuestToken" parent="StormQuestToken">
     <Face value="RaynorGiveEmSomePepperVeteranMarksmanToken" />
     <InfoIcon value="Assets\Textures\storm_ui_icon_raynor_acquireweakspot.dds" />
     <SortIndex value="5" />
     <Max value="9001" />
+  </CBehaviorTokenCounter>
+  <CBehaviorTokenCounter id="RaynorGiveEmSomePepperVeteranMarksmanLoanToken" parent="StormQuestToken">
+    <Face value="RaynorGiveEmSomePepperVeteranMarksmanLoan" />
+    <InfoIcon value="Assets\Textures\storm_ui_icon_raynor_acquireweakspot.dds" />
+    <SortIndex value="5" />
+    <Max value="4" />
+    <Init value="4" />
   </CBehaviorTokenCounter>
   <CBehaviorBuff id="RaynorBountyHunterArmorBehavior" parent="StormArmor">
     <Duration value="3" />
@@ -758,9 +806,6 @@
     <BehaviorFlags index="Permanent" value="1" />
     <BehaviorFlags index="EnabledWhileDead" value="1" />
   </CBehaviorUnitTracker>
-  <CBehaviorTokenCounter id="RaynorPenetratingRoundDebilitatingRoundsTokenCounter" parent="StormGenericToken">
-    <Max value="1" />
-  </CBehaviorTokenCounter>
   <CBehaviorBuff id="RaynorInspireRallyingCryAttackSpeedAlly">
     <Duration value="5" />
     <Modification>
@@ -777,6 +822,7 @@
     <Modification>
       <UnifiedMoveSpeedFactor value="0.1" />
     </Modification>
+    <BuffFlags index="RefreshStack" value="1" />
   </CBehaviorBuff>
   <CBehaviorBuff id="RaynorInspireAttackSpeedSelf">
     <Duration value="4" />
@@ -784,12 +830,11 @@
       <AdditiveAttackSpeedFactor value="0.3" />
     </Modification>
     <DisplayDuration index="Self" value="1" />
-    <FinalEffect value="RaynorPenetratingRoundDebilitatingRoundsRemoveToken" />
+    <BuffFlags index="RefreshStack" value="1" />
   </CBehaviorBuff>
   <CBehaviorBuff id="RaynorAdrenalineRushHoT">
     <Duration value="1" />
     <Period value="0.25" />
-    <PeriodCount value="4" />
     <PeriodicEffect value="RaynorAdrenalineRushHealer" />
     <PeriodicDisplayEffect value="RaynorAdrenalineRushHealer" />
   </CBehaviorBuff>
@@ -810,9 +855,7 @@
   <CBehaviorBuff id="RaynorPenetratingRoundSlow" parent="StormSlowParent">
     <Duration value="2" />
     <Modification>
-      <UnifiedMoveSpeedFactor value="-0.2">
-        <AccumulatorArray value="RaynorPenetratingRoundDebilitatingRoundsAccumulator" />
-      </UnifiedMoveSpeedFactor>
+      <UnifiedMoveSpeedFactor value="-0.2" />
     </Modification>
   </CBehaviorBuff>
   <CBehaviorBuff id="RaynorHyperionYamatoMissileScan">
@@ -891,10 +934,12 @@
       <StateFlags index="Untargetable" value="1" />
     </Modification>
   </CBehaviorBuff>
+  <CBehaviorBuff id="RaynorHyperionActive">
+    <Duration value="12" />
+  </CBehaviorBuff>
   <CBehaviorBuff id="RaynorPenetratingRoundKnockback" parent="PushPullParent">
     <Duration value="0.3125" />
     <InitialEffect value="RaynorPenetratingRoundKnockbackInitialSet" />
-    <FinalEffect value="RaynorPenetratingRoundHeavySlugsStunSet" />
     <Modification>
       <MoveSpeedMaximum value="15" />
       <MoveSpeedMinimum value="15" />
@@ -917,33 +962,46 @@
       </VitalMaxArray>
     </Modification>
   </CBehaviorBuff>
+  <CBehaviorTokenCounter id="RaynorPenetratingRoundLineEmUpTokenCounter" parent="StormGenericToken">
+    <Max value="2" />
+    <AtMaxEvents Effect="RaynorPenetratingRoundLineEmUpCooldownSet" />
+  </CBehaviorTokenCounter>
+  <CButton id="RaynorRallyingCryToken" parent="StormButtonParent">
+    <Icon value="Assets\Textures\storm_ui_icon_raynor_inspire.dds" />
+    <HotkeyAlias value="RaynorBehemothArmor" />
+  </CButton>
+  <CButton id="RaynorHyperionExecuteOrders" parent="StormButtonParent">
+    <Icon value="Assets\Textures\storm_ui_icon_raynor_advancedoptics.dds" />
+  </CButton>
+  <CButton id="RaynorPenetratingRoundLine'EmUp" parent="StormButtonParent">
+    <Icon value="Assets\Textures\storm_ui_icon_raynor_penetratinground.dds" />
+  </CButton>
+  <CButton id="RaynorAdrenalineRushRaidersRoll" parent="StormButtonParent">
+    <Icon value="Assets\Textures\storm_ui_icon_raynor_adrenalinrush.dds" />
+  </CButton>
+  <CButton id="RaynorGive'EmSomePepperSergeantPepper" parent="StormButtonParent">
+    <Icon value="Assets\Textures\storm_ui_icon_raynor_acquireweakspot.dds" />
+  </CButton>
+  <CButton id="RaynorGiveEmSomePepperVeteranMarksmanLoan" parent="StormButtonParent">
+    <Icon value="Assets\Textures\storm_ui_icon_raynor_acquireweakspot.dds" />
+    <HotkeyAlias value="RaynorGiveEmSomePepperVeteranMarksmanToken" />
+  </CButton>
   <CButton id="RaynorGiveEmSomePepperBountyHunterActive" parent="StormButtonParent">
-    <TooltipAppender Validator="RaynorHasVeteranMarksmanTalent" Face="RaynorVeteranMarksman" />
     <TooltipAppender Validator="RaynorHasAceInTheHoleTalent" Face="RaynorAceInTheHole" />
     <TooltipAppender Validator="RaynorHasGiveEmSomePepperExterminatorTalent" Face="RaynorExterminator" />
+    <TooltipAppender Validator="RaynorHasVeteranMarksmanTalent" Face="RaynorVeteranMarksman" />
     <TooltipAppender Validator="RaynorHasBasicAttackSustainingRoundsTalent" Face="RaynorBasicAttackSustainingRounds" />
     <TooltipAppender Validator="RaynorHasBehemothArmorTalent" Face="RaynorBehemothArmor" />
     <TooltipAppender Validator="RaynorHasGiveEmSomePepperUnstableCompoundTalent" Face="RaynorGiveEmSomePepperUnstableCompound" />
     <TooltipAppender Validator="RaynorHasBountyHunterTalent" Face="RaynorBountyHunter" />
-    <TooltipAppender Validator="RaynorHasGiveEmSomePepperWeakSpotAcquiredTalent" Face="RaynorGiveEmSomePepperWeakSpotAcquired" />
-    <TooltipAppender Validator="RaynorHasBasicAttackExecuteTalent" Face="RaynorBasicAttackExecute" />
+    <TooltipAppender Validator="RaynorHasGive'EmSomePepperSergeantPepperTalent" Face="RaynorGive'EmSomePepperSergeantPepper" />
     <Icon value="Assets\Textures\storm_ui_icon_raynor_acquireweakspot.dds" />
     <HotkeyAlias value="RaynorGiveEmSomePepper" />
   </CButton>
-  <CButton id="RaynorGiveEmSomePepperWeakSpotAcquired" parent="StormButtonParent">
-    <Icon value="Assets\Textures\storm_ui_icon_raynor_acquireweakspot.dds" />
-  </CButton>
-  <CButton id="RaynorHyperionIndomitableResolve" parent="StormButtonParent">
+  <CButton id="RaynorCavalrysArrived" parent="StormButtonParent">
     <Icon value="Assets\Textures\storm_ui_icon_raynor_hyperion.dds" />
   </CButton>
   <CButton id="RaynorBountyHunterHotBar" parent="StormButtonParent">
-    <Icon value="Assets\Textures\storm_ui_icon_raynor_acquireweakspot.dds" />
-  </CButton>
-  <CButton id="RaynorPenetratingRoundHeavySlugsHotbar" parent="StormButtonParent">
-    <Icon value="Assets\Textures\storm_ui_icon_raynor_penetratinground.dds" />
-    <Tooltip value="Button/Tooltip/RaynorPenetratingRoundHeavySlugs" />
-  </CButton>
-  <CButton id="RaynorGiveEmSomePepperUnstableCompound" parent="StormButtonParent">
     <Icon value="Assets\Textures\storm_ui_icon_raynor_acquireweakspot.dds" />
   </CButton>
   <CButton id="RaynorVeteranMarksman" parent="StormButtonParent">
@@ -952,16 +1010,18 @@
   <CButton id="RaynorGiveEmSomePepperVeteranMarksmanToken" parent="StormButtonParent">
     <Icon value="Assets\Textures\storm_ui_icon_raynor_acquireweakspot.dds" />
   </CButton>
+  <CButton id="RaynorGiveEmSomePepperUnstableCompound" parent="StormButtonParent">
+    <Icon value="Assets\Textures\storm_ui_icon_raynor_acquireweakspot.dds" />
+  </CButton>
   <CButton id="RaynorGiveEmSomePepper" parent="StormButtonParent">
-    <TooltipAppender Validator="RaynorHasVeteranMarksmanTalent" Face="RaynorVeteranMarksman" />
     <TooltipAppender Validator="RaynorHasAceInTheHoleTalent" Face="RaynorAceInTheHole" />
     <TooltipAppender Validator="RaynorHasGiveEmSomePepperExterminatorTalent" Face="RaynorExterminator" />
+    <TooltipAppender Validator="RaynorHasVeteranMarksmanTalent" Face="RaynorVeteranMarksman" />
     <TooltipAppender Validator="RaynorHasBasicAttackSustainingRoundsTalent" Face="RaynorBasicAttackSustainingRounds" />
     <TooltipAppender Validator="RaynorHasBehemothArmorTalent" Face="RaynorBehemothArmor" />
     <TooltipAppender Validator="RaynorHasGiveEmSomePepperUnstableCompoundTalent" Face="RaynorGiveEmSomePepperUnstableCompound" />
     <TooltipAppender Validator="RaynorHasBountyHunterTalent" Face="RaynorBountyHunter" />
-    <TooltipAppender Validator="RaynorHasGiveEmSomePepperWeakSpotAcquiredTalent" Face="RaynorGiveEmSomePepperWeakSpotAcquired" />
-    <TooltipAppender Validator="RaynorHasBasicAttackExecuteTalent" Face="RaynorBasicAttackExecute" />
+    <TooltipAppender Validator="RaynorHasGive'EmSomePepperSergeantPepperTalent" Face="RaynorGive'EmSomePepperSergeantPepper" />
     <Icon value="Assets\Textures\storm_ui_icon_raynor_acquireweakspot.dds" />
   </CButton>
   <CButton id="RaynorBasicAttackExecute" parent="StormButtonParent">
@@ -986,17 +1046,14 @@
   <CButton id="RaynorPenetratingRoundHeavySlugs" parent="StormButtonParent">
     <Icon value="Assets\Textures\storm_ui_icon_raynor_penetratinground.dds" />
   </CButton>
-  <CButton id="RaynorPenetratingRoundDebilitatingRounds" parent="StormButtonParent">
-    <Icon value="Assets\Textures\storm_ui_icon_raynor_split_fuelrush.dds" />
-  </CButton>
   <CButton id="RaynorInspireFuelTheRush" parent="StormButtonParent">
     <Icon value="Assets\Textures\storm_ui_icon_raynor_split_debilitatingrounds.dds" />
   </CButton>
   <CButton id="RaynorExterminator" parent="StormButtonParent">
-    <Icon value="Assets\Textures\storm_ui_icon_talent_autoattack_building.dds" />
+    <Icon value="Assets\Textures\storm_ui_icon_raynor_inspire.dds" />
   </CButton>
   <CButton id="RaynorInspireGiddyUp" parent="StormButtonParent">
-    <Icon value="Assets\Textures\storm_ui_icon_raynor_inspire_a.dds" />
+    <Icon value="Assets\Textures\storm_ui_icon_raynor_inspire.dds" />
   </CButton>
   <CButton id="RaynorBehemothArmorToken" parent="StormButtonParent">
     <Icon value="Assets\Textures\storm_ui_icon_raynor_hulkarmor.dds" />
@@ -1021,6 +1078,7 @@
     <TooltipAppender Validator="HasRaynorMasteryFightOrFlightAdrenalineRush" Face="RaynorAdrenalineRushFightOrFlightTalent" />
     <TooltipAppender Validator="RaynorHasInspireFuelTheRushTalent" Face="RaynorInspireFuelTheRush" />
     <TooltipAppender Validator="HasRaynorMasteryGiveMeMoreAdrenalineRush" Face="RaynorAdrenalineRushGiveMeMoreTalent" />
+    <TooltipAppender Validator="RaynorHasAdrenalineRushRaidersRollTalent" Face="RaynorAdrenalineRushRaidersRoll" />
   </CButton>
   <CButton id="RaynorAdrenalineRushFightOrFlightTalent" parent="StormButtonParent">
     <Icon value="Assets\Textures\storm_ui_icon_raynor_adrenalinrush.dds" />
@@ -1042,20 +1100,21 @@
   </CButton>
   <CButton id="RaynorInspire" parent="StormButtonParent">
     <Icon value="Assets\Textures\storm_ui_icon_raynor_inspire.dds" />
+    <TooltipAppender Validator="RaynorHasGiveEmSomePepperExterminatorTalent" Face="RaynorExterminator" />
     <TooltipAppender Validator="RaynorHasInspireFuelTheRushTalent" Face="RaynorInspireFuelTheRush" />
-    <TooltipAppender Validator="RaynorHasInspireRallyingCryTalent" Face="RaynorInspireRallyingCry" />
-    <TooltipAppender Validator="RaynorHasPenetratingRoundDebilitatingRoundsTalent" Face="RaynorPenetratingRoundDebilitatingRounds" />
     <TooltipAppender Validator="RaynorHasInspireGiddyUp" Face="RaynorInspireGiddyUp" />
     <TooltipAppender Validator="HasRaynorMasteryGiveMeMoreAdrenalineRush" Face="RaynorAdrenalineRushGiveMeMoreTalent" />
+    <TooltipAppender Validator="RaynorHasInspireRallyingCryTalent" Face="RaynorInspireRallyingCry" />
   </CButton>
   <CButton id="RaynorHyperion" parent="StormButtonParent">
     <Icon value="Assets\Textures\storm_ui_icon_raynor_hyperion.dds" />
-    <TooltipAppender Validator="RaynorHasHyperionIndomitableResolveTalent" Face="RaynorHyperionIndomitableResolve" />
+    <TooltipAppender Validator="RaynorHasHyperionCavalrysArrivedTalent" Face="RaynorCavalrysArrived" />
   </CButton>
   <CButton id="RaynorPenetratingRound" parent="StormButtonParent">
     <Icon value="Assets\Textures\storm_ui_icon_raynor_penetratinground.dds" />
+    <TooltipAppender Validator="RaynorHasAceInTheHoleTalent" Face="RaynorAceInTheHole" />
     <TooltipAppender Validator="RaynorHasPenetratingRoundHeavySlugsTalent" Face="RaynorPenetratingRoundHeavySlugs" />
-    <TooltipAppender Validator="RaynorHasPenetratingRoundDebilitatingRoundsTalent" Face="RaynorPenetratingRoundDebilitatingRounds" />
+    <TooltipAppender Validator="RaynorHasPenetratingRoundLine'EmUpTalent" Face="RaynorPenetratingRoundLine'EmUp" />
     <TooltipAppender Validator="RaynorHasPenetratingRoundPaintThemRedTalent" Face="RaynorPenetratingRoundPaintThemRed" />
   </CButton>
   <CCharacter id="Raynor">
@@ -1069,10 +1128,132 @@
     <Race value="Terran" />
     <Unit value="HeroRaynor" />
   </CCharacter>
+  <CEffectSet id="RaynorUponDeathSet">
+    <EffectArray value="RaynorGiveEmSomePepperVeteranMarksmanRemoveLoanToken" />
+    <EffectArray value="RaynorExecuteOrdersSearch" />
+  </CEffectSet>
+  <CEffectApplyBehavior id="RaynorPenetratingRoundLineEmUpApplyBehavior">
+    <ValidatorArray index="0" value="RaynorHasPenetratingRoundLine'EmUpTalent" />
+    <WhichUnit Value="Caster" />
+    <Behavior value="RaynorPenetratingRoundLineEmUpTokenResetBehavior" />
+  </CEffectApplyBehavior>
+  <CEffectSet id="RaynorPenetratingRoundLineEmUpCooldownSet">
+    <EffectArray value="RaynorPenetratingRoundLineEmUpCooldownReduction" />
+  </CEffectSet>
+  <CEffectSwitch id="RaynorAdrenalineRushApplyHoTSwitch">
+    <CaseArray Validator="RaynorHasAdrenalineRushRaidersRollTalent" Effect="RaynorAdrenalineRushRaidersRollApplyHoT" />
+    <CaseDefault value="RaynorAdrenalineRushApplyHoT" />
+  </CEffectSwitch>
+  <CEffectApplyBehavior id="RaynorAdrenalineRushRaidersRollApplyHoT">
+    <ValidatorArray index="0" removed="1" />
+    <WhichUnit Value="Caster" />
+    <Behavior value="RaynorAdrenalineRushHoT" />
+    <Flags index="UseDuration" value="1" />
+    <Duration value="3" />
+  </CEffectApplyBehavior>
+  <CEffectApplyBehavior id="RaynorAdrenalineRushRaidersRollApplyInitialUnstoppableBehavior">
+    <ValidatorArray index="0" value="RaynorHasAdrenalineRushRaidersRollTalent" />
+    <WhichUnit Value="Caster" />
+    <Behavior value="RaynorAdrenalineRushRaidersRollInitialUnstoppableBehavior" />
+  </CEffectApplyBehavior>
+  <CEffectApplyBehavior id="RaynorAdrenalineRushRaidersRollApplyFinalUnstoppableBehavior">
+    <ValidatorArray index="0" value="RaynorHasAdrenalineRushRaidersRollTalent" />
+    <WhichUnit Value="Caster" />
+    <Behavior value="RaynorAdrenalineRushRaidersRollFinalUnstoppableBehavior" />
+  </CEffectApplyBehavior>
+  <CEffectRemoveBehavior id="RaynorAdrenalineRushRaidersRollRemoveBehavior">
+    <WhichUnit Value="Caster" />
+    <BehaviorLink value="RaynorAdrenalineRushHoT" />
+    <Count value="1" />
+  </CEffectRemoveBehavior>
+  <CEffectApplyBehavior id="RaynorGiveEmSomePepperCavalrysArrivedApplyBehavior">
+    <ValidatorArray index="0" value="RaynorHasGiveEmSomePepperPrimedDummyBehavior" />
+    <ValidatorArray value="RaynorHasHyperionCavalrysArrivedTalent" />
+    <ValidatorArray value="CasterNotBlindedAndTargetNotEvading" />
+    <ValidatorArray value="TargetNotTimeStopped" />
+    <ValidatorArray value="TargetIsHero" />
+    <Behavior value="RaynorGiveEmSomePepperCavalrysArrivedBehavior" />
+  </CEffectApplyBehavior>
+  <CEffectModifyTokenCount id="RaynorGiveEmSomePepperSergeantPepperAddToken" parent="BaseEffectModifyTokenCount">
+    <ValidatorArray value="RaynorHasGive'EmSomePepperSergeantPepperTalent" />
+    <TokenId value="RaynorGiveEmSomePepperAttackToken" />
+  </CEffectModifyTokenCount>
+  <CEffectModifyBehaviorBuffDuration id="RaynorExterminatorModifyPvEAttackSpeedBehavior">
+    <WhichUnit Value="Target" />
+    <Behavior value="RaynorInspireAttackSpeedPvE" />
+    <Value value="1" />
+    <ValidatorArray value="RaynorHasGiveEmSomePepperExterminatorTalent" />
+  </CEffectModifyBehaviorBuffDuration>
+  <CEffectModifyBehaviorBuffDuration id="RaynorExterminatorModifyPvEMoveSpeedBehavior">
+    <ValidatorArray value="RaynorHasGiveEmSomePepperExterminatorTalent" />
+    <WhichUnit Value="Target" />
+    <Behavior value="RaynorInspireMoveSpeedPvE" />
+    <Value value="1" />
+  </CEffectModifyBehaviorBuffDuration>
+  <CEffectModifyTokenCount id="RaynorGiveEmSomePepperVeteranMarksmanRemoveLoanToken" parent="BaseEffectModifyTokenCount">
+    <TokenId value="RaynorGiveEmSomePepperVeteranMarksmanLoanToken" />
+    <Value value="-1" />
+  </CEffectModifyTokenCount>
+  <CEffectApplyBehavior id="RaynorHyperionPepperedAssaultApplyArmorReductionBehavior">
+    <ValidatorArray index="0" value="RaynorHasHyperionPepperedAssaultTalent" />
+    <WhichUnit Value="Caster" />
+    <Behavior value="RaynorHyperionPepperedAssaultArmorReductionBehavior" />
+  </CEffectApplyBehavior>
+  <CEffectModifyTokenCount id="RaynorRallyingCryAddToken" parent="BaseEffectModifyTokenCount">
+    <ValidatorArray value="RaynorHasInspireRallyingCryTalent" />
+    <ValidatorArray value="CasterNotBlindedAndTargetNotEvading" />
+    <TokenId value="RaynorRallyingCryTokenCounter" />
+  </CEffectModifyTokenCount>
+  <CEffectSet id="RaynorRallyingCryProcSet">
+    <EffectArray value="RaynorInspireInitialSet" />
+    <EffectArray value="RaynorRallyingCryResetTokens" />
+  </CEffectSet>
+  <CEffectModifyTokenCount id="RaynorRallyingCryResetTokens" parent="BaseEffectModifyTokenCount">
+    <TokenId value="RaynorRallyingCryTokenCounter" />
+    <Operation value="Set" />
+    <Value value="0" />
+  </CEffectModifyTokenCount>
+  <CEffectCreateHealer id="RaynorHyperionIndomitableResolveCreateHealer" parent="StormSelfOnlyHealingSpellPercent">
+    <ImpactUnit History="Unknown" />
+    <RechargeVitalFraction value="0.05" />
+  </CEffectCreateHealer>
+  <CEffectCreateHealer id="RaynorPenetratingRoundDebilitatingRoundCreateManaHealer" parent="StormManaRestore">
+    <ValidatorArray value="TargetIsHero" />
+    <RechargeVitalRate value="20" />
+  </CEffectCreateHealer>
+  <CEffectSet id="RaynorPenetratingRoundDebilitatingRoundsHeroImpactSet">
+    <ValidatorArray value="RaynorHasPenetratingRoundDebilitatingRoundsTalent" />
+    <EffectArray value="RaynorPenetratingRoundDebilitatingRoundModifyCooldownHero" />
+    <EffectArray value="RaynorPenetratingRoundDebilitatingRoundCreateManaHealer" />
+  </CEffectSet>
+  <CEffectApplyBehavior id="RaynorHyperionApplyActiveBehavior">
+    <WhichUnit Value="Caster" />
+    <Behavior value="RaynorHyperionActive" />
+  </CEffectApplyBehavior>
+  <CEffectSwitch id="RaynorHyperionPepperedAssaultModifyTokenSwitch">
+    <CaseArray Validator="RaynorHasHyperionPepperedAssualtandHyperionIsAlive" Effect="RaynorHyperionPepperedAssualtModifyTokenCount" />
+    <CaseDefault value="RaynorGiveEmSomePepperAddToken" />
+  </CEffectSwitch>
+  <CEffectModifyTokenCount id="RaynorHyperionPepperedAssualtModifyTokenCount" parent="BaseEffectModifyTokenCount">
+    <TokenId value="RaynorGiveEmSomePepperAttackToken" />
+    <Operation value="Set" />
+    <Value value="3" />
+    <ValidatorArray value="RaynorHasHyperionPepperedAssaultTalent" />
+    <ContextUnit Value="Caster" />
+  </CEffectModifyTokenCount>
+  <CEffectModifyTokenCount id="RaynorAceInTheHoleAddTokenCount" parent="BaseEffectModifyTokenCount">
+    <ValidatorArray value="RaynorHasAceInTheHoleTalent" />
+    <ValidatorArray value="TargetIsHero" />
+    <ContextUnit Value="Caster" />
+    <TokenId value="RaynorAceInTheHoleTokenCounter" />
+  </CEffectModifyTokenCount>
+  <CEffectApplyBehavior id="RaynorVeteranMarksmanApplyFullLoanBehaviorStacks">
+    <Behavior value="RaynorVeteranMarksmanLoanBehavior" />
+    <Count value="6" />
+  </CEffectApplyBehavior>
   <CEffectModifyUnit id="RaynorGiveEmSomePepperUnstableCompoundTalentModifyUnit">
     <ImpactUnit Value="Caster" />
-    <Cost Abil="RaynorPenetratingRound,Execute" CooldownOperation="Add" CooldownTimeUse="-1" />
-    <Cost Abil="RaynorInspire,Execute" CooldownOperation="Add" CooldownTimeUse="-1" />
+    <Cost Abil="RaynorPenetratingRound,Execute" CooldownOperation="Add" CooldownTimeUse="-1.5" />
     <VitalArray index="Energy">
       <Change value="10" />
     </VitalArray>
@@ -1112,56 +1293,41 @@
   <CEffectSet id="RaynorInspireInitialDuskWingsTalentSet">
     <EffectArray value="RaynorInspireModifyAttack" />
     <EffectArray value="RaynorInspirePvESearch" />
-    <EffectArray value="RaynorInspireRallyingCryAllySearchSet" />
     <EffectArray value="RaynorInspireApplySelfAttackSpeedBehavior" />
     <EffectArray value="RaynorInspireApplySelfMoveSpeedBehavior" />
-    <EffectArray value="RaynorPenetratingRoundDebilitatingRoundsIncreaseToken" />
   </CEffectSet>
   <CEffectSet id="RaynorRaynorsRaidersControllerFinalSet">
     <EffectArray value="RaynorRaynorsRaidersModifyCooldown" />
-    <EffectArray value="RaynorRaynorsRaidersDuskWingsTalentFinalSet" />
     <ValidatorArray value="RaynorDoesNotHaveRaynorsRaidersSuppressFinalCooldown" />
   </CEffectSet>
+  <CEffectApplyBehavior id="RaynorDuskWingApplyBehavior" parent="ApplyVulnerableBehaviorParent">
+    <ValidatorArray index="0" value="TargetIsHero" />
+    <ValidatorArray index="1" value="RaynorHasDuskWingsTalent" />
+    <ValidatorArray value="CasterNotBlindedAndTargetNotEvading" />
+    <ValidatorArray value="TargetNotTimeStopped" />
+    <Behavior value="RaynorDuskWingArmorDebuff" />
+  </CEffectApplyBehavior>
   <CEffectSet id="RaynorRaynorsRaidersDuskWingsTalentFinalSet">
     <ValidatorArray value="RaynorHasDuskWingsTalent" />
     <ValidatorArray value="CasterNotDead" />
     <EffectArray value="RaynorAdrenalineRushDuskWingTalentSet" />
     <EffectArray value="RaynorInspireInitialDuskWingsTalentSet" />
   </CEffectSet>
-  <CEffectApplyBehavior id="GiveEmSomePepperWeakSpotAcquiredApplyBehavior" parent="ApplyVulnerableBehaviorParent">
-    <ValidatorArray index="0" value="RaynorHasGiveEmSomePepperPrimedDummyBehavior" />
-    <ValidatorArray index="1" value="TargetIsHero" />
-    <ValidatorArray value="RaynorHasGiveEmSomePepperWeakSpotAcquiredTalent" />
-    <ValidatorArray value="CasterNotBlindedAndTargetNotEvading" />
-    <ValidatorArray value="TargetNotTimeStopped" />
-    <Behavior value="RaynorGiveEmSomePepperWeakSpotAcquiredArmorDebuff" />
-  </CEffectApplyBehavior>
   <CEffectModifyUnit id="RaynorHyperionIndomitableResolveModifyCooldown">
     <ValidatorArray value="TargetIsHero" />
     <ValidatorArray value="CasterNotBlindedAndTargetNotEvading" />
-    <ValidatorArray value="RaynorHasHyperionIndomitableResolveTalent" />
+    <ValidatorArray value="RaynorHasHyperionCavalrysArrivedTalent" />
     <ValidatorArray value="RaynorHasGiveEmSomePepperPrimedDummyBehavior" />
     <ImpactUnit Value="Caster" />
     <Cost Abil="RaynorHyperion,Execute" CooldownOperation="Add" CooldownTimeUse="-5" />
   </CEffectModifyUnit>
-  <CEffectSet id="RaynorHyperionCastSet">
-    <EffectArray value="HyperionInitialCreatePersistent" />
-  </CEffectSet>
   <CEffectApplyBehavior id="RaynorHyperionIndomitableResolveApplyBehavior">
-    <ValidatorArray index="0" value="RaynorHasHyperionIndomitableResolveTalent" />
+    <ValidatorArray index="0" value="RaynorHasHyperionCavalrysArrivedTalent" />
     <WhichUnit Value="Caster" />
-    <Behavior value="RaynorHyperionIndomitableResolveUnstoppable" />
-  </CEffectApplyBehavior>
-  <CEffectApplyBehavior id="RaynorPenetratingRoundHeavySlugsApplySlow" parent="StormSlowApply">
-    <ValidatorArray index="0" value="RaynorPenetratingRoundApplySlowTargetFilters" />
-    <Behavior value="RaynorPenetratingRoundHeavySlugsSlow" />
-  </CEffectApplyBehavior>
-  <CEffectApplyBehavior id="RaynorPenetratingRoundHeavySlugsApplyMissileBehavior">
-    <WhichUnit Value="Caster" />
-    <Behavior value="RaynorPenetratingRoundHeavySlugsMissileBehavior" />
+    <Behavior value="RaynorHyperionIndomitableResolveUnstoppableBehavior" />
   </CEffectApplyBehavior>
   <CEffectSwitch id="RaynorPenetratingRoundSlowSwitch">
-    <CaseArray Validator="RaynorHasPenetratingRoundHeavySlugsMissileBehavior" Effect="RaynorPenetratingRoundHeavySlugsApplySlow" />
+    <CaseArray Validator="RaynorHasPenetratingRoundHeavySlugsTalent" Effect="RaynorPenetratingRoundHeavySlugsApplySlow" />
     <CaseDefault value="RaynorPenetratingRoundApplySlow" />
   </CEffectSwitch>
   <CEffectModifyUnit id="RaynorRaynorsRaidersModifyCooldown">
@@ -1183,43 +1349,9 @@
     <EffectArray value="RaynorHeroWeaponDamage" />
     <EffectArray value="RaynorGiveEmSomePepperSearch" />
   </CEffectSet>
-  <CEffectModifyPlayer id="RaynorPenetratingRoundHeavySlugsModifyPlayerDeactivateCooldown">
-    <ValidatorArray value="RaynorHasPenetratingRoundHeavySlugsMissileBehavior" />
-    <WhichPlayer Value="Origin" />
-    <Cost Abil="RaynorHeavySlugs">
-      <Cooldown>
-        <Link value="Abil/HeavySlugs" />
-        <Location value="Player" />
-        <Operation value="Set" />
-        <TimeUse value="30" />
-      </Cooldown>
-    </Cost>
-  </CEffectModifyPlayer>
-  <CEffectCreatePersistent id="RaynorPenetratingRoundHeavySlugsInitialPersistent">
-    <WhichLocation Value="OriginUnit" />
-    <PeriodCount value="1" />
-    <PeriodicEffectArray value="RaynorPenetratingRoundHeavySlugsModifyPlayerActivate" />
-  </CEffectCreatePersistent>
-  <CEffectCreatePersistent id="RaynorPenetratingRoundHeavySlugsCleanupPersistent">
-    <WhichLocation Value="OriginUnit" />
-    <PeriodCount value="3" />
-    <PeriodicEffectArray value="RaynorPenetratingRoundHeavySlugsModifyPlayerDeactivateCooldown" />
-    <PeriodicEffectArray value="RaynorPenetratingRoundHeavySlugsRemoveMissileBehavior" />
-    <PeriodicEffectArray value="RaynorPenetratingRoundHeavySlugsModifyPlayerResetActorGuide" />
-  </CEffectCreatePersistent>
   <CEffectSet id="RaynorBountyHunterActivationSet">
     <EffectArray value="RaynorGiveEmSomePepperBountyHunterSetTokenCount" />
     <ValidatorArray value="RaynorDoesNotHave3TokensOfGiveEmSomePepper" />
-  </CEffectSet>
-  <CEffectModifyPlayer id="RaynorPenetratingRoundHeavySlugsModifyPlayerResetActorGuide">
-    <WhichPlayer Value="Origin" />
-    <EffectArray Operation="Set" Reference="Actor,RaynorPenetratingRoundGuide,Height" Value="10.000000" />
-  </CEffectModifyPlayer>
-  <CEffectSet id="PenetratingRoundHeavySlugsInitialSet">
-    <ValidatorArray value="RaynorDoesNotHavePenetratingRoundHeavySlugsMissileBehavior" />
-    <ValidatorArray value="RaynorPenetratingRoundNotOnCooldown" />
-    <EffectArray value="RaynorPenetratingRoundHeavySlugsInitialPersistent" />
-    <EffectArray value="RaynorPenetratingRoundHeavySlugsApplyMissileBehavior" />
   </CEffectSet>
   <CEffectApplyBehavior id="RaynorGiveEmSomePepperAceintheHoleTalentApplySlow" parent="StormSlowApply">
     <ValidatorArray value="RaynorHasAceInTheHoleTalent" />
@@ -1234,18 +1366,6 @@
     <EffectArray value="RaynorGiveEmSomePepperAceintheHoleTalentApplySlow" />
     <EffectArray value="RaynorGiveEmSomePepperUnstableCompoundTalentProcSet" />
   </CEffectSet>
-  <CEffectModifyPlayer id="RaynorPenetratingRoundHeavySlugsModifyPlayerActivate">
-    <EffectArray Operation="Set" Reference="Actor,RaynorPenetratingRoundGuide,Height" Value="13.000000" />
-    <WhichPlayer Value="Caster" />
-    <Cost Abil="RaynorHeavySlugs">
-      <Cooldown>
-        <Link value="Abil/HeavySlugs" />
-        <Location value="Player" />
-        <Operation value="Set" />
-        <TimeUse value="0.0625" />
-      </Cooldown>
-    </Cost>
-  </CEffectModifyPlayer>
   <CEffectApplyBehavior id="RaynorRaynorsRaidersApplyMovePointState">
     <Behavior value="RaynorRaynorsRaidersMovePointState" />
   </CEffectApplyBehavior>
@@ -1292,54 +1412,6 @@
     <BehaviorLink value="RaynorRaynorsRaidersMovePointState" />
     <Count value="1" />
   </CEffectRemoveBehavior>
-  <CEffectCreatePersistent id="RaynorPenetratingRoundHeavySlugsCreateSearchPersistent">
-    <Marker>
-      <MatchFlags index="Id" value="1" />
-    </Marker>
-    <WhichLocation Value="CasterPoint" />
-    <OffsetVectorStartLocation Value="CasterPoint" />
-    <PeriodCount value="13" />
-    <PeriodicEffectArray value="RaynorPenetratingRoundMissileScan" />
-    <PeriodicOffsetArray Y="-1" />
-    <PeriodicOffsetArray Y="-2" />
-    <PeriodicOffsetArray Y="-3" />
-    <PeriodicOffsetArray Y="-4" />
-    <PeriodicOffsetArray Y="-5" />
-    <PeriodicOffsetArray Y="-6" />
-    <PeriodicOffsetArray Y="-7" />
-    <PeriodicOffsetArray Y="-8" />
-    <PeriodicOffsetArray Y="-9" />
-    <PeriodicOffsetArray Y="-10" />
-    <PeriodicOffsetArray Y="-11" />
-    <PeriodicOffsetArray Y="-12" />
-    <PeriodicOffsetArray Y="-12.5" />
-    <PeriodicPeriodArray value="0" />
-    <PeriodicPeriodArray value="0" />
-    <PeriodicPeriodArray value="0.0625" />
-    <PeriodicPeriodArray value="0" />
-    <PeriodicPeriodArray value="0.0625" />
-    <PeriodicPeriodArray value="0" />
-    <PeriodicPeriodArray value="0" />
-    <PeriodicPeriodArray value="0.0625" />
-    <PeriodicPeriodArray value="0" />
-  </CEffectCreatePersistent>
-  <CEffectApplyBehavior id="RaynorPenetratingRoundDebilitatingRoundApplyDummyBehavior">
-    <WhichUnit Value="Caster" />
-    <Behavior value="PenetratingRoundDebilitatingRoundDummyBehavior" />
-  </CEffectApplyBehavior>
-  <CEffectSwitch id="RaynorPenetratingRoundHeavySlugsRangeSwitch">
-    <CaseArray Validator="RaynorHasPenetratingRoundHeavySlugsMissileBehavior" Effect="RaynorPenetratingRoundHeavySlugsCreatePersistent" />
-    <CaseDefault value="RaynorPenetratingRoundCreatePersistent" />
-  </CEffectSwitch>
-  <CEffectCreatePersistent id="RaynorPenetratingRoundHeavySlugsCreatePersistent">
-    <WhichLocation Value="CasterPoint" />
-    <InitialEffect value="RaynorPenetratingRoundCreateDummyPersistentSet" />
-    <PeriodCount value="2" />
-    <PeriodicEffectArray value="RaynorPenetratingRoundLaunchMissile" />
-    <PeriodicEffectArray value="RaynorPenetratingRoundHeavySlugsCreateSearchPersistent" />
-    <PeriodicOffsetArray Y="-12.5" />
-    <PeriodicPeriodArray value="0" />
-  </CEffectCreatePersistent>
   <CEffectApplyBehavior id="RaynorInspireApplyPvEAttackSpeedBehavior">
     <Behavior value="RaynorInspireAttackSpeedPvE" />
   </CEffectApplyBehavior>
@@ -1394,6 +1466,7 @@
   <CEffectSet id="RaynorGiveEmSomePepperResetSet">
     <EffectArray value="RaynorGiveEmSomePepperRemoveDummyBehavior" />
     <EffectArray value="RaynorGiveEmSomePepperRemoveTokens" />
+    <EffectArray value="RaynorGiveEmSomePepperSergeantPepperAddToken" />
   </CEffectSet>
   <CEffectRemoveBehavior id="RaynorGiveEmSomePepperRemoveDummyBehavior">
     <BehaviorLink value="RaynorGiveEmSomePepperPrimedDummy" />
@@ -1542,34 +1615,17 @@
     <BehaviorLink value="RaynorRaynorsRaidersCopyAttackState" />
     <Count value="1" />
   </CEffectRemoveBehavior>
-  <CEffectRemoveBehavior id="RaynorPenetratingRoundHeavySlugsRemoveMissileBehavior">
-    <WhichUnit Value="Caster" />
-    <BehaviorLink value="RaynorPenetratingRoundHeavySlugsMissileBehavior" />
-  </CEffectRemoveBehavior>
-  <CEffectSet id="RaynorPenetratingRoundKnockbackInitialSet">
-    <EffectArray value="RaynorPenetratingRoundHeavySlugsApplyImpendingStunBehavior" />
-  </CEffectSet>
-  <CEffectModifyTokenCount id="RaynorPenetratingRoundDebilitatingRoundsIncreaseToken" parent="BaseEffectModifyTokenCount">
-    <ValidatorArray value="RaynorHasPenetratingRoundDebilitatingRoundsTalent" />
-    <TokenId value="RaynorPenetratingRoundDebilitatingRoundsTokenCounter" />
-  </CEffectModifyTokenCount>
-  <CEffectModifyTokenCount id="RaynorPenetratingRoundDebilitatingRoundsRemoveToken" parent="BaseEffectModifyTokenCount">
-    <ValidatorArray value="RaynorHasPenetratingRoundDebilitatingRoundsTalent" />
-    <CollationId value="RaynorPenetratingRoundDebilitatingRoundsIncreaseToken" />
-    <TokenId value="RaynorPenetratingRoundDebilitatingRoundsTokenCounter" />
-    <Value value="-1" />
-  </CEffectModifyTokenCount>
   <CEffectModifyUnit id="RaynorAdrenalineRushFuelTheRushModifyCooldownNonHero">
     <ValidatorArray value="CasterNotBlindedAndTargetNotEvading" />
     <ImpactUnit Value="Caster" />
-    <Cost Abil="RaynorAdrenalineRush,Execute" CooldownOperation="Add" CooldownTimeUse="-1.5" />
+    <Cost Abil="RaynorAdrenalineRush,Execute" CooldownOperation="Add" CooldownTimeUse="-2.25" />
   </CEffectModifyUnit>
   <CEffectModifyUnit id="RaynorAdrenalineRushFuelTheRushModifyCooldownHero">
     <ValidatorArray value="TargetIsHero" />
     <ValidatorArray value="CasterNotBlindedAndTargetNotEvading" />
     <Marker Link="Effect/RaynorAdrenalineRushModifyCooldownHero" />
     <ImpactUnit Value="Caster" />
-    <Cost Abil="RaynorAdrenalineRush,Execute" CooldownOperation="Add" CooldownTimeUse="-3" />
+    <Cost Abil="RaynorAdrenalineRush,Execute" CooldownOperation="Add" CooldownTimeUse="-4.5" />
   </CEffectModifyUnit>
   <CEffectSwitch id="RaynorAdrenalineRushFuelTheRushNonHeroSwitch">
     <CaseArray Validator="RaynorFuelTheRushCombine" Effect="RaynorAdrenalineRushFuelTheRushModifyCooldownNonHero" />
@@ -1670,6 +1726,11 @@
     <ImpactUnit Value="Caster" />
     <Cost Abil="RaynorAdrenalineRush,Execute" CooldownOperation="Add" CooldownTimeUse="-1" />
   </CEffectModifyUnit>
+  <CEffectModifyUnit id="RaynorPenetratingRoundDebilitatingRoundModifyCooldownHero">
+    <ValidatorArray value="TargetIsHero" />
+    <ImpactUnit Value="Caster" />
+    <Cost Abil="RaynorPenetratingRound,Execute" CooldownOperation="Add" CooldownTimeUse="-2" />
+  </CEffectModifyUnit>
   <CEffectSet id="RaynorPenetratingRoundMediumKnockbackPersistentInitialSet">
     <EffectArray value="HeroRemovePushPullDebuffs" />
     <EffectArray value="RaynorPenetratingRoundMediumApplyBehavior" />
@@ -1695,10 +1756,12 @@
   <CEffectSet id="RaynorHeroWeaponInitialSet">
     <EffectArray value="UniversalWeaponLaunchSet" />
     <EffectArray value="RaynorHeroWeaponLaunchMissile" />
+    <EffectArray value="RaynorRallyingCryAddToken" />
   </CEffectSet>
   <CEffectSet id="RaynorWeaponMeleeInitialSet">
     <EffectArray value="UniversalWeaponLaunchSet" />
     <EffectArray value="RaynorHeroWeaponSet" />
+    <EffectArray value="RaynorRallyingCryAddToken" />
   </CEffectSet>
   <CEffectCreatePersistent id="RaynorPenetratingRoundCreateSearchPersistent">
     <Marker>
@@ -1770,6 +1833,9 @@
   <CEffectSet id="RaynorHyperionLaunchMissileSet">
     <EffectArray value="RaynorHyperionApplyMissileScan" />
     <EffectArray value="RaynorHyperionApplyYamatoBehavior" />
+    <EffectArray value="RaynorHyperionApplyActiveBehavior" />
+    <EffectArray value="RaynorHyperionPepperedAssualtModifyTokenCount" />
+    <EffectArray value="RaynorHyperionPepperedAssaultApplyArmorReductionBehavior" />
   </CEffectSet>
   <CEffectCreatePersistent id="HyperionWeaponDamageDelayBattleHyperion">
     <WhichLocation Value="TargetUnit" />
@@ -1813,6 +1879,7 @@
       <Radius value="8.75" />
     </AreaArray>
     <TargetSorts>
+      <SortArray value="RaynorGiveEmSomePepperHitRecently" />
       <SortArray value="TSRandom" />
     </TargetSorts>
     <AreaRelativeOffset Y="0.25" />
@@ -1833,7 +1900,6 @@
   <CEffectDamage id="RaynorHyperionYamatoDamage" parent="StormSpell">
     <ValidatorArray value="TargetNotStasisOrInvulnerable" />
     <Amount value="794" />
-    <MultiplicativeModifierArray index="AceInTheHole" Validator="RaynorAceInTheHoleCCCombine" Modifier="0.1" Crit="1" />
     <DamageModifierSource Value="Creator" />
   </CEffectDamage>
   <CEffectCreatePersistent id="RaynorHyperionYamatoDamageDelay">
@@ -1856,6 +1922,17 @@
     </TargetSorts>
     <MaxCount value="1" />
   </CEffectEnumArea>
+  <CEffectEnumArea id="RaynorExecuteOrdersSearch">
+    <ValidatorArray value="RaynorHasHyperionExecuteOrdersTalent" />
+    <SearchFilters value="Heroic;Player,Ally,ImmuneToAOE,Missile,Stasis,Dead,Hidden,Invulnerable,Benign" />
+    <TargetSorts>
+      <SortArray value="TSDistanceFromCaster" />
+    </TargetSorts>
+    <AreaArray Effect="HyperionInitialCreatePersistent">
+      <Radius value="500" />
+    </AreaArray>
+    <MaxCount value="1" />
+  </CEffectEnumArea>
   <CEffectEnumArea id="RaynorHyperionYamatoSoundDummySearch">
     <SearchFilters value="Structure,Visible;Player,Ally,ImmuneToAOE,Missile,Stasis,Dead,Hidden,Invulnerable,Benign" />
     <AreaArray MaxCount="1" Effect="RaynorHyperionYamatoSoundDummyDelay">
@@ -1873,14 +1950,14 @@
     <PeriodicPeriodArray value="3" />
   </CEffectCreatePersistent>
   <CEffectEnumArea id="RaynorInspireRallyingCryAllyHeroSearch">
-    <SearchFilters value="Heroic;Self,Neutral,Enemy,NoMinionAggro,Structure,ImmuneToFriendlyAbilities,Worker,Missile,Item,Stasis,Dead,Hidden" />
+    <SearchFilters value="Heroic;Self,Neutral,Enemy,NoMinionAggro,Structure,ImmuneToFriendlyAbilities,Worker,Missile,Item,Stasis,Dead,Hidden,MapBoss" />
     <AreaArray Effect="RaynorInspireRallyingCryAllyBuffSet">
       <Radius value="8" />
     </AreaArray>
     <SearchFlags index="ExtendByUnitRadius" value="1" />
   </CEffectEnumArea>
   <CEffectSet id="RaynorPenetratingRoundLaunchSet">
-    <EffectArray value="RaynorPenetratingRoundApplyConfidentAimReadyBehavior" />
+    <EffectArray value="RaynorPenetratingRoundLineEmUpRemoveTokens" />
   </CEffectSet>
   <CEffectModifyUnit id="RaynorInspireModifyAttack">
     <ImpactUnit Value="Caster" />
@@ -1893,6 +1970,7 @@
   </CEffectSwitch>
   <CEffectSet id="RaynorBansheeMissilesDamageSet">
     <EffectArray value="RaynorRaynorsRaidersDamage" />
+    <EffectArray value="RaynorDuskWingApplyBehavior" />
   </CEffectSet>
   <CEffectSet id="RaynorHyperionWeaponDamageSet">
     <EffectArray value="HyperionWeaponDamage" />
@@ -1910,13 +1988,11 @@
   </CEffectSet>
   <CEffectSet id="RaynorInspireInitialSet">
     <EffectArray value="RaynorInspireModifyAttack" />
-    <EffectArray value="RaynorHyperionIndomitableResolveApplyBehavior" />
     <EffectArray value="RaynorInspirePvESearch" />
     <EffectArray value="RaynorInspireRallyingCryAllySearchSet" />
     <EffectArray value="RaynorInspireApplySelfAttackSpeedBehavior" />
     <EffectArray value="RaynorInspireApplySelfMoveSpeedBehavior" />
     <EffectArray value="RaynorInspireGiveMeMoreApplyAttackRangeBehavior" />
-    <EffectArray value="RaynorPenetratingRoundDebilitatingRoundsIncreaseToken" />
   </CEffectSet>
   <CEffectCreatePersistent id="RaynorPenetratingRoundCreatePersistentRevealOffsets">
     <Chance value="0" />
@@ -1955,7 +2031,7 @@
     <PeriodicPeriodArray value="0" />
   </CEffectCreatePersistent>
   <CEffectSet id="RaynorPenetratingRoundCreateSet">
-    <EffectArray value="RaynorPenetratingRoundHeavySlugsRangeSwitch" />
+    <EffectArray value="RaynorPenetratingRoundCreatePersistent" />
     <EffectArray value="RaynorPenetratingRoundCreatePersistentRevealOffsets" />
     <TargetLocationType value="Point" />
   </CEffectSet>
@@ -2015,8 +2091,6 @@
     <CaseDefault value="RaynorRaynorsRaidersDamage" />
   </CEffectSwitch>
   <CEffectDamage id="RaynorRaynorsRaidersDamage" parent="StormSummonedUnitWeapon">
-    <MultiplicativeModifierArray index="AceInTheHole" Validator="RaynorAceInTheHoleCCCombine" Modifier="0.1" Crit="1" />
-    <MultiplicativeModifierArray index="Duskwing" Validator="RaynorHasDuskWingsTalent" Modifier="1" />
     <Amount value="21" />
     <SourceButtonFace value="RaynorRaynorsRaider" />
   </CEffectDamage>
@@ -2087,13 +2161,13 @@
     <EffectArray value="RaynorAdrenalineRushHeroicTargetSwitch" />
     <EffectArray value="RaynorBehemothArmorAddToken" />
     <EffectArray value="RaynorGiveEmSomePepperAceintheHoleTalentApplySlow" />
+    <EffectArray value="RaynorGiveEmSomePepperCavalrysArrivedApplyBehavior" />
     <EffectArray value="RaynorGiveEmSomePepperUnstableCompoundTalentProcSet" />
     <EffectArray value="RaynorHyperionIndomitableResolveModifyCooldown" />
     <EffectArray value="RaynorBountyHunterEffectSet" />
-    <EffectArray value="GiveEmSomePepperWeakSpotAcquiredApplyBehavior" />
     <EffectArray value="RaynorSustainingRoundsHealingSwitch" />
     <EffectArray value="RaynorGiveEmSomePepperVeteranMarksmanAddToken" />
-    <EffectArray value="RaynorGiveEmSomePepperAddToken" />
+    <EffectArray value="RaynorHyperionPepperedAssaultModifyTokenSwitch" />
     <EffectArray value="RaynorRaynorsRaidersCopyAttackTrackedUnits" />
   </CEffectSet>
   <CEffectCreateHealer id="RaynorAdrenalineRushHealer" parent="StormSelfOnlyHealingSpellPercent">
@@ -2104,21 +2178,22 @@
     <ImpactUnit Value="Caster" />
     <VitalArray index="Life">
       <Change value="110" />
-      <ScoreArray Validator="TargetIsHero" Value="SelfHealing" />
+      <ScoreArray Validator="TargetIsHero" Value="Healing" />
     </VitalArray>
   </CEffectModifyUnit>
+  <CEffectSet id="RaynorAdrenalineRushSet">
+    <ValidatorArray value="CasterLifeNotFull" />
+    <EffectArray value="RaynorInspireFightOrFlightApplyResistantBehavior" />
+    <EffectArray value="RaynorAdrenalineRushApplyHoTSwitch" />
+    <EffectArray value="RaynorAdrenalineRushRaidersRollApplyInitialUnstoppableBehavior" />
+  </CEffectSet>
   <CEffectModifyUnit id="RaynorAdrenalineRushModifyUnitDummy">
     <VitalArray index="Life">
       <Change value="438" />
-      <ScoreArray Validator="TargetIsHero" Value="SelfHealing" />
+      <ScoreArray Validator="TargetIsHero" Value="Healing" />
     </VitalArray>
     <Chance value="0" />
   </CEffectModifyUnit>
-  <CEffectSet id="RaynorAdrenalineRushSet">
-    <EffectArray value="RaynorInspireFightOrFlightApplyResistantBehavior" />
-    <EffectArray value="RaynorAdrenalineRushApplyHoT" />
-    <ValidatorArray value="CasterLifeNotFull" />
-  </CEffectSet>
   <CEffectApplyBehavior id="RaynorInspireFightOrFlightApplyResistantBehavior">
     <Chance value="0" />
     <WhichUnit Value="Caster" />
@@ -2215,7 +2290,6 @@
     <EffectArray value="RaynorHyperionGroundStrafeDamage" />
   </CEffectSet>
   <CEffectDamage id="RaynorHeroWeaponDamage" parent="StormWeapon">
-    <MultiplicativeModifierArray index="AceInTheHole" Validator="RaynorAceInTheHoleCCCombine" Modifier="0.1" Crit="1" />
     <MultiplicativeModifierArray index="Exterminator" Validator="RaynorGiveEmSomePepperExterminatorCombine" Modifier="0.5" />
     <MultiplicativeModifierArray index="ExterminatorInspire" Validator="RaynorGiveEmSomePepperExterminatorInspireCombine" Modifier="0.75" />
     <MultiplicativeModifierArray index="Execute" Validator="RaynorExecuteCombine" Modifier="0.25" Crit="1" />
@@ -2225,17 +2299,16 @@
       <Modifier value="1.25" />
       <Crit value="1" />
     </MultiplicativeModifierArray>
-    <Amount value="101" />
+    <MultiplicativeModifierArray index="VeteranMarksman" Validator="RaynorHas3TokensOfGiveEmSomePepper" Accumulator="RaynorGiveEmSomePepperVeteranMarksmanLoanAccumulator" />
+    <Amount value="92" />
   </CEffectDamage>
   <CEffectDamage id="RaynorGiveEmSomePepperWeaponDamage">
-    <MultiplicativeModifierArray index="AceInTheHole" Validator="RaynorAceInTheHoleCCCombine" Modifier="0.1" Crit="1" />
     <MultiplicativeModifierArray index="Exterminator" Validator="RaynorGiveEmSomePepperExterminatorCombine" Modifier="0.5" />
     <MultiplicativeModifierArray index="ExterminatorInspire" Validator="RaynorGiveEmSomePepperExterminatorInspireCombine" Modifier="0.75" />
     <MultiplicativeModifierArray index="Execute" Validator="RaynorExecuteCombine" Modifier="0.25" Crit="1" />
-    <Amount value="101" />
+    <Amount value="92" />
   </CEffectDamage>
   <CEffectDamage id="RaynorHyperionGroundStrafeDamage" parent="StormSpell">
-    <MultiplicativeModifierArray index="AceInTheHole" Validator="RaynorAceInTheHoleCCCombine" Modifier="0.1" />
     <Amount value="40" />
     <DamageModifierSource Value="Creator" />
   </CEffectDamage>
@@ -2251,7 +2324,6 @@
   </CEffectCreatePersistent>
   <CEffectDamage id="HyperionSpecialWeaponDamage" parent="StormSpell">
     <Amount value="80" />
-    <MultiplicativeModifierArray index="AceInTheHole" Validator="RaynorAceInTheHoleCCCombine" Modifier="0.1" Crit="1" />
     <DamageModifierSource Value="Creator" />
   </CEffectDamage>
   <CEffectLaunchMissile id="HyperionSpecialWeaponLaunchMissile">
@@ -2265,6 +2337,8 @@
     <EffectArray value="RaynorPenetratingRoundDamage" />
     <EffectArray value="RaynorPenetratingRoundSlowSwitch" />
     <EffectArray value="RaynorPenetratingRoundKnockbackSwitch" />
+    <EffectArray value="RaynorPenetratingRoundDebilitatingRoundsHeroImpactSet" />
+    <EffectArray value="RaynorPenetratingRoundLineEmUpAddToken" />
   </CEffectSet>
   <CEffectRemoveBehavior id="RaynorPenetratingRoundRemoveBehavior">
     <BehaviorLink value="RaynorPenetratingRoundKnockback" />
@@ -2274,9 +2348,9 @@
   </CEffectApplyBehavior>
   <CEffectDamage id="HyperionWeaponDamage" parent="StormSpell">
     <Amount value="66" />
-    <MultiplicativeModifierArray index="AceInTheHole" Validator="RaynorAceInTheHoleCCCombine" Modifier="0.1" Crit="1" />
     <ValidatorArray value="NotInStasisorInvulnerable" />
     <DamageModifierSource Value="Creator" />
+    <MultiplicativeModifierArray index="CavalrysArrived" Validator="RaynorTargetHasCavalrysArrivedBehavior" Modifier="1" Crit="1" />
   </CEffectDamage>
   <CEffectApplyBehavior id="RaynorPenetratingRoundApplyMissileScan">
     <WhichUnit Value="Source" />
@@ -2302,9 +2376,9 @@
   </CEffectEnumArea>
   <CEffectDamage id="RaynorPenetratingRoundDamage" parent="StormSpell">
     <ValidatorArray value="RaynorNoPenetratingRoundExtraDamage" />
-    <MultiplicativeModifierArray index="AceInTheHole" Validator="RaynorAceInTheHoleCCCombine" Modifier="0.1" Crit="1" />
-    <MultiplicativeModifierArray index="PaintThemRed" Validator="RaynorHasPenetratingRoundPaintThemRedTalent" Modifier="0.5" />
-    <Amount value="220" />
+    <MultiplicativeModifierArray index="AceInTheHole" Validator="RaynorAceInTheHoleCCCombine" Modifier="0.25" Crit="1" />
+    <MultiplicativeModifierArray index="PaintThemRed" Validator="RaynorHasPenetratingRoundPaintThemRedTalent" Modifier="0.5" Crit="1" />
+    <Amount value="190" />
     <LeechValidator index="Life" value="PenetratingRoundPaintThemRedCombine" />
     <LeechFraction index="Life" value="0.9" />
   </CEffectDamage>
@@ -2327,7 +2401,6 @@
     </Marker>
     <ImpactLocation Value="TargetPoint" />
     <LaunchOffset Y="-1.5" />
-    <FinishEffect value="RaynorPenetratingRoundHeavySlugsCleanupPersistent" />
     <AmmoUnit value="RaynorPenetratingRoundMissile" />
   </CEffectLaunchMissile>
   <CEffectEnumArea id="RaynorPenetratingRoundMissileScan">
@@ -2350,6 +2423,19 @@
   <CEffectSet id="RaynorRaynorsRaidersIssueRedirectOrderDummyPoint">
     <TargetLocationType value="Point" />
   </CEffectSet>
+  <CEffectModifyTokenCount id="RaynorPenetratingRoundLineEmUpAddToken" parent="BaseEffectModifyTokenCount">
+    <TokenId value="RaynorPenetratingRoundLineEmUpTokenCounter" />
+    <ValidatorArray value="TargetIsHero" />
+  </CEffectModifyTokenCount>
+  <CEffectModifyUnit id="RaynorPenetratingRoundLineEmUpCooldownReduction">
+    <ImpactUnit Value="Caster" />
+    <Cost Abil="RaynorPenetratingRound,Execute" CooldownOperation="Add" CooldownTimeUse="-3" />
+  </CEffectModifyUnit>
+  <CEffectModifyTokenCount id="RaynorPenetratingRoundLineEmUpRemoveTokens" parent="BaseEffectModifyTokenCount">
+    <TokenId value="RaynorPenetratingRoundLineEmUpTokenCounter" />
+    <Operation value="Set" />
+    <Value value="0" />
+  </CEffectModifyTokenCount>
   <CHero id="Raynor" parent="LegacyVOHero">
     <AIComplexityTier value="Low" />
     <AttributeId value="Rayn" />
@@ -2368,53 +2454,55 @@
     <SkinArray value="RaynorMadAxe18" />
     <SkinArray value="RaynorToys19" />
     <SkinArray value="RaynorOWC20" />
+    <SkinArray value="RaynorClassic21" />
     <DefaultMount value="HorseCommon" />
     <VariationArray value="RaynorGold" />
     <VariationArray value="RaynorSilver" />
     <VariationArray value="RaynorBaseVar3" />
     <VariationArray value="RaynorBaseVar4" />
-    <TalentTreeArray Talent="RaynorVeteranMarksman" Tier="1" Column="1" />
-    <TalentTreeArray Talent="RaynorAceInTheHole" Tier="1" Column="2" />
-    <TalentTreeArray Talent="RaynorGiveEmSomePepperExterminator" Tier="1" Column="3" />
+    <TalentTreeArray Talent="RaynorAceInTheHole" Tier="1" Column="1" />
+    <TalentTreeArray Talent="RaynorGiveEmSomePepperExterminator" Tier="1" Column="2" />
+    <TalentTreeArray Talent="RaynorVeteranMarksman" Tier="1" Column="3" />
     <TalentTreeArray Talent="RaynorMasteryFightorFlightAdrenalineRush" Tier="2" Column="1" />
     <TalentTreeArray Talent="RaynorBasicAttackSustainingRounds" Tier="2" Column="2" />
     <TalentTreeArray Talent="RaynorBehemothArmor" Tier="2" Column="3" />
-    <TalentTreeArray Talent="RaynorInspireFuelTheRush" Tier="3" Column="1" />
-    <TalentTreeArray Talent="RaynorGiveEmSomePepperUnstableCompound" Tier="3" Column="2" />
-    <TalentTreeArray Talent="RaynorPenetratingRoundHeavySlugs" Tier="3" Column="3" />
+    <TalentTreeArray Talent="RaynorPenetratingRoundHeavySlugs" Tier="3" Column="1" />
+    <TalentTreeArray Talent="RaynorInspireFuelTheRush" Tier="3" Column="2" />
+    <TalentTreeArray Talent="RaynorGiveEmSomePepperUnstableCompound" Tier="3" Column="3" />
     <TalentTreeArray Talent="RaynorHeroicAbilityHyperion" Tier="4" Column="1" />
     <TalentTreeArray Talent="RaynorHeroicAbilityRaynorsRaiders" Tier="4" Column="2" />
-    <TalentTreeArray Talent="RaynorPenetratingRoundDebilitatingRounds" Tier="5" Column="1" />
-    <TalentTreeArray Talent="RaynorInspireRallyingCry" Tier="5" Column="2" />
-    <TalentTreeArray Talent="RaynorInspireGiddyUp" Tier="5" Column="3" />
+    <TalentTreeArray Talent="RaynorPenetratingRoundLine'EmUp" Tier="5" Column="1" />
+    <TalentTreeArray Talent="RaynorInspireGiddyUp" Tier="5" Column="2" />
+    <TalentTreeArray Talent="RaynorMasteryGiveMeMoreAdrenalineRush" Tier="5" Column="3" />
     <TalentTreeArray Talent="RaynorPenetratingRoundPaintThemRed" Tier="6" Column="1" />
-    <TalentTreeArray Talent="RaynorMasteryGiveMeMoreAdrenalineRush" Tier="6" Column="2" />
+    <TalentTreeArray Talent="RaynorInspireRallyingCry" Tier="6" Column="2" />
     <TalentTreeArray Talent="RaynorBountyHunter" Tier="6" Column="3" />
-    <TalentTreeArray Talent="RaynorHyperionIndomitableResolve" Tier="7" Column="1">
+    <TalentTreeArray Talent="RaynorHyperionCavalrysArrived" Tier="7" Column="1">
       <PrerequisiteTalentArray value="RaynorHeroicAbilityHyperion" />
     </TalentTreeArray>
     <TalentTreeArray Talent="RaynorDuskWing" Tier="7" Column="2">
       <PrerequisiteTalentArray value="RaynorHeroicAbilityRaynorsRaiders" />
     </TalentTreeArray>
-    <TalentTreeArray Talent="RaynorGiveEmSomePepperWeakSpotAcquired" Tier="7" Column="3" />
-    <TalentTreeArray Talent="RaynorBasicAttackExecute" Tier="7" Column="4" />
+    <TalentTreeArray Talent="RaynorAdrenalineRushRaidersRoll" Tier="7" Column="3" />
+    <TalentTreeArray Talent="RaynorGive'EmSomePepperSergeantPepper" Tier="7" Column="4" />
+    <TalentTreeArray Talent="RaynorHyperionExecuteOrders" Tier="7" Column="5" />
     <TalentAIBuildsArray ChanceToPick="16">
       <TalentsArray value="RaynorVeteranMarksman" />
       <TalentsArray value="RaynorBasicAttackSustainingRounds" />
       <TalentsArray value="RaynorGiveEmSomePepperUnstableCompound" />
       <TalentsArray value="RaynorHeroicAbilityHyperion" />
-      <TalentsArray value="RaynorInspireRallyingCry" />
+      <TalentsArray value="RaynorMasteryGiveMeMoreAdrenalineRush" />
       <TalentsArray value="RaynorBountyHunter" />
-      <TalentsArray value="RaynorGiveEmSomePepperWeakSpotAcquired" />
+      <TalentsArray value="RaynorHyperionCavalrysArrived" />
     </TalentAIBuildsArray>
     <TalentAIBuildsArray ChanceToPick="16">
       <TalentsArray value="RaynorVeteranMarksman" />
       <TalentsArray value="RaynorBehemothArmor" />
       <TalentsArray value="RaynorPenetratingRoundHeavySlugs" />
       <TalentsArray value="RaynorHeroicAbilityHyperion" />
-      <TalentsArray value="RaynorPenetratingRoundDebilitatingRounds" />
+      <TalentsArray value="RaynorInspireGiddyUp" />
       <TalentsArray value="RaynorPenetratingRoundPaintThemRed" />
-      <TalentsArray value="RaynorBasicAttackExecute" />
+      <TalentsArray value="RaynorHyperionExecuteOrders" />
     </TalentAIBuildsArray>
     <TalentAIBuildsArray ChanceToPick="16">
       <TalentsArray value="RaynorAceInTheHole" />
@@ -2423,16 +2511,16 @@
       <TalentsArray value="RaynorHeroicAbilityHyperion" />
       <TalentsArray value="RaynorInspireGiddyUp" />
       <TalentsArray value="RaynorBountyHunter" />
-      <TalentsArray value="RaynorGiveEmSomePepperWeakSpotAcquired" />
+      <TalentsArray value="RaynorGive'EmSomePepperSergeantPepper" />
     </TalentAIBuildsArray>
     <TalentAIBuildsArray ChanceToPick="16">
       <TalentsArray value="RaynorGiveEmSomePepperExterminator" />
       <TalentsArray value="RaynorMasteryFightorFlightAdrenalineRush" />
       <TalentsArray value="RaynorInspireFuelTheRush" />
       <TalentsArray value="RaynorHeroicAbilityHyperion" />
+      <TalentsArray value="RaynorPenetratingRoundLine'EmUp" />
       <TalentsArray value="RaynorInspireRallyingCry" />
-      <TalentsArray value="RaynorMasteryGiveMeMoreAdrenalineRush" />
-      <TalentsArray value="RaynorGiveEmSomePepperWeakSpotAcquired" />
+      <TalentsArray value="RaynorHyperionExecuteOrders" />
     </TalentAIBuildsArray>
     <TalentAIBuildsArray AIOnly="1" ChanceToPick="16">
       <TalentsArray value="RaynorGiveEmSomePepperExterminator" />
@@ -2440,7 +2528,7 @@
       <TalentsArray value="RaynorInspireFuelTheRush" />
       <TalentsArray value="RaynorHeroicAbilityRaynorsRaiders" />
       <TalentsArray value="RaynorInspireGiddyUp" />
-      <TalentsArray value="RaynorMasteryGiveMeMoreAdrenalineRush" />
+      <TalentsArray value="RaynorBountyHunter" />
       <TalentsArray value="RaynorDuskWing" />
     </TalentAIBuildsArray>
     <TalentAIBuildsArray AIOnly="1" ChanceToPick="16">
@@ -2448,9 +2536,9 @@
       <TalentsArray value="RaynorBasicAttackSustainingRounds" />
       <TalentsArray value="RaynorGiveEmSomePepperUnstableCompound" />
       <TalentsArray value="RaynorHeroicAbilityRaynorsRaiders" />
-      <TalentsArray value="RaynorPenetratingRoundDebilitatingRounds" />
+      <TalentsArray value="RaynorPenetratingRoundLine'EmUp" />
       <TalentsArray value="RaynorPenetratingRoundPaintThemRed" />
-      <TalentsArray value="RaynorDuskWing" />
+      <TalentsArray value="RaynorAdrenalineRushRaidersRoll" />
     </TalentAIBuildsArray>
     <HeroTierAchievementId value="5216701565563489209" />
     <LevelScalingArray>
@@ -2597,6 +2685,12 @@
     <VOArray index="PingDestroyThing" value="Raynor_Ping_DestroyThing" />
     <VOArray index="PingTransport" value="Raynor_Ping_Transport" />
     <VOArray index="PingTurnIn" value="Raynor_Ping_TurnIn" />
+    <VOArray index="VOPing_AssistMe" value="Raynor_VOPing_AssistMe" />
+    <VOArray index="VOPing_Danger" value="Raynor_VOPing_Danger" />
+    <VOArray index="VOPing_Defend" value="Raynor_VOPing_Defend" />
+    <VOArray index="VOPing_EnemyMissing" value="Raynor_VOPing_EnemyMissing" />
+    <VOArray index="VOPing_OnMyWay" value="Raynor_VOPing_OnMyWay" />
+    <VOArray index="VOPing_Retreat" value="Raynor_VOPing_Retreat" />
     <HeroAbilArray Abil="RaynorPenetratingRound" Button="RaynorPenetratingRound">
       <Flags index="ShowInHeroSelect" value="1" />
       <Flags index="UsesCharges" value="1" />
@@ -2801,12 +2895,42 @@
   <CRewardHeroMastery id="RaynorMasteryRing3">
     <License value="52278" />
   </CRewardHeroMastery>
-  <CTalent id="RaynorGiveEmSomePepperWeakSpotAcquired">
-    <Face value="RaynorGiveEmSomePepperWeakSpotAcquired" />
+  <CTalent id="RaynorHyperionExecuteOrders">
+    <Face value="RaynorHyperionExecuteOrders" />
+  </CTalent>
+  <CTalent id="RaynorPenetratingRoundLine'EmUp">
+    <Face value="RaynorPenetratingRoundLine'EmUp" />
+    <Abil value="RaynorPenetratingRound" />
+    <RankArray>
+      <BehaviorArray value="RaynorPenetratingRoundLineEmUpTokenCounter" />
+    </RankArray>
+    <AbilityModificationArray>
+      <Modifications>
+        <Type value="FlatModification" />
+        <Entry value="RaynorPenetratingRound" />
+        <Field value="Cost[0].Cooldown.TimeUse" />
+        <Value value="-3.000000" />
+      </Modifications>
+    </AbilityModificationArray>
+  </CTalent>
+  <CTalent id="RaynorAdrenalineRushRaidersRoll">
+    <Face value="RaynorAdrenalineRushRaidersRoll" />
+    <Abil value="RaynorAdrenalineRush" />
+  </CTalent>
+  <CTalent id="RaynorGive'EmSomePepperSergeantPepper">
+    <Face value="RaynorGive'EmSomePepperSergeantPepper" />
     <Trait value="1" />
   </CTalent>
-  <CTalent id="RaynorHyperionIndomitableResolve">
-    <Face value="RaynorHyperionIndomitableResolve" />
+  <CTalent id="RaynorHyperionPepperedAssault">
+    <Face value="RaynorHyperionPepperedAssault" />
+    <Abil value="RaynorHyperion" />
+  </CTalent>
+  <CTalent id="RaynorGiveEmSomePepperWeakSpotAcquired">
+    <Face value="RaynorGiveEmSomePepperWeakSpotAcquired" />
+    <Abil value="RaynorRaynorsRaidersDummy" />
+  </CTalent>
+  <CTalent id="RaynorHyperionCavalrysArrived">
+    <Face value="RaynorCavalrysArrived" />
     <Abil value="RaynorHyperion" />
   </CTalent>
   <CTalent id="RaynorGiveEmSomePepperUnstableCompound">
@@ -2833,6 +2957,7 @@
     <Face value="RaynorVeteranMarksman" />
     <RankArray>
       <BehaviorArray value="RaynorGiveEmSomePepperVeteranMarksmanQuestToken" />
+      <BehaviorArray value="RaynorGiveEmSomePepperVeteranMarksmanLoanToken" />
     </RankArray>
     <Trait value="1" />
     <QuestData StackBehavior="RaynorGiveEmSomePepperVeteranMarksmanQuestToken" />
@@ -2862,75 +2987,46 @@
     <AbilityModificationArray>
       <Modifications>
         <Type value="FlatModification" />
-        <Catalog value="Effect" />
-        <Entry value="RaynorInspireRallyingCryAllySearchSet" />
-        <Field value="Chance" />
-        <Value value="1.000000" />
-      </Modifications>
-      <Modifications>
-        <Type value="FlatModification" />
         <Catalog value="Behavior" />
         <Entry value="RaynorInspireAttackSpeedSelf" />
-        <Field value="Duration" />
-        <Value value="1.000000" />
-      </Modifications>
-      <Modifications>
-        <Type value="FlatModification" />
-        <Catalog value="Behavior" />
-        <Entry value="RaynorInspireMoveSpeedSelf" />
-        <Field value="Duration" />
-        <Value value="1.000000" />
+        <Field value="Modification.AdditiveAttackSpeedFactor" />
+        <Value value="0.200000" />
       </Modifications>
       <Modifications>
         <Type value="FlatModification" />
         <Catalog value="Behavior" />
         <Entry value="RaynorInspireAttackSpeedPvE" />
-        <Field value="Duration" />
-        <Value value="1.000000" />
-      </Modifications>
-      <Modifications>
-        <Type value="FlatModification" />
-        <Catalog value="Behavior" />
-        <Entry value="RaynorInspireMoveSpeedPvE" />
-        <Field value="Duration" />
-        <Value value="1.000000" />
-      </Modifications>
-      <Modifications>
-        <Type value="FlatModification" />
-        <Catalog value="Behavior" />
-        <Entry value="RaynorGiveMeMoreAttackRangeCarryBehavior" />
-        <Field value="Duration" />
-        <Value value="1.000000" />
+        <Field value="Modification.AdditiveAttackSpeedFactor" />
+        <Value value="0.200000" />
       </Modifications>
     </AbilityModificationArray>
+    <RankArray>
+      <BehaviorArray value="RaynorRallyingCryTokenCounter" />
+    </RankArray>
   </CTalent>
   <CTalent id="RaynorPenetratingRoundHeavySlugs">
     <Face value="RaynorPenetratingRoundHeavySlugs" />
-    <Abil value="RaynorHeavySlugs" />
-    <RankArray>
-      <BehaviorArray value="RaynorHeavySlugsItem" />
-    </RankArray>
-    <Active value="1" />
-  </CTalent>
-  <CTalent id="RaynorPenetratingRoundDebilitatingRounds">
-    <Face value="RaynorPenetratingRoundDebilitatingRounds" />
-    <RankArray>
-      <BehaviorArray value="RaynorPenetratingRoundDebilitatingRoundsTokenCounter" />
-    </RankArray>
     <AbilityModificationArray>
       <Modifications>
         <Type value="FlatModification" />
-        <Entry value="RaynorPenetratingRound" />
-        <Field value="Cost.Cooldown.TimeUse" />
-        <Value value="-3.000000" />
+        <Catalog value="Behavior" />
+        <Entry value="RaynorPenetratingRoundSlow" />
+        <Field value="Duration" />
+        <Value value="1.500000" />
       </Modifications>
       <Modifications>
         <Type value="FlatModification" />
-        <Entry value="RaynorPenetratingRound" />
-        <Field value="Cost[0].Vital[Energy]" />
-        <Value value="-20.000000" />
+        <Catalog value="Behavior" />
+        <Entry value="RaynorPenetratingRoundSlow" />
+        <Field value="Modification.UnifiedMoveSpeedFactor" />
+        <Value value="-0.150000" />
       </Modifications>
     </AbilityModificationArray>
+    <Abil value="RaynorPenetratingRound" />
+  </CTalent>
+  <CTalent id="RaynorPenetratingRoundDebilitatingRounds">
+    <Face value="RaynorPenetratingRoundDebilitatingRounds" />
+    <Abil value="RaynorPenetratingRound" />
   </CTalent>
   <CTalent id="RaynorInspireFuelTheRush">
     <Face value="RaynorInspireFuelTheRush" />
@@ -2939,12 +3035,13 @@
         <Type value="FlatModification" />
         <Entry value="RaynorAdrenalineRush" />
         <Field value="Cost[0].Vital[Energy]" />
-        <Value value="-25.000000" />
+        <Value value="-30.000000" />
       </Modifications>
     </AbilityModificationArray>
   </CTalent>
   <CTalent id="RaynorGiveEmSomePepperExterminator">
     <Face value="RaynorExterminator" />
+    <Abil value="RaynorInspire" />
   </CTalent>
   <CTalent id="RaynorInspireGiddyUp">
     <Face value="RaynorInspireGiddyUp" />
@@ -2958,26 +3055,27 @@
         <Catalog value="Behavior" />
         <Entry value="RaynorInspireMoveSpeedSelf" />
         <Field value="Modification.UnifiedMoveSpeedFactor" />
-        <Value value="0.080000" />
+        <Value value="0.100000" />
       </Modifications>
       <Modifications>
         <Type value="FlatModification" />
         <Catalog value="Behavior" />
         <Entry value="Mounted" />
         <Field value="Modification.UnifiedMoveSpeedFactor" />
-        <Value value="0.080000" />
+        <Value value="0.100000" />
       </Modifications>
       <Modifications>
         <Type value="FlatModification" />
         <Catalog value="Behavior" />
         <Entry value="RaynorInspireMoveSpeedPvE" />
         <Field value="Modification.UnifiedMoveSpeedFactor" />
-        <Value value="0.080000" />
+        <Value value="0.100000" />
       </Modifications>
     </AbilityModificationArray>
   </CTalent>
   <CTalent id="RaynorAceInTheHole">
     <Face value="RaynorAceInTheHole" />
+    <Abil value="RaynorPenetratingRound" />
   </CTalent>
   <CTalent id="RaynorBehemothArmor">
     <Face value="RaynorBehemothArmor" />
@@ -3063,14 +3161,20 @@
         <Type value="FlatModification" />
         <Catalog value="Behavior" />
         <Entry value="RaynorAdrenalineRushHoT" />
-        <Field value="PeriodCount" />
-        <FieldIsInteger value="1" />
-        <Value value="2.000000" />
+        <Field value="Duration" />
+        <Value value="0.500000" />
+      </Modifications>
+      <Modifications>
+        <Type value="FlatModification" />
+        <Catalog value="Effect" />
+        <Entry value="RaynorAdrenalineRushRaidersRollApplyHoT" />
+        <Field value="Duration" />
+        <Value value="0.500000" />
       </Modifications>
       <Modifications>
         <Type value="FlatModification" />
         <Catalog value="Behavior" />
-        <Entry value="RaynorAdrenalineRushHoT" />
+        <Entry value="RaynorAdrenalineRushRaidersRollInitialUnstoppableBehavior" />
         <Field value="Duration" />
         <Value value="0.500000" />
       </Modifications>
@@ -3142,6 +3246,11 @@
     </AbilityModificationArray>
     <Abil value="RaynorHyperion" />
   </CTalent>
+  <CTargetSortBehaviorCount id="RaynorGiveEmSomePepperHitRecently">
+    <WhichUnit Value="Target" />
+    <Behavior value="RaynorGiveEmSomePepperCavalrysArrivedBehavior" />
+    <Value value="1" />
+  </CTargetSortBehaviorCount>
   <CUnit id="RaynorHyperionMissile" parent="MISSILE_INVULNERABLE">
     <Sight value="8" />
     <VisionHeight value="3" />
@@ -3231,11 +3340,51 @@
     <HeroPlaystyleFlags index="EnergyImportant" value="1" />
     <HeroPlaystyleFlags index="RoleAutoAttacker" value="1" />
     <HeroPlaystyleFlags index="TowerPusher" value="1" />
+    <EffectArray index="Death" value="RaynorUponDeathSet" />
   </CUnit>
   <CUnit id="RaynorHyperionSpecialWeaponMissiile" parent="MISSILE_INVULNERABLE">
     <Mover value="RaynorHyperionWeaponMissile" />
   </CUnit>
   <CUnit id="RaynorPenetratingRoundMissile" parent="MISSILE_INVULNERABLE" />
+  <CValidatorPlayerTalent id="RaynorHasHyperionExecuteOrdersTalent">
+    <WhichPlayer Value="Caster" />
+    <Find value="1" />
+    <Value value="RaynorHyperionExecuteOrders" />
+  </CValidatorPlayerTalent>
+  <CValidatorPlayerTalent id="RaynorHasPenetratingRoundLine'EmUpTalent">
+    <WhichPlayer Value="Caster" />
+    <Find value="1" />
+    <Value value="RaynorPenetratingRoundLine'EmUp" />
+  </CValidatorPlayerTalent>
+  <CValidatorPlayerTalent id="RaynorHasAdrenalineRushRaidersRollTalent">
+    <WhichPlayer Value="Caster" />
+    <Find value="1" />
+    <Value value="RaynorAdrenalineRushRaidersRoll" />
+  </CValidatorPlayerTalent>
+  <CValidatorUnitCompareBehaviorCount id="RaynorTargetHasCavalrysArrivedBehavior">
+    <Value value="1" />
+    <Behavior value="RaynorGiveEmSomePepperCavalrysArrivedBehavior" />
+  </CValidatorUnitCompareBehaviorCount>
+  <CValidatorPlayerTalent id="RaynorHasGive'EmSomePepperSergeantPepperTalent">
+    <WhichPlayer Value="Caster" />
+    <Find value="1" />
+    <Value value="RaynorGive'EmSomePepperSergeantPepper" />
+  </CValidatorPlayerTalent>
+  <CValidatorCombine id="RaynorHasHyperionPepperedAssualtandHyperionIsAlive">
+    <Type value="And" />
+    <CombineArray value="RaynorHasHyperionPepperedAssaultTalent" />
+    <CombineArray value="RaynorHasHyperionActiveBehavior" />
+  </CValidatorCombine>
+  <CValidatorPlayerTalent id="RaynorHasHyperionPepperedAssaultTalent">
+    <WhichPlayer Value="Caster" />
+    <Find value="1" />
+    <Value value="RaynorHyperionPepperedAssault" />
+  </CValidatorPlayerTalent>
+  <CValidatorCombine id="RaynorInspireRallyingCryPvERangeCombine">
+    <Type value="And" />
+    <CombineArray value="RaynorHasInspireRallyingCryTalent" />
+    <CombineArray value="RaynorInspireRallyingCryWithinRangeOfRaynor" />
+  </CValidatorCombine>
   <CValidatorUnitCompareBehaviorCount id="RaynorDoesNotHaveRaynorsRaidersSuppressFinalCooldown">
     <Behavior value="RaynorRaynorsRaidersSuppressFinalCooldown" />
   </CValidatorUnitCompareBehaviorCount>
@@ -3245,11 +3394,11 @@
     <Value value="3" />
     <TokenId value="RaynorGiveEmSomePepperAttackToken" />
   </CValidatorUnitCompareTokenCount>
-  <CValidatorUnitCompareBehaviorCount id="RaynorHasHeavySlugsPrimed">
+  <CValidatorUnitCompareBehaviorCount id="RaynorHasHyperionActiveBehavior">
     <WhichUnit Value="Caster" />
     <Compare value="GE" />
     <Value value="1" />
-    <Behavior value="RaynorPenetratingRoundHeavySlugsMissileBehavior" />
+    <Behavior value="RaynorHyperionActive" />
   </CValidatorUnitCompareBehaviorCount>
   <CValidatorLocationCompareRange id="RaynorWeaponTargetIsCloseScaleWeaponValidator">
     <WhichLocation Value="TargetUnit" />
@@ -3302,18 +3451,14 @@
     <Find value="1" />
     <Value value="RaynorGiveEmSomePepperWeakSpotAcquired" />
   </CValidatorPlayerTalent>
-  <CValidatorPlayerTalent id="RaynorHasHyperionIndomitableResolveTalent">
+  <CValidatorPlayerTalent id="RaynorHasHyperionCavalrysArrivedTalent">
     <WhichPlayer Value="Caster" />
     <Find value="1" />
-    <Value value="RaynorHyperionIndomitableResolve" />
+    <Value value="RaynorHyperionCavalrysArrived" />
   </CValidatorPlayerTalent>
   <CValidatorUnitCompareBehaviorCount id="DoesNotHaveGiveEmSomePepperBountyHunterDummyBehavior">
     <WhichUnit Value="Caster" />
     <Behavior value="RaynorGiveEmSomePepperBountyHunterDummyBehavior" />
-  </CValidatorUnitCompareBehaviorCount>
-  <CValidatorUnitCompareBehaviorCount id="RaynorDoesNotHavePenetratingRoundHeavySlugsMissileBehavior">
-    <WhichUnit Value="Caster" />
-    <Behavior value="RaynorPenetratingRoundHeavySlugsMissileBehavior" />
   </CValidatorUnitCompareBehaviorCount>
   <CValidatorPlayerTalent id="RaynorHasGiveEmSomePepperUnstableCompoundTalent">
     <WhichPlayer Value="Caster" />
@@ -3430,6 +3575,16 @@
     <Compare value="LE" />
     <Range value="7.5" />
   </CValidatorLocationCompareRange>
+  <CValidatorLocationCompareRange id="RaynorInspireRallyingCryWithinRangeOfRaynor">
+    <WhichLocation Value="TargetUnit" />
+    <Compare value="LE" />
+    <Range value="8" />
+  </CValidatorLocationCompareRange>
+  <CValidatorLocationCompareRange id="RaynorHyperionIndomitableResolveWithinRangeOfHyperion">
+    <WhichLocation Value="SourcePoint" />
+    <Compare value="LE" />
+    <Range value="8.75" />
+  </CValidatorLocationCompareRange>
   <CValidatorUnitCompareBehaviorCount id="RaynorRaynorsRaidersBansheeHasLeashingState">
     <Value value="1" />
     <Behavior value="RaynorRaynorsRaidersLeashingState" />
@@ -3470,6 +3625,10 @@
     <Ability value="RaynorRaynorsRaidersDummy" />
     <Value value="0.0625" />
   </CValidatorUnitCompareCooldown>
+  <CValidatorUnitFilters id="RaynorHyperionIsAlive">
+    <WhichUnit Effect="RaynorHyperionGroundStrafeImpactSet" />
+    <Filters value="-;Dead" />
+  </CValidatorUnitFilters>
   <CValidatorCombine id="RaynorRaynorsRaidersRedirectCombine">
     <CombineArray value="IsSelf" />
     <CombineArray value="TargetIsEnemy" />
@@ -3489,10 +3648,6 @@
     <CombineArray value="RaynorDoesNotHaveBansheesActive" />
     <CombineArray value="DoesNotHaveRaynorMasteryDuskWingsRaynorsBanshees" />
   </CValidatorCombine>
-  <CValidatorUnitCompareBehaviorCount id="RaynorTargetHasHeavySlugsImpendingStunBehavior">
-    <Value value="1" />
-    <Behavior value="RaynorPenetratingRoundHeavySlugsImpendingStun" />
-  </CValidatorUnitCompareBehaviorCount>
   <CValidatorPlayerTalent id="RaynorHasPenetratingRoundHeavySlugsTalent">
     <WhichPlayer Value="Caster" />
     <Find value="1" />
@@ -3535,8 +3690,9 @@
   </CValidatorCombine>
   <CValidatorCombine id="TargetisMinionOrMercOrMonster">
     <CombineArray value="TargetMinion" />
-    <CombineArray value="TargetIsMerc" />
+    <CombineArray value="TargetIsMercDefender" />
     <CombineArray value="TargetIsAMonster" />
+    <CombineArray value="TargetIsMercLaner" />
   </CValidatorCombine>
   <CValidatorCombine id="RaynorAceInTheHoleCCCombine">
     <CombineArray value="TargetIsSlowedOrStunned" />
@@ -3612,11 +3768,6 @@
     <WhichUnit Effect="RaynorPenetratingRoundImpactSet" />
     <Filters value="Heroic;-" />
   </CValidatorUnitFilters>
-  <CValidatorUnitCompareBehaviorCount id="RaynorHasPenetratingRoundHeavySlugsMissileBehavior">
-    <WhichUnit Value="Caster" />
-    <Value value="1" />
-    <Behavior value="RaynorPenetratingRoundHeavySlugsMissileBehavior" />
-  </CValidatorUnitCompareBehaviorCount>
   <CValidatorUnitCompareBehaviorCount id="NoInspireScoreCount">
     <Behavior value="InspireScoreCount" />
   </CValidatorUnitCompareBehaviorCount>
