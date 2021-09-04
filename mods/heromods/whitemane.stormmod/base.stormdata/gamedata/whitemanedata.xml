@@ -60,7 +60,7 @@
     </CmdButtonArray>
   </CAbilEffectTarget>
   <CAbilEffectInstant id="WhitemaneFanaticalPower">
-    <Effect value="WhitemaneFanaticalPowerApplyBehaviorBuff" />
+    <Effect value="WhitemaneFanaticalPowerCastSet" />
     <Cost>
       <Cooldown TimeUse="40" />
     </Cost>
@@ -907,8 +907,8 @@
     <On Terms="Behavior.WhitemaneSearingLashHarshDisciplineRoot.Off" Send="Create" />
   </CActorSound>
   <CActorSound id="WhitemaneSearingLashRighteousFlameImpactSound" parent="SoundOneShot">
-    <On Terms="Effect.WhitemaneSearingLashDamage.Start; At Target; ValidateEffect WhitemaneSearingLashRighteousFlameHasTalentAndTargetIsStunnedRootedOrSlowed" Send="Create" />
-    <On Terms="Effect.WhitemaneSearingLashSecondStrikeDamage.Start; At Target; ValidateEffect WhitemaneSearingLashRighteousFlameHasTalentAndTargetIsStunnedRootedOrSlowed" Send="Create" />
+    <On Terms="Effect.WhitemaneSearingLashDamage.Start; At Target; ValidateEffect WhitemaneSearingLashRighteousFlameHasTalentAndTargetIsHero" Send="Create" />
+    <On Terms="Effect.WhitemaneSearingLashSecondStrikeDamage.Start; At Target; ValidateEffect WhitemaneSearingLashRighteousFlameHasTalentAndTargetIsHero" Send="Create" />
     <Sound value="Whitemane_SearingLash_RighteousFlame_Impact" />
     <Filter index="All" value="1" />
     <VisibleTo index="Self" value="1" />
@@ -1018,6 +1018,13 @@
     <HostSiteOps Ops="SOpBasicScopeFollow SOpMoveUpByDot5 SOpPointSouthWorld" HoldRotation="1" />
     <RingRadius value="1.000000" />
   </CActorUnitRing>
+  <CBehaviorBuff id="RadianceArmorBehavior" parent="StormArmor">
+    <ArmorModification>
+      <AllArmorBonus value="35" />
+    </ArmorModification>
+    <RemoveValidatorArray value="WhitemaneHasFanaticalPowerBehavior" />
+    <Duration value="5" />
+  </CBehaviorBuff>
   <CBehaviorAbility id="WhitemaneClemencyItem">
     <Face value="WhitemaneInquisitionClemency" />
     <Buttons Face="WhitemaneInquisitionCancel" Type="AbilCmd" AbilCmd="WhitemaneInquisitionCancel,Execute" />
@@ -1129,6 +1136,12 @@
     <Face value="WhitemaneInquisitor'sPrayerQuestTokens" />
     <Max value="65000" />
   </CBehaviorTokenCounter>
+  <CBehaviorBuff id="WhitemaneSearingLashRighteousFlameAttackSpeedBehavior" parent="CarryBehaviorParent">
+    <Duration value="4" />
+    <Modification>
+      <AdditiveAttackSpeedFactor value="0.25" />
+    </Modification>
+  </CBehaviorBuff>
   <CBehaviorBuff id="WhitemaneSearingLashSaintlyGreatstaffMarkedBehavior">
     <BehaviorFlags index="Permanent" value="1" />
     <BehaviorFlags index="EnabledWhileDead" value="1" />
@@ -1420,6 +1433,15 @@
     <WhichUnit Value="Caster" />
     <Behavior value="WhitemaneFanaticalBuff" />
   </CEffectApplyBehavior>
+  <CEffectSet id="WhitemaneFanaticalPowerCastSet">
+    <EffectArray value="WhitemaneFanaticalPowerApplyBehaviorBuff" />
+    <EffectArray value="WhitemaneRadianceApplyArmorBehavior" />
+  </CEffectSet>
+  <CEffectApplyBehavior id="WhitemaneRadianceApplyArmorBehavior">
+    <ValidatorArray index="0" value="WhitemaneZealRadianceHasTalent" />
+    <ValidatorArray value="WhitemaneDesperatePlea3DesperationStacks" />
+    <Behavior value="RadianceArmorBehavior" />
+  </CEffectApplyBehavior>
   <CEffectApplyBehavior id="WhitemaneScarletAegisScarletCrusadeCleanseBuffApplyBehavior">
     <Behavior value="WhitemaneScarletAegisScarletCrusadeCleanseBuff" />
   </CEffectApplyBehavior>
@@ -1568,6 +1590,11 @@
       </Value>
     </CatalogModifications>
   </CEffectModifyCatalogNumeric>
+  <CEffectApplyBehavior id="WhitemaneSearingLashRighteousFlameApplyAttackSpeedBehavior">
+    <ValidatorArray index="0" value="WhitemaneSearingLashRighteousFlameHasTalentAndTargetIsHero" />
+    <WhichUnit Value="Caster" />
+    <Behavior value="WhitemaneSearingLashRighteousFlameAttackSpeedBehavior" />
+  </CEffectApplyBehavior>
   <CEffectApplyBehavior id="WhitemaneSearingLashSaintlyGreatstaffApplyMarkedBehavior">
     <Behavior value="WhitemaneSearingLashSaintlyGreatstaffMarkedBehavior" />
     <ValidatorArray index="0" value="WhitemaneHasPassiveSaintlyGreatstaffTalent" />
@@ -1642,6 +1669,13 @@
     <Chance value="0" />
     <ImpactUnit Value="Caster" />
     <Cost Abil="WhitemaneInquisition,Execute" CooldownOperation="Add" CooldownTimeUse="-1.5" />
+  </CEffectModifyUnit>
+  <CEffectModifyUnit id="WhitemaneZealScarletWrathModifyCooldown">
+    <ValidatorArray value="TargetIsHero" />
+    <ValidatorArray value="WhitemaneHasZealScarletWrathTalent" />
+    <Chance value="0" />
+    <ImpactUnit Value="Caster" />
+    <Cost Abil="WhitemaneFanaticalPower,Execute" CooldownOperation="Add" CooldownTimeUse="-1" />
   </CEffectModifyUnit>
   <CEffectSet id="WhitemaneInquisitionClemencyInitialSet">
     <EffectArray value="WhitemaneInquisitionHealCreatePersistent" />
@@ -1930,6 +1964,7 @@
     <EffectArray value="WhitemaneSearingLashLashingOutCooldownRefundSet" />
     <EffectArray value="WhitemaneSearingLashPityTheFrailModifyCooldown" />
     <EffectArray value="WhitemaneInquisitorsPrayerAddTokenSecondStrike" />
+    <EffectArray value="WhitemaneSearingLashRighteousFlameApplyAttackSpeedBehavior" />
   </CEffectSet>
   <CEffectSet id="WhitemaneSearingLashInitialSet">
     <EffectArray value="WhitemaneSearingLashInitialDelay" />
@@ -1992,15 +2027,17 @@
   <CEffectDamage id="WhitemaneSearingLashDamage" parent="StormSpell">
     <Amount value="82" />
     <MultiplicativeModifierArray index="RighteousFlame" Validator="WhitemaneSearingLashRighteousFlameHasTalent" Modifier="0.25" />
-    <MultiplicativeModifierArray index="RighteousFlameCC" Validator="WhitemaneSearingLashRighteousFlameHasTalentAndTargetIsStunnedRootedOrSlowed" Modifier="0.25" Crit="1" />
     <MultiplicativeModifierArray index="FanaticalPower" Validator="WhitemaneHasFanaticalPowerBehavior" Crit="1" />
   </CEffectDamage>
-  <CEffectDamage id="WhitemaneSearingLashSecondStrikeDamage" parent="WhitemaneSearingLashDamage" />
+  <CEffectDamage id="WhitemaneSearingLashSecondStrikeDamage" parent="WhitemaneSearingLashDamage">
+    <MultiplicativeModifierArray index="RighteousFlameHero" Validator="WhitemaneSearingLashRighteousFlameHasTalentAndTargetIsHero" Modifier="0.25" Crit="1" />
+  </CEffectDamage>
   <CEffectSet id="WhitemaneWeaponImpactSet">
     <EffectArray value="WhitemaneWeaponDamage" />
     <EffectArray value="WhitemaneSearingLashSaintlyGreatstaffDamage" />
     <EffectArray value="ZealScarletWrathEnumerateTrackedUnits" />
     <EffectArray value="WhitemaneSearingLashSaintlyGreatstaffRemoveMarkedBehavior" />
+    <EffectArray value="WhitemaneZealScarletWrathModifyCooldown" />
   </CEffectSet>
   <CEffectLaunchMissile id="WhitemaneWeaponLaunchMissile">
     <ImpactEffect value="WhitemaneWeaponImpactSet" />
@@ -2142,13 +2179,13 @@
     <TalentTreeArray Talent="WhitemaneDesperatePleaMartyrdom" Tier="2" Column="2" />
     <TalentTreeArray Talent="WhitemaneZealIndulgence" Tier="2" Column="3" />
     <TalentTreeArray Talent="WhitemaneDesperatePleaZealousSpirit" Tier="3" Column="1" />
-    <TalentTreeArray Talent="WhitemaneZealScarletWrath" Tier="3" Column="2" />
+    <TalentTreeArray Talent="WhitemaneSaintlyGreatstaff" Tier="3" Column="2" />
     <TalentTreeArray Talent="WhitemaneIntercession" Tier="3" Column="3" />
     <TalentTreeArray Talent="WhitemaneScarletAegis" Tier="4" Column="1" />
     <TalentTreeArray Talent="WhitemaneDivineReckoning" Tier="4" Column="2" />
     <TalentTreeArray Talent="WhitemaneInquisitionSubjugation" Tier="5" Column="1" />
     <TalentTreeArray Talent="WhitemaneSearingLashLashingOut" Tier="5" Column="2" />
-    <TalentTreeArray Talent="WhitemaneSaintlyGreatstaff" Tier="5" Column="3" />
+    <TalentTreeArray Talent="WhitemaneZealScarletWrath" Tier="5" Column="3" />
     <TalentTreeArray Talent="WhitemaneDesperatePleaRadiance" Tier="6" Column="1" />
     <TalentTreeArray Talent="WhitemaneInquisitionSharedPunishment" Tier="6" Column="2" />
     <TalentTreeArray Talent="WhitemaneSearingLashHarshDiscipline" Tier="6" Column="3" />
@@ -2337,14 +2374,14 @@
       <TalentsArray value="WhitemaneDesperatePleaUnwaveringFaith" />
       <TalentsArray value="WhitemaneIntercession" />
       <TalentsArray value="WhitemaneScarletAegis" />
-      <TalentsArray value="WhitemaneSaintlyGreatstaff" />
+      <TalentsArray value="WhitemaneZealScarletWrath" />
       <TalentsArray value="WhitemaneSearingLashHarshDiscipline" />
       <TalentsArray value="WhitemaneScarletAegisScarletCrusade" />
     </TalentAIBuildsArray>
     <TalentAIBuildsArray ChanceToPick="16">
       <TalentsArray value="WhitemaneSearingLashRighteousFlame" />
       <TalentsArray value="WhitemaneDesperatePleaMartyrdom" />
-      <TalentsArray value="WhitemaneZealScarletWrath" />
+      <TalentsArray value="WhitemaneSaintlyGreatstaff" />
       <TalentsArray value="WhitemaneDivineReckoning" />
       <TalentsArray value="WhitemaneInquisitionSubjugation" />
       <TalentsArray value="WhitemaneInquisitionSharedPunishment" />
@@ -2355,7 +2392,7 @@
       <TalentsArray value="WhitemaneZealIndulgence" />
       <TalentsArray value="WhitemaneDesperatePleaZealousSpirit" />
       <TalentsArray value="WhitemaneScarletAegis" />
-      <TalentsArray value="WhitemaneSaintlyGreatstaff" />
+      <TalentsArray value="WhitemaneZealScarletWrath" />
       <TalentsArray value="WhitemaneSearingLashHarshDiscipline" />
       <TalentsArray value="WhitemanePurgeTheWicked" />
     </TalentAIBuildsArray>
@@ -2382,7 +2419,7 @@
       <TalentsArray value="WhitemaneDesperatePleaMartyrdom" />
       <TalentsArray value="WhitemaneDesperatePleaZealousSpirit" />
       <TalentsArray value="WhitemaneDivineReckoning" />
-      <TalentsArray value="WhitemaneSaintlyGreatstaff" />
+      <TalentsArray value="WhitemaneZealScarletWrath" />
       <TalentsArray value="WhitemaneSearingLashHarshDiscipline" />
       <TalentsArray value="WhitemaneDivineReckoningJudgmentDay" />
     </TalentAIBuildsArray>
@@ -3571,6 +3608,13 @@
         <Field value="Chance" />
         <Value value="1.000000" />
       </Modifications>
+      <Modifications>
+        <Type value="FlatModification" />
+        <Catalog value="Effect" />
+        <Entry value="WhitemaneZealScarletWrathModifyCooldown" />
+        <Field value="Chance" />
+        <Value value="1.000000" />
+      </Modifications>
     </AbilityModificationArray>
     <Trait value="1" />
   </CTalent>
@@ -3785,10 +3829,10 @@
     <Location value="Unit" />
     <Ability value="WhitemaneSearingLash" />
   </CValidatorUnitCompareCooldown>
-  <CValidatorCombine id="WhitemaneSearingLashRighteousFlameHasTalentAndTargetIsStunnedRootedOrSlowed">
+  <CValidatorCombine id="WhitemaneSearingLashRighteousFlameHasTalentAndTargetIsHero">
     <Type value="And" />
     <CombineArray value="WhitemaneSearingLashRighteousFlameHasTalent" />
-    <CombineArray value="TargetIsRootedOrSilencedOrSlowedOrStunned" />
+    <CombineArray value="TargetIsHero" />
   </CValidatorCombine>
   <CValidatorUnitHasBehavior id="WhitemaneSpirtLashLashingOutHasResetButtonFlash">
     <WhichUnit Value="Caster" />

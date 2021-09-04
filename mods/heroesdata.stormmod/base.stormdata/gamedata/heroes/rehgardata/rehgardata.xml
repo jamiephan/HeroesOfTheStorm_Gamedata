@@ -385,13 +385,16 @@
   </CActorModel>
   <CActorModel id="RehgarAncestralHealingImpact" parent="StormModelAnimationStyleOneShotUnit">
     <On Terms="Effect.RehgarAncestralHealingCreateHealer.Start; At Target" Send="Create" />
+    <On Terms="Effect.RehgarAncestralHealingFarseersBlessingSearch.Start; At Target" Send="Create" />
   </CActorModel>
   <CActorSound id="RehgarAncestralHealingImpactSound" parent="SoundOneShot">
     <On Terms="Effect.RehgarAncestralHealingCreateHealer.Start; At Target" Send="Create" />
+    <On Terms="Effect.RehgarAncestralHealingFarseersBlessingSearch.Start; At Target" Send="Create" />
     <Sound value="Rehgar_AncestralHealing_Impact" />
   </CActorSound>
   <CActorSound id="RehgarAncestralHealingLaunchSound" parent="SoundOneShot">
     <Sound value="Rehgar_AncestralHealing_Launch" />
+    <On Terms="Effect.RehgarAncestralHealingCreatePersistent.Start; At Target" Send="Create" />
   </CActorSound>
   <CActorRange id="RehgarAncestralHealingRange" parent="StormRangeAbilPlusSplat" abil="RehgarAncestralHealing" />
   <CActorSplat id="RehgarAncestralHealingRangeSplat" parent="StormRangeSplat">
@@ -744,6 +747,16 @@
   <CActorModelMaterial id="RehgarGhostWolfGlaze" parent="StormModelAnimationStyleContinuous">
     <Remove Terms="ActorCreation" Send="AnimBracketStart BSD Birth Stand Death" />
   </CActorModelMaterial>
+  <CBehaviorBuff id="RehgarAncestralHealingFarseersBlessingDelayBehavior">
+    <Duration value="1.5" />
+    <FinalEffect value="RehgarAncestralHealingCreatePersistent" />
+    <RemoveValidatorArray value="TargetNotDeadAndNoSpecialDeathState" />
+  </CBehaviorBuff>
+  <CBehaviorBuff id="RehgarAncestralHealingFarseersBlessingDummyBehavior">
+    <BehaviorFlags index="Permanent" value="1" />
+    <BehaviorFlags index="EnabledWhileDead" value="1" />
+    <Duration value="5" />
+  </CBehaviorBuff>
   <CBehaviorBuff id="RehgarGhostWolfFeralHeartBuff" parent="CarryBehaviorParent">
     <DisableValidatorArray value="HasGhostWolf" />
     <DamageResponse Chance="1" Handled="RehgarGhostWolfFeralHeartCreateManaHealer" Location="Attacker">
@@ -1051,6 +1064,28 @@
     <Unit value="HeroRehgar" />
     <Variations Model="RehgarPortrait" Actor="RehgarPortrait" />
   </CCharacter>
+  <CEffectSet id="RehgarAncestralHealingFarseersBlessingApplyBehaviorSet">
+    <ValidatorArray value="RehgarTargetDoesNotHaveFarseersBlessingDummyBehavior" />
+    <EffectArray value="RehgarAncestralHealingFarseersBlessingDelayApplyBehavior" />
+    <EffectArray value="RehgarAncestralHealingFarseersBlessingDummyApplyBehavior" />
+  </CEffectSet>
+  <CEffectApplyBehavior id="RehgarAncestralHealingFarseersBlessingDummyApplyBehavior">
+    <ValidatorArray value="RehgarAncestralHealingFarseersBlessingHasTalent" />
+    <Behavior value="RehgarAncestralHealingFarseersBlessingDummyBehavior" />
+  </CEffectApplyBehavior>
+  <CEffectSet id="RehgarAncestralHealingFarseersBlessingHealingImpactSet">
+    <EffectArray value="RehgarAncestralHealingCreateHealer" />
+    <EffectArray value="RehgarAncestralHealingFarseersBlessingSearch" />
+    <ValidatorArray value="TargetNotDeadAndNoSpecialDeathState" />
+  </CEffectSet>
+  <CEffectApplyBehavior id="RehgarAncestralHealingFarseersBlessingDelayApplyBehavior">
+    <ValidatorArray value="RehgarAncestralHealingFarseersBlessingHasTalent" />
+    <Behavior value="RehgarAncestralHealingFarseersBlessingDelayBehavior" />
+  </CEffectApplyBehavior>
+  <CEffectSwitch id="RehgarAncestralHealingFarseersBlessingImpactSwitch">
+    <CaseArray Validator="RehgarTargetHasFarseersBlessingDummyBehavior" Effect="RehgarAncestralHealingFarseersBlessingHealingImpactSet" />
+    <CaseDefault value="RehgarAncestralHealingImpactSwitch" />
+  </CEffectSwitch>
   <CEffectCreateHealer id="RehgarGhostWolfFeralHeartCreateManaHealer" parent="StormManaRestore">
     <ImpactUnit Value="Caster" />
     <MultiplicativeModifierArray index="Heroic" Validator="TargetIsHero" Modifier="4" Crit="1" />
@@ -1202,7 +1237,7 @@
   <CEffectCreatePersistent id="RehgarAncestralHealingCreatePersistent">
     <WhichLocation Value="TargetUnit" />
     <TimeScaleSource Value="Target" />
-    <ExpireEffect value="RehgarAncestralHealingImpactSwitch" />
+    <ExpireEffect value="RehgarAncestralHealingFarseersBlessingImpactSwitch" />
     <PeriodCount value="1" />
     <PeriodicPeriodArray value="1" />
   </CEffectCreatePersistent>
@@ -1389,11 +1424,11 @@
     <EffectArray value="RehgarLightningShieldRisingStormTokenCounterIncrease" />
   </CEffectSet>
   <CEffectCreateHealer id="RehgarAncestralHealingFarseersBlessingCreateHealer" parent="StormHealingSpell">
-    <RechargeVitalRate value="0.75" />
+    <RechargeVitalRate value="590" />
   </CEffectCreateHealer>
   <CEffectCreateHealer id="RehgarAncestralHealingCreateHealer" parent="StormHealingSpell">
     <RechargeVitalRate value="1180" />
-    <MultiplicativeModifierArray index="0" Validator="RehgarAncestralHealingFarseersBlessingHasTalent" Modifier="0.75" />
+    <FinalEffect value="RehgarAncestralHealingFarseersBlessingApplyBehaviorSet" />
   </CEffectCreateHealer>
   <CEffectEnumArea id="RehgarAncestralHealingFarseersBlessingSearch">
     <ExcludeArray Effect="RehgarAncestralHealingFarseersBlessingSearch" Value="Target" />
@@ -1401,9 +1436,10 @@
     <AreaArray Effect="RehgarAncestralHealingFarseersBlessingCreateHealer">
       <Radius value="5" />
     </AreaArray>
+    <ValidatorArray value="RehgarAncestralHealingFarseersBlessingHasTalent" />
   </CEffectEnumArea>
   <CEffectSwitch id="RehgarAncestralHealingImpactSwitch">
-    <CaseArray Validator="RehgarAncestralHealingTargetNotDeadAndNotHostileStasisRemoved" Effect="RehgarAncestralHealingCreateHealer" />
+    <CaseArray Validator="RehgarAncestralHealingTargetNotDeadAndNotHostileStasisRemoved" Effect="RehgarAncestralHealingFarseersBlessingHealingImpactSet" />
     <CaseDefault value="RehgarAncestralHealingInterruptModifyUnitCooldown" />
   </CEffectSwitch>
   <CEffectSet id="RehgarBloodlustInitialSet">
@@ -1856,6 +1892,14 @@
       <Modifications>
         <Catalog value="Effect" />
         <Entry value="RehgarAncestralHealingCreateHealer" />
+        <Field value="RechargeVitalRate" />
+        <Value value="0.040000" />
+        <AffectedByAbilityPower value="1" />
+        <AffectedByOverdrive value="1" />
+      </Modifications>
+      <Modifications>
+        <Catalog value="Effect" />
+        <Entry value="RehgarAncestralHealingFarseersBlessingCreateHealer" />
         <Field value="RechargeVitalRate" />
         <Value value="0.040000" />
         <AffectedByAbilityPower value="1" />
@@ -2371,6 +2415,13 @@
     <Radius value="0.125" />
     <InnerRadius value="0.125" />
   </CUnit>
+  <CValidatorUnitCompareBehaviorCount id="RehgarTargetHasFarseersBlessingDummyBehavior">
+    <Value value="1" />
+    <Behavior value="RehgarAncestralHealingFarseersBlessingDummyBehavior" />
+  </CValidatorUnitCompareBehaviorCount>
+  <CValidatorUnitCompareBehaviorCount id="RehgarTargetDoesNotHaveFarseersBlessingDummyBehavior">
+    <Behavior value="RehgarAncestralHealingFarseersBlessingDummyBehavior" />
+  </CValidatorUnitCompareBehaviorCount>
   <CValidatorCombine id="RehgarHasWolfRunTalentAndTargetIsHero">
     <Type value="And" />
     <CombineArray value="RehgarGhostWolfWolfRunHasTalent" />

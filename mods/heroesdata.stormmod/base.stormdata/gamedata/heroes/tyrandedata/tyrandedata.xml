@@ -126,14 +126,6 @@
     <PrepEffect value="DismountDecloakCasterSet" />
     <AbilityCategories index="Control" value="1" />
   </CAbilEffectTarget>
-  <CAbilEffectInstant id="TyrandeSentinelPierce">
-    <Effect value="TyrandeSentinelRangerPierceInitialSet" />
-    <Flags index="Transient" value="1" />
-    <Cost>
-      <Cooldown Location="Player" TimeUse="25" />
-    </Cost>
-    <CmdButtonArray index="Execute" DefaultButtonFace="TyrandeSentinelPierceTalent" />
-  </CAbilEffectInstant>
   <CAccumulatorToken id="TyrandeIcebladeArrowsDebuffAccumulator" parent="BaseTokenAccumulator">
     <MinAccumulation value="-0.4" />
     <MaxAccumulation value="0" />
@@ -638,9 +630,6 @@
     <On Terms="Effect.TyrandeHeroWeaponHuntressFuryTalentMissileImpactSet.Start; At Target" Send="Create" />
     <Sound value="Tyrande_HuntressFury_AttackImpact" />
   </CActorSound>
-  <CBehaviorAbility id="TyrandeSentinelPierceItem">
-    <Buttons Face="TyrandeSentinelPierceTalent" Type="AbilCmd" AbilCmd="TyrandeSentinelPierce,Execute" />
-  </CBehaviorAbility>
   <CBehaviorBuff id="TyrandeSentinelShotFirstHeroHitDummyBehavior">
     <BehaviorFlags index="EnabledWhileDead" value="1" />
   </CBehaviorBuff>
@@ -718,6 +707,7 @@
     <InitialEffect value="TyrandeElunesChosenApplySelfBuff" />
     <FinalEffect value="TyrandeElunesChosenRemoveSelfBuff" />
     <BehaviorFlags index="EnabledWhileDead" value="1" />
+    <RemoveValidatorArray value="TargetIsHeroAndNotSpecialDeathState" />
   </CBehaviorBuff>
   <CBehaviorBuff id="TyrandeElunesChosenSelfBuff">
     <TimeScaleSource Value="Caster" />
@@ -752,7 +742,7 @@
     <InfoFlags index="Hidden" value="0" />
     <InfoIcon value="Assets\Textures\storm_ui_icon_talent_autoattack_damage.dds" />
     <BuffFlags index="RefreshStack" value="1" />
-    <Duration value="6" />
+    <Duration value="4" />
     <InitialEffect value="TyrandeDarnassianArcheryModifyTokenCount" />
     <RefreshEffect value="TyrandeDarnassianArcheryModifyTokenCount" />
     <FinalEffect value="TyrandeDarnassianArcheryResetTokenCount" />
@@ -789,9 +779,7 @@
       <DamageDealtFraction index="Ability" value="-0.4" />
     </Modification>
   </CBehaviorBuff>
-  <CBehaviorBuff id="TyrandeSentinelPierceBuff">
-    <MaxStackCount value="10" />
-  </CBehaviorBuff>
+  <CBehaviorBuff id="TyrandeSentinelPierceBuff" />
   <CBehaviorTimestamp id="TyrandeSentinelShotRangerTimestamp" />
   <CBehaviorBuff id="TyrandeShadowstalkEyesOfTheHuntressTalentRevealer" parent="StormReveal">
     <Duration value="10" />
@@ -1046,36 +1034,6 @@
     <EffectArray value="TyrandeLightOfEluneEverlastingLightClearTrackedUnits" />
     <EffectArray value="TyrandeLightOfEluneModifyUnit" />
   </CEffectSet>
-  <CEffectSet id="TyrandeSentinelRangerPierceInitialSet">
-    <ValidatorArray value="TyrandeDoesNotHavePierceBehavior" />
-    <ValidatorArray value="TyrandeSentinelOnCooldown" />
-    <EffectArray value="TyrandeSentinelRangerPierceModifyPlayerActivate" />
-    <EffectArray value="TyrandeSentinelApplyPierceBuff" />
-  </CEffectSet>
-  <CEffectModifyPlayer id="TyrandeSentinelRangerPierceModifyPlayerActivate">
-    <ValidatorArray value="HasTyrandeSentinelRanger" />
-    <WhichPlayer Value="Caster" />
-    <Cost Abil="TyrandeSentinelPierce">
-      <Cooldown>
-        <Link value="Abil/TyrandeSentinelPierce" />
-        <Location value="Player" />
-        <Operation value="Set" />
-        <TimeUse value="0.0625" />
-      </Cooldown>
-    </Cost>
-  </CEffectModifyPlayer>
-  <CEffectModifyPlayer id="TyrandeSentinelRangerPierceModifyPlayerSetCooldown">
-    <ValidatorArray value="TyrandeHasPierceBehavior" />
-    <WhichPlayer Value="Origin" />
-    <Cost Abil="TyrandeSentinelPierce">
-      <Cooldown>
-        <Link value="Abil/TyrandeSentinelPierce" />
-        <Location value="Player" />
-        <Operation value="Set" />
-        <TimeUse value="25" />
-      </Cooldown>
-    </Cost>
-  </CEffectModifyPlayer>
   <CEffectApplyBehavior id="TyrandeSentinelShotApplyFirstHeroHitDummyBehavior">
     <ValidatorArray index="0" value="TyrandeHasPierceBehavior" />
     <WhichUnit Value="Caster" />
@@ -1156,6 +1114,7 @@
   </CEffectSet>
   <CEffectSet id="TyrandeHeroWeaponHuntressFuryTalentMissileImpactSet">
     <EffectArray value="TyrandeHuntressFuryDamage" />
+    <EffectArray value="TyrandeLightofEluneModifyCooldownSwitch" />
   </CEffectSet>
   <CEffectLaunchMissile id="TyrandeHeroWeaponHuntressFuryTalentLaunchMissile">
     <ValidatorArray index="0" value="TargetNotDead" />
@@ -1223,7 +1182,7 @@
   </CEffectRemoveBehavior>
   <CEffectEnumArea id="TyrandeHeroWeaponHuntressFuryTalentSearch">
     <ExcludeArray Effect="TyrandeHeroWeaponHuntressFuryTalentImpactSet" Value="Target" />
-    <SearchFilters value="Visible;Player,Ally,ImmuneToFriendlyAbilities,User1,Missile,Item,Stasis,Dead,Hidden,Invulnerable" />
+    <SearchFilters value="Heroic,Visible;Player,Ally,ImmuneToFriendlyAbilities,User1,Missile,Item,Stasis,Dead,Hidden,Invulnerable" />
     <AreaArray Effect="TyrandeHeroWeaponHuntressFuryTalentSearchImpactSet">
       <Radius value="7" />
     </AreaArray>
@@ -1238,7 +1197,7 @@
   </CEffectSet>
   <CEffectSet id="TyrandeHeroWeaponTalentSet">
     <EffectArray value="TyrandeHuntersMarkMarkofMendingTalentSelfHeal" />
-    <EffectArray value="TyrandeDarnassianArcherySwitch" />
+    <EffectArray value="TyrandeDarnassianArcheryApplyBehavior" />
     <EffectArray value="TyrandeShootingStarModifyTokenCount" />
     <EffectArray value="TyrandeIcebladeArrowsSwitch" />
   </CEffectSet>
@@ -1255,6 +1214,7 @@
   <CEffectSet id="TyrandeSentinelShotPrepSet">
     <EffectArray value="TyrandeSentinelShotSetFacing" />
     <EffectArray value="AbilityUseResponseSetDismountDecloakSuppressTurning" />
+    <EffectArray value="TyrandeSentinelApplyPierceBuff" />
   </CEffectSet>
   <CEffectModifyUnit id="TyrandeSentinelShotSetFacing">
     <ImpactUnit Value="Caster" />
@@ -1320,14 +1280,11 @@
   </CEffectSwitch>
   <CEffectApplyBehavior id="TyrandeDarnassianArcheryApplyBehavior">
     <ValidatorArray index="0" value="CasterNotBlindedAndTargetNotEvading" />
+    <ValidatorArray value="TargetIsHero" />
     <WhichUnit Value="Caster" />
     <Behavior value="TyrandeDarnassianArcheryDamageBuff" />
+    <Chance value="0" />
   </CEffectApplyBehavior>
-  <CEffectRemoveBehavior id="TyrandeDarnassianArcheryRemoveBehavior">
-    <WhichUnit Value="Caster" />
-    <BehaviorLink value="TyrandeDarnassianArcheryDamageBuff" />
-    <Count value="1" />
-  </CEffectRemoveBehavior>
   <CEffectModifyTokenCount id="TyrandeDarnassianArcheryModifyTokenCount" parent="BaseEffectModifyTokenCount">
     <TokenId value="TyrandeDarnassianArcheryTalentTokenCounter" />
   </CEffectModifyTokenCount>
@@ -1336,11 +1293,6 @@
     <Operation value="Set" />
     <Value value="0" />
   </CEffectModifyTokenCount>
-  <CEffectSwitch id="TyrandeDarnassianArcherySwitch">
-    <ValidatorArray value="TyrandeHasDarnassianArcheryTalent" />
-    <CaseArray Validator="TargetIsHero" Effect="TyrandeDarnassianArcheryApplyBehavior" />
-    <CaseDefault value="TyrandeDarnassianArcheryRemoveBehavior" />
-  </CEffectSwitch>
   <CEffectApplyBehavior id="TyrandeSentinelHarshMoonlightTalentApplyDamageReduction">
     <ValidatorArray index="0" value="TyrandeHasHarshMoonlightTalent" />
     <Behavior value="TyrandeSentinelHarshMoonlightTalentDamageReduction" />
@@ -1357,7 +1309,6 @@
   </CEffectSet>
   <CEffectSet id="TyrandeSentinelLaunchMissileSet">
     <EffectArray value="TyrandeSentinelShotRangerApplyTimestamp" />
-    <EffectArray value="TyrandeSentinelRangerPierceModifyPlayerSetCooldown" />
   </CEffectSet>
   <CEffectApplyBehavior id="TyrandeSentinelApplyPierceBuff">
     <WhichUnit Value="Source" />
@@ -1477,7 +1428,7 @@
     <EffectArray value="TyrandeHuntersMarkIssueAttackOrder" />
   </CEffectSet>
   <CEffectCreateHealer id="LightofEluneHealTarget" parent="StormHealingSpell">
-    <MultiplicativeModifierArray index="EverlastingLight" Validator="TyrandeEverlastingLightCombine" Modifier="0.6" Crit="1" />
+    <MultiplicativeModifierArray index="EverlastingLight" Validator="TyrandeEverlastingLightCombine" Modifier="0.8" Crit="1" />
     <RechargeVitalRate value="255" />
   </CEffectCreateHealer>
   <CEffectApplyBehavior id="LunarFlareShootingStarApplyBehaviorCounter">
@@ -1667,6 +1618,7 @@
     <EffectArray value="CameraShakeLightTauntingTotemSet" />
     <EffectArray value="SentinelShotSuicide" />
     <EffectArray value="TyrandeSentinelShotApplyFirstHeroHitDummyBehavior" />
+    <EffectArray value="TyrandeSentinelRemovePierceBuff" />
     <ValidatorArray value="noMarkers" />
   </CEffectSet>
   <CEffectApplyBehavior id="SentinelShotDebuffApplyBehavior">
@@ -1838,12 +1790,12 @@
     <VOArray index="PingDestroyThing" value="Tyrande_Ping_DestroyThing" />
     <VOArray index="PingTransport" value="Tyrande_Ping_Transport" />
     <VOArray index="PingTurnIn" value="Tyrande_Ping_TurnIn" />
-    <TalentTreeArray Talent="TyrandeLightOfEluneEverlastingLight" Tier="1" Column="1" />
-    <TalentTreeArray Talent="TyrandeMarkofMending" Tier="1" Column="2" />
-    <TalentTreeArray Talent="TyrandeElunesChosen" Tier="1" Column="3" />
-    <TalentTreeArray Talent="TyrandeMasteryLunarBlaze" Tier="2" Column="1" />
-    <TalentTreeArray Talent="TyrandeRanger" Tier="2" Column="2" />
-    <TalentTreeArray Talent="TyrandeTrueshotAura" Tier="2" Column="3" />
+    <TalentTreeArray Talent="TyrandeRanger" Tier="1" Column="1" />
+    <TalentTreeArray Talent="TyrandeMasteryLunarBlaze" Tier="1" Column="2" />
+    <TalentTreeArray Talent="TyrandeTrueshotAura" Tier="1" Column="3" />
+    <TalentTreeArray Talent="TyrandeLightOfEluneEverlastingLight" Tier="2" Column="1" />
+    <TalentTreeArray Talent="TyrandeMarkofMending" Tier="2" Column="2" />
+    <TalentTreeArray Talent="TyrandeElunesChosen" Tier="2" Column="3" />
     <TalentTreeArray Talent="TyrandeMoonlitArrows" Tier="3" Column="1" />
     <TalentTreeArray Talent="TyrandeKaldoreiResistance" Tier="3" Column="2" />
     <TalentTreeArray Talent="TyrandeHuntressFury" Tier="3" Column="3" />
@@ -1970,8 +1922,8 @@
       <Complexity value="7" />
     </Ratings>
     <TalentAIBuildsArray ChanceToPick="16">
-      <TalentsArray value="TyrandeLightOfEluneEverlastingLight" />
       <TalentsArray value="TyrandeRanger" />
+      <TalentsArray value="TyrandeLightOfEluneEverlastingLight" />
       <TalentsArray value="TyrandeKaldoreiResistance" />
       <TalentsArray value="TyrandeHeroicAbilityShadowstalk" />
       <TalentsArray value="TyrandeHarshMoonlight" />
@@ -1979,8 +1931,8 @@
       <TalentsArray value="TyrandeShootingStar" />
     </TalentAIBuildsArray>
     <TalentAIBuildsArray ChanceToPick="16">
-      <TalentsArray value="TyrandeLightOfEluneEverlastingLight" />
       <TalentsArray value="TyrandeMasteryLunarBlaze" />
+      <TalentsArray value="TyrandeLightOfEluneEverlastingLight" />
       <TalentsArray value="TyrandeKaldoreiResistance" />
       <TalentsArray value="TyrandeHeroicAbilityStarfall" />
       <TalentsArray value="TyrandeMasteryLightofEluneQuickeningBlessing" />
@@ -1988,8 +1940,8 @@
       <TalentsArray value="TyrandeIcebladeArrows" />
     </TalentAIBuildsArray>
     <TalentAIBuildsArray ChanceToPick="16">
-      <TalentsArray value="TyrandeMarkofMending" />
       <TalentsArray value="TyrandeTrueshotAura" />
+      <TalentsArray value="TyrandeMarkofMending" />
       <TalentsArray value="TyrandeHuntressFury" />
       <TalentsArray value="TyrandeHeroicAbilityStarfall" />
       <TalentsArray value="TyrandeRangersMark" />
@@ -1997,8 +1949,8 @@
       <TalentsArray value="TyrandeMasteryStarfallCelestialWrath" />
     </TalentAIBuildsArray>
     <TalentAIBuildsArray ChanceToPick="16">
-      <TalentsArray value="TyrandeLightOfEluneEverlastingLight" />
       <TalentsArray value="TyrandeRanger" />
+      <TalentsArray value="TyrandeLightOfEluneEverlastingLight" />
       <TalentsArray value="TyrandeMoonlitArrows" />
       <TalentsArray value="TyrandeHeroicAbilityShadowstalk" />
       <TalentsArray value="TyrandeHarshMoonlight" />
@@ -2006,8 +1958,8 @@
       <TalentsArray value="TyrandeShootingStar" />
     </TalentAIBuildsArray>
     <TalentAIBuildsArray AIOnly="1" ChanceToPick="16">
-      <TalentsArray value="TyrandeElunesChosen" />
       <TalentsArray value="TyrandeTrueshotAura" />
+      <TalentsArray value="TyrandeElunesChosen" />
       <TalentsArray value="TyrandeMoonlitArrows" />
       <TalentsArray value="TyrandeHeroicAbilityStarfall" />
       <TalentsArray value="TyrandeMasteryLightofEluneQuickeningBlessing" />
@@ -2015,8 +1967,8 @@
       <TalentsArray value="TyrandeMasteryStarfallCelestialWrath" />
     </TalentAIBuildsArray>
     <TalentAIBuildsArray AIOnly="1" ChanceToPick="16">
-      <TalentsArray value="TyrandeMarkofMending" />
       <TalentsArray value="TyrandeMasteryLunarBlaze" />
+      <TalentsArray value="TyrandeMarkofMending" />
       <TalentsArray value="TyrandeKaldoreiResistance" />
       <TalentsArray value="TyrandeHeroicAbilityShadowstalk" />
       <TalentsArray value="TyrandeMasteryLightofEluneQuickeningBlessing" />
@@ -2160,6 +2112,15 @@
     <RankArray>
       <BehaviorArray value="TyrandeDarnassianArcheryTalentTokenCounter" />
     </RankArray>
+    <AbilityModificationArray>
+      <Modifications>
+        <Type value="FlatModification" />
+        <Catalog value="Effect" />
+        <Entry value="TyrandeDarnassianArcheryApplyBehavior" />
+        <Field value="Chance" />
+        <Value value="1.000000" />
+      </Modifications>
+    </AbilityModificationArray>
   </CTalent>
   <CTalent id="TyrandeRangersMark">
     <Face value="TyrandeHuntersMarkRangersMarkTalent" />
@@ -2325,7 +2286,7 @@
   </CTalent>
   <CTalent id="TyrandeRanger">
     <Face value="TyrandeSentinelRangerTalent" />
-    <Abil value="TyrandeSentinelPierce" />
+    <Abil value="TyrandeSentinelShot" />
     <AbilityModificationArray>
       <Modifications>
         <Type value="MultiplyLevelModification" />
@@ -2342,10 +2303,6 @@
         <Value value="1.250000" />
       </Modifications>
     </AbilityModificationArray>
-    <RankArray>
-      <BehaviorArray value="TyrandeSentinelPierceItem" />
-    </RankArray>
-    <Active value="1" />
   </CTalent>
   <CTalent id="TyrandeMasteryLunarBlaze">
     <Face value="TyrandeLunarFlareLunarBlazeTalent" />
