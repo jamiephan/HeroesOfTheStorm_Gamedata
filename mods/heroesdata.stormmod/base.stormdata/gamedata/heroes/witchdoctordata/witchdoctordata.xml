@@ -191,6 +191,10 @@
     <Flags index="WaitUntilStopped" value="0" />
     <InfoArray Unit="WitchDoctorZombieWallDeadRushTalentUnit" />
   </CAbilMorph>
+  <CAccumulatorToken id="RavenousSpiritAnnihilatingSpiritDamageAccumulator" parent="BaseAccumulator">
+    <TokenId value="WitchDoctorRavenousSpiritAnnihilatingSpiritTokenCounter" />
+    <Scale value="0.05" />
+  </CAccumulatorToken>
   <CAccumulatorToken id="WitchDoctorBigVoodooEnergyAccumulator" parent="BaseAccumulator">
     <MaxAccumulation value="500" />
     <ApplicationRule value="Add" />
@@ -1003,6 +1007,21 @@
   </CActorSplat>
   <CActorPortrait id="WitchDoctorPortrait" parent="StormCompositePortrait" />
   <CActorModel id="WitchDoctorPortraitAddition" parent="StormCompositePortraitAddition" />
+  <CBehaviorTokenCounter id="WitchDoctorThingOfTheDeepQuestToken" parent="StormQuestToken">
+    <Max value="100" />
+    <AtMaxEvents index="0" EventId="QuestComplete" Effect="WitchDoctorThingOfTheDeepModifyPlayerTier2" />
+    <ConditionalEvents Compare="GE" CompareValue="50">
+      <Event EventId="QuestMilestone" Effect="WitchDoctorThingOfTheDeepModifyPlayerTier1" />
+    </ConditionalEvents>
+    <Face value="WitchDoctorThingOfTheDeepToken" />
+    <InfoIcon value="Assets\Textures\storm_ui_icon_talent_elunesgrace.dds" />
+  </CBehaviorTokenCounter>
+  <CBehaviorBuff id="WitchDoctorThingOfTheDeepSpellPowerCarry" parent="StormDamageIncrease">
+    <BehaviorCategories index="BuffAbilityPower" value="1" />
+  </CBehaviorBuff>
+  <CBehaviorTokenCounter id="WitchDoctorRavenousSpiritAnnihilatingSpiritTokenCounter" parent="StormGenericToken">
+    <Max value="100" />
+  </CBehaviorTokenCounter>
   <CBehaviorAbility id="WitchDoctorSoulHarvestItem">
     <InfoFlags index="Hidden" value="1" />
     <Buttons Face="WitchDoctorSoulHarvest" Type="AbilCmd" AbilCmd="WitchDoctorSoulHarvest,Execute" />
@@ -1064,7 +1083,7 @@
   </CBehaviorBuff>
   <CBehaviorTokenCounter id="WitchDoctorCorpseSpidersWidowmakersTokenCounter" parent="StormQuestToken">
     <Face value="WitchDoctorWidowmakersToken" />
-    <AtMaxEvents index="0" EventId="QuestComplete" Effect="WitchDoctorCorpseSpidersApplyWidowmakersQuestCompleteBehavior" />
+    <AtMaxEvents index="0" EventId="QuestComplete" Effect="WitchDoctorCorpseSpidersWidowmakersQuestCompleteSet" />
     <Max value="100" />
   </CBehaviorTokenCounter>
   <CBehaviorBuff id="WitchDoctorPlagueofToadsToadAffinityTalentCarry" parent="CarryBehaviorParent">
@@ -1479,6 +1498,10 @@
       <StateFlags index="SuppressCollision" value="1" />
     </Modification>
   </CBehaviorBuff>
+  <CButton id="WitchDoctorThingOfTheDeepToken" parent="StormButtonParentTrait">
+    <Icon value="Assets\Textures\storm_ui_icon_talent_elunesgrace.dds" />
+    <HotkeyAlias value="WitchDoctorVoodooRitualTrait" />
+  </CButton>
   <CButton id="WitchDoctorVoodooRitualBigVoodooToken" parent="StormButtonParent">
     <Name value="Button/Name/WitchDoctorVoodooRitualToken" />
     <Tooltip value="Button/TooltipAppender/WitchDoctorVoodooRitualBigVoodooToken" />
@@ -1551,7 +1574,6 @@
   </CButton>
   <CButton id="WitchDoctorRavenousSpiritAnnihilatingSpiritTalent" parent="StormButtonParent">
     <Icon value="Assets\Textures\storm_ui_icon_Nazeebo_RavenousSpirit.dds" />
-    <HotkeyAlias value="KerriganPsychicLink" />
   </CButton>
   <CButton id="WitchDoctorZombieWallFreshCorpsesTalent" parent="StormButtonParent">
     <Icon value="Assets\Textures\storm_ui_icon_Nazeebo_ZombieWall.dds" />
@@ -1573,6 +1595,7 @@
     <TooltipAppender Validator="WitchDoctorHasHexedCrawlers" Face="WitchDoctorHexedCrawlers" />
     <TooltipAppender Validator="WitchDoctorHasSpiritofArachyr" Face="WitchDoctorSpiritofArachyr" />
     <TooltipAppender Validator="WitchDoctorHasSpiderColony" Face="WitchDoctorSpiderColony" />
+    <TooltipVitalOverrideText index="Energy" value="Abil/WitchDoctorCorpseSpidersCooldownOverride" />
   </CButton>
   <CButton id="WitchDoctorPlagueOfToads" parent="StormButtonParent">
     <Icon value="Assets\Textures\storm_ui_icon_Nazeebo_PlagueOfToads.dds" />
@@ -1612,6 +1635,38 @@
     <Color value="255,128,0,128" />
     <Unit value="HeroWitchDoctor" />
   </CCharacter>
+  <CEffectModifyTokenCount id="WitchDoctorThingOfTheDeepAddToken" parent="BaseEffectModifyTokenCount">
+    <Chance value="0" />
+    <TokenId value="WitchDoctorThingOfTheDeepQuestToken" />
+  </CEffectModifyTokenCount>
+  <CEffectModifyPlayer id="WitchDoctorThingOfTheDeepModifyPlayerTier1">
+    <WhichPlayer Value="Caster" />
+    <EffectArray Operation="Set" Reference="Behavior,WitchDoctorThingOfTheDeepSpellPowerCarry,Modification.DamageDealtFraction[Ability]" Value="0.1" />
+  </CEffectModifyPlayer>
+  <CEffectModifyPlayer id="WitchDoctorThingOfTheDeepModifyPlayerTier2">
+    <WhichPlayer Value="Caster" />
+    <EffectArray Operation="Set" Reference="Behavior,WitchDoctorThingOfTheDeepSpellPowerCarry,Modification.DamageDealtFraction[Ability]" Value="0.2" />
+  </CEffectModifyPlayer>
+  <CEffectModifyTokenCount id="WitchDoctorReavnousSpiritAnnihilatingSpiritResetTokenCount" parent="BaseEffectModifyTokenCount">
+    <TokenId value="WitchDoctorRavenousSpiritAnnihilatingSpiritTokenCounter" />
+    <Chance value="0" />
+    <Operation value="Set" />
+    <Value value="0" />
+  </CEffectModifyTokenCount>
+  <CEffectModifyTokenCount id="WitchDoctorReavnousSpiritAnnihilatingSpiritAddTokenCount" parent="BaseEffectModifyTokenCount">
+    <TokenId value="WitchDoctorRavenousSpiritAnnihilatingSpiritTokenCounter" />
+    <ValidatorArray value="TargetIsHero" />
+    <Chance value="0" />
+  </CEffectModifyTokenCount>
+  <CEffectSet id="WitchDoctorCorpseSpidersWidowmakersQuestCompleteSet">
+    <EffectArray value="WitchDoctorCorpseSpidersWidowmakersQuestCompleteCatalogModify" />
+    <EffectArray value="WitchDoctorCorpseSpidersApplyWidowmakersQuestCompleteBehavior" />
+  </CEffectSet>
+  <CEffectModifyCatalogNumeric id="WitchDoctorCorpseSpidersWidowmakersQuestCompleteCatalogModify">
+    <CatalogModifications Operation="Subtract" Reference="Abil,WitchDoctorCorpseSpiders,Cost.Cooldown.TimeUse">
+      <Value value="2" />
+    </CatalogModifications>
+  </CEffectModifyCatalogNumeric>
   <CEffectApplyBehavior id="WitchDoctorCorpseSpidersApplyWidowmakersQuestCompleteBehavior">
     <WhichUnit Value="Caster" />
     <Behavior value="WitchDoctorCorpseSpidersWidowmakersQuestCompleteCarry" />
@@ -1827,6 +1882,7 @@
   <CEffectSet id="WitchDoctorRavenousSpiritImpactSet">
     <EffectArray value="WitchDoctorVoodooRitualApplyDoTSwitch" />
     <EffectArray value="WitchDoctorRavenousSpiritDamage" />
+    <EffectArray value="WitchDoctorReavnousSpiritAnnihilatingSpiritAddTokenCount" />
   </CEffectSet>
   <CEffectSet id="WitchDoctorCorpseSpidersJarImpactSet">
     <EffectArray value="WitchDoctorVoodooRitualApplyDoTSwitch" />
@@ -2136,6 +2192,7 @@
     <EffectArray value="WitchDoctorVoodooRitualModifyToken" />
     <EffectArray value="WitchDoctorVoodooRitualModifyTokenQuest" />
     <EffectArray value="WitchDoctorCorpseSpidersWidowmakersTalentModifyPlayer" />
+    <EffectArray value="WitchDoctorThingOfTheDeepAddToken" />
   </CEffectSet>
   <CEffectLaunchMissileAdvanced id="WitchDoctorCorpseSpidersLeapLaunchMissile">
     <ValidatorArray index="0" value="WitchDoctorCorpseSpiderLeapMaxDistance" />
@@ -2536,9 +2593,9 @@
     <EffectArray value="WitchDoctorZombieWallWeaponDamage" />
     <EffectArray value="WitchDoctorZombieWallApplyNoMeleeBehavior" />
   </CEffectSet>
-  <CEffectDamage id="WitchDoctorRavenousSpiritSuicide">
+  <CEffectDamage id="WitchDoctorRavenousSpiritSuicide" parent="StormSuicideParent">
     <CasterHistory value="Damage" />
-    <Flags index="Kill" value="1" />
+    <ImpactLocation Value="TargetUnitOrPoint" />
   </CEffectDamage>
   <CEffectSet id="WitchDoctorRavenousSpiritCancelSet">
     <ValidatorArray value="IsWitchDoctorRavenousSpirit" />
@@ -2816,6 +2873,7 @@
     <SpawnUnit value="WitchDoctorRavenousSpiritUnit" />
   </CEffectCreateUnit>
   <CEffectSet id="WitchDoctorRavenousSpiritInitialSet">
+    <EffectArray value="WitchDoctorReavnousSpiritAnnihilatingSpiritResetTokenCount" />
     <EffectArray value="WitchDoctorRavenousSpiritApplyChannelBehavior" />
     <EffectArray value="WitchDoctorRavenousSpiritModifyCooldown" />
     <EffectArray value="WitchDoctorRavenousSpiritCreateUnit" />
@@ -2837,6 +2895,7 @@
   <CEffectDamage id="WitchDoctorRavenousSpiritDamage" parent="StormSpell">
     <DamageModifierSource Value="Creator" />
     <Amount value="108" />
+    <MultiplicativeModifierArray index="AnnihilatingSpirit" Accumulator="RavenousSpiritAnnihilatingSpiritDamageAccumulator" />
   </CEffectDamage>
   <CEffectSet id="WitchDoctorHeroWeaponLaunchMissileSet">
     <EffectArray value="WitchDoctorHeroWeaponLaunchMissile" />
@@ -2930,7 +2989,7 @@
   </CEffectApplyBehavior>
   <CEffectDamage id="WitchDoctorZombieWallWeaponDamage" parent="StormSummonedUnitWeapon">
     <Amount value="28" />
-    <MultiplicativeModifierArray index="DeadRush" Validator="WitchDoctorZombieWallDeadRushSourceHasTalentBuffBehavior" Modifier="0.75" />
+    <MultiplicativeModifierArray index="DeadRush" Validator="WitchDoctorZombieWallDeadRushSourceHasTalentBuffBehavior" Modifier="1" />
   </CEffectDamage>
   <CEffectDamage id="WitchDoctorZombieWallSuicide" parent="StormSuicideParent" />
   <CEffectIssueOrder id="WitchDoctorZombieWallIssueMorphOrder">
@@ -3715,6 +3774,15 @@
       <BehaviorArray value="WitchDoctorCorpseSpidersWidowmakersTokenCounter" />
     </RankArray>
     <QuestData StackBehavior="WitchDoctorCorpseSpidersWidowmakersTokenCounter" TargetCount="100" />
+    <AbilityModificationArray>
+      <Modifications>
+        <Type value="FlatModification" />
+        <Entry value="WitchDoctorCorpseSpiders" />
+        <Field value="Cost.Vital[Energy]" />
+        <Value value="-10.000000" />
+      </Modifications>
+      <Modifications Type="FlatModification" Entry="WitchDoctorCorpseSpiders" Field="Cost.Cooldown.TimeUse" />
+    </AbilityModificationArray>
   </CTalent>
   <CTalent id="WitchDoctorVileInfection">
     <Face value="WitchDoctorVileInfection" />
@@ -3856,7 +3924,25 @@
         <Field value="Height" />
         <Value value="2.400000" />
       </Modifications>
+      <Modifications>
+        <Type value="FlatModification" />
+        <Catalog value="Effect" />
+        <Entry value="WitchDoctorThingOfTheDeepAddToken" />
+        <Field value="Chance" />
+        <Value value="1.000000" />
+      </Modifications>
+      <Modifications>
+        <Type value="FlatModification" />
+        <Catalog value="Behavior" />
+        <Entry value="WitchDoctorThingOfTheDeepSpellPowerCarry" />
+        <Field value="Modification.DamageDealtFraction[Ability]" />
+      </Modifications>
     </AbilityModificationArray>
+    <RankArray>
+      <BehaviorArray value="WitchDoctorThingOfTheDeepQuestToken" />
+      <BehaviorArray value="WitchDoctorThingOfTheDeepSpellPowerCarry" />
+    </RankArray>
+    <QuestData StackBehavior="WitchDoctorThingOfTheDeepQuestToken" />
   </CTalent>
   <CTalent id="WitchDoctorBloodRitual">
     <Face value="WitchDoctorVoodooRitualBloodRitualTalent" />
@@ -3960,12 +4046,22 @@
       </Modifications>
       <Modifications>
         <Type value="FlatModification" />
-        <Catalog value="Behavior" />
-        <Entry value="WitchDoctorRavenousSpiritUnitBuff" />
-        <Field value="Modification.UnifiedMoveSpeedFactor" />
-        <Value value="0.300000" />
+        <Catalog value="Effect" />
+        <Entry value="WitchDoctorReavnousSpiritAnnihilatingSpiritAddTokenCount" />
+        <Field value="Chance" />
+        <Value value="1.000000" />
+      </Modifications>
+      <Modifications>
+        <Type value="FlatModification" />
+        <Catalog value="Effect" />
+        <Entry value="WitchDoctorReavnousSpiritAnnihilatingSpiritResetTokenCount" />
+        <Field value="Chance" />
+        <Value value="1.000000" />
       </Modifications>
     </AbilityModificationArray>
+    <RankArray>
+      <BehaviorArray value="WitchDoctorRavenousSpiritAnnihilatingSpiritTokenCounter" />
+    </RankArray>
   </CTalent>
   <CTargetSortBehaviorCount id="NazeeboCorpseSpiderAttackers">
     <WhichUnit Value="Target" />

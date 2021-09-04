@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="us-ascii"?>
 <Catalog>
+  <const id="$ZagaraHunterKillerDamage" value="71" />
+  <const id="$ZagaraHunterKillerMutaliskDamageBounce1" value="/($ZagaraHunterKillerDamage 2)" evaluateAsExpression="1" />
+  <const id="$ZagaraHunterKillerMutaliskDamageBounce2" value="/($ZagaraHunterKillerDamage 4)" evaluateAsExpression="1" />
   <CAbilMorph id="BurrowZagaraCreepTumorDown" parent="StormMorph">
     <AbilSetId value="BrwD" />
     <CmdButtonArray index="Execute" DefaultButtonFace="BurrowDown">
@@ -30,7 +33,7 @@
     <Flags index="ClearLastMoveTarget" value="1" />
     <Flags index="RequireTargetVision" value="0" />
     <Cost>
-      <Vital index="Energy" value="100" />
+      <Vital index="Energy" value="70" />
       <Cooldown TimeUse="80" />
     </Cost>
     <Arc value="360" />
@@ -275,8 +278,7 @@
   </CAbilEffectInstant>
   <CAccumulatorToken id="ZagaraSerratedSpinesAccumulator" parent="BaseTokenAccumulator">
     <TokenId value="ZagaraSerratedSpinesQuestToken" />
-    <ApplicationRule value="Add" />
-    <Scale value="0.3" />
+    <Scale value="0.002" />
   </CAccumulatorToken>
   <CActorEventMacro id="DevouringMawHeightMacro">
     <On Terms="ActorCreation" Send="StatusSet Sinking 0" />
@@ -1220,6 +1222,12 @@
     <BuffFlags index="RefreshStack" value="1" />
     <RefreshEffect value="SummonBanelingsModifyCooldown" />
   </CBehaviorBuff>
+  <CBehaviorBuff id="ZagaraInfestedDropCorpseFeedersRoachHealthBuff" parent="CarryBehaviorParent">
+    <DisableValidatorArray value="ZagaraHasCorpseFeeders" />
+    <Modification>
+      <VitalMaxFractionArray index="Life" value="0.3" />
+    </Modification>
+  </CBehaviorBuff>
   <CBehaviorBuff id="CorpseFeedersDebuff">
     <BehaviorFlags index="Permanent" value="1" />
     <BehaviorFlags index="EnabledWhileDead" value="1" />
@@ -1386,27 +1394,6 @@
       <StateFlags index="Cloak" value="1" />
     </Modification>
   </CBehaviorBuff>
-  <CBehaviorBuff id="ZagaraCorpseFeedersCarryBehavior" parent="StormArmorPermanent">
-    <DisableValidatorArray value="ZagaraHasCorpseFeedersSource" />
-    <ArmorModification>
-      <ArmorSet index="Merc">
-        <ArmorMitigationTable index="Basic" value="50" />
-        <ArmorMitigationTable index="Ability" value="50" />
-      </ArmorSet>
-      <ArmorSet index="Monster">
-        <ArmorMitigationTable index="Basic" value="50" />
-        <ArmorMitigationTable index="Ability" value="50" />
-      </ArmorSet>
-      <ArmorSet index="Structure">
-        <ArmorMitigationTable index="Basic" value="50" />
-        <ArmorMitigationTable index="Ability" value="50" />
-      </ArmorSet>
-      <ArmorSet index="Minion">
-        <ArmorMitigationTable index="Basic" value="50" />
-        <ArmorMitigationTable index="Ability" value="50" />
-      </ArmorSet>
-    </ArmorModification>
-  </CBehaviorBuff>
   <CBehaviorBuff id="ZagaraCreepTumorTimedLife">
     <DisplayDuration index="Self" value="1" />
     <DisableValidatorArray value="ZagaraDoesNotHaveEndlessCreep" />
@@ -1433,7 +1420,7 @@
     <BuffFlags index="RefreshStack" value="1" />
     <Duration value="1" />
     <Modification>
-      <DamageDealtFraction index="Basic" value="1" />
+      <DamageDealtFraction index="Basic" value="1.25" />
     </Modification>
   </CBehaviorBuff>
   <CBehaviorBuff id="ZagaraHydraliskTimedLife" parent="StormTimedLife">
@@ -1516,6 +1503,10 @@
     <Max value="65535" />
     <SortIndex value="20" />
   </CBehaviorTokenCounter>
+  <CButton id="ZagaraCreepTumorJaggedBarbs" parent="StormButtonParent">
+    <Icon value="Assets\Textures\storm_ui_icon_zagara_creep.dds" />
+    <HotkeyAlias value="ZagaraCreepTumorMetabolicBoostTalent" />
+  </CButton>
   <CButton id="BurrowDown" />
   <CButton id="ZagaraInfestedDropBileDropTalentToken" parent="StormButtonParent">
     <TooltipAppender />
@@ -1550,7 +1541,7 @@
     <Icon value="Assets\Textures\storm_ui_icon_talent_autoattack_damage.dds" />
   </CButton>
   <CButton id="ZagaraCorrosiveSalivaHunterKillerTalent" parent="StormButtonParent">
-    <Icon value="Assets\Textures\storm_ui_icon_zagara_hunterkiller_a.dds" />
+    <Icon value="Assets\Textures\storm_ui_icon_zagara_hunterkiller.dds" />
   </CButton>
   <CButton id="ZagaraHydraliskTransfusionTalent" parent="StormButtonParent">
     <Icon value="Assets\Textures\storm_ui_icon_zagara_hunterkiller.dds" />
@@ -1655,6 +1646,7 @@
   </CButton>
   <CButton id="ZagaraCreepTumor" parent="StormButtonParentTrait">
     <TooltipAppender Validator="ZagaraHasProtectiveCoating" Face="ZagaraCreepTumorProtectiveCoating" />
+    <TooltipAppender Validator="ZagaraHasJaggedBarbs" Face="ZagaraCreepTumorJaggedBarbs" />
     <Icon value="Assets\Textures\storm_ui_icon_zagara_creep.dds" />
   </CButton>
   <CButton id="ZagaraNydusNetwork" parent="StormButtonParent">
@@ -1791,14 +1783,14 @@
   </CEffectSwitch>
   <CEffectSet id="ZagaraHydraliskMeleeImpactSet">
     <EffectArray value="ZagaraHydraliskMeleeDamageSwitch" />
-    <EffectArray value="ZagaraHunterKillerCorrosiveSalivaDamage" />
+    <EffectArray value="ZagaraHunterKillerBileDropCorrosiveSalivaPercentDamage" />
   </CEffectSet>
   <CEffectSwitch id="ZagaraHydraliskRangedImpactSwitch" parent="SummonedBasicAttackAbilityDamageMissCheck">
     <CaseDefault value="ZagaraHydraliskRangedImpactSet" />
   </CEffectSwitch>
   <CEffectSet id="ZagaraHydraliskRangedImpactSet">
     <EffectArray value="ZagaraHydraliskRangedDamageSwitch" />
-    <EffectArray value="ZagaraHunterKillerCorrosiveSalivaDamage" />
+    <EffectArray value="ZagaraHunterKillerBileDropCorrosiveSalivaPercentDamage" />
   </CEffectSet>
   <CEffectApplyBehavior id="ZagaraCreepTumorEndlessCreepApplyBehavior">
     <Chance value="0" />
@@ -1811,11 +1803,11 @@
   <CEffectCreateHealer id="ZagaraHunterKillerHydraliskTransfusionGroovedSpinesCreateHealer" parent="StormSelfOnlyHealingSpell">
     <RechargeVitalRate value="80.1" />
   </CEffectCreateHealer>
-  <CEffectDamage id="ZagaraHunterKillerCorrosiveSalivaDamage" parent="StormSpellPercentDamage">
-    <Chance value="0" />
-    <VitalFractionMax index="Life" value="0.025" />
+  <CEffectDamage id="ZagaraHunterKillerBileDropCorrosiveSalivaPercentDamage" parent="StormSpellPercentDamage">
     <ValidatorArray value="TargetIsHero" />
+    <Chance value="0" />
     <DamageModifierSource Value="Creator" />
+    <VitalFractionMax index="Life" value="0.0175" />
   </CEffectDamage>
   <CEffectCancelOrder id="ZagaraFuzzyExitNydusWormCancelOrder">
     <Flags index="Uninterruptible" value="1" />
@@ -1907,12 +1899,13 @@
     <EffectArray value="ZagaraMedusaBladesWeaponSet" />
   </CEffectSet>
   <CEffectDamage id="ZagaraWeaponDamage" parent="StormWeapon">
-    <FlatModifierArray index="ZagaraSerratedSpines" Accumulator="ZagaraSerratedSpinesAccumulator" />
-    <Amount value="76" />
+    <Amount value="85" />
+    <MultiplicativeModifierArray index="SerratedSpines" Validator="ZagaraHasSerratedSpines" Accumulator="ZagaraSerratedSpinesAccumulator" />
+    <MultiplicativeModifierArray index="JaggedBarbs" Validator="ZagaraHasJaggedBarbsAndHasOnCreepSpeedBuff" Modifier="0.3" Crit="1" />
   </CEffectDamage>
   <CEffectDamage id="ZagaraWeaponEnvenomedSpinesDamage" parent="StormWeapon">
-    <FlatModifierArray index="ZagaraSerratedSpines" Accumulator="ZagaraSerratedSpinesAccumulator" />
-    <Amount value="76" />
+    <Amount value="85" />
+    <MultiplicativeModifierArray index="JaggedBarbs" Validator="ZagaraHasJaggedBarbsAndHasOnCreepSpeedBuff" Modifier="0.3" Crit="1" />
   </CEffectDamage>
   <CEffectSet id="ZagaraWeaponImpactSet">
     <EffectArray value="UniversalWeaponImpact" />
@@ -1967,7 +1960,8 @@
     <AttributeFactor index="Structure" value="-0.67" />
     <AttributeFactor index="Heroic" value="-0.67" />
     <AttributeFactor index="Summoned" value="-0.67" />
-    <Amount value="76" />
+    <Amount value="85" />
+    <MultiplicativeModifierArray index="JaggedBarbs" Validator="ZagaraHasJaggedBarbsAndHasOnCreepSpeedBuff" Modifier="0.3" Crit="1" />
   </CEffectDamage>
   <CEffectLaunchMissile id="MedusaBladesSideWeaponLaunchMissile">
     <ValidatorArray index="0" value="TargetNotDead" />
@@ -1977,7 +1971,8 @@
     <AmmoUnit value="ZagaraMedusaBladesSideMissile" />
   </CEffectLaunchMissile>
   <CEffectDamage id="MedusaBladesWeaponDamage" parent="StormWeapon">
-    <Amount value="76" />
+    <Amount value="85" />
+    <MultiplicativeModifierArray index="JaggedBarbs" Validator="ZagaraHasJaggedBarbsAndHasOnCreepSpeedBuff" Modifier="0.3" Crit="1" />
   </CEffectDamage>
   <CEffectApplyBehavior id="ZagaraCorruptingSpinesApplyBehavior">
     <ValidatorArray index="0" value="HasZagaraCorruptingSpines" />
@@ -2089,8 +2084,7 @@
   <CEffectDamage id="ZagaraBanelingExplodeDamage" parent="StormSpell">
     <Amount value="86" />
     <DamageModifierSource Value="Creator" />
-    <MultiplicativeModifierArray index="BanelingMassacre" Validator="ZagaraHasBanelingMassacre" Modifier="0.2" />
-    <MultiplicativeModifierArray index="VolatileAcid" Validator="TargetNotHeroANDZagaraHasVolatileAcid" Modifier="0.5" Crit="1" />
+    <MultiplicativeModifierArray index="VolatileAcid" Validator="ZagaraHasVolatileAcid" Modifier="0.2" />
   </CEffectDamage>
   <CEffectSet id="ZagaraBanelingSuicideTest">
     <EffectArray value="ZagaraBanelingCreatePersistentSuicideReveal" />
@@ -2108,6 +2102,7 @@
   <CEffectSet id="ZagaraRoachMeleeAttackImpactSet">
     <EffectArray value="InfestedDropApplyCorpseFeedersDebuff" />
     <EffectArray value="ZagaraRoachAttackDamage" />
+    <EffectArray value="ZagaraHunterKillerBileDropCorrosiveSalivaPercentDamage" />
   </CEffectSet>
   <CEffectSwitch id="ZagaraRoachRangedAttackImpactSwitch" parent="SummonedBasicAttackAbilityDamageMissCheck">
     <CaseDefault value="ZagaraRoachRangedAttackImpactSet" />
@@ -2115,6 +2110,7 @@
   <CEffectSet id="ZagaraRoachRangedAttackImpactSet">
     <EffectArray value="InfestedDropApplyCorpseFeedersDebuff" />
     <EffectArray value="ZagaraRoachAttackDamage" />
+    <EffectArray value="ZagaraHunterKillerBileDropCorrosiveSalivaPercentDamage" />
   </CEffectSet>
   <CEffectLaunchMissile id="ZagaraRoachAttackLaunchMissile">
     <ImpactEffect value="ZagaraRoachRangedAttackImpactSwitch" />
@@ -2241,23 +2237,23 @@
     <WhichLocation Value="TargetUnit" />
   </CEffectCreatePersistent>
   <CEffectDamage id="ZagaraMutaliskWeaponDamage1" parent="StormSummonedUnitWeapon">
-    <Amount value="68" />
+    <Amount value="$ZagaraHunterKillerDamage" />
   </CEffectDamage>
   <CEffectDamage id="ZagaraMutaliskWeaponDamage2" parent="StormSummonedUnitWeapon">
-    <Amount value="34" />
+    <Amount value="$ZagaraHunterKillerMutaliskDamageBounce1" />
   </CEffectDamage>
   <CEffectSwitch id="ZagaraMutaliskWeaponDamageSwitch3" parent="SummonedBasicAttackAbilityDamageMissCheck">
     <CaseDefault value="ZagaraMutaliskWeaponDamage3" />
   </CEffectSwitch>
   <CEffectDamage id="ZagaraMutaliskWeaponDamage3" parent="StormSummonedUnitWeapon">
-    <Amount value="17" />
+    <Amount value="$ZagaraHunterKillerMutaliskDamageBounce2" />
   </CEffectDamage>
   <CEffectSwitch id="ZagaraMutaliskWeaponImpactSwitch1" parent="SummonedBasicAttackAbilityDamageMissCheck">
     <CaseDefault value="ZagaraMutaliskWeaponImpactSet1" />
   </CEffectSwitch>
   <CEffectSet id="ZagaraMutaliskWeaponImpactSet1">
     <EffectArray value="ZagaraMutaliskWeaponDamage1" />
-    <EffectArray value="ZagaraHunterKillerCorrosiveSalivaDamage" />
+    <EffectArray value="ZagaraHunterKillerBileDropCorrosiveSalivaPercentDamage" />
     <EffectArray value="ZagaraMutaliskWeaponSearchArea1" />
     <EffectArray value="ZagaraMutaliskApplyBenignTarget" />
   </CEffectSet>
@@ -2327,10 +2323,10 @@
     <CaseDefault value="ZagaraHydraliskRangedDamage" />
   </CEffectSwitch>
   <CEffectDamage id="ZagaraHydraliskMeleeDamage" parent="StormSummonedUnitWeapon">
-    <Amount value="71" />
+    <Amount value="$ZagaraHunterKillerDamage" />
   </CEffectDamage>
   <CEffectDamage id="ZagaraHydraliskRangedDamage" parent="StormSummonedUnitWeapon">
-    <Amount value="71" />
+    <Amount value="$ZagaraHunterKillerDamage" />
   </CEffectDamage>
   <CEffectApplyBehavior id="DevouringMawApplyNoDrawBehavior">
     <ValidatorArray index="0" value="TargetNotHero" />
@@ -2403,7 +2399,7 @@
   </CEffectRemoveBehavior>
   <CEffectDamage id="DevouringMawSustainedDamage" parent="StormSpell">
     <ImpactUnitValidator value="TargetIsStasisOrNotInvulnerable" />
-    <Amount value="88" />
+    <Amount value="94" />
   </CEffectDamage>
   <CEffectCreatePersistent id="ZagaraDevouringMawCCPersistent">
     <WhichLocation Value="TargetUnit" />
@@ -2833,9 +2829,9 @@
     <TalentTreeArray Talent="ZagaraMasteryHydraliskTransfusion" Tier="5" Column="1" />
     <TalentTreeArray Talent="ZagaraMasteryProtectiveCoating" Tier="5" Column="2" />
     <TalentTreeArray Talent="GenericTalentSpellShield" Tier="5" Column="3" />
-    <TalentTreeArray Talent="ZagaraMasteryBroodExpansion" Tier="6" Column="1" />
-    <TalentTreeArray Talent="ZagaraMasteryCorrosiveSaliva" Tier="6" Column="2" />
-    <TalentTreeArray Talent="ZagaraMasteryMutalisk" Tier="6" Column="3" />
+    <TalentTreeArray Talent="ZagaraMasteryCorrosiveSaliva" Tier="6" Column="1" />
+    <TalentTreeArray Talent="ZagaraMasteryMutalisk" Tier="6" Column="2" />
+    <TalentTreeArray Talent="ZagaraJaggedBarbsTalent" Tier="6" Column="3" />
     <TalentTreeArray Talent="ZagaraMasteryTyrantMaw" Tier="7" Column="1">
       <PrerequisiteTalentArray value="ZagaraHeroicAbilityDevouringMaw" />
     </TalentTreeArray>
@@ -2867,7 +2863,7 @@
       <TalentsArray value="ZagaraMasteryBileDrop" />
       <TalentsArray value="ZagaraHeroicAbilityNydusAssault" />
       <TalentsArray value="ZagaraMasteryProtectiveCoating" />
-      <TalentsArray value="ZagaraMasteryBroodExpansion" />
+      <TalentsArray value="ZagaraJaggedBarbsTalent" />
       <TalentsArray value="ZagaraMasteryEndlessCreep" />
     </TalentAIBuildsArray>
     <TalentAIBuildsArray ChanceToPick="16">
@@ -3229,6 +3225,14 @@
     <Rarity value="Epic" />
     <ExpandedRole value="RangedAssassin" />
   </CHero>
+  <CHeroMastery id="ZagaraMasteryRing1" parent="MasteryRingRank1">
+    <ProductId value="67031" />
+    <HyperlinkId value="ZagaraMasteryRingRank1" />
+  </CHeroMastery>
+  <CHeroMastery id="ZagaraMasteryRing2" parent="MasteryRingRank2">
+    <ProductId value="67140" />
+    <HyperlinkId value="ZagaraMasteryRingRank2" />
+  </CHeroMastery>
   <CMount id="ZagaraWings">
     <AttributeId value="Zaga" />
     <Model value="" />
@@ -3435,6 +3439,32 @@
   <CRewardHero id="Zagara">
     <License value="10126" />
   </CRewardHero>
+  <CRewardHeroMastery id="ZagaraMasteryRing1">
+    <License value="50024" />
+  </CRewardHeroMastery>
+  <CRewardHeroMastery id="ZagaraMasteryRing2">
+    <License value="50025" />
+  </CRewardHeroMastery>
+  <CTalent id="ZagaraJaggedBarbsTalent">
+    <Face value="ZagaraCreepTumorJaggedBarbs" />
+    <Abil value="ZagaraSummonCreepTumor" />
+    <AbilityModificationArray>
+      <Modifications>
+        <Type value="FlatModification" />
+        <Catalog value="Behavior" />
+        <Entry value="ZagaraOnCreepSpeedBuff" />
+        <Field value="Modification.WeaponRange" />
+        <Value value="0.550000" />
+      </Modifications>
+      <Modifications>
+        <Type value="FlatModification" />
+        <Catalog value="Behavior" />
+        <Entry value="ZagaraOnCreepSpeedBuff" />
+        <Field value="Modification.WeaponScanBonus" />
+        <Value value="0.550000" />
+      </Modifications>
+    </AbilityModificationArray>
+  </CTalent>
   <CTalent id="ZagaraViscousAcid">
     <Face value="ZagaraViscousAcid" />
     <Abil value="ZagaraBanelingBarrage" />
@@ -3461,7 +3491,7 @@
       <Modifications>
         <Type value="FlatModification" />
         <Catalog value="Effect" />
-        <Entry value="ZagaraHunterKillerCorrosiveSalivaDamage" />
+        <Entry value="ZagaraHunterKillerBileDropCorrosiveSalivaPercentDamage" />
         <Field value="Chance" />
         <Value value="1.000000" />
       </Modifications>
@@ -3548,6 +3578,12 @@
         <Entry value="ZagaraBanelingBarrage" />
         <Field value="Cost[0].Charge.CountMax" />
         <Value value="2.000000" />
+      </Modifications>
+      <Modifications>
+        <Type value="FlatModification" />
+        <Entry value="ZagaraBanelingBarrage" />
+        <Field value="Cost.Charge.TimeUse" />
+        <Value value="-0.500000" />
       </Modifications>
     </AbilityModificationArray>
   </CTalent>
@@ -3648,6 +3684,12 @@
         <Entry value="ZagaraHydraliskTimedLife" />
         <Field value="Duration" />
         <Value value="22.000000" />
+      </Modifications>
+      <Modifications>
+        <Type value="FlatModification" />
+        <Entry value="ZagaraSummonHydralisk" />
+        <Field value="Cost.Cooldown.TimeUse" />
+        <Value value="-4.000000" />
       </Modifications>
     </AbilityModificationArray>
   </CTalent>
@@ -4072,8 +4114,8 @@
     <AbilArray Link="attack" />
     <AbilArray Link="move" />
     <BehaviorArray Link="ZagaraRoachTimedLife" />
-    <BehaviorArray Link="ZagaraCorpseFeedersCarryBehavior" />
     <BehaviorArray Link="RoachPreBirthStatusBuff" />
+    <BehaviorArray Link="ZagaraInfestedDropCorpseFeedersRoachHealthBuff" />
     <WeaponArray Link="ZagaraRoachMeleeWeapon" />
     <WeaponArray Link="ZagaraRoachRangedWeapon" />
     <CardLayouts>
@@ -4157,6 +4199,21 @@
   <CUnit id="ZagaraRoachRangedMissile" parent="MISSILE_INVULNERABLE">
     <Mover value="ZagaraRoachAttackMover" />
   </CUnit>
+  <CValidatorUnitCompareBehaviorCount id="ZagaraHasCreepSpeedBuffJaggedBarbs">
+    <WhichUnit Value="Caster" />
+    <Value value="1" />
+    <Behavior value="ZagaraOnCreepSpeedBuff" />
+  </CValidatorUnitCompareBehaviorCount>
+  <CValidatorCombine id="ZagaraHasJaggedBarbsAndHasOnCreepSpeedBuff">
+    <Type value="And" />
+    <CombineArray value="ZagaraHasJaggedBarbs" />
+    <CombineArray value="ZagaraHasCreepSpeedBuffJaggedBarbs" />
+  </CValidatorCombine>
+  <CValidatorPlayerTalent id="ZagaraHasJaggedBarbs">
+    <WhichPlayer Value="Caster" />
+    <Find value="1" />
+    <Value value="ZagaraJaggedBarbsTalent" />
+  </CValidatorPlayerTalent>
   <CValidatorUnitCompareChargeUsed id="ZagaraHasNoCreepTumorChargesUsed">
     <ChargeLink value="Abil/ZagaraSummonCreepTumor" />
     <Location value="Unit" />
@@ -4565,18 +4622,4 @@
     <Backswing value="0.25" />
     <Effect value="ZagaraRoachMeleeAttackImpactSwitch" />
   </CWeaponLegacy>
-  <CHeroMastery id="ZagaraMasteryRing1" parent="MasteryRingRank1">
-    <ProductId value="67031" />
-    <HyperlinkId value="ZagaraMasteryRingRank1" />
-  </CHeroMastery>
-  <CHeroMastery id="ZagaraMasteryRing2" parent="MasteryRingRank2">
-    <ProductId value="67140" />
-    <HyperlinkId value="ZagaraMasteryRingRank2" />
-  </CHeroMastery>
-  <CRewardHeroMastery id="ZagaraMasteryRing1">
-    <License value="50024" />
-  </CRewardHeroMastery>
-  <CRewardHeroMastery id="ZagaraMasteryRing2">
-    <License value="50025" />
-  </CRewardHeroMastery>
 </Catalog>
