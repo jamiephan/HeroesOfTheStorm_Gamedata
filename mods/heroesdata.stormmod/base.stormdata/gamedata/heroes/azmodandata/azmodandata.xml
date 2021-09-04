@@ -1,9 +1,14 @@
 <?xml version="1.0" encoding="us-ascii"?>
 <Catalog>
+  <const id="$AzmodanAllShallBurnCastRange" value="6" />
+  <const id="$AzmodanAllShallBurnChannelSlop" value="2.25" />
+  <const id="$AzmodanAllShallBurnChannelRange" value="8.25" />
+  <const id="$AzmodanAllShallBurnChannelRangeGreed" value="9.75" />
+  <const id="$AzmodanAllShallBurnGreedBonusRange" value="1.5" />
   <CAbilEffectTarget id="AzmodanTrample" parent="StormSkillshotDashParent">
     <Effect value="AzmodanTrampleCastSet" />
     <Cost>
-      <Cooldown TimeUse="60" />
+      <Cooldown TimeUse="20" />
     </Cost>
     <MoveLocation ProjectionDistanceScale="14" />
     <CursorEffect value="AzmodanTrampleSearch" />
@@ -19,7 +24,7 @@
       <Cooldown TimeUse="6" />
     </Cost>
     <TargetFilters value="-;Player,Ally,Missile,Item,Stasis,Dead,Hidden,Invulnerable" />
-    <Range value="6" />
+    <Range value="$AzmodanAllShallBurnCastRange" />
     <RangeSlop value="1.5" />
     <CastIntroTime value="0.5" />
     <ShowProgressArray index="Cast" value="1" />
@@ -897,7 +902,6 @@
     <On Terms="Effect.AzmodanDemonicInvasionDemonCreationPersistent.Start" Send="Create" />
     <On Terms="Effect.AzmodanDemonicInvasionDemonCreationPersistent.Stop" Send="AnimBracketStop BSD" />
     <Model value="AzmodanDemonicInvasion" />
-    <ModelFlags index="AllowHitTest" value="0" />
   </CActorModel>
   <CActorSiteOpHostBearings id="SOpHostAzmodanBlackPoolGrowthGuideHardPoint3">
     <HostBearings Subject="_BlackPoolGuide" Actor="Find" />
@@ -991,6 +995,31 @@
   <CActorSound id="PulledSoundHeroAzmodan" parent="SoundOneShot">
     <Sound value="Azmodan_VOX_Pulled" />
   </CActorSound>
+  <CBehaviorBuff id="AzmodanAllShallBurnSinsGraspInitialSlow" parent="StormSlowParent">
+    <RemoveValidatorArray value="CasterHasAzmodanAllShallBurnChannelBehaviorCombine" />
+    <Modification>
+      <UnifiedMoveSpeedFactor value="-0.15" />
+    </Modification>
+  </CBehaviorBuff>
+  <CBehaviorBuff id="AzmodanAllShallBurnSinsGraspExpireSlow" parent="StormSlowParent">
+    <Modification>
+      <UnifiedMoveSpeedFactor value="-0.45" />
+    </Modification>
+    <Duration value="2" />
+  </CBehaviorBuff>
+  <CBehaviorBuff id="AzmodanGlobeOfAnnihilationGreedMovementSpeed">
+    <Modification>
+      <UnifiedMoveSpeedFactor value="0.2" />
+    </Modification>
+    <BehaviorCategories index="Permanent" value="1" />
+    <BehaviorCategories index="Fast" value="1" />
+  </CBehaviorBuff>
+  <CBehaviorBuff id="AzmodanGlobeOfAnnihilationGreedAttackSpeed">
+    <Modification>
+      <AdditiveAttackSpeedFactor value="0.2" />
+    </Modification>
+    <BehaviorCategories index="Permanent" value="1" />
+  </CBehaviorBuff>
   <CBehaviorAbility id="AzmodanTrampleItem">
     <Buttons Face="AzmodanTrample" Type="AbilCmd" AbilCmd="AzmodanTrample,Execute" />
   </CBehaviorAbility>
@@ -1048,9 +1077,9 @@
     <InfoTooltipPriority value="1" />
     <InfoFlags index="Hidden" value="1" />
     <TokenId value="AzmodanGlobeOfAnnihilationDisplayTokenCounter" />
-    <IncreaseEvents index="0" EventId="" ValidRange="0,0" />
-    <AtMaxEvents index="0" EventId="QuestComplete" Effect="AzmodanGlobeOfAnnihilationApplyQuestCompletionCarry" ValidRange="200,200" />
+    <AtMaxEvents index="0" EventId="QuestComplete" Effect="AzmodanGlobeOfAnnihilationGreedQuestCompeteSet" ValidRange="200,200" />
     <Max value="200" />
+    <IncreaseEvents index="0" EventId="" />
   </CBehaviorTokenCounter>
   <CBehaviorTokenCounter id="AzmodanGlobeOfAnnihilationGluttonyTalentTokenCounter" parent="StormQuestToken">
     <Face value="AzmodanGluttony" />
@@ -1121,8 +1150,6 @@
   </CBehaviorBuff>
   <CBehaviorBuff id="AzmodanGlobeOfAnnihilationQuestCompletionCarry" parent="CarryBehaviorParent">
     <DisableValidatorArray value="AzmodanGlobeOfAnnihilationQuestCompletionTokenThreshold" />
-    <InitialEffect value="AzmodanGlobeOfAnnihilationGreedTalentModifyPlayer" />
-    <FinalEffect value="AzmodanGlobeOfAnnihilationGreedTalentResetPlayer" />
     <DisableEffect value="AzmodanGlobeOfAnnihilationGreedTalentResetPlayer" />
   </CBehaviorBuff>
   <CBehaviorBuff id="AzmodanAllShallBurnHellRiftTalentCooldown">
@@ -1482,6 +1509,40 @@
     <Variations Model="AzmodanPortrait" Actor="AzmodanPortrait" />
     <Unit value="HeroAzmodan" />
   </CCharacter>
+  <CEffectApplyBehavior id="AzmodanAllShallBurnSinsGraspApplyExpireSlowBehavior" parent="StormSlowApply">
+    <Chance value="0" />
+    <Behavior value="AzmodanAllShallBurnSinsGraspExpireSlow" />
+  </CEffectApplyBehavior>
+  <CEffectApplyBehavior id="AzmodanAllShallBurnSinsGraspApplyInitialSlowBehavior" parent="StormSlowApply">
+    <Chance value="0" />
+    <Behavior value="AzmodanAllShallBurnSinsGraspInitialSlow" />
+  </CEffectApplyBehavior>
+  <CEffectSet id="AzmodanGlobeOfAnnihilationGreedQuestCompeteSet">
+    <EffectArray value="AzmodanGlobeOfAnnihilationApplyQuestCompletionCarry" />
+    <EffectArray value="AzmodanGlobeOfAnnihilationGreedAllShallBurnRangeIncreaseModifyCatalog" />
+  </CEffectSet>
+  <CEffectModifyCatalogNumeric id="AzmodanGlobeOfAnnihilationGreedAllShallBurnRangeIncreaseModifyCatalog">
+    <CatalogModifications Reference="Abil,AzmodanAllShallBurn,Range">
+      <Value value="$AzmodanAllShallBurnGreedBonusRange" />
+    </CatalogModifications>
+    <CatalogModifications Reference="Actor,AzmodanAllShallBurnRangeSplat,Scale">
+      <Value value="$AzmodanAllShallBurnGreedBonusRange" />
+    </CatalogModifications>
+    <CatalogModifications Reference="Actor,AzmodanAllShallBurnActiveRange,Range">
+      <Value value="$AzmodanAllShallBurnGreedBonusRange" />
+    </CatalogModifications>
+  </CEffectModifyCatalogNumeric>
+  <CEffectApplyBehavior id="AzmodanGlobeOfAnnihilationGreedApplyMovementSpeedBehavior">
+    <Behavior value="AzmodanGlobeOfAnnihilationGreedMovementSpeed" />
+  </CEffectApplyBehavior>
+  <CEffectApplyBehavior id="AzmodanGlobeOfAnnihilationGreedApplyAttackSpeedBehavior">
+    <Behavior value="AzmodanGlobeOfAnnihilationGreedAttackSpeed" />
+  </CEffectApplyBehavior>
+  <CEffectSet id="AzmodanGlobeOfAnnihilationGreedSummonDemonWarriorSet">
+    <ValidatorArray value="AzmodanCasterHasGreedTalentandGlobeOfAnnihilationQuestComplete" />
+    <EffectArray value="AzmodanGlobeOfAnnihilationGreedApplyAttackSpeedBehavior" />
+    <EffectArray value="AzmodanGlobeOfAnnihilationGreedApplyMovementSpeedBehavior" />
+  </CEffectSet>
   <CEffectSwitch id="AzmodanAllShallBurnPeriodicSwitch">
     <CaseArray Validator="AzmodanHasCydaeasKissTalent" Effect="AzmodanAllShallBurnExpireSet" />
     <CaseDefault value="AzmodanAllShallBurnImpactSet" />
@@ -1602,7 +1663,7 @@
     </AreaArray>
   </CEffectEnumArea>
   <CEffectDamage id="AzmodanGlobeOfAnnihilationTideOfSinTalentDamage" parent="StormSpell">
-    <MultiplicativeModifierArray index="Avarice" Validator="AzmodanGreedTalentCombine" Modifier="0.2" />
+    <MultiplicativeModifierArray index="Avarice" Validator="AzmodanCasterHasGreedTalentandTargetNotHero" Modifier="0.2" />
     <MultiplicativeModifierArray index="BlackPool" Validator="AzmodanSourceHasTideOfSinGlobeOfAnnihilationMissileMarker" Modifier="0.5" Crit="1" />
     <FlatModifierArray index="Globe" Accumulator="AzmodanGlobeOfAnnihilationDamageAccumulator" />
     <FlatModifierArray index="Pride" Validator="AzmodanHasPrideCarry" Modifier="125" />
@@ -1754,6 +1815,7 @@
     <EffectArray value="AzmodanSummonDemonWarriorAddTrackedUnit" />
     <EffectArray value="AzmodanSummonDemonWarriorApplyTimedLife" />
     <EffectArray value="AzmodanAllShallBurnHellRiftTalentApplyCarry" />
+    <EffectArray value="AzmodanGlobeOfAnnihilationGreedSummonDemonWarriorSet" />
   </CEffectSet>
   <CEffectLaunchMissile id="AzmodanHeroWeaponBombardmentTalentLaunchMissile">
     <ValidatorArray index="0" value="TargetNotDead" />
@@ -2137,6 +2199,7 @@
     <EffectArray value="AzmodanSummonDemonWarriorAddTrackedUnit" />
     <EffectArray value="AzmodanSummonDemonWarriorApplyTimedLife" />
     <EffectArray value="AzmodanAllShallBurnHellRiftTalentApplyCarry" />
+    <EffectArray value="AzmodanGlobeOfAnnihilationGreedSummonDemonWarriorSet" />
   </CEffectSet>
   <CEffectApplyBehavior id="AzmodanAllShallBurnConsumingFlamesTalentApplyStun">
     <ValidatorArray index="0" value="AzmodanConsumingFlamesTalentCombine" />
@@ -2231,6 +2294,7 @@
     <EffectArray value="AzmodanAllShallBurnSinsGraspTalentApplyCooldownMarker" />
     <EffectArray value="AzmodanAllShallBurnMasterOfDestructionTalentProcSet" />
     <EffectArray value="AzmodanSummonDemonWarriorHellRiftTalentDummySet" />
+    <EffectArray value="AzmodanAllShallBurnSinsGraspApplyExpireSlowBehavior" />
   </CEffectSet>
   <CEffectSet id="AzmodanAllShallBurnChannelBehaviorFinalSet">
     <EffectArray value="AzmodanAllShallBurnCasterRevealerDestroyPersistent" />
@@ -2304,6 +2368,7 @@
   </CEffectSet>
   <CEffectSet id="AzmodanAllShallBurnImpactSet">
     <EffectArray value="AzmodanAllShallBurnDamage" />
+    <EffectArray value="AzmodanAllShallBurnSinsGraspApplyInitialSlowBehavior" />
   </CEffectSet>
   <CEffectSet id="AzmodanAllShallBurnPersistentInitialSet">
     <EffectArray value="AzmodanAllShallBurnApplyChannelBehavior" />
@@ -2513,7 +2578,7 @@
     </AreaArray>
   </CEffectEnumArea>
   <CEffectDamage id="AzmodanGlobeOfAnnihilationDamage" parent="StormSpell">
-    <MultiplicativeModifierArray index="Greed" Validator="AzmodanGreedTalentCombine" Modifier="0.2" />
+    <MultiplicativeModifierArray index="Greed" Validator="AzmodanCasterHasGreedTalentandTargetNotHero" Modifier="0.2" />
     <MultiplicativeModifierArray index="TideOfSin" Validator="AzmodanSourceHasTideOfSinGlobeOfAnnihilationMissileMarker" Modifier="0.5" Crit="1" />
     <FlatModifierArray index="Globe" Accumulator="AzmodanGlobeOfAnnihilationDamageAccumulator" />
     <FlatModifierArray index="Pride" Validator="AzmodanHasPrideCarry" Modifier="100" />
@@ -2876,7 +2941,7 @@
         <Catalog value="Effect" />
         <Entry value="AzmodanGlobeOfAnnihilationDamage" />
         <Field value="Amount" />
-        <Value value="0.030000" />
+        <Value value="0.025000" />
         <AffectedByAbilityPower value="1" />
         <AffectedByOverdrive value="1" />
       </Modifications>
@@ -2884,7 +2949,7 @@
         <Catalog value="Effect" />
         <Entry value="AzmodanGlobeOfAnnihilationTideOfSinTalentDamage" />
         <Field value="Amount" />
-        <Value value="0.030000" />
+        <Value value="0.025000" />
         <AffectedByAbilityPower value="1" />
         <AffectedByOverdrive value="1" />
       </Modifications>
@@ -3451,16 +3516,22 @@
     <RankArray>
       <BehaviorArray value="AzmodanGlobeOfAnnihilationGreedTalentTokenCounter" />
     </RankArray>
+    <QuestData StackBehavior="AzmodanGlobeOfAnnihilationGreedTalentTokenCounter" TargetCount="200" IgnoreTargetCount="0" />
     <AbilityModificationArray>
+      <Modifications Type="FlatModification" Entry="AzmodanAllShallBurn" Field="Range" />
       <Modifications>
         <Type value="FlatModification" />
-        <Catalog value="Behavior" />
-        <Entry value="AzmodanGlobeOfAnnihilationDebuff" />
-        <Field value="Duration" />
-        <Value value="1.500000" />
+        <Catalog value="Actor" />
+        <Entry value="AzmodanAllShallBurnRangeSplat" />
+        <Field value="Scale" />
+      </Modifications>
+      <Modifications>
+        <Type value="FlatModification" />
+        <Catalog value="Actor" />
+        <Entry value="AzmodanAllShallBurnActiveRange" />
+        <Field value="Range" />
       </Modifications>
     </AbilityModificationArray>
-    <QuestData StackBehavior="AzmodanGlobeOfAnnihilationGreedTalentTokenCounter" TargetCount="200" IgnoreTargetCount="0" />
   </CTalent>
   <CTalent id="AzmodanGluttony">
     <Face value="AzmodanGluttony" />
@@ -3605,23 +3676,17 @@
     <AbilityModificationArray>
       <Modifications>
         <Type value="FlatModification" />
-        <Entry value="AzmodanAllShallBurn" />
-        <Field value="Range[0]" />
-        <Value value="1.250000" />
+        <Catalog value="Effect" />
+        <Entry value="AzmodanAllShallBurnSinsGraspApplyInitialSlowBehavior" />
+        <Field value="Chance" />
+        <Value value="1.000000" />
       </Modifications>
       <Modifications>
         <Type value="FlatModification" />
-        <Catalog value="Actor" />
-        <Entry value="AzmodanAllShallBurnActiveRange" />
-        <Field value="Range" />
-        <Value value="1.550000" />
-      </Modifications>
-      <Modifications>
-        <Type value="FlatModification" />
-        <Catalog value="Actor" />
-        <Entry value="AzmodanAllShallBurnRangeSplat" />
-        <Field value="Scale" />
-        <Value value="1.450000" />
+        <Catalog value="Effect" />
+        <Entry value="AzmodanAllShallBurnSinsGraspApplyExpireSlowBehavior" />
+        <Field value="Chance" />
+        <Value value="1.000000" />
       </Modifications>
     </AbilityModificationArray>
   </CTalent>
@@ -3758,6 +3823,21 @@
   <CUnit id="HeroAzmodanAttackMissile" parent="MISSILE_INVULNERABLE">
     <Mover value="HeroMissileSpeed22Ribbon" />
   </CUnit>
+  <CValidatorCombine id="AzmodanAllShallBurnRangeValidatorGreedCombine">
+    <Type value="And" />
+    <CombineArray value="AzmodanCasterHasGreedTalentandGlobeOfAnnihilationQuestComplete" />
+    <CombineArray value="AzmodanAllShallBurnRangeValidatorGreed" />
+  </CValidatorCombine>
+  <CValidatorLocationCompareRange id="AzmodanAllShallBurnRangeValidatorGreed">
+    <WhichLocation Value="TargetUnit" />
+    <Compare value="LE" />
+    <Range value="$AzmodanAllShallBurnChannelRangeGreed" />
+  </CValidatorLocationCompareRange>
+  <CValidatorCombine id="AzmodanCasterHasGreedTalentandGlobeOfAnnihilationQuestComplete">
+    <Type value="And" />
+    <CombineArray value="AzmodanHasGreedTalent" />
+    <CombineArray value="AzmodanHasGlobeOfAnnihilationQuestCompletionCarry" />
+  </CValidatorCombine>
   <CValidatorUnitCompareBehaviorCount id="AzmodanHasChainOfCommandAuraBuffSource">
     <WhichUnit Value="Source" />
     <Compare value="GT" />
@@ -3904,16 +3984,6 @@
   <CValidatorUnitType id="AzmodanTargetIsBlackPoolUnit">
     <Value value="AzmodanBlackPool" />
   </CValidatorUnitType>
-  <CValidatorCombine id="AzmodanAllShallBurnRangeSinsGraspTalentValidatorCombine">
-    <Type value="And" />
-    <CombineArray value="AzmodanAllShallBurnSinsGraspTalentRange" />
-    <CombineArray value="AzmodanHasSinsGraspTalent" />
-  </CValidatorCombine>
-  <CValidatorLocationCompareRange id="AzmodanAllShallBurnSinsGraspTalentRange">
-    <WhichLocation Value="TargetUnit" />
-    <Compare value="LE" />
-    <Range value="9.75" />
-  </CValidatorLocationCompareRange>
   <CValidatorLocationEnumArea id="AzmodanDemonLieutenantValidTargetsNearTargetPoint">
     <AreaArray Compare="GT" Count="0" Validator="AzmodanTargetIsMinionorMercANDTargetIsNotMapCreatureorMapBossANDTargetIsAllyorPlayerExcludedSelf">
       <Radius value="5" />
@@ -3930,10 +4000,9 @@
     <Find value="1" />
     <Value value="AzmodanWrath" />
   </CValidatorPlayerTalent>
-  <CValidatorCombine id="AzmodanGreedTalentCombine">
+  <CValidatorCombine id="AzmodanCasterHasGreedTalentandTargetNotHero">
     <Type value="And" />
     <CombineArray value="AzmodanHasGreedTalent" />
-    <CombineArray value="AzmodanHasGlobeOfAnnihilationQuestCompletionCarry" />
     <CombineArray value="TargetNotHero" />
   </CValidatorCombine>
   <CValidatorCombine id="AzmodanPrideTalentCombine">
@@ -4032,7 +4101,7 @@
   </CValidatorUnitOrderQueue>
   <CValidatorCombine id="AzmodanAllShallBurnRangeValidatorCombine">
     <CombineArray value="AzmodanAllShallBurnRangeValidator" />
-    <CombineArray value="AzmodanAllShallBurnRangeSinsGraspTalentValidatorCombine" />
+    <CombineArray value="AzmodanAllShallBurnRangeValidatorGreedCombine" />
   </CValidatorCombine>
   <CValidatorLocationCompareRange id="AzmodanGlobeofAnnihilationAlternateAnimationMinimumDistance">
     <Compare value="GT" />
@@ -4073,7 +4142,7 @@
   <CValidatorLocationCompareRange id="AzmodanAllShallBurnRangeValidator">
     <WhichLocation Value="TargetUnit" />
     <Compare value="LE" />
-    <Range value="8.25" />
+    <Range value="$AzmodanAllShallBurnChannelRange" />
   </CValidatorLocationCompareRange>
   <CValidatorCombine id="AzmodanAllShallBurnPeriodicValidator">
     <Type value="And" />
