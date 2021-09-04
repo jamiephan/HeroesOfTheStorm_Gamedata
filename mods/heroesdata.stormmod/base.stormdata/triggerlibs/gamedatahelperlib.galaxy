@@ -869,7 +869,6 @@ void libGDHL_gf_HeroChenIncrementHeroCountFunction () {
         TriggerEnable(libGDHL_gt_HeroChenStormEarthFireEarthAbility, true);
         TriggerEnable(libGDHL_gt_HeroChenSwiftReflexesTalentMissed, true);
         TriggerEnable(libGDHL_gt_HeroChenFreshestIngredientsTalentProc, true);
-        TriggerEnable(libGDHL_gt_HeroChenPurifyingBrewTalentProc, true);
         TriggerEnable(libGDHL_gt_HeroChenStaggerDamageResponse, true);
         TriggerEnable(libGDHL_gt_HeroChenStaggerDisplayUpdate, true);
     }
@@ -898,7 +897,6 @@ void libGDHL_gf_HeroChenDecrementHeroCountFunction () {
         TriggerEnable(libGDHL_gt_HeroChenStormEarthFireEarthAbility, false);
         TriggerEnable(libGDHL_gt_HeroChenSwiftReflexesTalentMissed, false);
         TriggerEnable(libGDHL_gt_HeroChenFreshestIngredientsTalentProc, false);
-        TriggerEnable(libGDHL_gt_HeroChenPurifyingBrewTalentProc, false);
         TriggerEnable(libGDHL_gt_HeroChenStaggerDamageResponse, false);
         TriggerEnable(libGDHL_gt_HeroChenStaggerDisplayUpdate, false);
     }
@@ -8802,79 +8800,6 @@ void libGDHL_gt_HeroChenFreshestIngredientsTalentProc_Init () {
     libGDHL_gt_HeroChenFreshestIngredientsTalentProc = TriggerCreate("libGDHL_gt_HeroChenFreshestIngredientsTalentProc_Func");
     TriggerEnable(libGDHL_gt_HeroChenFreshestIngredientsTalentProc, false);
     TriggerAddEventPlayerEffectUsed(libGDHL_gt_HeroChenFreshestIngredientsTalentProc, c_playerAny, "RegenGlobePickupSearch");
-}
-
-//--------------------------------------------------------------------------------------------------
-// Trigger: Hero - Chen - Purifying Brew Talent Proc
-//--------------------------------------------------------------------------------------------------
-bool libGDHL_gt_HeroChenPurifyingBrewTalentProc_Func (bool testConds, bool runActions) {
-    // Variable Declarations
-    string lv_behavior;
-    unit lv_unit;
-    int lv_player;
-    fixed lv_behaviorDuration;
-    fixed lv_reducedDuration;
-    fixed lv_percentReduction;
-
-    // Automatic Variable Declarations
-    // Variable Initialization
-    lv_behavior = EventUnitBehavior();
-    lv_unit = EventUnit();
-    lv_player = UnitGetOwner(lv_unit);
-    lv_percentReduction = 0.75;
-
-    // Conditions
-    if (testConds) {
-        if (!((lv_player >= 1))) {
-            return false;
-        }
-
-        if (!((lv_player <= libCore_gv_bALMaxPlayers))) {
-            return false;
-        }
-
-        if (!((PlayerHasTalent(lv_player, "ChenPurifyingBrew") == true))) {
-            return false;
-        }
-
-        if (!((UnitGetType(lv_unit) == "HeroChen"))) {
-            return false;
-        }
-
-        if (!((UnitHasBehavior2(lv_unit, "ChenPurifyingBrewCooldown") == false))) {
-            return false;
-        }
-
-        if (!((UnitHasBehaviorWithCategoryFlag(lv_unit, c_behaviorCategoryBuffUnstoppable) == false))) {
-            return false;
-        }
-    }
-
-    // Actions
-    if (!runActions) {
-        return true;
-    }
-
-    if ((((UnitBehaviorHasCategoryFlag(lv_behavior, c_behaviorCategoryUnreducible) == true) && (UnitBehaviorHasCategoryFlag(lv_behavior, c_behaviorCategoryStun) == true)) || ((UnitBehaviorHasCategoryFlag(lv_behavior, c_behaviorCategoryUnreducible) == true) && (UnitBehaviorHasCategoryFlag(lv_behavior, c_behaviorCategoryDebuffSilence) == true)))) {
-        return true;
-    }
-    else {
-        lv_behaviorDuration = CatalogFieldValueGetAsFixed(c_gameCatalogBehavior, lv_behavior, "Duration", UnitBehaviorEffectPlayer(lv_unit, lv_behavior, c_effectPlayerCaster, 0));
-        lv_reducedDuration = (lv_behaviorDuration * (1.0 - MinF(lv_percentReduction, 0.9)));
-        UnitBehaviorSetDurationRemaining(lv_unit, lv_behavior, lv_reducedDuration);
-        UnitBehaviorAdd(lv_unit, "ChenPurifyingBrewCooldown", lv_unit, 1);
-    }
-    return true;
-}
-
-//--------------------------------------------------------------------------------------------------
-void libGDHL_gt_HeroChenPurifyingBrewTalentProc_Init () {
-    libGDHL_gt_HeroChenPurifyingBrewTalentProc = TriggerCreate("libGDHL_gt_HeroChenPurifyingBrewTalentProc_Func");
-    TriggerEnable(libGDHL_gt_HeroChenPurifyingBrewTalentProc, false);
-    TriggerAddEventUnitBehaviorChangeFromCategory(libGDHL_gt_HeroChenPurifyingBrewTalentProc, null, c_behaviorCategoryStun, c_unitBehaviorChangeCreate);
-    TriggerAddEventUnitBehaviorChangeFromCategory(libGDHL_gt_HeroChenPurifyingBrewTalentProc, null, c_behaviorCategoryStun, c_unitBehaviorChangeRefresh);
-    TriggerAddEventUnitBehaviorChangeFromCategory(libGDHL_gt_HeroChenPurifyingBrewTalentProc, null, c_behaviorCategoryDebuffSilence, c_unitBehaviorChangeCreate);
-    TriggerAddEventUnitBehaviorChangeFromCategory(libGDHL_gt_HeroChenPurifyingBrewTalentProc, null, c_behaviorCategoryDebuffSilence, c_unitBehaviorChangeRefresh);
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -26523,7 +26448,6 @@ void libGDHL_InitTriggers () {
     libGDHL_gt_HeroChenStormEarthFireEarthAbility_Init();
     libGDHL_gt_HeroChenSwiftReflexesTalentMissed_Init();
     libGDHL_gt_HeroChenFreshestIngredientsTalentProc_Init();
-    libGDHL_gt_HeroChenPurifyingBrewTalentProc_Init();
     libGDHL_gt_HeroChenStaggerGiftOfTheOxTalentDamageModification_Init();
     libGDHL_gt_HeroChenStaggerGiftOfTheOxTalentDamageModificationReset_Init();
     libGDHL_gt_HeroChenStaggerDamageResponse_Init();

@@ -40,8 +40,8 @@
   <xs:element name="Includes">
     <xs:complexType>
       <xs:choice>
-        <xs:element maxOccurs="unbounded" ref="Catalog"/>
         <xs:element maxOccurs="unbounded" ref="Path"/>
+        <xs:element maxOccurs="unbounded" ref="Catalog"/>
       </xs:choice>
       <xs:attribute name="id"/>
     </xs:complexType>
@@ -752,6 +752,7 @@
   <xs:element name="CAbilArmMagazine">
     <xs:complexType>
       <xs:sequence>
+        <xs:element minOccurs="0" ref="OrderArray"/>
         <xs:sequence minOccurs="0">
           <xs:element ref="AbilSetId"/>
           <xs:element ref="Launch"/>
@@ -768,13 +769,10 @@
         </xs:choice>
         <xs:element minOccurs="0" ref="InfoArray"/>
         <xs:element minOccurs="0" ref="Alert"/>
-        <xs:choice>
-          <xs:element ref="OrderArray"/>
-          <xs:choice minOccurs="0" maxOccurs="unbounded">
-            <xs:element ref="EffectArray"/>
-            <xs:element ref="MaxCount"/>
-            <xs:element ref="ExternalAngle"/>
-          </xs:choice>
+        <xs:choice minOccurs="0" maxOccurs="unbounded">
+          <xs:element ref="EffectArray"/>
+          <xs:element ref="MaxCount"/>
+          <xs:element ref="ExternalAngle"/>
         </xs:choice>
       </xs:sequence>
       <xs:attribute name="default" type="xs:integer"/>
@@ -1180,7 +1178,6 @@
     <xs:complexType>
       <xs:sequence>
         <xs:element minOccurs="0" ref="AbilSetId"/>
-        <xs:element minOccurs="0" ref="OrderArray"/>
         <xs:element minOccurs="0" maxOccurs="unbounded" ref="CmdButtonArray"/>
         <xs:element minOccurs="0" ref="ActorKey"/>
         <xs:sequence minOccurs="0">
@@ -1197,6 +1194,7 @@
           <xs:element ref="RefundFraction"/>
         </xs:choice>
         <xs:choice>
+          <xs:element ref="OrderArray"/>
           <xs:element ref="ParentAbil"/>
           <xs:element minOccurs="0" maxOccurs="unbounded" ref="AbilClassEnableArray"/>
         </xs:choice>
@@ -1223,23 +1221,25 @@
   <xs:element name="CAbilMove">
     <xs:complexType>
       <xs:sequence>
+        <xs:element minOccurs="0" ref="Name"/>
         <xs:sequence minOccurs="0">
           <xs:element ref="FleeRange"/>
           <xs:element ref="FleeTime"/>
           <xs:element ref="MinPatrolDistance"/>
         </xs:sequence>
-        <xs:element minOccurs="0" ref="Name"/>
         <xs:element minOccurs="0" maxOccurs="unbounded" ref="OrderArray"/>
         <xs:element minOccurs="0" maxOccurs="unbounded" ref="CmdButtonArray"/>
-        <xs:element minOccurs="0" ref="SharedFlags"/>
         <xs:sequence minOccurs="0">
           <xs:element ref="MoveFilters"/>
           <xs:element maxOccurs="unbounded" ref="Flags"/>
         </xs:sequence>
-        <xs:sequence minOccurs="0">
-          <xs:element ref="IgnoreRange"/>
-          <xs:element ref="AllowAddOrderValidatorArray"/>
-        </xs:sequence>
+        <xs:choice minOccurs="0">
+          <xs:element ref="SharedFlags"/>
+          <xs:sequence>
+            <xs:element ref="IgnoreRange"/>
+            <xs:element ref="AllowAddOrderValidatorArray"/>
+          </xs:sequence>
+        </xs:choice>
       </xs:sequence>
       <xs:attribute name="default" type="xs:integer"/>
       <xs:attribute name="id" type="xs:NCName"/>
@@ -1284,11 +1284,9 @@
           <xs:element ref="QueueSize"/>
         </xs:choice>
         <xs:element minOccurs="0" maxOccurs="unbounded" ref="Flags"/>
+        <xs:element minOccurs="0" maxOccurs="unbounded" ref="CmdButtonArray"/>
         <xs:element minOccurs="0" ref="SharedFlags"/>
-        <xs:choice>
-          <xs:element ref="OrderArray"/>
-          <xs:element maxOccurs="unbounded" ref="CmdButtonArray"/>
-        </xs:choice>
+        <xs:element minOccurs="0" ref="OrderArray"/>
       </xs:sequence>
       <xs:attribute name="default" type="xs:integer"/>
       <xs:attribute name="id" type="xs:NCName"/>
@@ -1343,30 +1341,25 @@
   <xs:element name="CAbilRevive">
     <xs:complexType>
       <xs:sequence>
-        <xs:element minOccurs="0" ref="SharedFlags"/>
-        <xs:element minOccurs="0" ref="ReplaceFilters"/>
-        <xs:sequence minOccurs="0">
-          <xs:element maxOccurs="unbounded" ref="CmdButtonArray"/>
-          <xs:element ref="Alert"/>
-          <xs:element ref="ErrorAlert"/>
-          <xs:element ref="Activity"/>
-          <xs:element ref="Flags"/>
-          <xs:element ref="NameOverride"/>
-        </xs:sequence>
-        <xs:choice>
-          <xs:element ref="SelfReviveCmd"/>
-          <xs:element minOccurs="0" maxOccurs="unbounded" ref="ValidatorArray"/>
+        <xs:choice minOccurs="0">
+          <xs:element ref="SharedFlags"/>
+          <xs:sequence>
+            <xs:element maxOccurs="unbounded" ref="CmdButtonArray"/>
+            <xs:element ref="Alert"/>
+            <xs:element ref="ErrorAlert"/>
+            <xs:element ref="Activity"/>
+            <xs:element ref="Flags"/>
+            <xs:element ref="NameOverride"/>
+          </xs:sequence>
         </xs:choice>
+        <xs:element minOccurs="0" ref="SelfReviveCmd"/>
+        <xs:element minOccurs="0" ref="ReplaceFilters"/>
+        <xs:element minOccurs="0" maxOccurs="unbounded" ref="ValidatorArray"/>
         <xs:element minOccurs="0" ref="TargetType"/>
       </xs:sequence>
       <xs:attribute name="default" use="required" type="xs:integer"/>
       <xs:attribute name="id" type="xs:NCName"/>
       <xs:attribute name="parent" type="xs:NCName"/>
-    </xs:complexType>
-  </xs:element>
-  <xs:element name="ReplaceFilters">
-    <xs:complexType>
-      <xs:attribute name="value" use="required"/>
     </xs:complexType>
   </xs:element>
   <xs:element name="NameOverride">
@@ -1377,6 +1370,11 @@
   <xs:element name="SelfReviveCmd">
     <xs:complexType>
       <xs:attribute name="value" use="required" type="xs:NCName"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="ReplaceFilters">
+    <xs:complexType>
+      <xs:attribute name="value" use="required"/>
     </xs:complexType>
   </xs:element>
   <xs:element name="TargetType">
@@ -2336,12 +2334,12 @@
   <xs:element name="CActorBeamStandard">
     <xs:complexType>
       <xs:sequence>
-        <xs:choice minOccurs="0">
-          <xs:element ref="Beam"/>
-          <xs:element ref="Model"/>
-        </xs:choice>
+        <xs:element minOccurs="0" ref="Beam"/>
         <xs:element minOccurs="0" ref="Flags"/>
-        <xs:element minOccurs="0" maxOccurs="unbounded" ref="On"/>
+        <xs:choice>
+          <xs:element ref="Model"/>
+          <xs:element minOccurs="0" maxOccurs="unbounded" ref="On"/>
+        </xs:choice>
       </xs:sequence>
       <xs:attribute name="default" type="xs:integer"/>
       <xs:attribute name="id" type="xs:NCName"/>
@@ -2582,8 +2580,8 @@
   <xs:element name="CActorEventMacroRunnable">
     <xs:complexType>
       <xs:choice>
-        <xs:element minOccurs="0" maxOccurs="unbounded" ref="On"/>
         <xs:element minOccurs="0" maxOccurs="unbounded" ref="Do"/>
+        <xs:element minOccurs="0" maxOccurs="unbounded" ref="On"/>
       </xs:choice>
       <xs:attribute name="id" use="required" type="xs:NCName"/>
       <xs:attribute name="parent" type="xs:NCName"/>
@@ -3144,10 +3142,10 @@
   <xs:element name="CActorModelMaterial">
     <xs:complexType>
       <xs:sequence>
-        <xs:element minOccurs="0" ref="Terms"/>
-        <xs:element minOccurs="0" maxOccurs="unbounded" ref="Filter"/>
-        <xs:element minOccurs="0" ref="Macros"/>
         <xs:element minOccurs="0" ref="Flags"/>
+        <xs:element minOccurs="0" ref="Terms"/>
+        <xs:element minOccurs="0" ref="Macros"/>
+        <xs:element minOccurs="0" maxOccurs="unbounded" ref="Filter"/>
         <xs:choice minOccurs="0" maxOccurs="unbounded">
           <xs:element ref="AcceptedHostedPropTransfers"/>
           <xs:element ref="Aliases"/>
@@ -3214,14 +3212,14 @@
     <xs:complexType>
       <xs:sequence>
         <xs:choice minOccurs="0">
-          <xs:element ref="AnimBrackets"/>
+          <xs:element ref="FogVisibility"/>
           <xs:sequence>
             <xs:element ref="FaceFXTarget"/>
             <xs:element ref="AnimTargets"/>
           </xs:sequence>
         </xs:choice>
         <xs:element minOccurs="0" ref="Model"/>
-        <xs:element minOccurs="0" ref="FogVisibility"/>
+        <xs:element minOccurs="0" ref="AnimBrackets"/>
         <xs:element minOccurs="0" maxOccurs="unbounded" ref="On"/>
         <xs:choice minOccurs="0">
           <xs:element ref="ModelFlags"/>
@@ -3483,9 +3481,9 @@
   <xs:element name="CActorRegionArc">
     <xs:complexType>
       <xs:sequence>
-        <xs:element minOccurs="0" maxOccurs="unbounded" ref="Remove"/>
         <xs:element minOccurs="0" maxOccurs="unbounded" ref="Aliases"/>
         <xs:element minOccurs="0" ref="Flags"/>
+        <xs:element minOccurs="0" maxOccurs="unbounded" ref="Remove"/>
         <xs:element minOccurs="0" maxOccurs="unbounded" ref="On"/>
         <xs:element minOccurs="0" ref="Host"/>
         <xs:choice maxOccurs="unbounded">
@@ -3644,7 +3642,7 @@
   <xs:element name="CActorSelection">
     <xs:complexType>
       <xs:sequence>
-        <xs:element minOccurs="0" maxOccurs="unbounded" ref="Remove"/>
+        <xs:element minOccurs="0" maxOccurs="unbounded" ref="Flags"/>
         <xs:choice minOccurs="0" maxOccurs="unbounded">
           <xs:element ref="Alpha"/>
           <xs:element ref="FogVisibility"/>
@@ -3658,7 +3656,6 @@
           <xs:element ref="SegmentPercentSolid"/>
           <xs:element ref="SelectionFlags"/>
         </xs:choice>
-        <xs:element minOccurs="0" maxOccurs="unbounded" ref="Flags"/>
         <xs:element minOccurs="0" ref="Model"/>
         <xs:sequence minOccurs="0">
           <xs:element ref="Terms"/>
@@ -3666,7 +3663,10 @@
           <xs:element ref="FadeOut"/>
         </xs:sequence>
         <xs:element minOccurs="0" ref="HoldTime"/>
-        <xs:element minOccurs="0" ref="FallOff"/>
+        <xs:choice>
+          <xs:element ref="FallOff"/>
+          <xs:element minOccurs="0" maxOccurs="unbounded" ref="Remove"/>
+        </xs:choice>
         <xs:choice minOccurs="0" maxOccurs="unbounded">
           <xs:element ref="Attenuation"/>
           <xs:element ref="HalfHeight"/>
@@ -3778,6 +3778,11 @@
           <xs:element ref="Aliases"/>
           <xs:element ref="Inherits"/>
         </xs:sequence>
+        <xs:element minOccurs="0" maxOccurs="unbounded" ref="On"/>
+        <xs:choice minOccurs="0">
+          <xs:element ref="HostSiteOps"/>
+          <xs:element ref="Remove"/>
+        </xs:choice>
         <xs:element minOccurs="0" ref="Model"/>
         <xs:sequence minOccurs="0">
           <xs:element ref="Ripple"/>
@@ -3786,11 +3791,6 @@
           <xs:element ref="RadiusMin"/>
           <xs:element ref="RadiusMax"/>
         </xs:sequence>
-        <xs:element minOccurs="0" maxOccurs="unbounded" ref="On"/>
-        <xs:choice minOccurs="0">
-          <xs:element ref="HostSiteOps"/>
-          <xs:element ref="Remove"/>
-        </xs:choice>
       </xs:sequence>
       <xs:attribute name="default" type="xs:integer"/>
       <xs:attribute name="id" use="required" type="xs:NCName"/>
@@ -3888,9 +3888,11 @@
   <xs:element name="CActorSimple">
     <xs:complexType>
       <xs:sequence>
-        <xs:element minOccurs="0" maxOccurs="unbounded" ref="Inherits"/>
         <xs:element minOccurs="0" ref="Terms"/>
-        <xs:element minOccurs="0" maxOccurs="unbounded" ref="Remove"/>
+        <xs:choice>
+          <xs:element minOccurs="0" maxOccurs="unbounded" ref="Remove"/>
+          <xs:element minOccurs="0" maxOccurs="unbounded" ref="Inherits"/>
+        </xs:choice>
         <xs:choice minOccurs="0" maxOccurs="unbounded">
           <xs:element ref="On"/>
           <xs:element ref="Supporter"/>
@@ -3908,14 +3910,12 @@
   <xs:element name="CActorSite">
     <xs:complexType>
       <xs:sequence>
+        <xs:element minOccurs="0" ref="Sharing"/>
         <xs:sequence minOccurs="0">
           <xs:element ref="AddToProximitySystem"/>
           <xs:element maxOccurs="unbounded" ref="Inherits"/>
         </xs:sequence>
-        <xs:choice minOccurs="0">
-          <xs:element ref="Aliases"/>
-          <xs:element ref="Sharing"/>
-        </xs:choice>
+        <xs:element minOccurs="0" ref="Aliases"/>
         <xs:choice minOccurs="0" maxOccurs="unbounded">
           <xs:element ref="Host"/>
           <xs:element ref="HostSiteOps"/>
@@ -4863,9 +4863,11 @@
   <xs:element name="CActorSquib">
     <xs:complexType>
       <xs:sequence>
-        <xs:element minOccurs="0" ref="HarnessModel"/>
         <xs:element minOccurs="0" ref="On"/>
-        <xs:element minOccurs="0" ref="Host"/>
+        <xs:choice minOccurs="0">
+          <xs:element ref="Host"/>
+          <xs:element ref="HarnessModel"/>
+        </xs:choice>
         <xs:choice minOccurs="0" maxOccurs="unbounded">
           <xs:element ref="HarnessSound"/>
           <xs:element ref="Map"/>
@@ -4952,11 +4954,11 @@
   <xs:element name="CActorTerrainDeformer">
     <xs:complexType>
       <xs:sequence>
+        <xs:element minOccurs="0" ref="Host"/>
         <xs:sequence minOccurs="0">
           <xs:element ref="Aliases"/>
           <xs:element ref="InfluenceRange"/>
         </xs:sequence>
-        <xs:element minOccurs="0" ref="Host"/>
         <xs:element minOccurs="0" ref="BlendTime"/>
         <xs:element minOccurs="0" maxOccurs="unbounded" ref="TerrainDeformerFlags"/>
         <xs:element minOccurs="0" ref="On"/>
@@ -5062,23 +5064,27 @@
   <xs:element name="CActorTriangle">
     <xs:complexType>
       <xs:sequence>
+        <xs:choice>
+          <xs:element ref="Remove"/>
+          <xs:element minOccurs="0" maxOccurs="unbounded" ref="Aliases"/>
+        </xs:choice>
         <xs:element minOccurs="0" ref="Macros"/>
-        <xs:element minOccurs="0" ref="Remove"/>
-        <xs:element minOccurs="0" ref="AngleAnimProps"/>
-        <xs:element minOccurs="0" maxOccurs="unbounded" ref="Aliases"/>
         <xs:element minOccurs="0" ref="Inherits"/>
         <xs:element minOccurs="0" ref="VisibilityShape"/>
-        <xs:choice minOccurs="0" maxOccurs="unbounded">
-          <xs:element ref="Angle"/>
-          <xs:element ref="Filter"/>
-          <xs:element ref="Flags"/>
-          <xs:element ref="FogVisibility"/>
-          <xs:element ref="Height"/>
-          <xs:element ref="Host"/>
-          <xs:element ref="HostForProps"/>
-          <xs:element ref="HostSiteOps"/>
-          <xs:element ref="Model"/>
-          <xs:element ref="On"/>
+        <xs:choice>
+          <xs:element ref="AngleAnimProps"/>
+          <xs:choice maxOccurs="unbounded">
+            <xs:element ref="Angle"/>
+            <xs:element ref="Filter"/>
+            <xs:element ref="Flags"/>
+            <xs:element ref="FogVisibility"/>
+            <xs:element ref="Height"/>
+            <xs:element ref="Host"/>
+            <xs:element ref="HostForProps"/>
+            <xs:element ref="HostSiteOps"/>
+            <xs:element ref="Model"/>
+            <xs:element ref="On"/>
+          </xs:choice>
         </xs:choice>
       </xs:sequence>
       <xs:attribute name="abil" type="xs:NCName"/>
@@ -5985,9 +5991,11 @@
   <xs:element name="CAttachMethodRandom">
     <xs:complexType>
       <xs:sequence>
-        <xs:element minOccurs="0" ref="ExponentialMean"/>
         <xs:element minOccurs="0" ref="RequestCount"/>
-        <xs:element minOccurs="0" ref="Distribution"/>
+        <xs:choice>
+          <xs:element ref="Distribution"/>
+          <xs:element ref="ExponentialMean"/>
+        </xs:choice>
       </xs:sequence>
       <xs:attribute name="default" type="xs:integer"/>
       <xs:attribute name="id" type="xs:NCName"/>
@@ -6127,12 +6135,12 @@
   <xs:element name="CBehaviorAbility">
     <xs:complexType>
       <xs:sequence>
+        <xs:element minOccurs="0" ref="Flags"/>
+        <xs:element minOccurs="0" ref="Slot"/>
         <xs:choice minOccurs="0">
           <xs:element ref="Face"/>
-          <xs:element ref="Flags"/>
           <xs:element ref="InfoFlags"/>
         </xs:choice>
-        <xs:element minOccurs="0" ref="Slot"/>
         <xs:choice minOccurs="0" maxOccurs="unbounded">
           <xs:element ref="BehaviorFlags"/>
           <xs:element ref="Buttons"/>
@@ -6256,9 +6264,10 @@
   <xs:element name="DamageResponse">
     <xs:complexType>
       <xs:sequence>
-        <xs:element minOccurs="0" ref="ModifyLimitVitalMaxFractionArray"/>
+        <xs:element minOccurs="0" maxOccurs="unbounded" ref="UnitDamageType"/>
         <xs:element minOccurs="0" ref="Chance"/>
         <xs:element minOccurs="0" ref="Maximum"/>
+        <xs:element minOccurs="0" ref="ModifyLimitVitalMaxFractionArray"/>
         <xs:choice minOccurs="0" maxOccurs="unbounded">
           <xs:element ref="Location"/>
           <xs:element ref="Minimum"/>
@@ -6277,10 +6286,7 @@
         </xs:choice>
         <xs:element minOccurs="0" ref="DamageValue"/>
         <xs:element minOccurs="0" ref="ModifyScoreArray"/>
-        <xs:choice>
-          <xs:element ref="ValidateEffectAliases"/>
-          <xs:element minOccurs="0" maxOccurs="unbounded" ref="UnitDamageType"/>
-        </xs:choice>
+        <xs:element minOccurs="0" ref="ValidateEffectAliases"/>
         <xs:element minOccurs="0" ref="Cost"/>
         <xs:choice>
           <xs:element minOccurs="0" maxOccurs="unbounded" ref="RequireEffectArray"/>
@@ -6966,13 +6972,13 @@
   <xs:element name="CBehaviorWander">
     <xs:complexType>
       <xs:sequence>
-        <xs:element minOccurs="0" ref="Alignment"/>
+        <xs:element minOccurs="0" ref="Cost"/>
+        <xs:element minOccurs="0" ref="Leash"/>
         <xs:sequence minOccurs="0">
           <xs:element ref="TimeLimitFactor"/>
           <xs:element ref="InfoFlags"/>
         </xs:sequence>
-        <xs:element minOccurs="0" ref="Cost"/>
-        <xs:element minOccurs="0" ref="Leash"/>
+        <xs:element minOccurs="0" ref="Alignment"/>
         <xs:choice minOccurs="0" maxOccurs="unbounded">
           <xs:element ref="Delay"/>
           <xs:element ref="MinimumRange"/>
@@ -7690,17 +7696,17 @@
     <xs:complexType>
       <xs:sequence>
         <xs:sequence minOccurs="0">
-          <xs:element maxOccurs="unbounded" ref="ProgressionAchievementRewardArray"/>
-          <xs:element maxOccurs="unbounded" ref="ProgressionRewardMapExclusiveCategoryArray"/>
-          <xs:element maxOccurs="unbounded" ref="ProgressionRewardMapCriteriaArray"/>
-        </xs:sequence>
-        <xs:sequence minOccurs="0">
           <xs:element maxOccurs="unbounded" ref="HeroArray"/>
           <xs:element maxOccurs="unbounded" ref="MapUnitArray"/>
         </xs:sequence>
         <xs:element minOccurs="0" maxOccurs="unbounded" ref="MountArray"/>
         <xs:choice minOccurs="0">
           <xs:element ref="Name"/>
+          <xs:sequence>
+            <xs:element maxOccurs="unbounded" ref="ProgressionAchievementRewardArray"/>
+            <xs:element maxOccurs="unbounded" ref="ProgressionRewardMapExclusiveCategoryArray"/>
+            <xs:element maxOccurs="unbounded" ref="ProgressionRewardMapCriteriaArray"/>
+          </xs:sequence>
           <xs:sequence>
             <xs:element maxOccurs="unbounded" ref="BundleArray"/>
             <xs:element maxOccurs="unbounded" ref="BoostArray"/>
@@ -7759,6 +7765,11 @@
       <xs:attribute name="id" type="xs:NCName"/>
     </xs:complexType>
   </xs:element>
+  <xs:element name="MapUnitArray">
+    <xs:complexType>
+      <xs:attribute name="value" use="required" type="xs:NCName"/>
+    </xs:complexType>
+  </xs:element>
   <xs:element name="ProgressionAchievementRewardArray">
     <xs:complexType>
       <xs:sequence>
@@ -7802,11 +7813,6 @@
       </xs:sequence>
       <xs:attribute name="LevelRange" use="required" type="xs:integer"/>
       <xs:attribute name="RewardType" use="required" type="xs:NCName"/>
-    </xs:complexType>
-  </xs:element>
-  <xs:element name="MapUnitArray">
-    <xs:complexType>
-      <xs:attribute name="value" use="required" type="xs:NCName"/>
     </xs:complexType>
   </xs:element>
   <xs:element name="BundleArray">
@@ -9777,7 +9783,6 @@
     <xs:complexType>
       <xs:sequence>
         <xs:element minOccurs="0" ref="CasterHistory"/>
-        <xs:element minOccurs="0" ref="EditorCategories"/>
         <xs:choice minOccurs="0" maxOccurs="unbounded">
           <xs:element ref="Chance"/>
           <xs:element ref="EffectArray"/>
@@ -9787,7 +9792,10 @@
           <xs:element ref="OrphanFromEffectChain"/>
           <xs:element ref="ReparentEffectChain"/>
         </xs:choice>
-        <xs:element minOccurs="0" ref="DamageModifierSource"/>
+        <xs:choice minOccurs="0">
+          <xs:element ref="DamageModifierSource"/>
+          <xs:element ref="EditorCategories"/>
+        </xs:choice>
       </xs:sequence>
       <xs:attribute name="default" type="xs:integer"/>
       <xs:attribute name="id" type="xs:NCName"/>
@@ -9901,20 +9909,22 @@
           <xs:element ref="ImpactUnit"/>
           <xs:element ref="LaunchUnit"/>
         </xs:choice>
-        <xs:element minOccurs="0" ref="Preserve"/>
         <xs:element minOccurs="0" ref="Count"/>
-        <xs:element minOccurs="0" ref="Copy"/>
+        <xs:choice minOccurs="0">
+          <xs:element ref="Copy"/>
+          <xs:element ref="Preserve"/>
+        </xs:choice>
       </xs:sequence>
       <xs:attribute name="default" type="xs:integer"/>
       <xs:attribute name="id"/>
     </xs:complexType>
   </xs:element>
-  <xs:element name="Preserve">
+  <xs:element name="Copy">
     <xs:complexType>
       <xs:attribute name="value" use="required" type="xs:integer"/>
     </xs:complexType>
   </xs:element>
-  <xs:element name="Copy">
+  <xs:element name="Preserve">
     <xs:complexType>
       <xs:attribute name="value" use="required" type="xs:integer"/>
     </xs:complexType>
@@ -10091,7 +10101,6 @@
   <xs:element name="CGame">
     <xs:complexType>
       <xs:sequence>
-        <xs:element minOccurs="0" ref="TauntAbil"/>
         <xs:choice minOccurs="0" maxOccurs="unbounded">
           <xs:element ref="AcquireLeashRadius"/>
           <xs:element ref="AcquireLeashResetRadius"/>
@@ -10128,42 +10137,38 @@
           <xs:element ref="TriggerLibs"/>
         </xs:choice>
         <xs:element minOccurs="0" ref="AttackRevealTime"/>
+        <xs:sequence minOccurs="0">
+          <xs:element ref="PenaltyRevealTime"/>
+          <xs:element ref="StalemateTestTime"/>
+          <xs:element ref="StalemateWarningTime"/>
+          <xs:element ref="HeroOverlapPercent"/>
+          <xs:element ref="CatapultOverlapPercent"/>
+          <xs:element ref="SkipAvoidanceSpeedScale"/>
+          <xs:element ref="AttackRevealBehavior"/>
+          <xs:element ref="ExtraStealthActiveBehavior"/>
+          <xs:element ref="AI"/>
+          <xs:element maxOccurs="unbounded" ref="FilterResults"/>
+          <xs:element ref="UncontestedCombatPeriod"/>
+          <xs:element ref="VeterancySearchRadius"/>
+          <xs:element ref="VeterancySearchFilters"/>
+          <xs:element ref="TeleportResetRange"/>
+          <xs:element ref="JoinInProgress"/>
+          <xs:element ref="PathingBlockerPushPriorityRange"/>
+          <xs:element ref="ProximityAttackAcquireRange"/>
+          <xs:element ref="ProximityAttackUseRange"/>
+          <xs:element ref="MinArmorCap"/>
+          <xs:element ref="MaxArmorCap"/>
+          <xs:element ref="LongRangedMissileRange"/>
+        </xs:sequence>
         <xs:element minOccurs="0" ref="AISettings"/>
+        <xs:element minOccurs="0" maxOccurs="unbounded" ref="AIDifficultySettings"/>
         <xs:choice>
-          <xs:sequence>
-            <xs:element ref="PenaltyRevealTime"/>
-            <xs:element ref="StalemateTestTime"/>
-            <xs:element ref="StalemateWarningTime"/>
-            <xs:element ref="HeroOverlapPercent"/>
-            <xs:element ref="CatapultOverlapPercent"/>
-            <xs:element ref="SkipAvoidanceSpeedScale"/>
-            <xs:element ref="AttackRevealBehavior"/>
-            <xs:element ref="ExtraStealthActiveBehavior"/>
-            <xs:element ref="AI"/>
-            <xs:element maxOccurs="unbounded" ref="FilterResults"/>
-            <xs:element ref="UncontestedCombatPeriod"/>
-            <xs:element ref="VeterancySearchRadius"/>
-            <xs:element ref="VeterancySearchFilters"/>
-            <xs:element ref="TeleportResetRange"/>
-            <xs:element ref="JoinInProgress"/>
-            <xs:element ref="PathingBlockerPushPriorityRange"/>
-            <xs:element ref="ProximityAttackAcquireRange"/>
-            <xs:element ref="ProximityAttackUseRange"/>
-            <xs:element ref="MinArmorCap"/>
-            <xs:element ref="MaxArmorCap"/>
-            <xs:element ref="LongRangedMissileRange"/>
-          </xs:sequence>
-          <xs:element minOccurs="0" maxOccurs="unbounded" ref="AIDifficultySettings"/>
+          <xs:element ref="TauntAbil"/>
+          <xs:element minOccurs="0" maxOccurs="unbounded" ref="MaxVitalForFractionalDamage"/>
         </xs:choice>
-        <xs:element minOccurs="0" maxOccurs="unbounded" ref="MaxVitalForFractionalDamage"/>
       </xs:sequence>
       <xs:attribute name="default" type="xs:integer"/>
       <xs:attribute name="id" type="xs:NCName"/>
-    </xs:complexType>
-  </xs:element>
-  <xs:element name="TauntAbil">
-    <xs:complexType>
-      <xs:attribute name="value" use="required" type="xs:NCName"/>
     </xs:complexType>
   </xs:element>
   <xs:element name="AIBuildDefault">
@@ -10389,48 +10394,6 @@
       <xs:attribute name="value" use="required" type="xs:integer"/>
     </xs:complexType>
   </xs:element>
-  <xs:element name="AISettings">
-    <xs:complexType>
-      <xs:sequence>
-        <xs:element ref="Hysteresis"/>
-        <xs:element ref="ScorePenaltyPerTravelSecond"/>
-        <xs:element ref="LaneAntisteresis"/>
-        <xs:element ref="LaneFirstAssignedBonus"/>
-        <xs:element ref="LaneWaveMergeRange"/>
-        <xs:element ref="LaneWaveSplitRange"/>
-      </xs:sequence>
-    </xs:complexType>
-  </xs:element>
-  <xs:element name="Hysteresis">
-    <xs:complexType>
-      <xs:attribute name="value" use="required" type="xs:integer"/>
-    </xs:complexType>
-  </xs:element>
-  <xs:element name="ScorePenaltyPerTravelSecond">
-    <xs:complexType>
-      <xs:attribute name="value" use="required" type="xs:decimal"/>
-    </xs:complexType>
-  </xs:element>
-  <xs:element name="LaneAntisteresis">
-    <xs:complexType>
-      <xs:attribute name="value" use="required" type="xs:integer"/>
-    </xs:complexType>
-  </xs:element>
-  <xs:element name="LaneFirstAssignedBonus">
-    <xs:complexType>
-      <xs:attribute name="value" use="required" type="xs:integer"/>
-    </xs:complexType>
-  </xs:element>
-  <xs:element name="LaneWaveMergeRange">
-    <xs:complexType>
-      <xs:attribute name="value" use="required" type="xs:integer"/>
-    </xs:complexType>
-  </xs:element>
-  <xs:element name="LaneWaveSplitRange">
-    <xs:complexType>
-      <xs:attribute name="value" use="required" type="xs:integer"/>
-    </xs:complexType>
-  </xs:element>
   <xs:element name="PenaltyRevealTime">
     <xs:complexType>
       <xs:attribute name="value" use="required" type="xs:integer"/>
@@ -10530,6 +10493,48 @@
     </xs:complexType>
   </xs:element>
   <xs:element name="LongRangedMissileRange">
+    <xs:complexType>
+      <xs:attribute name="value" use="required" type="xs:integer"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="AISettings">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="Hysteresis"/>
+        <xs:element ref="ScorePenaltyPerTravelSecond"/>
+        <xs:element ref="LaneAntisteresis"/>
+        <xs:element ref="LaneFirstAssignedBonus"/>
+        <xs:element ref="LaneWaveMergeRange"/>
+        <xs:element ref="LaneWaveSplitRange"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="Hysteresis">
+    <xs:complexType>
+      <xs:attribute name="value" use="required" type="xs:integer"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="ScorePenaltyPerTravelSecond">
+    <xs:complexType>
+      <xs:attribute name="value" use="required" type="xs:decimal"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="LaneAntisteresis">
+    <xs:complexType>
+      <xs:attribute name="value" use="required" type="xs:integer"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="LaneFirstAssignedBonus">
+    <xs:complexType>
+      <xs:attribute name="value" use="required" type="xs:integer"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="LaneWaveMergeRange">
+    <xs:complexType>
+      <xs:attribute name="value" use="required" type="xs:integer"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="LaneWaveSplitRange">
     <xs:complexType>
       <xs:attribute name="value" use="required" type="xs:integer"/>
     </xs:complexType>
@@ -10639,6 +10644,11 @@
       <xs:attribute name="value" use="required" type="xs:integer"/>
     </xs:complexType>
   </xs:element>
+  <xs:element name="TauntAbil">
+    <xs:complexType>
+      <xs:attribute name="value" use="required" type="xs:NCName"/>
+    </xs:complexType>
+  </xs:element>
   <xs:element name="MaxVitalForFractionalDamage">
     <xs:complexType>
       <xs:attribute name="index" use="required" type="xs:NCName"/>
@@ -10693,6 +10703,7 @@
           <xs:element ref="RegionNameSize"/>
           <xs:element ref="SelectionData"/>
         </xs:sequence>
+        <xs:element minOccurs="0" maxOccurs="unbounded" ref="LoadingScreenHelpIntro"/>
         <xs:choice minOccurs="0" maxOccurs="unbounded">
           <xs:element ref="RadarAlpha"/>
           <xs:element ref="VitalColors"/>
@@ -10798,16 +10809,13 @@
         </xs:choice>
         <xs:element minOccurs="0" ref="StartupMovieArray"/>
         <xs:element minOccurs="0" ref="TargetModeValidation"/>
-        <xs:choice>
-          <xs:element minOccurs="0" maxOccurs="unbounded" ref="LoadingScreenHelpIntro"/>
-          <xs:sequence>
-            <xs:element maxOccurs="unbounded" ref="HotkeyInfoArray"/>
-            <xs:element maxOccurs="unbounded" ref="HotkeyModifierArray"/>
-            <xs:element maxOccurs="unbounded" ref="MixRouting"/>
-            <xs:element ref="AscensionBadgeMaxLevel"/>
-            <xs:element maxOccurs="unbounded" ref="AscensionBadgeMapArray"/>
-          </xs:sequence>
-        </xs:choice>
+        <xs:sequence minOccurs="0">
+          <xs:element maxOccurs="unbounded" ref="HotkeyInfoArray"/>
+          <xs:element maxOccurs="unbounded" ref="HotkeyModifierArray"/>
+          <xs:element maxOccurs="unbounded" ref="MixRouting"/>
+          <xs:element ref="AscensionBadgeMaxLevel"/>
+          <xs:element maxOccurs="unbounded" ref="AscensionBadgeMapArray"/>
+        </xs:sequence>
       </xs:sequence>
       <xs:attribute name="default" type="xs:integer"/>
       <xs:attribute name="id" type="xs:NCName"/>
@@ -10969,6 +10977,12 @@
   <xs:element name="PreselectionRotationSpeed">
     <xs:complexType>
       <xs:attribute name="value" use="required" type="xs:decimal"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="LoadingScreenHelpIntro">
+    <xs:complexType>
+      <xs:attribute name="index" use="required" type="xs:integer"/>
+      <xs:attribute name="removed" use="required" type="xs:integer"/>
     </xs:complexType>
   </xs:element>
   <xs:element name="AchievementTags">
@@ -11235,11 +11249,9 @@
         <xs:element ref="MinPlayers"/>
         <xs:element ref="MaxPlayers"/>
         <xs:element minOccurs="0" ref="TeamCount"/>
+        <xs:element minOccurs="0" ref="AIDifficulty"/>
         <xs:element minOccurs="0" ref="PlayersPerTeam"/>
-        <xs:choice minOccurs="0">
-          <xs:element ref="AIDifficulty"/>
-          <xs:element ref="PlayersPerTandem"/>
-        </xs:choice>
+        <xs:element minOccurs="0" ref="PlayersPerTandem"/>
         <xs:element maxOccurs="unbounded" ref="Options"/>
       </xs:sequence>
     </xs:complexType>
@@ -11259,12 +11271,12 @@
       <xs:attribute name="value" use="required" type="xs:integer"/>
     </xs:complexType>
   </xs:element>
-  <xs:element name="PlayersPerTeam">
+  <xs:element name="AIDifficulty">
     <xs:complexType>
       <xs:attribute name="value" use="required" type="xs:integer"/>
     </xs:complexType>
   </xs:element>
-  <xs:element name="AIDifficulty">
+  <xs:element name="PlayersPerTeam">
     <xs:complexType>
       <xs:attribute name="value" use="required" type="xs:integer"/>
     </xs:complexType>
@@ -11677,9 +11689,9 @@
           <xs:element ref="MixerPriorityLocalAlly"/>
           <xs:element ref="MixerPriorityNonLocal"/>
         </xs:sequence>
+        <xs:element minOccurs="0" ref="ThresholdFadeTime"/>
         <xs:element minOccurs="0" ref="Volume"/>
         <xs:choice minOccurs="0">
-          <xs:element ref="ThresholdFadeTime"/>
           <xs:element ref="AlertFadeVolume"/>
           <xs:element ref="VolumeBaseline"/>
         </xs:choice>
@@ -11704,8 +11716,8 @@
           <xs:element ref="VolumeRolloffPoints"/>
         </xs:choice>
         <xs:choice>
-          <xs:element minOccurs="0" maxOccurs="unbounded" ref="MaxFadeOut"/>
           <xs:element minOccurs="0" maxOccurs="unbounded" ref="StartupDSPArray"/>
+          <xs:element minOccurs="0" maxOccurs="unbounded" ref="MaxFadeOut"/>
           <xs:element minOccurs="0" maxOccurs="unbounded" ref="CategoryDucking"/>
         </xs:choice>
       </xs:sequence>
@@ -11768,15 +11780,15 @@
       <xs:attribute name="Volume" type="xs:decimal"/>
     </xs:complexType>
   </xs:element>
+  <xs:element name="StartupDSPArray">
+    <xs:complexType>
+      <xs:attribute name="value" use="required" type="xs:NCName"/>
+    </xs:complexType>
+  </xs:element>
   <xs:element name="MaxFadeOut">
     <xs:complexType>
       <xs:attribute name="Time" type="xs:integer"/>
       <xs:attribute name="Volume" type="xs:decimal"/>
-    </xs:complexType>
-  </xs:element>
-  <xs:element name="StartupDSPArray">
-    <xs:complexType>
-      <xs:attribute name="value" use="required" type="xs:NCName"/>
     </xs:complexType>
   </xs:element>
   <xs:element name="CategoryDucking">
@@ -11857,12 +11869,6 @@
       <xs:attribute name="value" use="required" type="xs:NCName"/>
     </xs:complexType>
   </xs:element>
-  <xs:element name="LoadingScreenHelpIntro">
-    <xs:complexType>
-      <xs:attribute name="index" use="required" type="xs:integer"/>
-      <xs:attribute name="removed" use="required" type="xs:integer"/>
-    </xs:complexType>
-  </xs:element>
   <xs:element name="HotkeyInfoArray">
     <xs:complexType>
       <xs:attribute name="Category" use="required"/>
@@ -11902,12 +11908,12 @@
     <xs:complexType>
       <xs:choice minOccurs="0">
         <xs:sequence>
-          <xs:element ref="HyperlinkId"/>
-          <xs:element ref="PreviewCutsceneFile"/>
-        </xs:sequence>
-        <xs:sequence>
           <xs:element ref="ProductId"/>
           <xs:element ref="Tier"/>
+        </xs:sequence>
+        <xs:sequence>
+          <xs:element ref="HyperlinkId"/>
+          <xs:element ref="PreviewCutsceneFile"/>
         </xs:sequence>
       </xs:choice>
       <xs:attribute name="default" type="xs:integer"/>
@@ -11936,12 +11942,14 @@
       <xs:sequence>
         <xs:element minOccurs="0" ref="Name"/>
         <xs:element minOccurs="0" ref="BaseBenefitScore"/>
-        <xs:element minOccurs="0" ref="BenefitScoreFirstAssigned"/>
         <xs:sequence minOccurs="0">
           <xs:element ref="ActiveScoreBonus"/>
           <xs:element ref="MinThreatToSend"/>
         </xs:sequence>
-        <xs:element minOccurs="0" ref="EnemyThreatFactor"/>
+        <xs:choice minOccurs="0">
+          <xs:element ref="BenefitScoreFirstAssigned"/>
+          <xs:element ref="EnemyThreatFactor"/>
+        </xs:choice>
         <xs:choice minOccurs="0" maxOccurs="unbounded">
           <xs:element ref="MaxStagingRange"/>
           <xs:element ref="MinLifePercent"/>
@@ -11972,9 +11980,9 @@
           <xs:element ref="CapturedByAllyBonus"/>
           <xs:element ref="CapturedByEnemyBonus"/>
         </xs:choice>
+        <xs:element minOccurs="0" ref="BenefitScoreHelperAssigned"/>
         <xs:element minOccurs="0" ref="BenefitScorePing"/>
         <xs:choice minOccurs="0">
-          <xs:element ref="BenefitScoreHelperAssigned"/>
           <xs:element ref="FlagArray"/>
           <xs:sequence>
             <xs:element ref="MinStagingRange"/>
@@ -12119,7 +12127,6 @@
   <xs:element name="CGoalHealingAltar">
     <xs:complexType>
       <xs:sequence>
-        <xs:element minOccurs="0" ref="BenefitScorePing"/>
         <xs:element minOccurs="0" ref="FlagArray"/>
         <xs:element minOccurs="0" ref="MaxLifePercent"/>
         <xs:sequence minOccurs="0">
@@ -12129,7 +12136,10 @@
         </xs:sequence>
         <xs:element minOccurs="0" ref="BenefitNearbyAltar"/>
         <xs:element minOccurs="0" ref="WaitRadius"/>
-        <xs:element minOccurs="0" ref="BenefitPerLifeFractionMissingSquared"/>
+        <xs:choice minOccurs="0">
+          <xs:element ref="BenefitScorePing"/>
+          <xs:element ref="BenefitPerLifeFractionMissingSquared"/>
+        </xs:choice>
       </xs:sequence>
       <xs:attribute name="default" type="xs:integer"/>
       <xs:attribute name="id" type="xs:NCName"/>
@@ -12153,19 +12163,21 @@
   <xs:element name="CGoalHealingWell">
     <xs:complexType>
       <xs:sequence>
-        <xs:element minOccurs="0" ref="BenefitScorePing"/>
         <xs:element minOccurs="0" maxOccurs="unbounded" ref="FlagArray"/>
         <xs:element minOccurs="0" ref="BaseBenefitScore"/>
         <xs:sequence minOccurs="0">
           <xs:element ref="MinLifePercent"/>
           <xs:element ref="MaxLifePercent"/>
         </xs:sequence>
-        <xs:sequence minOccurs="0">
-          <xs:element ref="BenefitPerLifePercentMissing"/>
-          <xs:element ref="BenefitPerEnergyPercentMissing"/>
-          <xs:element ref="EnergyBenefitPercentThreshold"/>
-          <xs:element ref="HealingCooldownBehavior"/>
-        </xs:sequence>
+        <xs:choice minOccurs="0">
+          <xs:element ref="BenefitScorePing"/>
+          <xs:sequence>
+            <xs:element ref="BenefitPerLifePercentMissing"/>
+            <xs:element ref="BenefitPerEnergyPercentMissing"/>
+            <xs:element ref="EnergyBenefitPercentThreshold"/>
+            <xs:element ref="HealingCooldownBehavior"/>
+          </xs:sequence>
+        </xs:choice>
       </xs:sequence>
       <xs:attribute name="default" type="xs:integer"/>
       <xs:attribute name="id" type="xs:NCName"/>
@@ -13017,7 +13029,6 @@
   <xs:element name="CLootChest">
     <xs:complexType>
       <xs:sequence>
-        <xs:element minOccurs="0" ref="Description"/>
         <xs:sequence minOccurs="0">
           <xs:element ref="Name"/>
           <xs:element ref="HyperlinkId"/>
@@ -13029,15 +13040,18 @@
         </xs:choice>
         <xs:element minOccurs="0" ref="MaxRerolls"/>
         <xs:sequence minOccurs="0">
-          <xs:element ref="ServerId"/>
-          <xs:element ref="RequiredRewardArray"/>
-        </xs:sequence>
-        <xs:sequence minOccurs="0">
           <xs:element ref="PreviewCutsceneFile"/>
           <xs:element ref="TileCutsceneFile"/>
         </xs:sequence>
         <xs:element minOccurs="0" ref="TypeDescription"/>
-        <xs:element minOccurs="0" ref="EventName"/>
+        <xs:choice minOccurs="0">
+          <xs:element ref="Description"/>
+          <xs:element ref="EventName"/>
+          <xs:sequence>
+            <xs:element ref="ServerId"/>
+            <xs:element ref="RequiredRewardArray"/>
+          </xs:sequence>
+        </xs:choice>
       </xs:sequence>
       <xs:attribute name="default" type="xs:integer"/>
       <xs:attribute name="id" type="xs:NCName"/>
@@ -13666,15 +13680,15 @@
           <xs:element ref="Timeout"/>
           <xs:element ref="YawPitchRoll"/>
         </xs:choice>
-        <xs:element minOccurs="0" ref="CheckMeshCollision"/>
-        <xs:element minOccurs="0" ref="MeshEdgesCornerRoundingOffset"/>
+        <xs:element minOccurs="0" ref="OutroAltitude"/>
         <xs:element minOccurs="0" ref="PowerslideAngle"/>
         <xs:element minOccurs="0" maxOccurs="unbounded" ref="AdaptableParabolaDistances"/>
         <xs:choice>
-          <xs:element ref="OutroAltitude"/>
           <xs:element ref="YawPitchRollAccel"/>
           <xs:element minOccurs="0" maxOccurs="unbounded" ref="AdaptableParabolaAccels"/>
         </xs:choice>
+        <xs:element minOccurs="0" ref="CheckMeshCollision"/>
+        <xs:element minOccurs="0" ref="MeshEdgesCornerRoundingOffset"/>
         <xs:element minOccurs="0" ref="ThrowForward"/>
         <xs:element minOccurs="0" maxOccurs="unbounded" ref="Overlays"/>
       </xs:sequence>
@@ -13800,9 +13814,9 @@
       <xs:attribute name="value" use="required"/>
     </xs:complexType>
   </xs:element>
-  <xs:element name="MeshEdgesCornerRoundingOffset">
+  <xs:element name="OutroAltitude">
     <xs:complexType>
-      <xs:attribute name="value" use="required" type="xs:decimal"/>
+      <xs:attribute name="value" use="required"/>
     </xs:complexType>
   </xs:element>
   <xs:element name="PowerslideAngle">
@@ -13816,11 +13830,6 @@
       <xs:attribute name="value" use="required" type="xs:decimal"/>
     </xs:complexType>
   </xs:element>
-  <xs:element name="OutroAltitude">
-    <xs:complexType>
-      <xs:attribute name="value" use="required"/>
-    </xs:complexType>
-  </xs:element>
   <xs:element name="YawPitchRollAccel">
     <xs:complexType>
       <xs:attribute name="value" use="required" type="xs:decimal"/>
@@ -13830,6 +13839,11 @@
     <xs:complexType>
       <xs:attribute name="index" use="required" type="xs:NCName"/>
       <xs:attribute name="value" use="required" type="xs:integer"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="MeshEdgesCornerRoundingOffset">
+    <xs:complexType>
+      <xs:attribute name="value" use="required" type="xs:decimal"/>
     </xs:complexType>
   </xs:element>
   <xs:element name="ThrowForward">
@@ -13850,28 +13864,21 @@
   <xs:element name="MotionOverlays">
     <xs:complexType>
       <xs:sequence>
+        <xs:element minOccurs="0" ref="Axis"/>
         <xs:element minOccurs="0" ref="Type"/>
         <xs:element minOccurs="0" ref="Wavelength"/>
-        <xs:choice>
-          <xs:element ref="Axis"/>
-          <xs:sequence>
-            <xs:element ref="RevolverSpeed"/>
-            <xs:element ref="RevolverSpeedRange"/>
-            <xs:element ref="RevolverMaxSpeed"/>
-            <xs:element ref="RevolverMaxSpeedRange"/>
-            <xs:element ref="RevolverAccel"/>
-            <xs:element ref="RevolverAccelRange"/>
-          </xs:sequence>
-        </xs:choice>
+        <xs:sequence minOccurs="0">
+          <xs:element ref="RevolverSpeed"/>
+          <xs:element ref="RevolverSpeedRange"/>
+          <xs:element ref="RevolverMaxSpeed"/>
+          <xs:element ref="RevolverMaxSpeedRange"/>
+          <xs:element ref="RevolverAccel"/>
+          <xs:element ref="RevolverAccelRange"/>
+        </xs:sequence>
       </xs:sequence>
       <xs:attribute name="Polarity" type="xs:NCName"/>
       <xs:attribute name="Type" type="xs:NCName"/>
       <xs:attribute name="Wavelength" type="xs:integer"/>
-    </xs:complexType>
-  </xs:element>
-  <xs:element name="Wavelength">
-    <xs:complexType>
-      <xs:attribute name="value" use="required"/>
     </xs:complexType>
   </xs:element>
   <xs:element name="Axis">
@@ -13879,6 +13886,11 @@
       <xs:attribute name="X" use="required" type="xs:decimal"/>
       <xs:attribute name="Y" type="xs:decimal"/>
       <xs:attribute name="Z" type="xs:decimal"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="Wavelength">
+    <xs:complexType>
+      <xs:attribute name="value" use="required"/>
     </xs:complexType>
   </xs:element>
   <xs:element name="RevolverSpeed">
@@ -14031,11 +14043,9 @@
   <xs:element name="CPreloadModel">
     <xs:complexType>
       <xs:sequence>
+        <xs:element minOccurs="0" ref="Flags"/>
         <xs:element minOccurs="0" ref="Variations"/>
-        <xs:choice minOccurs="0">
-          <xs:element ref="Flags"/>
-          <xs:element ref="Link"/>
-        </xs:choice>
+        <xs:element minOccurs="0" ref="Link"/>
       </xs:sequence>
       <xs:attribute name="default" type="xs:integer"/>
       <xs:attribute name="id" type="xs:NCName"/>
@@ -14150,9 +14160,11 @@
   <xs:element name="CRequirement">
     <xs:complexType>
       <xs:sequence>
-        <xs:element minOccurs="0" maxOccurs="unbounded" ref="CanBeSuppressed"/>
         <xs:element minOccurs="0" ref="EditorCategories"/>
-        <xs:element minOccurs="0" maxOccurs="unbounded" ref="NodeArray"/>
+        <xs:choice>
+          <xs:element minOccurs="0" maxOccurs="unbounded" ref="CanBeSuppressed"/>
+          <xs:element minOccurs="0" maxOccurs="unbounded" ref="NodeArray"/>
+        </xs:choice>
       </xs:sequence>
       <xs:attribute name="default" type="xs:integer"/>
       <xs:attribute name="id" type="xs:NCName"/>
@@ -14362,14 +14374,16 @@
           <xs:element ref="Reflections"/>
           <xs:element ref="Reverb"/>
         </xs:choice>
-        <xs:element minOccurs="0" ref="SpeakerMix"/>
         <xs:element minOccurs="0" ref="ReverbDelay"/>
         <xs:sequence minOccurs="0">
           <xs:element ref="HFReference"/>
           <xs:element ref="LFReference"/>
         </xs:sequence>
         <xs:element minOccurs="0" ref="Diffusion"/>
-        <xs:element minOccurs="0" ref="Density"/>
+        <xs:choice minOccurs="0">
+          <xs:element ref="Density"/>
+          <xs:element ref="SpeakerMix"/>
+        </xs:choice>
       </xs:sequence>
       <xs:attribute name="default" type="xs:integer"/>
       <xs:attribute name="id" type="xs:NCName"/>
@@ -14391,17 +14405,17 @@
       <xs:choice>
         <xs:element ref="Flags"/>
         <xs:sequence>
-          <xs:element ref="Category"/>
-          <xs:element ref="IconFile"/>
-          <xs:element ref="IconCols"/>
-          <xs:element ref="IconRows"/>
-        </xs:sequence>
-        <xs:sequence>
           <xs:element ref="Name"/>
           <xs:element ref="Description"/>
           <xs:element ref="DescriptionUnearned"/>
           <xs:element ref="HyperlinkId"/>
           <xs:element ref="RewardDisplayType"/>
+        </xs:sequence>
+        <xs:sequence>
+          <xs:element ref="Category"/>
+          <xs:element ref="IconFile"/>
+          <xs:element ref="IconCols"/>
+          <xs:element ref="IconRows"/>
         </xs:sequence>
       </xs:choice>
       <xs:attribute name="default" use="required" type="xs:integer"/>
@@ -14412,20 +14426,20 @@
   <xs:element name="CRewardAnnouncerPack">
     <xs:complexType>
       <xs:sequence>
+        <xs:sequence minOccurs="0">
+          <xs:element ref="RewardDisplayType"/>
+          <xs:element ref="Category"/>
+        </xs:sequence>
         <xs:element minOccurs="0" ref="License"/>
         <xs:choice>
           <xs:sequence>
-            <xs:element ref="RewardDisplayType"/>
-            <xs:element ref="Category"/>
+            <xs:element ref="LargeImage"/>
+            <xs:element ref="Description"/>
           </xs:sequence>
           <xs:choice minOccurs="0" maxOccurs="unbounded">
             <xs:element ref="AnnouncerPack"/>
             <xs:element ref="Name"/>
           </xs:choice>
-          <xs:sequence>
-            <xs:element ref="LargeImage"/>
-            <xs:element ref="Description"/>
-          </xs:sequence>
         </xs:choice>
       </xs:sequence>
       <xs:attribute name="default" type="xs:integer"/>
@@ -14562,9 +14576,6 @@
   <xs:element name="CRewardHero">
     <xs:complexType>
       <xs:sequence>
-        <xs:element minOccurs="0" ref="LargeImage"/>
-        <xs:element minOccurs="0" ref="Flags"/>
-        <xs:element minOccurs="0" ref="CutsceneFile"/>
         <xs:sequence minOccurs="0">
           <xs:element ref="IconFile"/>
           <xs:element ref="IconCols"/>
@@ -14575,6 +14586,9 @@
           <xs:element ref="Category"/>
           <xs:element ref="License"/>
         </xs:choice>
+        <xs:element minOccurs="0" ref="LargeImage"/>
+        <xs:element minOccurs="0" ref="Flags"/>
+        <xs:element minOccurs="0" ref="CutsceneFile"/>
         <xs:choice minOccurs="0" maxOccurs="unbounded">
           <xs:element ref="Hero"/>
           <xs:element ref="RewardDisplayType"/>
@@ -14595,24 +14609,26 @@
   <xs:element name="CRewardIcon">
     <xs:complexType>
       <xs:sequence>
+        <xs:element minOccurs="0" ref="LargeImage"/>
+        <xs:element minOccurs="0" ref="License"/>
+        <xs:element minOccurs="0" ref="Flags"/>
         <xs:sequence minOccurs="0">
           <xs:element ref="Category"/>
           <xs:element ref="IconFile"/>
         </xs:sequence>
-        <xs:element minOccurs="0" ref="License"/>
-        <xs:element minOccurs="0" ref="LargeImage"/>
-        <xs:element minOccurs="0" ref="Flags"/>
-        <xs:element minOccurs="0" ref="Name"/>
         <xs:sequence minOccurs="0">
           <xs:element ref="IconCols"/>
           <xs:element ref="IconRows"/>
         </xs:sequence>
+        <xs:element minOccurs="0" ref="Name"/>
         <xs:element minOccurs="0" ref="Description"/>
-        <xs:element minOccurs="0" ref="IconSlot"/>
         <xs:element minOccurs="0" ref="DescriptionUnearned"/>
         <xs:element minOccurs="0" ref="TypeDescription"/>
         <xs:element minOccurs="0" ref="CutsceneFile"/>
-        <xs:element minOccurs="0" ref="RewardDisplayType"/>
+        <xs:choice minOccurs="0">
+          <xs:element ref="IconSlot"/>
+          <xs:element ref="RewardDisplayType"/>
+        </xs:choice>
       </xs:sequence>
       <xs:attribute name="default" type="xs:integer"/>
       <xs:attribute name="id" type="xs:NCName"/>
@@ -14622,20 +14638,20 @@
   <xs:element name="CRewardLootChest">
     <xs:complexType>
       <xs:sequence>
-        <xs:choice>
-          <xs:element ref="TypeDescription"/>
-          <xs:choice minOccurs="0" maxOccurs="unbounded">
-            <xs:element ref="Name"/>
-            <xs:element ref="RewardDisplayType"/>
-          </xs:choice>
-        </xs:choice>
         <xs:sequence minOccurs="0">
           <xs:element ref="IconFile"/>
           <xs:element ref="IconCols"/>
           <xs:element ref="IconRows"/>
           <xs:element ref="IconSlot"/>
         </xs:sequence>
-        <xs:element minOccurs="0" ref="Category"/>
+        <xs:choice>
+          <xs:element ref="Category"/>
+          <xs:element ref="TypeDescription"/>
+          <xs:choice minOccurs="0" maxOccurs="unbounded">
+            <xs:element ref="Name"/>
+            <xs:element ref="RewardDisplayType"/>
+          </xs:choice>
+        </xs:choice>
         <xs:element minOccurs="0" ref="LootChest"/>
       </xs:sequence>
       <xs:attribute name="default" type="xs:integer"/>
@@ -14662,15 +14678,15 @@
     <xs:complexType>
       <xs:sequence>
         <xs:sequence minOccurs="0">
-          <xs:element ref="TypeDescription"/>
-          <xs:element ref="Name"/>
-        </xs:sequence>
-        <xs:element minOccurs="0" ref="CutsceneFile"/>
-        <xs:sequence minOccurs="0">
           <xs:element ref="IconFile"/>
           <xs:element ref="IconCols"/>
           <xs:element ref="IconRows"/>
           <xs:element ref="IconSlot"/>
+        </xs:sequence>
+        <xs:element minOccurs="0" ref="CutsceneFile"/>
+        <xs:sequence minOccurs="0">
+          <xs:element ref="TypeDescription"/>
+          <xs:element ref="Name"/>
         </xs:sequence>
         <xs:choice minOccurs="0" maxOccurs="unbounded">
           <xs:element ref="Category"/>
@@ -16823,10 +16839,12 @@
           <xs:element ref="Type"/>
           <xs:element ref="AbilCmd"/>
         </xs:sequence>
-        <xs:element minOccurs="0" ref="ShowInGlossary"/>
         <xs:element minOccurs="0" ref="Behavior"/>
         <xs:element minOccurs="0" ref="Requirements"/>
-        <xs:element minOccurs="0" ref="SubmenuAbilState"/>
+        <xs:choice minOccurs="0">
+          <xs:element ref="ShowInGlossary"/>
+          <xs:element ref="SubmenuAbilState"/>
+        </xs:choice>
         <xs:element minOccurs="0" ref="Slot"/>
       </xs:sequence>
       <xs:attribute name="AbilCmd"/>
@@ -17202,15 +17220,13 @@
   <xs:element name="CUpgrade">
     <xs:complexType>
       <xs:sequence>
-        <xs:element minOccurs="0" ref="InfoTooltipPriority"/>
         <xs:element minOccurs="0" maxOccurs="unbounded" ref="AffectedUnitArray"/>
-        <xs:choice>
-          <xs:element minOccurs="0" maxOccurs="unbounded" ref="EffectArray"/>
-          <xs:sequence>
-            <xs:element ref="Flags"/>
-            <xs:element ref="Name"/>
-          </xs:sequence>
-        </xs:choice>
+        <xs:sequence minOccurs="0">
+          <xs:element ref="Flags"/>
+          <xs:element ref="Name"/>
+        </xs:sequence>
+        <xs:element minOccurs="0" ref="InfoTooltipPriority"/>
+        <xs:element minOccurs="0" maxOccurs="unbounded" ref="EffectArray"/>
         <xs:element minOccurs="0" ref="MaxLevel"/>
         <xs:element minOccurs="0" ref="Alert"/>
         <xs:sequence minOccurs="0">
@@ -17553,15 +17569,13 @@
   <xs:element name="CValidatorLocationCompareCliffLevel">
     <xs:complexType>
       <xs:sequence>
+        <xs:element minOccurs="0" ref="OtherLocation"/>
         <xs:element minOccurs="0" ref="WhichLocation"/>
         <xs:sequence minOccurs="0">
           <xs:element ref="Compare"/>
           <xs:element ref="Value"/>
         </xs:sequence>
-        <xs:choice minOccurs="0">
-          <xs:element ref="OtherLocation"/>
-          <xs:element ref="ResultFailed"/>
-        </xs:choice>
+        <xs:element minOccurs="0" ref="ResultFailed"/>
       </xs:sequence>
       <xs:attribute name="default" type="xs:integer"/>
       <xs:attribute name="id" type="xs:NCName"/>
@@ -17597,10 +17611,12 @@
   <xs:element name="CValidatorLocationCreep">
     <xs:complexType>
       <xs:sequence>
-        <xs:element minOccurs="0" ref="ResultFailed"/>
         <xs:element minOccurs="0" ref="WhichLocation"/>
         <xs:element minOccurs="0" ref="Find"/>
-        <xs:element minOccurs="0" ref="RadiusBonus"/>
+        <xs:choice minOccurs="0">
+          <xs:element ref="RadiusBonus"/>
+          <xs:element ref="ResultFailed"/>
+        </xs:choice>
       </xs:sequence>
       <xs:attribute name="default" type="xs:integer"/>
       <xs:attribute name="id" type="xs:NCName"/>
@@ -18035,11 +18051,9 @@
       <xs:sequence>
         <xs:element minOccurs="0" ref="OtherUnit"/>
         <xs:element minOccurs="0" ref="Compare"/>
+        <xs:element minOccurs="0" ref="Value"/>
         <xs:element minOccurs="0" ref="Behavior"/>
-        <xs:choice minOccurs="0">
-          <xs:element ref="Value"/>
-          <xs:element ref="OtherBehavior"/>
-        </xs:choice>
+        <xs:element minOccurs="0" ref="OtherBehavior"/>
       </xs:sequence>
       <xs:attribute name="default" type="xs:integer"/>
       <xs:attribute name="id" type="xs:NCName"/>
@@ -18158,9 +18172,11 @@
   <xs:element name="CValidatorUnitCompareMarkerCount">
     <xs:complexType>
       <xs:sequence>
-        <xs:element minOccurs="0" ref="Compare"/>
         <xs:element minOccurs="0" ref="ResultFailed"/>
-        <xs:element minOccurs="0" ref="WhichUnit"/>
+        <xs:choice minOccurs="0">
+          <xs:element ref="Compare"/>
+          <xs:element ref="WhichUnit"/>
+        </xs:choice>
       </xs:sequence>
       <xs:attribute name="default" type="xs:integer"/>
       <xs:attribute name="id" type="xs:NCName"/>
@@ -18275,12 +18291,14 @@
   <xs:element name="CValidatorUnitCompareWeaponCooldown">
     <xs:complexType>
       <xs:sequence>
-        <xs:element minOccurs="0" ref="WhichUnit"/>
         <xs:sequence minOccurs="0">
           <xs:element ref="Compare"/>
           <xs:element ref="Value"/>
         </xs:sequence>
-        <xs:element minOccurs="0" ref="Weapon"/>
+        <xs:choice>
+          <xs:element ref="Weapon"/>
+          <xs:element ref="WhichUnit"/>
+        </xs:choice>
       </xs:sequence>
       <xs:attribute name="default" type="xs:integer"/>
       <xs:attribute name="id"/>
@@ -18429,11 +18447,9 @@
     <xs:complexType>
       <xs:sequence>
         <xs:element minOccurs="0" ref="WhichUnit"/>
+        <xs:element minOccurs="0" ref="Target"/>
         <xs:element minOccurs="0" ref="AbilLink"/>
-        <xs:choice minOccurs="0">
-          <xs:element ref="AbilCmdIndex"/>
-          <xs:element ref="Target"/>
-        </xs:choice>
+        <xs:element minOccurs="0" ref="AbilCmdIndex"/>
       </xs:sequence>
       <xs:attribute name="default" type="xs:integer"/>
       <xs:attribute name="id" type="xs:NCName"/>
@@ -18448,9 +18464,9 @@
           <xs:element ref="Find"/>
           <xs:element ref="WhichUnit"/>
         </xs:choice>
-        <xs:element minOccurs="0" ref="Target"/>
         <xs:element minOccurs="0" ref="Queued"/>
         <xs:choice>
+          <xs:element ref="Target"/>
           <xs:element ref="ExcludedCmdFlags"/>
           <xs:element minOccurs="0" maxOccurs="unbounded" ref="RequiredCmdFlags"/>
         </xs:choice>
@@ -19257,31 +19273,31 @@
   <xs:element name="AreaArray">
     <xs:complexType>
       <xs:sequence>
+        <xs:element minOccurs="0" ref="Arc"/>
         <xs:choice minOccurs="0">
-          <xs:element ref="TriangleFlags"/>
+          <xs:element ref="InnerRadius"/>
+          <xs:sequence>
+            <xs:element ref="Compare"/>
+            <xs:element ref="Count"/>
+            <xs:element ref="Validator"/>
+          </xs:sequence>
+        </xs:choice>
+        <xs:element minOccurs="0" ref="TriangleFlags"/>
+        <xs:element minOccurs="0" ref="MaxCount"/>
+        <xs:element minOccurs="0" ref="InnerRadiusBonus"/>
+        <xs:element minOccurs="0" ref="RadiusBonus"/>
+        <xs:element minOccurs="0" ref="FacingAdjustment"/>
+        <xs:choice>
           <xs:sequence>
             <xs:element maxOccurs="unbounded" ref="VertexArray"/>
             <xs:element maxOccurs="unbounded" ref="IndexArray"/>
           </xs:sequence>
-        </xs:choice>
-        <xs:element minOccurs="0" ref="Arc"/>
-        <xs:sequence minOccurs="0">
-          <xs:element ref="Compare"/>
-          <xs:element ref="Count"/>
-          <xs:element ref="Validator"/>
-        </xs:sequence>
-        <xs:element minOccurs="0" ref="MaxCount"/>
-        <xs:element minOccurs="0" ref="InnerRadiusBonus"/>
-        <xs:element minOccurs="0" ref="RadiusBonus"/>
-        <xs:choice minOccurs="0">
-          <xs:element ref="FacingAdjustment"/>
-          <xs:element ref="InnerRadius"/>
-        </xs:choice>
-        <xs:choice minOccurs="0" maxOccurs="unbounded">
-          <xs:element ref="Effect"/>
-          <xs:element ref="Radius"/>
-          <xs:element ref="RectangleHeight"/>
-          <xs:element ref="RectangleWidth"/>
+          <xs:choice minOccurs="0" maxOccurs="unbounded">
+            <xs:element ref="Effect"/>
+            <xs:element ref="Radius"/>
+            <xs:element ref="RectangleHeight"/>
+            <xs:element ref="RectangleWidth"/>
+          </xs:choice>
         </xs:choice>
       </xs:sequence>
       <xs:attribute name="Arc" type="xs:decimal"/>
@@ -19374,13 +19390,13 @@
       <xs:attribute name="Value" type="xs:NCName"/>
     </xs:complexType>
   </xs:element>
-  <xs:element name="ExcludeArray">
+  <xs:element name="IncludeArray">
     <xs:complexType>
       <xs:attribute name="Effect" type="xs:NCName"/>
       <xs:attribute name="Value" type="xs:NCName"/>
     </xs:complexType>
   </xs:element>
-  <xs:element name="IncludeArray">
+  <xs:element name="ExcludeArray">
     <xs:complexType>
       <xs:attribute name="Effect" type="xs:NCName"/>
       <xs:attribute name="Value" type="xs:NCName"/>
@@ -19394,6 +19410,17 @@
   <xs:element name="BehaviorLink">
     <xs:complexType>
       <xs:attribute name="value" use="required"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="RequireOriginPlayer">
+    <xs:complexType>
+      <xs:attribute name="Value" use="required" type="xs:NCName"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="RequireCasterUnit">
+    <xs:complexType>
+      <xs:attribute name="Effect" type="xs:NCName"/>
+      <xs:attribute name="Value" use="required" type="xs:NCName"/>
     </xs:complexType>
   </xs:element>
   <xs:element name="ValidatorArray">
@@ -19425,17 +19452,6 @@
   </xs:element>
   <xs:element name="ExcludeCasterUnit">
     <xs:complexType>
-      <xs:attribute name="Value" use="required" type="xs:NCName"/>
-    </xs:complexType>
-  </xs:element>
-  <xs:element name="RequireOriginPlayer">
-    <xs:complexType>
-      <xs:attribute name="Value" use="required" type="xs:NCName"/>
-    </xs:complexType>
-  </xs:element>
-  <xs:element name="RequireCasterUnit">
-    <xs:complexType>
-      <xs:attribute name="Effect" type="xs:NCName"/>
       <xs:attribute name="Value" use="required" type="xs:NCName"/>
     </xs:complexType>
   </xs:element>
@@ -19520,6 +19536,32 @@
       <xs:attribute name="value" use="required"/>
     </xs:complexType>
   </xs:element>
+  <xs:element name="AbilCmd">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="0" ref="Field"/>
+      </xs:sequence>
+      <xs:attribute name="Abil" type="xs:NCName"/>
+      <xs:attribute name="Cmd" type="xs:integer"/>
+      <xs:attribute name="value"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="Effect">
+    <xs:complexType>
+      <xs:attribute name="id" type="xs:NCName"/>
+      <xs:attribute name="value"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="AutoCastFilters">
+    <xs:complexType>
+      <xs:attribute name="value" use="required"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="AutoCastValidatorArray">
+    <xs:complexType>
+      <xs:attribute name="value" use="required" type="xs:NCName"/>
+    </xs:complexType>
+  </xs:element>
   <xs:element name="Flags">
     <xs:complexType>
       <xs:attribute name="index" use="required" type="xs:NCName"/>
@@ -19589,32 +19631,6 @@
       <xs:attribute name="value" use="required" type="xs:decimal"/>
     </xs:complexType>
   </xs:element>
-  <xs:element name="Effect">
-    <xs:complexType>
-      <xs:attribute name="id" type="xs:NCName"/>
-      <xs:attribute name="value"/>
-    </xs:complexType>
-  </xs:element>
-  <xs:element name="AutoCastValidatorArray">
-    <xs:complexType>
-      <xs:attribute name="value" use="required" type="xs:NCName"/>
-    </xs:complexType>
-  </xs:element>
-  <xs:element name="AbilCmd">
-    <xs:complexType>
-      <xs:sequence>
-        <xs:element minOccurs="0" ref="Field"/>
-      </xs:sequence>
-      <xs:attribute name="Abil" type="xs:NCName"/>
-      <xs:attribute name="Cmd" type="xs:integer"/>
-      <xs:attribute name="value"/>
-    </xs:complexType>
-  </xs:element>
-  <xs:element name="AutoCastFilters">
-    <xs:complexType>
-      <xs:attribute name="value" use="required"/>
-    </xs:complexType>
-  </xs:element>
   <xs:element name="Alignment">
     <xs:complexType>
       <xs:attribute name="value" use="required" type="xs:NCName"/>
@@ -19654,14 +19670,14 @@
       <xs:attribute name="value" use="required" type="xs:integer"/>
     </xs:complexType>
   </xs:element>
-  <xs:element name="ReleaseMs">
-    <xs:complexType>
-      <xs:attribute name="value" use="required" type="xs:integer"/>
-    </xs:complexType>
-  </xs:element>
   <xs:element name="ThresholdDB">
     <xs:complexType>
       <xs:attribute name="value" use="required" type="xs:decimal"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="ReleaseMs">
+    <xs:complexType>
+      <xs:attribute name="value" use="required" type="xs:integer"/>
     </xs:complexType>
   </xs:element>
   <xs:element name="Ratio">
@@ -19688,11 +19704,6 @@
       <xs:attribute name="value" use="required" type="xs:NCName"/>
     </xs:complexType>
   </xs:element>
-  <xs:element name="AbilLink">
-    <xs:complexType>
-      <xs:attribute name="value" use="required" type="xs:NCName"/>
-    </xs:complexType>
-  </xs:element>
   <xs:element name="Target">
     <xs:complexType>
       <xs:sequence minOccurs="0">
@@ -19706,6 +19717,11 @@
       </xs:sequence>
       <xs:attribute name="Effect" type="xs:NCName"/>
       <xs:attribute name="Value" type="xs:NCName"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="AbilLink">
+    <xs:complexType>
+      <xs:attribute name="value" use="required" type="xs:NCName"/>
     </xs:complexType>
   </xs:element>
   <xs:element name="AbilCmdIndex">
@@ -19757,6 +19773,12 @@
   <xs:element name="CastOutroTimeEffect">
     <xs:complexType>
       <xs:attribute name="value" use="required"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="AutoQueueArray">
+    <xs:complexType>
+      <xs:attribute name="index" use="required" type="xs:NCName"/>
+      <xs:attribute name="value" use="required" type="xs:integer"/>
     </xs:complexType>
   </xs:element>
   <xs:element name="InterruptCost">
@@ -19816,12 +19838,6 @@
       <xs:attribute name="value" use="required" type="xs:integer"/>
     </xs:complexType>
   </xs:element>
-  <xs:element name="AutoQueueArray">
-    <xs:complexType>
-      <xs:attribute name="index" use="required" type="xs:NCName"/>
-      <xs:attribute name="value" use="required" type="xs:integer"/>
-    </xs:complexType>
-  </xs:element>
   <xs:element name="ValidatedArray">
     <xs:complexType>
       <xs:attribute name="index" use="required" type="xs:NCName"/>
@@ -19839,14 +19855,6 @@
       <xs:attribute name="value" use="required" type="xs:NCName"/>
     </xs:complexType>
   </xs:element>
-  <xs:element name="CancelCost">
-    <xs:complexType>
-      <xs:sequence>
-        <xs:element minOccurs="0" ref="Charge"/>
-        <xs:element ref="Cooldown"/>
-      </xs:sequence>
-    </xs:complexType>
-  </xs:element>
   <xs:element name="CursorEffect">
     <xs:complexType>
       <xs:attribute name="index" type="xs:integer"/>
@@ -19858,6 +19866,14 @@
     <xs:complexType>
       <xs:attribute name="index" use="required" type="xs:NCName"/>
       <xs:attribute name="value" use="required" type="xs:integer"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="CancelCost">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="0" ref="Charge"/>
+        <xs:element ref="Cooldown"/>
+      </xs:sequence>
     </xs:complexType>
   </xs:element>
   <xs:element name="TargetMessage">
@@ -20111,220 +20127,6 @@
       <xs:attribute name="value" use="required"/>
     </xs:complexType>
   </xs:element>
-  <xs:element name="Model">
-    <xs:complexType>
-      <xs:attribute name="id" type="xs:NCName"/>
-      <xs:attribute name="value"/>
-    </xs:complexType>
-  </xs:element>
-  <xs:element name="ModelFlags">
-    <xs:complexType>
-      <xs:attribute name="index" use="required" type="xs:NCName"/>
-      <xs:attribute name="value" use="required" type="xs:integer"/>
-    </xs:complexType>
-  </xs:element>
-  <xs:element name="AcceptedTransfers">
-    <xs:complexType>
-      <xs:attribute name="index" use="required" type="xs:NCName"/>
-      <xs:attribute name="value" use="required" type="xs:integer"/>
-    </xs:complexType>
-  </xs:element>
-  <xs:element name="AcceptedHostedPropTransfers">
-    <xs:complexType>
-      <xs:attribute name="index" use="required" type="xs:NCName"/>
-      <xs:attribute name="value" use="required" type="xs:integer"/>
-    </xs:complexType>
-  </xs:element>
-  <xs:element name="DeathArray">
-    <xs:complexType>
-      <xs:sequence>
-        <xs:element minOccurs="0" ref="ActorModel"/>
-        <xs:sequence minOccurs="0">
-          <xs:element ref="AnimProps"/>
-          <xs:element ref="ModelLink"/>
-          <xs:element ref="SoundLink"/>
-        </xs:sequence>
-        <xs:element minOccurs="0" ref="VoiceLink"/>
-      </xs:sequence>
-      <xs:attribute name="ActorModel"/>
-      <xs:attribute name="ActorModelLow" type="xs:NCName"/>
-      <xs:attribute name="AnimProps"/>
-      <xs:attribute name="ModelLink"/>
-      <xs:attribute name="SoundLink"/>
-      <xs:attribute name="VoiceLink"/>
-      <xs:attribute name="index" use="required" type="xs:NCName"/>
-    </xs:complexType>
-  </xs:element>
-  <xs:element name="DeathActorModel">
-    <xs:complexType>
-      <xs:attribute name="value" use="required"/>
-    </xs:complexType>
-  </xs:element>
-  <xs:element name="DeathActorModelLow">
-    <xs:complexType>
-      <xs:attribute name="value" use="required"/>
-    </xs:complexType>
-  </xs:element>
-  <xs:element name="CopySource">
-    <xs:complexType>
-      <xs:attribute name="value" use="required"/>
-    </xs:complexType>
-  </xs:element>
-  <xs:element name="Macros">
-    <xs:complexType>
-      <xs:attribute name="index" type="xs:integer"/>
-      <xs:attribute name="removed" type="xs:integer"/>
-      <xs:attribute name="value" type="xs:NCName"/>
-    </xs:complexType>
-  </xs:element>
-  <xs:element name="HostSiteOps">
-    <xs:complexType>
-      <xs:attribute name="HoldPosition" type="xs:integer"/>
-      <xs:attribute name="HoldRotation" type="xs:integer"/>
-      <xs:attribute name="Ops"/>
-    </xs:complexType>
-  </xs:element>
-  <xs:element name="Subject">
-    <xs:complexType>
-      <xs:attribute name="Filters"/>
-      <xs:attribute name="Terms"/>
-      <xs:attribute name="value" type="xs:NCName"/>
-    </xs:complexType>
-  </xs:element>
-  <xs:element name="Scope">
-    <xs:complexType>
-      <xs:attribute name="value" use="required" type="xs:NCName"/>
-    </xs:complexType>
-  </xs:element>
-  <xs:element name="Actor">
-    <xs:complexType>
-      <xs:attribute name="Variations"/>
-      <xs:attribute name="id" type="xs:NCName"/>
-      <xs:attribute name="value" type="xs:NCName"/>
-    </xs:complexType>
-  </xs:element>
-  <xs:element name="StatusBarFlags">
-    <xs:complexType>
-      <xs:attribute name="index" use="required" type="xs:NCName"/>
-      <xs:attribute name="value" use="required" type="xs:integer"/>
-    </xs:complexType>
-  </xs:element>
-  <xs:element name="StatusBarOn">
-    <xs:complexType>
-      <xs:attribute name="index" use="required" type="xs:NCName"/>
-      <xs:attribute name="value" use="required" type="xs:integer"/>
-    </xs:complexType>
-  </xs:element>
-  <xs:element name="MinimapIcon">
-    <xs:complexType>
-      <xs:attribute name="value" use="required"/>
-    </xs:complexType>
-  </xs:element>
-  <xs:element name="MinimapIconIsTeamColored">
-    <xs:complexType>
-      <xs:attribute name="value" use="required" type="xs:integer"/>
-    </xs:complexType>
-  </xs:element>
-  <xs:element name="MinimapRenderPriority">
-    <xs:complexType>
-      <xs:attribute name="value" use="required" type="xs:NCName"/>
-    </xs:complexType>
-  </xs:element>
-  <xs:element name="MinimapUseSelfColor">
-    <xs:complexType>
-      <xs:attribute name="value" use="required" type="xs:integer"/>
-    </xs:complexType>
-  </xs:element>
-  <xs:element name="MinimapUseSelectionColor">
-    <xs:complexType>
-      <xs:attribute name="value" use="required" type="xs:integer"/>
-    </xs:complexType>
-  </xs:element>
-  <xs:element name="MinimapUnitStatusFrame">
-    <xs:complexType>
-      <xs:attribute name="value" use="required"/>
-    </xs:complexType>
-  </xs:element>
-  <xs:element name="MinimapIconScale">
-    <xs:complexType>
-      <xs:attribute name="value" use="required" type="xs:decimal"/>
-    </xs:complexType>
-  </xs:element>
-  <xs:element name="MinimapIconBackgroundScale">
-    <xs:complexType>
-      <xs:attribute name="value" use="required" type="xs:decimal"/>
-    </xs:complexType>
-  </xs:element>
-  <xs:element name="DeathCustoms">
-    <xs:complexType>
-      <xs:sequence>
-        <xs:element minOccurs="0" ref="ActorModel"/>
-        <xs:element minOccurs="0" ref="ActorModelLow"/>
-        <xs:element minOccurs="0" ref="AnimProps"/>
-        <xs:element minOccurs="0" ref="ModelLink"/>
-        <xs:element minOccurs="0" ref="SoundLink"/>
-        <xs:element minOccurs="0" ref="VoiceLink"/>
-        <xs:element minOccurs="0" ref="Name"/>
-        <xs:element minOccurs="0" ref="PhysicsMatchKeysOrdered"/>
-        <xs:element minOccurs="0" ref="InheritsFrom"/>
-        <xs:element minOccurs="0" ref="IsAbstract"/>
-        <xs:element minOccurs="0" ref="BodySquibs"/>
-      </xs:sequence>
-      <xs:attribute name="ActorModel"/>
-      <xs:attribute name="AnimProps"/>
-      <xs:attribute name="InheritsFrom" type="xs:NCName"/>
-      <xs:attribute name="ModelLink"/>
-      <xs:attribute name="Name" type="xs:NCName"/>
-      <xs:attribute name="PhysicsMatchKeysOrdered"/>
-      <xs:attribute name="SoundLink" type="xs:NCName"/>
-      <xs:attribute name="VoiceLink" type="xs:NCName"/>
-      <xs:attribute name="index" type="xs:integer"/>
-      <xs:attribute name="removed" type="xs:integer"/>
-    </xs:complexType>
-  </xs:element>
-  <xs:element name="ActorModelLow">
-    <xs:complexType>
-      <xs:attribute name="value" use="required" type="xs:NCName"/>
-    </xs:complexType>
-  </xs:element>
-  <xs:element name="InheritsFrom">
-    <xs:complexType>
-      <xs:attribute name="value" use="required"/>
-    </xs:complexType>
-  </xs:element>
-  <xs:element name="IsAbstract">
-    <xs:complexType>
-      <xs:attribute name="value" use="required" type="xs:integer"/>
-    </xs:complexType>
-  </xs:element>
-  <xs:element name="AnimBlendTime">
-    <xs:complexType>
-      <xs:attribute name="value" use="required" type="xs:decimal"/>
-    </xs:complexType>
-  </xs:element>
-  <xs:element name="Filter">
-    <xs:complexType>
-      <xs:attribute name="index" use="required" type="xs:NCName"/>
-      <xs:attribute name="value" use="required" type="xs:integer"/>
-    </xs:complexType>
-  </xs:element>
-  <xs:element name="VisibleTo">
-    <xs:complexType>
-      <xs:attribute name="index" use="required" type="xs:NCName"/>
-      <xs:attribute name="value" use="required" type="xs:integer"/>
-    </xs:complexType>
-  </xs:element>
-  <xs:element name="Inherits">
-    <xs:complexType>
-      <xs:attribute name="index" use="required" type="xs:NCName"/>
-      <xs:attribute name="value" use="required" type="xs:integer"/>
-    </xs:complexType>
-  </xs:element>
-  <xs:element name="Scale">
-    <xs:complexType>
-      <xs:attribute name="value" use="required"/>
-    </xs:complexType>
-  </xs:element>
   <xs:element name="ModelAspectSets">
     <xs:complexType>
       <xs:sequence>
@@ -20384,6 +20186,220 @@
   <xs:element name="Test">
     <xs:complexType>
       <xs:attribute name="value" use="required" type="xs:NCName"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="Model">
+    <xs:complexType>
+      <xs:attribute name="id" type="xs:NCName"/>
+      <xs:attribute name="value"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="DeathCustoms">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="0" ref="ActorModel"/>
+        <xs:element minOccurs="0" ref="ActorModelLow"/>
+        <xs:element minOccurs="0" ref="AnimProps"/>
+        <xs:element minOccurs="0" ref="ModelLink"/>
+        <xs:element minOccurs="0" ref="SoundLink"/>
+        <xs:element minOccurs="0" ref="VoiceLink"/>
+        <xs:element minOccurs="0" ref="Name"/>
+        <xs:element minOccurs="0" ref="PhysicsMatchKeysOrdered"/>
+        <xs:element minOccurs="0" ref="InheritsFrom"/>
+        <xs:element minOccurs="0" ref="IsAbstract"/>
+        <xs:element minOccurs="0" ref="BodySquibs"/>
+      </xs:sequence>
+      <xs:attribute name="ActorModel"/>
+      <xs:attribute name="AnimProps"/>
+      <xs:attribute name="InheritsFrom" type="xs:NCName"/>
+      <xs:attribute name="ModelLink"/>
+      <xs:attribute name="Name" type="xs:NCName"/>
+      <xs:attribute name="PhysicsMatchKeysOrdered"/>
+      <xs:attribute name="SoundLink" type="xs:NCName"/>
+      <xs:attribute name="VoiceLink" type="xs:NCName"/>
+      <xs:attribute name="index" type="xs:integer"/>
+      <xs:attribute name="removed" type="xs:integer"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="ActorModelLow">
+    <xs:complexType>
+      <xs:attribute name="value" use="required" type="xs:NCName"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="InheritsFrom">
+    <xs:complexType>
+      <xs:attribute name="value" use="required"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="IsAbstract">
+    <xs:complexType>
+      <xs:attribute name="value" use="required" type="xs:integer"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="DeathArray">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="0" ref="ActorModel"/>
+        <xs:sequence minOccurs="0">
+          <xs:element ref="AnimProps"/>
+          <xs:element ref="ModelLink"/>
+          <xs:element ref="SoundLink"/>
+        </xs:sequence>
+        <xs:element minOccurs="0" ref="VoiceLink"/>
+      </xs:sequence>
+      <xs:attribute name="ActorModel"/>
+      <xs:attribute name="ActorModelLow" type="xs:NCName"/>
+      <xs:attribute name="AnimProps"/>
+      <xs:attribute name="ModelLink"/>
+      <xs:attribute name="SoundLink"/>
+      <xs:attribute name="VoiceLink"/>
+      <xs:attribute name="index" use="required" type="xs:NCName"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="MinimapIcon">
+    <xs:complexType>
+      <xs:attribute name="value" use="required"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="MinimapIconIsTeamColored">
+    <xs:complexType>
+      <xs:attribute name="value" use="required" type="xs:integer"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="MinimapRenderPriority">
+    <xs:complexType>
+      <xs:attribute name="value" use="required" type="xs:NCName"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="MinimapUseSelfColor">
+    <xs:complexType>
+      <xs:attribute name="value" use="required" type="xs:integer"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="MinimapUseSelectionColor">
+    <xs:complexType>
+      <xs:attribute name="value" use="required" type="xs:integer"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="MinimapUnitStatusFrame">
+    <xs:complexType>
+      <xs:attribute name="value" use="required"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="HostSiteOps">
+    <xs:complexType>
+      <xs:attribute name="HoldPosition" type="xs:integer"/>
+      <xs:attribute name="HoldRotation" type="xs:integer"/>
+      <xs:attribute name="Ops"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="ModelFlags">
+    <xs:complexType>
+      <xs:attribute name="index" use="required" type="xs:NCName"/>
+      <xs:attribute name="value" use="required" type="xs:integer"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="AcceptedTransfers">
+    <xs:complexType>
+      <xs:attribute name="index" use="required" type="xs:NCName"/>
+      <xs:attribute name="value" use="required" type="xs:integer"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="AcceptedHostedPropTransfers">
+    <xs:complexType>
+      <xs:attribute name="index" use="required" type="xs:NCName"/>
+      <xs:attribute name="value" use="required" type="xs:integer"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="DeathActorModel">
+    <xs:complexType>
+      <xs:attribute name="value" use="required"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="DeathActorModelLow">
+    <xs:complexType>
+      <xs:attribute name="value" use="required"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="CopySource">
+    <xs:complexType>
+      <xs:attribute name="value" use="required"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="Macros">
+    <xs:complexType>
+      <xs:attribute name="index" type="xs:integer"/>
+      <xs:attribute name="removed" type="xs:integer"/>
+      <xs:attribute name="value" type="xs:NCName"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="Filter">
+    <xs:complexType>
+      <xs:attribute name="index" use="required" type="xs:NCName"/>
+      <xs:attribute name="value" use="required" type="xs:integer"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="VisibleTo">
+    <xs:complexType>
+      <xs:attribute name="index" use="required" type="xs:NCName"/>
+      <xs:attribute name="value" use="required" type="xs:integer"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="Inherits">
+    <xs:complexType>
+      <xs:attribute name="index" use="required" type="xs:NCName"/>
+      <xs:attribute name="value" use="required" type="xs:integer"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="Scale">
+    <xs:complexType>
+      <xs:attribute name="value" use="required"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="AnimBlendTime">
+    <xs:complexType>
+      <xs:attribute name="value" use="required" type="xs:decimal"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="StatusBarFlags">
+    <xs:complexType>
+      <xs:attribute name="index" use="required" type="xs:NCName"/>
+      <xs:attribute name="value" use="required" type="xs:integer"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="StatusBarOn">
+    <xs:complexType>
+      <xs:attribute name="index" use="required" type="xs:NCName"/>
+      <xs:attribute name="value" use="required" type="xs:integer"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="Subject">
+    <xs:complexType>
+      <xs:attribute name="Filters"/>
+      <xs:attribute name="Terms"/>
+      <xs:attribute name="value" type="xs:NCName"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="Scope">
+    <xs:complexType>
+      <xs:attribute name="value" use="required" type="xs:NCName"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="Actor">
+    <xs:complexType>
+      <xs:attribute name="Variations"/>
+      <xs:attribute name="id" type="xs:NCName"/>
+      <xs:attribute name="value" type="xs:NCName"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="MinimapIconScale">
+    <xs:complexType>
+      <xs:attribute name="value" use="required" type="xs:decimal"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="MinimapIconBackgroundScale">
+    <xs:complexType>
+      <xs:attribute name="value" use="required" type="xs:decimal"/>
     </xs:complexType>
   </xs:element>
   <xs:element name="AnimBrackets">
@@ -20555,15 +20571,15 @@
       <xs:attribute name="Value" type="xs:NCName"/>
     </xs:complexType>
   </xs:element>
+  <xs:element name="PlacementRange">
+    <xs:complexType>
+      <xs:attribute name="value" use="required"/>
+    </xs:complexType>
+  </xs:element>
   <xs:element name="PlacementAround">
     <xs:complexType>
       <xs:attribute name="Effect" type="xs:NCName"/>
       <xs:attribute name="Value" type="xs:NCName"/>
-    </xs:complexType>
-  </xs:element>
-  <xs:element name="PlacementRange">
-    <xs:complexType>
-      <xs:attribute name="value" use="required"/>
     </xs:complexType>
   </xs:element>
   <xs:element name="Tooltip">
@@ -20618,17 +20634,17 @@
       <xs:attribute name="value" use="required" type="xs:integer"/>
     </xs:complexType>
   </xs:element>
-  <xs:element name="FlagArray">
-    <xs:complexType>
-      <xs:attribute name="index" use="required" type="xs:NCName"/>
-      <xs:attribute name="value" use="required" type="xs:integer"/>
-    </xs:complexType>
-  </xs:element>
   <xs:element name="BenefitScoreHelperAssigned">
     <xs:complexType>
       <xs:sequence>
         <xs:element minOccurs="0" ref="AccumulatorArray"/>
       </xs:sequence>
+      <xs:attribute name="value" use="required" type="xs:integer"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="FlagArray">
+    <xs:complexType>
+      <xs:attribute name="index" use="required" type="xs:NCName"/>
       <xs:attribute name="value" use="required" type="xs:integer"/>
     </xs:complexType>
   </xs:element>
@@ -20857,9 +20873,20 @@
       <xs:attribute name="value" use="required" type="xs:decimal"/>
     </xs:complexType>
   </xs:element>
+  <xs:element name="Kind">
+    <xs:complexType>
+      <xs:attribute name="index" type="xs:NCName"/>
+      <xs:attribute name="value" use="required" type="xs:NMTOKEN"/>
+    </xs:complexType>
+  </xs:element>
   <xs:element name="SourceButtonFace">
     <xs:complexType>
       <xs:attribute name="value" use="required" type="xs:NCName"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="Minimum">
+    <xs:complexType>
+      <xs:attribute name="value" use="required" type="xs:integer"/>
     </xs:complexType>
   </xs:element>
   <xs:element name="AccumulatorArray">
@@ -20875,15 +20902,14 @@
       <xs:attribute name="removed" type="xs:integer"/>
     </xs:complexType>
   </xs:element>
-  <xs:element name="Minimum">
+  <xs:element name="FloaterCreation">
     <xs:complexType>
-      <xs:attribute name="value" use="required" type="xs:integer"/>
+      <xs:attribute name="value" use="required" type="xs:NCName"/>
     </xs:complexType>
   </xs:element>
-  <xs:element name="Kind">
+  <xs:element name="CasterHistory">
     <xs:complexType>
-      <xs:attribute name="index" type="xs:NCName"/>
-      <xs:attribute name="value" use="required" type="xs:NMTOKEN"/>
+      <xs:attribute name="value" use="required" type="xs:NCName"/>
     </xs:complexType>
   </xs:element>
   <xs:element name="MultiplicativeModifierArray">
@@ -20921,26 +20947,9 @@
       <xs:attribute name="value" use="required" type="xs:NCName"/>
     </xs:complexType>
   </xs:element>
-  <xs:element name="MaxCount">
-    <xs:complexType>
-      <xs:attribute name="value" use="required" type="xs:integer"/>
-    </xs:complexType>
-  </xs:element>
-  <xs:element name="MinCountError">
-    <xs:complexType>
-      <xs:attribute name="value" use="required" type="xs:NCName"/>
-    </xs:complexType>
-  </xs:element>
-  <xs:element name="ResponseFlags">
-    <xs:complexType>
-      <xs:attribute name="index" use="required" type="xs:NCName"/>
-      <xs:attribute name="value" use="required" type="xs:integer"/>
-    </xs:complexType>
-  </xs:element>
   <xs:element name="ImpactLocation">
     <xs:complexType>
       <xs:sequence>
-        <xs:element minOccurs="0" ref="ProjectionOffset"/>
         <xs:element minOccurs="0" ref="Effect"/>
         <xs:element minOccurs="0" ref="Value"/>
         <xs:element minOccurs="0" ref="ProjectionAngle"/>
@@ -20953,7 +20962,10 @@
         <xs:element minOccurs="0" ref="LineDashType"/>
         <xs:element minOccurs="0" ref="ProjectionDistanceScale"/>
         <xs:element minOccurs="0" ref="PostProjectionOffsetScale"/>
-        <xs:element minOccurs="0" ref="MousePosPlayer"/>
+        <xs:choice minOccurs="0">
+          <xs:element ref="MousePosPlayer"/>
+          <xs:element ref="ProjectionOffset"/>
+        </xs:choice>
       </xs:sequence>
       <xs:attribute name="Effect" type="xs:NCName"/>
       <xs:attribute name="History" type="xs:NCName"/>
@@ -20972,19 +20984,16 @@
       <xs:attribute name="value" use="required" type="xs:decimal"/>
     </xs:complexType>
   </xs:element>
-  <xs:element name="FloaterCreation">
-    <xs:complexType>
-      <xs:attribute name="value" use="required" type="xs:NCName"/>
-    </xs:complexType>
-  </xs:element>
-  <xs:element name="CasterHistory">
-    <xs:complexType>
-      <xs:attribute name="value" use="required" type="xs:NCName"/>
-    </xs:complexType>
-  </xs:element>
   <xs:element name="Maximum">
     <xs:complexType>
       <xs:attribute name="value" use="required" type="xs:decimal"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="CritValidatorArray">
+    <xs:complexType>
+      <xs:attribute name="index" type="xs:integer"/>
+      <xs:attribute name="removed" type="xs:integer"/>
+      <xs:attribute name="value" type="xs:NCName"/>
     </xs:complexType>
   </xs:element>
   <xs:element name="FlatModifierArray">
@@ -20996,11 +21005,20 @@
       <xs:attribute name="index" use="required" type="xs:NMTOKEN"/>
     </xs:complexType>
   </xs:element>
-  <xs:element name="CritValidatorArray">
+  <xs:element name="ResponseFlags">
     <xs:complexType>
-      <xs:attribute name="index" type="xs:integer"/>
-      <xs:attribute name="removed" type="xs:integer"/>
-      <xs:attribute name="value" type="xs:NCName"/>
+      <xs:attribute name="index" use="required" type="xs:NCName"/>
+      <xs:attribute name="value" use="required" type="xs:integer"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="MaxCount">
+    <xs:complexType>
+      <xs:attribute name="value" use="required" type="xs:integer"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="MinCountError">
+    <xs:complexType>
+      <xs:attribute name="value" use="required" type="xs:NCName"/>
     </xs:complexType>
   </xs:element>
   <xs:element name="RevealerParams">
@@ -21033,24 +21051,6 @@
       <xs:attribute name="value" use="required" type="xs:NCName"/>
     </xs:complexType>
   </xs:element>
-  <xs:element name="EventDataSound">
-    <xs:complexType>
-      <xs:attribute name="Actor" use="required"/>
-      <xs:attribute name="Name" type="xs:NCName"/>
-      <xs:attribute name="Sound" type="xs:NCName"/>
-      <xs:attribute name="index" type="xs:integer"/>
-    </xs:complexType>
-  </xs:element>
-  <xs:element name="VisibleOpacity">
-    <xs:complexType>
-      <xs:attribute name="value" use="required" type="xs:decimal"/>
-    </xs:complexType>
-  </xs:element>
-  <xs:element name="VisibleOpacityBlendDuration">
-    <xs:complexType>
-      <xs:attribute name="value" use="required" type="xs:decimal"/>
-    </xs:complexType>
-  </xs:element>
   <xs:element name="HostForProps">
     <xs:complexType>
       <xs:sequence>
@@ -21073,14 +21073,22 @@
       <xs:attribute name="value" use="required" type="xs:integer"/>
     </xs:complexType>
   </xs:element>
+  <xs:element name="EventDataSound">
+    <xs:complexType>
+      <xs:attribute name="Actor" use="required"/>
+      <xs:attribute name="Name" type="xs:NCName"/>
+      <xs:attribute name="Sound" type="xs:NCName"/>
+      <xs:attribute name="index" type="xs:integer"/>
+    </xs:complexType>
+  </xs:element>
   <xs:element name="WalkAnimMoveSpeed">
     <xs:complexType>
       <xs:attribute name="value" use="required" type="xs:decimal"/>
     </xs:complexType>
   </xs:element>
-  <xs:element name="ProximityPosition">
+  <xs:element name="PortraitActor">
     <xs:complexType>
-      <xs:attribute name="value" use="required" type="xs:NCName"/>
+      <xs:attribute name="value" use="required"/>
     </xs:complexType>
   </xs:element>
   <xs:element name="PortraitModel">
@@ -21088,14 +21096,9 @@
       <xs:attribute name="value" use="required"/>
     </xs:complexType>
   </xs:element>
-  <xs:element name="RandomScaleRange">
+  <xs:element name="Group">
     <xs:complexType>
-      <xs:attribute name="value" use="required"/>
-    </xs:complexType>
-  </xs:element>
-  <xs:element name="PortraitActor">
-    <xs:complexType>
-      <xs:attribute name="value" use="required"/>
+      <xs:attribute name="value" use="required" type="xs:NMTOKEN"/>
     </xs:complexType>
   </xs:element>
   <xs:element name="HostedAttaches">
@@ -21108,14 +21111,24 @@
       <xs:attribute name="Name" type="xs:NCName"/>
     </xs:complexType>
   </xs:element>
-  <xs:element name="Group">
+  <xs:element name="VisibleOpacity">
     <xs:complexType>
-      <xs:attribute name="value" use="required" type="xs:NMTOKEN"/>
+      <xs:attribute name="value" use="required" type="xs:decimal"/>
     </xs:complexType>
   </xs:element>
-  <xs:element name="ColorArray">
+  <xs:element name="VisibleOpacityBlendDuration">
+    <xs:complexType>
+      <xs:attribute name="value" use="required" type="xs:decimal"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="RandomScaleRange">
     <xs:complexType>
       <xs:attribute name="value" use="required"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="ProximityPosition">
+    <xs:complexType>
+      <xs:attribute name="value" use="required" type="xs:NCName"/>
     </xs:complexType>
   </xs:element>
   <xs:element name="PhysicsMatchKeysOrdered">
@@ -21134,6 +21147,11 @@
       <xs:attribute name="value"/>
     </xs:complexType>
   </xs:element>
+  <xs:element name="TeamColorStyle">
+    <xs:complexType>
+      <xs:attribute name="value" use="required" type="xs:NCName"/>
+    </xs:complexType>
+  </xs:element>
   <xs:element name="CreepHeightClass">
     <xs:complexType>
       <xs:attribute name="value" use="required" type="xs:NCName"/>
@@ -21149,9 +21167,15 @@
       <xs:attribute name="value" use="required" type="xs:NCName"/>
     </xs:complexType>
   </xs:element>
-  <xs:element name="TeamColorStyle">
+  <xs:element name="ColorArray">
     <xs:complexType>
-      <xs:attribute name="value" use="required" type="xs:NCName"/>
+      <xs:attribute name="value" use="required"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="FilterPlayers">
+    <xs:complexType>
+      <xs:attribute name="index" use="required" type="xs:integer"/>
+      <xs:attribute name="value" use="required" type="xs:integer"/>
     </xs:complexType>
   </xs:element>
   <xs:element name="VitalColors">
@@ -21160,12 +21184,6 @@
         <xs:element maxOccurs="unbounded" ref="ColorArray"/>
       </xs:sequence>
       <xs:attribute name="index" use="required" type="xs:NCName"/>
-    </xs:complexType>
-  </xs:element>
-  <xs:element name="FilterPlayers">
-    <xs:complexType>
-      <xs:attribute name="index" use="required" type="xs:integer"/>
-      <xs:attribute name="value" use="required" type="xs:integer"/>
     </xs:complexType>
   </xs:element>
   <xs:element name="TargetCursorInfo">
@@ -21286,11 +21304,6 @@
       <xs:attribute name="value" use="required" type="xs:integer"/>
     </xs:complexType>
   </xs:element>
-  <xs:element name="HostEnd">
-    <xs:complexType>
-      <xs:attribute name="Subject" use="required" type="xs:NMTOKEN"/>
-    </xs:complexType>
-  </xs:element>
   <xs:element name="HostEndSiteOps">
     <xs:complexType>
       <xs:attribute name="HoldPosition" type="xs:integer"/>
@@ -21301,12 +21314,6 @@
   <xs:element name="Magnitude">
     <xs:complexType>
       <xs:attribute name="value" use="required"/>
-    </xs:complexType>
-  </xs:element>
-  <xs:element name="ForceFlags">
-    <xs:complexType>
-      <xs:attribute name="index" use="required" type="xs:NCName"/>
-      <xs:attribute name="value" use="required" type="xs:integer"/>
     </xs:complexType>
   </xs:element>
   <xs:element name="Radius">
@@ -21322,9 +21329,20 @@
       <xs:attribute name="value" use="required"/>
     </xs:complexType>
   </xs:element>
+  <xs:element name="HostEnd">
+    <xs:complexType>
+      <xs:attribute name="Subject" use="required" type="xs:NMTOKEN"/>
+    </xs:complexType>
+  </xs:element>
   <xs:element name="Duration">
     <xs:complexType>
       <xs:attribute name="value" use="required"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="ForceFlags">
+    <xs:complexType>
+      <xs:attribute name="index" use="required" type="xs:NCName"/>
+      <xs:attribute name="value" use="required" type="xs:integer"/>
     </xs:complexType>
   </xs:element>
   <xs:element name="Field">
@@ -21339,6 +21357,11 @@
       <xs:attribute name="Subject" use="required" type="xs:NMTOKEN"/>
     </xs:complexType>
   </xs:element>
+  <xs:element name="Room">
+    <xs:complexType>
+      <xs:attribute name="value" use="required" type="xs:decimal"/>
+    </xs:complexType>
+  </xs:element>
   <xs:element name="RoomHF">
     <xs:complexType>
       <xs:attribute name="value" use="required" type="xs:decimal"/>
@@ -21349,12 +21372,12 @@
       <xs:attribute name="value" use="required" type="xs:decimal"/>
     </xs:complexType>
   </xs:element>
-  <xs:element name="Density">
+  <xs:element name="Diffusion">
     <xs:complexType>
       <xs:attribute name="value" use="required" type="xs:decimal"/>
     </xs:complexType>
   </xs:element>
-  <xs:element name="Diffusion">
+  <xs:element name="Density">
     <xs:complexType>
       <xs:attribute name="value" use="required" type="xs:decimal"/>
     </xs:complexType>
@@ -21369,32 +21392,17 @@
       <xs:attribute name="value" use="required" type="xs:decimal"/>
     </xs:complexType>
   </xs:element>
-  <xs:element name="ReverbDelay">
-    <xs:complexType>
-      <xs:attribute name="value" use="required" type="xs:decimal"/>
-    </xs:complexType>
-  </xs:element>
-  <xs:element name="Room">
-    <xs:complexType>
-      <xs:attribute name="value" use="required" type="xs:decimal"/>
-    </xs:complexType>
-  </xs:element>
   <xs:element name="ReflectionsDelay">
     <xs:complexType>
       <xs:attribute name="value" use="required" type="xs:decimal"/>
     </xs:complexType>
   </xs:element>
-  <xs:element name="DecayTime">
+  <xs:element name="ReverbDelay">
     <xs:complexType>
       <xs:attribute name="value" use="required" type="xs:decimal"/>
     </xs:complexType>
   </xs:element>
-  <xs:element name="AcquireMovementLimit">
-    <xs:complexType>
-      <xs:attribute name="value" use="required" type="xs:integer"/>
-    </xs:complexType>
-  </xs:element>
-  <xs:element name="AcquireLeashRadius">
+  <xs:element name="DecayTime">
     <xs:complexType>
       <xs:attribute name="value" use="required" type="xs:decimal"/>
     </xs:complexType>
@@ -21412,6 +21420,16 @@
   <xs:element name="Enabled">
     <xs:complexType>
       <xs:attribute name="value" use="required" type="xs:integer"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="AcquireMovementLimit">
+    <xs:complexType>
+      <xs:attribute name="value" use="required" type="xs:integer"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="AcquireLeashRadius">
+    <xs:complexType>
+      <xs:attribute name="value" use="required" type="xs:decimal"/>
     </xs:complexType>
   </xs:element>
   <xs:element name="AcquireLeashResetRadius">
@@ -21529,14 +21547,14 @@
       <xs:attribute name="value" use="required" type="xs:integer"/>
     </xs:complexType>
   </xs:element>
-  <xs:element name="AddToProximitySystem">
-    <xs:complexType>
-      <xs:attribute name="value" use="required" type="xs:integer"/>
-    </xs:complexType>
-  </xs:element>
   <xs:element name="Sharing">
     <xs:complexType>
       <xs:attribute name="value" use="required" type="xs:NCName"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="AddToProximitySystem">
+    <xs:complexType>
+      <xs:attribute name="value" use="required" type="xs:integer"/>
     </xs:complexType>
   </xs:element>
   <xs:element name="VariationIcon">
@@ -21578,59 +21596,19 @@
       <xs:attribute name="value" type="xs:NCName"/>
     </xs:complexType>
   </xs:element>
-  <xs:element name="DisplayModel">
-    <xs:complexType>
-      <xs:attribute name="value" use="required" type="xs:NCName"/>
-    </xs:complexType>
-  </xs:element>
-  <xs:element name="PreviewCutsceneFile">
-    <xs:complexType>
-      <xs:attribute name="value" use="required"/>
-    </xs:complexType>
-  </xs:element>
-  <xs:element name="TileCutsceneFile">
-    <xs:complexType>
-      <xs:attribute name="value" use="required"/>
-    </xs:complexType>
-  </xs:element>
-  <xs:element name="HomeScreenCutsceneFile">
-    <xs:complexType>
-      <xs:attribute name="value" use="required"/>
-    </xs:complexType>
-  </xs:element>
-  <xs:element name="InGameUnitStatusCutsceneFile">
-    <xs:complexType>
-      <xs:attribute name="value" use="required"/>
-    </xs:complexType>
-  </xs:element>
-  <xs:element name="DraftCutsceneFile">
-    <xs:complexType>
-      <xs:attribute name="value" use="required"/>
-    </xs:complexType>
-  </xs:element>
-  <xs:element name="DraftPickCutsceneFile">
-    <xs:complexType>
-      <xs:attribute name="value" use="required"/>
-    </xs:complexType>
-  </xs:element>
-  <xs:element name="EndOfMatchCutsceneFile">
-    <xs:complexType>
-      <xs:attribute name="value" use="required"/>
-    </xs:complexType>
-  </xs:element>
-  <xs:element name="LootChestRewardCutsceneFile">
-    <xs:complexType>
-      <xs:attribute name="value" use="required"/>
-    </xs:complexType>
-  </xs:element>
   <xs:element name="VariationArray">
     <xs:complexType>
       <xs:attribute name="value" use="required" type="xs:NCName"/>
     </xs:complexType>
   </xs:element>
-  <xs:element name="UniverseIcon">
+  <xs:element name="DisplayModel">
     <xs:complexType>
-      <xs:attribute name="value" use="required"/>
+      <xs:attribute name="value" use="required" type="xs:NCName"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="Universe">
+    <xs:complexType>
+      <xs:attribute name="value" use="required" type="xs:NCName"/>
     </xs:complexType>
   </xs:element>
   <xs:element name="SkinArray">
@@ -21685,6 +21663,16 @@
       <xs:attribute name="value" use="required" type="xs:integer"/>
     </xs:complexType>
   </xs:element>
+  <xs:element name="UniverseIcon">
+    <xs:complexType>
+      <xs:attribute name="value" use="required"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="Gender">
+    <xs:complexType>
+      <xs:attribute name="value" use="required" type="xs:NCName"/>
+    </xs:complexType>
+  </xs:element>
   <xs:element name="DefaultMount">
     <xs:complexType>
       <xs:attribute name="value" use="required" type="xs:NCName"/>
@@ -21697,25 +21685,14 @@
       <xs:attribute name="value"/>
     </xs:complexType>
   </xs:element>
-  <xs:element name="Gender">
+  <xs:element name="CollectionIcon">
     <xs:complexType>
-      <xs:attribute name="value" use="required" type="xs:NCName"/>
+      <xs:attribute name="value" use="required"/>
     </xs:complexType>
   </xs:element>
-  <xs:element name="Universe">
+  <xs:element name="Rarity">
     <xs:complexType>
       <xs:attribute name="value" use="required" type="xs:NCName"/>
-    </xs:complexType>
-  </xs:element>
-  <xs:element name="Unit">
-    <xs:complexType>
-      <xs:sequence>
-        <xs:element minOccurs="0" ref="Field"/>
-      </xs:sequence>
-      <xs:attribute name="Unit" type="xs:NCName"/>
-      <xs:attribute name="Variations"/>
-      <xs:attribute name="id" type="xs:NCName"/>
-      <xs:attribute name="value"/>
     </xs:complexType>
   </xs:element>
   <xs:element name="ProductId">
@@ -21723,9 +21700,44 @@
       <xs:attribute name="value" use="required" type="xs:integer"/>
     </xs:complexType>
   </xs:element>
-  <xs:element name="Rarity">
+  <xs:element name="PreviewCutsceneFile">
     <xs:complexType>
-      <xs:attribute name="value" use="required" type="xs:NCName"/>
+      <xs:attribute name="value" use="required"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="TileCutsceneFile">
+    <xs:complexType>
+      <xs:attribute name="value" use="required"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="HomeScreenCutsceneFile">
+    <xs:complexType>
+      <xs:attribute name="value" use="required"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="InGameUnitStatusCutsceneFile">
+    <xs:complexType>
+      <xs:attribute name="value" use="required"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="DraftCutsceneFile">
+    <xs:complexType>
+      <xs:attribute name="value" use="required"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="DraftPickCutsceneFile">
+    <xs:complexType>
+      <xs:attribute name="value" use="required"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="EndOfMatchCutsceneFile">
+    <xs:complexType>
+      <xs:attribute name="value" use="required"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="LootChestRewardCutsceneFile">
+    <xs:complexType>
+      <xs:attribute name="value" use="required"/>
     </xs:complexType>
   </xs:element>
   <xs:element name="VOArray">
@@ -21754,9 +21766,15 @@
       <xs:attribute name="value" use="required"/>
     </xs:complexType>
   </xs:element>
-  <xs:element name="CollectionIcon">
+  <xs:element name="Unit">
     <xs:complexType>
-      <xs:attribute name="value" use="required"/>
+      <xs:sequence>
+        <xs:element minOccurs="0" ref="Field"/>
+      </xs:sequence>
+      <xs:attribute name="Unit" type="xs:NCName"/>
+      <xs:attribute name="Variations"/>
+      <xs:attribute name="id" type="xs:NCName"/>
+      <xs:attribute name="value"/>
     </xs:complexType>
   </xs:element>
   <xs:element name="SortName">
@@ -21920,6 +21938,12 @@
       <xs:attribute name="value" use="required" type="xs:integer"/>
     </xs:complexType>
   </xs:element>
+  <xs:element name="RegionFlags">
+    <xs:complexType>
+      <xs:attribute name="index" use="required" type="xs:NCName"/>
+      <xs:attribute name="value" use="required" type="xs:integer"/>
+    </xs:complexType>
+  </xs:element>
   <xs:element name="VertexArray">
     <xs:complexType>
       <xs:attribute name="X" type="xs:decimal"/>
@@ -21931,12 +21955,6 @@
       <xs:attribute name="X" type="xs:integer"/>
       <xs:attribute name="Y" type="xs:integer"/>
       <xs:attribute name="Z" type="xs:integer"/>
-    </xs:complexType>
-  </xs:element>
-  <xs:element name="RegionFlags">
-    <xs:complexType>
-      <xs:attribute name="index" use="required" type="xs:NCName"/>
-      <xs:attribute name="value" use="required" type="xs:integer"/>
     </xs:complexType>
   </xs:element>
   <xs:element name="Fidget">
@@ -22203,9 +22221,9 @@
       <xs:attribute name="value" use="required"/>
     </xs:complexType>
   </xs:element>
-  <xs:element name="Face">
+  <xs:element name="Slot">
     <xs:complexType>
-      <xs:attribute name="value" use="required"/>
+      <xs:attribute name="value" use="required" type="xs:NCName"/>
     </xs:complexType>
   </xs:element>
   <xs:element name="InfoFlags">
@@ -22214,9 +22232,9 @@
       <xs:attribute name="value" use="required" type="xs:integer"/>
     </xs:complexType>
   </xs:element>
-  <xs:element name="Slot">
+  <xs:element name="Face">
     <xs:complexType>
-      <xs:attribute name="value" use="required" type="xs:NCName"/>
+      <xs:attribute name="value" use="required"/>
     </xs:complexType>
   </xs:element>
   <xs:element name="BehaviorFlags">
@@ -22385,15 +22403,20 @@
       <xs:attribute name="value" use="required" type="xs:decimal"/>
     </xs:complexType>
   </xs:element>
+  <xs:element name="Vital">
+    <xs:complexType>
+      <xs:attribute name="index" type="xs:NCName"/>
+      <xs:attribute name="value" use="required"/>
+    </xs:complexType>
+  </xs:element>
   <xs:element name="Descending">
     <xs:complexType>
       <xs:attribute name="value" use="required" type="xs:boolean"/>
     </xs:complexType>
   </xs:element>
-  <xs:element name="Vital">
+  <xs:element name="RequiredCursorEffect">
     <xs:complexType>
-      <xs:attribute name="index" type="xs:NCName"/>
-      <xs:attribute name="value" use="required"/>
+      <xs:attribute name="value" use="required" type="xs:NCName"/>
     </xs:complexType>
   </xs:element>
   <xs:element name="Height">
@@ -22406,21 +22429,16 @@
       <xs:attribute name="value" use="required"/>
     </xs:complexType>
   </xs:element>
-  <xs:element name="Quad">
-    <xs:complexType>
-      <xs:attribute name="Actor" type="xs:NCName"/>
-      <xs:attribute name="Subject" type="xs:NCName"/>
-      <xs:attribute name="value"/>
-    </xs:complexType>
-  </xs:element>
   <xs:element name="QueryRange">
     <xs:complexType>
       <xs:attribute name="value" use="required" type="xs:decimal"/>
     </xs:complexType>
   </xs:element>
-  <xs:element name="RequiredCursorEffect">
+  <xs:element name="Quad">
     <xs:complexType>
-      <xs:attribute name="value" use="required" type="xs:NCName"/>
+      <xs:attribute name="Actor" type="xs:NCName"/>
+      <xs:attribute name="Subject" type="xs:NCName"/>
+      <xs:attribute name="value"/>
     </xs:complexType>
   </xs:element>
   <xs:element name="HostImpact">
@@ -22465,9 +22483,10 @@
       <xs:attribute name="Ops" use="required" type="xs:NCName"/>
     </xs:complexType>
   </xs:element>
-  <xs:element name="PlayDelay">
+  <xs:element name="SpeakerMix">
     <xs:complexType>
-      <xs:attribute name="value" use="required"/>
+      <xs:attribute name="index" use="required" type="xs:NCName"/>
+      <xs:attribute name="value" use="required" type="xs:decimal"/>
     </xs:complexType>
   </xs:element>
   <xs:element name="Volume">
@@ -22475,13 +22494,12 @@
       <xs:attribute name="value" use="required"/>
     </xs:complexType>
   </xs:element>
-  <xs:element name="SpeakerMix">
+  <xs:element name="PlayDelay">
     <xs:complexType>
-      <xs:attribute name="index" use="required" type="xs:NCName"/>
-      <xs:attribute name="value" use="required" type="xs:decimal"/>
+      <xs:attribute name="value" use="required"/>
     </xs:complexType>
   </xs:element>
-  <xs:element name="DupeWait">
+  <xs:element name="LocalAllyVolumeAdjustment">
     <xs:complexType>
       <xs:attribute name="value" use="required"/>
     </xs:complexType>
@@ -22496,7 +22514,12 @@
       <xs:attribute name="value" use="required" type="xs:integer"/>
     </xs:complexType>
   </xs:element>
-  <xs:element name="LocalAllyVolumeAdjustment">
+  <xs:element name="NonLocalVolumeAdjustment">
+    <xs:complexType>
+      <xs:attribute name="value" use="required"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="DupeWait">
     <xs:complexType>
       <xs:attribute name="value" use="required"/>
     </xs:complexType>
@@ -22504,11 +22527,6 @@
   <xs:element name="LoopCount">
     <xs:complexType>
       <xs:attribute name="value" use="required" type="xs:integer"/>
-    </xs:complexType>
-  </xs:element>
-  <xs:element name="NonLocalVolumeAdjustment">
-    <xs:complexType>
-      <xs:attribute name="value" use="required"/>
     </xs:complexType>
   </xs:element>
   <xs:element name="File">
@@ -22562,9 +22580,9 @@
       <xs:attribute name="value" use="required" type="xs:integer"/>
     </xs:complexType>
   </xs:element>
-  <xs:element name="OccludeHeight">
+  <xs:element name="Footprint">
     <xs:complexType>
-      <xs:attribute name="value" use="required" type="xs:decimal"/>
+      <xs:attribute name="value" use="required"/>
     </xs:complexType>
   </xs:element>
   <xs:element name="TexSets">
@@ -22577,9 +22595,9 @@
       <xs:attribute name="value" use="required" type="xs:decimal"/>
     </xs:complexType>
   </xs:element>
-  <xs:element name="Footprint">
+  <xs:element name="OccludeHeight">
     <xs:complexType>
-      <xs:attribute name="value" use="required"/>
+      <xs:attribute name="value" use="required" type="xs:decimal"/>
     </xs:complexType>
   </xs:element>
   <xs:element name="Abil">
@@ -22597,7 +22615,6 @@
   <xs:element name="Lines">
     <xs:complexType>
       <xs:sequence>
-        <xs:element minOccurs="0" ref="Skins"/>
         <xs:sequence minOccurs="0">
           <xs:element ref="Id"/>
           <xs:element ref="Text"/>
@@ -22613,21 +22630,24 @@
         </xs:sequence>
         <xs:element minOccurs="0" ref="LookAtAttach"/>
         <xs:element minOccurs="0" ref="SpeakerCharacter"/>
-        <xs:element minOccurs="0" ref="SpeakerVariation"/>
         <xs:element minOccurs="0" maxOccurs="unbounded" ref="Conditions"/>
-        <xs:element minOccurs="0" maxOccurs="unbounded" ref="Tags"/>
+        <xs:choice>
+          <xs:element ref="SpeakerVariation"/>
+          <xs:element minOccurs="0" maxOccurs="unbounded" ref="Tags"/>
+        </xs:choice>
         <xs:sequence minOccurs="0">
           <xs:element ref="Group"/>
           <xs:element ref="SoundIndex"/>
         </xs:sequence>
         <xs:choice minOccurs="0">
-          <xs:sequence>
-            <xs:element ref="SoundType"/>
-            <xs:element ref="SoundText"/>
-          </xs:sequence>
+          <xs:element ref="Skins"/>
           <xs:sequence>
             <xs:element ref="FacialAnim"/>
             <xs:element ref="FacialBlend"/>
+          </xs:sequence>
+          <xs:sequence>
+            <xs:element ref="SoundType"/>
+            <xs:element ref="SoundText"/>
           </xs:sequence>
         </xs:choice>
       </xs:sequence>
@@ -22995,15 +23015,15 @@
       <xs:attribute name="value" use="required" type="xs:NCName"/>
     </xs:complexType>
   </xs:element>
+  <xs:element name="LargeImage">
+    <xs:complexType>
+      <xs:attribute name="value" use="required"/>
+    </xs:complexType>
+  </xs:element>
   <xs:element name="AnnouncerPack">
     <xs:complexType>
       <xs:attribute name="id" type="xs:NCName"/>
       <xs:attribute name="value"/>
-    </xs:complexType>
-  </xs:element>
-  <xs:element name="LargeImage">
-    <xs:complexType>
-      <xs:attribute name="value" use="required"/>
     </xs:complexType>
   </xs:element>
   <xs:element name="BehaviorArray">
@@ -23236,37 +23256,17 @@
       <xs:attribute name="value" use="required" type="xs:NCName"/>
     </xs:complexType>
   </xs:element>
-  <xs:element name="ImpactRange">
-    <xs:complexType>
-      <xs:attribute name="value" use="required" type="xs:decimal"/>
-    </xs:complexType>
-  </xs:element>
-  <xs:element name="PeriodicEffect">
+  <xs:element name="DeathType">
     <xs:complexType>
       <xs:attribute name="value" use="required" type="xs:NCName"/>
     </xs:complexType>
   </xs:element>
-  <xs:element name="ValidateTeleportRange">
+  <xs:element name="SearchEffect">
     <xs:complexType>
-      <xs:attribute name="value" use="required" type="xs:integer"/>
-    </xs:complexType>
-  </xs:element>
-  <xs:element name="AmmoUnit">
-    <xs:complexType>
-      <xs:attribute name="value" use="required"/>
+      <xs:attribute name="value" use="required" type="xs:NCName"/>
     </xs:complexType>
   </xs:element>
   <xs:element name="LaunchEffect">
-    <xs:complexType>
-      <xs:attribute name="value" use="required" type="xs:NCName"/>
-    </xs:complexType>
-  </xs:element>
-  <xs:element name="ImpactEffect">
-    <xs:complexType>
-      <xs:attribute name="value" use="required" type="xs:NCName"/>
-    </xs:complexType>
-  </xs:element>
-  <xs:element name="DeathType">
     <xs:complexType>
       <xs:attribute name="value" use="required" type="xs:NCName"/>
     </xs:complexType>
@@ -23281,6 +23281,21 @@
       <xs:attribute name="value" use="required" type="xs:NCName"/>
     </xs:complexType>
   </xs:element>
+  <xs:element name="ImpactRange">
+    <xs:complexType>
+      <xs:attribute name="value" use="required" type="xs:decimal"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="AmmoUnit">
+    <xs:complexType>
+      <xs:attribute name="value" use="required"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="ValidateTeleportRange">
+    <xs:complexType>
+      <xs:attribute name="value" use="required" type="xs:integer"/>
+    </xs:complexType>
+  </xs:element>
   <xs:element name="LaunchOffset">
     <xs:complexType>
       <xs:attribute name="X" type="xs:decimal"/>
@@ -23289,7 +23304,7 @@
       <xs:attribute name="value"/>
     </xs:complexType>
   </xs:element>
-  <xs:element name="SearchEffect">
+  <xs:element name="ImpactEffect">
     <xs:complexType>
       <xs:attribute name="value" use="required" type="xs:NCName"/>
     </xs:complexType>
@@ -23297,6 +23312,11 @@
   <xs:element name="AmmoOwner">
     <xs:complexType>
       <xs:attribute name="Value" use="required" type="xs:NCName"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="PeriodicEffect">
+    <xs:complexType>
+      <xs:attribute name="value" use="required" type="xs:NCName"/>
     </xs:complexType>
   </xs:element>
   <xs:element name="CutsceneFile">
@@ -23378,15 +23398,15 @@
       <xs:attribute name="value" use="required"/>
     </xs:complexType>
   </xs:element>
-  <xs:element name="FacingAdjustment">
-    <xs:complexType>
-      <xs:attribute name="value" use="required" type="xs:decimal"/>
-    </xs:complexType>
-  </xs:element>
   <xs:element name="ModifyFlags">
     <xs:complexType>
       <xs:attribute name="index" use="required" type="xs:NCName"/>
       <xs:attribute name="value" use="required" type="xs:integer"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="FacingAdjustment">
+    <xs:complexType>
+      <xs:attribute name="value" use="required" type="xs:decimal"/>
     </xs:complexType>
   </xs:element>
   <xs:element name="HeightTime">
@@ -23594,39 +23614,36 @@
   <xs:element name="Modification">
     <xs:complexType>
       <xs:sequence>
-        <xs:element minOccurs="0" ref="HealDealtMultiplier"/>
-        <xs:element minOccurs="0" maxOccurs="unbounded" ref="RateMultiplierArray"/>
+        <xs:element minOccurs="0" maxOccurs="unbounded" ref="DamageTakenFraction"/>
         <xs:element minOccurs="0" ref="AdditiveMoveSpeedFactor"/>
         <xs:element minOccurs="0" ref="HealTakenMultiplier"/>
         <xs:element minOccurs="0" maxOccurs="unbounded" ref="VitalMaxIncreaseAffectsCurrentArray"/>
+        <xs:element minOccurs="0" maxOccurs="unbounded" ref="DamageDealtAttributeMultiplier"/>
+        <xs:element minOccurs="0" ref="HealDealtMultiplier"/>
         <xs:element minOccurs="0" ref="VitalDamageGainScoreArray"/>
-        <xs:choice>
-          <xs:element ref="WeaponScanValidationEnableArray"/>
-          <xs:element minOccurs="0" maxOccurs="unbounded" ref="DamageDealtAttributeMultiplier"/>
-          <xs:element minOccurs="0" maxOccurs="unbounded" ref="DamageTakenFraction"/>
-        </xs:choice>
+        <xs:element minOccurs="0" ref="WeaponScanValidationEnableArray"/>
         <xs:element minOccurs="0" maxOccurs="unbounded" ref="ModifyFlags"/>
         <xs:element minOccurs="0" maxOccurs="unbounded" ref="StateFlags"/>
         <xs:element minOccurs="0" ref="Height"/>
-        <xs:element minOccurs="0" ref="SightBonus"/>
         <xs:element minOccurs="0" maxOccurs="unbounded" ref="HealDealtAdditiveMultiplier"/>
+        <xs:element minOccurs="0" ref="MoveSpeedMultiplier"/>
         <xs:element minOccurs="0" ref="BehaviorClassDisableArray"/>
-        <xs:choice minOccurs="0">
-          <xs:element ref="MoveSpeedMultiplier"/>
-          <xs:element ref="SightMaximum"/>
-        </xs:choice>
-        <xs:element minOccurs="0" ref="TimeScale"/>
+        <xs:element minOccurs="0" ref="SightMaximum"/>
         <xs:element minOccurs="0" ref="UnifiedHealingTakenFraction"/>
+        <xs:element minOccurs="0" ref="SightBonus"/>
+        <xs:element minOccurs="0" ref="TimeScale"/>
         <xs:element minOccurs="0" ref="TurnRateMultiplier"/>
-        <xs:element minOccurs="0" maxOccurs="unbounded" ref="HealTakenAdditiveMultiplier"/>
+        <xs:element minOccurs="0" maxOccurs="unbounded" ref="RateMultiplierArray"/>
         <xs:element minOccurs="0" maxOccurs="unbounded" ref="HeightTime"/>
         <xs:element minOccurs="0" ref="MoveSpeedMaximum"/>
+        <xs:element minOccurs="0" ref="MoveSpeedMinimum"/>
         <xs:element minOccurs="0" ref="MoveSpeedBonus"/>
         <xs:element minOccurs="0" maxOccurs="unbounded" ref="AbilClassEnableArray"/>
-        <xs:element minOccurs="0" ref="MoveSpeedMinimum"/>
+        <xs:element minOccurs="0" maxOccurs="unbounded" ref="HealTakenAdditiveMultiplier"/>
         <xs:element minOccurs="0" ref="UnifiedMoveSpeedFactor"/>
         <xs:element minOccurs="0" ref="UnifiedAttackSpeedFactor"/>
         <xs:element minOccurs="0" ref="AttackSpeedMultiplier"/>
+        <xs:element minOccurs="0" maxOccurs="unbounded" ref="BehaviorCategoriesEnable"/>
         <xs:element minOccurs="0" ref="AdditiveAttackSpeedFactor"/>
         <xs:element minOccurs="0" ref="WeaponRange"/>
         <xs:element minOccurs="0" ref="WeaponScanBonus"/>
@@ -23634,18 +23651,17 @@
         <xs:element minOccurs="0" maxOccurs="unbounded" ref="DamageDealtFraction"/>
         <xs:element minOccurs="0" ref="VitalMaxAdditiveMultiplierArray"/>
         <xs:element minOccurs="0" maxOccurs="unbounded" ref="VitalMaxArray"/>
+        <xs:element minOccurs="0" maxOccurs="unbounded" ref="VitalMaxFractionArray"/>
         <xs:choice>
-          <xs:element ref="DeathResponse"/>
-          <xs:element minOccurs="0" maxOccurs="unbounded" ref="BehaviorCategoriesEnable"/>
+          <xs:element ref="AccelerationMultiplier"/>
+          <xs:element minOccurs="0" maxOccurs="unbounded" ref="VitalRegenArray"/>
         </xs:choice>
-        <xs:element minOccurs="0" ref="AccelerationMultiplier"/>
         <xs:element minOccurs="0" ref="DecelerationMultiplier"/>
+        <xs:element minOccurs="0" ref="DeathResponse"/>
         <xs:element minOccurs="0" maxOccurs="unbounded" ref="AbilClassDisableArray"/>
         <xs:element minOccurs="0" maxOccurs="unbounded" ref="AbilLinkEnableArray"/>
         <xs:element minOccurs="0" maxOccurs="unbounded" ref="AbilLinkDisableArray"/>
         <xs:element minOccurs="0" maxOccurs="unbounded" ref="BehaviorLinkEnableArray"/>
-        <xs:element minOccurs="0" maxOccurs="unbounded" ref="VitalMaxFractionArray"/>
-        <xs:element minOccurs="0" maxOccurs="unbounded" ref="VitalRegenArray"/>
         <xs:element minOccurs="0" maxOccurs="unbounded" ref="VitalRegenMultiplier"/>
         <xs:element minOccurs="0" ref="VitalDamageLeechArray"/>
         <xs:choice>
@@ -23653,14 +23669,16 @@
           <xs:element minOccurs="0" maxOccurs="unbounded" ref="BehaviorCategoriesDisable"/>
         </xs:choice>
         <xs:element minOccurs="0" maxOccurs="unbounded" ref="BehaviorLinkDisableArray"/>
+        <xs:element minOccurs="0" ref="PlaneDelta"/>
         <xs:element minOccurs="0" maxOccurs="unbounded" ref="WeaponArray"/>
         <xs:choice minOccurs="0" maxOccurs="unbounded">
           <xs:element ref="WeaponDisableArray"/>
           <xs:element ref="WeaponEnableArray"/>
         </xs:choice>
-        <xs:element minOccurs="0" maxOccurs="unbounded" ref="TurretDisableArray"/>
-        <xs:element minOccurs="0" ref="PlaneDelta"/>
-        <xs:element minOccurs="0" maxOccurs="unbounded" ref="CollideDisableFlags"/>
+        <xs:choice>
+          <xs:element minOccurs="0" maxOccurs="unbounded" ref="CollideDisableFlags"/>
+          <xs:element minOccurs="0" maxOccurs="unbounded" ref="TurretDisableArray"/>
+        </xs:choice>
       </xs:sequence>
       <xs:attribute name="AccelerationBonus" type="xs:integer"/>
       <xs:attribute name="AlliedPushPriority" type="xs:integer"/>
@@ -23677,13 +23695,7 @@
       <xs:attribute name="UpdateAttackSpeedEachFrame" type="xs:integer"/>
     </xs:complexType>
   </xs:element>
-  <xs:element name="HealDealtMultiplier">
-    <xs:complexType>
-      <xs:attribute name="index" use="required" type="xs:NCName"/>
-      <xs:attribute name="value" use="required" type="xs:decimal"/>
-    </xs:complexType>
-  </xs:element>
-  <xs:element name="RateMultiplierArray">
+  <xs:element name="DamageTakenFraction">
     <xs:complexType>
       <xs:attribute name="index" use="required" type="xs:NCName"/>
       <xs:attribute name="value" use="required" type="xs:decimal"/>
@@ -23700,6 +23712,18 @@
       <xs:attribute name="value" use="required" type="xs:integer"/>
     </xs:complexType>
   </xs:element>
+  <xs:element name="DamageDealtAttributeMultiplier">
+    <xs:complexType>
+      <xs:attribute name="index" use="required" type="xs:NCName"/>
+      <xs:attribute name="value" use="required" type="xs:decimal"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="HealDealtMultiplier">
+    <xs:complexType>
+      <xs:attribute name="index" use="required" type="xs:NCName"/>
+      <xs:attribute name="value" use="required" type="xs:decimal"/>
+    </xs:complexType>
+  </xs:element>
   <xs:element name="VitalDamageGainScoreArray">
     <xs:complexType>
       <xs:attribute name="Value" use="required" type="xs:NCName"/>
@@ -23710,27 +23734,10 @@
       <xs:attribute name="value" use="required" type="xs:NCName"/>
     </xs:complexType>
   </xs:element>
-  <xs:element name="DamageDealtAttributeMultiplier">
-    <xs:complexType>
-      <xs:attribute name="index" use="required" type="xs:NCName"/>
-      <xs:attribute name="value" use="required" type="xs:decimal"/>
-    </xs:complexType>
-  </xs:element>
-  <xs:element name="DamageTakenFraction">
-    <xs:complexType>
-      <xs:attribute name="index" use="required" type="xs:NCName"/>
-      <xs:attribute name="value" use="required" type="xs:decimal"/>
-    </xs:complexType>
-  </xs:element>
   <xs:element name="StateFlags">
     <xs:complexType>
       <xs:attribute name="index" use="required" type="xs:NCName"/>
       <xs:attribute name="value" use="required" type="xs:integer"/>
-    </xs:complexType>
-  </xs:element>
-  <xs:element name="SightBonus">
-    <xs:complexType>
-      <xs:attribute name="value" use="required" type="xs:decimal"/>
     </xs:complexType>
   </xs:element>
   <xs:element name="HealDealtAdditiveMultiplier">
@@ -23742,23 +23749,18 @@
       <xs:attribute name="value" use="required" type="xs:decimal"/>
     </xs:complexType>
   </xs:element>
+  <xs:element name="MoveSpeedMultiplier">
+    <xs:complexType>
+      <xs:attribute name="value" use="required" type="xs:decimal"/>
+    </xs:complexType>
+  </xs:element>
   <xs:element name="BehaviorClassDisableArray">
     <xs:complexType>
       <xs:attribute name="index" use="required" type="xs:NCName"/>
       <xs:attribute name="value" use="required" type="xs:integer"/>
     </xs:complexType>
   </xs:element>
-  <xs:element name="MoveSpeedMultiplier">
-    <xs:complexType>
-      <xs:attribute name="value" use="required" type="xs:decimal"/>
-    </xs:complexType>
-  </xs:element>
   <xs:element name="SightMaximum">
-    <xs:complexType>
-      <xs:attribute name="value" use="required" type="xs:decimal"/>
-    </xs:complexType>
-  </xs:element>
-  <xs:element name="TimeScale">
     <xs:complexType>
       <xs:attribute name="value" use="required" type="xs:decimal"/>
     </xs:complexType>
@@ -23769,18 +23771,36 @@
       <xs:attribute name="value" use="required" type="xs:integer"/>
     </xs:complexType>
   </xs:element>
+  <xs:element name="SightBonus">
+    <xs:complexType>
+      <xs:attribute name="value" use="required" type="xs:decimal"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="TimeScale">
+    <xs:complexType>
+      <xs:attribute name="value" use="required" type="xs:decimal"/>
+    </xs:complexType>
+  </xs:element>
   <xs:element name="TurnRateMultiplier">
     <xs:complexType>
       <xs:attribute name="value" use="required" type="xs:decimal"/>
     </xs:complexType>
   </xs:element>
-  <xs:element name="HealTakenAdditiveMultiplier">
+  <xs:element name="RateMultiplierArray">
     <xs:complexType>
       <xs:attribute name="index" use="required" type="xs:NCName"/>
       <xs:attribute name="value" use="required" type="xs:decimal"/>
     </xs:complexType>
   </xs:element>
   <xs:element name="MoveSpeedMaximum">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="0" ref="AccumulatorArray"/>
+      </xs:sequence>
+      <xs:attribute name="value" use="required" type="xs:decimal"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="MoveSpeedMinimum">
     <xs:complexType>
       <xs:sequence>
         <xs:element minOccurs="0" ref="AccumulatorArray"/>
@@ -23796,11 +23816,9 @@
       <xs:attribute name="value" use="required" type="xs:decimal"/>
     </xs:complexType>
   </xs:element>
-  <xs:element name="MoveSpeedMinimum">
+  <xs:element name="HealTakenAdditiveMultiplier">
     <xs:complexType>
-      <xs:sequence>
-        <xs:element minOccurs="0" ref="AccumulatorArray"/>
-      </xs:sequence>
+      <xs:attribute name="index" use="required" type="xs:NCName"/>
       <xs:attribute name="value" use="required" type="xs:decimal"/>
     </xs:complexType>
   </xs:element>
@@ -23820,6 +23838,12 @@
   <xs:element name="AttackSpeedMultiplier">
     <xs:complexType>
       <xs:attribute name="value" use="required" type="xs:decimal"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="BehaviorCategoriesEnable">
+    <xs:complexType>
+      <xs:attribute name="index" use="required" type="xs:NCName"/>
+      <xs:attribute name="value" use="required" type="xs:integer"/>
     </xs:complexType>
   </xs:element>
   <xs:element name="AdditiveAttackSpeedFactor">
@@ -23876,19 +23900,10 @@
       <xs:attribute name="value" use="required"/>
     </xs:complexType>
   </xs:element>
-  <xs:element name="DeathResponse">
-    <xs:complexType>
-      <xs:sequence>
-        <xs:element minOccurs="0" ref="Cost"/>
-      </xs:sequence>
-      <xs:attribute name="Chance" type="xs:integer"/>
-      <xs:attribute name="Effect" type="xs:NCName"/>
-    </xs:complexType>
-  </xs:element>
-  <xs:element name="BehaviorCategoriesEnable">
+  <xs:element name="VitalMaxFractionArray">
     <xs:complexType>
       <xs:attribute name="index" use="required" type="xs:NCName"/>
-      <xs:attribute name="value" use="required" type="xs:integer"/>
+      <xs:attribute name="value" use="required" type="xs:decimal"/>
     </xs:complexType>
   </xs:element>
   <xs:element name="AccelerationMultiplier">
@@ -23896,9 +23911,27 @@
       <xs:attribute name="value" use="required" type="xs:decimal"/>
     </xs:complexType>
   </xs:element>
+  <xs:element name="VitalRegenArray">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="0" ref="AccumulatorArray"/>
+      </xs:sequence>
+      <xs:attribute name="index" use="required" type="xs:NCName"/>
+      <xs:attribute name="value" use="required" type="xs:decimal"/>
+    </xs:complexType>
+  </xs:element>
   <xs:element name="DecelerationMultiplier">
     <xs:complexType>
       <xs:attribute name="value" use="required" type="xs:decimal"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="DeathResponse">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="0" ref="Cost"/>
+      </xs:sequence>
+      <xs:attribute name="Chance" type="xs:integer"/>
+      <xs:attribute name="Effect" type="xs:NCName"/>
     </xs:complexType>
   </xs:element>
   <xs:element name="AbilLinkEnableArray">
@@ -23918,21 +23951,6 @@
       <xs:attribute name="index" type="xs:integer"/>
       <xs:attribute name="removed" type="xs:integer"/>
       <xs:attribute name="value" type="xs:NCName"/>
-    </xs:complexType>
-  </xs:element>
-  <xs:element name="VitalMaxFractionArray">
-    <xs:complexType>
-      <xs:attribute name="index" use="required" type="xs:NCName"/>
-      <xs:attribute name="value" use="required" type="xs:decimal"/>
-    </xs:complexType>
-  </xs:element>
-  <xs:element name="VitalRegenArray">
-    <xs:complexType>
-      <xs:sequence>
-        <xs:element minOccurs="0" ref="AccumulatorArray"/>
-      </xs:sequence>
-      <xs:attribute name="index" use="required" type="xs:NCName"/>
-      <xs:attribute name="value" use="required" type="xs:decimal"/>
     </xs:complexType>
   </xs:element>
   <xs:element name="VitalRegenMultiplier">
@@ -23977,6 +23995,12 @@
       <xs:attribute name="value" type="xs:NMTOKEN"/>
     </xs:complexType>
   </xs:element>
+  <xs:element name="PlaneDelta">
+    <xs:complexType>
+      <xs:attribute name="index" use="required" type="xs:NCName"/>
+      <xs:attribute name="value" use="required" type="xs:integer"/>
+    </xs:complexType>
+  </xs:element>
   <xs:element name="WeaponDisableArray">
     <xs:complexType>
       <xs:attribute name="value" use="required" type="xs:NCName"/>
@@ -23987,21 +24011,15 @@
       <xs:attribute name="value" use="required" type="xs:NCName"/>
     </xs:complexType>
   </xs:element>
-  <xs:element name="TurretDisableArray">
-    <xs:complexType>
-      <xs:attribute name="value" use="required" type="xs:NCName"/>
-    </xs:complexType>
-  </xs:element>
-  <xs:element name="PlaneDelta">
-    <xs:complexType>
-      <xs:attribute name="index" use="required" type="xs:NCName"/>
-      <xs:attribute name="value" use="required" type="xs:integer"/>
-    </xs:complexType>
-  </xs:element>
   <xs:element name="CollideDisableFlags">
     <xs:complexType>
       <xs:attribute name="index" use="required" type="xs:NCName"/>
       <xs:attribute name="value" use="required" type="xs:integer"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="TurretDisableArray">
+    <xs:complexType>
+      <xs:attribute name="value" use="required" type="xs:NCName"/>
     </xs:complexType>
   </xs:element>
   <xs:element name="OverlapPrevious">
@@ -24029,6 +24047,11 @@
       <xs:attribute name="Value" use="required" type="xs:NCName"/>
     </xs:complexType>
   </xs:element>
+  <xs:element name="InitialEffect">
+    <xs:complexType>
+      <xs:attribute name="value" use="required"/>
+    </xs:complexType>
+  </xs:element>
   <xs:element name="AINotifySettings">
     <xs:complexType>
       <xs:sequence>
@@ -24044,11 +24067,6 @@
     </xs:complexType>
   </xs:element>
   <xs:element name="ExpireEffect">
-    <xs:complexType>
-      <xs:attribute name="value" use="required"/>
-    </xs:complexType>
-  </xs:element>
-  <xs:element name="InitialEffect">
     <xs:complexType>
       <xs:attribute name="value" use="required"/>
     </xs:complexType>
