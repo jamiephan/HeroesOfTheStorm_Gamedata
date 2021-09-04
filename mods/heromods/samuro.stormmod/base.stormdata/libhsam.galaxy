@@ -1325,6 +1325,7 @@ void libHSAM_gt_SamuroMirrorImageAttackOrderRedirectAI_Init () {
 bool libHSAM_gt_SamuroMirrorImageDamageTakenDuplication_Func (bool testConds, bool runActions) {
     // Variable Declarations
     fixed lv_damage;
+    fixed lv_threeBladeStyleDamage;
     unit lv_image;
     int lv_imageOwner;
     unit lv_caster;
@@ -1332,6 +1333,7 @@ bool libHSAM_gt_SamuroMirrorImageDamageTakenDuplication_Func (bool testConds, bo
     // Automatic Variable Declarations
     // Variable Initialization
     lv_damage = (EventUnitDamageAmount() + EventUnitDamageBehaviorShield());
+    lv_threeBladeStyleDamage = (lv_damage / 2.0);
     lv_image = EventUnit();
     lv_imageOwner = UnitGetOwner(lv_image);
     lv_caster = EventUnitDamageSourceUnit();
@@ -1345,10 +1347,6 @@ bool libHSAM_gt_SamuroMirrorImageDamageTakenDuplication_Func (bool testConds, bo
         if (!((EventUnitDamageEffect() != "HeroGenericFakeHeroDuplicationDamage"))) {
             return false;
         }
-
-        if (!((PlayerHasTalent(lv_imageOwner, "SamuroThreeBladeStyle") == false))) {
-            return false;
-        }
     }
 
     // Actions
@@ -1356,11 +1354,21 @@ bool libHSAM_gt_SamuroMirrorImageDamageTakenDuplication_Func (bool testConds, bo
         return true;
     }
 
-    if ((UnitIsValid(libGame_gv_teams[libGame_gf_EnemyTeamNumberOfPlayer(lv_imageOwner)].lv_core) == true)) {
-        UnitDamage(libGame_gv_teams[libGame_gf_EnemyTeamNumberOfPlayer(lv_imageOwner)].lv_core, "HeroGenericFakeHeroDuplicationDamage", lv_image, lv_damage);
+    if ((PlayerHasTalent(lv_imageOwner, "SamuroThreeBladeStyle") == false)) {
+        if ((UnitIsValid(libGame_gv_teams[libGame_gf_EnemyTeamNumberOfPlayer(lv_imageOwner)].lv_core) == true)) {
+            UnitDamage(libGame_gv_teams[libGame_gf_EnemyTeamNumberOfPlayer(lv_imageOwner)].lv_core, "HeroGenericFakeHeroDuplicationDamage", lv_image, lv_damage);
+        }
+        else {
+            UnitDamage(lv_caster, "HeroGenericFakeHeroDuplicationDamage", lv_image, lv_damage);
+        }
     }
     else {
-        UnitDamage(lv_caster, "HeroGenericFakeHeroDuplicationDamage", lv_image, lv_damage);
+        if ((UnitIsValid(libGame_gv_teams[libGame_gf_EnemyTeamNumberOfPlayer(lv_imageOwner)].lv_core) == true)) {
+            UnitDamage(libGame_gv_teams[libGame_gf_EnemyTeamNumberOfPlayer(lv_imageOwner)].lv_core, "HeroGenericFakeHeroDuplicationDamage", lv_image, lv_threeBladeStyleDamage);
+        }
+        else {
+            UnitDamage(lv_caster, "HeroGenericFakeHeroDuplicationDamage", lv_image, lv_threeBladeStyleDamage);
+        }
     }
     return true;
 }

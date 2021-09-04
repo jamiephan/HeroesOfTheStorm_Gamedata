@@ -223,13 +223,6 @@
     <TokenId value="TychusMinigunInTheRhythmQuestToken" />
     <Scale value="0.03" />
   </CAccumulatorToken>
-  <CAccumulatorToken id="TychusMasterAssassinAccumulator" parent="BaseTokenAccumulator">
-    <MinAccumulation value="0" />
-    <MaxAccumulation value="0.15" />
-    <ApplicationRule value="Add" />
-    <TokenId value="TychusMasterAssassinQuestToken" />
-    <Scale value="0.01" />
-  </CAccumulatorToken>
   <CAccumulatorToken id="TychusOverkillArmorPiercingRoundsDamageAccumulator" parent="BaseTokenAccumulator">
     <MinAccumulation value="0" />
     <MaxAccumulation value="0.6" />
@@ -426,17 +419,17 @@
     <On Terms="Behavior.TychusNeosteelCoatingSpellShield.Off" Send="Destroy" />
     <Sound value="Tychus_NeosteelPlating_Cast" />
   </CActorSound>
-  <CActorRange id="TychusPressTheAdvantageVisualRangeRing">
-    <On Terms="Behavior.TychusPressTheAdvantageRangeBuff.On" Send="Create" />
-    <On Terms="Behavior.TychusPressTheAdvantageRangeBuff.Off" Send="Destroy" />
-    <On Terms="Behavior.Dead.On" Send="Destroy" />
-    <Range value="6.000000" />
-    <Icon value="Assets\Textures\Storm_TankRadius_Active.dds" />
-    <Inherits index="CloakEffect" value="1" />
-    <Inherits index="TeamColor" value="1" />
-    <IconArcLength value="5.000000" />
+  <CActorRange id="TychusBobAndWeaveVisualRangeRingUnnamed">
     <Filter index="All" value="1" />
     <VisibleTo index="Self" value="1" />
+    <Inherits index="CloakEffect" value="1" />
+    <Inherits index="TeamColor" value="1" />
+    <On Terms="Behavior.TychusBobAndWeaveAttackRangeBuff.On" Send="Create" />
+    <On Terms="Behavior.Dead.On" Send="Destroy" />
+    <On Terms="Behavior.TychusBobAndWeaveAttackRangeBuff.Off" Send="Destroy" />
+    <Range value="6.000000" />
+    <Icon value="Assets\Textures\Storm_TankRadius_Active.dds" />
+    <IconArcLength value="5.000000" />
   </CActorRange>
   <CActorSound id="TychusGrenadeVOX" parent="SoundOneShot">
     <On Terms="Abil.TychusGrenade.SourceCastStart" Send="Create" />
@@ -1044,6 +1037,12 @@
   <CActorSound id="PulledSoundHeroTychus" parent="SoundOneShot">
     <Sound value="Tychus_VOX_Pulled" />
   </CActorSound>
+  <CActorModel id="TychusMeltingPointDebuffFX" parent="StormModelAnimationStyleContinuousUnit">
+    <On Terms="Behavior.TychusMeltingPointDebuff.On" Send="Create" />
+    <On Terms="Behavior.TychusMeltingPointDebuff.Off" Send="AnimBracketStop BSD" />
+    <HostSiteOps Ops="SOpAttachCenter" />
+    <Scale value="2.000000" />
+  </CActorModel>
   <CAttachMethodPattern id="AMPatternOdin">
     <Keyword value="SetA" />
     <Base value="::RollingIndex" />
@@ -1081,7 +1080,6 @@
   </CBehaviorAbility>
   <CBehaviorTokenCounter id="TychusMasterAssassinQuestToken" parent="StormQuestToken">
     <Max value="15" />
-    <IncreaseEvents index="0" EventId="QuestIncrease" Effect="TychusMasterAssassinQuestIncrementModifyPlayer" />
     <AtMaxEvents index="0" EventId="QuestComplete" Effect="TychusMasterAssassinQuestCompleteModifyPlayer" />
     <SortIndex value="20" />
   </CBehaviorTokenCounter>
@@ -1136,6 +1134,12 @@
     <BuffFlags index="RefreshStack" value="1" />
     <MaxStackCount value="5" />
     <Duration value="1.0625" />
+  </CBehaviorBuff>
+  <CBehaviorBuff id="TychusMeltingPointDebuff">
+    <Duration value="3" />
+    <PeriodicEffect value="TychusMeltingPointDamage" />
+    <Period value="1" />
+    <PeriodicDisplayEffect value="TychusMeltingPointDamage" />
   </CBehaviorBuff>
   <CBehaviorBuff id="TychusOdinDamageScaler">
     <RemoveValidatorArray value="SourceHasOdin" />
@@ -1326,9 +1330,7 @@
   </CBehaviorBuff>
   <CBehaviorBuff id="TychusMasterAssassinAttackSpeed" parent="CarryBehaviorParent">
     <Modification>
-      <AdditiveAttackSpeedFactor value="0">
-        <AccumulatorArray value="TychusMasterAssassinAccumulator" />
-      </AdditiveAttackSpeedFactor>
+      <AdditiveAttackSpeedFactor value="0.1" />
     </Modification>
   </CBehaviorBuff>
   <CBehaviorBuff id="TychusMinigunActiveBuff">
@@ -1381,6 +1383,10 @@
       </ArmorSet>
     </ArmorModification>
   </CBehaviorBuff>
+  <CBehaviorBuff id="TychusPressTheAdvantageAttackRangeBuff" parent="CarryBehaviorParent">
+    <InitialEffect value="TychusPressTheAdvantageAttackRangeModify" />
+    <FinalEffect value="TychusPressTheAdvantageAttackRangeReset" />
+  </CBehaviorBuff>
   <CBehaviorBuff id="TychusPressTheAdvantageRangeBuff">
     <Alignment value="Positive" />
     <InfoFlags index="Hidden" value="0" />
@@ -1398,6 +1404,18 @@
     <Modification>
       <UnifiedMoveSpeedFactor value="0.2" />
     </Modification>
+  </CBehaviorBuff>
+  <CBehaviorBuff id="TychusBobAndWeaveAttackRangeBuff">
+    <Alignment value="Positive" />
+    <InfoFlags index="Hidden" value="0" />
+    <InfoIcon value="Assets\Textures\storm_ui_icon_tychus_runandgun.dds" />
+    <Duration value="4" />
+    <Modification>
+      <WeaponRange value="1.5" />
+      <WeaponScanBonus value="1.5" />
+    </Modification>
+    <SortIndex value="100" />
+    <RemoveValidatorArray value="TychusNotInOdin" />
   </CBehaviorBuff>
   <CButton id="TychusOverkillCanDoThisAllDayTalent" parent="StormButtonParent">
     <Icon value="Assets\Textures\storm_ui_icon_tychus_overkill.dds" />
@@ -1445,7 +1463,7 @@
     <Icon value="Assets\Textures\storm_ui_icon_tychus_overkill.dds" />
   </CButton>
   <CButton id="TychusRunandGunDashTalent" parent="StormButtonParent">
-    <Icon value="Assets\Textures\storm_ui_icon_tychus_runandgun_a.dds" />
+    <Icon value="Assets\Textures\storm_ui_icon_tychus_runandgun.dds" />
   </CButton>
   <CButton id="TychusCommandeerOdinAnnihilate" parent="StormButtonParent">
     <Icon value="Assets\Textures\storm_ui_icon_tychus_annihilate.dds" />
@@ -1479,17 +1497,17 @@
   </CButton>
   <CButton id="TychusRunandGun" parent="StormButtonParent">
     <Icon value="Assets\Textures\storm_ui_icon_tychus_runandgun.dds" />
-    <TooltipAppender Validator="TychusHasRunAndGunShrugItOff" Face="TychusRunAndGunShrugItOff" />
-    <TooltipAppender Validator="HasTychusPressTheAdvantageTalent" Face="TychusPressTheAdvantage" />
     <TooltipAppender Validator="TychusHasRunAndGunDash" Face="TychusRunandGunDashTalent" />
-    <TooltipAppender Validator="TychusHasRunAndGunCombatTacticianTalent" Face="TychusCombatTactician" />
     <TooltipAppender Validator="TychusHasRunAndGunBobAndWeaveTalent" Face="TychusRunAndGunBobAndWeaveTalent" />
     <TooltipCooldownOverrideText value="10 Seconds" />
   </CButton>
   <CButton id="TychusMinigun" parent="StormButtonParentTrait">
     <Icon value="Assets\Textures\storm_ui_icon_tychus_minigun.dds" />
+    <TooltipAppender Validator="HasTychusPressTheAdvantageTalent" Face="TychusPressTheAdvantage" />
     <TooltipAppender Validator="HasTychusInTheRhythmTalent" Face="TychusIntheRhythmTalent" />
     <TooltipAppender Validator="HasTychusTheBiggerTheyAre" Face="TychusTheBiggerTheyAre" />
+    <TooltipAppender Validator="HasTychusMasterAssassin" Face="TychusMasterAssassinTalent" />
+    <TooltipAppender Validator="TychusHasRunAndGunCombatTacticianTalent" Face="TychusCombatTactician" />
     <TooltipAppender Validator="HasTychusThatsTheStuffTalent" Face="TychusThatsTheStuff" />
     <TooltipAppender Validator="TychusHasSizzlinAttacksTalent" Face="TychusSizzlinAttacks" />
     <TooltipCooldownOverrideText value="Abil/TychusMinigunActiveCooldownOverride" />
@@ -1498,6 +1516,7 @@
     <Icon value="Assets\Textures\storm_ui_icon_tychus_fraggrenade.dds" />
     <TooltipAppender Validator="HasTychusFragGrenadeQuarterback" Face="TychusFragGrenadeQuarterbackTalent" />
     <TooltipAppender Validator="HasTychusFragGrenadeConcussionGrenade" Face="TychusFragGrenadeConcussionGrenadeTalent" />
+    <TooltipAppender Validator="TychusHasMeltingPointTalent" Face="TychusMeltingPoint" />
     <TooltipAppender Validator="HasTychusTitanGrenadeTalent" Face="TychusFragGrenadeTitanGrenadeTalent" />
   </CButton>
   <CButton id="TychusCommandeerOdin" parent="StormButtonParent">
@@ -1508,7 +1527,7 @@
     <Icon value="Assets\Textures\storm_ui_icon_tychus_minigun_a.dds" />
   </CButton>
   <CButton id="TychusCombatTactician" parent="StormButtonParent">
-    <Icon value="Assets\Textures\storm_ui_icon_tychus_runandgun_b.dds" />
+    <Icon value="Assets\Textures\storm_ui_icon_tychus_minigun.dds" />
   </CButton>
   <CButton id="TychusFragGrenadeTitanGrenadeTalent" parent="StormButtonParent">
     <Icon value="Assets\Textures\storm_ui_icon_tychus_fraggrenade.dds" />
@@ -1520,9 +1539,11 @@
     <Icon value="Assets\Textures\storm_ui_icon_talent_autoattack_speed.dds" />
   </CButton>
   <CButton id="TychusMinigunActive" parent="StormButtonParent">
+    <TooltipAppender Validator="HasTychusPressTheAdvantageTalent" Face="TychusPressTheAdvantage" />
     <TooltipAppender Validator="HasTychusInTheRhythmTalent" Face="TychusIntheRhythmTalent" />
-    <TooltipAppender Validator="HasTychusFullyLoaded" Face="TychusFullyLoaded" />
     <TooltipAppender Validator="HasTychusTheBiggerTheyAre" Face="TychusTheBiggerTheyAre" />
+    <TooltipAppender Validator="HasTychusMasterAssassin" Face="TychusMasterAssassinTalent" />
+    <TooltipAppender Validator="TychusHasRunAndGunCombatTacticianTalent" Face="TychusCombatTactician" />
     <TooltipAppender Validator="HasTychusThatsTheStuffTalent" Face="TychusThatsTheStuff" />
     <TooltipAppender Validator="TychusHasSizzlinAttacksTalent" Face="TychusSizzlinAttacks" />
     <TooltipCooldownOverrideText value="Abil/TychusMinigunActiveCooldownOverride" />
@@ -1532,7 +1553,7 @@
     <Icon value="Assets\Textures\storm_temp_btn-upgrade-terran-neosteelframe.dds" />
   </CButton>
   <CButton id="TychusPressTheAdvantage" parent="StormButtonParent">
-    <Icon value="Assets\Textures\storm_ui_icon_tychus_runandgun.dds" />
+    <Icon value="Assets\Textures\storm_ui_icon_talent_autoattack_range.dds" />
   </CButton>
   <CButton id="TychusRunAndGunBobAndWeaveTalent" parent="StormButtonParent">
     <Icon value="Assets\Textures\storm_ui_icon_tychus_runandgun.dds" />
@@ -1547,6 +1568,9 @@
     <Icon value="Assets\Textures\storm_ui_icon_talent_relentless.dds" />
     <HotkeyAlias value="TalentRelentlessBase" />
   </CButton>
+  <CButton id="TychusMeltingPoint" parent="StormButtonParent">
+    <Icon value="Assets\Textures\storm_ui_icon_tychus_fraggrenade.dds" />
+  </CButton>
   <CCharacter id="Tychus">
     <Age value="40" />
     <Image value="Assets\Textures\ui_targetportrait_hero_tychus.dds" />
@@ -1556,6 +1580,14 @@
     <Race value="Terran" />
     <Unit value="HeroTychus" />
   </CCharacter>
+  <CEffectModifyPlayer id="TychusPressTheAdvantageAttackRangeModify">
+    <EffectArray Reference="Weapon,TychusMiniGunRampingSpeedWeapon,MinScanRange" Value="1" />
+    <EffectArray Reference="Weapon,TychusMiniGunRampingSpeedWeapon,Range" Value="1" />
+  </CEffectModifyPlayer>
+  <CEffectModifyPlayer id="TychusPressTheAdvantageAttackRangeReset">
+    <EffectArray Operation="Set" Reference="Weapon,TychusMiniGunRampingSpeedWeapon,MinScanRange" Value="4.5" />
+    <EffectArray Operation="Set" Reference="Weapon,TychusMiniGunRampingSpeedWeapon,Range" Value="4.5" />
+  </CEffectModifyPlayer>
   <CEffectApplyBehavior id="TychusArmorPiercingRoundsDamageDebuffApplyBehavior">
     <ValidatorArray value="HasTychusOverkillArmorPiercingRounds" />
     <Behavior value="TychusArmorPiercingRoundsDamageDebuff" />
@@ -1582,14 +1614,14 @@
   </CEffectModifyUnit>
   <CEffectSet id="TychusRunAndGunInitialSet">
     <EffectArray value="RunAndGunPersistent" />
-    <EffectArray value="TychusRunAndGunCombatTacticianTalentModifyUnit" />
+    <EffectArray value="TychusBobAndWeaveAttackRangeBuffApply" />
   </CEffectSet>
   <CEffectCreatePersistent id="OverkillTargetedMainTargetDamagePersistentTargeter">
     <WhichLocation Effect="OverkillTargetedInitialPersistent" Value="TargetUnit" />
     <InitialEffect value="TychusOverkillMainTargetDamageSet" />
   </CEffectCreatePersistent>
   <CEffectModifyPlayer id="TychusMasterAssassinQuestCompleteModifyPlayer">
-    <EffectArray Reference="Behavior,TychusMasterAssassinAttackSpeed,Modification.AdditiveAttackSpeedFactor" Value="0.1" />
+    <EffectArray Reference="Behavior,TychusMasterAssassinAttackSpeed,Modification.AdditiveAttackSpeedFactor" Value="0.15" />
   </CEffectModifyPlayer>
   <CEffectModifyTokenCount id="TychusMasterAssassinQuestIncrementToken" parent="BaseEffectModifyTokenCount">
     <TokenId value="TychusMasterAssassinQuestToken" />
@@ -1645,8 +1677,8 @@
   <CEffectSet id="MiniGunWeaponImpactSet">
     <EffectArray value="UniversalWeaponImpact" />
     <EffectArray value="TychusMinigunInTheRhythmQuestIncrementToken" />
-    <EffectArray value="MiniGunWeaponDamage" />
     <EffectArray value="TychusMinigunDamageSwitch" />
+    <EffectArray value="MiniGunWeaponDamage" />
     <EffectArray value="TychusSizzlinAttacksDamage" />
   </CEffectSet>
   <CEffectSet id="TychusOdinAnnihilateSearchImpactSet">
@@ -1886,8 +1918,7 @@
     <EffectArray value="RunAndGunCancelOrder" />
     <EffectArray value="RunandGunApplyBehaviorStimPack" />
     <EffectArray value="TychusRunAndGunDashApplyMovementSpeedBuff" />
-    <EffectArray value="TychusRunAndGunApplyPressTheAdvantageTalentBuff" />
-    <EffectArray value="TychusRunAndGunCombatTacticianTalentModifyUnit" />
+    <EffectArray value="TychusBobAndWeaveAttackRangeBuffApply" />
   </CEffectSet>
   <CEffectCreatePersistent id="RunAndGunOffsetPersistent">
     <TimeScaleSource Value="Caster" />
@@ -1904,6 +1935,7 @@
     <PeriodCount value="1" />
     <PeriodicEffectArray value="RunAndGunOffsetPersistent" />
     <PeriodicOffsetArray Y="-4" />
+    <InitialEffect value="TychusRunAndGunCombatTacticianTalentModifyUnit" />
   </CEffectCreatePersistent>
   <CEffectRemoveBehavior id="RunAndGunRemoveBehavior">
     <WhichUnit Value="Caster" />
@@ -2170,6 +2202,7 @@
     <EffectArray value="TychusGrenadeDamage" />
     <EffectArray value="TychusGrenadeTitanGrenadeDamage" />
     <EffectArray value="TychusFragGrenadeTitanGrenadeModifyCooldown" />
+    <EffectArray value="TychusMeltingPointImpactSet" />
     <EffectArray value="GrenadeCreatePushPersistent" />
     <EffectArray value="CameraShakeLightTauntingTotemSet" />
     <EffectArray value="ApplyAbilityImpactReveal" />
@@ -2547,7 +2580,7 @@
   </CEffectDamage>
   <CEffectDamage id="TychusMinigunTheBiggerTheyAreDamage" parent="TychusMinigunDamage">
     <VitalFractionMax index="Life" value="0.04" />
-    <ValidatorArray value="TargetLifeGT35Percent" />
+    <ValidatorArray value="TargetLifeGT30Percent" />
   </CEffectDamage>
   <CEffectDamage id="TychusSizzlinAttacksDamage" parent="StormSpellPercentDamage">
     <VitalFractionMax index="Life" value="0.01" />
@@ -2593,14 +2626,14 @@
     <Behavior value="TychusRunAndGunDashMovementSpeedBuff" />
   </CEffectApplyBehavior>
   <CEffectApplyBehavior id="TychusRunAndGunApplyPressTheAdvantageTalentBuff">
-    <ValidatorArray index="0" value="HasTychusPressTheAdvantageTalent" />
+    <ValidatorArray index="0" value="TychusHasRunAndGunBobAndWeaveTalent" />
     <WhichUnit Value="Caster" />
     <Behavior value="TychusPressTheAdvantageRangeBuff" />
   </CEffectApplyBehavior>
   <CEffectModifyUnit id="TychusRunAndGunCombatTacticianTalentModifyUnit">
     <ValidatorArray value="TychusHasRunAndGunCombatTacticianTalent" />
     <ImpactUnit Value="Caster" />
-    <Cost Abil="TychusMinigunActive,Execute" CooldownOperation="Add" CooldownTimeUse="-8" />
+    <Cost Abil="TychusMinigunActive,Execute" CooldownOperation="Add" CooldownTimeUse="-4" />
   </CEffectModifyUnit>
   <CEffectModifyPlayer id="TychusRunAndGunDashModifyPlayerRange">
     <EffectArray Operation="Set" Reference="Actor,RunAndGunGuide,Height" Value="6.000000" />
@@ -2609,6 +2642,22 @@
     <EffectArray Operation="Set" Reference="Abil,TychusRunAndGun,MoveLocation.ProjectionDistanceScale" Value="6" />
     <EffectArray Operation="Set" Reference="Abil,TychusRunAndGunOverkill,MoveLocation.ProjectionDistanceScale" Value="6" />
   </CEffectModifyPlayer>
+  <CEffectApplyBehavior id="TychusMeltingPointApplyBehavior">
+    <Behavior value="TychusMeltingPointDebuff" />
+  </CEffectApplyBehavior>
+  <CEffectDamage id="TychusMeltingPointDamage" parent="StormSpell">
+    <Amount value="25" />
+    <MultiplicativeModifierArray index="BonusDamage" Validator="TychusFragGrenadeMeltingPointTargetValidationCombine" Modifier="1" Crit="1" />
+  </CEffectDamage>
+  <CEffectSet id="TychusMeltingPointImpactSet">
+    <EffectArray value="TychusMeltingPointApplyBehavior" />
+    <ValidatorArray value="TychusHasMeltingPointTalent" />
+  </CEffectSet>
+  <CEffectApplyBehavior id="TychusBobAndWeaveAttackRangeBuffApply">
+    <Behavior value="TychusBobAndWeaveAttackRangeBuff" />
+    <ValidatorArray value="TychusHasRunAndGunBobAndWeaveTalent" />
+    <WhichUnit Value="Caster" />
+  </CEffectApplyBehavior>
   <CHero id="Tychus" parent="LegacyVOHero">
     <AIComplexityTier value="Low" />
     <Difficulty value="Medium" />
@@ -2630,14 +2679,14 @@
     <DefaultMount value="BattleBeast" />
     <VariationArray value="TychusBronze" />
     <VariationArray value="TychusSilver" />
-    <TalentTreeArray Talent="TychusPressTheAdvantage" Tier="1" Column="1" />
+    <TalentTreeArray Talent="TychusMasteryQuarterback" Tier="1" Column="1" />
     <TalentTreeArray Talent="TychusMasteryRunandGunDash" Tier="1" Column="2" />
-    <TalentTreeArray Talent="TychusCombatTactician" Tier="1" Column="3" />
+    <TalentTreeArray Talent="TychusPressTheAdvantage" Tier="1" Column="3" />
     <TalentTreeArray Talent="TychusInTheRhythm" Tier="2" Column="1" />
     <TalentTreeArray Talent="TychusTheBiggerTheyAre" Tier="2" Column="2" />
     <TalentTreeArray Talent="TychusMasterAssassin" Tier="2" Column="3" />
-    <TalentTreeArray Talent="TychusMasteryQuarterback" Tier="3" Column="1" />
-    <TalentTreeArray Talent="TychusMasteryFragGrenadeConcussionGrenade" Tier="3" Column="2" />
+    <TalentTreeArray Talent="TychusMeltingPoint" Tier="3" Column="1" />
+    <TalentTreeArray Talent="TychusCombatTactician" Tier="3" Column="2" />
     <TalentTreeArray Talent="TychusRelentlessSoldier" Tier="3" Column="3" />
     <TalentTreeArray Talent="TychusHeroicAbilityCommandeerOdin" Tier="4" Column="1" />
     <TalentTreeArray Talent="TychusHeroicAbilityDrakkenLaserDrill" Tier="4" Column="2" />
@@ -2658,7 +2707,7 @@
     <TalentAIBuildsArray ChanceToPick="16">
       <TalentsArray value="TychusMasteryRunandGunDash" />
       <TalentsArray value="TychusInTheRhythm" />
-      <TalentsArray value="TychusMasteryQuarterback" />
+      <TalentsArray value="TychusCombatTactician" />
       <TalentsArray value="TychusHeroicAbilityCommandeerOdin" />
       <TalentsArray value="TychusMasterySprayNPray" />
       <TalentsArray value="TychusMasteryFragGrenadeTitanGrenade" />
@@ -2667,7 +2716,7 @@
     <TalentAIBuildsArray ChanceToPick="16">
       <TalentsArray value="TychusMasteryRunandGunDash" />
       <TalentsArray value="TychusInTheRhythm" />
-      <TalentsArray value="TychusMasteryFragGrenadeConcussionGrenade" />
+      <TalentsArray value="TychusRelentlessSoldier" />
       <TalentsArray value="TychusHeroicAbilityCommandeerOdin" />
       <TalentsArray value="TychusMasterySprayNPray" />
       <TalentsArray value="TychusMasteryOverkillArmorPiercingRounds" />
@@ -2683,9 +2732,9 @@
       <TalentsArray value="TychusRunAndGunBobAndWeave" />
     </TalentAIBuildsArray>
     <TalentAIBuildsArray ChanceToPick="16">
-      <TalentsArray value="TychusCombatTactician" />
-      <TalentsArray value="TychusTheBiggerTheyAre" />
       <TalentsArray value="TychusMasteryQuarterback" />
+      <TalentsArray value="TychusTheBiggerTheyAre" />
+      <TalentsArray value="TychusMeltingPoint" />
       <TalentsArray value="TychusHeroicAbilityDrakkenLaserDrill" />
       <TalentsArray value="TychusThatsTheStuff" />
       <TalentsArray value="TychusMasteryFragGrenadeTitanGrenade" />
@@ -2694,11 +2743,11 @@
     <TalentAIBuildsArray AIOnly="1" ChanceToPick="16">
       <TalentsArray value="TychusPressTheAdvantage" />
       <TalentsArray value="TychusMasterAssassin" />
-      <TalentsArray value="TychusMasteryFragGrenadeConcussionGrenade" />
+      <TalentsArray value="TychusCombatTactician" />
       <TalentsArray value="TychusHeroicAbilityCommandeerOdin" />
-      <TalentsArray value="TychusMasterySprayNPray" />
+      <TalentsArray value="TychusThatsTheStuff" />
       <TalentsArray value="TychusSizzlinAttacks" />
-      <TalentsArray value="TychusMasteryOdinBigRedButton" />
+      <TalentsArray value="TychusRunAndGunBobAndWeave" />
     </TalentAIBuildsArray>
     <TalentAIBuildsArray AIOnly="1" ChanceToPick="16">
       <TalentsArray value="TychusPressTheAdvantage" />
@@ -2714,6 +2763,14 @@
       <Modifications>
         <Catalog value="Effect" />
         <Entry value="TychusGrenadeDamage" />
+        <Field value="Amount" />
+        <Value value="0.040000" />
+        <AffectedByAbilityPower value="1" />
+        <AffectedByOverdrive value="1" />
+      </Modifications>
+      <Modifications>
+        <Catalog value="Effect" />
+        <Entry value="TychusMeltingPointDamage" />
         <Field value="Amount" />
         <Value value="0.040000" />
         <AffectedByAbilityPower value="1" />
@@ -3306,7 +3363,7 @@
         <Type value="FlatModification" />
         <Entry value="TychusOverkillTargeted" />
         <Field value="Cost.Cooldown.TimeUse" />
-        <Value value="-4.000000" />
+        <Value value="-5.000000" />
       </Modifications>
     </AbilityModificationArray>
   </CTalent>
@@ -3593,18 +3650,19 @@
     <Face value="TychusTheBiggerTheyAre" />
     <Trait value="1" />
     <Abil value="TychusMinigunActive" />
+  </CTalent>
+  <CTalent id="TychusCombatTactician">
+    <Face value="TychusCombatTactician" />
     <AbilityModificationArray>
       <Modifications>
         <Type value="FlatModification" />
         <Entry value="TychusMinigunActive" />
         <Field value="Cost[0].Cooldown.TimeUse" />
-        <Value value="-2.000000" />
+        <Value value="-4.000000" />
       </Modifications>
     </AbilityModificationArray>
-  </CTalent>
-  <CTalent id="TychusCombatTactician">
-    <Face value="TychusCombatTactician" />
-    <Abil value="TychusRunAndGun" />
+    <Trait value="1" />
+    <Abil value="TychusMinigunActive" />
   </CTalent>
   <CTalent id="TychusInTheRhythm">
     <Face value="TychusIntheRhythmTalent" />
@@ -3662,7 +3720,18 @@
   </CTalent>
   <CTalent id="TychusPressTheAdvantage">
     <Face value="TychusPressTheAdvantage" />
-    <Abil value="TychusRunAndGun" />
+    <RankArray>
+      <BehaviorArray value="TychusPressTheAdvantageAttackRangeBuff" />
+    </RankArray>
+    <AbilityModificationArray>
+      <Modifications>
+        <Type value="FlatModification" />
+        <Catalog value="Actor" />
+        <Entry value="TychusBobAndWeaveVisualRangeRingUnnamed" />
+        <Field value="Range" />
+        <Value value="1.000000" />
+      </Modifications>
+    </AbilityModificationArray>
   </CTalent>
   <CTalent id="TychusRunAndGunBobAndWeave">
     <Face value="TychusRunAndGunBobAndWeaveTalent" />
@@ -3722,27 +3791,6 @@
         <Field value="Cost[0].Vital[Energy]" />
         <Value value="-25.000000" />
       </Modifications>
-      <Modifications>
-        <Type value="FlatModification" />
-        <Catalog value="Weapon" />
-        <Entry value="TychusMiniGunRampingSpeedWeapon" />
-        <Field value="MinScanRange" />
-        <Value value="1.500000" />
-      </Modifications>
-      <Modifications>
-        <Type value="FlatModification" />
-        <Catalog value="Weapon" />
-        <Entry value="TychusMiniGunRampingSpeedWeapon" />
-        <Field value="Range" />
-        <Value value="1.500000" />
-      </Modifications>
-      <Modifications>
-        <Type value="FlatModification" />
-        <Catalog value="Actor" />
-        <Entry value="TychusPressTheAdvantageVisualRangeRing" />
-        <Field value="Range" />
-        <Value value="1.500000" />
-      </Modifications>
     </AbilityModificationArray>
   </CTalent>
   <CTalent id="TychusSizzlinAttacks">
@@ -3756,6 +3804,10 @@
   </CTalent>
   <CTalent id="TychusRelentlessSoldier">
     <Face value="TychusRelentlessSoldierTalent" />
+  </CTalent>
+  <CTalent id="TychusMeltingPoint">
+    <Face value="TychusMeltingPoint" />
+    <Abil value="TychusGrenade" />
   </CTalent>
   <CTurret id="TychusLaserDrillTurret" parent="FreeRotate">
     <Idle value="Spin" />
@@ -3852,6 +3904,12 @@
     <Acceleration value="0" />
   </CUnit>
   <CUnit id="TychusOdinRagnarokMissile" parent="MISSILE_INVULNERABLE" />
+  <CValidatorCombine id="TychusFragGrenadeMeltingPointTargetValidationCombine">
+    <Type value="And" />
+    <CombineArray value="TychusHasMeltingPointTalent" />
+    <CombineArray value="TargetIsNotStructureOrHeroic" />
+    <CombineArray value="NotSummonedUnit" />
+  </CValidatorCombine>
   <CValidatorPlayerTalent id="TychusHasOverkillCanDoThisAllDayTalent">
     <WhichPlayer Value="Caster" />
     <Find value="1" />
@@ -4261,6 +4319,10 @@
     <CombineArray value="TychusHasSizzlinAttacksTalent" />
     <CombineArray value="TargetLifeGT35Percent" />
   </CValidatorCombine>
+  <CValidatorPlayerTalent id="TychusHasMeltingPointTalent">
+    <Find value="1" />
+    <Value value="TychusMeltingPoint" />
+  </CValidatorPlayerTalent>
   <CWeaponLegacy id="HeroTychusOverkillWeaponTargeted">
     <Options index="Disabled" value="1" />
     <Options index="HoldFileInShrubs" value="1" />
