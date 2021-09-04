@@ -684,14 +684,14 @@
     <On Terms="ActorCreation" Send="StatusSet WeaponNext 0" />
     <On Terms="WeaponStart.*.AttackStart" Send="StatusIncrement WeaponNext" />
     <On Terms="WeaponStart.*.AttackStart; IsStatus WeaponNext 2" Send="StatusSet WeaponNext 0" />
-    <On Terms="WeaponStart.*.AttackStart; IsStatus WeaponNext 0; !ValidateUnit StukovHasSpineLauncherTalent" Send="AnimPlay Attack Attack,A" />
-    <On Terms="AnimPlay; ValidateUnit StukovHasSpineLauncherTalent; AnimPlaying Attack" Send="Create StukovSpineLauncherWeaponAttackPreLaunch" />
-    <On Terms="WeaponStart.*.AttackStart; IsStatus WeaponNext 1; !ValidateUnit StukovHasSpineLauncherTalent" Send="AnimPlay Attack Attack,B" />
-    <On Terms="WeaponStart.*.AttackStart; IsStatus WeaponNext 0; ValidateUnit StukovHasSpineLauncherTalent" Send="AnimPlay Attack Attack,A,Superior" />
-    <On Terms="WeaponStart.*.AttackStart; IsStatus WeaponNext 1; ValidateUnit StukovHasSpineLauncherTalent" Send="AnimPlay Attack Attack,B,Superior" />
-    <On Terms="WeaponStart.*.AttackStart; !ValidateUnit StukovHasSpineLauncherTalent" Send="Create StukovWeaponTrailFX" />
-    <On Terms="WeaponStart.*.AttackStart; IsStatus WeaponNext 0; !ValidateUnit StukovHasSpineLauncherTalent" Target="StukovWeaponTrailFX" Send="AnimGroupApply A" />
-    <On Terms="WeaponStart.*.AttackStart; IsStatus WeaponNext 1; !ValidateUnit StukovHasSpineLauncherTalent" Target="StukovWeaponTrailFX" Send="AnimGroupApply B" />
+    <On Terms="WeaponStart.*.AttackStart; IsStatus WeaponNext 0; !ValidateUnit StukovHasFetidTouchTalent" Send="AnimPlay Attack Attack,A" />
+    <On Terms="AnimPlay; ValidateUnit StukovHasFetidTouchTalent; AnimPlaying Attack" Send="Create StukovSpineLauncherWeaponAttackPreLaunch" />
+    <On Terms="WeaponStart.*.AttackStart; IsStatus WeaponNext 1; !ValidateUnit StukovHasFetidTouchTalent" Send="AnimPlay Attack Attack,B" />
+    <On Terms="WeaponStart.*.AttackStart; IsStatus WeaponNext 0; ValidateUnit StukovHasFetidTouchTalent" Send="AnimPlay Attack Attack,A,Superior" />
+    <On Terms="WeaponStart.*.AttackStart; IsStatus WeaponNext 1; ValidateUnit StukovHasFetidTouchTalent" Send="AnimPlay Attack Attack,B,Superior" />
+    <On Terms="WeaponStart.*.AttackStart; !ValidateUnit StukovHasFetidTouchTalent" Send="Create StukovWeaponTrailFX" />
+    <On Terms="WeaponStart.*.AttackStart; IsStatus WeaponNext 0; !ValidateUnit StukovHasFetidTouchTalent" Target="StukovWeaponTrailFX" Send="AnimGroupApply A" />
+    <On Terms="WeaponStart.*.AttackStart; IsStatus WeaponNext 1; !ValidateUnit StukovHasFetidTouchTalent" Target="StukovWeaponTrailFX" Send="AnimGroupApply B" />
     <On Terms="Signal.*.LurkingArmLinkMe" Send="RefSetFromMsg ::actor.LurkingArm ::Sender" />
     <On Terms="Signal.*.LurkingArmWarningLinkMe" Send="RefSetFromMsg ::actor.LurkingArmWarning ::Sender" />
     <On Terms="StatusOn.*.TimeStopPaused" Target="::actor.LurkingArm" Send="AnimSetPausedAll" />
@@ -1117,7 +1117,7 @@
   <CBehaviorTokenCounter id="StukovLurkingArmItHungersTokenCounter" parent="StormGenericToken">
     <Face value="StukovItHungersToken" />
     <Alignment value="Positive" />
-    <AtMaxEvents EventId="ItHungersCooldownReset" />
+    <AtMaxEvents EventId="ItHungersCooldownReset" Effect="StukovLurkingArmItHungersSetReducedCooldown" />
     <AtMaxEvents EventId="ItHungersManaRefund" Effect="StukovLurkingArmItHungersRestoreManaCost" />
     <Max value="8" />
   </CBehaviorTokenCounter>
@@ -1223,6 +1223,7 @@
   <CBehaviorBuff id="StukovWeightedPustuleReactiveBallistosporesCooldownBehavior">
     <Alignment value="Positive" />
     <BehaviorFlags index="Permanent" value="1" />
+    <BehaviorFlags index="EnabledWhileDead" value="1" />
     <Duration value="60" />
   </CBehaviorBuff>
   <CBehaviorBuff id="StukovMassiveShoveCasterBehavior">
@@ -1336,6 +1337,12 @@
     <AtMaxEvents Effect="StukovHealingPathogenVigorousReuptakeQuestModification" />
     <Max value="50" />
   </CBehaviorTokenCounter>
+  <CBehaviorBuff id="StukovBioKillSwitchCooldownBehavior">
+    <Alignment value="Positive" />
+    <BehaviorFlags index="Permanent" value="1" />
+    <BehaviorFlags index="EnabledWhileDead" value="1" />
+    <Duration value="0.0625" />
+  </CBehaviorBuff>
   <CBehaviorBuff id="StukovWeightedPustuleSlow" parent="StormSlowParent">
     <RemoveValidatorArray value="StukovTargetHasWeightedPustuleControllerBehavior" />
     <MaxStackCount value="10" />
@@ -1396,6 +1403,7 @@
       <AbilLinkEnableArray value="StukovLurkingArmCancel" />
       <AbilLinkDisableArray value="move" />
     </Modification>
+    <ExpireEffect value="StukovLurkingArmItHungersResetToken" />
   </CBehaviorBuff>
   <CBehaviorBuff id="StukovSpineLauncherWeapon">
     <BehaviorFlags index="Permanent" value="1" />
@@ -1720,12 +1728,14 @@
   </CEffectApplyBehavior>
   <CEffectSet id="StukovBioKillSwitchInitialSet">
     <ValidatorArray value="StukovBioKillSwitchTargetsAvailable" />
+    <ValidatorArray value="StukovDoesNotHaveBioKillSwitchCooldownBehavior" />
     <EffectArray value="StukovBioKillSwitchTargetedExcisionTalentSet" />
     <EffectArray value="StukovTheLongPitchCooldownReductionApplyBehavior" />
     <EffectArray value="StukovLurkingArmBioExplosionUnitEnum" />
     <EffectArray value="StukovLurkingArmLingeringSpinesRemoveBehavior" />
     <EffectArray value="StukovBioKillSwitchHealingPathogenSearch" />
     <EffectArray value="StukovBioKillSwitchEnumerateTrackedUnits" />
+    <EffectArray value="StukovBioKillSwitchApplyCooldownBehavior" />
   </CEffectSet>
   <CEffectSet id="StukovBioKillSwitchPoppinPustulesSplashSet">
     <EffectArray value="StukovBioKillswitchPoppinPustulesSplashDamage" />
@@ -1853,6 +1863,10 @@
       <Radius value="3.75" />
     </AreaArray>
   </CEffectEnumArea>
+  <CEffectApplyBehavior id="StukovBioKillSwitchApplyCooldownBehavior">
+    <WhichUnit Value="Caster" />
+    <Behavior value="StukovBioKillSwitchCooldownBehavior" />
+  </CEffectApplyBehavior>
   <CEffectEnumArea id="StukovWeightedPustuleReactiveBallistosporesSplashSearch">
     <ImpactLocation Value="CasterUnit" />
     <SearchFilters value="Heroic;Self,Ally,ImmuneToAOE,Structure,Missile,Item,Stasis,Dead,Hidden,Invulnerable" />
@@ -2597,7 +2611,6 @@
   <CEffectSet id="StukovLurkingArmCasterFinalSet">
     <EffectArray value="StukovLurkingArmLingeringSpinesEnumUnitApplyBehavior" />
     <EffectArray value="StukovLurkingArmItHungersModifyCooldownSwitch" />
-    <EffectArray value="StukovLurkingArmItHungersResetToken" />
     <EffectArray value="StukovGrowingInfestationDisplayRemoveBehavior" />
   </CEffectSet>
   <CEffectEnumTrackedUnits id="StukovLurkingArmLingeringSpinesEnumUnitApplyBehavior">
@@ -4798,18 +4811,27 @@
     <CombineArray value="CasterCastingStukovWeightedPustule" />
   </CValidatorCombine>
   <CValidatorCombine id="AbilButtonAttentionEDamage">
-    <CombineArray value="StukovLurkingArmCasterHasMaxTokensItHungers" />
+    <CombineArray value="StukovLurkingArmItHungersCasterHasBehaviorAndMaxTokens" />
   </CValidatorCombine>
   <CValidatorCombine id="StukovBioKillSwitchBioExplosionSwitchCasterHasCasterBehaviorOrLingeringSpinesBehaviorAndHasTalent">
     <Type value="And" />
     <CombineArray value="StukovLurkingArmLingeringSpinesCasterHasBehaviorOrLingeringSpinesBehaviorEnum" />
     <CombineArray value="StukovHasBioExplosionSwitchTalent" />
   </CValidatorCombine>
+  <CValidatorUnitCompareBehaviorCount id="StukovDoesNotHaveBioKillSwitchCooldownBehavior">
+    <WhichUnit Value="Caster" />
+    <Behavior value="StukovBioKillSwitchCooldownBehavior" />
+  </CValidatorUnitCompareBehaviorCount>
   <CValidatorUnitCompareBehaviorCount id="StukovHas1StackofWeightedPustuleBehaviorTheLongPitch">
     <WhichUnit Value="Caster" />
     <Value value="1" />
     <Behavior value="StukovBioKillSwitchTargetedExcisionBehavior" />
   </CValidatorUnitCompareBehaviorCount>
+  <CValidatorCombine id="StukovLurkingArmItHungersCasterHasBehaviorAndMaxTokens">
+    <Type value="And" />
+    <CombineArray value="StukovHasLurkingArmCasterBehavior" />
+    <CombineArray value="StukovLurkingArmCasterHasMaxTokensItHungers" />
+  </CValidatorCombine>
   <CValidatorUnitCompareBehaviorDuration id="StukovWeightedPustuleDurationLessThan15SecondsPoppinPustules">
     <Compare value="LE" />
     <Value value="1.5" />
