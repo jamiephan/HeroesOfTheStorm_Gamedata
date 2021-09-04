@@ -119,6 +119,12 @@
     <CmdButtonArray index="Execute" DefaultButtonFace="DemonHunterStrafe" Requirements="Ultimate1Unlocked" />
     <PrepEffect value="DismountDecloakCasterSet" />
   </CAbilEffectInstant>
+  <CAccumulatorToken id="DemonHunterMultishotFireAtWillDamageAccumulator" parent="BaseAccumulator">
+    <MaxAccumulation value="32000" />
+    <ApplicationRule value="Add" />
+    <TokenId value="DemonHunterMultishotFireAtWillDamageTokenCounter" />
+    <Scale value="2" />
+  </CAccumulatorToken>
   <CAccumulatorToken id="DemonHunterCreedOfTheHunterLoanAccumulator" parent="BaseAccumulator">
     <MaxAccumulation value="0.2" />
     <ApplicationRule value="Add" />
@@ -129,7 +135,7 @@
     <MaxAccumulation value="32000" />
     <ApplicationRule value="Add" />
     <TokenId value="DemonHunterMultishotFireAtWillQuestTokenCounter" />
-    <Scale value="4" />
+    <Scale value="1" />
   </CAccumulatorToken>
   <CAccumulatorToken id="DemonHunterTemperedByDisciplineAccumulator" parent="BaseAccumulator">
     <MaxAccumulation value="0.2" />
@@ -153,7 +159,7 @@
     <SourceEffect value="HungeringArrowDamage1" />
     <ApplicationRule value="Add" />
     <TokenId value="DemonHunterPuncturingArrowTalentQuestTokenCounter" />
-    <Scale value="6" />
+    <Scale value="7" />
     <MaxAccumulation value="6000" />
   </CAccumulatorToken>
   <CActorModel id="HatredEnrageModel" parent="ModelAnimationStyleContinuousUNIT">
@@ -851,6 +857,16 @@
   <CActorSound id="PulledSoundHeroDemonHunter" parent="SoundOneShot">
     <Sound value="DemonHunter_VOX_Pulled" />
   </CActorSound>
+  <CBehaviorTokenCounter id="DemonHunterMultishotFireAtWillDamageTokenCounter" parent="StormQuestToken">
+    <Face value="" />
+    <InfoTooltipPriority value="10" />
+    <Cost>
+      <Charge Link="Behavior/DemonHunterMultishotFireAtWillQuestTokenCounter" />
+      <Cooldown Link="Behavior/DemonHunterMultishotFireAtWillQuestTokenCounter" />
+    </Cost>
+    <InfoFlags index="Hidden" value="1" />
+    <Max value="30000" />
+  </CBehaviorTokenCounter>
   <CBehaviorBuff id="DemonHunterFrostShotSlowBehavior" parent="StormSlowParent">
     <Duration value="2.5" />
     <Modification>
@@ -870,6 +886,9 @@
     <Face value="DemonHunterMultishotFireAtWillToken" />
     <Max value="30000" />
     <InfoTooltipPriority value="10" />
+    <ConditionalEvents Compare="GE" CompareValue="20">
+      <Event EventId="QuestMilestone" Effect="DemonHunterMultishotFireAtWillQuestMilestoneAddDamageTokenCount" />
+    </ConditionalEvents>
   </CBehaviorTokenCounter>
   <CBehaviorTokenCounter id="DemonHunterTemperedByDisciplineTokenCounter" parent="StormGenericToken">
     <Max value="10" />
@@ -1334,6 +1353,20 @@
     <Age value="20" />
     <Unit value="HeroDemonHunter" />
   </CCharacter>
+  <CEffectModifyTokenCount id="DemonHunterMultishotFireAtWillAddDamageTokenCount" parent="BaseEffectModifyTokenCount">
+    <ValidatorArray value="DemonHunterHasMultishotFireAtWillTalent" />
+    <ValidatorArray value="TargetIsHero" />
+    <CollationId value="DemonHunterMultishotFireAtWillDamageTokenCounter" />
+    <TokenId value="DemonHunterMultishotFireAtWillDamageTokenCounter" />
+  </CEffectModifyTokenCount>
+  <CEffectModifyTokenCount id="DemonHunterMultishotFireAtWillQuestMilestoneAddDamageTokenCount" parent="BaseEffectModifyTokenCount">
+    <ValidatorArray value="DemonHunterHasMultishotFireAtWillTalent" />
+    <ValidatorArray value="TargetIsHero" />
+    <CollationId value="DemonHunterMultishotFireAtWillDamageTokenCounter" />
+    <ContextUnit Value="Caster" />
+    <TokenId value="DemonHunterMultishotFireAtWillDamageTokenCounter" />
+    <Value value="20" />
+  </CEffectModifyTokenCount>
   <CEffectModifyBehaviorBuffDuration id="DemonHunterStrafeDeathSiphonAddBuffDuration">
     <ValidatorArray value="DemonHunterHasDeathSiphon" />
     <ValidatorArray value="TargetIsHero" />
@@ -2251,13 +2284,14 @@
   </CEffectEnumArea>
   <CEffectDamage id="MultishotDamage" parent="StormSpell">
     <AmountArray index="Quest" value="165" />
-    <FlatModifierArray index="FireAtWill" Validator="DemonHunterHasMultishotFireAtWillTalent" Accumulator="DemonHunterMultishotFireAtWillQuestAccumulator" />
+    <FlatModifierArray index="FireAtWill" Validator="DemonHunterHasMultishotFireAtWillTalent" Accumulator="DemonHunterMultishotFireAtWillDamageAccumulator" />
   </CEffectDamage>
   <CEffectSet id="MultishotImpactSet">
     <EffectArray value="MultishotDamage" />
     <EffectArray value="ApplyAbilityImpactReveal" />
     <EffectArray value="DemonHunterHungeringArrowSiphoningArrowMultishotCreateHealer" />
     <EffectArray value="DemonHunterMultishotFireAtWillAddQuestTokenCount" />
+    <EffectArray value="DemonHunterMultishotFireAtWillAddDamageTokenCount" />
     <EffectArray value="DemonHunterMultishotFireAtWillAddHatredBehaviorCount" />
     <EffectArray value="DemonHunterFrostShotApplySlowBehavior" />
     <ValidatorArray value="noMarkers" />
@@ -3137,6 +3171,7 @@
     <QuestData StackBehavior="DemonHunterMultishotFireAtWillQuestTokenCounter" />
     <RankArray>
       <BehaviorArray value="DemonHunterMultishotFireAtWillQuestTokenCounter" />
+      <BehaviorArray value="DemonHunterMultishotFireAtWillDamageTokenCounter" />
     </RankArray>
   </CTalent>
   <CTalent id="DemonHunterManticore">

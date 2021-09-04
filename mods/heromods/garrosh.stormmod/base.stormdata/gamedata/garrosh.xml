@@ -955,7 +955,7 @@
     <BehaviorCategories index="BuffResistant" value="1" />
     <Duration value="3" />
     <ArmorModification>
-      <AllArmorBonus value="25" />
+      <AllArmorBonus value="20" />
     </ArmorModification>
   </CBehaviorBuff>
   <CBehaviorBuff id="GarroshGroundbreakerWarbreakerDoT" parent="StormDot">
@@ -997,7 +997,7 @@
     <BehaviorCategories index="DebuffAutoattackDPS" value="1" />
     <Duration value="4" />
     <Modification>
-      <AdditiveAttackSpeedFactor value="-0.4" />
+      <AdditiveAttackSpeedFactor value="-0.3" />
     </Modification>
   </CBehaviorBuff>
   <CBehaviorBuff id="GarroshGroundbreakerDefensiveMeasures" parent="StormShield">
@@ -1013,9 +1013,9 @@
     <RemoveValidatorArray value="TargetNotSpecialDeathState" />
     <Duration value="2.5" />
     <Modification>
-      <HealDealtAdditiveMultiplier index="Life" value="-0.4" />
-      <HealDealtAdditiveMultiplier index="Shields" value="-0.4" />
-      <DamageDealtFraction index="Ability" value="-0.4" />
+      <HealDealtAdditiveMultiplier index="Life" value="-0.3" />
+      <HealDealtAdditiveMultiplier index="Shields" value="-0.3" />
+      <DamageDealtFraction index="Ability" value="-0.3" />
     </Modification>
   </CBehaviorBuff>
   <CBehaviorBuff id="GarroshBodyCheckSlow" parent="StormSlowParent">
@@ -1155,7 +1155,7 @@
     <Icon value="Assets\Textures\storm_ui_icon_garrosh_bloodthirst.dds" />
   </CButton>
   <CButton id="GarroshOppressor" parent="StormButtonParent">
-    <Icon value="Assets\Textures\storm_ui_icon_talent_autoattack_slow.dds" />
+    <Icon value="Assets\Textures\storm_ui_icon_garrosh_bloodthirst.dds" />
   </CButton>
   <CButton id="GarroshGroundbreakerIntimidation" parent="StormButtonParent">
     <Icon value="Assets\Textures\storm_ui_icon_garrosh_groundbreaker.dds" />
@@ -1176,7 +1176,13 @@
     <Icon value="Assets\Textures\storm_ui_icon_garrosh_bloodthirst_var1.dds" />
   </CButton>
   <CButton id="GarroshWreckingBallIntotheFray" parent="StormButtonParent">
+    <TooltipAppender Validator="GarroshHasIntotheFrayLoktarOgarTalent" Face="GarroshIntoTheFrayLoktarOgar" />
     <Icon value="Assets\Textures\storm_ui_icon_garrosh_intothefray.dds" />
+  </CButton>
+  <CButton id="GarroshIntoTheFrayLoktarOgar" parent="StormButtonParent">
+    <TooltipFlags index="ShowCooldown" value="0" />
+    <Icon value="Assets\Textures\storm_ui_icon_garrosh_intothefray.dds" />
+    <HotkeyAlias value="GarroshWreckingBallIntotheFray" />
   </CButton>
   <CButton id="GarroshWreckingBallUnrivaledStrength" parent="StormButtonParent">
     <Icon value="Assets\Textures\storm_ui_icon_garrosh_wrecking_ball.dds" />
@@ -1223,6 +1229,7 @@
   <CButton id="GarroshBloodthirst" parent="StormButtonParent">
     <TooltipAppender Validator="GarroshHasBloodthirstThirstForBloodTalent" Face="GarroshBloodthirstThirstforBattle" />
     <TooltipAppender Validator="GarroshHasBloodthirstInFortheKillTalent" Face="GarroshBloodthirstInFortheKill" />
+    <TooltipAppender Validator="GarroshHasBloodthirstOppressorTalent" Face="GarroshOppressor" />
     <TooltipAppender Validator="GarroshHasBloodthirstBloodcrazeTalent" Face="GarroshBloodthirstBloodcraze" />
     <Icon value="Assets\Textures\storm_ui_icon_garrosh_bloodthirst.dds" />
     <TooltipCooldownOverrideText value="GarroshBloodthirstCooldownOverride" />
@@ -1277,6 +1284,19 @@
     <Cost Abil="GarroshWreckingBall,Execute" CooldownOperation="Add" CooldownTimeUse="-10" />
     <Cost Abil="GarroshGroundbreaker,Execute" CooldownOperation="Add" />
   </CEffectModifyUnit>
+  <CEffectModifyUnit id="GarroshIntotheFrayLoktarOgarModifyCooldown">
+    <ValidatorArray value="TargetIsHero" />
+    <Chance value="0" />
+    <ImpactUnit Value="Caster" />
+    <Cost Abil="GarroshWreckingBallIntotheFray,Execute" CooldownOperation="Add" CooldownTimeUse="-12" />
+  </CEffectModifyUnit>
+  <CEffectApplyBehavior id="GarroshOppressorBloodthirstApplyBehavior">
+    <ValidatorArray index="0" value="NotAlly" />
+    <ValidatorArray value="TargetIsHero" />
+    <ValidatorArray value="NotVehicle" />
+    <Chance value="0" />
+    <Behavior value="GarroshOppressorBehavior" />
+  </CEffectApplyBehavior>
   <CEffectApplyBehavior id="GarroshWreckingBallMortalComboTalentApplyMarkerBehavior">
     <ValidatorArray index="0" value="TargetIsHero" />
     <Chance value="0" />
@@ -1438,6 +1458,7 @@
     <EffectArray value="GarroshBloodthirstHealSwitch" />
     <EffectArray value="GarroshBloodthirstHoTApplyBehavior" />
     <EffectArray value="GarroshBloodthirstDummySearchArea" />
+    <EffectArray value="GarroshOppressorBloodthirstApplyBehavior" />
     <EffectArray value="GarroshBloodThirstDamage" />
   </CEffectSet>
   <CEffectCreateHealer id="GarroshBloodthirstCreateHealer" parent="StormSelfOnlyHealingSpellPercent">
@@ -1498,6 +1519,7 @@
     <SearchFlags index="DoActorSearch" value="1" />
   </CEffectEnumArea>
   <CEffectSet id="GarroshWreckingBallIntoTheFrayTargetSet">
+    <EffectArray value="GarroshIntotheFrayLoktarOgarModifyCooldown" />
     <EffectArray value="GarroshWreckingBallDamage" />
     <EffectArray value="GarroshWreckingBallApplySlow" />
   </CEffectSet>
@@ -1745,7 +1767,6 @@
   </CEffectSet>
   <CEffectApplyBehavior id="GarroshWreckingBallIntotheFrayArmorApplyBehavior">
     <ValidatorArray index="0" value="TargetIsNotEnemy" />
-    <Chance value="0" />
     <Behavior value="GarroshWreckingBallIntotheFrayArmor" />
   </CEffectApplyBehavior>
   <CEffectApplyBehavior id="GarroshGroundbreakerWarbreakerDoTApplyBehavior">
@@ -2169,7 +2190,7 @@
     <TalentTreeArray Talent="GarroshIndomitable" Tier="2" Column="3" />
     <TalentTreeArray Talent="GarroshGroundbreakerIntimidation" Tier="3" Column="1" />
     <TalentTreeArray Talent="GarroshOppressor" Tier="3" Column="2" />
-    <TalentTreeArray Talent="GarroshWreckingBallIntotheFray" Tier="3" Column="3" />
+    <TalentTreeArray Talent="GarroshIntotheFrayLoktarOgar" Tier="3" Column="3" />
     <TalentTreeArray Talent="GarroshHeroicAbilityWarlordsChallenge" Tier="4" Column="1" />
     <TalentTreeArray Talent="GarroshHeroicAbilityDecimate" Tier="4" Column="2" />
     <TalentTreeArray Talent="GarroshGroundbreakerDefensiveMeasures" Tier="5" Column="1" />
@@ -2342,7 +2363,7 @@
     <TalentAIBuildsArray ChanceToPick="16">
       <TalentsArray value="GarroshWreckingBallUnrivaledStrength" />
       <TalentsArray value="GarroshIndomitable" />
-      <TalentsArray value="GarroshWreckingBallIntotheFray" />
+      <TalentsArray value="GarroshIntotheFrayLoktarOgar" />
       <TalentsArray value="GarroshHeroicAbilityWarlordsChallenge" />
       <TalentsArray value="GarroshArmorUpDoubleUp" />
       <TalentsArray value="GarroshWreckingBallEarthshaker" />
@@ -3163,7 +3184,15 @@
         <Field value="Chance" />
         <Value value="1.000000" />
       </Modifications>
+      <Modifications>
+        <Type value="FlatModification" />
+        <Catalog value="Effect" />
+        <Entry value="GarroshOppressorBloodthirstApplyBehavior" />
+        <Field value="Chance" />
+        <Value value="1.000000" />
+      </Modifications>
     </AbilityModificationArray>
+    <Abil value="GarroshBloodthirst" />
   </CTalent>
   <CTalent id="GarroshGroundbreakerIntimidation">
     <Face value="GarroshGroundbreakerIntimidation" />
@@ -3281,20 +3310,21 @@
     </AbilityModificationArray>
     <QuestData StackBehavior="GarroshGroundbreakerWarbreakerQuestToken" TargetCount="15" />
   </CTalent>
-  <CTalent id="GarroshWreckingBallIntotheFray">
-    <Face value="GarroshWreckingBallIntotheFray" />
+  <CTalent id="GarroshIntotheFrayLoktarOgar">
+    <Face value="GarroshIntoTheFrayLoktarOgar" />
     <Abil value="GarroshWreckingBallIntotheFray" />
-    <RankArray>
-      <BehaviorArray value="GarroshWreckingBallIntotheFrayCarryBehavior" />
-      <BehaviorArray value="GarroshWreckingBallIntoTheFrayAllyValidityBehavior" />
-      <BehaviorArray value="GarroshWreckingBallIntoTheFrayMarkerAllyUnitTracker" />
-      <BehaviorArray value="GarroshWreckingBallIntoTheFrayItem" />
-    </RankArray>
     <AbilityModificationArray>
       <Modifications>
         <Type value="FlatModification" />
+        <Catalog value="Behavior" />
+        <Entry value="GarroshWreckingBallIntotheFrayArmor" />
+        <Field value="ArmorModification.AllArmorBonus" />
+        <Value value="20.000000" />
+      </Modifications>
+      <Modifications>
+        <Type value="FlatModification" />
         <Catalog value="Effect" />
-        <Entry value="GarroshWreckingBallIntotheFrayArmorApplyBehavior" />
+        <Entry value="GarroshIntotheFrayLoktarOgarModifyCooldown" />
         <Field value="Chance" />
         <Value value="1.000000" />
       </Modifications>
@@ -3443,6 +3473,10 @@
     <BehaviorArray Link="GarroshArmorUpFXCarryBehavior" />
     <BehaviorArray Link="GarroshWreckingBallMarkerEnemyUnitTracker" />
     <BehaviorArray Link="GarroshArmorUpSeasonedSoldierHealthBuff" />
+    <BehaviorArray Link="GarroshWreckingBallIntotheFrayCarryBehavior" />
+    <BehaviorArray Link="GarroshWreckingBallIntoTheFrayAllyValidityBehavior" />
+    <BehaviorArray Link="GarroshWreckingBallIntoTheFrayMarkerAllyUnitTracker" />
+    <BehaviorArray Link="GarroshWreckingBallIntoTheFrayItem" />
     <WeaponArray Link="HeroGarrosh" />
     <EffectArray index="Birth" value="GarroshUIActivateDummy" />
     <CardLayouts index="0">
@@ -3506,6 +3540,11 @@
     <WhichPlayer Value="Caster" />
     <Find value="1" />
     <Value value="GarroshArmorUpSeasonedSoldier" />
+  </CValidatorPlayerTalent>
+  <CValidatorPlayerTalent id="GarroshHasBloodthirstOppressorTalent">
+    <WhichPlayer Value="Caster" />
+    <Find value="1" />
+    <Value value="GarroshOppressor" />
   </CValidatorPlayerTalent>
   <CValidatorUnitCompareBehaviorCount id="GarroshTargetHasWreckingBallMortalComboBehavior">
     <Value value="1" />
@@ -3579,15 +3618,15 @@
     <Type value="Fraction" />
     <Value value="0.5" />
   </CValidatorUnitCompareVital>
+  <CValidatorPlayerTalent id="GarroshHasIntotheFrayLoktarOgarTalent">
+    <WhichPlayer Value="Caster" />
+    <Find value="1" />
+    <Value value="GarroshIntotheFrayLoktarOgar" />
+  </CValidatorPlayerTalent>
   <CValidatorPlayerTalent id="GarroshHasArmorUpDoubleUpTalent">
     <WhichPlayer Value="Caster" />
     <Find value="1" />
     <Value value="GarroshArmorUpDoubleUp" />
-  </CValidatorPlayerTalent>
-  <CValidatorPlayerTalent id="GarroshHasWreckingBallIntotheFrayTalent">
-    <WhichPlayer Value="Caster" />
-    <Find value="1" />
-    <Value value="GarroshWreckingBallIntotheFray" />
   </CValidatorPlayerTalent>
   <CValidatorPlayerTalent id="GarroshHasWreckingBallTitanicMightTalent">
     <WhichPlayer Value="Caster" />

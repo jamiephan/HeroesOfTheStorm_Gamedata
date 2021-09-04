@@ -1049,6 +1049,13 @@
     <StatusBarFlags index="Custom" value="0" />
     <HostSiteOps Ops="SOp270" />
   </CActorUnit>
+  <CBehaviorBuff id="FirebatOilSpillAdhesivePetroleumAttackDamageBehavior" parent="StormDamageIncrease">
+    <Alignment value="Negative" />
+    <BehaviorFlags index="Permanent" value="0" />
+    <BehaviorFlags index="EnabledWhileDead" value="0" />
+    <BuffFlags index="RefreshStack" value="1" />
+    <Duration value="3" />
+  </CBehaviorBuff>
   <CBehaviorBuff id="FirebatAdrenalineStimpackPassiveBonusesBehavior" parent="StormSprint">
     <BehaviorCategories index="BuffAutoattackDPS" value="1" />
     <DisableValidatorArray value="TargetLifeGT80Percent" />
@@ -1485,7 +1492,7 @@
   </CBehaviorBuff>
   <CBehaviorTokenCounter id="FirebatOilSpillGrillAndKillQuestToken" parent="StormQuestToken">
     <AtMaxEvents index="0" EventId="QuestComplete" Effect="FirebatOilSpillGrillAndKillModifyPlayer" />
-    <Max value="60" />
+    <Max value="30" />
   </CBehaviorTokenCounter>
   <CBehaviorBuff id="FirebatNewHabitsUnstoppableBehavior" parent="StormUnstoppableParent">
     <Duration value="2" />
@@ -1590,6 +1597,9 @@
   <CButton id="FirebatActiveJuggernautPlating" parent="StormButtonParent">
     <Icon value="Assets\Textures\storm_ui_icon_blaze_vanadium_plating.dds" />
   </CButton>
+  <CButton id="FirebatJetPropulsionCollisionCourse" parent="StormButtonParent">
+    <Icon value="Assets\Textures\storm_ui_icon_blaze_jet.dds" />
+  </CButton>
   <CButton id="FirebatWeaponBurnNotice" parent="StormButtonParent">
     <Icon value="Assets\Textures\storm_ui_icon_talent_autoattack_slow.dds" />
   </CButton>
@@ -1641,14 +1651,15 @@
   <CButton id="FirebatJetPropulsion" parent="StormButtonParent">
     <Icon value="Assets\Textures\storm_ui_icon_blaze_jet.dds" />
     <TooltipAppender Validator="FirebatHasJetPropulsionFuelLeakTalent" Face="FirebatJetPropulsionFuelLeak" />
+    <TooltipAppender Validator="FirebatHasJetPropulsionCollisionCourseTalent" Face="FirebatJetPropulsionCollisionCourse" />
     <TooltipAppender Validator="FirebatHasJetPropulsionThermalProtectionTalent" Face="FirebatJetPropulsionThermalProtection" />
   </CButton>
   <CButton id="FirebatOilSpill" parent="StormButtonParent">
     <Icon value="Assets\Textures\storm_ui_icon_blaze_oil.dds" />
     <TooltipAppender Validator="FirebatHasOilSpillOilDispersalTalent" Face="FirebatOilSpillOilDispersal" />
+    <TooltipAppender Validator="FirebatHasOilSpillNanomachineCoatingTalent" Face="FirebatOilSpillNanomachineCoating" />
     <TooltipAppender Validator="FirebatHasOilSpillGrillandKillTalent" Face="FirebatOilSpillGrillandKill" />
     <TooltipAppender Validator="FirebatHasOilSpillAdhesivePetroleumTalent" Face="FirebatOilSpillAdhesivePetroleum" />
-    <TooltipAppender Validator="FirebatHasOilSpillNanomachineCoatingTalent" Face="FirebatOilSpillNanomachineCoating" />
   </CButton>
   <CButton id="FirebatBunkerDrop" parent="StormButtonParent">
     <Icon value="Assets\Textures\storm_ui_icon_blaze_bunker.dds" />
@@ -1659,9 +1670,8 @@
   </CButton>
   <CButton id="FirebatFlameStream" parent="StormButtonParent">
     <Icon value="Assets\Textures\storm_ui_icon_blaze_flame.dds" />
-    <TooltipAppender Validator="FirebatHasFlameStreamFeedingtheFlameTalent" Face="FirebatFlameStreamFeedingtheFlame" />
-    <TooltipAppender Validator="FirebatHasFlameStreamCrossfireTalent" Face="FirebatFlameStreamCrossfire" />
     <TooltipAppender Validator="FirebatHasFlameStreamSuppressiveFireTalent" Face="FirebatFlameStreamSuppressiveFire" />
+    <TooltipAppender Validator="FirebatHasFlameStreamFeedingtheFlameTalent" Face="FirebatFlameStreamFeedingtheFlame" />
   </CButton>
   <CButton id="FirebatBunkerDropFlamethrower" parent="StormButtonParent">
     <Icon value="Assets\Textures\storm_ui_icon_blaze_flame.dds" />
@@ -1786,6 +1796,18 @@
     <ImpactUnit Value="Caster" />
     <Cost Abil="FirebatEnduranceStimpack,Execute" CooldownOperation="Set" CooldownTimeUse="30" />
   </CEffectModifyUnit>
+  <CEffectModifyUnit id="FirebatFlameStreamCrossfireIgniteModifyCooldown">
+    <ValidatorArray value="TargetIsHero" />
+    <ValidatorArray value="FirebatHasTwoFlameStreamCrossfireBehavior" />
+    <Marker Link="Effect/FirebatFlameStreamIgniteModifyCooldown" />
+    <ImpactUnit Value="Caster" />
+    <Cost Abil="FirebatIgnite,Execute" CooldownOperation="Add" CooldownTimeUse="-5" />
+  </CEffectModifyUnit>
+  <CEffectDamage id="FirebatJetPropulsionCollisionCourseDamage" parent="StormSpell">
+    <Chance value="0" />
+    <Amount value="325" />
+    <SourceButtonFace value="FirebatJetPropulsionCollisionCourse" />
+  </CEffectDamage>
   <CEffectCreateHealer id="FirebatFlameStreamOilDispersalManaRestoration" parent="StormManaRestore">
     <ValidatorArray value="TargetIsHero" />
     <Chance value="0" />
@@ -1804,6 +1826,11 @@
     <EffectArray Operation="Set" Reference="Effect,FirebatNewHabitsUnstoppableApplyBehavior,Chance" Value="1" />
     <EffectArray Operation="Set" Reference="Effect,FirebatNewHabitsAddToken,Chance" Value="0" />
   </CEffectModifyPlayer>
+  <CEffectApplyBehavior id="FirebatOilSpillAdhesivePetroleumApplyAttackDamageBehavior">
+    <Chance value="0" />
+    <Behavior value="FirebatOilSpillAdhesivePetroleumAttackDamageBehavior" />
+    <ValidatorArray index="0" removed="1" />
+  </CEffectApplyBehavior>
   <CEffectSet id="FirebatOilSpillAdhesivePetroleumFireStartSet">
     <ValidatorArray value="FirebatIsOilSpillUnitNotIgnitedTimedLifeValidatorCombine" />
     <ValidatorArray value="FirebatHasOilSpillAdhesivePetroleumTalent" />
@@ -1927,6 +1954,7 @@
     <EffectArray value="FirebatJetPropulsionRemoveDash" />
     <EffectArray value="FirebatJetPropulsionImpactSearch" />
     <EffectArray value="FirebatJetPropulsionFuelLeakCreateUnit" />
+    <EffectArray value="FirebatJetPropulsionCollisionCourseDamage" />
   </CEffectSet>
   <CEffectEnumArea id="FirebatJetPropulsionImpactSearch">
     <ImpactLocation Value="TargetPoint" />
@@ -2001,7 +2029,7 @@
   <CEffectModifyUnit id="FirebatIgniteNewHabitsModifyCooldown">
     <ValidatorArray value="TargetIsHero" />
     <ImpactUnit Value="Caster" />
-    <Cost Abil="FirebatIgnite,Execute" CooldownOperation="Add" CooldownTimeUse="-8" />
+    <Cost Abil="FirebatIgnite,Execute" CooldownOperation="Add" CooldownTimeUse="-6" />
   </CEffectModifyUnit>
   <CEffectCancelOrder id="FirebatJetPropulsionCancelMoveOrder">
     <WhichUnit Value="Caster" />
@@ -2093,7 +2121,7 @@
     <EffectArray value="FirebatOilSpillFireStartSearch" />
   </CEffectSet>
   <CEffectDamage id="FirebatOilSpillIgnitedDamage" parent="StormSpell">
-    <MultiplicativeModifierArray index="0" Validator="FirebatOilSpillGrillAndKillCompleteTracker" Modifier="0.35" />
+    <MultiplicativeModifierArray index="0" Validator="FirebatHasOilSpillGrillandKillTalent" Modifier="0.45" />
     <Amount value="16" />
     <SourceButtonFace value="FirebatOilSpill" />
   </CEffectDamage>
@@ -2218,6 +2246,7 @@
   </CEffectEnumArea>
   <CEffectSet id="FirebatOilSpillAdhesivePetroleumImpactSearchSet">
     <EffectArray value="FirebatOilSpillAdhesivePetroleumApplyBehavior" />
+    <EffectArray value="FirebatOilSpillAdhesivePetroleumApplyAttackDamageBehavior" />
   </CEffectSet>
   <CEffectModifyUnit id="FirebatOilSpillModifyUnitFacing">
     <FacingLocation Effect="FirebatOilSpillSearchPersistent" Value="VectorPoint" />
@@ -2503,6 +2532,7 @@
   </CEffectSet>
   <CEffectDamage id="FirebatWeaponDamage" parent="StormWeapon">
     <MultiplicativeModifierArray index="0" Validator="FirebatWeaponIncineratorGauntletsCombine" Modifier="0.5" />
+    <MultiplicativeModifierArray index="1" Validator="FirebatTargetHasOilSpillAdhesivePetroleumAttackDamageBehavior" Modifier="0.35" Crit="1" />
     <Amount value="55" />
   </CEffectDamage>
   <CEffectApplyBehavior id="FirebatWeaponLeftTrackerApplyBehavior">
@@ -2682,6 +2712,7 @@
     <EffectArray value="FirebatFlameStreamSuppressiveFireApplyBehavior" />
     <EffectArray value="FirebatFlameStreamCrossfireApplyBehavior" />
     <EffectArray value="FirebatFlameStreamCrossfireDamage" />
+    <EffectArray value="FirebatFlameStreamCrossfireIgniteModifyCooldown" />
   </CEffectSet>
   <CEffectModifyUnit id="FirebatFlameStreamMissileImpactDummy">
     <ImpactUnit Value="Source" />
@@ -2830,7 +2861,7 @@
     <Behavior value="FirebatNeuralStimpackCooldownReductionBehavior" />
   </CEffectApplyBehavior>
   <CEffectModifyPlayer id="FirebatOilSpillGrillAndKillModifyPlayer">
-    <EffectArray Operation="Set" Reference="Behavior,FirebatOilSpillFireStartTimedLife,Duration" Value="4.500000" />
+    <EffectArray Reference="Behavior,FirebatOilSpillFireStartTimedLife,Duration" Value="2.500000" />
   </CEffectModifyPlayer>
   <CEffectApplyBehavior id="FirebatIgniteMeltdownDebuffApplyBehavior">
     <Chance value="0" />
@@ -2856,7 +2887,6 @@
   </CEffectCreateUnit>
   <CEffectApplyBehavior id="FirebatOilSpillAdhesivePetroleumApplyBehavior">
     <ValidatorArray index="0" value="TargetNotUnstoppable" />
-    <ValidatorArray value="FirebatTargetDoesNotHaveOilSpillAdhesivePetroleumSlowBehavior" />
     <Chance value="0" />
     <Behavior value="FirebatOilSpillAdhesivePetroleumSlow" />
   </CEffectApplyBehavior>
@@ -2870,7 +2900,6 @@
     <Count value="1" />
   </CEffectRemoveBehavior>
   <CEffectApplyBehavior id="FirebatFlameStreamCrossfireApplyBehavior">
-    <ValidatorArray index="0" value="FirebatHasFlameStreamCrossfireTalent" />
     <Behavior value="FirebatFlameStreamCrossfireTargetBehavior" />
   </CEffectApplyBehavior>
   <CEffectRemoveBehavior id="FirebatFlameStreamCrossfireRemoveBehavior">
@@ -2880,7 +2909,7 @@
   <CEffectDamage id="FirebatFlameStreamCrossfireDamage" parent="StormSpell">
     <ValidatorArray value="FirebatHasTwoFlameStreamCrossfireBehavior" />
     <Flags index="Crit" value="1" />
-    <Amount value="139" />
+    <Amount value="120" />
   </CEffectDamage>
   <CEffectApplyBehavior id="FirebatJuggernautPlatingApplyBehavior">
     <WhichUnit Value="Caster" />
@@ -3018,14 +3047,14 @@
     <TalentTreeArray Talent="FirebatOilSpillOilDispersal" Tier="2" Column="1" />
     <TalentTreeArray Talent="FirebatIgniteMeltdown" Tier="2" Column="2" />
     <TalentTreeArray Talent="FirebatWeaponIncineratorGauntlets" Tier="2" Column="3" />
-    <TalentTreeArray Talent="FirebatFlameStreamCrossfire" Tier="3" Column="1" />
-    <TalentTreeArray Talent="FirebatOilSpillGrillandKill" Tier="3" Column="2" />
-    <TalentTreeArray Talent="FirebatOilSpillAdhesivePetroleum" Tier="3" Column="3" />
+    <TalentTreeArray Talent="FirebatFlameStreamSuppressiveFire" Tier="3" Column="1" />
+    <TalentTreeArray Talent="FirebatOilSpillNanomachineCoating" Tier="3" Column="2" />
+    <TalentTreeArray Talent="FirebatJetPropulsionFuelLeak" Tier="3" Column="3" />
     <TalentTreeArray Talent="FirebatHeroicAbilityBunkerDrop" Tier="4" Column="1" />
     <TalentTreeArray Talent="FirebatHeroicAbilityCombustion" Tier="4" Column="2" />
-    <TalentTreeArray Talent="FirebatFlameStreamSuppressiveFire" Tier="5" Column="1" />
-    <TalentTreeArray Talent="FirebatOilSpillNanomachineCoating" Tier="5" Column="2" />
-    <TalentTreeArray Talent="FirebatJetPropulsionFuelLeak" Tier="5" Column="3" />
+    <TalentTreeArray Talent="FirebatOilSpillGrillandKill" Tier="5" Column="1" />
+    <TalentTreeArray Talent="FirebatOilSpillAdhesivePetroleum" Tier="5" Column="2" />
+    <TalentTreeArray Talent="FirebatJetPropulsionCollisionCourse" Tier="5" Column="3" />
     <TalentTreeArray Talent="FirebatJetPropulsionThermalProtection" Tier="6" Column="1" />
     <TalentTreeArray Talent="FirebatIgniteHeatTreatment" Tier="6" Column="2" />
     <TalentTreeArray Talent="FirebatActiveJuggernautPlating" Tier="6" Column="3" />
@@ -3130,6 +3159,14 @@
       <Modifications>
         <Catalog value="Effect" />
         <Entry value="FirebatJetPropulsionDamage" />
+        <Field value="Amount" />
+        <Value value="0.040000" />
+        <AffectedByAbilityPower value="1" />
+        <AffectedByOverdrive value="1" />
+      </Modifications>
+      <Modifications>
+        <Catalog value="Effect" />
+        <Entry value="FirebatJetPropulsionCollisionCourseDamage" />
         <Field value="Amount" />
         <Value value="0.040000" />
         <AffectedByAbilityPower value="1" />
@@ -3259,54 +3296,54 @@
     <TalentAIBuildsArray ChanceToPick="16">
       <TalentsArray value="FirebatNeuralStimpack" />
       <TalentsArray value="FirebatOilSpillOilDispersal" />
-      <TalentsArray value="FirebatOilSpillGrillandKill" />
-      <TalentsArray value="FirebatHeroicAbilityCombustion" />
       <TalentsArray value="FirebatJetPropulsionFuelLeak" />
+      <TalentsArray value="FirebatHeroicAbilityCombustion" />
+      <TalentsArray value="FirebatJetPropulsionCollisionCourse" />
       <TalentsArray value="FirebatJetPropulsionThermalProtection" />
       <TalentsArray value="FirebatWeaponBurnNotice" />
     </TalentAIBuildsArray>
     <TalentAIBuildsArray ChanceToPick="16">
       <TalentsArray value="FirebatAdrenalineStimpack" />
       <TalentsArray value="FirebatWeaponIncineratorGauntlets" />
-      <TalentsArray value="FirebatOilSpillAdhesivePetroleum" />
-      <TalentsArray value="FirebatHeroicAbilityCombustion" />
       <TalentsArray value="FirebatFlameStreamSuppressiveFire" />
+      <TalentsArray value="FirebatHeroicAbilityCombustion" />
+      <TalentsArray value="FirebatOilSpillAdhesivePetroleum" />
       <TalentsArray value="FirebatActiveJuggernautPlating" />
       <TalentsArray value="FirebatWeaponBurnNotice" />
     </TalentAIBuildsArray>
     <TalentAIBuildsArray ChanceToPick="16">
       <TalentsArray value="FirebatNewHabits" />
       <TalentsArray value="FirebatIgniteMeltdown" />
-      <TalentsArray value="FirebatFlameStreamCrossfire" />
-      <TalentsArray value="FirebatHeroicAbilityCombustion" />
       <TalentsArray value="FirebatOilSpillNanomachineCoating" />
+      <TalentsArray value="FirebatHeroicAbilityCombustion" />
+      <TalentsArray value="FirebatOilSpillGrillandKill" />
       <TalentsArray value="FirebatIgniteHeatTreatment" />
       <TalentsArray value="FirebatCombustionFlashFire" />
     </TalentAIBuildsArray>
     <TalentAIBuildsArray ChanceToPick="16">
       <TalentsArray value="FirebatEnduranceStimpack" />
       <TalentsArray value="FirebatOilSpillOilDispersal" />
-      <TalentsArray value="FirebatFlameStreamCrossfire" />
-      <TalentsArray value="FirebatHeroicAbilityCombustion" />
       <TalentsArray value="FirebatFlameStreamSuppressiveFire" />
+      <TalentsArray value="FirebatHeroicAbilityCombustion" />
+      <TalentsArray value="FirebatOilSpillGrillandKill" />
       <TalentsArray value="FirebatJetPropulsionThermalProtection" />
       <TalentsArray value="FirebatWeaponBurnNotice" />
     </TalentAIBuildsArray>
     <TalentAIBuildsArray AIOnly="1" ChanceToPick="16">
       <TalentsArray value="FirebatAdrenalineStimpack" />
       <TalentsArray value="FirebatOilSpillOilDispersal" />
-      <TalentsArray value="FirebatOilSpillGrillandKill" />
-      <TalentsArray value="FirebatHeroicAbilityBunkerDrop" />
       <TalentsArray value="FirebatJetPropulsionFuelLeak" />
+      <TalentsArray value="FirebatHeroicAbilityBunkerDrop" />
+      <TalentsArray value="FirebatJetPropulsionCollisionCourse" />
       <TalentsArray value="FirebatJetPropulsionThermalProtection" />
       <TalentsArray value="FirebatBunkerDropFortifiedBunker" />
     </TalentAIBuildsArray>
     <TalentAIBuildsArray AIOnly="1" ChanceToPick="16">
       <TalentsArray value="FirebatEnduranceStimpack" />
       <TalentsArray value="FirebatIgniteMeltdown" />
-      <TalentsArray value="FirebatFlameStreamCrossfire" />
-      <TalentsArray value="FirebatHeroicAbilityBunkerDrop" />
       <TalentsArray value="FirebatOilSpillNanomachineCoating" />
+      <TalentsArray value="FirebatHeroicAbilityBunkerDrop" />
+      <TalentsArray value="FirebatOilSpillAdhesivePetroleum" />
       <TalentsArray value="FirebatIgniteHeatTreatment" />
       <TalentsArray value="FirebatBunkerDropFortifiedBunker" />
     </TalentAIBuildsArray>
@@ -4518,6 +4555,19 @@
     </RankArray>
     <Active value="1" />
   </CTalent>
+  <CTalent id="FirebatJetPropulsionCollisionCourse">
+    <Face value="FirebatJetPropulsionCollisionCourse" />
+    <Abil value="FirebatJetPropulsion" />
+    <AbilityModificationArray>
+      <Modifications>
+        <Type value="FlatModification" />
+        <Catalog value="Effect" />
+        <Entry value="FirebatJetPropulsionCollisionCourseDamage" />
+        <Field value="Chance" />
+        <Value value="1.000000" />
+      </Modifications>
+    </AbilityModificationArray>
+  </CTalent>
   <CTalent id="FirebatWeaponBurnNotice">
     <Face value="FirebatWeaponBurnNotice" />
     <AbilityModificationArray>
@@ -4743,6 +4793,13 @@
         <Type value="FlatModification" />
         <Catalog value="Effect" />
         <Entry value="FirebatWeaponConeAdhesivePetroleumRightIgniteSearch" />
+        <Field value="Chance" />
+        <Value value="1.000000" />
+      </Modifications>
+      <Modifications>
+        <Type value="FlatModification" />
+        <Catalog value="Effect" />
+        <Entry value="FirebatOilSpillAdhesivePetroleumApplyAttackDamageBehavior" />
         <Field value="Chance" />
         <Value value="1.000000" />
       </Modifications>
@@ -5042,6 +5099,11 @@
     <Find value="1" />
     <Value value="FirebatActiveJuggernautPlating" />
   </CValidatorPlayerTalent>
+  <CValidatorPlayerTalent id="FirebatHasJetPropulsionCollisionCourseTalent">
+    <WhichPlayer Value="Caster" />
+    <Find value="1" />
+    <Value value="FirebatJetPropulsionCollisionCourse" />
+  </CValidatorPlayerTalent>
   <CValidatorPlayerTalent id="FirebatHasWeaponBurnNoticeTalent">
     <WhichPlayer Value="Caster" />
     <Find value="1" />
@@ -5171,6 +5233,11 @@
     <AbilLink value="FirebatJetPropulsion" />
     <Queued value="1" />
   </CValidatorUnitOrderQueue>
+  <CValidatorUnitCompareBehaviorCount id="FirebatTargetHasOilSpillAdhesivePetroleumAttackDamageBehavior">
+    <Compare value="GE" />
+    <Value value="1" />
+    <Behavior value="FirebatOilSpillAdhesivePetroleumAttackDamageBehavior" />
+  </CValidatorUnitCompareBehaviorCount>
   <CValidatorCombine id="FirebatWeaponIncineratorGauntletsCombine">
     <CombineArray value="FirebatHasWeaponIncineratorGauntletsTalent" />
     <CombineArray value="TargetIsNotStructureOrHeroic" />

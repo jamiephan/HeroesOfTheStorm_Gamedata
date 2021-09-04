@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="us-ascii"?>
 <Catalog>
-  <const id="$ImperiusSolarionsFireDamage" value="100" />
+  <const id="$ImperiusSolarionsFireDamage" value="110" />
   <const id="$ImperiusValorousBrandBonusDamage" value="0.2" />
   <CAbilEffectTarget id="ImperiusCelestialCharge">
     <AbilityCategories index="Control" value="1" />
@@ -1514,6 +1514,8 @@
     <ExpireEffect value="ImperiusAngelicArmamentsLaunchMissile" />
   </CBehaviorBuff>
   <CBehaviorBuff id="ImperiusHolyFervorAttackReadyBehavior" />
+  <CBehaviorBuff id="ImperiusHolyFervorAttackReadyCooldownBehavior" />
+  <CBehaviorBuff id="ImperiusHolyFervorMoltenArmorAttackReadyBehavior" />
   <CBehaviorBuff id="ImperiusPressForwardDamageResponse">
     <DamageResponse>
       <Chance value="1" />
@@ -1736,7 +1738,7 @@
     <SortIndex value="100" />
     <RemoveValidatorArray value="ImperiusHolyFervorHasTalent" />
     <RemoveValidatorArray value="CasterNotDead" />
-    <MaxStackCount value="4" />
+    <MaxStackCount value="6" />
     <Duration value="10" />
     <FinalEffect value="ImperiusHolyFervorRemoveAttackReadyBehavior" />
   </CBehaviorBuff>
@@ -1994,6 +1996,17 @@
   <CButton id="ImperiusImpervious" parent="StormButtonParent">
     <Icon value="assets\textures\storm_ui_icon_imperius_item_02.dds" />
   </CButton>
+  <CEffectRemoveBehavior id="HolyFervorRemoveAttackReadyCooldownBehavior">
+    <WhichUnit Value="Caster" />
+    <BehaviorLink value="ImperiusHolyFervorAttackReadyCooldownBehavior" />
+  </CEffectRemoveBehavior>
+  <CEffectSwitch id="ImperiusHolyFervorApplyAttackCounterSwitch">
+    <CaseArray Validator="ImperiusHolyFervorCasterHasAttackReadyCooldownBehavior" Effect="ImperiusHolyFervorAttackCounterBuffApplyBehavior" />
+  </CEffectSwitch>
+  <CEffectRemoveBehavior id="ImperiusHolyFervorRemoveMoltenArmorAttackReadyBehavior">
+    <WhichUnit Value="Caster" />
+    <BehaviorLink value="ImperiusHolyFervorMoltenArmorAttackReadyBehavior" />
+  </CEffectRemoveBehavior>
   <CEffectAbortMissile id="ImperiusAbortMissilesOnCaster">
     <WhichUnit Value="Caster" />
   </CEffectAbortMissile>
@@ -2051,6 +2064,9 @@
     <EffectArray value="ImperiusCelestialChargeFlashOfAngerShieldApplyBehavior" />
     <EffectArray value="ImperiusCelestialChargeFlashOfAngerSearchArea" />
   </CEffectSet>
+  <CEffectSwitch id="ImperiusHolyFervorMoltenArmorApplyAttackCounterSwitch">
+    <CaseArray Validator="ImperiusHolyFervorCasterHasMoltenArmorAttackReadyBehavior" Effect="ImperiusHolyFervorMoltenArmorAttackCounterBuffApplyBehavior" />
+  </CEffectSwitch>
   <CEffectModifyUnit id="ImperiusCelestialChargeImpalingLightCooldownModifyUnitTier1">
     <ImpactUnit Value="Caster" />
     <Cost Abil="ImperiusCelestialCharge,Execute" CooldownOperation="Add" CooldownTimeUse="-1.25" />
@@ -2059,6 +2075,28 @@
     <WhichUnit Value="Caster" />
     <Behavior value="ImperiusHolyFervorAttackReadyBehavior" />
   </CEffectApplyBehavior>
+  <CEffectApplyBehavior id="ImperiusHolyFervorApplyAttackReadyCooldownBehavior">
+    <WhichUnit Value="Caster" />
+    <Behavior value="ImperiusHolyFervorAttackReadyCooldownBehavior" />
+  </CEffectApplyBehavior>
+  <CEffectApplyBehavior id="ImperiusHolyFervorApplyMoltenArmorAttackReadyBehavior">
+    <WhichUnit Value="Caster" />
+    <Behavior value="ImperiusHolyFervorMoltenArmorAttackReadyBehavior" />
+  </CEffectApplyBehavior>
+  <CEffectSet id="ImperiusHolyFervorMoltenArmorABSet">
+    <EffectArray value="ImperiusHolyFervorApplyAttackReadyBehavior" />
+    <EffectArray value="ImperiusHolyFervorApplyMoltenArmorAttackReadyBehavior" />
+  </CEffectSet>
+  <CEffectApplyBehavior id="ImperiusHolyFervorMoltenArmorAttackCounterBuffApplyBehavior">
+    <WhichUnit Value="Caster" />
+    <Behavior value="ImperiusHolyFervorAttackCounterBehavior" />
+    <Count value="2" />
+  </CEffectApplyBehavior>
+  <CEffectSwitch id="ImperiusHolyFervorMoltenArmorSwitch">
+    <ValidatorArray value="ImperiusHolyFervorHasTalent" />
+    <CaseArray Validator="ImperiusHolyFervorCasterDoesNotHaveAttackCounterBehavior" Effect="ImperiusHolyFervorMoltenArmorABSet" />
+    <CaseDefault value="ImperiusHolyFervorMoltenArmorAttackCounterBuffApplyBehavior" />
+  </CEffectSwitch>
   <CEffectRemoveBehavior id="ImperiusHolyFervorRemoveAttackReadyBehavior">
     <WhichUnit Value="Caster" />
     <BehaviorLink value="ImperiusHolyFervorAttackReadyBehavior" />
@@ -2071,6 +2109,7 @@
     <EffectArray value="ImperiusMoltenArmorSovereignArmorBuffApplyBehavior" />
     <EffectArray value="ImperiusMoltenArmorUnshakableFaithImpactSet" />
     <EffectArray value="ImperiusMoltenArmorUnshakableFaithCreateHealer" />
+    <EffectArray value="ImperiusHolyFervorMoltenArmorSwitch" />
   </CEffectSet>
   <CEffectModifyUnit id="ImperiusMoltenArmorSetCooldown">
     <ImpactUnit Value="Caster" />
@@ -2123,6 +2162,17 @@
     <CaseArray Validator="ImperiusValorousBrandBrandofSolarionHasTalent" Effect="ImperiusValorousBrandComboPointBehaviorCancelSet" />
     <CaseDefault value="ImperiusValorousBrandComboPointMoltenArmorRemoveBehavior" />
   </CEffectSwitch>
+  <CEffectCreateHealer id="ImperiusWrathOfTheAngirisUnrelentingDescentCreateHealer" parent="StormSelfOnlyHealingSpell">
+    <Chance value="0" />
+    <ImpactUnit Value="Caster" />
+    <FloaterCreation value="Force" />
+    <RechargeVitalFraction value="0.3" />
+  </CEffectCreateHealer>
+  <CEffectCreateHealer id="ImperiusWrathOfTheAngirisUnrelentingDescentCreateManaHealer" parent="StormManaRestore">
+    <Chance value="0" />
+    <ImpactUnit Value="Caster" />
+    <RechargeVitalFraction value="0.3" />
+  </CEffectCreateHealer>
   <CEffectSet id="RegenGlobeImpactSet">
     <EffectArray value="ImperiusPressForwardGlobePickupSet" />
   </CEffectSet>
@@ -2315,7 +2365,7 @@
     <PeriodicPeriodArray value="2" />
   </CEffectCreatePersistent>
   <CEffectDamage id="ImperiusSolarionsFireBlazeOfGloryExplosionDamage" parent="StormSpell">
-    <Amount value="150" />
+    <Amount value="185" />
     <MultiplicativeModifierArray index="ValorousBrandCelestialCharge" Validator="ImperiusValorousBrandTargetHasCelestialChargeComboPointBehavior" Modifier="$ImperiusValorousBrandBonusDamage" Crit="1" />
     <MultiplicativeModifierArray index="ValorousBrandSolarionsFire" Validator="ImperiusValorousBrandTargetHasSolarionsFireComboPointBehavior" Modifier="$ImperiusValorousBrandBonusDamage" Crit="1" />
     <MultiplicativeModifierArray index="ValorousBrandMoltenArmor" Validator="ImperiusValorousBrandTargetHasMoltenArmorComboPointBehavior" Modifier="$ImperiusValorousBrandBonusDamage" Crit="1" />
@@ -2533,6 +2583,7 @@
     <EffectArray value="ImperiusMoltenArmorSovereignArmorBuffApplyBehavior" />
     <EffectArray value="ImperiusMoltenArmorUnshakableFaithImpactSet" />
     <EffectArray value="ImperiusMoltenArmorUnshakableFaithCreateHealer" />
+    <EffectArray value="ImperiusHolyFervorMoltenArmorSwitch" />
   </CEffectSet>
   <CEffectSet id="ImperiusMoltenArmorUnshakableFaithImpactSet">
     <Chance value="0" />
@@ -2607,12 +2658,13 @@
     <Kinetic value="ImperiusAngelicArmamentsKineticSet" />
   </CEffectApplyKinetic>
   <CEffectSet id="ImperiusHolyFervorInitialSet">
-    <ValidatorArray value="ImperiusHolyFervorCasterDoesNotHaveAttackReadyBehavior" />
+    <ValidatorArray value="ImperiusHolyFervorCasterDoesNotHaveAttackReadyCooldownBehavior" />
     <EffectArray value="ImperiusHolyFervorApplyAttackReadyBehavior" />
+    <EffectArray value="ImperiusHolyFervorApplyAttackReadyCooldownBehavior" />
     <EffectArray value="ImperiusHolyFervorCooldownMinorModifyUnit" />
   </CEffectSet>
   <CEffectModifyUnit id="ImperiusHolyFervorCooldownMaxModifyUnit">
-    <ValidatorArray value="ImperiusHolyFervorCasterDoesNotHaveAttackCounterBehavior" />
+    <ValidatorArray value="ImperiusHolyFervorCasterHasAttackReadyCooldownBehavior" />
     <ImpactUnit Value="Caster" />
     <Cost Abil="ImperiusHolyFervor,Execute" CooldownOperation="Set">
       <Fraction Cooldown="1" />
@@ -2622,7 +2674,6 @@
     <WhichUnit Value="Caster" />
     <Behavior value="ImperiusHolyFervorAttackCounterBehavior" />
     <Count value="4" />
-    <ValidatorArray index="0" value="ImperiusHolyFervorCasterDoesNotHaveAttackCounterBehavior" />
   </CEffectApplyBehavior>
   <CEffectModifyUnit id="ImperiusHolyFervorCooldownMinorModifyUnit">
     <ImpactUnit Value="Caster" />
@@ -2824,9 +2875,12 @@
     <EffectArray value="ImperiusValorousBrandComboPointMoltenArmorRemoveBehaviorSwitch" />
     <EffectArray value="ImperiusValorousBrandComboPointSolarionsFireRemoveBehaviorSwitch" />
     <EffectArray value="ImperiusHolyFervorSearchArea" />
-    <EffectArray value="ImperiusHolyFervorCooldownMaxModifyUnit" />
-    <EffectArray value="ImperiusHolyFervorAttackCounterBuffApplyBehavior" />
+    <EffectArray value="ImperiusHolyFervorApplyAttackCounterSwitch" />
+    <EffectArray value="ImperiusHolyFervorMoltenArmorApplyAttackCounterSwitch" />
     <EffectArray value="ImperiusHolyFervorAttackCounterBuffRemove1Behavior" />
+    <EffectArray value="ImperiusHolyFervorCooldownMaxModifyUnit" />
+    <EffectArray value="HolyFervorRemoveAttackReadyCooldownBehavior" />
+    <EffectArray value="ImperiusHolyFervorRemoveMoltenArmorAttackReadyBehavior" />
   </CEffectSet>
   <CEffectEnumArea id="ImperiusHolyFervorSearchArea">
     <ValidatorArray value="CasterNotBlindedAndTargetNotEvading" />
@@ -2859,7 +2913,7 @@
     <EffectArray value="ImperiusMoltenArmorDivineRageCooldownModifyUnit" />
   </CEffectSet>
   <CEffectCreateHealer id="ImperiusValorousBrandCreateHealer" parent="StormHealingSpell">
-    <MultiplicativeModifierArray index="ImperiusValorousBrandBattleHunger" Validator="ImperiusValorousBrandBattleHungerHasTalent" Modifier="0.7" />
+    <MultiplicativeModifierArray index="ImperiusValorousBrandBattleHunger" Validator="ImperiusValorousBrandBattleHungerHasTalent" Modifier="0.8" />
     <ImpactUnit Value="Caster" />
     <RechargeVitalRate value="75" />
     <AmountScoreArray index="0" Validator="" Value="SelfHealing" />
@@ -2869,7 +2923,7 @@
     <MultiplicativeModifierArray index="ValorousBrandSolarionsFire" Validator="ImperiusValorousBrandTargetHasSolarionsFireComboPointBehavior" Modifier="$ImperiusValorousBrandBonusDamage" Crit="1" />
     <MultiplicativeModifierArray index="ValorousBrandMoltenArmor" Validator="ImperiusValorousBrandTargetHasMoltenArmorComboPointBehavior" Modifier="$ImperiusValorousBrandBonusDamage" Crit="1" />
     <MultiplicativeModifierArray index="HolyFervor" Validator="ImperiusHolyFervorCasterHasAttackReadyBehavior" Modifier="0.3" Crit="1" />
-    <Amount value="122" />
+    <Amount value="126" />
     <SourceButtonFace value="Attack" />
   </CEffectDamage>
   <CEffectModifyUnit id="ImperiusAngelicArmamentsShieldExpireDummyModifyUnit" />
@@ -3035,6 +3089,8 @@
   <CEffectSet id="ImperiusWrathOfTheAngirisTargetRemovedStasisFinalSet">
     <EffectArray value="ImperiusWrathOfTheAngirisDamage" />
     <EffectArray value="ImperiusWrathOfTheAngirisStunApplyBehavior" />
+    <EffectArray value="ImperiusWrathOfTheAngirisUnrelentingDescentCreateManaHealer" />
+    <EffectArray value="ImperiusWrathOfTheAngirisUnrelentingDescentCreateHealer" />
   </CEffectSet>
   <CEffectDamage id="ImperiusWrathOfTheAngirisDamage" parent="StormSpell">
     <Amount value="375" />
@@ -3725,6 +3781,20 @@
         <Field value="Chance" />
         <Value value="1.000000" />
       </Modifications>
+      <Modifications>
+        <Type value="FlatModification" />
+        <Catalog value="Effect" />
+        <Entry value="ImperiusWrathOfTheAngirisUnrelentingDescentCreateHealer" />
+        <Field value="Chance" />
+        <Value value="1.000000" />
+      </Modifications>
+      <Modifications>
+        <Type value="FlatModification" />
+        <Catalog value="Effect" />
+        <Entry value="ImperiusWrathOfTheAngirisUnrelentingDescentCreateManaHealer" />
+        <Field value="Chance" />
+        <Value value="1.000000" />
+      </Modifications>
     </AbilityModificationArray>
   </CTalent>
   <CTalent id="ImperiusMoltenArmorDivineRage">
@@ -4005,6 +4075,20 @@
     <AbilLink value="ImperiusCelestialCharge" />
     <Value value="1" />
   </CValidatorUnitCompareOrderCount>
+  <CValidatorUnitCompareBehaviorCount id="ImperiusHolyFervorCasterDoesNotHaveAttackReadyCooldownBehavior">
+    <WhichUnit Value="Caster" />
+    <Behavior value="ImperiusHolyFervorAttackReadyCooldownBehavior" />
+  </CValidatorUnitCompareBehaviorCount>
+  <CValidatorUnitCompareBehaviorCount id="ImperiusHolyFervorCasterHasAttackReadyCooldownBehavior">
+    <WhichUnit Value="Caster" />
+    <Compare value="GT" />
+    <Behavior value="ImperiusHolyFervorAttackReadyCooldownBehavior" />
+  </CValidatorUnitCompareBehaviorCount>
+  <CValidatorUnitCompareBehaviorCount id="ImperiusHolyFervorCasterHasMoltenArmorAttackReadyBehavior">
+    <WhichUnit Value="Caster" />
+    <Compare value="GT" />
+    <Behavior value="ImperiusHolyFervorMoltenArmorAttackReadyBehavior" />
+  </CValidatorUnitCompareBehaviorCount>
   <CValidatorUnitCompareBehaviorCount id="ImperiusPressForwardCasterHasRegenGlobePercentBuff">
     <WhichUnit Value="Caster" />
     <Compare value="GT" />
