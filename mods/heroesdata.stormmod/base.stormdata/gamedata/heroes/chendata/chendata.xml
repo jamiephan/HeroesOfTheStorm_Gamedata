@@ -232,6 +232,23 @@
     <Scale value="4" />
     <TokenId value="ChenKegTossTokenCounter" />
   </CAccumulatorToken>
+  <CActorQueryResponse id="ChenStormRangeDestroy">
+    <Subject Filters="Unit" Terms="ScopeContains _ChenStorm; HasAllianceTypeWith Self" />
+    <OnResponse Target="_ChenStorm" Send="Signal DestroyRange" />
+  </CActorQueryResponse>
+  <CActorQueryResponse id="ChenStormRangeCreate">
+    <Subject Filters="Unit" Terms="ScopeContains _ChenStorm; HasAllianceTypeWith Self" />
+    <OnResponse Target="_ChenStorm" Send="Signal CreateRange" />
+  </CActorQueryResponse>
+  <CActorRegionCircle id="ChenStormRangeCreateQuery">
+    <On Terms="ActorCreation" Send="QueryRegion ::Self ChenStormRangeCreate AgainstCenter" />
+    <On Terms="ActorCreation" Send="Destroy" />
+    <QueryFilters value="-;Ally,Neutral,Enemy,Dead" />
+    <Radius value="50.000000" />
+  </CActorRegionCircle>
+  <CActorSplat id="ChenEarthRangeSplatStorm" parent="StormRangeSplat">
+    <Scale value="9.250000" />
+  </CActorSplat>
   <CActorSound id="ChenStaggerLaunchSoundNotChen" parent="SoundOneShot">
     <Filter index="Self" value="1" />
     <On Terms="Behavior.ChenStaggerProtectedBuff.Create" Send="Create" />
@@ -491,6 +508,12 @@
     <QueryFilters value="-;Ally,Neutral,Enemy,Dead" />
     <Radius value="50.000000" />
   </CActorRegionCircle>
+  <CActorRegionCircle id="ChenStormRangeDestroyQuery">
+    <On Terms="ActorCreation" Send="QueryRegion ::Self ChenStormRangeDestroy AgainstCenter" />
+    <On Terms="ActorCreation" Send="Destroy" />
+    <QueryFilters value="-;Ally,Neutral,Enemy,Dead" />
+    <Radius value="50.000000" />
+  </CActorRegionCircle>
   <CActorModel id="ChenFlyingKickModel" parent="StormModelAddition">
     <HostSiteOps Ops="SOpAttachFootLeft SOpForwardTargetPoint SOp2DRotation" HoldRotation="1" />
     <Model value="ChenFlyingKick" />
@@ -674,6 +697,8 @@
     <On Terms="WeaponStart.*.AttackStart" Send="AnimClear AttackLeft" />
     <On Terms="WeaponStart.*.AttackStart" Send="AnimClear AttackRight" />
     <On Terms="WeaponStart.*.AttackStart" Send="AnimClear Unburrow" />
+    <On Terms="Signal.*.CreateRange; HasAllianceTypeWith Self" Send="Create ChenEarthRangeSplatStorm" />
+    <On Terms="Signal.*.DestroyRange" Target="ChenEarthRangeSplatStorm" Send="Destroy" />
     <On Terms="WeaponStart.*.AttackStart; IsStatus WeaponNext 0" Send="AnimPlay AttackLeft Attack,00 0 0.000000 0.050000 0.100000" />
     <On Terms="WeaponStart.*.AttackStart; IsStatus WeaponNext 1" Send="AnimPlay AttackRight Attack,01 0 0.000000 0.050000 0.100000" />
     <On Terms="UnitMovementUpdate.*.Walk; AnimPlaying AttackLeft" Send="AnimClear AttackLeft" />
@@ -706,6 +731,7 @@
       <Image value="Assets\Textures\Storm_UI_InGame_TargetInfoPanel_Unit_Chen_Storm.dds" />
     </GroupIcon>
     <WalkAnimMoveSpeed value="4" />
+    <Aliases value="_ChenStorm" />
   </CActorUnit>
   <CActorAction id="ChenStormAttackActionActor" parent="RangedHeroAttack" effectAttack="ChainLightning1ImpactSet2">
     <LaunchSiteOps Ops="SOpChenStormAttack" />
@@ -782,6 +808,8 @@
     <On Terms="ActorDestruction" Send="Create ChenFireRangeDestroyQuery" />
     <On Terms="ActorCreation" Send="Create ChenEarthRangeCreateQuery" />
     <On Terms="ActorDestruction" Send="Create ChenEarthRangeDestroyQuery" />
+    <On Terms="ActorCreation" Send="Create ChenStormRangeCreateQuery" />
+    <On Terms="ActorDestruction" Send="Create ChenStormRangeDestroyQuery" />
   </CActorRange>
   <CActorSplat id="ChenEarthRangeSplat" parent="StormRangeSplat">
     <On Terms="ActorCreation" Send="SetVisibility" />

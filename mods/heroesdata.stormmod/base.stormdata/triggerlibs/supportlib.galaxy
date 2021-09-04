@@ -8838,6 +8838,206 @@ void libSprt_gt_DEBUGGetBaseUnitStats_Init () {
 }
 
 //--------------------------------------------------------------------------------------------------
+// Trigger: DEBUG - Wizard to Sappers
+//--------------------------------------------------------------------------------------------------
+bool libSprt_gt_DEBUGWizardtoSappers_Func (bool testConds, bool runActions) {
+    // Variable Declarations
+    int lv_composition;
+    int lv_group;
+
+    // Automatic Variable Declarations
+    // Variable Initialization
+    lv_group = 2;
+
+    // Conditions
+    if (testConds) {
+        if (!(((libCore_gv_dEBUGDebuggingEnabled == true) || (GameCheatsEnabled(c_gameCheatCategoryDevelopment) == true)))) {
+            return false;
+        }
+    }
+
+    // Actions
+    if (!runActions) {
+        return true;
+    }
+
+    if ((libSprt_gv_dEBUGSapperMinionsEnabled == false)) {
+        libSprt_gv_dEBUGSapperMinionsEnabled = true;
+        lv_composition = (libCore_ge_MinionWaveCompositionsTypes_Standard);
+        libCore_gf_DataInitializeScalingDataForMinion("MercGoblinSapperLaner", libCore_ge_MinionTypes_Wizard);
+        libCore_gv_dataMinionWaveCompositions[lv_composition].lv_groupMinionType[lv_group] = libCore_ge_MinionTypes_Wizard;
+        libCore_gv_dataMinionWaveCompositions[lv_composition].lv_groupMinionCount[lv_group] = 1;
+        UIDisplayMessage(PlayerGroupAll(), c_messageAreaChat, StringExternal("Param/Value/lib_Sprt_F2C49B06"));
+    }
+    else {
+        libSprt_gv_dEBUGSapperMinionsEnabled = false;
+        lv_composition = (libCore_ge_MinionWaveCompositionsTypes_Standard);
+        libCore_gf_DataInitializeScalingDataForMinion("WizardMinion", libCore_ge_MinionTypes_Wizard);
+        libCore_gv_dataMinionWaveCompositions[lv_composition].lv_groupMinionType[lv_group] = libCore_ge_MinionTypes_Wizard;
+        libCore_gv_dataMinionWaveCompositions[lv_composition].lv_groupMinionCount[lv_group] = 1;
+        UIDisplayMessage(PlayerGroupAll(), c_messageAreaChat, StringExternal("Param/Value/lib_Sprt_AB6B812E"));
+    }
+    return true;
+}
+
+//--------------------------------------------------------------------------------------------------
+void libSprt_gt_DEBUGWizardtoSappers_Init () {
+    libSprt_gt_DEBUGWizardtoSappers = TriggerCreate("libSprt_gt_DEBUGWizardtoSappers_Func");
+    TriggerAddEventChatMessage(libSprt_gt_DEBUGWizardtoSappers, c_playerAny, "-sappers", true);
+}
+
+//--------------------------------------------------------------------------------------------------
+// Trigger: DEBUG - Sapper Health Globes
+//--------------------------------------------------------------------------------------------------
+bool libSprt_gt_DEBUGSapperHealthGlobes_Func (bool testConds, bool runActions) {
+    // Variable Declarations
+    int lv_owner;
+    int lv_regenGlobeOwner;
+
+    // Automatic Variable Declarations
+    // Variable Initialization
+
+    // Conditions
+    if (testConds) {
+        if (!((libSprt_gv_dEBUGSapperMinionsEnabled == true))) {
+            return false;
+        }
+
+        if (!((UnitGetType(EventUnit()) == "MercGoblinSapperLaner"))) {
+            return false;
+        }
+    }
+
+    // Actions
+    if (!runActions) {
+        return true;
+    }
+
+    lv_owner = UnitGetOwner(EventUnit());
+    if ((lv_owner == libCore_gv_cOMPUTER_TeamOrder)) {
+        lv_regenGlobeOwner = libCore_gv_cOMPUTER_TeamChaos;
+    }
+    else {
+        lv_regenGlobeOwner = libCore_gv_cOMPUTER_TeamOrder;
+    }
+    libNtve_gf_CreateUnitsWithDefaultFacing(1, "RegenGlobe", c_unitCreateIgnorePlacement, lv_regenGlobeOwner, UnitGetPosition(EventUnit()), null);
+    return true;
+}
+
+//--------------------------------------------------------------------------------------------------
+void libSprt_gt_DEBUGSapperHealthGlobes_Init () {
+    libSprt_gt_DEBUGSapperHealthGlobes = TriggerCreate("libSprt_gt_DEBUGSapperHealthGlobes_Func");
+    TriggerAddEventUnitDied(libSprt_gt_DEBUGSapperHealthGlobes, null);
+}
+
+//--------------------------------------------------------------------------------------------------
+// Trigger: DEBUG - Sapper Suicide Damage
+//--------------------------------------------------------------------------------------------------
+bool libSprt_gt_DEBUGSapperSuicideDamage_Func (bool testConds, bool runActions) {
+    // Variable Declarations
+    fixed lv_amount;
+
+    // Automatic Variable Declarations
+    // Variable Initialization
+
+    // Conditions
+    if (testConds) {
+        if (!((libSprt_gv_dEBUGSapperMinionsEnabled == true))) {
+            return false;
+        }
+    }
+
+    // Actions
+    if (!runActions) {
+        return true;
+    }
+
+    lv_amount = StringToFixed(StringSub(EventChatMessage(false), 15, 19));
+    CatalogFieldValueSetFixed(c_gameCatalogEffect, "MercLanerGoblinSapperStructureSuicideDamage", "Amount", libStEx_gv_pLAYER_11_ORDER, lv_amount);
+    CatalogFieldValueSetFixed(c_gameCatalogEffect, "MercLanerGoblinSapperStructureSuicideDamage", "Amount", libStEx_gv_pLAYER_12_CHAOS, lv_amount);
+    UIDisplayMessage(PlayerGroupAll(), c_messageAreaSubtitle, (StringExternal("Param/Value/lib_Sprt_994D2C73") + FixedToText(lv_amount, c_fixedPrecisionAny)));
+    return true;
+}
+
+//--------------------------------------------------------------------------------------------------
+void libSprt_gt_DEBUGSapperSuicideDamage_Init () {
+    libSprt_gt_DEBUGSapperSuicideDamage = TriggerCreate("libSprt_gt_DEBUGSapperSuicideDamage_Func");
+    TriggerAddEventChatMessage(libSprt_gt_DEBUGSapperSuicideDamage, c_playerAny, "-sapperdamage", false);
+}
+
+//--------------------------------------------------------------------------------------------------
+// Trigger: DEBUG - Sapper Attack Damage
+//--------------------------------------------------------------------------------------------------
+bool libSprt_gt_DEBUGSapperAttackDamage_Func (bool testConds, bool runActions) {
+    // Variable Declarations
+    fixed lv_amount;
+
+    // Automatic Variable Declarations
+    // Variable Initialization
+
+    // Conditions
+    if (testConds) {
+        if (!((libSprt_gv_dEBUGSapperMinionsEnabled == true))) {
+            return false;
+        }
+    }
+
+    // Actions
+    if (!runActions) {
+        return true;
+    }
+
+    lv_amount = StringToFixed(StringSub(EventChatMessage(false), 15, 19));
+    CatalogFieldValueSetFixed(c_gameCatalogEffect, "MercLanerGoblinSapperDamage", "Amount", libStEx_gv_pLAYER_11_ORDER, lv_amount);
+    CatalogFieldValueSetFixed(c_gameCatalogEffect, "MercLanerGoblinSapperDamage", "Amount", libStEx_gv_pLAYER_12_CHAOS, lv_amount);
+    UIDisplayMessage(PlayerGroupAll(), c_messageAreaSubtitle, (StringExternal("Param/Value/lib_Sprt_37A8E363") + FixedToText(lv_amount, c_fixedPrecisionAny)));
+    return true;
+}
+
+//--------------------------------------------------------------------------------------------------
+void libSprt_gt_DEBUGSapperAttackDamage_Init () {
+    libSprt_gt_DEBUGSapperAttackDamage = TriggerCreate("libSprt_gt_DEBUGSapperAttackDamage_Func");
+    TriggerAddEventChatMessage(libSprt_gt_DEBUGSapperAttackDamage, c_playerAny, "-sapperattack", false);
+}
+
+//--------------------------------------------------------------------------------------------------
+// Trigger: DEBUG - Sapper Health
+//--------------------------------------------------------------------------------------------------
+bool libSprt_gt_DEBUGSapperHealth_Func (bool testConds, bool runActions) {
+    // Variable Declarations
+    fixed lv_amount;
+
+    // Automatic Variable Declarations
+    // Variable Initialization
+
+    // Conditions
+    if (testConds) {
+        if (!((libSprt_gv_dEBUGSapperMinionsEnabled == true))) {
+            return false;
+        }
+    }
+
+    // Actions
+    if (!runActions) {
+        return true;
+    }
+
+    lv_amount = StringToFixed(StringSub(EventChatMessage(false), 15, 19));
+    CatalogFieldValueSetFixed(c_gameCatalogUnit, "MercGoblinSapperLaner", "LifeStart", libStEx_gv_pLAYER_11_ORDER, lv_amount);
+    CatalogFieldValueSetFixed(c_gameCatalogUnit, "MercGoblinSapperLaner", "LifeMax", libStEx_gv_pLAYER_11_ORDER, lv_amount);
+    CatalogFieldValueSetFixed(c_gameCatalogUnit, "MercGoblinSapperLaner", "LifeStart", libStEx_gv_pLAYER_12_CHAOS, lv_amount);
+    CatalogFieldValueSetFixed(c_gameCatalogUnit, "MercGoblinSapperLaner", "LifeMax", libStEx_gv_pLAYER_12_CHAOS, lv_amount);
+    UIDisplayMessage(PlayerGroupAll(), c_messageAreaSubtitle, (StringExternal("Param/Value/lib_Sprt_AF23E390") + FixedToText(lv_amount, c_fixedPrecisionAny)));
+    return true;
+}
+
+//--------------------------------------------------------------------------------------------------
+void libSprt_gt_DEBUGSapperHealth_Init () {
+    libSprt_gt_DEBUGSapperHealth = TriggerCreate("libSprt_gt_DEBUGSapperHealth_Func");
+    TriggerAddEventChatMessage(libSprt_gt_DEBUGSapperHealth, c_playerAny, "-sapperhealth", false);
+}
+
+//--------------------------------------------------------------------------------------------------
 // Trigger: DEBUG - Apply Armor Value Change
 //--------------------------------------------------------------------------------------------------
 bool libSprt_gt_DEBUGApplyArmorValueChange_Func (bool testConds, bool runActions) {
@@ -9087,6 +9287,11 @@ void libSprt_InitTriggers () {
     libSprt_gt_DEBUGEnabletownhalldetection_Init();
     libSprt_gt_DEBUGToggleEUPTLogging_Init();
     libSprt_gt_DEBUGGetBaseUnitStats_Init();
+    libSprt_gt_DEBUGWizardtoSappers_Init();
+    libSprt_gt_DEBUGSapperHealthGlobes_Init();
+    libSprt_gt_DEBUGSapperSuicideDamage_Init();
+    libSprt_gt_DEBUGSapperAttackDamage_Init();
+    libSprt_gt_DEBUGSapperHealth_Init();
     libSprt_gt_DEBUGApplyArmorValueChange_Init();
     libSprt_gt_DEBUGApplySpellPowerValueChange_Init();
 }

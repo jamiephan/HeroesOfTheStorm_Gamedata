@@ -88,6 +88,11 @@ void libCore_InitVariables () {
     libCore_gv_bALXPRadius = 12.75;
     libCore_gv_bALHeroKillCreditTimeWindow = 5.0;
     libCore_gv_bALDeathTimeScaler = 1.0;
+    libCore_gv_brettTimersDeathModifier = 5.0;
+    libCore_gv_brettTimersKillModifier = -1.5;
+    libCore_gv_brettTimersTakedownModifier = -0.5;
+    libCore_gv_brettTimersMinimumTimer = 5.0;
+    libCore_gv_brettTimersMaximumTimer = 65.0;
     libCore_gv_talents_RelentlessCCReduction75_C = 0.75;
     libCore_gv_data_XP_HeroValuePerLevel_C = 50.0;
     for (init_i = 0; init_i <= libCore_gv_bALMaxTeams; init_i += 1) {
@@ -1694,7 +1699,20 @@ fixed libCore_gf_HeroDeathTime (int lp_player, int lp_level) {
         return libCore_gv_bALDeathTimeOverride;
     }
 
-    lv_deathTime = (libCore_gv_bALDeathTimes[lp_level] * libCore_gv_bALDeathTimeScaler);
+    if ((libCore_gv_brettTimersEnabled == true)) {
+        lv_deathTime = (libCore_gv_bALDeathTimes[lp_level] + libGame_gv_players[lp_player].lv_brettTimersTimeMod);
+        if ((lv_deathTime < libCore_gv_brettTimersMinimumTimer)) {
+            lv_deathTime = libCore_gv_brettTimersMinimumTimer;
+        }
+
+        if ((lv_deathTime > libCore_gv_brettTimersMaximumTimer)) {
+            lv_deathTime = libCore_gv_brettTimersMaximumTimer;
+        }
+
+    }
+    else {
+        lv_deathTime = (libCore_gv_bALDeathTimes[lp_level] * libCore_gv_bALDeathTimeScaler);
+    }
     if ((libCore_gv_sYSDeathTimerCap > 0.0)) {
         lv_deathTime = MinF(lv_deathTime, libCore_gv_sYSDeathTimerCap);
     }
@@ -4574,54 +4592,136 @@ void libCore_gt_DataDeathTimes_Init () {
 }
 
 //--------------------------------------------------------------------------------------------------
-// Trigger: Data - Death Times Test Cheat
+// Trigger: Brett Timers - Set Variables
 //--------------------------------------------------------------------------------------------------
-bool libCore_gt_DataDeathTimesTestCheat_Func (bool testConds, bool runActions) {
+bool libCore_gt_BrettTimersSetVariables_Func (bool testConds, bool runActions) {
     // Automatic Variable Declarations
+    // Conditions
+    if (testConds) {
+        if (!((GameCheatsEnabled(c_gameCheatCategoryDevelopment) == true))) {
+            return false;
+        }
+    }
+
     // Actions
     if (!runActions) {
         return true;
     }
 
     TriggerDebugOutput(1, StringExternal("Param/Value/lib_Core_01538C0F"), true);
-    libCore_gv_bALDeathTimes[1] = 15.0;
-    libCore_gv_bALDeathTimes[2] = 16.0;
-    libCore_gv_bALDeathTimes[3] = 17.0;
-    libCore_gv_bALDeathTimes[4] = 18.0;
-    libCore_gv_bALDeathTimes[5] = 19.0;
-    libCore_gv_bALDeathTimes[6] = 20.0;
-    libCore_gv_bALDeathTimes[7] = 21.0;
-    libCore_gv_bALDeathTimes[8] = 22.0;
-    libCore_gv_bALDeathTimes[9] = 23.0;
-    libCore_gv_bALDeathTimes[10] = 24.0;
-    libCore_gv_bALDeathTimes[11] = 26.0;
-    libCore_gv_bALDeathTimes[12] = 29.0;
-    libCore_gv_bALDeathTimes[13] = 32.0;
-    libCore_gv_bALDeathTimes[14] = 36.0;
-    libCore_gv_bALDeathTimes[15] = 40.0;
-    libCore_gv_bALDeathTimes[16] = 44.0;
-    libCore_gv_bALDeathTimes[17] = 50.0;
-    libCore_gv_bALDeathTimes[18] = 56.0;
-    libCore_gv_bALDeathTimes[19] = 62.0;
-    libCore_gv_bALDeathTimes[20] = 65.0;
-    libCore_gv_bALDeathTimes[21] = 65.0;
-    libCore_gv_bALDeathTimes[22] = 65.0;
-    libCore_gv_bALDeathTimes[23] = 65.0;
-    libCore_gv_bALDeathTimes[24] = 65.0;
-    libCore_gv_bALDeathTimes[25] = 65.0;
-    libCore_gv_bALDeathTimes[26] = 65.0;
-    libCore_gv_bALDeathTimes[27] = 65.0;
-    libCore_gv_bALDeathTimes[28] = 65.0;
-    libCore_gv_bALDeathTimes[29] = 65.0;
-    libCore_gv_bALDeathTimes[30] = 65.0;
+    libCore_gv_brettTimersEnabled = true;
+    libCore_gv_bALDeathTimes[1] = 5.0;
+    libCore_gv_bALDeathTimes[2] = 5.0;
+    libCore_gv_bALDeathTimes[3] = 5.0;
+    libCore_gv_bALDeathTimes[4] = 5.0;
+    libCore_gv_bALDeathTimes[5] = 5.0;
+    libCore_gv_bALDeathTimes[6] = 6.0;
+    libCore_gv_bALDeathTimes[7] = 8.0;
+    libCore_gv_bALDeathTimes[8] = 10.0;
+    libCore_gv_bALDeathTimes[9] = 12.0;
+    libCore_gv_bALDeathTimes[10] = 14.0;
+    libCore_gv_bALDeathTimes[11] = 16.0;
+    libCore_gv_bALDeathTimes[12] = 18.0;
+    libCore_gv_bALDeathTimes[13] = 20.0;
+    libCore_gv_bALDeathTimes[14] = 22.0;
+    libCore_gv_bALDeathTimes[15] = 25.0;
+    libCore_gv_bALDeathTimes[16] = 28.0;
+    libCore_gv_bALDeathTimes[17] = 31.0;
+    libCore_gv_bALDeathTimes[18] = 34.0;
+    libCore_gv_bALDeathTimes[19] = 37.0;
+    libCore_gv_bALDeathTimes[20] = 40.0;
+    libCore_gv_bALDeathTimes[21] = 40.0;
+    libCore_gv_bALDeathTimes[22] = 40.0;
+    libCore_gv_bALDeathTimes[23] = 40.0;
+    libCore_gv_bALDeathTimes[24] = 40.0;
+    libCore_gv_bALDeathTimes[25] = 40.0;
+    libCore_gv_bALDeathTimes[26] = 40.0;
+    libCore_gv_bALDeathTimes[27] = 40.0;
+    libCore_gv_bALDeathTimes[28] = 40.0;
+    libCore_gv_bALDeathTimes[29] = 40.0;
+    libCore_gv_bALDeathTimes[30] = 40.0;
     libCore_gv_bALMaxDeathTime = libCore_gv_bALDeathTimes[libCore_gv_bALMaxLevel];
     return true;
 }
 
 //--------------------------------------------------------------------------------------------------
-void libCore_gt_DataDeathTimesTestCheat_Init () {
-    libCore_gt_DataDeathTimesTestCheat = TriggerCreate("libCore_gt_DataDeathTimesTestCheat_Func");
-    TriggerAddEventChatMessage(libCore_gt_DataDeathTimesTestCheat, c_playerAny, "DeathTimes", true);
+void libCore_gt_BrettTimersSetVariables_Init () {
+    libCore_gt_BrettTimersSetVariables = TriggerCreate("libCore_gt_BrettTimersSetVariables_Func");
+    TriggerAddEventChatMessage(libCore_gt_BrettTimersSetVariables, c_playerAny, "-bretttimers", true);
+}
+
+//--------------------------------------------------------------------------------------------------
+// Trigger: Brett Timers - Check Death Timer Mod
+//--------------------------------------------------------------------------------------------------
+bool libCore_gt_BrettTimersCheckDeathTimerMod_Func (bool testConds, bool runActions) {
+    // Variable Declarations
+    int lv_player;
+
+    // Automatic Variable Declarations
+    // Variable Initialization
+    lv_player = EventPlayer();
+
+    // Conditions
+    if (testConds) {
+        if (!((GameCheatsEnabled(c_gameCheatCategoryDevelopment) == true))) {
+            return false;
+        }
+    }
+
+    // Actions
+    if (!runActions) {
+        return true;
+    }
+
+    TextExpressionSetToken("Param/Expression/lib_Core_D9E58343", "B", IntToText(lv_player));
+    TextExpressionSetToken("Param/Expression/lib_Core_D9E58343", "A", FixedToText(libGame_gv_players[lv_player].lv_brettTimersTimeMod, 2));
+    TriggerDebugOutput(1, TextExpressionAssemble("Param/Expression/lib_Core_D9E58343"), true);
+    return true;
+}
+
+//--------------------------------------------------------------------------------------------------
+void libCore_gt_BrettTimersCheckDeathTimerMod_Init () {
+    libCore_gt_BrettTimersCheckDeathTimerMod = TriggerCreate("libCore_gt_BrettTimersCheckDeathTimerMod_Func");
+    TriggerAddEventChatMessage(libCore_gt_BrettTimersCheckDeathTimerMod, c_playerAny, "-mybretttimer", true);
+}
+
+//--------------------------------------------------------------------------------------------------
+// Trigger: Brett Timers - Takedown Participation
+//--------------------------------------------------------------------------------------------------
+bool libCore_gt_BrettTimersTakedownParticipation_Func (bool testConds, bool runActions) {
+    // Variable Declarations
+    int lv_player;
+    int lv_lastHitPlayer;
+
+    // Automatic Variable Declarations
+    // Variable Initialization
+    lv_player = libGame_gf_HeroParticipatedInTakedownKillingPlayer();
+    lv_lastHitPlayer = libGame_gf_HeroParticipatedInTakedownLastHitPlayer();
+
+    // Conditions
+    if (testConds) {
+        if (!((libCore_gv_brettTimersEnabled == true))) {
+            return false;
+        }
+    }
+
+    // Actions
+    if (!runActions) {
+        return true;
+    }
+
+    libGame_gv_players[lv_player].lv_brettTimersTimeMod += libCore_gv_brettTimersTakedownModifier;
+    if ((lv_lastHitPlayer == lv_player)) {
+        libGame_gv_players[lv_player].lv_brettTimersTimeMod += libCore_gv_brettTimersKillModifier;
+    }
+
+    return true;
+}
+
+//--------------------------------------------------------------------------------------------------
+void libCore_gt_BrettTimersTakedownParticipation_Init () {
+    libCore_gt_BrettTimersTakedownParticipation = TriggerCreate("libCore_gt_BrettTimersTakedownParticipation_Func");
+    libGame_gf_HeroParticipatedInTakedown(libCore_gt_BrettTimersTakedownParticipation);
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -5092,7 +5192,9 @@ void libCore_InitTriggers () {
     libCore_gt_DataMinionWaveCompositionData_Init();
     libCore_gt_DataInitializeMountData_Init();
     libCore_gt_DataDeathTimes_Init();
-    libCore_gt_DataDeathTimesTestCheat_Init();
+    libCore_gt_BrettTimersSetVariables_Init();
+    libCore_gt_BrettTimersCheckDeathTimerMod_Init();
+    libCore_gt_BrettTimersTakedownParticipation_Init();
     libCore_gt_DataInitializeSkinData_Init();
     libCore_gt_DataEnableGranularBountyXPMathDisplay_Init();
     libCore_gt_DataXPInitializeLevelXPValues_Init();

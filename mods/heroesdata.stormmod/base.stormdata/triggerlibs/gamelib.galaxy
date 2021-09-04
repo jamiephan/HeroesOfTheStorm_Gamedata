@@ -295,7 +295,7 @@ void libGame_InitVariables () {
         libGame_gv_players[init_i].lv_mountData.lv_mountModel = "HorseMount";
         libGame_gv_players[init_i].lv_mountData.lv_mountActor = "MountModel";
         libGame_gv_players[init_i].lv_mountData.lv_mountModelScale = 1.0;
-        libGame_gv_players[init_i].lv_mountData.lv_mountModelWalkAnimMoveSpeed = 4.5;
+        libGame_gv_players[init_i].lv_mountData.lv_mountModelWalkAnimMoveSpeed = 4.8;
         libGame_gv_players[init_i].lv_mountData.lv_mountPoseAnimGroup = "Ride";
         libGame_gv_players[init_i].lv_mountData.lv_mountPoseAnimGroupStatus = "Ride";
         for (init_i2 = 0; init_i2 <= libCore_gv_dataMountsMaxActorMessageCount; init_i2 += 1) {
@@ -8913,8 +8913,17 @@ void libGame_gf_CalculateSpawnedMinionGoalPointsFromClosestLaneData (int lp_owne
 void libGame_gf_ApplyMountBehaviorToHero (unit lp_hero) {
     // Automatic Variable Declarations
     // Implementation
-    if ((libGame_gv_players[libCore_gf_GetHeroIndexForUnitType(UnitGetType(lp_hero))].lv_heroData.lv_usesMounts == true)) {
+    if ((libGame_gv_players[libCore_gf_GetHeroIndexForUnitType(UnitGetType(lp_hero))].lv_heroData.lv_usesMounts == true) && (libGame_gv_players[UnitGetOwner(lp_hero)].lv_defaultMountOverride == null)) {
         UnitBehaviorAdd(lp_hero, "Mounted", lp_hero, 1);
+    }
+
+    if ((libGame_gv_players[libCore_gf_GetHeroIndexForUnitType(UnitGetType(lp_hero))].lv_heroData.lv_usesMounts == true) && (libGame_gv_players[UnitGetOwner(lp_hero)].lv_defaultMountOverride != null)) {
+        if ((PlayerHasTalent(UnitGetOwner(lp_hero), "JunkratIHateWaitingTalent") == true)) {
+            UnitBehaviorAdd(lp_hero, libGame_gv_players[UnitGetOwner(lp_hero)].lv_defaultMountOverride, lp_hero, 1);
+        }
+        else {
+            UnitBehaviorAdd(lp_hero, "Mounted", lp_hero, 1);
+        }
     }
 
 }
@@ -10589,6 +10598,7 @@ bool auto_libGame_gf_SpawnHero_TriggerFunc (bool testConds, bool runActions) {
 
     libNtve_gf_CreateUnitsAtPoint2(1, libGame_gv_players[lp_heroIndex].lv_heroData.lv_unitType, c_unitCreateIgnorePlacement, lp_player, lp_spawnLocation, null);
     libGame_gv_players[lp_player].lv_heroUnit = UnitLastCreated();
+    PlayerSetHeroUnit(lp_player, libGame_gv_players[lp_player].lv_heroUnit);
     libAIAI_gv_aIHeroes[lp_player].lv_currentHeroUnit = libGame_gv_players[lp_player].lv_heroUnit;
     UnitGroupClear(libGame_gv_players[lp_player].lv_heroUnitGroup);
     UnitGroupAdd(libGame_gv_players[lp_player].lv_heroUnitGroup, UnitLastCreated());
@@ -15666,6 +15676,10 @@ bool libGame_gt_StartGame_Func (bool testConds, bool runActions) {
         TimerStart(libGame_gv_openTheGatesTimer, 45.0, false, c_timeGame);
     }
     else {
+        if ((libGDHL_gv_gPU2020EventEnabled == true)) {
+            TimerStart(libGDHL_gv_gPU2020GateTimer, (libCore_gv_bALOpenTheGatesDelay - libGDHL_gv_gPU2020TimerDurationMod), false, c_timeGame);
+        }
+
         TimerStart(libGame_gv_openTheGatesTimer, libCore_gv_bALOpenTheGatesDelay, false, c_timeGame);
     }
     libGame_gf_SendEventGameOpenTimerStarted();
@@ -16940,6 +16954,10 @@ bool libGame_gt_HeroDeathHeroDies_Func (bool testConds, bool runActions) {
     libGame_gf_CameraUpdateCameraForPlayer(lv_deadPlayer);
     libGame_gf_SendEventHeroKilled(lv_killingPlayer, lv_deadUnit);
     libGame_gf_HeroDeathStartRespawnTimer(lv_deadPlayer, libCore_gf_HeroDeathTime(lv_deadPlayer, UnitLevel(libGame_gv_players[lv_deadPlayer].lv_heroUnit)));
+    if ((libCore_gv_brettTimersEnabled == true)) {
+        libGame_gv_players[lv_deadPlayer].lv_brettTimersTimeMod += libCore_gv_brettTimersDeathModifier;
+    }
+
     libGame_gf_HeroDeathUpdateUIElementsForDeath(true, true, true, lv_deadPlayer, lv_killingPlayer);
     libGame_gf_HeroDeathEnableDisableDeadSoundStateForPlayer(true, lv_deadPlayer);
     libGame_gf_HeroDeathPortHeroBackAndSetDeathState(lv_deadPlayer, libGame_gv_players[lv_deadPlayer].lv_spawnPoint);
@@ -17563,6 +17581,10 @@ bool libGame_gt_HeroDeathSpecialDeathStateDiesTyraelUther_Func (bool testConds, 
     libGame_gf_HeroDeathEnableDisableDeadSoundStateForPlayer(true, lv_deadPlayer);
     libGame_gf_HeroDeathPortHeroBackAndSetDeathState(lv_deadPlayer, libGame_gv_players[lv_deadPlayer].lv_spawnPoint);
     libGame_gf_AfkPauseWarningTimerForPlayer(lv_deadPlayer, true);
+    if ((libCore_gv_brettTimersEnabled == true)) {
+        libGame_gv_players[lv_deadPlayer].lv_brettTimersTimeMod += libCore_gv_brettTimersDeathModifier;
+    }
+
     return true;
 }
 
@@ -19254,6 +19276,7 @@ void libGame_gt_OnFireForcedUpdate_Init () {
     libGame_gt_OnFireForcedUpdate = TriggerCreate("libGame_gt_OnFireForcedUpdate_Func");
     libGame_gf_MercCampCaptured(libGame_gt_OnFireForcedUpdate);
     libGame_gf_HeroKilled(libGame_gt_OnFireForcedUpdate);
+    libGame_gf_HeroEntersSpecialDeathState(libGame_gt_OnFireForcedUpdate);
     libGame_gf_TownStructureEntersSpecialDeathState(libGame_gt_OnFireForcedUpdate);
 }
 

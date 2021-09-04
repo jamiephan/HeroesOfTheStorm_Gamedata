@@ -1249,7 +1249,7 @@
     <HostSiteOps Ops="SOpAttachWeapon" />
     <Model value="LostVikingsBaleogWeaponTrail" />
   </CActorModel>
-  <CActorAction id="BaleogSwordAttack" parent="MeleeHeroAttack" effectAttack="BaleogSwordWeaponDamageSwitch">
+  <CActorAction id="BaleogSwordAttack" parent="MeleeHeroAttack" effectAttack="BaleogSwordWeaponDamage">
     <ImpactMap index="None" Sound="LostVikingsBaleog_AttackImpact_Unit_Close" />
     <ImpactMap index="Rock" Sound="LostVikingsBaleog_AttackImpact_Building" />
   </CActorAction>
@@ -1257,8 +1257,6 @@
     <HostSiteOps Ops="SOpAttachCenter" />
     <On Terms="Effect.BaleogBowWeaponSplashDamage.Start; At Target" Send="Create" />
     <On Terms="Effect.BaleogSwordWeaponSplashDamage.Start; At Target" Send="Create" />
-    <On Terms="Effect.BaleogBowWeaponSplashDamageHeroic.Start; At Target" Send="Create" />
-    <On Terms="Effect.BaleogSwordWeaponSplashDamageHeroic.Start; At Target" Send="Create" />
     <Model value="LostVikingsBaleogDamageImpact" />
   </CActorModel>
   <CActorMissile id="BaleogBowAttackMissile" parent="StormMissileWithDeathEarly" unitName="HeroBaleogBowMissile" />
@@ -1977,9 +1975,7 @@
   <CBehaviorBuff id="LostVikingsBaleogSplashDamageController" parent="CarryBehaviorParent">
     <DamageResponse Chance="1" Location="Attacker" ModifyFraction="0.5">
       <RequireEffectArray value="BaleogBowWeaponSplashDamage" />
-      <RequireEffectArray value="BaleogBowWeaponSplashDamageHeroic" />
       <RequireEffectArray value="BaleogSwordWeaponSplashDamage" />
-      <RequireEffectArray value="BaleogSwordWeaponSplashDamageHeroic" />
     </DamageResponse>
   </CBehaviorBuff>
   <CBehaviorBuff id="LostVikingsControllerDamageReductionBehavior">
@@ -2382,8 +2378,6 @@
       <ExcludeEffectArray value="SiegeWeaponSplashDamage" />
       <ExcludeEffectArray value="SiegeWeaponSplashDamageArtillery" />
       <ExcludeEffectArray value="MedusaBladesSideWeaponDamage" />
-      <ExcludeEffectArray value="BaleogBowWeaponSplashDamageHeroic" />
-      <ExcludeEffectArray value="BaleogSwordWeaponSplashDamageHeroic" />
       <ValidatorArray value="CasterNotBlindedAndTargetNotEvading" />
       <Kind index="Ability" value="0" />
       <ProvideCategories index="Proc" value="1" />
@@ -3986,101 +3980,80 @@
   <CEffectLaunchMissile id="BaleogBowWeaponLaunchMissile">
     <ValidatorArray index="0" value="CasterNotDead" />
     <ImpactEffect value="BaleogBowWeaponImpactSet" />
-    <AmmoUnit value="HeroBaleogBowMissile" />
-    <Movers Link="HeroMissileSpeed22Ribbon" />
     <ImpactRange value="1" />
     <SharedFlags index="ValidateWeapon" value="0" />
+    <AmmoUnit value="HeroBaleogBowMissile" />
+    <Movers Link="HeroMissileSpeed22Ribbon" />
   </CEffectLaunchMissile>
   <CEffectSet id="BaleogBowWeaponLaunchSet">
     <EffectArray value="BaleogBowWeaponLaunchMissile" />
     <EffectArray value="UniversalWeaponLaunchSet" />
   </CEffectSet>
-  <CEffectSwitch id="BaleogBowWeaponDamageSwitch">
-    <CaseArray Validator="TargetIsHero" Effect="BaleogBowWeaponDamageHeroic" />
-    <CaseDefault value="BaleogBowWeaponDamage" />
-  </CEffectSwitch>
-  <CEffectSwitch id="BaleogBowWeaponSplashDamageSwitch">
-    <CaseArray Validator="TargetIsHero" Effect="BaleogBowWeaponSplashDamageHeroic" />
-    <CaseDefault value="BaleogBowWeaponSplashDamage" />
-  </CEffectSwitch>
   <CEffectSet id="BaleogBowWeaponImpactSet">
     <EffectArray value="UniversalWeaponImpact" />
     <EffectArray value="LostVikingBaleogTheFierceImpactSet" />
     <EffectArray value="LostVikingsImpatienceIsAVirtueSet" />
-    <EffectArray value="BaleogBowWeaponDamageSwitch" />
-    <EffectArray value="BaleogBowWeaponSplashImpactSet" />
+    <EffectArray value="BaleogBowWeaponDamage" />
+    <EffectArray value="BaleogBowWeaponSplashSearchArea" />
   </CEffectSet>
   <CEffectEnumArea id="BaleogBowWeaponSplashSearchArea">
+    <ValidatorArray value="CasterNotBlindedAndTargetNotEvading" />
+    <ImpactLocation Value="TargetUnit" />
+    <ExcludeArray Effect="BaleogBowWeaponImpactSet" Value="Target" />
     <SearchFilters value="-;Player,Ally,Neutral,ImmuneToAOE,Missile,Item,Stasis,Dead,Hidden,Invulnerable" />
-    <AreaArray Arc="64.995" FacingAdjustment="0.9997" Effect="BaleogBowWeaponSplashDamageSwitch">
+    <AreaArray Arc="64.995" FacingAdjustment="0.9997" Effect="BaleogBowWeaponSplashDamage">
       <Radius value="5" />
     </AreaArray>
-    <ExcludeArray Effect="BaleogBowWeaponImpactSet" Value="Target" />
     <RevealerParams Duration="0.5">
       <RevealFlags index="Unfog" value="1" />
     </RevealerParams>
-    <ImpactLocation Value="TargetUnit" />
-    <ValidatorArray value="CasterNotBlindedAndTargetNotEvading" />
   </CEffectEnumArea>
   <CEffectDamage id="BaleogBowWeaponSplashDamage" parent="StormWeapon">
+    <MultiplicativeModifierArray index="ExplosiveAttacks" Validator="TargetNotHeroANDLostVikingsHasExplosiveAttacks" Modifier="1" Crit="1" />
     <Amount value="73" />
     <ExcludeArray Value="Target" />
+    <LeechMultiplicativeModifierArray index="PainDontHurtIsHero" Validator="LostVikingsHasPainDontHurtANDTargetIsHero" Modifier="1" Crit="1" />
+    <LeechValidator index="Life" value="LostVikingsHasPainDontHurt" />
+    <LeechFraction index="Life" value="0.2" />
   </CEffectDamage>
-  <CEffectDamage id="BaleogBowWeaponSplashDamageHeroic" parent="StormWeapon">
-    <Amount value="73" />
-    <ExcludeArray Value="Target" />
-  </CEffectDamage>
-  <CEffectSet id="BaleogBowWeaponSplashImpactSet">
-    <EffectArray value="BaleogBowWeaponSplashSearchArea" />
-  </CEffectSet>
   <CEffectDamage id="BaleogBowWeaponDamage" parent="StormWeapon">
     <Amount value="73" />
     <SearchFilters value="-;Player,Ally,Neutral,ImmuneToAOE,Missile,Item,Stasis,Dead,Hidden,Invulnerable" />
+    <LeechMultiplicativeModifierArray index="PainDontHurtIsHero" Validator="LostVikingsHasPainDontHurtANDTargetIsHero" Modifier="1" Crit="1" />
+    <LeechValidator index="Life" value="LostVikingsHasPainDontHurt" />
+    <LeechFraction index="Life" value="0.2" />
   </CEffectDamage>
-  <CEffectDamage id="BaleogBowWeaponDamageHeroic" parent="StormWeapon">
-    <Amount value="73" />
-    <SearchFilters value="-;Player,Ally,Neutral,ImmuneToAOE,Missile,Item,Stasis,Dead,Hidden,Invulnerable" />
-  </CEffectDamage>
-  <CEffectDamage id="BaleogSwordWeaponDamageHeroic" parent="StormWeapon">
-    <Amount value="73" />
-    <SearchFilters value="-;Player,Ally,Neutral,ImmuneToAOE,Missile,Item,Stasis,Dead,Hidden,Invulnerable" />
-  </CEffectDamage>
-  <CEffectSwitch id="BaleogSwordWeaponDamageSwitch">
-    <CaseArray Validator="TargetIsHero" Effect="BaleogSwordWeaponDamageHeroic" />
-    <CaseDefault value="BaleogSwordWeaponDamage" />
-  </CEffectSwitch>
-  <CEffectSwitch id="BaleogSwordWeaponSplashDamageSwitch">
-    <CaseArray Validator="TargetIsHero" Effect="BaleogSwordWeaponSplashDamageHeroic" />
-    <CaseDefault value="BaleogSwordWeaponSplashDamage" />
-  </CEffectSwitch>
   <CEffectSet id="BaleogSwordWeaponImpactSet">
     <EffectArray value="UniversalWeaponLaunchSet" />
     <EffectArray value="UniversalWeaponImpact" />
     <EffectArray value="LostVikingBaleogTheFierceImpactSet" />
     <EffectArray value="LostVikingsImpatienceIsAVirtueSet" />
-    <EffectArray value="BaleogSwordWeaponDamageSwitch" />
+    <EffectArray value="BaleogSwordWeaponDamage" />
     <EffectArray value="BaleogSwordWeaponSplashSearchArea" />
   </CEffectSet>
   <CEffectEnumArea id="BaleogSwordWeaponSplashSearchArea">
+    <ValidatorArray value="CasterNotBlindedAndTargetNotEvading" />
+    <ImpactLocation Value="TargetUnit" />
     <ExcludeArray Effect="BaleogSwordWeaponImpactSet" Value="Target" />
     <SearchFilters value="-;Player,Ally,Neutral,ImmuneToAOE,Missile,Item,Stasis,Dead,Hidden,Invulnerable" />
-    <AreaArray Arc="64.995" FacingAdjustment="0.9997" Effect="BaleogSwordWeaponSplashDamageSwitch">
+    <AreaArray Arc="64.995" FacingAdjustment="0.9997" Effect="BaleogSwordWeaponSplashDamage">
       <Radius value="5" />
     </AreaArray>
-    <ImpactLocation Value="TargetUnit" />
-    <ValidatorArray value="CasterNotBlindedAndTargetNotEvading" />
   </CEffectEnumArea>
   <CEffectDamage id="BaleogSwordWeaponSplashDamage" parent="StormWeapon">
+    <MultiplicativeModifierArray index="ExplosiveAttacks" Validator="TargetNotHeroANDLostVikingsHasExplosiveAttacks" Modifier="1" Crit="1" />
     <Amount value="73" />
     <ExcludeArray Value="Target" />
-  </CEffectDamage>
-  <CEffectDamage id="BaleogSwordWeaponSplashDamageHeroic" parent="StormWeapon">
-    <Amount value="73" />
-    <ExcludeArray Value="Target" />
+    <LeechMultiplicativeModifierArray index="PainDontHurtIsHero" Validator="LostVikingsHasPainDontHurtANDTargetIsHero" Modifier="1" Crit="1" />
+    <LeechValidator index="Life" value="LostVikingsHasPainDontHurt" />
+    <LeechFraction index="Life" value="0.2" />
   </CEffectDamage>
   <CEffectDamage id="BaleogSwordWeaponDamage" parent="StormWeapon">
     <Amount value="73" />
     <SearchFilters value="-;Player,Ally,Neutral,ImmuneToAOE,Missile,Item,Stasis,Dead,Hidden,Invulnerable" />
+    <LeechMultiplicativeModifierArray index="PainDontHurtIsHero" Validator="LostVikingsHasPainDontHurtANDTargetIsHero" Modifier="1" Crit="1" />
+    <LeechValidator index="Life" value="LostVikingsHasPainDontHurt" />
+    <LeechFraction index="Life" value="0.2" />
   </CEffectDamage>
   <CEffectApplyBehavior id="LostVikingsOlafChargeApplySlowBehavior" parent="StormSlowApply">
     <Behavior value="LostVikingsOlafChargeSlow" />
@@ -4764,21 +4737,7 @@
       </Modifications>
       <Modifications>
         <Catalog value="Effect" />
-        <Entry value="BaleogSwordWeaponDamageHeroic" />
-        <Field value="Amount" />
-        <Value value="0.040000" />
-        <AffectedByOverdrive value="1" />
-      </Modifications>
-      <Modifications>
-        <Catalog value="Effect" />
         <Entry value="BaleogSwordWeaponSplashDamage" />
-        <Field value="Amount" />
-        <Value value="0.040000" />
-        <AffectedByOverdrive value="1" />
-      </Modifications>
-      <Modifications>
-        <Catalog value="Effect" />
-        <Entry value="BaleogSwordWeaponSplashDamageHeroic" />
         <Field value="Amount" />
         <Value value="0.040000" />
         <AffectedByOverdrive value="1" />
@@ -4792,21 +4751,7 @@
       </Modifications>
       <Modifications>
         <Catalog value="Effect" />
-        <Entry value="BaleogBowWeaponDamageHeroic" />
-        <Field value="Amount" />
-        <Value value="0.040000" />
-        <AffectedByOverdrive value="1" />
-      </Modifications>
-      <Modifications>
-        <Catalog value="Effect" />
         <Entry value="BaleogBowWeaponSplashDamage" />
-        <Field value="Amount" />
-        <Value value="0.040000" />
-        <AffectedByOverdrive value="1" />
-      </Modifications>
-      <Modifications>
-        <Catalog value="Effect" />
-        <Entry value="BaleogBowWeaponSplashDamageHeroic" />
         <Field value="Amount" />
         <Value value="0.040000" />
         <AffectedByOverdrive value="1" />
@@ -5533,64 +5478,6 @@
   </CTalent>
   <CTalent id="LostVikingsMasteryPainDontHurt">
     <Face value="LostVikingsPainDontHurtTalent" />
-    <AbilityModificationArray>
-      <Modifications>
-        <Type value="FlatModification" />
-        <Catalog value="Effect" />
-        <Entry value="BaleogSwordWeaponSplashDamage" />
-        <Field value="LeechFraction[Life]" />
-        <Value value="0.200000" />
-      </Modifications>
-      <Modifications>
-        <Type value="FlatModification" />
-        <Catalog value="Effect" />
-        <Entry value="BaleogBowWeaponSplashDamage" />
-        <Field value="LeechFraction[Life]" />
-        <Value value="0.200000" />
-      </Modifications>
-      <Modifications>
-        <Type value="FlatModification" />
-        <Catalog value="Effect" />
-        <Entry value="BaleogSwordWeaponDamage" />
-        <Field value="LeechFraction[Life]" />
-        <Value value="0.200000" />
-      </Modifications>
-      <Modifications>
-        <Type value="FlatModification" />
-        <Catalog value="Effect" />
-        <Entry value="BaleogBowWeaponDamage" />
-        <Field value="LeechFraction[Life]" />
-        <Value value="0.200000" />
-      </Modifications>
-      <Modifications>
-        <Type value="FlatModification" />
-        <Catalog value="Effect" />
-        <Entry value="BaleogSwordWeaponSplashDamageHeroic" />
-        <Field value="LeechFraction[Life]" />
-        <Value value="0.400000" />
-      </Modifications>
-      <Modifications>
-        <Type value="FlatModification" />
-        <Catalog value="Effect" />
-        <Entry value="BaleogBowWeaponSplashDamageHeroic" />
-        <Field value="LeechFraction[Life]" />
-        <Value value="0.400000" />
-      </Modifications>
-      <Modifications>
-        <Type value="FlatModification" />
-        <Catalog value="Effect" />
-        <Entry value="BaleogSwordWeaponDamageHeroic" />
-        <Field value="LeechFraction[Life]" />
-        <Value value="0.400000" />
-      </Modifications>
-      <Modifications>
-        <Type value="FlatModification" />
-        <Catalog value="Effect" />
-        <Entry value="BaleogBowWeaponDamageHeroic" />
-        <Field value="LeechFraction[Life]" />
-        <Value value="0.400000" />
-      </Modifications>
-    </AbilityModificationArray>
   </CTalent>
   <CTalent id="LostVikingsMasteryImpatienceIsAVirtue">
     <Face value="LostVikingsImpatienceIsAVirtueTalent" />
@@ -5737,78 +5624,6 @@
   </CTalent>
   <CTalent id="LostVikingsMasteryExplosiveAttacks">
     <Face value="LostVikingsExplosiveAttacksTalent" />
-    <AbilityModificationArray>
-      <Modifications>
-        <Type value="FlatModification" />
-        <Catalog value="Effect" />
-        <Entry value="BaleogSwordWeaponSplashDamage" />
-        <Field value="AttributeFactor[Merc]" />
-        <Value value="1.000000" />
-      </Modifications>
-      <Modifications>
-        <Type value="FlatModification" />
-        <Catalog value="Effect" />
-        <Entry value="BaleogSwordWeaponSplashDamage" />
-        <Field value="AttributeFactor[Minion]" />
-        <Value value="1.000000" />
-      </Modifications>
-      <Modifications>
-        <Type value="FlatModification" />
-        <Catalog value="Effect" />
-        <Entry value="BaleogSwordWeaponSplashDamage" />
-        <Field value="AttributeFactor[Structure]" />
-        <Value value="1.000000" />
-      </Modifications>
-      <Modifications>
-        <Type value="FlatModification" />
-        <Catalog value="Effect" />
-        <Entry value="BaleogBowWeaponSplashDamage" />
-        <Field value="AttributeFactor[Merc]" />
-        <Value value="1.000000" />
-      </Modifications>
-      <Modifications>
-        <Type value="FlatModification" />
-        <Catalog value="Effect" />
-        <Entry value="BaleogBowWeaponSplashDamage" />
-        <Field value="AttributeFactor[Minion]" />
-        <Value value="1.000000" />
-      </Modifications>
-      <Modifications>
-        <Type value="FlatModification" />
-        <Catalog value="Effect" />
-        <Entry value="BaleogBowWeaponSplashDamage" />
-        <Field value="AttributeFactor[Structure]" />
-        <Value value="1.000000" />
-      </Modifications>
-      <Modifications>
-        <Type value="FlatModification" />
-        <Catalog value="Effect" />
-        <Entry value="BaleogSwordWeaponSplashDamage" />
-        <Field value="AttributeFactor[Summoned]" />
-        <Value value="1.000000" />
-      </Modifications>
-      <Modifications>
-        <Type value="FlatModification" />
-        <Catalog value="Effect" />
-        <Entry value="BaleogSwordWeaponSplashDamage" />
-        <Field value="AttributeFactor[Creep]" />
-        <Value value="1.000000" />
-      </Modifications>
-      <Modifications>
-        <Type value="FlatModification" />
-        <Catalog value="Effect" />
-        <Entry value="BaleogBowWeaponSplashDamage" />
-        <Field value="AttributeFactor[Summoned]" />
-        <Value value="1.000000" />
-      </Modifications>
-      <Modifications>
-        <Type value="FlatModification" />
-        <Catalog value="Effect" />
-        <Entry value="BaleogBowWeaponSplashDamage" />
-        <Field value="AttributeFactor[Creep]" />
-        <Value value="1.000000" />
-      </Modifications>
-    </AbilityModificationArray>
   </CTalent>
   <CTalent id="LostVikingsMasteryNordicAttackSquad">
     <Face value="LostVikingsNordicAttackSquad" />
@@ -6288,6 +6103,16 @@
     <BehaviorArray Link="LostVikingsPlayAgainCairnFXTimer" />
     <PlaneArray index="Air" value="1" />
   </CUnit>
+  <CValidatorCombine id="LostVikingsHasPainDontHurtANDTargetIsHero">
+    <Type value="And" />
+    <CombineArray value="LostVikingsHasPainDontHurt" />
+    <CombineArray value="TargetIsHero" />
+  </CValidatorCombine>
+  <CValidatorCombine id="TargetNotHeroANDLostVikingsHasExplosiveAttacks">
+    <Type value="And" />
+    <CombineArray value="TargetNotHero" />
+    <CombineArray value="LostVikingsHasExplosiveAttacks" />
+  </CValidatorCombine>
   <CValidatorUnitCompareBehaviorCount id="LostVikingsTargetHasLongboatRaidExpirationRestictor">
     <Value value="1" />
     <Behavior value="LongboatRaidExpirationRestrictor" />

@@ -340,6 +340,8 @@
     <On Terms="UnitTaunt.*.Cancel; UnitWalking" Target="NexusHunterDanceSound" Send="Destroy" />
     <On Terms="UnitMovementUpdate.*.Walk" Target="NexusHunterDanceAttachment" Send="Destroy" />
     <On Terms="UnitMovementUpdate.*.Walk" Target="NexusHunterDanceSound" Send="Destroy" />
+    <On Terms="UnitDeath" Target="NexusHunterGrapplingHookMissileBeam" Send="Destroy Immediate" />
+    <On Terms="UnitTaunt.*.Start; Taunt Dance" Send="Signal ApplyReady" />
     <Remove Terms="AnimPlay; AnimName Spell" Send="TimerSet 0.750000 UnitWalkingCheckDelay" />
     <Remove Terms="UnitTaunt.*.Start; Taunt Dance; !HasStatus DanceB" Send="AnimPlay Dance Stand,Dance,A 0 -1.000000 -1.000000 1.000000 AsTimeScale" />
     <GroupIcon>
@@ -723,7 +725,7 @@
     <HostSiteOps Ops="SOpAttachCenter SOp2DRotation SOpForwardSouth" />
   </CActorModel>
   <CActorQuad id="NexusHunterRevolvingSweepGuide" parent="StormGuideVisualQuadDownFantasy" abil="NexusHunterRevolvingSweep">
-    <Height value="9.000000" />
+    <Height value="8.750000" />
     <Width value="1.000000" />
   </CActorQuad>
   <CActorSound id="NexusHunterRevolvingSweepCastSound" parent="SoundOneShot">
@@ -1627,6 +1629,12 @@
   </CButton>
   <CButton id="NexusHunterRevolvingSweepSecondary" parent="StormButtonParent">
     <Icon value="Assets\Textures\storm_ui_icon_nexushunter_e.dds" />
+    <TooltipAppender Validator="NexusHunterHasEnsnaringSwingTalent" Face="NexusHunterEnsnaringSwing" />
+    <TooltipAppender Validator="NexusHunterHasSiphoningLinkTalent" Face="NexusHunterSiphoningLink" />
+    <TooltipAppender Validator="NexusHunterHasPulsingPainTalent" Face="NexusHunterPulsingPain" />
+    <TooltipAppender Validator="NexusHunterHasRevolvingSweepBoomingKickTalent" Face="NexusHunterRevolvingSweepBoomingKick" />
+    <TooltipAppender Validator="NexusHunterHasRevolvingSweepLingeringAilmentTalent" Face="NexusHunterRevolvingSweepLingeringAilment" />
+    <TooltipAppender Validator="NexusHunterHasRevolvingSweepSwingLifeAwayTalent" Face="NexusHunterRevolvingSweepSwingLifeAway" />
   </CButton>
   <CButton id="NexusHunterRevolvingSweep" parent="StormButtonParent">
     <Icon value="Assets\Textures\storm_ui_icon_nexushunter_e.dds" />
@@ -1743,7 +1751,6 @@
   </CEffectRemoveBehavior>
   <CEffectSet id="NexusHunterRevolvingSweepSwingLifeAwayAttachedSet">
     <ValidatorArray value="NexusHunterHasRevolvingSweepSwingLifeAwayTalent" />
-    <EffectArray value="NexusHunterRevolvingSweepSwingLifeAwayAttachedArmorBonusApplyBehavior" />
     <EffectArray value="NexusHunterRevolvingSweepSwingLifeAwayCooldownReduction" />
   </CEffectSet>
   <CEffectApplyBehavior id="NexusHunterTheHuntedCasterApply">
@@ -1897,6 +1904,7 @@
   <CEffectDamage id="NexusHunterFinalStrikeDamage" parent="StormSpell">
     <MultiplicativeModifierArray index="BonusHeroDamage" Validator="NexusHunterFinalStrikeTargetIsHeroAndTargetLT50PercentHealth" Modifier="0.25" Crit="1" />
     <MultiplicativeModifierArray index="UnleashedPotentialDamageBonus" Validator="NexusHunterFinalStrikeTargetIsHeroAndTargetLT50PercentHealthAndHasUnleashedPotential" Modifier="0.25" Crit="1" />
+    <MultiplicativeModifierArray index="NoSanctuary" Validator="NexusHunterHuntersVengeanceBonusDamageCombine" Modifier="0.2" />
     <Amount value="395" />
     <SourceButtonFace value="NexusHunterFinalStrike" />
   </CEffectDamage>
@@ -1988,6 +1996,7 @@
     </Amount>
     <SourceButtonFace value="NexusHunterBloodRage" />
     <MultiplicativeModifierArray index="0" Validator="NexusHunterFatalWoundsDamageValidator" Modifier="0.4" Crit="1" />
+    <MultiplicativeModifierArray index="NoSanctuary" Validator="NexusHunterHuntersVengeanceBonusDamageCombine" Modifier="0.2" />
   </CEffectDamage>
   <CEffectSet id="NexusHunterBloodRageDoTFinalSet">
     <EffectArray value="NexusHunterBloodRageDamageTokenRemove" />
@@ -2006,6 +2015,7 @@
   <CEffectDamage id="NexusHunterBloodRageDelayedDeliveryDamage" parent="StormSpellDot">
     <Amount value="150" />
     <MultiplicativeModifierArray index="DelayedDelivery" Validator="NexusHunterHuntersVengeanceBonusDamageCombine" Modifier="0.2" />
+    <MultiplicativeModifierArray index="NoSanctuary" Validator="NexusHunterHuntersVengeanceBonusDamageCombine" Modifier="0.2" />
     <Flags index="Crit" value="1" />
     <SourceButtonFace value="NexusHunterBloodRageDelayedDelivery" />
   </CEffectDamage>
@@ -2051,6 +2061,7 @@
       <AccumulatorArray value="NexusHunterBloodRageActivateDamageToken" />
     </Amount>
     <CritValidatorArray index="0" value="NexusHunterBloodRageActivateDamageCritValidator" />
+    <MultiplicativeModifierArray index="NoSanctuary" Validator="NexusHunterHuntersVengeanceBonusDamageCombine" Modifier="0.2" />
   </CEffectDamage>
   <CEffectApplyBehavior id="NexusHunterBloodRageYourPainMyGainApplyBehavior">
     <Behavior value="NexusHunterBloodRageYourPainMyGainBehavior" />
@@ -2161,8 +2172,6 @@
     <EffectArray value="NexusHunterRevolvingSweepRemoveTargetPersistentEnumerateTrackedUnits" />
     <EffectArray value="NexusHunterRevolvingSweepClearTrackedUnits" />
     <EffectArray value="NexusHunterRevolvingSweepWindProtectionEvadeApplyBehavior" />
-    <EffectArray value="NexusHunterRevolvingSweepSwingLifeAwayAttachedArmorBonusRemoveBehavior" />
-    <EffectArray value="NexusHunterRevolvingSweepExpirationSwingLifeAwayArmorBonus" />
   </CEffectSet>
   <CEffectRemoveKinetic id="NexusHunterRevolvingSweepRotateRemoveKinetic">
     <KineticLink value="NexusHunterRevolvingSweepRotateKinetic" />
@@ -2250,7 +2259,7 @@
     <LeechFraction index="Life" value="0.5" />
     <MultiplicativeModifierArray index="FinishingTouch" Validator="NexusHunterFinishingTouchCombine" Modifier="0.3" Crit="1" />
     <MultiplicativeModifierArray index="TheHuntedAccumulator" Validator="NexusHunterHas1OrMoreTheHuntedTokens" Accumulator="NexusHunterTheHuntedDamageAccumulator" Crit="1" />
-    <MultiplicativeModifierArray index="TheThirst" Validator="NexusHunterHasTheThirstTalent" Accumulator="NexusHunterTheThirstDamageAccumulator" />
+    <MultiplicativeModifierArray index="TheThirst" Validator="NexusHunterTheThirstLeechValidator" Accumulator="NexusHunterTheThirstDamageAccumulator" />
     <MultiplicativeModifierArray index="HuntersVengeance" Validator="NexusHunterHuntersVengeanceBonusDamageCombine" Modifier="0.2" />
     <CritValidatorArray index="0" value="NexusHunterWeaponCritValidator" />
   </CEffectDamage>
@@ -2504,7 +2513,7 @@
       <ProjectionTargetValue value="TargetPoint" />
       <UsesLineDash value="1" />
       <LineDashType value="AllowedInUnpathable" />
-      <ProjectionDistanceScale value="8" />
+      <ProjectionDistanceScale value="8.5" />
     </ImpactLocation>
     <PeriodicValidator value="CasterNotDazedOrDeadOrStasisOrStunnedExceptTimeStop" />
     <SharedFlags index="TravelValidation" value="1" />
@@ -2675,6 +2684,7 @@
     <EffectArray value="NexusHunterBloodRageImpactSet" />
     <EffectArray value="NexusHunterHuntersVengeanceTargetTrackAddToken" />
     <EffectArray value="NexusHunterRevolvingSweepSecondaryCasterRemove" />
+    <EffectArray value="NexusHunterRevolvingSweepExpirationSwingLifeAwayArmorBonus" />
   </CEffectSet>
   <CEffectSet id="NexusHunterRevolvingSweepBoomingKickImpactSet">
     <EffectArray value="NexusHunterRevolvingSweepApplyStun" />
@@ -3090,6 +3100,7 @@
   <CEffectModifyTokenCount id="NexusHunterTheThirstRemoveAllTokens">
     <TokenId value="NexusHunterTheThirstToken" />
     <Operation value="Set" />
+    <ValidatorArray value="TargetIsHero" />
   </CEffectModifyTokenCount>
   <CEffectModifyTokenCount id="NexusHunterTheThirstModifyToken" parent="BaseEffectModifyTokenCount">
     <ValidatorArray value="TargetIsHero" />
@@ -3108,6 +3119,7 @@
   <CEffectRemoveBehavior id="NexusHunterTheThirstRemove">
     <WhichUnit Value="Caster" />
     <BehaviorLink value="NexusHunterTheThirstCasterBehavior" />
+    <ValidatorArray value="TargetIsHero" />
   </CEffectRemoveBehavior>
   <CEffectApplyBehavior id="NexusHunterSiphoningLinkApply">
     <WhichUnit Value="Caster" />
@@ -3138,6 +3150,7 @@
   <CEffectDamage id="NexusHunterPulsingPainDamage" parent="StormSpell">
     <Amount value="115" />
     <SourceButtonFace value="NexusHunterPulsingPain" />
+    <MultiplicativeModifierArray index="NoSanctuary" Validator="NexusHunterHuntersVengeanceBonusDamageCombine" Modifier="0.2" />
   </CEffectDamage>
   <CEffectSet id="NexusHunterPulsingPainImpactSet">
     <EffectArray value="NexusHunterPulsingPainDamage" />
@@ -4276,6 +4289,9 @@
   <CValidatorUnitType id="NexusHunterIsNexusHunterUnit">
     <Value value="HeroNexusHunter" />
   </CValidatorUnitType>
+  <CValidatorUnitCompareBehaviorCount id="NexusHunterTargetDoesNotHaveRevolvingSweepCasterBehavior">
+    <Behavior value="NexusHunterRevolvingSweepCasterBehavior" />
+  </CValidatorUnitCompareBehaviorCount>
   <CValidatorCompareTrackedUnitsCount id="NexusHunterRevolvingSweepSourceHasTrackedHeroes">
     <Compare value="GT" />
     <BehaviorLink value="NexusHunterRevolvingSweepUnitTracker" />
@@ -4331,6 +4347,11 @@
     <WhichUnit Value="Caster" />
     <Behavior value="NexusHunterRevolvingSweepCasterBehavior" />
   </CValidatorUnitCompareBehaviorCount>
+  <CValidatorCombine id="NexusHunterTheThirstCritValidatorCombine">
+    <Type value="And" />
+    <CombineArray value="TargetIsHero" />
+    <CombineArray value="NexusHunterHasAtLeast1TheThirstTokens" />
+  </CValidatorCombine>
   <CValidatorUnitCompareBehaviorCount id="NexusHunterUnrelentingStrikesCasterHasMainBehavior">
     <WhichUnit Value="Caster" />
     <Compare value="GT" />
@@ -4441,7 +4462,7 @@
   </CValidatorCombine>
   <CValidatorCombine id="NexusHunterWeaponCritValidator">
     <CombineArray value="NexusHunterHasMaxTheHuntedTokens" />
-    <CombineArray value="NexusHunterHasAtLeast1TheThirstTokens" />
+    <CombineArray value="NexusHunterTheThirstCritValidatorCombine" />
     <CombineArray value="CritAliasRangedDamage" />
   </CValidatorCombine>
   <CValidatorCombine id="NexusHunterTheThirstLeechValidator">

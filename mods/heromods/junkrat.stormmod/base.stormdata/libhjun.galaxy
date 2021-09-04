@@ -52,6 +52,12 @@ void libHJUN_gf_HeroJunkratIncrementHeroCountFunction () {
         TriggerEnable(libHJUN_gt_HeroJunkratSteelTrapUILogic, true);
         TriggerEnable(libHJUN_gt_HeroJunkratSteelTrapRoots, true);
         TriggerEnable(libHJUN_gt_HeroJunkratSteelTrapandConcussionMineAbathurCleanup, true);
+        TriggerEnable(libHJUN_gt_HeroJunkratBonzerHitsOnDeathProc, true);
+        TriggerEnable(libHJUN_gt_HeroJunkratDirtyTricksterProc, true);
+        TriggerEnable(libHJUN_gt_IHateWaitingHomeShieldProtectionOn, true);
+        TriggerEnable(libHJUN_gt_IHateWaitingHomeShieldProtectionOff, true);
+        TriggerEnable(libHJUN_gt_IHateWaitingTalentCarryBehaviorOn, true);
+        TriggerEnable(libHJUN_gt_IHateWaitingTalentCarryBehaviorOff, true);
     }
 
 }
@@ -76,11 +82,80 @@ void libHJUN_gf_HeroJunkratDecrementHeroCountFunction () {
         TriggerEnable(libHJUN_gt_HeroJunkratSteelTrapUILogic, false);
         TriggerEnable(libHJUN_gt_HeroJunkratSteelTrapRoots, false);
         TriggerEnable(libHJUN_gt_HeroJunkratSteelTrapandConcussionMineAbathurCleanup, false);
+        TriggerEnable(libHJUN_gt_HeroJunkratBonzerHitsOnDeathProc, false);
+        TriggerEnable(libHJUN_gt_HeroJunkratDirtyTricksterProc, false);
+        TriggerEnable(libHJUN_gt_IHateWaitingHomeShieldProtectionOn, false);
+        TriggerEnable(libHJUN_gt_IHateWaitingHomeShieldProtectionOff, false);
+        TriggerEnable(libHJUN_gt_IHateWaitingTalentCarryBehaviorOn, false);
+        TriggerEnable(libHJUN_gt_IHateWaitingTalentCarryBehaviorOff, false);
     }
 
 }
 
+void libHJUN_gf_PlayerTurnMountCostsOnOffForPlayer (int lp_player, bool lp_onOff) {
+    // Automatic Variable Declarations
+    // Implementation
+    if ((lp_onOff == true)) {
+        CatalogFieldValueSet(c_gameCatalogAbil, "JunkratIHateWaitingSummonMount", "CastIntroTime", lp_player, CatalogFieldValueGet(c_gameCatalogAbil, "JunkratIHateWaitingSummonMount", "CastIntroTime[" + IntToString(0) + "]", 0));
+        CatalogFieldValueSet(c_gameCatalogAbil, "JunkratIHateWaitingSummonMount", "Cost.Cooldown.TimeUse", lp_player, CatalogFieldValueGet(c_gameCatalogAbil, "JunkratIHateWaitingSummonMount", "Cost.Cooldown.TimeUse", 0));
+        CatalogFieldValueSet(c_gameCatalogEffect, "JunkratIHateWaitingModifyCooldown", "Cost[" + IntToString(0) + "].CooldownTimeUse", lp_player, CatalogFieldValueGet(c_gameCatalogEffect, "JunkratIHateWaitingModifyCooldown", "Cost[" + IntToString(0) + "].CooldownTimeUse", 0));
+    }
+    else {
+        CatalogFieldValueSet(c_gameCatalogAbil, "JunkratIHateWaitingSummonMount", "CastIntroTime", lp_player, "0");
+        CatalogFieldValueSet(c_gameCatalogAbil, "JunkratIHateWaitingSummonMount", "Cost.Cooldown.TimeUse", lp_player, "0");
+    }
+}
+
 // Triggers
+//--------------------------------------------------------------------------------------------------
+// Trigger: Hero - Junkrat- Dirty Trickster Proc
+//--------------------------------------------------------------------------------------------------
+bool libHJUN_gt_HeroJunkratDirtyTricksterProc_Func (bool testConds, bool runActions) {
+    // Variable Declarations
+    unit lv_unit;
+    int lv_player;
+
+    // Automatic Variable Declarations
+    // Variable Initialization
+    lv_unit = EventUnit();
+    lv_player = UnitGetOwner(lv_unit);
+
+    // Conditions
+    if (testConds) {
+        if (!((UnitBehaviorCount(lv_unit, "JunkratTotalMayhemDirtyTricksterCooldownBehavior") < 1))) {
+            return false;
+        }
+
+        if (!((PlayerHasTalent(lv_player, "JunkratTotalMayhemDirtyTricksterTalent") == true))) {
+            return false;
+        }
+
+        if (!((UnitGetType(lv_unit) == "HeroJunkrat"))) {
+            return false;
+        }
+
+        if (!((UnitHasBehaviorWithCategoryFlag(lv_unit, c_behaviorCategoryBuffUnstoppable) == false))) {
+            return false;
+        }
+    }
+
+    // Actions
+    if (!runActions) {
+        return true;
+    }
+
+    UnitCreateEffectUnit(lv_unit, "JunkratTotalMayhemDirtyTricksterCastSet", lv_unit);
+    return true;
+}
+
+//--------------------------------------------------------------------------------------------------
+void libHJUN_gt_HeroJunkratDirtyTricksterProc_Init () {
+    libHJUN_gt_HeroJunkratDirtyTricksterProc = TriggerCreate("libHJUN_gt_HeroJunkratDirtyTricksterProc_Func");
+    TriggerEnable(libHJUN_gt_HeroJunkratDirtyTricksterProc, false);
+    TriggerAddEventUnitBehaviorChangeFromCategory(libHJUN_gt_HeroJunkratDirtyTricksterProc, null, c_behaviorCategoryStun, c_unitBehaviorChangeCreate);
+    TriggerAddEventUnitBehaviorChangeFromCategory(libHJUN_gt_HeroJunkratDirtyTricksterProc, null, c_behaviorCategoryDebuffRoot, c_unitBehaviorChangeCreate);
+}
+
 //--------------------------------------------------------------------------------------------------
 // Trigger: Hero - Junkrat - Frag Launcher - Talent Respec
 //--------------------------------------------------------------------------------------------------
@@ -369,6 +444,62 @@ void libHJUN_gt_HeroJunkratConcussionMineCameraLock_Init () {
 }
 
 //--------------------------------------------------------------------------------------------------
+// Trigger: Hero - Junkrat- Bonzer Hits On Death Proc
+//--------------------------------------------------------------------------------------------------
+bool libHJUN_gt_HeroJunkratBonzerHitsOnDeathProc_Func (bool testConds, bool runActions) {
+    // Variable Declarations
+    int lv_i;
+    unit lv_killedUnit;
+    int lv_killingPlayer;
+    unit[libCore_gv_bALMaxPlayersOnATeam + 1] lv_unit;
+
+    // Automatic Variable Declarations
+    const int auto067C6032_ae = 4;
+    const int auto067C6032_ai = 1;
+
+    // Variable Initialization
+    lv_killedUnit = libGame_gf_HeroParticipatedInTakedownKilledHero();
+    lv_killingPlayer = libGame_gf_HeroParticipatedInTakedownKillingPlayer();
+
+    // Conditions
+    if (testConds) {
+        if (!((lv_killingPlayer >= 1))) {
+            return false;
+        }
+
+        if (!((lv_killingPlayer <= libCore_gv_bALMaxPlayers))) {
+            return false;
+        }
+
+        if (!((UnitHasBehavior2(lv_killedUnit, "JunkratBonzerHitsQuestKillBonusBehavior") == true))) {
+            return false;
+        }
+    }
+
+    // Actions
+    if (!runActions) {
+        return true;
+    }
+
+    lv_i = 0;
+    for ( ; ( (auto067C6032_ai >= 0 && lv_i <= auto067C6032_ae) || (auto067C6032_ai < 0 && lv_i >= auto067C6032_ae) ) ; lv_i += auto067C6032_ai ) {
+        lv_unit[lv_i] = UnitBehaviorEffectUnit(lv_killedUnit, "JunkratBonzerHitsQuestKillBonusBehavior", c_effectUnitCaster, lv_i);
+        if ((UnitGetOwner(lv_unit[lv_i]) == lv_killingPlayer)) {
+            UnitCreateEffectUnit(lv_unit[lv_i], "JunkratConcussionMineBonzerHitsHeroKillModifyTokenCount", lv_unit[lv_i]);
+        }
+
+    }
+    return true;
+}
+
+//--------------------------------------------------------------------------------------------------
+void libHJUN_gt_HeroJunkratBonzerHitsOnDeathProc_Init () {
+    libHJUN_gt_HeroJunkratBonzerHitsOnDeathProc = TriggerCreate("libHJUN_gt_HeroJunkratBonzerHitsOnDeathProc_Func");
+    TriggerEnable(libHJUN_gt_HeroJunkratBonzerHitsOnDeathProc, false);
+    libGame_gf_HeroParticipatedInTakedown(libHJUN_gt_HeroJunkratBonzerHitsOnDeathProc);
+}
+
+//--------------------------------------------------------------------------------------------------
 // Trigger: Hero - Junkrat - Heroic Ability - Cast (Normal Move)
 //--------------------------------------------------------------------------------------------------
 bool libHJUN_gt_HeroJunkratHeroicAbilityCastNormalMove_Func (bool testConds, bool runActions) {
@@ -538,7 +669,195 @@ void libHJUN_gt_HeroJunrkatRocketRideLandEnd_Init () {
     TriggerAddEventUnitBehaviorChange(libHJUN_gt_HeroJunrkatRocketRideLandEnd, null, "JunkratRocketRidePostRideBehavior", c_unitBehaviorChangeDeactivate);
 }
 
+//--------------------------------------------------------------------------------------------------
+// Trigger: I Hate Waiting! - Home Shield Protection On
+//--------------------------------------------------------------------------------------------------
+bool libHJUN_gt_IHateWaitingHomeShieldProtectionOn_Func (bool testConds, bool runActions) {
+    // Variable Declarations
+    unit lv_heroUnit;
+    int lv_heroUnitOwner;
+
+    // Automatic Variable Declarations
+    // Variable Initialization
+    lv_heroUnit = EventUnit();
+    lv_heroUnitOwner = UnitGetOwner(lv_heroUnit);
+
+    // Conditions
+    if (testConds) {
+        if (!((lv_heroUnitOwner >= 1))) {
+            return false;
+        }
+
+        if (!((lv_heroUnitOwner <= libCore_gv_bALMaxPlayers))) {
+            return false;
+        }
+
+        if (!((UnitTypeTestAttribute(UnitGetType(lv_heroUnit), c_unitAttributeHeroic) == true))) {
+            return false;
+        }
+
+        if (!((UnitGetType(lv_heroUnit) != "HeroAbathur"))) {
+            return false;
+        }
+
+        if (!((UnitGetType(lv_heroUnit) != "SamuroMirrorImage"))) {
+            return false;
+        }
+    }
+
+    // Actions
+    if (!runActions) {
+        return true;
+    }
+
+    UnitCreateEffectUnit(lv_heroUnit, "JunkratIHateWaitingHallOfStormCooldownResetModifyUnit", lv_heroUnit);
+    if (((libGame_gv_players[lv_heroUnitOwner].lv_heroUnit == lv_heroUnit) || (libGame_gv_players[lv_heroUnitOwner].lv_activeVehicle == lv_heroUnit))) {
+        libHJUN_gf_PlayerTurnMountCostsOnOffForPlayer(lv_heroUnitOwner, false);
+    }
+
+    return true;
+}
+
+//--------------------------------------------------------------------------------------------------
+void libHJUN_gt_IHateWaitingHomeShieldProtectionOn_Init () {
+    libHJUN_gt_IHateWaitingHomeShieldProtectionOn = TriggerCreate("libHJUN_gt_IHateWaitingHomeShieldProtectionOn_Func");
+    TriggerEnable(libHJUN_gt_IHateWaitingHomeShieldProtectionOn, false);
+    TriggerAddEventUnitBehaviorChange(libHJUN_gt_IHateWaitingHomeShieldProtectionOn, null, "HallOfStormsProtectionBuff", c_unitBehaviorChangeActivate);
+}
+
+//--------------------------------------------------------------------------------------------------
+// Trigger: I Hate Waiting! - Home Shield Protection Off
+//--------------------------------------------------------------------------------------------------
+bool libHJUN_gt_IHateWaitingHomeShieldProtectionOff_Func (bool testConds, bool runActions) {
+    // Variable Declarations
+    unit lv_heroUnit;
+    int lv_heroUnitOwner;
+
+    // Automatic Variable Declarations
+    // Variable Initialization
+    lv_heroUnit = EventUnit();
+    lv_heroUnitOwner = UnitGetOwner(lv_heroUnit);
+
+    // Conditions
+    if (testConds) {
+        if (!((lv_heroUnitOwner >= 1))) {
+            return false;
+        }
+
+        if (!((lv_heroUnitOwner <= libCore_gv_bALMaxPlayers))) {
+            return false;
+        }
+
+        if (!((UnitTypeTestAttribute(UnitGetType(lv_heroUnit), c_unitAttributeHeroic) == true))) {
+            return false;
+        }
+
+        if (!((UnitGetType(lv_heroUnit) != "HeroAbathur"))) {
+            return false;
+        }
+
+        if (!((UnitGetType(lv_heroUnit) != "SamuroMirrorImage"))) {
+            return false;
+        }
+    }
+
+    // Actions
+    if (!runActions) {
+        return true;
+    }
+
+    if (((libGame_gv_players[lv_heroUnitOwner].lv_heroUnit == lv_heroUnit) || (libGame_gv_players[lv_heroUnitOwner].lv_activeVehicle == lv_heroUnit))) {
+        libHJUN_gf_PlayerTurnMountCostsOnOffForPlayer(lv_heroUnitOwner, true);
+    }
+
+    return true;
+}
+
+//--------------------------------------------------------------------------------------------------
+void libHJUN_gt_IHateWaitingHomeShieldProtectionOff_Init () {
+    libHJUN_gt_IHateWaitingHomeShieldProtectionOff = TriggerCreate("libHJUN_gt_IHateWaitingHomeShieldProtectionOff_Func");
+    TriggerEnable(libHJUN_gt_IHateWaitingHomeShieldProtectionOff, false);
+    TriggerAddEventUnitBehaviorChange(libHJUN_gt_IHateWaitingHomeShieldProtectionOff, null, "HallOfStormsProtectionBuff", c_unitBehaviorChangeDeactivate);
+}
+
+//--------------------------------------------------------------------------------------------------
+// Trigger: I Hate Waiting! - Talent Carry Behavior On
+//--------------------------------------------------------------------------------------------------
+bool libHJUN_gt_IHateWaitingTalentCarryBehaviorOn_Func (bool testConds, bool runActions) {
+    // Variable Declarations
+    int lv_player;
+
+    // Automatic Variable Declarations
+    // Variable Initialization
+    lv_player = UnitGetOwner(EventUnit());
+
+    // Conditions
+    if (testConds) {
+        if (!((lv_player >= 1))) {
+            return false;
+        }
+
+        if (!((lv_player <= 10))) {
+            return false;
+        }
+    }
+
+    // Actions
+    if (!runActions) {
+        return true;
+    }
+
+    libGame_gv_players[lv_player].lv_defaultMountOverride = "JunkratIHateWaitingMountSpeedBoostBehavior";
+    return true;
+}
+
+//--------------------------------------------------------------------------------------------------
+void libHJUN_gt_IHateWaitingTalentCarryBehaviorOn_Init () {
+    libHJUN_gt_IHateWaitingTalentCarryBehaviorOn = TriggerCreate("libHJUN_gt_IHateWaitingTalentCarryBehaviorOn_Func");
+    TriggerEnable(libHJUN_gt_IHateWaitingTalentCarryBehaviorOn, false);
+    TriggerAddEventUnitBehaviorChange(libHJUN_gt_IHateWaitingTalentCarryBehaviorOn, null, "JunkratIHateWaitingCarryBehavior", c_unitBehaviorChangeCreate);
+}
+
+//--------------------------------------------------------------------------------------------------
+// Trigger: I Hate Waiting! - Talent Carry Behavior Off
+//--------------------------------------------------------------------------------------------------
+bool libHJUN_gt_IHateWaitingTalentCarryBehaviorOff_Func (bool testConds, bool runActions) {
+    // Variable Declarations
+    int lv_player;
+
+    // Automatic Variable Declarations
+    // Variable Initialization
+    lv_player = UnitGetOwner(EventUnit());
+
+    // Conditions
+    if (testConds) {
+        if (!((lv_player >= 1))) {
+            return false;
+        }
+
+        if (!((lv_player <= 10))) {
+            return false;
+        }
+    }
+
+    // Actions
+    if (!runActions) {
+        return true;
+    }
+
+    libGame_gv_players[lv_player].lv_defaultMountOverride = null;
+    return true;
+}
+
+//--------------------------------------------------------------------------------------------------
+void libHJUN_gt_IHateWaitingTalentCarryBehaviorOff_Init () {
+    libHJUN_gt_IHateWaitingTalentCarryBehaviorOff = TriggerCreate("libHJUN_gt_IHateWaitingTalentCarryBehaviorOff_Func");
+    TriggerEnable(libHJUN_gt_IHateWaitingTalentCarryBehaviorOff, false);
+    TriggerAddEventUnitBehaviorChange(libHJUN_gt_IHateWaitingTalentCarryBehaviorOff, null, "JunkratIHateWaitingCarryBehavior", c_unitBehaviorChangeDestroy);
+}
+
 void libHJUN_InitTriggers () {
+    libHJUN_gt_HeroJunkratDirtyTricksterProc_Init();
     libHJUN_gt_HeroJunkratFragLauncherTalentRespec_Init();
     libHJUN_gt_HeroJunkratFragLauncherSpreadVolleyCast_Init();
     libHJUN_gt_HeroJunkratSteelTrapsUIInitialization_Init();
@@ -546,11 +865,16 @@ void libHJUN_InitTriggers () {
     libHJUN_gt_HeroJunkratSteelTrapRoots_Init();
     libHJUN_gt_HeroJunkratSteelTrapandConcussionMineAbathurCleanup_Init();
     libHJUN_gt_HeroJunkratConcussionMineCameraLock_Init();
+    libHJUN_gt_HeroJunkratBonzerHitsOnDeathProc_Init();
     libHJUN_gt_HeroJunkratHeroicAbilityCastNormalMove_Init();
     libHJUN_gt_HeroJunkratHeroicAbilityExpires_Init();
     libHJUN_gt_HeroJunkratRocketRideDismountOnCheerDanceTauntUsed_Init();
     libHJUN_gt_HeroJunkratRocketRideLand_Init();
     libHJUN_gt_HeroJunrkatRocketRideLandEnd_Init();
+    libHJUN_gt_IHateWaitingHomeShieldProtectionOn_Init();
+    libHJUN_gt_IHateWaitingHomeShieldProtectionOff_Init();
+    libHJUN_gt_IHateWaitingTalentCarryBehaviorOn_Init();
+    libHJUN_gt_IHateWaitingTalentCarryBehaviorOff_Init();
 }
 
 //--------------------------------------------------------------------------------------------------

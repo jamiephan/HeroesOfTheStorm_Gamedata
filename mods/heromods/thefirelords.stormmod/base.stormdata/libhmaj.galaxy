@@ -722,6 +722,7 @@ void libHMaj_gt_HeroRagnarosGainsHeroic_Init () {
 //--------------------------------------------------------------------------------------------------
 bool libHMaj_gt_HeroRagnarosBlastWaveTemperedFlame_Func (bool testConds, bool runActions) {
     // Variable Declarations
+    bool lv_clearOld;
     string lv_effect;
     unit lv_damagedUnit;
     unit lv_ragnarosUnit;
@@ -768,6 +769,7 @@ bool libHMaj_gt_HeroRagnarosBlastWaveTemperedFlame_Func (bool testConds, bool ru
     lv_damageValue = (EventUnitDamageAmount() + EventUnitDamageBehaviorShield());
     if ((UnitHasBehavior2(lv_ragnarosUnit, "RagnarosBlastWaveTemperedFlame") == true)) {
         lv_currentShields = UnitBehaviorDamageModifyRemaining(lv_ragnarosUnit, "RagnarosBlastWaveTemperedFlame");
+        lv_clearOld = true;
     }
     else {
         lv_currentShields = 0.0;
@@ -779,8 +781,13 @@ bool libHMaj_gt_HeroRagnarosBlastWaveTemperedFlame_Func (bool testConds, bool ru
     }
 
     CatalogFieldValueSetFixed(c_gameCatalogBehavior, "RagnarosBlastWaveTemperedFlame", "DamageResponse.ModifyLimit", lv_owner, lv_currentShields);
-    UnitBehaviorAdd(lv_ragnarosUnit, "RagnarosBlastWaveTemperedFlame", lv_ragnarosUnit, 1);
-    FloatingCombatElementCreateTextAtUnit(PlayerGroupSingle(UnitGetOwner(lv_ragnarosUnit)), "FloatingCombatElements/FloatingCombatLesserAmountReceived", "ShieldState", lv_ragnarosUnit, FixedToText(lv_shieldsToAdd, 0), libNtve_gv_FloatingCombatTextAutoRandomSeed);
+    if ((lv_clearOld == true)) {
+        UnitBehaviorRemove(lv_ragnarosUnit, "RagnarosBlastWaveTemperedFlame", 1);
+        UnitBehaviorAdd(lv_ragnarosUnit, "RagnarosBlastWaveTemperedFlame", lv_ragnarosUnit, 1);
+    }
+    else {
+        UnitBehaviorAdd(lv_ragnarosUnit, "RagnarosBlastWaveTemperedFlame", lv_ragnarosUnit, 1);
+    }
     return true;
 }
 
