@@ -1,5 +1,48 @@
 <?xml version="1.0" encoding="us-ascii"?>
 <Catalog>
+  <CEffectDamage id="BraxisCoreMissileStormDamage" parent="StormSpellPercentDamage">
+    <VitalFractionMax index="Life" value="0.05" />
+  </CEffectDamage>
+  <CEffectSet id="BraxisCoreMissileStormInitialSet">
+    <EffectArray value="BraxisCoreMissileStormTargetPersistent" />
+    <EffectArray value="BraxisCoreMissileStormTargetMarkerApply" />
+  </CEffectSet>
+  <CEffectLaunchMissile id="BraxisCoreMissileStormLaunchMissile">
+    <ImpactLocation Value="TargetPoint" />
+    <AmmoUnit value="BraxisCoreMissileStormMissile" />
+    <Movers Link="BraxisCoreMissileStorm" />
+  </CEffectLaunchMissile>
+  <CEffectSet id="BraxisCoreMissileStormMissileSearchImpactSet">
+    <EffectArray value="BraxisCoreMissileStormDamage" />
+  </CEffectSet>
+  <CEffectEnumArea id="BraxisCoreMissileStormMissileImpactSearch">
+    <ImpactLocation Value="TargetPoint" />
+    <SearchFilters value="Heroic;Player,Ally,Neutral,Creep,ImmuneToAOE,Missile,Item,Stasis,Dead,Hidden,Invulnerable,IgnoredByTowerAI" />
+    <AreaArray Effect="BraxisCoreMissileStormMissileSearchImpactSet">
+      <Radius value="1.25" />
+    </AreaArray>
+  </CEffectEnumArea>
+  <CEffectSet id="BraxisCoreMissileStormMissileGroundImpactSet">
+    <EffectArray value="BraxisCoreMissileStormMissileImpactSearch" />
+    <TargetLocationType value="Point" />
+  </CEffectSet>
+  <CEffectApplyBehavior id="BraxisCoreMissileStormTargetMarkerApply">
+    <Behavior value="BraxisCoreMissileStormTargetMarker" />
+  </CEffectApplyBehavior>
+  <CEffectCreatePersistent id="BraxisCoreMissileStormTargetPersistent">
+    <WhichLocation Value="TargetUnit" />
+    <ExpireDelay value="1.25" />
+    <PeriodCount value="5" />
+    <PeriodicEffectArray value="BraxisCoreMissileStormLaunchPersistent" />
+    <PeriodicPeriodArray value="0.375" />
+  </CEffectCreatePersistent>
+  <CEffectCreatePersistent id="BraxisCoreMissileStormLaunchPersistent">
+    <ExpireDelay value="1" />
+    <ExpireEffect value="BraxisCoreMissileStormMissileImpactSearch" />
+    <PeriodCount value="1" />
+    <PeriodicEffectArray value="BraxisCoreMissileStormLaunchMissile" />
+    <PeriodicPeriodArray value="0" />
+  </CEffectCreatePersistent>
   <CEffectCreatePersistent id="BraxisDropPodCreatePersistent" />
   <CEffectCreatePersistent id="BraxisHoldoutSCVChannel" />
   <CEffectCreatePersistent id="CageAntennaActivateCreatePersistent">
@@ -479,7 +522,7 @@
     <SourceButtonFace value="TerranArchangelBulletstorm" />
   </CEffectDamage>
   <CEffectLaunchMissile id="TerranArchangelDefenderBulletstormImpactLaunchMissile">
-    <ImpactEffect value="TerranArchangelDefenderBulletstormImpactDamage" />
+    <ImpactEffect value="TerranArchangelBulletstormDamageSwitch" />
     <AmmoUnit value="TerranArchangelDefenderBulletstormVisualMissile" />
   </CEffectLaunchMissile>
   <CEffectEnumArea id="TerranArchangelDefenderBulletStormSelfRevealSearchArea">
@@ -503,6 +546,29 @@
   <CEffectIssueOrder id="TerranArchangelDefenderBulletstormAIIssueOrder">
     <WhichUnit Value="Caster" />
     <Abil value="TerranArchangelDefenderBulletstorm" />
+    <Player Value="Caster" />
+    <Target Value="TargetPoint" />
+  </CEffectIssueOrder>
+  <CEffectSwitch id="TerranArchangelBulletstormDamageSwitch">
+    <CaseArray Validator="BraxisCoreIsCoreUnitType" Effect="BraxisCoreBulletStormDamage" />
+    <CaseDefault value="TerranArchangelDefenderBulletstormImpactDamage" />
+  </CEffectSwitch>
+  <CEffectDamage id="BraxisCoreBulletStormDamage" parent="StormWeapon">
+    <Kind value="Ability" />
+    <SourceButtonFace value="TerranArchangelBulletstorm" />
+    <VitalFractionMax index="Life" value="0.025" />
+    <ValidatorArray value="TargetIsHero" />
+  </CEffectDamage>
+  <CEffectEnumArea id="BraxisCoreBulletstormAISearch">
+    <SearchFilters value="Heroic,Visible;Self,Player,Ally,Neutral,ImmuneToAOE,Structure,Missile,Stasis,Dead,Hidden,Invulnerable" />
+    <AreaArray MaxCount="1" Effect="BraxisCoreBulletstormIssueOrder">
+      <Radius value="13" />
+    </AreaArray>
+    <ImpactLocation Value="TargetPoint" />
+  </CEffectEnumArea>
+  <CEffectIssueOrder id="BraxisCoreBulletstormIssueOrder">
+    <WhichUnit Value="Caster" />
+    <Abil value="BraxisCoreBulletstorm" />
     <Player Value="Caster" />
     <Target Value="TargetPoint" />
   </CEffectIssueOrder>

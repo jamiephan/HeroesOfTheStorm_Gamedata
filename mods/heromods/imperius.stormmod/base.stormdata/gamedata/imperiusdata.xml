@@ -5,7 +5,7 @@
   <CAbilEffectTarget id="ImperiusCelestialCharge">
     <AbilityCategories index="Control" value="1" />
     <AbilityCategories index="TargetPoint" value="1" />
-    <PrepEffect value="DismountDecloakCasterSet" />
+    <PrepEffect value="ImperiusCelestialChargePrepareSet" />
     <Effect value="ImperiusCelestialChargeInitialSet" />
     <Flags index="ClearLastMoveTarget" value="1" />
     <Flags index="RequireTargetVision" value="0" />
@@ -1494,6 +1494,10 @@
     <Length value="3.000000" />
     <Magnitude value="60.000000" />
   </CActorForceCylinder>
+  <CBehaviorBuff id="ImperiusCelestialChargeCasterMarker">
+    <RemoveValidatorArray value="ImperiusCelestialChargeCasterMarkerCombine" />
+    <Duration value="1.5" />
+  </CBehaviorBuff>
   <CBehaviorBuff id="ImperiusCelestialChargeFlashOfAngerShield" parent="StormShield">
     <Duration value="4" />
     <DamageResponse Priority="26" ModifyLimit="300" />
@@ -1586,16 +1590,15 @@
     <CancelEffect value="ImperiusCelestialChargeCasterChannelBuffCancelSet" />
     <Modification>
       <ModifyFlags index="SuppressTurning" value="1" />
+      <StateFlags index="SuppressAttack" value="1" />
       <StateFlags index="SuppressCloak" value="1" />
       <StateFlags index="SuppressCollision" value="1" />
-      <AbilClassDisableArray index="CAbilAttack" value="1" />
       <AbilClassDisableArray index="CAbilEffectInstant" value="1" />
       <AbilClassDisableArray index="CAbilEffectTarget" value="1" />
       <AbilClassDisableArray index="CAbilMove" value="1" />
       <AbilClassDisableArray index="CAbilStop" value="1" />
       <AbilLinkEnableArray value="ImperiusMoltenArmor" />
       <AbilLinkEnableArray value="ImperiusHolyFervor" />
-      <WeaponDisableArray value="ImperiusHeroWeapon" />
     </Modification>
   </CBehaviorBuff>
   <CBehaviorBuff id="ImperiusCelestialChargeTargetAlignmentBuff">
@@ -1673,13 +1676,12 @@
   <CBehaviorBuff id="ImperiusCelestialChargeOrdersPausedBehavior">
     <RemoveValidatorArray value="CasterNotDeadOrUserCategoryStunnedOrSilencedOrStasisExceptTimeStop" />
     <TimeScaleSource Value="Caster" />
-    <Duration value="0.1875" />
+    <Duration value="1" />
     <Modification>
       <StateFlags index="OrdersPaused" value="1" />
     </Modification>
   </CBehaviorBuff>
   <CBehaviorBuff id="ImperiusValorousBrandCelestialChargeComboPointBehavior" parent="StormStackingComboMarker">
-    <RemoveValidatorArray value="TargetNotDeadAndNoSpecialDeathState" />
     <MaxStackCount value="10" />
     <MaxStackCountPerCaster value="1" />
     <Duration value="10" />
@@ -1798,6 +1800,8 @@
       <StateFlags index="SuppressGateEnforcement" value="1" />
       <AbilClassDisableArray index="CAbilAttack" value="1" />
       <AbilClassDisableArray index="CAbilMove" value="1" />
+      <AbilLinkEnableArray value="ArthasGhoulMagazine" />
+      <AbilLinkEnableArray value="ArthasMasteryGhoulMagazine" />
     </Modification>
   </CBehaviorBuff>
   <CBehaviorBuff id="ImperiusWrathOfTheAngirisCasterRemovedStasis" parent="StormStasisRemoved">
@@ -1986,6 +1990,15 @@
   <CEffectAbortMissile id="ImperiusAbortMissilesOnCaster">
     <WhichUnit Value="Caster" />
   </CEffectAbortMissile>
+  <CEffectApplyBehavior id="ImperiusCelestialChargeCasterMarkerAdd">
+    <WhichUnit Value="Caster" />
+    <Behavior value="ImperiusCelestialChargeCasterMarker" />
+  </CEffectApplyBehavior>
+  <CEffectRemoveBehavior id="ImperiusCelestialChargeCasterMarkerRemove">
+    <WhichUnit Value="Caster" />
+    <BehaviorLink value="ImperiusCelestialChargeCasterMarker" />
+    <Count value="1" />
+  </CEffectRemoveBehavior>
   <CEffectApplyBehavior id="ImperiusCelestialChargeFlashOfAngerShieldApplyBehavior">
     <ValidatorArray value="ImperiusCelestialChargeFlashOfAngerHasTalent" />
     <ValidatorArray value="ImperiusValorousBrandTargetHasCelestialChargeComboPointBehavior" />
@@ -2007,10 +2020,14 @@
     <CaseArray Validator="ImperiusValorousBrandTargetHas3StacksOfTrackingComboPointBehavior" Effect="ImperiusCelestialChargeImpalingLightCooldownModifyUnitTier3" />
     <CaseDefault value="ImperiusCelestialChargeImpalingLightCooldownModifyUnitTier1" />
   </CEffectSwitch>
+  <CEffectSet id="ImperiusCelestialChargePrepareSet">
+    <EffectArray value="ImperiusCelestialChargeCasterMarkerAdd" />
+    <EffectArray value="DismountDecloakCasterSet" />
+  </CEffectSet>
   <CEffectSet id="ImperiusFlashOfAngerApplySet">
     <ValidatorArray value="ImperiusCelestialChargeFlashOfAngerHasTalent" />
-    <EffectArray value="ImperiusCelestialChargeFlashOfAngerSearchArea" />
     <EffectArray value="ImperiusCelestialChargeFlashOfAngerShieldApplyBehavior" />
+    <EffectArray value="ImperiusCelestialChargeFlashOfAngerSearchArea" />
   </CEffectSet>
   <CEffectModifyUnit id="ImperiusCelestialChargeImpalingLightCooldownModifyUnitTier1">
     <ImpactUnit Value="Caster" />
@@ -2025,6 +2042,23 @@
     <BehaviorLink value="ImperiusHolyFervorAttackReadyBehavior" />
     <ValidatorArray value="ImperiusHolyFervorCasterDoesNotHaveAttackCounterBehavior" />
   </CEffectRemoveBehavior>
+  <CEffectSet id="ImperiusMoltenArmorCelestialChargeInitialSet">
+    <EffectArray value="ImperiusMoltenArmorSetCooldown" />
+    <EffectArray value="ImperiusCelestialChargeCasterMarkerRemove" />
+    <EffectArray value="ImperiusMoltenArmorApplyCasterBehavior" />
+    <EffectArray value="ImperiusMoltenArmorSovereignArmorBuffApplyBehavior" />
+    <EffectArray value="ImperiusMoltenArmorUnshakableFaithImpactSet" />
+    <EffectArray value="ImperiusMoltenArmorUnshakableFaithCreateHealer" />
+  </CEffectSet>
+  <CEffectModifyUnit id="ImperiusMoltenArmorSetCooldown">
+    <ImpactUnit Value="Caster" />
+    <Cost Abil="ImperiusMoltenArmor,Execute" CooldownOperation="Set">
+      <Fraction Cooldown="1" />
+    </Cost>
+    <VitalArray index="Energy">
+      <Change value="-75" />
+    </VitalArray>
+  </CEffectModifyUnit>
   <CEffectModifyBehaviorBuffDuration id="ImperiusMoltenArmorSovereignArmorIncreaseDuration">
     <ValidatorArray value="TargetIsHero" />
     <Chance value="0" />
@@ -2163,6 +2197,7 @@
   </CEffectLaunchMissileAdvanced>
   <CEffectSet id="ImperiusCelestialChargeCasterChannelBuffCancelSet">
     <EffectArray value="ImperiusCelestialChargeCasterChannelBuffFinalUnitTrackerEnum" />
+    <EffectArray value="ImperiusCelestialChargeCasterMarkerRemove" />
   </CEffectSet>
   <CEffectModifyUnit id="ImperiusCelestialChargeTargetFacingModifyUnit">
     <ValidatorArray value="ImperiusCelestialChargeTargetHasAlignmentBuffOrHasAlignmentMissileMover" />
@@ -2743,10 +2778,10 @@
       <MatchFlags index="Id" value="1" />
     </Marker>
     <EffectArray value="UniversalWeaponLaunchSet" />
+    <EffectArray value="ImperiusFlashOfAngerApplySet" />
     <EffectArray value="ImperiusWeaponDamage" />
     <EffectArray value="ImperiusValorousBrandBurnTheImpureDamage" />
     <EffectArray value="ImperiusMoltenArmorMeltingTouchDebuffApplyBehavior" />
-    <EffectArray value="ImperiusFlashOfAngerApplySet" />
     <EffectArray value="ImperiusValorousBrandComboPointCelestialChargeRemoveBehaviorSwitch" />
     <EffectArray value="ImperiusValorousBrandComboPointMoltenArmorRemoveBehaviorSwitch" />
     <EffectArray value="ImperiusValorousBrandComboPointSolarionsFireRemoveBehaviorSwitch" />
@@ -3393,6 +3428,10 @@
     <ProductId value="67098" />
     <HyperlinkId value="ImperiusMasteryRingRank2" />
   </CHeroMastery>
+  <CHeroMastery id="ImperiusMasteryRing3" parent="MasteryRingRank3">
+    <ProductId value="72982" />
+    <HyperlinkId value="ImperiusMasteryRingRank3" />
+  </CHeroMastery>
   <CKineticFollow id="ImperiusAngelicArmamentsFollowKinetic">
     <Cycles value="6" />
     <Follow value="Position" />
@@ -3505,6 +3544,9 @@
   </CRewardHeroMastery>
   <CRewardHeroMastery id="ImperiusMasteryRing2">
     <License value="49852" />
+  </CRewardHeroMastery>
+  <CRewardHeroMastery id="ImperiusMasteryRing3">
+    <License value="52227" />
   </CRewardHeroMastery>
   <CShapeArc id="ImperiusCelestialChargeFlashOfAngerShape">
     <Arc value="360" />
@@ -3923,6 +3965,14 @@
     <CombineArray value="ImperiusCelestialChargeImpalingLightHasTalent" />
     <CombineArray value="ImperiusValorousBrandTargetHasMoltenArmorComboPointBehavior" />
   </CValidatorCombine>
+  <CValidatorCombine id="ImperiusCelestialChargeCasterMarkerCombine">
+    <CombineArray value="ImperiusHasCelestialChargeOrder" />
+    <CombineArray value="CasterNotDazedOrDeadOrPolymorphedOrSilencedOrStasisOrStunnedExceptTimeStop" />
+  </CValidatorCombine>
+  <CValidatorUnitCompareOrderCount id="ImperiusHasCelestialChargeOrder">
+    <AbilLink value="ImperiusCelestialCharge" />
+    <Value value="1" />
+  </CValidatorUnitCompareOrderCount>
   <CValidatorUnitCompareBehaviorCount id="ImperiusPressForwardCasterHasRegenGlobePercentBuff">
     <WhichUnit Value="Caster" />
     <Compare value="GT" />

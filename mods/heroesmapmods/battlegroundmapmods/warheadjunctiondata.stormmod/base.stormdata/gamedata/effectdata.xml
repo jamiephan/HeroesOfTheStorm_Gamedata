@@ -1,5 +1,13 @@
 <?xml version="1.0" encoding="us-ascii"?>
 <Catalog>
+    <CEffectApplyBehavior id="WarheadCoreNukeChannelApplyBehavior">
+        <WhichUnit Value="Caster"/>
+        <Behavior value="WarheadCoreCallingDownNuke"/>
+    </CEffectApplyBehavior>
+    <CEffectSwitch id="NukeChannelApplyBehaviorSwitch">
+        <CaseArray Validator="MapMechanicCasterIsKingsCore" Effect="WarheadCoreNukeChannelApplyBehavior"/>
+        <CaseDefault value="NukeChannelApplyBehavior"/>
+    </CEffectSwitch>
     <CEffectApplyBehavior id="ApplyNukeRevealerBehavior">
         <WhichUnit Value="Source"/>
         <Behavior value="NukeRevealer"/>
@@ -17,6 +25,10 @@
     <CEffectSet id="MapMechanicAbilityTargetPrepareSet">
         <EffectArray value="DismountDecloakCasterSet"/>
     </CEffectSet>
+    <CEffectSwitch id="MapMechanicKingsCoreNukeOuterImpactDamageSwitch">
+        <CaseArray Validator="MapMechanicCasterIsKingsCore" Effect="MapMechanicKingsCoreNukeOuterImpactHeroDamage"/>
+        <CaseDefault value="NukeOuterImpactDamageSwitch"/>
+    </CEffectSwitch>
     <CEffectCreatePersistent id="NukeDropMissileFXCreatePersistent">
         <WhichLocation Effect="NukeInitialPersistent"/>
         <OffsetVectorStartLocation Effect="NukeInitialPersistent" Value="TargetPoint"/>
@@ -25,6 +37,10 @@
         <InitialEffect value="NukeInitialSet"/>
         <ValidatorArray value="MedivhCasterNotRavenOrHasPathableController"/>
     </CEffectCreatePersistent>
+    <CEffectDamage id="MapMechanicKingsCoreNukeOuterImpactHeroDamage" parent="StormSpellPercentDamage">
+        <VitalFractionMax index="Life" value="0.3"/>
+        <ValidatorArray value="TargetIsHero"/>
+    </CEffectDamage>
     <CEffectSwitch id="PodlingSuicidePrimingApplySwitch">
         <CaseArray Validator="SourceIsPodlingDefender" Effect="PodlingSuicidePrimingDefenderApplyBehavior"/>
         <CaseArray Validator="SourceIsPodlingLaner" Effect="PodlingSuicidePrimingLanerApplyBehavior"/>
@@ -75,7 +91,7 @@
     </CEffectSwitch>
     <CEffectSet id="NukeInitialSet">
         <EffectArray value="NukeMinimapIconCreateUnit"/>
-        <EffectArray value="NukeChannelApplyBehavior"/>
+        <EffectArray value="NukeChannelApplyBehaviorSwitch"/>
         <EffectArray value="ApplyNukeRevealerBehavior"/>
         <TargetLocationType value="Point"/>
     </CEffectSet>
@@ -121,7 +137,7 @@
     <CEffectEnumArea id="NukeImpactSearchArea">
         <ImpactLocation Effect="NukeInitialPersistent" Value="TargetPoint"/>
         <SearchFilters value="-;Player,Ally,Neutral,ImmuneToAOE,Missile,Stasis,Dead,Hidden,Invulnerable"/>
-        <AreaArray Effect="NukeOuterImpactDamageSwitch">
+        <AreaArray Effect="MapMechanicKingsCoreNukeOuterImpactDamageSwitch">
             <Radius value="7"/>
         </AreaArray>
     </CEffectEnumArea>

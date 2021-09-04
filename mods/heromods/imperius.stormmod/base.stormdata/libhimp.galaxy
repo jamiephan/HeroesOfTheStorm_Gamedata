@@ -1,4 +1,5 @@
 include "TriggerLibs/NativeLib"
+include "TriggerLibs/HeroesLib"
 include "TriggerLibs/GameLib"
 include "TriggerLibs/AILib"
 include "TriggerLibs/UILib"
@@ -11,6 +12,7 @@ include "LibHIMP_h"
 // External Library Initialization
 void libHIMP_InitLibraries () {
     libNtve_InitVariables();
+    libCore_InitVariables();
     libGame_InitVariables();
     libAIAI_InitVariables();
     libUIUI_InitVariables();
@@ -41,6 +43,7 @@ void libHIMP_gf_HeroImperiusIncrementHeroCountFunction () {
         TriggerEnable(libHIMP_gt_HeroImperiusWrathOfTheAngirisAIControl, true);
         TriggerEnable(libHIMP_gt_HeroImperiusWrathOfTheAngirisImperiusTeleport, true);
         TriggerEnable(libHIMP_gt_HeroImperiusWrathOfTheAngirisTargetTeleport, true);
+        TriggerEnable(libHIMP_gt_HeroImperiusCelestialChargeMoltenArmorOrderProc, true);
     }
 
 }
@@ -61,6 +64,7 @@ void libHIMP_gf_HeroImperiusDecrementHeroCountFunction () {
         TriggerEnable(libHIMP_gt_HeroImperiusWrathOfTheAngirisAIControl, false);
         TriggerEnable(libHIMP_gt_HeroImperiusWrathOfTheAngirisImperiusTeleport, false);
         TriggerEnable(libHIMP_gt_HeroImperiusWrathOfTheAngirisTargetTeleport, false);
+        TriggerEnable(libHIMP_gt_HeroImperiusCelestialChargeMoltenArmorOrderProc, false);
     }
 
 }
@@ -399,6 +403,61 @@ void libHIMP_gt_HeroImperiusWrathOfTheAngirisTargetTeleport_Init () {
     TriggerAddEventUnitBehaviorChange(libHIMP_gt_HeroImperiusWrathOfTheAngirisTargetTeleport, null, "ImperiusWrathOfTheAngirisTargetRemovedStasis", c_unitBehaviorChangeActivate);
 }
 
+//--------------------------------------------------------------------------------------------------
+// Trigger: Hero - Imperius - Celestial Charge - Molten Armor Order Proc
+//--------------------------------------------------------------------------------------------------
+bool libHIMP_gt_HeroImperiusCelestialChargeMoltenArmorOrderProc_Func (bool testConds, bool runActions) {
+    // Variable Declarations
+    unit lv_unit;
+    int lv_player;
+
+    // Automatic Variable Declarations
+    // Variable Initialization
+    lv_unit = EventUnit();
+    lv_player = UnitGetOwner(lv_unit);
+
+    // Conditions
+    if (testConds) {
+        if (!((libHIMP_gv_heroImperiusCelestialChargeMoltenArmorOrderProcBoolean[lv_player] == false))) {
+            return false;
+        }
+
+        if (!((lv_player > 0))) {
+            return false;
+        }
+
+        if (!((lv_player <= libCore_gv_bALMaxPlayers))) {
+            return false;
+        }
+
+        if (!((UnitFilterMatch(lv_unit, lv_player, UnitFilter(0, 0, (1 << c_targetFilterMissile) | (1 << c_targetFilterItem), (1 << (c_targetFilterStasis - 32)) | (1 << (c_targetFilterDead - 32)) | (1 << (c_targetFilterHidden - 32)) | (1 << (c_targetFilterSilenced - 32)))) == true))) {
+            return false;
+        }
+
+        if (!((UnitBehaviorCount(lv_unit, "ImperiusCelestialChargeCasterMarker") == 1))) {
+            return false;
+        }
+    }
+
+    // Actions
+    if (!runActions) {
+        return true;
+    }
+
+    libHIMP_gv_heroImperiusCelestialChargeMoltenArmorOrderProcBoolean[lv_player] = true;
+    UnitCreateEffectUnitWithSource(lv_unit, "ImperiusMoltenArmorCelestialChargeInitialSet", lv_unit, c_gameCatalogAbil, "ImperiusMoltenArmor");
+    Wait(0.0625, c_timeGame);
+    libHIMP_gv_heroImperiusCelestialChargeMoltenArmorOrderProcBoolean[lv_player] = false;
+    return true;
+}
+
+//--------------------------------------------------------------------------------------------------
+void libHIMP_gt_HeroImperiusCelestialChargeMoltenArmorOrderProc_Init () {
+    libHIMP_gt_HeroImperiusCelestialChargeMoltenArmorOrderProc = TriggerCreate("libHIMP_gt_HeroImperiusCelestialChargeMoltenArmorOrderProc_Func");
+    TriggerEnable(libHIMP_gt_HeroImperiusCelestialChargeMoltenArmorOrderProc, false);
+    TriggerAddEventUnitOrder(libHIMP_gt_HeroImperiusCelestialChargeMoltenArmorOrderProc, null, AbilityCommand("ImperiusMoltenArmor", 0));
+}
+
 void libHIMP_InitTriggers () {
     libHIMP_gt_HeroImperiusCelestialChargeTargetUnitAlignment_Init();
     libHIMP_gt_HeroImperiusCelestialChargeTimeStopHandler_Init();
@@ -407,6 +466,7 @@ void libHIMP_InitTriggers () {
     libHIMP_gt_HeroImperiusWrathOfTheAngirisAIControl_Init();
     libHIMP_gt_HeroImperiusWrathOfTheAngirisImperiusTeleport_Init();
     libHIMP_gt_HeroImperiusWrathOfTheAngirisTargetTeleport_Init();
+    libHIMP_gt_HeroImperiusCelestialChargeMoltenArmorOrderProc_Init();
 }
 
 //--------------------------------------------------------------------------------------------------

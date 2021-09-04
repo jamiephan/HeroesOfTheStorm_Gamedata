@@ -1086,6 +1086,43 @@ int libMHmu_gf_ppathGetPathID (string lp_inputString) {
 
 // Triggers
 //--------------------------------------------------------------------------------------------------
+// Trigger: Hanamura Core - Barrage Proc
+//--------------------------------------------------------------------------------------------------
+bool libMHmu_gt_HanamuraCoreBarrageProc_Func (bool testConds, bool runActions) {
+    // Variable Declarations
+    point lv_p;
+    int lv_i;
+    unit lv_core;
+    int lv_coreOwner;
+
+    // Automatic Variable Declarations
+    int autoAAF3A068_ae;
+
+    // Variable Initialization
+    lv_core = EventPlayerEffectUsedUnit(c_effectUnitCaster);
+    lv_coreOwner = UnitGetOwner(lv_core);
+
+    // Actions
+    if (!runActions) {
+        return true;
+    }
+
+    autoAAF3A068_ae = libMHmu_gv_hanamuraCoreBarrageCount;
+    lv_i = 1;
+    for ( ; lv_i <= autoAAF3A068_ae ; lv_i += 1 ) {
+        lv_p = UnitTypePlacementFromPoint("HanamuraCoreAttackRadiusDummy", lv_coreOwner, RegionRandomPoint(RegionCircle(UnitGetPosition(lv_core), 10.0)), 10.0);
+        UnitCreateEffectPointWithSource(lv_core, "HanamuraCoreBarrageLaunchPersistent", lv_p, c_gameCatalogAbil, "HanamuraCoreBarrage");
+    }
+    return true;
+}
+
+//--------------------------------------------------------------------------------------------------
+void libMHmu_gt_HanamuraCoreBarrageProc_Init () {
+    libMHmu_gt_HanamuraCoreBarrageProc = TriggerCreate("libMHmu_gt_HanamuraCoreBarrageProc_Func");
+    TriggerAddEventPlayerEffectUsed(libMHmu_gt_HanamuraCoreBarrageProc, c_playerAny, "HanamuraCoreBarrageDummySet");
+}
+
+//--------------------------------------------------------------------------------------------------
 // Trigger: Map Initialization
 //--------------------------------------------------------------------------------------------------
 bool libMHmu_gt_MapInitialization_Func (bool testConds, bool runActions) {
@@ -2042,6 +2079,7 @@ void libMHmu_gt_ppath_Init () {
 }
 
 void libMHmu_InitTriggers () {
+    libMHmu_gt_HanamuraCoreBarrageProc_Init();
     libMHmu_gt_MapInitialization_Init();
     libMHmu_gt_MapMechanicInitialized_Init();
     libMHmu_gt_OpenTheGatesTimerExpires_Init();

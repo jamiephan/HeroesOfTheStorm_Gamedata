@@ -1,5 +1,37 @@
 <?xml version="1.0" encoding="us-ascii"?>
 <Catalog>
+  <CActorAction id="BraxisCoreMissileStormAction" parent="GenericAttackPointStorm" effectImpact="BraxisCoreMissileStormMissileGroundImpactSet" effectLaunch="BraxisCoreMissileStormLaunchMissile" />
+  <CActorModel id="BraxisCoreMissileStormGroundImpactFX" parent="StormModelAnimationStyleOneShot">
+    <On Terms="Effect.BraxisCoreMissileStormMissileImpactSearch.Start" Send="Create" />
+    <HostSiteOps Ops="SOpShadow" />
+  </CActorModel>
+  <CActorSound id="BraxisCoreMissileStormLaunchSound" parent="SoundOneShot">
+    <On Terms="Effect.BraxisCoreMissileStormLaunchMissile.Start; At Caster" Send="Create" />
+  </CActorSound>
+  <CActorSound id="BraxisCoreMissileStormImpactSound" parent="SoundOneShot">
+    <On Terms="Effect.BraxisCoreMissileStormMissileImpactSearch.Start; At Effect" Send="Create" />
+  </CActorSound>
+  <CActorModel id="BraxisCoreMissileStormTargetModel" parent="StormModelAnimationStyleContinuousUnit">
+    <Macros index="0" removed="1" />
+    <Macros index="1" removed="1" />
+    <Inherits index="CloakEffect" value="0" />
+    <Inherits index="Visibility" value="0" />
+    <On Terms="Effect.BraxisCoreMissileStormTargetPersistent.Start; At Target" Send="Create" />
+    <On Terms="Effect.BraxisCoreMissileStormTargetPersistent.Stop; FromEffectTreeDescendant" Send="Destroy" />
+    <On Terms="ActorCreation" Send="TimerSet 0.062500 PulseOn" />
+    <On Terms="TimerExpired; TimerName PulseOn" Send="TimerSet 0.375000 PulseOff" />
+    <On Terms="TimerExpired; TimerName PulseOff" Send="TimerSet 0.375000 PulseOn" />
+    <On Terms="TimerExpired; TimerName PulseOn" Send="SetScale 1.500000 0.375000 PulseOn" />
+    <On Terms="TimerExpired; TimerName PulseOff" Send="ClearScale 0.375000 PulseOn" />
+    <HostSiteOps Ops="SOpAttachCenter SOp2DRotation SOpPointSouthWorld" />
+  </CActorModel>
+  <CActorMissile id="BraxisCoreMissileStormMissile" parent="GenericAttackMissile" unitName="BraxisCoreMissileStormMissile" />
+  <CActorModel id="BraxisCoreMissileStormWarningSplat" parent="StormModelAnimationStyleContinuous">
+    <On Terms="Effect.BraxisCoreMissileStormLaunchPersistent.Start; At Effect" Send="Create" />
+    <On Terms="Effect.BraxisCoreMissileStormLaunchPersistent.Stop; FromEffectTreeDescendant" Send="Destroy" />
+    <Inherits index="TeamColor" value="1" />
+    <HostSiteOps HoldPosition="1" HoldRotation="1" />
+  </CActorModel>
   <CActorModel id="BraxisDropPod" parent="StormModelAnimationStyleOneShot">
     <AcceptedHostedPropTransfers index="TeamColor" value="1" />
     <AcceptedHostedPropTransfers index="Visibility" value="1" />
@@ -55,6 +87,12 @@
     <CreepRateGrow value="Grow" />
     <CreepRateShrink value="Shrink" />
   </CActorDoodad>
+  <CActorSound id="BraxisCoreMissileStormWarningSound" parent="SoundOneShot">
+    <On Terms="Effect.BraxisCoreMissileStormTargetMarkerApply.Start; At Target" Send="Create" />
+    <On Terms="ActorCreation" Send="TimerSet 1.000000 Fade" />
+    <On Terms="TimerExpired; TimerName Fade" Send="SoundSetMuted 1" />
+    <Host Subject="_Unit" />
+  </CActorSound>
   <CActorRegionQuad id="TerranArchangelDefenderBulletstormQuadDown" parent="StormGuideRegion">
     <Inherits index="TeamColor" value="1" />
     <FogVisibility value="Hidden" />
@@ -85,8 +123,8 @@
     <Macros index="1" removed="1" />
     <Inherits index="CloakEffect" value="0" />
     <Inherits index="Visibility" value="0" />
-    <On Terms="Effect.TerranArchangelDefenderBulletstormPrepareSet.Start; At Caster" Send="Create" />
-    <On Terms="Effect.TerranArchangelDefenderBulletstormCreateVisualPersistent.Stop" Send="Destroy" />
+    <On Terms="Effect.TerranArchangelDefenderBulletstormPrepareSet.Start; !ValidateUnit BraxisCoreIsCoreUnitType; At Caster" Send="Create" />
+    <On Terms="Effect.TerranArchangelDefenderBulletstormCreateVisualPersistent.Stop; !ValidateUnit BraxisCoreIsCoreUnitType" Send="Destroy" />
     <HostSiteOps Ops="SOpAttachOrigin SOpMoveForwardByDot5" />
     <Scale value="1.500000,1.400000,1.000000" />
     <VisibilityShape Shape="TerranArchangelDefenderBulletstormWarningSplat" />
@@ -284,6 +322,18 @@
     <On Terms="ActorCreation; PlayerId 12 12" Send="Create SCBraxisCoreBirthAdditionB" />
     <On Terms="Signal.*.CoreBuild" Target="SCBraxisCoreBirthAdditionA" Send="AnimBracketStop BSD 0 1.000000 AsTimeScale" />
     <On Terms="Signal.*.CoreBuild" Target="SCBraxisCoreBirthAdditionB" Send="AnimBracketStop BSD 0 1.000000 AsTimeScale" />
+    <On Terms="Abil.BraxisCoreBulletstorm.SourceCastStart" Target="TerranArchangelAttackLaunchSound" Send="Destroy" />
+    <On Terms="Abil.BraxisCoreBulletstorm.SourceCastStart" Send="Create TerranArchangelBulletstormChargeSound" />
+    <On Terms="Abil.BraxisCoreBulletstorm.SourceCastStart" Send="Create ArchangelBulletstormMechStartSound" />
+    <On Terms="Abil.BraxisCoreBulletstorm.SourceCastStart" Send="AnimBracketStart Spell Spell,Channel,Start Spell,Channel Spell,Channel,End OpeningPlayForever 1.000000 AsTimeScale" />
+    <On Terms="Abil.BraxisCoreBulletstorm.SourceCastStart" Send="TimerSet 0.700000 Bulletstorm" />
+    <On Terms="TimerExpired; TimerName Bulletstorm" Send="AnimPlay SpellAttack Attack PlayForever -1.000000 -1.000000 1.000000 AsTimeScale" />
+    <On Terms="TimerExpired; TimerName Bulletstorm" Send="Create TerranArchangelBulletstormLaunchSound" />
+    <On Terms="Abil.BraxisCoreBulletstorm.SourceFinishStart" Send="AnimBracketStop Spell" />
+    <On Terms="Abil.BraxisCoreBulletstorm.SourceFinishStart" Send="AnimClear SpellAttack" />
+    <On Terms="Abil.BraxisCoreBulletstorm.SourceFinishStart" Target="TerranArchangelBulletstormLaunchSound" Send="Destroy" />
+    <On Terms="Abil.BraxisCoreBulletstorm.SourceFinishStart; AnimPlaying Attack Attack" Send="Create TerranArchangelAttackLaunchSound" />
+    <On Terms="Abil.BraxisCoreBulletstorm.SourceFinishStart" Send="Create TerranArchangelBulletstormEndSound" />
     <GroupIcon>
       <Image value="Assets\Textures\Storm_UI_InGame_TargetInfoPanel_Unit_Braxis_Building_Core.dds" />
     </GroupIcon>
@@ -1445,4 +1495,15 @@
     <ImpactMap index="None" Model="ZergUltraliskImpactRight" Sound="Event_BraxisHoldout_Ultralisk_Attack_Impact" />
     <ShieldFlashType value="None" />
   </CActorAction>
+  <CActorModel id="BraxisCoreBulletstormWarningSplat" parent="StormModelAnimationStyleContinuousUnit">
+    <Macros index="0" removed="1" />
+    <Macros index="1" removed="1" />
+    <Inherits index="CloakEffect" value="0" />
+    <Inherits index="Visibility" value="0" />
+    <On Terms="Effect.TerranArchangelDefenderBulletstormPrepareSet.Start; ValidateUnit BraxisCoreIsCoreUnitType; At Caster" Send="Create" />
+    <On Terms="Effect.TerranArchangelDefenderBulletstormCreateVisualPersistent.Stop; ValidateUnit BraxisCoreIsCoreUnitType" Send="Destroy" />
+    <HostSiteOps Ops="SOpAttachOrigin SOpForwardTargetPoint" />
+    <Scale value="1.500000,1.400000,1.000000" />
+    <VisibilityShape Shape="TerranArchangelDefenderBulletstormWarningSplat" />
+  </CActorModel>
 </Catalog>

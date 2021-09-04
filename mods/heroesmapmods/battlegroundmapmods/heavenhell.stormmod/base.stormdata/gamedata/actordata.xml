@@ -2825,4 +2825,96 @@
       <Image value="Assets\Textures\Storm_UI_InGame_TargetInfoPanel_Unit_BoE_Merc_Siege.dds" />
     </GroupIcon>
   </CActorUnit>
+  <CActorModelMaterial id="DiabloCoreFrozenGlaze" parent="ModelAnimationStyleContinuous">
+    <ModelFlags index="AutomateGlobalLoops" value="1" />
+  </CActorModelMaterial>
+  <CActorModel id="DiabloCoreFrozenSlow" parent="StormModelAnimationStyleContinuousUnit">
+    <On Terms="Behavior.DiabloCoreFrozenRoot.On" Send="Create" />
+    <On Terms="Behavior.DiabloCoreFrozenRoot.Off" Send="AnimBracketStop BSD" />
+    <HostSiteOps Ops="SOpAttachCenter" />
+  </CActorModel>
+  <CActorModel id="DiabloCoreFrozenPersistent" parent="StormModelAnimationStyleContinuous">
+    <On Terms="Effect.DiabloCoreFrozenDelayPersistent.Start" Send="Create" />
+    <On Terms="Effect.DiabloCoreFrozenDelayPersistent.Stop; FromEffectTreeDescendant" Target="::Self" Send="AnimBracketStop BSD" />
+    <HostSiteOps Ops="SOpTargetPointStationary SOpMoveUpByDot5" />
+  </CActorModel>
+  <CActorModel id="DiabloCoreFrozenImpact" parent="StormModelAnimationStyleOneShot">
+    <On Terms="Effect.DiabloCoreFrozenSearchArea.Start" Send="Create" />
+  </CActorModel>
+  <CActorModel id="DiabloCoreFrozenUnitImpact" parent="StormModelAddition">
+    <On Terms="Behavior.DiabloCoreFrozenRoot.On" Send="Create" />
+    <On Terms="Behavior.DiabloCoreFrozenRoot.Off" Send="AnimBracketStop BSD" />
+    <Host Subject="_Unit" />
+    <HostSiteOps Ops="SOpAttachOrigin" HoldRotation="1" />
+  </CActorModel>
+  <CActorModel id="DiabloCoreFrozenWarningPersistent" parent="StormModelAnimationStyleContinuous">
+    <Inherits index="TeamColor" value="1" />
+    <On Terms="Effect.DiabloCoreFrozenDelayPersistent.Start" Send="Create" />
+    <On Terms="Effect.DiabloCoreFrozenDelayPersistent.Stop; FromEffectTreeDescendant" Target="::Self" Send="Destroy Immediate" />
+  </CActorModel>
+  <CActorUnit id="DiabloCoreArcaneUnit" parent="StormMinionStandard" unitName="DiabloCoreArcaneUnit">
+    <On Terms="ActorCreation" Send="TimerSet 1.500000 Start" />
+    <On Terms="ActorCreation" Send="Create Diablo_Core_Arcane_Arcane_Launch" />
+    <On Terms="Behavior.DiabloCoreArcaneTurnLeft.On" Send="ModelSwap DiabloCoreArcaneUnitLeft" />
+    <On Terms="Behavior.DiabloCoreArcaneTurnLeft.On" Send="StatusSet LeftTurning 1" />
+    <On Terms="TimerExpired; TimerName Start" Send="ModelSwap DiabloCoreArcaneUnit" />
+    <On Terms="TimerExpired; TimerName Start" Send="Create Diablo_Core_Arcane_Arcane_Loop" />
+    <On Terms="TimerExpired; TimerName Start" Send="AnimPlay Birth Birth" />
+    <On Terms="ActorCreation" Send="TimerSet 8.750000 End" />
+    <On Terms="TimerExpired; TimerName End" Send="Create Diablo_Core_Arcane_Arcane_LoopEnd" />
+    <On Terms="UnitDeathCustomize; !IsStatus LeftTurning 1" Send="DeathCustomize Variation0" />
+    <On Terms="UnitDeathCustomize; IsStatus LeftTurning 1" Send="DeathCustomize Variation1" />
+    <On Terms="ActorCreation" Send="AnimBracketStart BSD Birth Stand Death" />
+    <DeathCustoms ModelLink="DiabloCoreArcaneUnit" Name="Variation0" />
+    <DeathCustoms ModelLink="DiabloCoreArcaneUnitLeft" Name="Variation1" />
+    <Model value="DiabloCoreArcaneUnitCast" />
+  </CActorUnit>
+  <CActorModel id="DiabloCoreArcaneImpact" parent="StormModelAnimationStyleOneShot">
+    <On Terms="Effect.DiabloCoreArcaneVisualPersistent.Start" Send="Create" />
+    <On Terms="ActorCreation" Send="TimerSet 0.125000 Death" />
+    <On Terms="TimerExpired; TimerName Death" Send="Destroy" />
+  </CActorModel>
+  <CActorModel id="DiabloCoreArcaneImpactUnit" parent="StormModelAnimationStyleOneShot">
+    <On Terms="Effect.DiabloCoreArcaneDamage.Start; At Target" Send="Create" />
+    <Host Subject="_Unit" />
+    <HostSiteOps Ops="SOpAttachCenter" />
+  </CActorModel>
+  <CActorSound id="Diablo_Core_Arcane_Arcane_Launch" parent="SoundOneShot">
+    <Layers Sound="Diablo_Core_Arcane_Arcane_Launch_Sweetener" />
+  </CActorSound>
+  <CActorSound id="Diablo_Core_Arcane_Arcane_Impact" parent="SoundOneShot">
+    <On Terms="Effect.DiabloCoreArcaneDamage.Start; At Target" Send="Create" />
+    <Host Subject="_Unit" />
+    <HostSiteOps Ops="SOpAttachCenter" />
+  </CActorSound>
+  <CActorSound id="Diablo_Core_Arcane_Arcane_Loop" parent="SoundContinuous" />
+  <CActorSound id="Diablo_Core_Arcane_Arcane_Loop2" parent="SoundContinuous" />
+  <CActorSound id="Diablo_Core_Arcane_Arcane_LoopEnd" parent="SoundOneShot">
+    <Layers Sound="Diablo_Core_Arcane_Arcane_LoopEnd_Sweetener" />
+  </CActorSound>
+  <CActorSound id="Diablo_Core_Frozen_Frozen_Launch" parent="SoundOneShot" />
+  <CActorSound id="Diablo_Core_Frozen_Frozen_Rings" parent="SoundContinuous">
+    <On Terms="Effect.DiabloCoreFrozenDelayPersistent.Start" Send="Create" />
+    <On Terms="Effect.DiabloCoreFrozenDelayPersistent.Stop; FromEffectTreeDescendant" Send="Destroy" />
+    <Layers Chance="0" />
+  </CActorSound>
+  <CActorSound id="Diablo_Core_Frozen_Frozen_Impact" parent="SoundOneShot">
+    <On Terms="Effect.DiabloCoreFrozenSearchArea.Start" Send="Create" />
+    <Layers Sound="Diablo_Core_Frozen_Frozen_Sizzle" />
+    <Layers Sound="Diablo_Core_Frozen_Frozen_Impact2" />
+  </CActorSound>
+  <CActorSound id="Diablo_Core_Frozen_Frozen_ImpactUnit" parent="SoundOneShot">
+    <On Terms="Behavior.DiabloCoreFrozenRoot.On" Send="Create" />
+    <Host Subject="_Unit" />
+    <HostSiteOps Ops="SOpAttachCenter" />
+  </CActorSound>
+  <CActorSound id="InfernalShrineFrozenPunisherImpactSound" parent="SoundOneShot">
+    <On Terms="Effect.DiabloCoreFrozenSearchArea.Start" Send="Create" />
+    <Sound value="Diablo_Core_Frozen_Frozen_Impact" />
+    <Layers Sound="Diablo_Core_Frozen_Frozen_Impact2" />
+  </CActorSound>
+  <CActorSound id="InfernalShrineFrozenPunisherLaunchSound" parent="SoundOneShot">
+    <On Terms="Effect.DiabloCoreFrozenDelayPersistent.Start" Send="Create" />
+    <Sound value="Diablo_Core_Frozen_Frozen_Rings" />
+  </CActorSound>
 </Catalog>

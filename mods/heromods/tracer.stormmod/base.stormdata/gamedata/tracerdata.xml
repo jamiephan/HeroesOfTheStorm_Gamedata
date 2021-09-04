@@ -405,7 +405,7 @@
     <On Terms="Abil.TracerBlink.SourceCastStart; ValidateUnit TracerIsAttackingorReloading" Send="StatusSet BlinkFiring 1" />
     <On Terms="Behavior.TracerBlinkSpeedBuff.Off; HasStatus BlinkFiring" Send="AnimBlendTimeApply 0.150000" />
     <On Terms="Behavior.TracerBlinkSuppressTurning.Off; HasStatus BlinkFiring" Send="AnimGroupRemove Turbo" />
-    <On Terms="Behavior.TracerBlinkSuppressTurning.Off; HasStatus BlinkFiring" Send="SetWalkAnimMoveSpeed 4.8" />
+    <On Terms="Behavior.TracerBlinkSuppressTurning.Off; HasStatus BlinkFiring" Send="SetWalkAnimMoveSpeed 4.7968" />
     <On Terms="Behavior.TracerBlinkSuppressTurning.Off; HasStatus BlinkFiring" Send="StatusSet BlinkFiring 0" />
     <On Terms="UnitMovementUpdate.*.Walk" Send="Create TracerSpeedRibbon" />
     <On Terms="UnitMovementUpdate.*.Stand" Target="TracerSpeedRibbon" Send="AnimBracketStop BSD" />
@@ -490,7 +490,7 @@
     <Preload value="TracerRecallPartingGiftClusterMissile" />
     <Preload value="TracerRecallPartingGiftClusterImpactModel" />
     <DeathArray index="Normal" SoundLink="TracerBase_Death" />
-    <WalkAnimMoveSpeed value="4.8" />
+    <WalkAnimMoveSpeed value="4.7968" />
   </CActorUnit>
   <CActorModel id="TracerRecallPoseUnit" parent="StormModelAnimationStyleOneShot">
     <Model value="HeroTracer" />
@@ -1713,6 +1713,7 @@
     <Behavior value="TracerHeroWeaponLockedAndLoadedSoundDummy" />
   </CEffectApplyBehavior>
   <CEffectApplyBehavior id="TracerHeroWeaponApplyWeaponDisabler">
+    <ValidatorArray value="TracerCasterIsTracer" />
     <WhichUnit Value="Caster" />
     <Behavior value="TracerWeaponDisabler" />
   </CEffectApplyBehavior>
@@ -2028,6 +2029,8 @@
   <CEffectModifyUnit id="TracerMeleeModifyWeaponCooldown">
     <ImpactUnit Value="Caster" />
     <Weapon Weapon="TracerHeroWeapon" CooldownOperation="Set" CooldownAmount="0.375" />
+    <ValidatorArray value="TracerIsNotReloadingOrReloadDurationLTWeaponMod" />
+    <ValidatorArray value="TracerIsNotReloadingOrReloadLockedAndLoadedOrDurationLTWeaponMod" />
   </CEffectModifyUnit>
   <CEffectApplyBehavior id="TracerPulseBombApplyDummyBehavior">
     <Behavior value="TracerPulseBombDummyBehavior" />
@@ -2411,7 +2414,7 @@
   </CEffectSet>
   <CEffectModifyUnit id="TracerReloadModifyWeaponCooldown">
     <ImpactUnit Value="Caster" />
-    <Weapon Weapon="TracerHeroWeapon" CooldownOperation="Max" CooldownAmount="0.75" />
+    <Weapon Weapon="TracerHeroWeapon" CooldownOperation="Max" CooldownAmount="0.8125" />
   </CEffectModifyUnit>
   <CEffectRemoveBehavior id="TracerReloadRemoveLockedandLoadedFailBehavior">
     <Chance value="0" />
@@ -2812,6 +2815,7 @@
     <SkinArray value="TracerSpectre" />
     <SkinArray value="TracerGhost" />
     <SkinArray value="TracerWaterGun" />
+    <SkinArray value="TracerMyth20" />
     <HeroTierAchievementId value="5216701565556595042" />
     <CollectionIcon value="Assets\Textures\storm_ui_glues_draft_portrait_tracer.dds" />
     <Gender value="Female" />
@@ -3029,6 +3033,18 @@
     <Rarity value="Legendary" />
     <ExpandedRole value="RangedAssassin" />
   </CHero>
+  <CHeroMastery id="TracerMasteryRing1" parent="MasteryRingRank1">
+    <ProductId value="66943" />
+    <HyperlinkId value="TracerMasteryRingRank1" />
+  </CHeroMastery>
+  <CHeroMastery id="TracerMasteryRing2" parent="MasteryRingRank2">
+    <ProductId value="67080" />
+    <HyperlinkId value="TracerMasteryRingRank2" />
+  </CHeroMastery>
+  <CHeroMastery id="TracerMasteryRing3" parent="MasteryRingRank3">
+    <ProductId value="72983" />
+    <HyperlinkId value="TracerMasteryRingRank3" />
+  </CHeroMastery>
   <CLight id="Home_Tracer" parent="default">
     <ToDInfoArray index="0" Id="Home_Tracer" OperatorHDR="4" Colorize="1">
       <AmbientColor X="0.298039" Y="0.427451" Z="0.870588" />
@@ -3206,6 +3222,15 @@
   <CRewardHero id="Tracer">
     <License value="16777" />
   </CRewardHero>
+  <CRewardHeroMastery id="TracerMasteryRing1">
+    <License value="49853" />
+  </CRewardHeroMastery>
+  <CRewardHeroMastery id="TracerMasteryRing2">
+    <License value="49854" />
+  </CRewardHeroMastery>
+  <CRewardHeroMastery id="TracerMasteryRing3">
+    <License value="52210" />
+  </CRewardHeroMastery>
   <CTalent id="TracerBulletSprayMelee">
     <Face value="TracerBulletSprayMelee" />
     <Abil value="TracerMelee" />
@@ -3676,11 +3701,37 @@
   <CValidatorCombine id="HallOfStormsKnockbackExceptionCombine">
     <CombineArray value="TracerTargetIsNotTracerRecallUnitCombine" />
   </CValidatorCombine>
+  <CValidatorUnitType id="TracerCasterIsTracer">
+    <WhichUnit Value="Caster" />
+    <Value value="HeroTracer" />
+  </CValidatorUnitType>
   <CValidatorUnitType id="TracerCasterIsNotTracerRecallUnitAITracking">
     <WhichUnit Value="Caster" />
     <Value value="TracerRecallUnitAITracking" />
     <Find value="0" />
   </CValidatorUnitType>
+  <CValidatorUnitCompareOrderCount id="TracerHasNoMeleeOrder">
+    <AbilLink value="TracerMelee" />
+  </CValidatorUnitCompareOrderCount>
+  <CValidatorCombine id="TracerIsNotReloadingOrReloadDurationLTWeaponMod">
+    <CombineArray value="TracerIsNotReloadingCaster" />
+    <CombineArray value="TracerReloadDurationLTDot375" />
+  </CValidatorCombine>
+  <CValidatorUnitCompareBehaviorDuration id="TracerReloadLockedAndLoadedDurationLTDot375">
+    <Compare value="LT" />
+    <Value value="0.375" />
+    <SucceedIfUnitLacksBehavior value="1" />
+    <Behavior value="TracerLockedandLoadedReload" />
+  </CValidatorUnitCompareBehaviorDuration>
+  <CValidatorCombine id="TracerIsNotReloadingOrReloadLockedAndLoadedOrDurationLTWeaponMod">
+    <CombineArray value="TracerIsNotLockedandLoadedReloadingCaster" />
+    <CombineArray value="TracerReloadLockedAndLoadedDurationLTDot375" />
+  </CValidatorCombine>
+  <CValidatorUnitCompareBehaviorDuration id="TracerReloadDurationLTDot375">
+    <Compare value="LT" />
+    <Value value="0.375" />
+    <Behavior value="TracerReload" />
+  </CValidatorUnitCompareBehaviorDuration>
   <CValidatorUnitType id="TracerTargetIsNotTracerRecallDummyUnit">
     <Value value="TracerRecallDummyUnit" />
     <Find value="0" />
@@ -3789,6 +3840,7 @@
     <CombineArray value="CasterNotDeadOrStasis" />
     <CombineArray value="IsNotMounting" />
     <CombineArray value="HeroGenericNotCommandeeringVehicle" />
+    <CombineArray value="TracerHasNoMeleeOrder" />
   </CValidatorCombine>
   <CValidatorCombine id="TracerPulseBombExplosionValidator">
     <CombineArray value="TracerTargetHasPulseBombDummyBehavior" />
@@ -4186,18 +4238,4 @@
     <UninterruptibleDelay value="0" />
     <UninterruptibleDuration value="0" />
   </CWeaponLegacy>
-  <CHeroMastery id="TracerMasteryRing1" parent="MasteryRingRank1">
-    <ProductId value="66943" />
-    <HyperlinkId value="TracerMasteryRingRank1" />
-  </CHeroMastery>
-  <CHeroMastery id="TracerMasteryRing2" parent="MasteryRingRank2">
-    <ProductId value="67080" />
-    <HyperlinkId value="TracerMasteryRingRank2" />
-  </CHeroMastery>
-  <CRewardHeroMastery id="TracerMasteryRing1">
-    <License value="49853" />
-  </CRewardHeroMastery>
-  <CRewardHeroMastery id="TracerMasteryRing2">
-    <License value="49854" />
-  </CRewardHeroMastery>
 </Catalog>

@@ -481,6 +481,7 @@
     <Macros value="StormDamageReductionMacro" />
     <Macros value="StormAnimAdditionDestructionMacro" />
     <Macros value="MountCabooseMacro" />
+    <Macros value="DragonShireCorePetrifyMacro" />
     <On Terms="UnitDetectedByViewer.*.On; ValidateUnit IsMirrorImage" Target="_MirrorImageTinter" Send="Signal MirrorImageTintOn" />
     <On Terms="UnitDetectedByViewer.*.Off; ValidateUnit IsMirrorImage" Target="_MirrorImageTinter" Send="Signal MirrorImageTintOff" />
     <On Terms="UnitBirth.##unitName##" Send="Create PropsHost" />
@@ -1279,6 +1280,16 @@
     <Aliases value="_DeathMaterial" />
     <MaterialType value="Replacement" />
   </CActorModelMaterial>
+  <CActorSound id="CursedHollowCowCurseDebuffSound" parent="SoundOneShot">
+    <On Terms="Effect.CursedHollowCoreCurseApplyBehavior.Start; At Target" Send="Create" />
+    <Sound value="CursedHollowCoreDebuffSound" />
+  </CActorSound>
+  <CActorSound id="CursedHollowCoreCurseWarningSound" parent="SoundOneShot">
+    <On Terms="Effect.CursedHollowCoreCursePersistent.Start" Send="Create" />
+  </CActorSound>
+  <CActorSound id="CursedHollowCoreCurseLaunchSound" parent="SoundOneShot">
+    <On Terms="Effect.CursedHollowCoreCursePersistent.Stop" Send="Create" />
+  </CActorSound>
   <CActorEventMacro id="MountCabooseMacro">
     <On Terms="Behavior.MountCaboose.On; AnimPlaying Fidget" Send="AnimClear Fidget" />
     <On Terms="Behavior.MountCaboose.On" Send="StatusSet Mounted 1" />
@@ -1338,8 +1349,10 @@
     <Aliases value="_HeroRingMasteryMacro" />
     <On Terms="Signal.*.MasteryRingCreation; ValidatePlayer HasHeroRingMastery1Upgrade" Send="Create Storm_HeroRing_Mastery1" />
     <On Terms="Signal.*.MasteryRingCreation; ValidatePlayer HasHeroRingMastery2Upgrade" Send="Create Storm_HeroRing_Mastery2" />
+    <On Terms="Signal.*.MasteryRingCreation; ValidatePlayer HasHeroRingMastery3Upgrade" Send="Create Storm_HeroRing_Mastery3" />
     <On Terms="Signal.*.MasteryRingCreation; ValidatePlayer HasHeroRingMastery0Upgrade" Target="Storm_HeroRing_Mastery1" Send="Destroy" />
     <On Terms="Signal.*.MasteryRingCreation; ValidatePlayer HasHeroRingMastery0Upgrade" Target="Storm_HeroRing_Mastery2" Send="Destroy" />
+    <On Terms="Signal.*.MasteryRingCreation; ValidatePlayer HasHeroRingMastery0Upgrade" Target="Storm_HeroRing_Mastery3" Send="Destroy" />
   </CActorEventMacro>
   <CActorSiteOpLocalOffset id="SOpMoveUpBy1Dot5">
     <LocalOffset Z="1.500000" />
@@ -2833,6 +2846,15 @@
     <On Terms="StatusOff.*.BurrowVis" Send="SetVisibility 1" />
     <Aliases value="_BurrowState" />
   </CActorEventMacro>
+  <CActorEventMacro id="DragonShireCorePetrifyMacro">
+    <On Terms="Behavior.DragonShireCorePetrifyStun.On" Send="StatusIncrement Petrify" />
+    <On Terms="Behavior.DragonShireCorePetrifyStun.Off" Send="StatusDecrement Petrify" />
+    <On Terms="StatusOn.*.Petrify" Target="::Main" Send="ModelMaterialApply DragonShireCorePetrifyGlaze" />
+    <On Terms="StatusOff.*.Petrify" Send="ModelMaterialRemove DragonShireCorePetrifyGlaze" />
+    <On Terms="StatusOn.*.Petrify" Send="AnimSetPausedAll" />
+    <On Terms="StatusOff.*.Petrify; HasStatus TimeStopPaused" Send="StatusDecrement TimeStopPaused" />
+    <On Terms="StatusOff.*.Petrify; IsStatus TimeStopPaused 0" Send="AnimSetPausedAll 0" />
+  </CActorEventMacro>
   <CActorSiteOpAttach id="SOpAttachForearmRight">
     <AttachQuery Methods="AMFilterForearmRight" />
   </CActorSiteOpAttach>
@@ -3092,6 +3114,14 @@
     <Aliases value="_EditorHelper" />
     <On Terms="Signal.*.BrushTintOn" Send="SetTintColor 140,140,244 0.650000 Bounce TargetingTint" />
   </CActorDoodad>
+  <CActorUnitRing id="Storm_HeroRing_Mastery3" parent="Storm_HeroRing_Parent">
+    <Aliases value="_HeroRingMastery" />
+    <Aliases value="_HeroRing" />
+    <Remove Terms="ActorCreation" Send="Create HitTestDisc" />
+    <Remove Terms="ActorDestruction" Target="HitTestDisc" Send="Destroy" />
+    <HostSiteOps Ops="SOpBasicScopeFollow SOpShadow SOpMoveDownByDot502" />
+    <Model value="Storm_HeroRing_Mastery3" />
+  </CActorUnitRing>
   <CActorUnitRing id="Storm_HeroRing_NotSelfFilter" parent="Storm_HeroRing_Parent">
     <Filter index="Self" value="1" />
     <Model value="Storm_HeroRing_Player" />
@@ -3123,8 +3153,12 @@
     <Filter index="Enemy" value="1" />
     <On Terms="ActorCreation" Send="SetVisibility" />
     <On Terms="ActorCreation; ValidateUnit SourceIsHeroAndNotHallucinationAndNotVehicleAndNotStructureReplacement" Send="SetVisibility 1" />
-    <On Terms="ActorCreation; HasAllianceTypeWith Enemy ::global.Team2Core" Send="SetTeamColorFrom TeamColor ::global.Team2Core ::Base 300.000000" />
-    <On Terms="ActorCreation; HasAllianceTypeWith Enemy ::global.Team1Core" Send="SetTeamColorFrom TeamColor ::global.Team1Core ::Base 300.000000" />
+    <On Terms="ActorCreation; HasAllianceTypeWith Enemy ::global.Team1Core" Send="SetTeamColorFrom TeamColor ::global.Team2Core ::Base 300.000000" />
+    <On Terms="ActorCreation; HasAllianceTypeWith Enemy ::global.Team2Core" Send="SetTeamColorFrom TeamColor ::global.Team1Core ::Base 300.000000" />
+    <On Terms="Effect.TowerAttackWarningBeamPersistent.Start; At Target" Send="Create" />
+    <On Terms="Effect.TowerAttackWarningBeamPersistent.Stop; At Target; FromEffectTreeDescendant" Send="Destroy" />
+    <On Terms="Effect.TowerAttackWarningBeamPersistentHero.Start; At Target" Send="Create" />
+    <On Terms="Effect.TowerAttackWarningBeamPersistentHero.Stop; At Target; FromEffectTreeDescendant" Send="Destroy" />
   </CActorUnitRing>
   <CActorSound id="GenericImpactSound" parent="SoundOneShot">
     <Flags index="SuppressCreationErrors" value="1" />
@@ -7088,6 +7122,34 @@
     <On Terms="Behavior.DragonKnightBullRushCaster.On" Send="Create" />
     <On Terms="Behavior.DragonKnightBullRushCaster.Off" Send="AnimBracketStop BSD" />
   </CActorModel>
+  <CActorSound id="DragonshireCoreFireBreathSound" parent="SoundOneShot">
+    <On Terms="Abil.DragonshireCoreFireBreath.SourceCastStart" Send="Create" />
+    <Sound value="Merc_DragonKnight_BreatheFire_Launch" />
+  </CActorSound>
+  <CActorSound id="DragonshireCoreFireBreathImpactSound" parent="SoundOneShot">
+    <HostForProps Subject="::Creator" />
+    <Host Subject="::Creator" />
+    <Sound value="Merc_DragonKnight_BreatheFire_Impact" />
+  </CActorSound>
+  <CActorModel id="DragonshireCoreFireBreathImpact" parent="StormModelAnimationStyleOneShotUnit">
+    <On Terms="Effect.DragonshireCoreFireBreathDamage.Start; At Target" Send="Create" />
+    <On Terms="Effect.DragonshireCoreFireBreathNapalmDamage.Start; At Target" Send="Create" />
+    <On Terms="ActorCreation" Send="Create DragonshireCoreFireBreathImpactSound" />
+    <HostSiteOps Ops="SOpAttachCenter" />
+  </CActorModel>
+  <CActorModel id="DragonshireCoreFireBreathNapalm" parent="StormModelNoAnimsUnit">
+    <On Terms="Effect.DragonshireCoreFireBreathPersistentBurn.Start; At Effect" Send="Create" />
+    <On Terms="Effect.DragonshireCoreFireBreathPersistentBurn.Stop; FromEffectTreeDescendant" Send="Destroy" />
+    <On Terms="ActorCreation" Send="AnimPlay Birth Birth" />
+    <On Terms="AnimDone; AnimName Birth" Send="AnimPlay Birth Birth" />
+    <HostSiteOps Ops="SOpOriginPoint SOpForwardTargetPoint SOp2DRotation SgtHammerConcussiveBlastOffset SOpMoveForwardBy1" HoldPosition="1" HoldRotation="1" />
+    <Host Subject="" />
+  </CActorModel>
+  <CActorModel id="DragonshireCoreFireBreath" parent="StormModelAnimationStyleOneShot">
+    <HostSiteOps Ops="SOpAttachCenter SOpForwardTargetPoint SOpMoveBy2 SOpMoveForwardBy1 SOpMoveForwardBy1" />
+    <On Terms="Effect.DragonshireCoreFireBreathPersistent.Start; At Caster" Send="Create" />
+    <Host Subject="_Unit" />
+  </CActorModel>
   <CActorModel id="GardensDragonFireBreath" parent="StormModelAnimationStyleOneShot">
     <HostSiteOps Ops="SOpAttachCenter SOpMoveBy2" />
     <On Terms="Effect.DragonFireBreathPersistent.Start; At Caster" Send="Create" />
@@ -7231,10 +7293,13 @@
     <On Terms="Signal.*.PolymorphStarted" Target="::actor.CasterModelLink" Send="Destroy" />
     <On Terms="Signal.*.PolymorphStarted" Target="::Sender" Send="Signal PolyReady" />
     <On Terms="Behavior.BrightwingPolymorph.Off" Target="::actor.CasterModelLink" Send="Destroy" />
+    <On Terms="Behavior.PlantHorrorPolymorph.Off" Target="::actor.CasterModelLink" Send="Destroy" />
     <On Terms="Behavior.BrightwingPolymorph.On" Send="StatusIncrement BrightwingPolymorph" />
     <On Terms="Behavior.BrightwingPolymorph.Off" Send="StatusDecrement BrightwingPolymorph" />
     <On Terms="Behavior.BrightwingPolymorph.On" Send="StatusIncrement Polymorphed" />
     <On Terms="Behavior.BrightwingPolymorph.Off" Send="StatusDecrement Polymorphed" />
+    <On Terms="Behavior.PlantHorrorPolymorph.On" Send="StatusIncrement Polymorphed" />
+    <On Terms="Behavior.PlantHorrorPolymorph.Off" Send="StatusDecrement Polymorphed" />
     <On Terms="StatusIncrement.*.Polymorphed" Send="TimerSet 0.125000 PolyOnCheck" />
     <On Terms="StatusIncrement.*.Polymorphed" Send="AnimClear Spell" />
     <On Terms="TimerExpired; TimerName PolyOnCheck; IsStatus Polymorphed 1" Send="SetOpacity 0.000000 0.000000 Polymorph" />
@@ -7245,6 +7310,8 @@
   <CActorEventMacro id="PolymorphMacroEffects">
     <On Terms="Behavior.BrightwingPolymorph.On" Send="StatusIncrement Polymorphed" />
     <On Terms="Behavior.BrightwingPolymorph.Off" Send="StatusDecrement Polymorphed" />
+    <On Terms="Behavior.PlantHorrorPolymorph.On" Send="StatusIncrement Polymorphed" />
+    <On Terms="Behavior.PlantHorrorPolymorph.Off" Send="StatusDecrement Polymorphed" />
     <On Terms="StatusIncrement.*.Polymorphed; IsStatus Polymorphed 1" Send="SetOpacity 0.000000 0.000000 Polymorph" />
     <On Terms="StatusDecrement.*.Polymorphed; IsStatus Polymorphed 0" Send="ClearOpacity 0.000000 Polymorph" />
   </CActorEventMacro>
@@ -7254,6 +7321,8 @@
     <Remove Terms="StatusIncrement.*.Polymorphed" Send="TimerSet 0.125000 PolyOnCheck" />
     <Remove Terms="TimerExpired; TimerName PolyOnCheck; IsStatus Polymorphed 1" Send="SetOpacity 0.000000 0.000000 Polymorph" />
     <Remove Terms="StatusDecrement.*.Polymorphed; IsStatus Polymorphed 0" Send="ClearOpacity 0.000000 Polymorph" />
+    <Remove Terms="Behavior.PlantHorrorPolymorph.On" Send="StatusIncrement Polymorphed" />
+    <Remove Terms="Behavior.PlantHorrorPolymorph.Off" Send="StatusDecrement Polymorphed" />
   </CActorEventMacro>
   <CActorEventMacro id="EffectVisibilityMacro">
     <On Terms="StatusIncrement.*.EffectVisibility; IsStatus EffectVisibility 1" Send="SetOpacity 0.000000 0.000000 EffectVisibility" />
@@ -8198,7 +8267,6 @@
     <Macros value="PreTargetHaloMacro" />
     <Macros value="LowAmmoCastleDisabledMacro" />
     <Macros value="MULERepairCastleMacro" />
-    <Macros value="StructureAttackWarningMacro" />
     <On Terms="Behavior.BuildingMediumDamage.On" Send="Create TownTownHallL2ExplosionDamage" />
     <On Terms="Behavior.BuildingMediumDamage.On" Send="Create TownTownHallL2DamageSound" />
     <On Terms="Behavior.BuildingMediumDamage.On" Send="Create TownHallDamageLoopSound" />
@@ -8256,7 +8324,6 @@
     <Macros value="PreTargetHaloMacro" />
     <Macros value="LowAmmoCastleDisabledMacro" />
     <Macros value="MULERepairCastleMacro" />
-    <Macros value="StructureAttackWarningMacro" />
     <On Terms="Signal.*.PlayBuild" Send="AnimPlay Build Stand,Morph,Start" />
     <On Terms="AnimDone; AnimName Build; ModelName TownTownHallL3BirthModel" Send="Signal BuildDone" />
     <On Terms="AnimDone; AnimName Build; ModelName TownTownHallL3BirthModel" Send="ModelSwap TownTownHallL3" />
@@ -9406,22 +9473,34 @@
     <HostImpact Subject="_Unit" Scope="Caster" Actor="Find" />
     <HostImpactSiteOps Ops="SOpAttachCenter" />
   </CActorBeamSimple>
-  <CActorEventMacro id="StructureAttackWarningMacro">
-    <On Terms="AttackTargetAcquired.*.On" Target="::actor.TargetMarker" Send="Destroy" />
-    <On Terms="AttackTargetAcquired.*.On" Target="::LastAcquiredTarget" Send="Create Doodad_CannonTower_Targeting_Warning" />
-    <On Terms="AttackTargetAcquired.*.On" Target="::LastAcquiredTarget" Send="Create TowerTargetingMarker" />
-    <On Terms="AttackTargetAcquired.*.On" Send="RefSet ::actor.TargetMarker ::LastCreatedActual" />
-    <On Terms="AttackTargetAcquired.*.Off" Target="::actor.TargetMarker" Send="Destroy" />
-  </CActorEventMacro>
+  <CActorBeamSimple id="TownTowerWarningBeam" parent="BeamSimpleAnimationStyleContinuous">
+    <HostLaunch Subject="_Unit" Scope="Caster" Actor="Find" />
+    <HostLaunchSiteOps Ops="SOpAttachWeapon" HoldRotation="1" />
+    <HostImpact Subject="_Unit" Scope="Target" Actor="Find" />
+    <HostImpactSiteOps Ops="SOpAttachCenter" HoldRotation="1" />
+    <ModelFlags index="AllowHitTest" value="0" />
+    <On Terms="ActorCreation" Send="SetOpacity 0.150000" />
+    <On Terms="Behavior.TowerCFHFocusedTarget.On" Send="SetOpacity 1.000000" />
+    <On Terms="Behavior.TowerCFHFocusedTarget.On" Send="SetTintColor {255,255,255 5.000000}" />
+    <On Terms="Effect.TowerAttackWarningBeamPersistent.Start; At Target" Send="Create" />
+    <On Terms="Effect.TowerAttackWarningBeamPersistent.Stop; At Target; FromEffectTreeDescendant" Send="Destroy" />
+  </CActorBeamSimple>
+  <CActorBeamSimple id="TownTowerWarningBeamHero" parent="BeamSimpleAnimationStyleContinuous">
+    <HostLaunch Subject="_Unit" Scope="Caster" Actor="Find" />
+    <HostLaunchSiteOps Ops="SOpAttachWeapon" HoldRotation="1" />
+    <HostImpact Subject="_Unit" Scope="Target" Actor="Find" />
+    <HostImpactSiteOps Ops="SOpAttachCenter" HoldRotation="1" />
+    <ModelFlags index="AllowHitTest" value="0" />
+    <On Terms="ActorCreation" Send="SetTintColor {255,255,255 5.000000}" />
+    <On Terms="Effect.TowerAttackWarningBeamPersistentHero.Start; At Target" Send="Create" />
+    <On Terms="Effect.TowerAttackWarningBeamPersistentHero.Stop; At Target; FromEffectTreeDescendant" Send="Destroy" />
+  </CActorBeamSimple>
   <CActorSound id="Doodad_CannonTower_Targeting_Warning" parent="SoundOneShot">
     <Terms value="Cap 1" />
-    <Filter index="Ally" value="1" />
-    <Filter index="Neutral" value="1" />
-    <Filter index="Enemy" value="1" />
-    <On Terms="ActorCreation" Send="TimerSet 1.000000 CreationCD" />
-    <On Terms="ActorCreation" Send="SoundSetMuted 1 0" />
-    <On Terms="TimerExpired; TimerName CreationCD" Send="Destroy" />
-    <On Terms="ActorCreation; ValidateUnit SourceIsHeroAndNotHallucinationAndNotVehicleAndNotStructureReplacement" Send="SoundSetMuted 0 0" />
+    <On Terms="Effect.TowerAttackWarningBeamPersistent.Start; At Target; ValidateEffect TargetNotHallucinationOrSummoned" Send="Create" />
+    <On Terms="Effect.TowerAttackWarningBeamPersistentHero.Start; At Target; ValidateEffect TargetNotHallucinationOrSummoned" Send="Create" />
+    <Filter index="All" value="1" />
+    <VisibleToAtCreation index="Target" value="1" />
   </CActorSound>
   <CActorRange id="TowerWeaponRangeEditor" parent="RangeWeapon" weapon="GuardTowerL2Weapon">
     <Filter index="Ally" value="1" />
@@ -9441,7 +9520,6 @@
     <Macros value="LowAmmoTowerDisabledMacro" />
     <Macros value="MULERepairTowerMacro" />
     <Macros value="AmmoReplenishMacro" />
-    <Macros value="StructureAttackWarningMacro" />
     <On Terms="UnitBirth.TownCannonTowerL2" Send="Create" />
     <On Terms="Signal.*.PlayBuild" Send="AnimPlay Build Stand,Morph,Start" />
     <On Terms="AnimDone; AnimName Build; ModelName TownTowerL2KingsCrestBirthModel" Send="ModelSwap TownTowerL2KingsCrest" />
@@ -9518,7 +9596,6 @@
     <Macros value="LowAmmoTowerDisabledMacro" />
     <Macros value="MULERepairTowerMacro" />
     <Macros value="AmmoReplenishMacro" />
-    <Macros value="StructureAttackWarningMacro" />
     <On Terms="Signal.*.PlayBuild" Send="AnimPlay Build Stand,Morph,Start" />
     <On Terms="AnimDone; AnimName Build; ModelName TownTowerL3KingsCrestBirthModel" Send="Signal BirthFinished" />
     <On Terms="AnimDone; AnimName Build; ModelName TownTowerL3KingsCrestBirthModel" Send="ModelSwap TownTowerL3KingsCrest" />
@@ -11924,6 +12001,8 @@
     <Model value="CurseofEluneUnits" />
     <On Terms="Behavior.RavenLordsCurseUnits.On" Send="Create" />
     <On Terms="Behavior.RavenLordsCurseUnits.Off" Send="AnimPlay Death Death" />
+    <On Terms="Behavior.CursedHollowCoreCurse.On" Send="Create" />
+    <On Terms="Behavior.CursedHollowCoreCurse.Off" Send="AnimPlay Death Death" />
     <On Terms="ActorCreation" Send="AnimPlay Birth Birth" />
     <On Terms="AnimDone; AnimName Death" Send="Destroy Immediate" />
   </CActorModel>
@@ -11977,6 +12056,23 @@
     <Sound value="Event_RavenCurse_TributeIdle" />
     <FogVisibility value="Visible" />
   </CActorSound>
+  <CActorModel id="CursedHollowCoreCurseWarning" parent="StormModelAnimationStyleContinuous">
+    <FogVisibility value="Visible" />
+    <On Terms="Effect.CursedHollowCoreCursePersistent.Start" Send="Create" />
+    <On Terms="Effect.CursedHollowCoreCursePreDetonationDummy.Start" Send="AnimBracketStop BSD" />
+    <On Terms="Effect.CursedHollowCoreCursePreDetonationDummy.Start" Send="SetOpacity 0.000000 1.000000" />
+    <Scale value="0.625000" />
+  </CActorModel>
+  <CActorModel id="CursedHollowCoreCurseDetonate" parent="StormModelAnimationStyleOneShot">
+    <FogVisibility value="Visible" />
+    <On Terms="Effect.CursedHollowCoreCursePreDetonationDummy.Start" Send="Create" />
+    <Scale value="1.300000" />
+  </CActorModel>
+  <CActorModel id="CursedHollowCoreCurseCircleWarning" parent="StormModelAnimationStyleContinuous">
+    <On Terms="Effect.CursedHollowCoreCursePersistent.Start; At Effect" Send="Create" />
+    <On Terms="Effect.CursedHollowCoreCursePersistent.Stop; At Effect" Send="Destroy Immediate" />
+    <Scale value="1.300000" />
+  </CActorModel>
   <CActorBeamSimple id="CaptureMacGuffinBeam" parent="MorphAwareLaunchBeamSimpleASC" launchSiteOps="SOpMacGuffin">
     <On Terms="Effect.CaptureMacGuffin.Start; At Caster" Send="Create" />
     <On Terms="Effect.CaptureMacGuffin.Stop; FromEffectTreeDescendant" Send="Destroy" />
@@ -15741,7 +15837,91 @@
     <Filter index="Neutral" value="1" />
     <Filter index="Enemy" value="1" />
   </CActorSound>
-  <CValidatorUnitFilters id="ExcludeSelfRegionFilters">
-    <Filters value="Visible;Player,Ally,Neutral,Worker,Missile,Stasis,Dead,Hidden,Invulnerable" />
-  </CValidatorUnitFilters>
+  <CActorModel id="VolskayaCoreRocketFistWarning">
+    <Aliases value="_TimeStopAffectedActor" />
+    <On Terms="ActorCreation" Send="AnimBracketStart BSD Birth Build Death" />
+    <On Terms="ActorOrphan" Send="AnimBracketStop BSD" />
+    <On Terms="AnimBracketState.*.AfterClosing; AnimName BSD" Send="Destroy" />
+    <On Terms="StatusOn.*.TimeStopPaused" Send="AnimSetPausedAll" />
+    <On Terms="StatusOff.*.TimeStopPaused" Send="AnimSetPausedAll 0" />
+    <Inherits index="Visibility" value="1" />
+    <HostSiteOps Ops="SOpCasterPoint SOpForwardTargetPoint" HoldPosition="1" HoldRotation="1" />
+    <ModelFlags index="AllowHitTest" value="0" />
+  </CActorModel>
+  <CActorSiteMover id="VolskayaCoreSkyLaserSite">
+    <HostSiteOps Ops="SOpShadow SOpMoveUpByDot5" />
+    <Acceleration value="1000.000000" />
+    <Deceleration value="1000.000000" />
+    <Speed value="25.299999" />
+    <SpeedMax value="25.299999" />
+    <On Terms="Effect.VolskayaCoreSkyLaserBeamInitializer.Start" Send="Create" />
+    <On Terms="Effect.VolskayaCoreSkyLaserInitialBeamEndPoint.Start; At Effect" Send="MoverSetDestination2D" />
+    <On Terms="Effect.VolskayaCoreSkyLaserInitialBeamEndPoint.Start" Send="Create VolskayaCoreSkyLaserGroundModel" />
+    <On Terms="ActorCreation" Send="Create VolskayaCoreSkyLaserTurretBeam" />
+    <On Terms="Effect.VolskayaCoreSkyLaserInitialBeamEndPoint.Start" Send="Create Event_Volskaya_Vehicle_SkyLaser_AOE" />
+    <On Terms="Effect.VolskayaCoreSkyLaserSecondarySearchPersistent.Start" Target="VolskayaCoreSkyLaserTurretBeam" Send="Destroy" />
+  </CActorSiteMover>
+  <CActorModel id="VolskayaCoreSkyLaserGroundModel" parent="StormModelAnimationStyleOneShot">
+    <FogVisibility value="Visible" />
+    <On Terms="Effect.VolskayaCoreSkyLaserSecondarySearchPersistent.Stop" Send="AnimBracketStop BSD" />
+    <On Terms="ActorCreation" Target="::Creator" Send="MoverMove" />
+    <HostSiteOps Ops="SOpBasicCreatorStationary SOpForwardVectorPoint_Shadow SOpShadow" HoldPosition="1" HoldRotation="1" />
+    <Inherits index="TeamColor" value="1" />
+    <AcceptedHostedPropTransfers index="TeamColor" value="1" />
+  </CActorModel>
+  <CActorBeamSimple id="VolskayaCoreSkyLaserTurretBeam" parent="BeamSimpleAnimationStyleOneShot">
+    <HostLaunch Subject="_Unit" Scope="Caster" Actor="Find" />
+    <HostLaunchSiteOps Ops="SOpAttachWeapon" HoldRotation="1" />
+    <HostImpact Subject="::Creator" Actor="Find" />
+    <FogVisibility value="Visible" />
+  </CActorBeamSimple>
+  <CActorUnit id="VolskayaCoreSkyLaserMoverUnit" parent="GenericUnitStandard" unitName="VolskayaCoreSkyLaserMoverUnit">
+    <Model value="Invisible" />
+    <HighlightTooltip value="Unit/Name/Bogus" />
+  </CActorUnit>
+  <CActorMissile id="TombCoreDeathWaveMissile" parent="StormMissileWithDeath" unitName="TombCoreDeathWaveMissile">
+    <Macros value="GlobalLoopMacro" />
+    <On Terms="ActorCreation" Send="Create SoulEaterDeathWaveLoopingSound" />
+    <On Terms="UnitDeath" Target="SoulEaterDeathWaveLoopingSound" Send="Destroy" />
+    <On Terms="UnitDeath" Send="Create SoulEaterDeathWaveDeath" />
+  </CActorMissile>
+  <CActorAction id="TombCoreDeathWaveAttack" parent="RangedHeroAttackMissile" effectImpact="" effectLaunch="TombCoreDeathWaveLaunchMissile">
+    <LaunchAssets Model="TombCoreDeathWaveLaunch" Sound="LuxCrypt_SpiderQueen_DeathWave_Launch" />
+    <LaunchSiteOps Ops="SOpAttachOrigin" />
+    <Missile value="TombCoreDeathWaveMissile" />
+    <ImpactSiteOps Ops="SOpTargetPoint" />
+    <Remove index="0" Terms="Effect.Start; FromEffectTreeDescendant" Send="ActionImpact" />
+    <On index="1" Terms="Effect.Start; FromEffectTreeDescendant" />
+    <On index="2" Terms="Effect.Stop; FromEffectTreeDescendant" />
+  </CActorAction>
+  <CActorModel id="TombCoreDeathWaveCast" parent="StormModelAddition">
+    <On Terms="Effect.TombCoreDeathWaveLaunchVisualDummy.Stop" Send="Create" />
+    <On Terms="Effect.TombCoreDeathWaveLaunchMissile.Start" Send="AnimBracketStop BSD" />
+    <HostSiteOps Ops="SOpAttachWeapon" HoldPosition="1" HoldRotation="1" />
+    <AutoScaleFactor value="1.000000" />
+    <Macros value="GlobalLoopMacro" />
+    <ModelFlags index="AllowHitTest" value="0" />
+  </CActorModel>
+  <CActorModel id="TombCoreDeathWaveImpact" parent="StormModelAnimationStyleOneShotUnit">
+    <On Terms="Effect.TombCoreDeathWaveImpactSet.Start; At Target" Send="Create" />
+    <AutoScaleFactor value="1.000000" />
+  </CActorModel>
+  <CActorSound id="TombCoreDeathWaveWarningSound" parent="SoundOneShot">
+    <On Terms="Effect.TombCoreDeathWaveLaunchPersistent.Start; At Caster" Send="Create" />
+    <Host Subject="_Unit" />
+  </CActorSound>
+  <CActorModel id="TombCoreDeathWaveWarning">
+    <Aliases value="_TimeStopAffectedActor" />
+    <Inherits index="TeamColor" value="1" />
+    <On Terms="ActorCreation" Send="AnimBracketStart BSD Birth Build Death" />
+    <On Terms="Signal.*.CreatorDestroyed" Send="Destroy Immediate" />
+    <On Terms="ActorOrphan" Send="AnimBracketStop BSD" />
+    <On Terms="AnimBracketState.*.AfterClosing; AnimName BSD" Send="Destroy" />
+    <On Terms="StatusOn.*.TimeStopPaused" Send="AnimSetPausedAll" />
+    <On Terms="StatusOff.*.TimeStopPaused" Send="AnimSetPausedAll 0" />
+    <On Terms="Effect.TombCoreDeathWaveLaunchPersistent.Start" Send="Create" />
+    <On Terms="Effect.TombCoreDeathWaveLaunchPersistent.Stop" Send="AnimBracketStop BSD" />
+    <On Terms="ActorCreation" Send="AnimSetTimeScaleGlobal 0.750000 TimeScale" />
+    <HostSiteOps Ops="SOpForwardTargetPoint" HoldPosition="1" HoldRotation="1" />
+  </CActorModel>
 </Catalog>

@@ -42,7 +42,7 @@ void libSprt_InitVariables () {
     for (init_i = 0; init_i <= libSprt_gv_dataMiningMaxNumberOfDifferentManaRegenSources; init_i += 1) {
         libSprt_gv_dataMiningManaRegenSourceNames[init_i] = "";
     }
-    libSprt_gv_heroMasteryRingsMaxRank = 2;
+    libSprt_gv_heroMasteryRingsMaxRank = 3;
     libSprt_gv_qACheatsSpawnedUnitsGroup = UnitGroupEmpty();
     libSprt_gv_qACheatsSelectedBehavior = 1;
     libSprt_gv_qACheatsSelectedSpawnUnit = 1;
@@ -2995,6 +2995,80 @@ void libSprt_gt_DEBUGForceHeroMasteryRing2_Init () {
 }
 
 //--------------------------------------------------------------------------------------------------
+// Trigger: DEBUG - Force Hero Mastery Ring 3
+//--------------------------------------------------------------------------------------------------
+bool libSprt_gt_DEBUGForceHeroMasteryRing3_Func (bool testConds, bool runActions) {
+    // Variable Declarations
+    int lv_i;
+    int lv_player;
+
+    // Automatic Variable Declarations
+    unitgroup auto57FC40ED_g;
+    int auto57FC40ED_u;
+    unit auto57FC40ED_var;
+    int auto5CD613F0_ae;
+    unitgroup auto688AC00F_g;
+    int auto688AC00F_u;
+    unit auto688AC00F_var;
+
+    // Variable Initialization
+    lv_player = EventPlayer();
+
+    // Conditions
+    if (testConds) {
+        if (!((GameCheatsEnabled(c_gameCheatCategoryDevelopment) == true))) {
+            return false;
+        }
+    }
+
+    // Actions
+    if (!runActions) {
+        return true;
+    }
+
+    if ((EventChatMessage(false) == "-mre3")) {
+        lv_player = 6;
+    }
+
+    if ((EventChatMessage(false) == "-mra3")) {
+        TriggerDebugOutput(1, TextExpressionAssemble("Param/Expression/lib_Sprt_9F8C0AB0"), true);
+        auto5CD613F0_ae = libCore_gv_bALMaxPlayers;
+        lv_i = 1;
+        for ( ; lv_i <= auto5CD613F0_ae ; lv_i += 1 ) {
+            libNtve_gf_SetUpgradeLevelForPlayer(lv_i, "HeroRingMasteryUpgrade", 3);
+            auto688AC00F_g = libGame_gv_players[lv_i].lv_heroUnitGroup;
+            auto688AC00F_u = UnitGroupCount(auto688AC00F_g, c_unitCountAll);
+            for (;; auto688AC00F_u -= 1) {
+                auto688AC00F_var = UnitGroupUnitFromEnd(auto688AC00F_g, auto688AC00F_u);
+                if (auto688AC00F_var == null) { break; }
+                libNtve_gf_SendActorMessageToUnit(auto688AC00F_var, "Signal MasteryRingCreation");
+            }
+        }
+    }
+    else {
+        TextExpressionSetToken("Param/Expression/lib_Sprt_AA0119B9", "A", IntToText(lv_player));
+        TriggerDebugOutput(1, TextExpressionAssemble("Param/Expression/lib_Sprt_AA0119B9"), true);
+        libNtve_gf_SetUpgradeLevelForPlayer(lv_player, "HeroRingMasteryUpgrade", 3);
+        auto57FC40ED_g = libGame_gv_players[lv_player].lv_heroUnitGroup;
+        auto57FC40ED_u = UnitGroupCount(auto57FC40ED_g, c_unitCountAll);
+        for (;; auto57FC40ED_u -= 1) {
+            auto57FC40ED_var = UnitGroupUnitFromEnd(auto57FC40ED_g, auto57FC40ED_u);
+            if (auto57FC40ED_var == null) { break; }
+            libNtve_gf_SendActorMessageToUnit(auto57FC40ED_var, "Signal MasteryRingCreation");
+        }
+    }
+    return true;
+}
+
+//--------------------------------------------------------------------------------------------------
+void libSprt_gt_DEBUGForceHeroMasteryRing3_Init () {
+    libSprt_gt_DEBUGForceHeroMasteryRing3 = TriggerCreate("libSprt_gt_DEBUGForceHeroMasteryRing3_Func");
+    TriggerAddEventChatMessage(libSprt_gt_DEBUGForceHeroMasteryRing3, c_playerAny, "-mr3", true);
+    TriggerAddEventChatMessage(libSprt_gt_DEBUGForceHeroMasteryRing3, c_playerAny, "-mre3", true);
+    TriggerAddEventChatMessage(libSprt_gt_DEBUGForceHeroMasteryRing3, c_playerAny, "-mra3", true);
+}
+
+//--------------------------------------------------------------------------------------------------
 // Trigger: DEBUG - Force Hero Mastery Ring Rando
 //--------------------------------------------------------------------------------------------------
 bool libSprt_gt_DEBUGForceHeroMasteryRingRando_Func (bool testConds, bool runActions) {
@@ -3046,7 +3120,7 @@ bool libSprt_gt_DEBUGForceHeroMasteryRingRando_Func (bool testConds, bool runAct
     autoF65E787E_ae = libCore_gv_bALMaxPlayers;
     lv_k = 1;
     for ( ; lv_k <= autoF65E787E_ae ; lv_k += 1 ) {
-        libNtve_gf_SetUpgradeLevelForPlayer(lv_k, "HeroRingMasteryUpgrade", RandomInt(0, 2));
+        libNtve_gf_SetUpgradeLevelForPlayer(lv_k, "HeroRingMasteryUpgrade", RandomInt(0, libSprt_gv_heroMasteryRingsMaxRank));
         autoE82B844E_g = libGame_gv_players[lv_k].lv_heroUnitGroup;
         autoE82B844E_u = UnitGroupCount(autoE82B844E_g, c_unitCountAll);
         for (;; autoE82B844E_u -= 1) {
@@ -9524,6 +9598,7 @@ void libSprt_InitTriggers () {
     libSprt_gt_DEBUGForceHeroMasteryRing0_Init();
     libSprt_gt_DEBUGForceHeroMasteryRing1_Init();
     libSprt_gt_DEBUGForceHeroMasteryRing2_Init();
+    libSprt_gt_DEBUGForceHeroMasteryRing3_Init();
     libSprt_gt_DEBUGForceHeroMasteryRingRando_Init();
     libSprt_gt_QACheatsInit_Init();
     libSprt_gt_ToggleCheatsDialog_Init();

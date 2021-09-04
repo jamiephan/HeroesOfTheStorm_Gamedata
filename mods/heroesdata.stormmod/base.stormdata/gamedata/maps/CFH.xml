@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="us-ascii"?>
+<Catalog>
+  <CActorModel id="CFHTargetAcquiredAlertHero" parent="StormModelAnimationStyleContinuousUnit">
+    <HostSiteOps Ops="SOpAttachOverhead SOpMoveUpBy1" HoldRotation="1" />
+    <Model value="MurkyRevealedModel" />
+    <Scale value="0.750000" />
+    <Inherits index="Visibility" value="0" />
+  </CActorModel>
+  <CActorModel id="CFHTargetAcquiredAlertTower" parent="StormModelAnimationStyleContinuousUnit">
+    <HostSiteOps Ops="SOpAttachOverhead" HoldRotation="1" />
+    <Model value="MurkyRevealedModel" />
+    <Scale value="0.750000" />
+    <Inherits index="Visibility" value="0" />
+  </CActorModel>
+  <CBehaviorBuff id="TowerCFHDamageResponse">
+    <BuffFlags index="RefreshStack" value="1" />
+    <Duration value="0.125" />
+    <DamageResponse Chance="1" Handled="TowerCFHApplySet" Location="Attacker">
+      <ValidatorArray value="TargetIsHero" />
+      <Kind index="Basic" value="0" />
+    </DamageResponse>
+    <MaxStackCount value="0" />
+    <MaxStackCountPerCaster value="1" />
+    <DisableValidatorArray value="CasterNotOrderPaused" />
+  </CBehaviorBuff>
+  <CBehaviorBuff id="TowerCFHDamageResponseBasicAttack">
+    <BuffFlags index="RefreshStack" value="1" />
+    <Duration value="0.125" />
+    <DamageResponse Chance="1" Handled="TowerCFHApplySet" Location="Attacker">
+      <ValidatorArray value="TargetIsHero" />
+      <ValidatorArray value="TargetNotEvading" />
+      <Kind index="Splash" value="0" />
+      <Kind index="Ability" value="0" />
+    </DamageResponse>
+    <MaxStackCount value="0" />
+    <MaxStackCountPerCaster value="1" />
+    <DisableValidatorArray value="CasterNotOrderPaused" />
+  </CBehaviorBuff>
+  <CBehaviorBuff id="TowerCFHFocusedTarget">
+    <RemoveValidatorArray value="TowerCFHFocusedUnitTrackedSource" />
+    <MaxStackCount value="0" />
+    <MaxStackCountPerCaster value="1" />
+    <FinalEffect value="TowerCFHFocusedTargetRemovedDummyEffect" />
+  </CBehaviorBuff>
+  <CBehaviorUnitTracker id="TowerCFHFocusedTargetTracker">
+    <TrackingValidatorArray value="CasterIsAttackingUnit" />
+    <MaxTrackedUnits value="1" />
+  </CBehaviorUnitTracker>
+  <CBehaviorBuff id="TowerTargetingMarker">
+    <FinalEffect value="TowerCFHRemoveFromTargetedList" />
+  </CBehaviorBuff>
+  <CBehaviorBuff id="TowerCFHUpdateNearbyHeroes">
+    <DisableValidatorArray value="TowerCFHFocusedUnitListCountis0" />
+    <Period value="0.0625" />
+    <PeriodicEffect value="TowerCFHUpdateNearbyHeroList" />
+  </CBehaviorBuff>
+  <CEffectSet id="TowerCFHFocusedTargetRemovedDummyEffect" />
+  <CEffectRemoveTrackedUnit id="TowerCFHRemoveFromTargetedList">
+    <BehaviorLink value="TowerCFHFocusedTargetTracker" />
+    <TrackedUnit Value="Source" />
+  </CEffectRemoveTrackedUnit>
+  <CEffectApplyBehavior id="TowerCFHApplyDamageResponse">
+    <ValidatorArray value="TowerCFHWithinRange" />
+    <Behavior value="TowerCFHDamageResponse" />
+  </CEffectApplyBehavior>
+  <CEffectApplyBehavior id="TowerCFHApplyDamageResponseBasicAttack">
+    <ValidatorArray value="TowerCFHWithinRange" />
+    <Behavior value="TowerCFHDamageResponseBasicAttack" />
+  </CEffectApplyBehavior>
+  <CEffectApplyBehavior id="TowerCFHApplyFocusedTarget">
+    <WhichUnit Value="Source" />
+    <Behavior value="TowerCFHFocusedTarget" />
+  </CEffectApplyBehavior>
+  <CEffectAddTrackedUnit id="TowerCFHAddToFocusList">
+    <BehaviorLink value="TowerCFHFocusedTargetTracker" />
+    <TrackedUnit Value="Source" />
+  </CEffectAddTrackedUnit>
+  <CEffectIssueOrder id="TowerCFHIssueAttackOrder">
+    <WhichUnit Value="Caster" />
+    <Abil value="attack" />
+    <Target Value="SourceUnit" />
+    <CmdFlags index="Preempt" value="1" />
+  </CEffectIssueOrder>
+  <CEffectEnumTrackedUnits id="TowerCFHUpdateNearbyHeroList">
+    <Marker>
+      <MatchFlags index="Id" value="1" />
+    </Marker>
+    <BehaviorLink value="AllHeroicUnitsTrackingBehavior" />
+    <Effect value="TowerCFHApplyDamageResponseSet" />
+    <TrackedUnitFilters value="Heroic,Visible;Player,Ally,Neutral,Item,Invulnerable,AITargetableStructure,IgnoredByTowerAI" />
+  </CEffectEnumTrackedUnits>
+  <CEffectSet id="TowerCFHApplyDamageResponseSet">
+    <EffectArray value="TowerCFHApplyDamageResponse" />
+    <EffectArray value="TowerCFHApplyDamageResponseBasicAttack" />
+  </CEffectSet>
+  <CEffectSet id="TowerCFHApplySet">
+    <EffectArray value="TowerCFHIssueAttackOrder" />
+    <EffectArray value="TowerCFHAddToFocusList" />
+    <EffectArray value="TowerCFHApplyFocusedTarget" />
+  </CEffectSet>
+  <CEffectDamage id="TowerCFHHeroDamageFromSummonedUnitDummy" parent="StormSummonedUnitWeapon">
+    <FloaterCreation value="Suppress" />
+    <Amount value="0.001" />
+    <Flags index="NoScaledDealtBonus" value="1" />
+    <Flags index="NoDamageTimerReset" value="1" />
+  </CEffectDamage>
+  <CModel id="CFHTargetAcquiredAlert" parent="PersistentSpellFX">
+    <Model value="Assets\Effects\Storm_Effect_Murky_Base_Reveal\Storm_Effect_Murky_Base_Reveal.m3" />
+  </CModel>
+  <CValidatorLocationCompareRange id="TowerCFHWithinRange">
+    <WhichLocation Value="TargetUnit" />
+    <Compare value="LE" />
+    <Range value="7.75" />
+  </CValidatorLocationCompareRange>
+  <CValidatorCompareTrackedUnitsCount id="TowerCFHFocusedUnitListCountis0">
+    <BehaviorLink value="TowerCFHFocusedTargetTracker" />
+  </CValidatorCompareTrackedUnitsCount>
+  <CValidatorIsUnitTracked id="TowerCFHFocusedUnitTrackedSource">
+    <Find value="1" />
+    <BehaviorLink value="TowerCFHFocusedTargetTracker" />
+    <TrackedUnit Value="Source" />
+  </CValidatorIsUnitTracked>
+  <CValidatorIsUnitTracked id="TowerCFHFocusedUnitTrackedTarget">
+    <Find value="1" />
+    <BehaviorLink value="TowerCFHFocusedTargetTracker" />
+    <TrackedUnit Value="Target" />
+  </CValidatorIsUnitTracked>
+</Catalog>

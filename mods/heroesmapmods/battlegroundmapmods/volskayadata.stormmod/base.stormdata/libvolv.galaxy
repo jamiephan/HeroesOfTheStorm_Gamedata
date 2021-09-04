@@ -221,6 +221,60 @@ void libVolV_gt_VolskayaVehiclePilotCreatedCreateandLinkGunner_Init () {
 }
 
 //--------------------------------------------------------------------------------------------------
+// Trigger: CFH - Special Units Aggro Check
+//--------------------------------------------------------------------------------------------------
+bool libVolV_gt_CFHSpecialUnitsAggroCheck_Func (bool testConds, bool runActions) {
+    // Variable Declarations
+    unit lv_attacker;
+    unit lv_defender;
+    unit lv_dVa;
+    int lv_itVehicle;
+
+    // Automatic Variable Declarations
+    int auto38DF691A_ae;
+
+    // Variable Initialization
+    lv_attacker = EventUnitDamageSourceUnit();
+    lv_defender = EventUnit();
+
+    // Conditions
+    if (testConds) {
+        if (!((UnitTypeTestAttribute(UnitGetType(lv_defender), c_unitAttributeHeroic) == true))) {
+            return false;
+        }
+    }
+
+    // Actions
+    if (!runActions) {
+        return true;
+    }
+
+    if ((UnitGetType(lv_attacker) == "VolskayaVehicleGunner")) {
+        auto38DF691A_ae = libMapM_gv_vehicle_VehicleCount;
+        lv_itVehicle = 1;
+        for ( ; lv_itVehicle <= auto38DF691A_ae ; lv_itVehicle += 1 ) {
+            if ((libMapM_gv_vehicle[lv_itVehicle].lv_unit_Vehicle == lv_attacker)) {
+                lv_dVa = libMapM_gv_vehicle[lv_itVehicle].lv_unit_LinkedVehicle;
+                if ((UnitIsAlive(lv_dVa) == true) && (UnitHasBehavior2(lv_dVa, "TowerCFHDamageResponse") == true)) {
+                    UnitCreateEffectUnit(lv_dVa, "TowerCFHHeroDamageFromSummonedUnitDummy", lv_defender);
+                }
+
+                break;
+            }
+
+        }
+    }
+
+    return true;
+}
+
+//--------------------------------------------------------------------------------------------------
+void libVolV_gt_CFHSpecialUnitsAggroCheck_Init () {
+    libVolV_gt_CFHSpecialUnitsAggroCheck = TriggerCreate("libVolV_gt_CFHSpecialUnitsAggroCheck_Func");
+    TriggerAddEventUnitDamaged(libVolV_gt_CFHSpecialUnitsAggroCheck, null, c_unitDamageTypeAny, c_unitDamageEither, null);
+}
+
+//--------------------------------------------------------------------------------------------------
 // Trigger: Vehicles - Gunner Stasis Forwarding
 //--------------------------------------------------------------------------------------------------
 bool libVolV_gt_VehiclesGunnerStasisForwarding_Func (bool testConds, bool runActions) {
@@ -750,6 +804,7 @@ void libVolV_InitTriggers () {
     libVolV_gt_SignalMercCaptureSlabDoodadActive_Init();
     libVolV_gt_SignalMercCaptureSlabDoodadCapped_Init();
     libVolV_gt_VolskayaVehiclePilotCreatedCreateandLinkGunner_Init();
+    libVolV_gt_CFHSpecialUnitsAggroCheck_Init();
     libVolV_gt_VehiclesGunnerStasisForwarding_Init();
     libVolV_gt_VehicleEntered_Init();
     libVolV_gt_VehicleSwapped_Init();
