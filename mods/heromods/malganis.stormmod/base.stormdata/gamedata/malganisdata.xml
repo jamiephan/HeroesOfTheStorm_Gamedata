@@ -12,7 +12,7 @@
       <Flags index="AllowSelfCast" value="0" />
     </CmdButtonArray>
     <FinishTime value="0.15" />
-    <PrepEffect value="MalGanisFelClawsPrepareSet" />
+    <PrepEffect value="MalganisFelClawsFirstPrepareSet" />
     <AbilityCategories index="Reveals" value="1" />
   </CAbilEffectTarget>
   <CAbilEffectTarget id="MalGanisFelClawsSecond" parent="StormSkillshotDashParent">
@@ -27,7 +27,7 @@
     </CmdButtonArray>
     <FinishTime value="0.15" />
     <ParentAbil value="MalGanisFelClawsFirst" />
-    <PrepEffect value="MalGanisFelClawsPrepareSet" />
+    <PrepEffect value="MalganisFelClawsSecondPrepareSet" />
     <AbilityCategories index="Reveals" value="1" />
   </CAbilEffectTarget>
   <CAbilEffectTarget id="MalGanisFelClawsThird" parent="StormSkillshotDashParent">
@@ -136,6 +136,11 @@
     <TokenId value="MalGanisVampiricTouchBloodRushToken" />
     <Scale value="0.01" />
     <UnitSource Value="Target" />
+  </CAccumulatorToken>
+  <CAccumulatorToken id="MalganisFelClawsWillOfTichondriusDamageTokenAccumulator" parent="BaseTokenAccumulator">
+    <ApplicationRule value="Add" />
+    <TokenId value="MalganisFelClawsWillOfTichondriusDamageToken" />
+    <Scale value="0.01" />
   </CAccumulatorToken>
   <CActorModel id="HeroMalGanisDeathRagdoll" parent="StormHeroDeathRagdoll">
     <On Terms="ActorCreation" Send="Create HeroMalGanisDeathStationary" />
@@ -911,11 +916,11 @@
     <Sound value="MalGanis_Attack_Impact_BlackClaws" />
     <SoundFlags index="AlwaysVisibleToCreator" value="1" />
   </CActorSound>
-  <CActorSound id="MalGanisNightmareFuelAttackImpact" parent="SoundOneShot">
-    <On Terms="Effect.MalGanisWeaponDamage.Start; At Target; ValidateEffect MalGanisNightmareFuelBushOrSleepCombine" Send="Create" />
-    <Sound value="MalGanis_Attack_Impact_NightmareFuel" />
+  <CActorSound id="MalganisTheNightBeckonsAttackImpact" parent="SoundOneShot">
     <Filter index="All" value="1" />
     <VisibleTo index="Self" value="1" />
+    <On Terms="Effect.MalGanisWeaponDamage.Start; At Target; ValidateEffect MalganisNightRushTheNightBeckonsSleepCombine" Send="Create" />
+    <Sound value="MalGanis_Attack_Impact_NightmareFuel" />
   </CActorSound>
   <CActorSound id="MalGanisNightRushSleepWarningSound" parent="SoundOneShot">
     <On Terms="Effect.MalGanisNightRushApplySleepBehavior.Start; At Target; ValidateUnit TargetNotUnstoppable" Send="Create" />
@@ -1180,6 +1185,10 @@
       <StateFlags index="SuppressCollision" value="1" />
     </Modification>
   </CBehaviorBuff>
+  <CBehaviorBuff id="MalganisFelClawsWillOfTichondriusEmpoweredStun" parent="StormStun">
+    <Duration value="1" />
+    <InitialEffect value="MalGanisFelClawsApplyStunLiftBehavior" />
+  </CBehaviorBuff>
   <CBehaviorBuff id="MalGanisFelClawsThirdDashBehavior">
     <Alignment value="Positive" />
     <RemoveValidatorArray value="CasterNotFeared" />
@@ -1220,11 +1229,13 @@
       <HeightTime index="Stop" value="0.125" />
       <BehaviorLinkDisableArray value="ShrubStatusController" />
     </Modification>
-    <RemoveValidatorArray value="MalGanisTargetHasFelClawsStun" />
+    <RemoveValidatorArray value="MalganisTargetHasFelClawsStunOrEmpoweredFelClawsStunWillOfTichondrius" />
   </CBehaviorBuff>
   <CBehaviorTokenCounter id="MalGanisFelClawsBlackClawsToken" parent="StormGenericToken">
     <Max value="1" />
     <Init value="1" />
+    <BehaviorFlags index="Permanent" value="0" />
+    <BehaviorFlags index="EnabledWhileDead" value="0" />
   </CBehaviorTokenCounter>
   <CBehaviorBuff id="MalGanisNecroticEmbraceArmor" parent="StormArmor">
     <BehaviorCategories index="BuffResistant" value="1" />
@@ -1237,13 +1248,6 @@
     <AINotifySettings AreaEffect="MalGanisNecroticEmbraceEchoOfDoomSearch">
       <Flags index="Disabled" value="1" />
     </AINotifySettings>
-  </CBehaviorBuff>
-  <CBehaviorBuff id="MalGanisNecroticEmbraceEchoOfDoomArmor" parent="StormArmor">
-    <BehaviorCategories index="BuffResistant" value="1" />
-    <Duration value="1" />
-    <ArmorModification>
-      <AllArmorBonus value="25" />
-    </ArmorModification>
   </CBehaviorBuff>
   <CBehaviorBuff id="MalGanisNightRushCaster">
     <Alignment value="Positive" />
@@ -1307,6 +1311,13 @@
     <Period value="0.0625" />
     <PeriodicEffect value="MalGanisNecroticEmbraceWingedGuardApplyChargeCountdown" />
     <ShowInUI value="0" />
+  </CBehaviorBuff>
+  <CBehaviorBuff id="MalganisFelClawsBlackClawsArmorReduction" parent="StormArmor">
+    <Alignment value="Negative" />
+    <Duration value="2" />
+    <ArmorModification>
+      <AllArmorBonus value="-15" />
+    </ArmorModification>
   </CBehaviorBuff>
   <CBehaviorBuff id="MalGanisNecroticEmbraceWingedGuardArmorBehavior" parent="StormArmor">
     <Alignment value="Positive" />
@@ -1498,9 +1509,9 @@
   <CBehaviorBuff id="MalGanisVampiricTouchFrenziedAssaultBehavior">
     <Alignment value="Positive" />
     <BehaviorCategories index="BuffAutoattackDPS" value="1" />
-    <Duration value="3" />
+    <Duration value="2" />
     <Modification>
-      <AdditiveAttackSpeedFactor value="0.5" />
+      <AdditiveAttackSpeedFactor value="0.35" />
     </Modification>
     <InitialEffect value="MalGanisVampiricTouchFrenziedAssaultModifyWeaponCooldown" />
   </CBehaviorBuff>
@@ -1539,7 +1550,7 @@
   <CBehaviorBuff id="MalGanisFelClawsVanquishTheWeakSlow" parent="StormSlowParent">
     <Duration value="1.5" />
     <Modification>
-      <UnifiedMoveSpeedFactor value="-0.15" />
+      <UnifiedMoveSpeedFactor value="-0.25" />
     </Modification>
   </CBehaviorBuff>
   <CBehaviorBuff id="MalGanisFelClawsBlindAsABatBehavior">
@@ -1570,6 +1581,16 @@
     <Buttons Face="MalGanisFelClawsBlindAsABat" Type="AbilCmd" AbilCmd="MalGanisFelClawsBlindAsABat,Execute" />
     <ButtonOverrideDataFrame value="MalGanis/MalGanisBlindAsABatButtonOverlayFrame" />
   </CBehaviorAbility>
+  <CBehaviorTokenCounter id="MalganisFelClawsWillOfTichondriusDamageToken" parent="StormGenericToken">
+    <Face value="MalGanisFelClawsWillOfTichondriusDamageToken" />
+    <Alignment value="Positive" />
+    <SortIndex value="10" />
+    <Max value="4" />
+  </CBehaviorTokenCounter>
+  <CButton id="MalGanisFelClawsWillOfTichondriusDamageToken" parent="StormButtonParent">
+    <Icon value="assets\textures\storm_ui_icon_malganis_fel_1_b.dds" />
+    <HotkeyAlias value="MalGanisFelClawsWillOfTichondrius" />
+  </CButton>
   <CButton id="MalGanisVampiricTouch" parent="StormButtonParent">
     <Icon value="assets\textures\storm_ui_icon_malganis_trait.dds" />
     <TooltipAppender Validator="MalGanisHasVampiricTouchVampiricAuraTalent" Face="MalGanisVampiricTouchVampiricAura" />
@@ -1612,7 +1633,6 @@
   <CButton id="MalGanisNightRush" parent="StormButtonParent">
     <Icon value="assets\textures\storm_ui_icon_malganis_nightrush.dds" />
     <TooltipAppender Validator="MalGanisHasNightRushSpreadingPlagueTalent" Face="MalGanisNightRushSpreadingPlague" />
-    <TooltipAppender Validator="MalGanisHasNightmareFuelTalent" Face="MalGanisNightmareFuel" />
     <TooltipAppender Validator="MalGanisHasNightRushDeepSleepTalent" Face="MalGanisNightRushDeepSleep" />
     <TooltipAppender Validator="MalGanisHasNightRushTheNightBeckonsTalent" Face="MalGanisNightRushTheNightBeckons" />
     <TooltipAppender Validator="MalGanisHasNightRushAloneInTheDarkTalent" Face="MalGanisNightRushAloneInTheDark" />
@@ -1692,7 +1712,7 @@
   <CButton id="MalGanisDarkConversionWrathOfNathreza" parent="StormButtonParent">
     <Icon value="assets\textures\storm_ui_icon_malganis_ult_conversion.dds" />
   </CButton>
-  <CEffectSet id="MalGanisFelClawsPrepareSet">
+  <CEffectSet id="MalganisFelClawsSecondPrepareSet">
     <EffectArray value="DismountDecloakCasterSet" />
     <EffectArray value="MalGanisNightRushRemoveCasterBehavior" />
   </CEffectSet>
@@ -1741,6 +1761,16 @@
     <WhichUnit Value="Caster" />
     <BehaviorLink value="MalGanisFelClawsDashBehavior" />
   </CEffectRemoveBehavior>
+  <CEffectSet id="MalganisFelClawsFirstPrepareSet">
+    <EffectArray value="DismountDecloakCasterSet" />
+    <EffectArray value="MalGanisNightRushRemoveCasterBehavior" />
+    <EffectArray value="MalganisFelClawsWillOfTichondriusRemoveDamageToken" />
+  </CEffectSet>
+  <CEffectCreateHealer id="MalganisNecroticEmbraceEchoOfDoomManaReturn" parent="StormManaRestore">
+    <ImpactUnit Value="Caster" />
+    <RechargeVitalRate value="5" />
+    <ValidatorArray value="TargetIsHero" />
+  </CEffectCreateHealer>
   <CEffectCreatePersistent id="MalGanisFelClawsSearchPersistent">
     <WhichLocation Value="CasterUnit" />
     <TimeScaleSource Value="Caster" />
@@ -1786,6 +1816,7 @@
     <EffectArray value="MalGanisFelClawsVanquishTheWeakApplySlowBehavior" />
     <EffectArray value="MalGanisFelClawsDamage" />
     <EffectArray value="MalGanisFelClawsBlackClawsApplyBehavior" />
+    <EffectArray value="MalganisFelClawsWillOfTichondriusAddDamageToken" />
   </CEffectSet>
   <CEffectSet id="MalGanisFelClawsThirdPrepareSet">
     <EffectArray value="MalGanisFelClawsThirdApplyCastTimerBehavior" />
@@ -1867,7 +1898,8 @@
     <EffectArray value="MalGanisFelClawsThirdDamage" />
     <EffectArray value="MalGanisFelClawsThirdWillOfTichondriusDamage" />
     <EffectArray value="CameraShakeMediumTauntingTotemSet" />
-    <EffectArray value="MalGanisFelClawsApplyStunBehavior" />
+    <EffectArray value="MalganisFelClawsBlindAsABatCooldownReduction" />
+    <EffectArray value="MalganisFelClawsWillOfTichondriusStunSwitch" />
     <EffectArray value="MalGanisFelClawsBlackClawsApplyBehavior" />
     <ValidatorArray value="noMarkers" />
   </CEffectSet>
@@ -1876,30 +1908,32 @@
   </CEffectApplyBehavior>
   <CEffectApplyBehavior id="MalGanisFelClawsApplyStunLiftBehavior">
     <Behavior value="MalGanisFelClawsStunLift" />
-    <ValidatorArray value="MalGanisTargetHasFelClawsStun" />
+    <ValidatorArray value="MalganisTargetHasFelClawsStunOrEmpoweredFelClawsStunWillOfTichondrius" />
   </CEffectApplyBehavior>
   <CEffectApplyBehavior id="MalGanisFelClawsThirdApplyCastTimerBehavior">
     <WhichUnit Value="Caster" />
     <Behavior value="MalGanisFelClawsThirdCastTimer" />
   </CEffectApplyBehavior>
   <CEffectDamage id="MalGanisFelClawsDamage" parent="StormSpell">
-    <Amount value="69" />
+    <Amount value="63" />
     <LeechFraction index="Life" value="0.1" />
     <LeechFlatModifierArray index="IsHero" Validator="TargetIsHero" Modifier="0.35" />
-    <LeechFlatModifierArray index="FueledByTorment" Validator="MalGanisNecroticEmbraceFueledByTormentCombine" Modifier="0.15" />
+    <LeechFlatModifierArray index="FueledByTorment" Validator="MalGanisNecroticEmbraceFueledByTormentCombine" Modifier="0.2" />
     <LeechFlatModifierArray index="VanquishTheWeak" Validator="MalGanisFelClawsVanquishTheWeakSlowCombine" Modifier="0.1" />
     <SourceButtonFace value="MalGanisFelClawsFirst" />
   </CEffectDamage>
-  <CEffectDamage id="MalGanisFelClawsThirdDamage" parent="MalGanisFelClawsDamage" />
   <CEffectDamage id="MalGanisFelClawsThirdWillOfTichondriusDamage" parent="StormSpellPercentDamage">
-    <Visibility value="Hidden" />
-    <Flags index="Crit" value="1" />
-    <VitalFractionMax index="Life" value="0.03" />
     <ValidatorArray value="TargetIsHero" />
     <Chance value="0" />
+    <Visibility value="Hidden" />
+    <Flags index="Crit" value="1" />
+    <VitalFractionMax index="Life" value="0">
+      <AccumulatorArray value="MalganisFelClawsWillOfTichondriusDamageTokenAccumulator" />
+    </VitalFractionMax>
     <LeechFraction index="Life" value="1" />
     <SourceButtonFace value="MalGanisFelClawsWillOfTichondrius" />
   </CEffectDamage>
+  <CEffectDamage id="MalGanisFelClawsThirdDamage" parent="MalGanisFelClawsDamage" />
   <CEffectModifyUnit id="MalGanisFelClawsModifyWeaponCooldown">
     <ImpactUnit Value="Caster" />
     <Weapon Weapon="HeroMalGanisWeapon" CooldownOperation="Max" CooldownAmount="0.4375" />
@@ -1997,7 +2031,7 @@
     <Amount value="110" />
     <LeechFraction index="Life" value="0.1" />
     <LeechFlatModifierArray index="IsHero" Validator="TargetIsHero" Modifier="0.35" />
-    <LeechFlatModifierArray index="FueledByTorment" Validator="MalGanisNecroticEmbraceFueledByTormentCombine" Modifier="0.15" />
+    <LeechFlatModifierArray index="FueledByTorment" Validator="MalGanisNecroticEmbraceFueledByTormentCombine" Modifier="0.2" />
     <LeechFlatModifierArray index="VanquishTheWeak" Validator="MalGanisFelClawsVanquishTheWeakSlowCombine" Modifier="0.1" />
     <SourceButtonFace value="MalGanisNecroticEmbrace" />
   </CEffectDamage>
@@ -2029,15 +2063,11 @@
   </CEffectEnumArea>
   <CEffectSet id="MalGanisNecroticEmbraceEchoOfDoomImpactSet">
     <EffectArray value="MalGanisNecroticEmbraceEchoOfDoomDamage" />
-    <EffectArray value="MalGanisNecroticEmbraceEchoOfDoomApplyArmorBehavior" />
+    <EffectArray value="MalganisNecroticEmbraceEchoOfDoomCooldownReduction" />
+    <EffectArray value="MalganisNecroticEmbraceEchoOfDoomManaReturn" />
   </CEffectSet>
-  <CEffectApplyBehavior id="MalGanisNecroticEmbraceEchoOfDoomApplyArmorBehavior">
-    <WhichUnit Value="Caster" />
-    <Behavior value="MalGanisNecroticEmbraceEchoOfDoomArmor" />
-    <ValidatorArray value="TargetIsHero" />
-  </CEffectApplyBehavior>
   <CEffectDamage id="MalGanisNecroticEmbraceEchoOfDoomDamage" parent="StormSpellDot">
-    <Amount value="50" />
+    <Amount value="54" />
     <LeechFraction index="Life" value="0.1" />
     <LeechFlatModifierArray index="IsHero" Validator="TargetIsHero" Modifier="0.35" />
     <LeechFlatModifierArray index="VanquishTheWeak" Validator="MalGanisFelClawsVanquishTheWeakSlowCombine" Modifier="0.1" />
@@ -2050,6 +2080,7 @@
   </CEffectRemoveBehavior>
   <CEffectSet id="MalGanisNightRushInitialSet">
     <EffectArray value="MalGanisNightRushApplyCasterBehavior" />
+    <EffectArray value="MalGanisNightRushSpreadingPlagueApplyBehavior" />
     <EffectArray value="MalGanisNightRushNightmareFuelTalentModifyDuration" />
     <EffectArray value="MalGanisNightRushSearchPersistent" />
   </CEffectSet>
@@ -2097,7 +2128,6 @@
     <BehaviorLink value="MalGanisNightRushCaster" />
   </CEffectRemoveBehavior>
   <CEffectSet id="MalGanisNightRushFinalSet">
-    <EffectArray value="MalGanisNightRushSpreadingPlagueApplyBehavior" />
     <EffectArray value="MalGanisMoveFiltersOffModifyPlayer" />
   </CEffectSet>
   <CEffectSet id="MalGanisNightRushTargetFinalSet">
@@ -2194,7 +2224,7 @@
     <Amount value="30" />
     <LeechFraction index="Life" value="0.1" />
     <LeechFlatModifierArray index="IsHero" Validator="TargetIsHero" Modifier="0.35" />
-    <LeechFlatModifierArray index="FueledByTorment" Validator="MalGanisNecroticEmbraceFueledByTormentCombine" Modifier="0.15" />
+    <LeechFlatModifierArray index="FueledByTorment" Validator="MalGanisNecroticEmbraceFueledByTormentCombine" Modifier="0.2" />
     <LeechFlatModifierArray index="VanquishTheWeak" Validator="MalGanisFelClawsVanquishTheWeakSlowCombine" Modifier="0.1" />
     <SourceButtonFace value="MalGanisNightRushSpreadingPlague" />
   </CEffectDamage>
@@ -2258,7 +2288,7 @@
     <Amount value="81" />
     <LeechFraction index="Life" value="0.1" />
     <LeechFlatModifierArray index="IsHero" Validator="TargetIsHero" Modifier="0.35" />
-    <LeechFlatModifierArray index="FueledByTorment" Validator="MalGanisNecroticEmbraceFueledByTormentCombine" Modifier="0.15" />
+    <LeechFlatModifierArray index="FueledByTorment" Validator="MalGanisNecroticEmbraceFueledByTormentCombine" Modifier="0.2" />
     <LeechFlatModifierArray index="VanquishTheWeak" Validator="MalGanisFelClawsVanquishTheWeakSlowCombine" Modifier="0.1" />
     <SourceButtonFace value="MalGanisNecroticEmbracePlagueBats" />
   </CEffectDamage>
@@ -2427,7 +2457,7 @@
     <Amount value="60" />
     <LeechFraction index="Life" value="0.75" />
     <LeechMultiplicativeModifierArray index="NonHero" Validator="TargetNotHero" Modifier="-0.871" />
-    <LeechFlatModifierArray index="FueledByTorment" Validator="MalGanisNecroticEmbraceFueledByTormentCombine" Modifier="0.15" />
+    <LeechFlatModifierArray index="FueledByTorment" Validator="MalGanisNecroticEmbraceFueledByTormentCombine" Modifier="0.2" />
     <LeechFlatModifierArray index="VanquishTheWeak" Validator="MalGanisFelClawsVanquishTheWeakSlowCombine" Modifier="0.1" />
     <SourceButtonFace value="MalGanisCarrionSwarm" />
   </CEffectDamage>
@@ -2462,7 +2492,7 @@
   <CEffectDamage id="MalGanisCarrionSwarmSeekerSwarmDamage" parent="StormSpellDot">
     <Amount value="132" />
     <LeechFraction index="Life" value="0.75" />
-    <LeechFlatModifierArray index="FueledByTorment" Validator="MalGanisNecroticEmbraceFueledByTormentCombine" Modifier="0.15" />
+    <LeechFlatModifierArray index="FueledByTorment" Validator="MalGanisNecroticEmbraceFueledByTormentCombine" Modifier="0.2" />
     <SourceButtonFace value="MalGanisCarrionSwarmSeekerSwarm" />
   </CEffectDamage>
   <CEffectEnumArea id="MalGanisVampiricTouchVampiricAuraSearchArea">
@@ -2499,9 +2529,10 @@
     <EffectArray value="MalGanisVampiricTouchTimeToFeedHeal" />
   </CEffectSet>
   <CEffectCreateHealer id="MalGanisVampiricTouchTimeToFeedHeal" parent="StormSelfOnlyHealingSpell">
-    <RechargeVitalRate value="52" />
+    <RechargeVitalRate value="44" />
     <SourceButtonFace value="MalGanisVampiricTouchTimeToFeed" />
     <Flags index="Crit" value="1" />
+    <MultiplicativeModifierArray index="FelClawsBuff" Validator="MalganisHasFelClawsDashOrThirdDashBehaviorTimeToFeed" Modifier="1" Crit="1" />
   </CEffectCreateHealer>
   <CEffectRemoveBehavior id="MalGanisVampiricTouchTimeToFeedRemoveTargetBehavior">
     <WhichUnit Value="Source" />
@@ -2512,7 +2543,7 @@
     <WhichUnit Value="Caster" />
     <Behavior value="MalGanisVampiricTouchFrenziedAssaultBehavior" />
     <ValidatorArray value="CasterNotBlindedAndTargetNotEvading" />
-    <ValidatorArray value="MalGanisLifePercentLTTargetLifePercent" />
+    <ValidatorArray value="MalGanisLifePercentGTTargetLifePercent" />
     <ValidatorArray value="TargetIsHero" />
     <Chance value="0" />
   </CEffectApplyBehavior>
@@ -2542,17 +2573,18 @@
     <EffectArray value="MalGanisWeaponDamage" />
     <EffectArray value="MalGanisVampiricTouchFrenziedAssaultApplyBehavior" />
     <EffectArray value="MalGanisNightRushSpreadingPlagueModifyBehavior" />
+    <EffectArray value="MalganisFelClawsBlackClawsArmorReductionApplyBehavior" />
     <EffectArray value="MalGanisFelClawsBlackClawsRemoveBehavior" />
   </CEffectSet>
   <CEffectDamage id="MalGanisWeaponDamage" parent="StormWeapon">
     <MultiplicativeModifierArray index="BlackClaws" Validator="MalGanisHasFelClawsBlackClawsToken" Modifier="0.6" Crit="1" />
-    <MultiplicativeModifierArray index="NightmareFuelSleep" Validator="MalGanisNightmareFuelSleepCombine" Modifier="2" Crit="1" />
-    <MultiplicativeModifierArray index="FrenziedAssault" Validator="MalGanisHasVampiricTouchFrenziedAssaultActive" Modifier="0.2" />
-    <Amount value="100" />
+    <MultiplicativeModifierArray index="NightBeckonsSleep" Validator="MalganisNightRushTheNightBeckonsSleepCombine" Modifier="2" Crit="1" />
+    <Amount value="92" />
     <LeechFraction index="Life" value="0.1" />
     <LeechFlatModifierArray index="IsHero" Validator="TargetIsHero" Modifier="0.35" />
-    <LeechFlatModifierArray index="FueledByTorment" Validator="MalGanisNecroticEmbraceFueledByTormentCombine" Modifier="0.15" />
+    <LeechFlatModifierArray index="FueledByTorment" Validator="MalGanisNecroticEmbraceFueledByTormentCombine" Modifier="0.2" />
     <LeechFlatModifierArray index="VanquishTheWeak" Validator="MalGanisFelClawsVanquishTheWeakSlowCombine" Modifier="0.1" />
+    <LeechFlatModifierArray index="FrenziedAssault" Validator="MalganisHasFrenziedAssaultTalentAndLifePercentLTTargetLifePercentAndTargetIsHero" Modifier="0.5" Crit="1" />
     <SourceButtonFace value="Attack" />
   </CEffectDamage>
   <CEffectSet id="MalGanisWeaponVanquishTheWeakApplySet">
@@ -2560,9 +2592,44 @@
     <ValidatorArray value="CasterNotBlindedAndTargetNotEvading" />
     <Chance value="0" />
   </CEffectSet>
+  <CEffectApplyBehavior id="MalganisFelClawsBlackClawsArmorReductionApplyBehavior">
+    <ValidatorArray value="MalGanisHasFelClawsBlackClawsTalent" />
+    <ValidatorArray value="TargetIsHero" />
+    <ValidatorArray value="MalGanisHasFelClawsBlackClawsToken" />
+    <ValidatorArray value="CasterNotBlindedAndTargetNotEvading" />
+    <Behavior value="MalganisFelClawsBlackClawsArmorReduction" />
+  </CEffectApplyBehavior>
+  <CEffectSwitch id="MalganisFelClawsWillOfTichondriusStunSwitch">
+    <CaseArray Validator="MalganisFelClawsHasMaxStacksOfWillOfTichondriusDamageToken" Effect="MalganisFelClawsWillOfTichondriusEmpoweredStunApplyBehavior" />
+    <CaseDefault value="MalGanisFelClawsApplyStunBehavior" />
+  </CEffectSwitch>
+  <CEffectModifyTokenCount id="MalganisFelClawsWillOfTichondriusAddDamageToken" parent="BaseEffectModifyTokenCount">
+    <ValidatorArray value="TargetIsHero" />
+    <ValidatorArray value="MalGanisHasFelClawsWillOfTichondriusTalent" />
+    <TokenId value="MalganisFelClawsWillOfTichondriusDamageToken" />
+  </CEffectModifyTokenCount>
+  <CEffectApplyBehavior id="MalganisFelClawsWillOfTichondriusEmpoweredStunApplyBehavior">
+    <Behavior value="MalganisFelClawsWillOfTichondriusEmpoweredStun" />
+  </CEffectApplyBehavior>
+  <CEffectModifyTokenCount id="MalganisFelClawsWillOfTichondriusRemoveDamageToken" parent="BaseEffectModifyTokenCount">
+    <TokenId value="MalganisFelClawsWillOfTichondriusDamageToken" />
+    <Operation value="Set" />
+    <Value value="0" />
+  </CEffectModifyTokenCount>
+  <CEffectModifyUnit id="MalganisNecroticEmbraceEchoOfDoomCooldownReduction">
+    <ImpactUnit Value="Caster" />
+    <Cost Abil="MalGanisNecroticEmbrace,Execute" CooldownOperation="Add" CooldownTimeUse="-0.75" />
+    <ValidatorArray value="TargetIsHero" />
+  </CEffectModifyUnit>
+  <CEffectModifyUnit id="MalganisFelClawsBlindAsABatCooldownReduction">
+    <ValidatorArray value="TargetIsHero" />
+    <ImpactUnit Value="Caster" />
+    <Cost Abil="MalGanisFelClawsBlindAsABat,Execute" CooldownOperation="Add" CooldownTimeUse="-5" />
+  </CEffectModifyUnit>
   <CHero id="MalGanis">
     <AttributeId value="MalG" />
     <SkinArray value="MalGanisPilotHawk" />
+    <SkinArray value="MalGanisSummer20" />
     <Flags index="GoodForModeA" value="1" />
     <RolesMultiClass value="Warrior" />
     <Melee value="1" />
@@ -2620,7 +2687,6 @@
     <TalentTreeArray Talent="MalGanisFelClawsBlackClaws" Tier="3" Column="1" />
     <TalentTreeArray Talent="MalGanisFelClawsWillOfTichondrius" Tier="3" Column="2" />
     <TalentTreeArray Talent="MalGanisNightRushSpreadingPlague" Tier="3" Column="3" />
-    <TalentTreeArray Talent="MalGanisNightmareFuel" Tier="3" Column="4" />
     <TalentTreeArray Talent="MalGanisCarrionSwarm" Tier="4" Column="1" />
     <TalentTreeArray Talent="MalGanisDarkConversion" Tier="4" Column="2" />
     <TalentTreeArray Talent="MalGanisNightRushDeepSleep" Tier="5" Column="1" />
@@ -2807,7 +2873,7 @@
     <TalentAIBuildsArray ChanceToPick="16">
       <TalentsArray value="MalGanisVampiricTouchVampiricAura" />
       <TalentsArray value="MalGanisNecroticEmbraceEchoOfDoom" />
-      <TalentsArray value="MalGanisNightmareFuel" />
+      <TalentsArray value="MalGanisFelClawsBlackClaws" />
       <TalentsArray value="MalGanisCarrionSwarm" />
       <TalentsArray value="MalGanisVampiricTouchBloodRush" />
       <TalentsArray value="MalGanisVampiricTouchFrenziedAssault" />
@@ -3029,7 +3095,7 @@
         <Catalog value="Effect" />
         <Entry value="MalGanisWeaponDamage" />
         <Field value="LeechFraction[Life]" />
-        <Value value="0.150000" />
+        <Value value="0.300000" />
       </Modifications>
     </AbilityModificationArray>
   </CTalent>
@@ -3051,6 +3117,9 @@
         <Value value="1.000000" />
       </Modifications>
     </AbilityModificationArray>
+    <RankArray>
+      <BehaviorArray value="MalganisFelClawsWillOfTichondriusDamageToken" />
+    </RankArray>
   </CTalent>
   <CTalent id="MalGanisNecroticEmbraceWingedGuard">
     <Face value="MalGanisNecroticEmbraceWingedGuard" />
@@ -3085,6 +3154,12 @@
         <Entry value="MalGanisNightRushAloneInTheDarkModifyTriggerBehavior" />
         <Field value="Chance" />
         <Value value="1.000000" />
+      </Modifications>
+      <Modifications>
+        <Type value="FlatModification" />
+        <Entry value="MalGanisNightRush" />
+        <Field value="Cost.Cooldown.TimeUse" />
+        <Value value="-4.000000" />
       </Modifications>
     </AbilityModificationArray>
   </CTalent>
@@ -3133,13 +3208,6 @@
     <Face value="MalGanisNecroticEmbraceMightOfSargeras" />
     <Abil value="MalGanisNecroticEmbrace" />
     <AbilityModificationArray>
-      <Modifications>
-        <Type value="FlatModification" />
-        <Catalog value="Behavior" />
-        <Entry value="MalGanisNecroticEmbraceArmor" />
-        <Field value="Duration" />
-        <Value value="-0.500000" />
-      </Modifications>
       <Modifications>
         <Type value="FlatModification" />
         <Catalog value="Behavior" />
@@ -3324,9 +3392,9 @@
     </AbilityModificationArray>
   </CTalent>
   <CUnit id="HeroMalGanis" parent="StormHeroMounted">
-    <LifeStart value="2500" />
-    <LifeMax value="2500" />
-    <LifeRegenRate value="5.211" />
+    <LifeStart value="2450" />
+    <LifeMax value="2450" />
+    <LifeRegenRate value="5.1054" />
     <BehaviorArray Link="ExcellentMana" />
     <BehaviorArray Link="HeroGenericIsFat" />
     <WeaponArray Link="HeroMalGanisWeapon" />
@@ -3361,6 +3429,35 @@
     <HeroPlaystyleFlags index="SelfHealer" value="1" />
   </CUnit>
   <CUnit id="MalGanisCarrionSwarmSeekerSwarmMissile" parent="MISSILE_INVULNERABLE" />
+  <CValidatorCombine id="MalganisFelClawsHasMaxStacksOfWillOfTichondriusDamageTokenAndHasFelClawsTimerBehavior">
+    <Type value="And" />
+    <CombineArray value="MalganisHasFelClawsTimerBehaviorWillOfTichondrius" />
+    <CombineArray value="MalganisFelClawsHasMaxStacksOfWillOfTichondriusDamageToken" />
+  </CValidatorCombine>
+  <CValidatorUnitCompareBehaviorCount id="MalganisHasFelClawsTimerBehaviorWillOfTichondrius">
+    <WhichUnit Value="Caster" />
+    <Compare value="GE" />
+    <Value value="1" />
+    <Behavior value="MalGanisFelClawsTimer" />
+  </CValidatorUnitCompareBehaviorCount>
+  <CValidatorUnitCompareBehaviorCount id="MalganisTargetHasEmpoweredFelClawsStunWillOfTichondrius">
+    <Compare value="GT" />
+    <Behavior value="MalganisFelClawsWillOfTichondriusEmpoweredStun" />
+  </CValidatorUnitCompareBehaviorCount>
+  <CValidatorUnitCompareTokenCount id="MalganisFelClawsHasMaxStacksOfWillOfTichondriusDamageToken">
+    <Value value="4" />
+    <TokenId value="MalganisFelClawsWillOfTichondriusDamageToken" />
+  </CValidatorUnitCompareTokenCount>
+  <CValidatorCombine id="MalganisHasFrenziedAssaultTalentAndLifePercentLTTargetLifePercentAndTargetIsHero">
+    <Type value="And" />
+    <CombineArray value="MalganisLifePercentLTTargetLifePercent" />
+    <CombineArray value="TargetIsHero" />
+    <CombineArray value="MalGanisHasVampiricTouchFrenziedAssaultTalent" />
+  </CValidatorCombine>
+  <CValidatorUnitCompareVital id="MalganisLifePercentLTTargetLifePercent" parent="CasterLifePercent">
+    <OtherUnit Value="Target" />
+    <Compare value="LT" />
+  </CValidatorUnitCompareVital>
   <CValidatorUnitCompareBehaviorCount id="MalGanisTargetHasFelClawsStun">
     <Behavior value="MalGanisFelClawsStun" />
     <Compare value="GT" />
@@ -3474,14 +3571,10 @@
     <CombineArray value="MalGanisHasNightmareFuelBushControllerActive" />
     <CombineArray value="MalGanisHasNightmareFuelLeftBushBehavior" />
   </CValidatorCombine>
-  <CValidatorCombine id="MalGanisNightmareFuelSleepCombine">
+  <CValidatorCombine id="MalganisNightRushTheNightBeckonsSleepCombine">
     <Type value="And" />
-    <CombineArray value="MalGanisHasNightmareFuelTalent" />
+    <CombineArray value="MalGanisHasNightRushTheNightBeckonsTalent" />
     <CombineArray value="TargetIsSleeping" />
-  </CValidatorCombine>
-  <CValidatorCombine id="MalGanisNightmareFuelBushOrSleepCombine">
-    <CombineArray value="MalGanisNightmareFuelBushCombine" />
-    <CombineArray value="MalGanisNightmareFuelSleepCombine" />
   </CValidatorCombine>
   <CValidatorCombine id="MalGanisFelClawsVanquishTheWeakSlowCombine">
     <CombineArray value="MalGanisHasFelClawsVanquishTheWeakTalent" />
@@ -3500,9 +3593,9 @@
     <Value value="1" />
     <Behavior value="MalGanisFelClawsBlindAsABatBehavior" />
   </CValidatorUnitCompareBehaviorCount>
-  <CValidatorUnitCompareVital id="MalGanisLifePercentLTTargetLifePercent" parent="CasterLifePercent">
+  <CValidatorUnitCompareVital id="MalGanisLifePercentGTTargetLifePercent" parent="CasterLifePercent">
     <OtherUnit Value="Target" />
-    <Compare value="LT" />
+    <Compare value="GT" />
   </CValidatorUnitCompareVital>
   <CValidatorCombine id="MalGanisIsDeadOrStunnedOrSilencedOrStasisOrDazedExceptCarrionSwarm">
     <CombineArray value="MalGanisHasNoCarrionSwarmActive" />
@@ -3623,6 +3716,24 @@
     <Find value="1" />
     <Value value="MalGanisNightRushAloneInTheDark" />
   </CValidatorPlayerTalent>
+  <CValidatorUnitCompareBehaviorCount id="MalganisHasFelClawsDashBehavior">
+    <WhichUnit Value="Caster" />
+    <Value value="1" />
+    <Behavior value="MalGanisFelClawsDashBehavior" />
+  </CValidatorUnitCompareBehaviorCount>
+  <CValidatorUnitCompareBehaviorCount id="MalganisHasFelClawsThirdDashBehavior">
+    <WhichUnit Value="Caster" />
+    <Value value="1" />
+    <Behavior value="MalGanisFelClawsThirdDashBehavior" />
+  </CValidatorUnitCompareBehaviorCount>
+  <CValidatorCombine id="MalganisHasFelClawsDashOrThirdDashBehaviorTimeToFeed">
+    <CombineArray value="MalganisHasFelClawsDashBehavior" />
+    <CombineArray value="MalganisHasFelClawsThirdDashBehavior" />
+  </CValidatorCombine>
+  <CValidatorCombine id="MalganisTargetHasFelClawsStunOrEmpoweredFelClawsStunWillOfTichondrius">
+    <CombineArray value="MalganisTargetHasEmpoweredFelClawsStunWillOfTichondrius" />
+    <CombineArray value="MalGanisTargetHasFelClawsStun" />
+  </CValidatorCombine>
   <CWeaponLegacy id="HeroMalGanisWeapon" parent="StormHeroMediumWeapon">
     <Options index="Melee" value="1" />
     <DisplayEffect value="MalGanisWeaponDamage" />

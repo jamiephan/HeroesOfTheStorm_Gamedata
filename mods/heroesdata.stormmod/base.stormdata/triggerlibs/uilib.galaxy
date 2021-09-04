@@ -4220,6 +4220,7 @@ void libUIUI_gf_HeroConsoleUnitStatusBarsUpdateStunDeathBar (string lp_newBehavi
     }
 
     if ((lp_newBehavior == "Dead")) {
+        DialogControlSetAnimationState(libUIUI_gv_heroConsoleUnitStatusBars.lv_stunDeathBarParentFrame, libCore_gv_playerGroupFromPlayer[lv_player], "DeadOrStunned", "Dead");
         libUIUI_gv_heroConsoleUnitStatusBars_StunDeathBarCurrentBehaviorForPlayer[lv_player] = lp_newBehavior;
         libNtve_gf_SetDialogItemBehavior(libUIUI_gv_heroConsoleUnitStatusBars.lv_stunDeathBarLeftBar, lp_newBehavior, libCore_gv_playerGroupFromPlayer[lv_player]);
         libNtve_gf_SetDialogItemBehavior(libUIUI_gv_heroConsoleUnitStatusBars.lv_stunDeathBarRightBar, lp_newBehavior, libCore_gv_playerGroupFromPlayer[lv_player]);
@@ -4228,6 +4229,7 @@ void libUIUI_gf_HeroConsoleUnitStatusBarsUpdateStunDeathBar (string lp_newBehavi
     }
     else {
         if ((lp_newBehavior == "GuldanDarkBargainDuration")) {
+            DialogControlSetAnimationState(libUIUI_gv_heroConsoleUnitStatusBars.lv_stunDeathBarParentFrame, libCore_gv_playerGroupFromPlayer[lv_player], "DeadOrStunned", "Dead");
             libUIUI_gv_heroConsoleUnitStatusBars_StunDeathBarCurrentBehaviorForPlayer[lv_player] = lp_newBehavior;
             libNtve_gf_SetDialogItemBehavior(libUIUI_gv_heroConsoleUnitStatusBars.lv_stunDeathBarLeftBar, lp_newBehavior, libCore_gv_playerGroupFromPlayer[lv_player]);
             libNtve_gf_SetDialogItemBehavior(libUIUI_gv_heroConsoleUnitStatusBars.lv_stunDeathBarRightBar, lp_newBehavior, libCore_gv_playerGroupFromPlayer[lv_player]);
@@ -4236,6 +4238,7 @@ void libUIUI_gf_HeroConsoleUnitStatusBarsUpdateStunDeathBar (string lp_newBehavi
         }
         else {
             if ((UnitBehaviorDuration(libGame_gv_players[lv_player].lv_unitStatusBarsMonitorUnit_StunDeath, lp_newBehavior) >= UnitBehaviorDuration(libGame_gv_players[lv_player].lv_unitStatusBarsMonitorUnit_StunDeath, libUIUI_gv_heroConsoleUnitStatusBars_StunDeathBarCurrentBehaviorForPlayer[lv_player]))) {
+                DialogControlSetAnimationState(libUIUI_gv_heroConsoleUnitStatusBars.lv_stunDeathBarParentFrame, libCore_gv_playerGroupFromPlayer[lv_player], "DeadOrStunned", "Stunned");
                 libUIUI_gv_heroConsoleUnitStatusBars_StunDeathBarCurrentBehaviorForPlayer[lv_player] = lp_newBehavior;
                 libNtve_gf_SetDialogItemBehavior(libUIUI_gv_heroConsoleUnitStatusBars.lv_stunDeathBarLeftBar, lp_newBehavior, libCore_gv_playerGroupFromPlayer[lv_player]);
                 libNtve_gf_SetDialogItemBehavior(libUIUI_gv_heroConsoleUnitStatusBars.lv_stunDeathBarRightBar, lp_newBehavior, libCore_gv_playerGroupFromPlayer[lv_player]);
@@ -5993,6 +5996,7 @@ void libUIUI_gf_UIOnFireSetOnFireType (int lp_onFireType, int lp_player) {
 
 void libUIUI_gf_UIOnFireSetOnFireLevel (int lp_onFireLevel, int lp_player) {
     // Variable Declarations
+    bool lv_noStatusFrameFire;
     int lv_iterator;
     int lv_heroGroupStatusFramesIndex;
 
@@ -6014,12 +6018,19 @@ void libUIUI_gf_UIOnFireSetOnFireLevel (int lp_onFireLevel, int lp_player) {
         return ;
     }
 
+    if (((UnitGetType(libGame_gv_players[lp_player].lv_heroUnit) == "HeroSamuro") || (UnitGetType(libGame_gv_players[lp_player].lv_heroUnit) == "HeroNova"))) {
+        lv_noStatusFrameFire = true;
+    }
+
     autoE935F3FA_val = lp_onFireLevel;
     if (autoE935F3FA_val == libGame_ge_OnFireLevel_Extinguished) {
         autoC450851C_ae = libUIUI_gv_uIHeroStatusFrames[lp_player].lv_unitCount;
         lv_heroGroupStatusFramesIndex = 1;
         for ( ; ( (autoC450851C_ai >= 0 && lv_heroGroupStatusFramesIndex <= autoC450851C_ae) || (autoC450851C_ai < 0 && lv_heroGroupStatusFramesIndex >= autoC450851C_ae) ) ; lv_heroGroupStatusFramesIndex += autoC450851C_ai ) {
-            DialogControlSendAnimationEvent(libUIUI_gv_uIHeroStatusFrames[lp_player].lv_onFireCutscene[lv_heroGroupStatusFramesIndex], PlayerGroupAll(), "OnFireEnd");
+            if ((lv_noStatusFrameFire == false)) {
+                DialogControlSendAnimationEvent(libUIUI_gv_uIHeroStatusFrames[lp_player].lv_onFireCutscene[lv_heroGroupStatusFramesIndex], PlayerGroupAll(), "OnFireEnd");
+            }
+
         }
         DialogControlSendAnimationEvent(libUIUI_gv_uIPartyFrame.lv_heroOnFireCutscene[libGame_gv_players[lp_player].lv_rosterSlot], PlayerGroupAll(), "OnFireEnd");
         DialogControlSendAnimationEvent(libUIUI_gv_uIHeroConsole.lv_gameUIOnFire, PlayerGroupSingle(lp_player), "OnFireEnd");
@@ -6028,7 +6039,10 @@ void libUIUI_gf_UIOnFireSetOnFireLevel (int lp_onFireLevel, int lp_player) {
         auto659BAA03_ae = libUIUI_gv_uIHeroStatusFrames[lp_player].lv_unitCount;
         lv_heroGroupStatusFramesIndex = 1;
         for ( ; ( (auto659BAA03_ai >= 0 && lv_heroGroupStatusFramesIndex <= auto659BAA03_ae) || (auto659BAA03_ai < 0 && lv_heroGroupStatusFramesIndex >= auto659BAA03_ae) ) ; lv_heroGroupStatusFramesIndex += auto659BAA03_ai ) {
-            DialogControlSendAnimationEvent(libUIUI_gv_uIHeroStatusFrames[lp_player].lv_onFireCutscene[lv_heroGroupStatusFramesIndex], PlayerGroupAll(), "OnFireEmbers");
+            if ((lv_noStatusFrameFire == false)) {
+                DialogControlSendAnimationEvent(libUIUI_gv_uIHeroStatusFrames[lp_player].lv_onFireCutscene[lv_heroGroupStatusFramesIndex], PlayerGroupAll(), "OnFireEmbers");
+            }
+
         }
         DialogControlSendAnimationEvent(libUIUI_gv_uIPartyFrame.lv_heroOnFireCutscene[libGame_gv_players[lp_player].lv_rosterSlot], PlayerGroupAll(), "OnFireEmbers");
         DialogControlSendAnimationEvent(libUIUI_gv_uIHeroConsole.lv_gameUIOnFire, PlayerGroupSingle(lp_player), "OnFireEmbers");
@@ -6037,7 +6051,10 @@ void libUIUI_gf_UIOnFireSetOnFireLevel (int lp_onFireLevel, int lp_player) {
         autoC584046E_ae = libUIUI_gv_uIHeroStatusFrames[lp_player].lv_unitCount;
         lv_heroGroupStatusFramesIndex = 1;
         for ( ; ( (autoC584046E_ai >= 0 && lv_heroGroupStatusFramesIndex <= autoC584046E_ae) || (autoC584046E_ai < 0 && lv_heroGroupStatusFramesIndex >= autoC584046E_ae) ) ; lv_heroGroupStatusFramesIndex += autoC584046E_ai ) {
-            DialogControlSendAnimationEvent(libUIUI_gv_uIHeroStatusFrames[lp_player].lv_onFireCutscene[lv_heroGroupStatusFramesIndex], PlayerGroupAll(), "OnFireSmoldering");
+            if ((lv_noStatusFrameFire == false)) {
+                DialogControlSendAnimationEvent(libUIUI_gv_uIHeroStatusFrames[lp_player].lv_onFireCutscene[lv_heroGroupStatusFramesIndex], PlayerGroupAll(), "OnFireSmoldering");
+            }
+
         }
         DialogControlSendAnimationEvent(libUIUI_gv_uIPartyFrame.lv_heroOnFireCutscene[libGame_gv_players[lp_player].lv_rosterSlot], PlayerGroupAll(), "OnFireSmoldering");
         DialogControlSendAnimationEvent(libUIUI_gv_uIHeroConsole.lv_gameUIOnFire, PlayerGroupSingle(lp_player), "OnFireSmoldering");
@@ -6046,7 +6063,10 @@ void libUIUI_gf_UIOnFireSetOnFireLevel (int lp_onFireLevel, int lp_player) {
         auto004A449C_ae = libUIUI_gv_uIHeroStatusFrames[lp_player].lv_unitCount;
         lv_heroGroupStatusFramesIndex = 1;
         for ( ; ( (auto004A449C_ai >= 0 && lv_heroGroupStatusFramesIndex <= auto004A449C_ae) || (auto004A449C_ai < 0 && lv_heroGroupStatusFramesIndex >= auto004A449C_ae) ) ; lv_heroGroupStatusFramesIndex += auto004A449C_ai ) {
-            DialogControlSendAnimationEvent(libUIUI_gv_uIHeroStatusFrames[lp_player].lv_onFireCutscene[lv_heroGroupStatusFramesIndex], PlayerGroupAll(), "OnFireInferno");
+            if ((lv_noStatusFrameFire == false)) {
+                DialogControlSendAnimationEvent(libUIUI_gv_uIHeroStatusFrames[lp_player].lv_onFireCutscene[lv_heroGroupStatusFramesIndex], PlayerGroupAll(), "OnFireInferno");
+            }
+
         }
         DialogControlSendAnimationEvent(libUIUI_gv_uIPartyFrame.lv_heroOnFireCutscene[libGame_gv_players[lp_player].lv_rosterSlot], PlayerGroupAll(), "OnFireInferno");
         DialogControlSendAnimationEvent(libUIUI_gv_uIHeroConsole.lv_gameUIOnFire, PlayerGroupSingle(lp_player), "OnFireInferno");

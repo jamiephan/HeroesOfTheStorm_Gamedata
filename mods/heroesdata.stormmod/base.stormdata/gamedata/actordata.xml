@@ -1357,17 +1357,6 @@
   <CActorSiteOpLocalOffset id="SOpMoveUpBy1Dot5">
     <LocalOffset Z="1.500000" />
   </CActorSiteOpLocalOffset>
-  <CActorModel id="ExperienceGlobeGlow" parent="ModelAddition">
-    <Filter index="All" value="1" />
-    <VisibleTo index="Ally" value="1" />
-    <Inherits index="Opacity" value="0" />
-    <On Terms="Behavior.ExperienceGlobeSearch.Create" Send="Create" />
-    <On Terms="ActorCreation" Send="SetTintColor 215,53,255" />
-    <On Terms="Behavior.ExperienceGlobeSearch.Off" Send="AnimBracketStop BSD" />
-    <On Terms="ActorCreation" Send="SetOpacity 0.875000" />
-    <Host Subject="_Unit" />
-    <Aliases value="_ExperienceGlobeArt" />
-  </CActorModel>
   <CActorSound id="ExperienceGlobePickupSound" parent="SoundOneShot">
     <Filter index="All" value="1" />
     <VisibleToAtCreation index="Target" value="1" />
@@ -1412,22 +1401,19 @@
       <VolumeSource value="Actor" />
     </Layers>
   </CActorSound>
-  <CActorModel id="ExperienceGlobePickup" parent="StormModelAnimationStyleOneShotUnit">
-    <On Terms="Effect.ExperienceGlobeLaunchMissile.Start; At Caster" Send="Create" />
-    <HostSiteOps Ops="SOpAttachOriginStationary" HoldPosition="1" HoldRotation="1" />
-    <Model value="WizardTeleportCalamityExplosion" />
-    <Scale value="0.200000" />
-  </CActorModel>
   <CActorUnit id="ExperienceGlobeHost" parent="GenericUnitMinimal" unitName="ExperienceGlobeMinion">
     <On Terms="ActorCreation" Send="Create ExperienceGlobeAlly" />
     <On Terms="ActorCreation" Send="Create ExperienceGlobeEnemy" />
-    <On Terms="UnitDeath" Target="ExperienceGlobeEnemy" Send="Signal Death" />
-    <On Terms="UnitDeath" Target="ExperienceGlobeAlly" Send="Signal Death" />
-    <On Terms="Effect.ExperienceGlobeFadeDummy.Start" Send="TimerSet 0.000000 FadeOut" />
-    <On Terms="TimerExpired; TimerName FadeOut" Send="TimerSet 0.312500 FadeIn" />
-    <On Terms="TimerExpired; TimerName FadeIn" Send="TimerSet 0.312500 FadeOut" />
-    <On Terms="TimerExpired; TimerName FadeOut" Target="_ExperienceGlobeArt" Send="SetScale 0.375000 0.312500 FadeOutScale" />
-    <On Terms="TimerExpired; TimerName FadeIn" Target="_ExperienceGlobeArt" Send="ClearScale 0.312500 FadeOutScale" />
+    <On Terms="Effect.ExperienceGlobeExpireSet.Start" Target="ExperienceGlobeEnemy" Send="Signal Expire" />
+    <On Terms="Effect.ExperienceGlobeExpireSet.Start" Target="ExperienceGlobeAlly" Send="Signal Expire" />
+    <On Terms="Effect.ExperienceGlobePickupSet.Start" Target="ExperienceGlobeEnemy" Send="Signal Pickup" />
+    <On Terms="Effect.ExperienceGlobePickupSet.Start" Target="ExperienceGlobeAlly" Send="Signal Pickup" />
+    <On Terms="Effect.ExperienceGlobeFadeDummy.Start" Target="ExperienceGlobeEnemy" Send="Signal ExpirePulse" />
+    <On Terms="Effect.ExperienceGlobeFadeDummy.Start" Target="ExperienceGlobeAlly" Send="Signal ExpirePulse" />
+    <On Terms="UnitMovementUpdate.*.Walk" Target="ExperienceGlobeEnemy" Send="Signal Moving" />
+    <On Terms="UnitMovementUpdate.*.Walk" Target="ExperienceGlobeAlly" Send="Signal Moving" />
+    <On Terms="UnitMovementUpdate.*.Stand" Target="ExperienceGlobeEnemy" Send="Signal Stopped" />
+    <On Terms="UnitMovementUpdate.*.Stand" Target="ExperienceGlobeAlly" Send="Signal Stopped" />
     <Model value="Invisible" />
     <HostSiteOps Ops="SOpMoveUpBy1Dot5" />
   </CActorUnit>
@@ -1435,10 +1421,14 @@
     <Filter index="All" value="1" />
     <VisibleTo index="Enemy" value="1" />
     <FogVisibility value="Hidden" />
-    <Remove Terms="ActorOrphan" Send="Destroy" />
-    <On Terms="ActorCreation" Send="SetTintColor 46,46,46" />
-    <On Terms="Signal.*.Death" Send="AnimPlay Death Death 0 0.001000 0.001000 1.000000 AsTimeScale 0.000000 500" />
+    <Remove Terms="ActorCreation" Send="AnimBracketStart BSD Birth Stand Death" />
+    <On Terms="ActorCreation" Send="AnimBracketStart BSD Birth Stand,A IGNORE" />
+    <On Terms="Signal.*.Expire" Send="AnimPlay Death Death,A" />
+    <On Terms="Signal.*.Pickup" Send="AnimPlay Death Death,B" />
     <On Terms="AnimDone; AnimName Death" Send="Destroy Immediate" />
+    <On Terms="Signal.*.ExpirePulse" Send="AnimPlay Stand Stand,Work PlayForever" />
+    <On Terms="Signal.*.Moving" Send="AnimPlay StandB Stand,B PlayForever" />
+    <On Terms="Signal.*.Stopped" Send="AnimClear StandB" />
     <Host Subject="_Unit" />
     <Aliases value="_ExperienceGlobeArt" />
   </CActorModel>
@@ -1446,9 +1436,14 @@
     <Filter index="All" value="1" />
     <VisibleTo index="Self" value="1" />
     <VisibleTo index="Ally" value="1" />
-    <Remove Terms="ActorOrphan" Send="Destroy" />
-    <On Terms="Signal.*.Death" Send="AnimPlay Death Death 0 0.001000 0.001000 1.000000 AsTimeScale 0.000000 500" />
+    <Remove Terms="ActorCreation" Send="AnimBracketStart BSD Birth Stand Death" />
+    <On Terms="ActorCreation" Send="AnimBracketStart BSD Birth Stand,A IGNORE" />
+    <On Terms="Signal.*.Expire" Send="AnimPlay Death Death,A" />
+    <On Terms="Signal.*.Pickup" Send="AnimPlay Death Death,B" />
     <On Terms="AnimDone; AnimName Death" Send="Destroy Immediate" />
+    <On Terms="Signal.*.ExpirePulse" Send="AnimPlay Stand Stand,Work PlayForever" />
+    <On Terms="Signal.*.Moving" Send="AnimPlay StandB Stand,B PlayForever" />
+    <On Terms="Signal.*.Stopped" Send="AnimClear StandB" />
     <Host Subject="_Unit" />
     <Aliases value="_ExperienceGlobeArt" />
     <FogVisibility value="Visible" />
@@ -1638,6 +1633,9 @@
       <VolumeSource value="Actor" />
     </Layers>
   </CActorSound>
+  <CActorSound id="UI_BNet_Summer20_AcceptChoice_Sound" parent="SoundOneShot">
+    <Sound value="UI_BNet_Summer20_AcceptChoice" />
+  </CActorSound>
   <CActorSound id="UI_BNet_AlteracPass_AcceptChoice_Alliance_Sound" parent="SoundOneShot">
     <Sound value="UI_BNet_Generic_01" />
     <Layers>
@@ -1708,6 +1706,40 @@
       <PitchSource value="Actor" />
       <PlayDelaySource value="Actor" />
       <Volume value="-3.000000,-3.000000" />
+      <VolumeSource value="Actor" />
+    </Layers>
+  </CActorSound>
+  <CActorSound id="UI_BNet_Summer20_StopVO" parent="SoundOneShot">
+    <Sound value="StormNoSound" />
+    <On Terms="ActorCreation" Target="UI_BNet_Summer20_Click_Right_Sound" Send="Destroy" />
+    <On Terms="ActorCreation" Target="UI_BNet_Summer20_Click_Left_Sound" Send="Destroy" />
+  </CActorSound>
+  <CActorSound id="UI_BNet_Summer20_Click_Right_Sound" parent="SoundOneShot">
+    <Sound value="UI_BNet_Summer18_Click_Right" />
+    <Layers>
+      <Sound value="UI_BNet_Summer20_Click_Right_Vox" />
+      <PitchSource value="Actor" />
+      <PlayDelaySource value="Actor" />
+      <VolumeSource value="Actor" />
+    </Layers>
+    <Layers>
+      <Sound value="UI_BNet_Summer18_Click_Right_Crowd" />
+      <PitchSource value="Actor" />
+      <PlayDelay value="6200,6500" />
+      <PlayDelaySource value="Actor" />
+      <Volume value="-12.000000,-12.000000" />
+      <VolumeSource value="Actor" />
+    </Layers>
+  </CActorSound>
+  <CActorSound id="UI_BNet_Summer20_Click_Left_Sound" parent="SoundOneShot">
+    <Sound value="UI_BNet_Summer18_Click_Left" />
+    <Layers Sound="UI_BNet_Summer20_Click_Left_Vox" />
+    <Layers>
+      <Sound value="UI_BNet_Summer18_Click_Left_Crowd" />
+      <PitchSource value="Actor" />
+      <PlayDelay value="6600,6600" />
+      <PlayDelaySource value="Actor" />
+      <Volume value="-12.000000,-12.000000" />
       <VolumeSource value="Actor" />
     </Layers>
   </CActorSound>
@@ -1854,6 +1886,17 @@
       <Sound value="UI_BNet_AlteracPass_Toast_Horn" />
       <PitchSource value="Actor" />
       <PlayDelay value="650,650" />
+      <PlayDelaySource value="Actor" />
+      <Volume value="-12.000000,-12.000000" />
+      <VolumeSource value="Actor" />
+    </Layers>
+  </CActorSound>
+  <CActorSound id="UI_BNet_Summer20_Toast_Sound" parent="SoundOneShot">
+    <Sound value="UI_BNet_Summer20_Toast" />
+    <Layers>
+      <Sound value="UI_BNet_Summer18_Toast_Guitar" />
+      <PitchSource value="Actor" />
+      <PlayDelay value="500,500" />
       <PlayDelaySource value="Actor" />
       <Volume value="-12.000000,-12.000000" />
       <VolumeSource value="Actor" />
@@ -6096,7 +6139,8 @@
     <On Terms="Abil.CaptureMacGuffinTwo.SourceChannelStop" Send="AnimClear Channel" />
     <On Terms="Abil.MapMechanicAbility.SourceCastStart" Send="AnimPlay Channel Channel,Interact PlayForever -1.000000 -1.000000 1.000000 AsTimeScale" />
     <On Terms="Abil.MapMechanicAbility.SourceCastStop" Send="AnimClear Channel" />
-    <On Terms="Abil.Hearthstone.SourceCastStart" Send="AnimPlay Channel Channel,Hearth PlayForever -1.000000 -1.000000 1.000000 AsTimeScale" />
+    <On Terms="Abil.Hearthstone.SourceCastStart; IsStatus AltHearthAnims 0" Send="AnimPlay Channel Channel,Hearth PlayForever -1.000000 -1.000000 1.000000 AsTimeScale" />
+    <On Terms="Abil.Hearthstone.SourceCastStart; IsStatus HearthAnimNoBlendIn 1" Send="AnimPlay Channel Channel,Hearth PlayForever 0.000000 -1.000000 1.000000 AsTimeScale" />
     <On Terms="Abil.Hearthstone.SourceCastStop" Send="AnimClear Channel" />
     <On Terms="Effect.ReviveAllyCreatePersistent.Start" Send="AnimPlay Channel Spell,Resurrect PlayForever -1.000000 -1.000000 1.000000 AsTimeScale" />
     <On Terms="Effect.ReviveAllyCreatePersistent.Stop" Send="AnimClear Channel" />
@@ -15240,17 +15284,6 @@
   <CActorUnit id="DebugUnknownUnit" parent="StormMinionStandard" unitName="DebugUnknownUnit">
     <UnitIcon value="Assets\Textures\storm_temp_btn-tips-tutorial.dds" />
   </CActorUnit>
-  <CActorUnit id="GPUTest" parent="StormUnitBase" unitName="GPUTest">
-    <On Terms="ActorCreation" Send="Create GPUTestFX" />
-    <Model value="Invisible" />
-  </CActorUnit>
-  <CActorModel id="GPUTestFX" parent="StormModelAnimationStyleContinuous">
-    <On Terms="ActorCreation" Send="AnimPlay Stand Stand PlayForever" />
-    <On Terms="ActorCreation" Send="SetOpacity 1.000000" />
-    <On Terms="ActorCreation" Send="SetTintColor 100,100,100" />
-    <HostSiteOps Ops="SOpPointSouthWorld" />
-    <FogVisibility value="Visible" />
-  </CActorModel>
   <CActorModel id="PaulUnitAbilityModel" parent="StormModelAnimationStyleOneShotUnit">
     <On Terms="Effect.PaulUnitAbilitySet.Start; At Target" Send="Create" />
     <Filter index="All" value="1" />
@@ -15748,7 +15781,7 @@
     <On Terms="ActorCreation" Target="UI_BNet_Progression_Demotion" Send="Destroy" />
     <On Terms="ActorCreation" Target="UI_BNet_Progression_Levelup_RankedBadge_Ascend_Start" Send="Destroy" />
     <On Terms="ActorCreation" Target="UI_BNet_Progression_Levelup_RankSparks" Send="Destroy" />
-    <Sound value="StormNoSound" />
+    <Sound value="StormNoSoundActor" />
   </CActorSound>
   <CActorSound id="UI_BNet_ProgressionCounter_Gold" parent="SoundContinuous">
     <Layers Sound="UI_BNet_ProgressionCounter_Gold_Start" />

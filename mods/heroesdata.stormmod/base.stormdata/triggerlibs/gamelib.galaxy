@@ -342,7 +342,6 @@ void libGame_InitVariables () {
         }
     }
     libGame_gv_talents_PlayChooseATalentSound = true;
-    libGame_gv_cFHEnabledUnits = UnitGroupEmpty();
     for (init_i = 0; init_i <= libGame_gv_townMaxTownCount; init_i += 1) {
         libGame_gv_townTownData[init_i].lv_townHallIndex = -1;
     }
@@ -21168,126 +21167,6 @@ void libGame_gt_TalentsChoiceSelected_Init () {
 }
 
 //--------------------------------------------------------------------------------------------------
-// Trigger: CFH - Enable
-//--------------------------------------------------------------------------------------------------
-bool libGame_gt_CFHEnable_Func (bool testConds, bool runActions) {
-    // Variable Declarations
-    int lv_itTown;
-    int lv_itStructure;
-
-    // Automatic Variable Declarations
-    int auto551343BE_ae;
-    int autoE2DD41D4_ae;
-
-    // Variable Initialization
-
-    // Actions
-    if (!runActions) {
-        return true;
-    }
-
-    Wait(5.0, c_timeGame);
-    auto551343BE_ae = libGame_gv_townTownCount;
-    lv_itTown = 1;
-    for ( ; lv_itTown <= auto551343BE_ae ; lv_itTown += 1 ) {
-        autoE2DD41D4_ae = libGame_gv_townTownData[lv_itTown].lv_structureCount;
-        lv_itStructure = 1;
-        for ( ; lv_itStructure <= autoE2DD41D4_ae ; lv_itStructure += 1 ) {
-            if (((UnitGetType(libGame_gv_townTownData[lv_itTown].lv_structureUnits[lv_itStructure]) == "TownCannonTowerL2") || (UnitGetType(libGame_gv_townTownData[lv_itTown].lv_structureUnits[lv_itStructure]) == "TownCannonTowerL3") || (UnitGetType(libGame_gv_townTownData[lv_itTown].lv_structureUnits[lv_itStructure]) == "TownCannonTowerL3Standalone") || (UnitGetType(libGame_gv_townTownData[lv_itTown].lv_structureUnits[lv_itStructure]) == "TownTownHallL2") || (UnitGetType(libGame_gv_townTownData[lv_itTown].lv_structureUnits[lv_itStructure]) == "TownTownHallL3")) && (UnitIsValid(libGame_gv_townTownData[lv_itTown].lv_structureUnits[lv_itStructure]) == true) && (UnitIsAlive(libGame_gv_townTownData[lv_itTown].lv_structureUnits[lv_itStructure]) == true)) {
-                UnitBehaviorAdd(libGame_gv_townTownData[lv_itTown].lv_structureUnits[lv_itStructure], "TowerCFHUpdateNearbyHeroes", libGame_gv_townTownData[lv_itTown].lv_structureUnits[lv_itStructure], 1);
-                UnitBehaviorAdd(libGame_gv_townTownData[lv_itTown].lv_structureUnits[lv_itStructure], "TowerCFHFocusedTargetTracker", libGame_gv_townTownData[lv_itTown].lv_structureUnits[lv_itStructure], 1);
-                UnitGroupAdd(libGame_gv_cFHEnabledUnits, libGame_gv_townTownData[lv_itTown].lv_structureUnits[lv_itStructure]);
-            }
-
-        }
-    }
-    UnitBehaviorAdd(libGame_gv_teams[libGame_gv_teamOrderIndex_C].lv_core, "TowerCFHUpdateNearbyHeroes", libGame_gv_teams[libGame_gv_teamOrderIndex_C].lv_core, 1);
-    UnitBehaviorAdd(libGame_gv_teams[libGame_gv_teamOrderIndex_C].lv_core, "TowerCFHFocusedTargetTracker", libGame_gv_teams[libGame_gv_teamOrderIndex_C].lv_core, 1);
-    UnitGroupAdd(libGame_gv_cFHEnabledUnits, libGame_gv_teams[libGame_gv_teamOrderIndex_C].lv_core);
-    UnitBehaviorAdd(libGame_gv_teams[libGame_gv_teamChaosIndex_C].lv_core, "TowerCFHUpdateNearbyHeroes", libGame_gv_teams[libGame_gv_teamChaosIndex_C].lv_core, 1);
-    UnitBehaviorAdd(libGame_gv_teams[libGame_gv_teamChaosIndex_C].lv_core, "TowerCFHFocusedTargetTracker", libGame_gv_teams[libGame_gv_teamChaosIndex_C].lv_core, 1);
-    UnitGroupAdd(libGame_gv_cFHEnabledUnits, libGame_gv_teams[libGame_gv_teamChaosIndex_C].lv_core);
-    libGame_gv_cFHEnabled = true;
-    return true;
-}
-
-//--------------------------------------------------------------------------------------------------
-void libGame_gt_CFHEnable_Init () {
-    libGame_gt_CFHEnable = TriggerCreate("libGame_gt_CFHEnable_Func");
-    TriggerAddEventMapInit(libGame_gt_CFHEnable);
-}
-
-//--------------------------------------------------------------------------------------------------
-// Trigger: CFH - Special Units Aggro Check
-//--------------------------------------------------------------------------------------------------
-bool libGame_gt_CFHSpecialUnitsAggroCheck_Func (bool testConds, bool runActions) {
-    // Variable Declarations
-    unit lv_attacker;
-    unit lv_defender;
-    unit lv_creator;
-    unit lv_sgtHammer;
-    unit lv_cho;
-    unit lv_dVa;
-
-    // Automatic Variable Declarations
-    // Variable Initialization
-    lv_attacker = EventUnitDamageSourceUnit();
-    lv_defender = EventUnit();
-
-    // Conditions
-    if (testConds) {
-        if (!((UnitTypeTestAttribute(UnitGetType(lv_defender), c_unitAttributeHeroic) == true))) {
-            return false;
-        }
-    }
-
-    // Actions
-    if (!runActions) {
-        return true;
-    }
-
-    if ((UnitTypeTestAttribute(UnitGetType(lv_attacker), c_unitAttributeSummoned) == true)) {
-        lv_creator = UnitGetCreatorUnit(lv_attacker);
-        if ((UnitIsAlive(lv_creator) == true) && (UnitHasBehavior2(lv_creator, "TowerCFHDamageResponse") == true)) {
-            UnitCreateEffectUnit(lv_creator, "TowerCFHHeroDamageFromSummonedUnitDummy", lv_defender);
-        }
-
-    }
-
-    if ((UnitGetType(lv_attacker) == "SgtHammerBluntForceGunInvisibleOrbitalDummy")) {
-        lv_sgtHammer = libGame_gv_players[UnitGetOwner(lv_attacker)].lv_heroUnit;
-        if ((UnitIsAlive(lv_sgtHammer) == true) && (UnitHasBehavior2(lv_sgtHammer, "TowerCFHDamageResponse") == true)) {
-            UnitCreateEffectUnit(lv_sgtHammer, "TowerCFHHeroDamageFromSummonedUnitDummy", lv_defender);
-        }
-
-    }
-
-    if ((UnitGetType(lv_attacker) == "HeroGall")) {
-        lv_cho = libGDHL_gv_chogallPairs[libGame_gf_TeamNumberOfPlayer(EventUnitDamageSourcePlayer())].lv_choUnit;
-        if ((UnitIsAlive(lv_cho) == true) && (UnitHasBehavior2(lv_cho, "TowerCFHDamageResponse") == true)) {
-            UnitCreateEffectUnit(lv_cho, "TowerCFHHeroDamageFromSummonedUnitDummy", lv_defender);
-        }
-
-    }
-
-    if ((UnitGetType(lv_attacker) == "HeroDVaMech")) {
-        lv_dVa = libGame_gv_players[UnitGetOwner(lv_attacker)].lv_heroUnit;
-        if ((UnitIsAlive(lv_dVa) == true) && (UnitHasBehavior2(lv_dVa, "TowerCFHDamageResponse") == true)) {
-            UnitCreateEffectUnit(lv_dVa, "TowerCFHHeroDamageFromSummonedUnitDummy", lv_defender);
-        }
-
-    }
-
-    return true;
-}
-
-//--------------------------------------------------------------------------------------------------
-void libGame_gt_CFHSpecialUnitsAggroCheck_Init () {
-    libGame_gt_CFHSpecialUnitsAggroCheck = TriggerCreate("libGame_gt_CFHSpecialUnitsAggroCheck_Func");
-    TriggerAddEventUnitDamaged(libGame_gt_CFHSpecialUnitsAggroCheck, null, c_unitDamageTypeAny, c_unitDamageEither, null);
-}
-
-//--------------------------------------------------------------------------------------------------
 // Trigger: Tower - Tower Dead State Gate Check
 //--------------------------------------------------------------------------------------------------
 bool libGame_gt_TowerTowerDeadStateGateCheck_Func (bool testConds, bool runActions) {
@@ -22506,8 +22385,6 @@ void libGame_InitTriggers () {
     libGame_gt_ScoreTrackingSkullCollected_Init();
     libGame_gt_ScoreTrackingSeedCollected_Init();
     libGame_gt_TalentsChoiceSelected_Init();
-    libGame_gt_CFHEnable_Init();
-    libGame_gt_CFHSpecialUnitsAggroCheck_Init();
     libGame_gt_TowerTowerDeadStateGateCheck_Init();
     libGame_gt_TowerTowerMorphToDeadStateStructureDies_Init();
     libGame_gt_InitializeTownSystem_Init();
