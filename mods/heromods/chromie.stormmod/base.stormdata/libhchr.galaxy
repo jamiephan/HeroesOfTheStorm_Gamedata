@@ -28,7 +28,7 @@ void libHCHR_InitVariables () {
 
     libHCHR_InitVariables_completed = true;
 
-    libHCHR_gv_pastandFutureMeTokenUnlock = CatalogFieldValueGetAsInt(c_gameCatalogValidator, "ChromieHasUnlockedPastandFutureMe", "Value", 0);
+    libHCHR_gv_heroChromieBlessingoftheBronzeCDR = CatalogFieldValueGetAsFixed(c_gameCatalogEffect, "ChromieBlessingOfTheBronzeDummyCDRVariable", "XP", c_playerAny);
     for (init_i = 0; init_i <= libCore_gv_bALMaxPlayers; init_i += 1) {
         libHCHR_gv_timeTrapUnitGroup[init_i] = UnitGroupEmpty();
     }
@@ -40,11 +40,9 @@ void libHCHR_gf_HeroChromieIncrementHeroCountFunction () {
     // Implementation
     libHCHR_gv_heroChromieTriggerRegistrationVariable += 1;
     if ((libHCHR_gv_heroChromieTriggerRegistrationVariable == 1)) {
-        TriggerEnable(libHCHR_gt_HeroChromiePastandFutureMeBirth, true);
-        TriggerEnable(libHCHR_gt_HeroChromiePastandFutureMeDeath, true);
         TriggerEnable(libHCHR_gt_HeroChromieTimeOutOverlayOff, true);
         TriggerEnable(libHCHR_gt_HeroChromieTimeOutOverlayOn, true);
-        TriggerEnable(libHCHR_gt_HeroChromieByeByeHearthstoneTalentDisableCheck, true);
+        TriggerEnable(libHCHR_gt_HeroChromieBlessingoftheBronzeCDR, true);
         TriggerEnable(libHCHR_gt_HeroChromieTemporalLoopCameraSnap, true);
         TriggerEnable(libHCHR_gt_HeroChromieTemporalLoopTeleportDetection, true);
         TriggerEnable(libHCHR_gt_HeroChromieTimeTrapController, true);
@@ -63,11 +61,9 @@ void libHCHR_gf_HeroChromieDecrementHeroCountFunction () {
     }
 
     if ((libHCHR_gv_heroChromieTriggerRegistrationVariable == 0)) {
-        TriggerEnable(libHCHR_gt_HeroChromiePastandFutureMeBirth, false);
-        TriggerEnable(libHCHR_gt_HeroChromiePastandFutureMeDeath, false);
         TriggerEnable(libHCHR_gt_HeroChromieTimeOutOverlayOff, false);
         TriggerEnable(libHCHR_gt_HeroChromieTimeOutOverlayOn, false);
-        TriggerEnable(libHCHR_gt_HeroChromieByeByeHearthstoneTalentDisableCheck, false);
+        TriggerEnable(libHCHR_gt_HeroChromieBlessingoftheBronzeCDR, false);
         TriggerEnable(libHCHR_gt_HeroChromieTemporalLoopCameraSnap, false);
         TriggerEnable(libHCHR_gt_HeroChromieTemporalLoopTeleportDetection, false);
         TriggerEnable(libHCHR_gt_HeroChromieTimeTrapController, false);
@@ -78,89 +74,6 @@ void libHCHR_gf_HeroChromieDecrementHeroCountFunction () {
 }
 
 // Triggers
-//--------------------------------------------------------------------------------------------------
-// Trigger: Hero - Chromie - Past and Future Me Birth
-//--------------------------------------------------------------------------------------------------
-bool libHCHR_gt_HeroChromiePastandFutureMeBirth_Func (bool testConds, bool runActions) {
-    // Variable Declarations
-    int lv_thisPlayer;
-
-    // Automatic Variable Declarations
-    // Variable Initialization
-
-    // Conditions
-    if (testConds) {
-        if (!((UnitGetType(EventUnitCreatedUnit()) == "ChromieSandBlastPastAndFutureMeControllerUnit"))) {
-            return false;
-        }
-    }
-
-    // Actions
-    if (!runActions) {
-        return true;
-    }
-
-    lv_thisPlayer = EventPlayer();
-    libHCHR_gv_pastandFutureMeUnit[lv_thisPlayer] = EventUnitCreatedUnit();
-    libNtve_gf_MakeUnitFacePoint(libHCHR_gv_pastandFutureMeUnit[lv_thisPlayer], libHCHR_gv_cloneBirthFacing[lv_thisPlayer], 0.0);
-    UnitSetTokenCount(libHCHR_gv_pastandFutureMeUnit[lv_thisPlayer], "ChromieSandBlastPastAndFutureMeQuestToken", UnitGetTokenCount(EventUnit(), "ChromieSandBlastQuestToken"), EventUnit());
-    return true;
-}
-
-//--------------------------------------------------------------------------------------------------
-void libHCHR_gt_HeroChromiePastandFutureMeBirth_Init () {
-    libHCHR_gt_HeroChromiePastandFutureMeBirth = TriggerCreate("libHCHR_gt_HeroChromiePastandFutureMeBirth_Func");
-    TriggerEnable(libHCHR_gt_HeroChromiePastandFutureMeBirth, false);
-    TriggerAddEventUnitCreated(libHCHR_gt_HeroChromiePastandFutureMeBirth, null, "ChromieSandBlast", null);
-}
-
-//--------------------------------------------------------------------------------------------------
-// Trigger: Hero - Chromie - Past and Future Me Death
-//--------------------------------------------------------------------------------------------------
-bool libHCHR_gt_HeroChromiePastandFutureMeDeath_Func (bool testConds, bool runActions) {
-    // Variable Declarations
-    unit lv_caster;
-    int lv_player;
-    unit lv_lv_CloneUnit;
-    point lv_lv_CloneFacing;
-
-    // Automatic Variable Declarations
-    // Variable Initialization
-    lv_caster = EventPlayerEffectUsedUnit(c_effectUnitCaster);
-    lv_player = EventPlayerEffectUsedUnitOwner(c_effectPlayerCaster);
-    lv_lv_CloneUnit = libHCHR_gv_pastandFutureMeUnit[lv_player];
-
-    // Conditions
-    if (testConds) {
-        if (!((UnitBehaviorCount(lv_caster, "ChromieSandBlastQuestToken") >= libHCHR_gv_pastandFutureMeTokenUnlock))) {
-            return false;
-        }
-    }
-
-    // Actions
-    if (!runActions) {
-        return true;
-    }
-
-    libHCHR_gv_cloneBirthFacing[lv_player] = EventPlayerEffectUsedPoint(c_effectLocationTargetPoint);
-    lv_lv_CloneFacing = libHCHR_gv_cloneBirthFacing[lv_player];
-    if ((UnitIsValid(lv_lv_CloneUnit) == true)) {
-        libHCHR_gv_pastandFutureMeUnit[lv_player] = null;
-        libNtve_gf_MakeUnitFacePoint(lv_lv_CloneUnit, lv_lv_CloneFacing, 0.0);
-        UnitBehaviorAdd(lv_lv_CloneUnit, "ChromieSandBlastPastAndFutureMeControllerDeathDelayBehavior", lv_lv_CloneUnit, 1);
-        UnitCreateEffectUnit(lv_caster, "ChromieSandBlastPastAndFutureMeCloneActiveRemoveBehavior", lv_caster);
-    }
-
-    return true;
-}
-
-//--------------------------------------------------------------------------------------------------
-void libHCHR_gt_HeroChromiePastandFutureMeDeath_Init () {
-    libHCHR_gt_HeroChromiePastandFutureMeDeath = TriggerCreate("libHCHR_gt_HeroChromiePastandFutureMeDeath_Func");
-    TriggerEnable(libHCHR_gt_HeroChromiePastandFutureMeDeath, false);
-    TriggerAddEventPlayerEffectUsed(libHCHR_gt_HeroChromiePastandFutureMeDeath, c_playerAny, "ChromieSandBlastPrepSet");
-}
-
 //--------------------------------------------------------------------------------------------------
 // Trigger: Hero - Chromie - Time Out Overlay On
 //--------------------------------------------------------------------------------------------------
@@ -226,31 +139,60 @@ void libHCHR_gt_HeroChromieTimeOutOverlayOff_Init () {
 }
 
 //--------------------------------------------------------------------------------------------------
-// Trigger: Hero - Chromie - Bye Bye - Hearthstone Talent Disable Check
+// Trigger: Hero - Chromie - Blessing of the Bronze - CDR
 //--------------------------------------------------------------------------------------------------
-bool libHCHR_gt_HeroChromieByeByeHearthstoneTalentDisableCheck_Func (bool testConds, bool runActions) {
+bool libHCHR_gt_HeroChromieBlessingoftheBronzeCDR_Func (bool testConds, bool runActions) {
+    // Variable Declarations
+    unit lv_hero;
+
     // Automatic Variable Declarations
-    // Conditions
-    if (testConds) {
-        if (!((UnitGetType(EventUnit()) == "HeroChromie"))) {
-            return false;
-        }
-    }
+    // Variable Initialization
+    lv_hero = EventPlayerEffectUsedUnit(c_effectUnitTarget);
 
     // Actions
     if (!runActions) {
         return true;
     }
 
-    SetTalentEnabled("ChromieHearthstoneByeBye", false);
+    libGame_gf_StormUniversalModifyCooldownonUnitCDRforAbilities(lv_hero, libHCHR_gv_heroChromieBlessingoftheBronzeCDR, false, false, false);
     return true;
 }
 
 //--------------------------------------------------------------------------------------------------
-void libHCHR_gt_HeroChromieByeByeHearthstoneTalentDisableCheck_Init () {
-    libHCHR_gt_HeroChromieByeByeHearthstoneTalentDisableCheck = TriggerCreate("libHCHR_gt_HeroChromieByeByeHearthstoneTalentDisableCheck_Func");
-    TriggerEnable(libHCHR_gt_HeroChromieByeByeHearthstoneTalentDisableCheck, false);
-    TriggerAddEventUnitBehaviorChange(libHCHR_gt_HeroChromieByeByeHearthstoneTalentDisableCheck, null, "HearthstonePermanentDisableAbilityBuff", c_unitBehaviorChangeActivate);
+void libHCHR_gt_HeroChromieBlessingoftheBronzeCDR_Init () {
+    libHCHR_gt_HeroChromieBlessingoftheBronzeCDR = TriggerCreate("libHCHR_gt_HeroChromieBlessingoftheBronzeCDR_Func");
+    TriggerEnable(libHCHR_gt_HeroChromieBlessingoftheBronzeCDR, false);
+    TriggerAddEventPlayerEffectUsed(libHCHR_gt_HeroChromieBlessingoftheBronzeCDR, c_playerAny, "ChromieBlessingOfTheBronzeDummyCDRTriggerEffect");
+}
+
+//--------------------------------------------------------------------------------------------------
+// Trigger: Hero - Chromie - Sand Echo - Basic Attack Animation Begins
+//--------------------------------------------------------------------------------------------------
+bool libHCHR_gt_HeroChromieSandEchoBasicAttackAnimationBegins_Func (bool testConds, bool runActions) {
+    // Variable Declarations
+    unit lv_targetUnit;
+    unit lv_targetUnit2;
+    int lv_triggeringPlayer;
+
+    // Automatic Variable Declarations
+    // Variable Initialization
+    lv_targetUnit = UnitGetLastAttackTargetUnit(EventUnit());
+    lv_targetUnit2 = EventUnit();
+    lv_triggeringPlayer = EventPlayer();
+
+    // Actions
+    if (!runActions) {
+        return true;
+    }
+
+    UnitCreateEffectUnit(lv_targetUnit2, "ChromieSandEchoBasicAttackEnumerateAnimation", lv_targetUnit);
+    return true;
+}
+
+//--------------------------------------------------------------------------------------------------
+void libHCHR_gt_HeroChromieSandEchoBasicAttackAnimationBegins_Init () {
+    libHCHR_gt_HeroChromieSandEchoBasicAttackAnimationBegins = TriggerCreate("libHCHR_gt_HeroChromieSandEchoBasicAttackAnimationBegins_Func");
+    TriggerAddEventUnitStartedAttack2(libHCHR_gt_HeroChromieSandEchoBasicAttackAnimationBegins, null, "ChromieHeroWeapon");
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -424,11 +366,10 @@ void libHCHR_gt_HeroChromieTimeTrapOverlayOff_Init () {
 }
 
 void libHCHR_InitTriggers () {
-    libHCHR_gt_HeroChromiePastandFutureMeBirth_Init();
-    libHCHR_gt_HeroChromiePastandFutureMeDeath_Init();
     libHCHR_gt_HeroChromieTimeOutOverlayOn_Init();
     libHCHR_gt_HeroChromieTimeOutOverlayOff_Init();
-    libHCHR_gt_HeroChromieByeByeHearthstoneTalentDisableCheck_Init();
+    libHCHR_gt_HeroChromieBlessingoftheBronzeCDR_Init();
+    libHCHR_gt_HeroChromieSandEchoBasicAttackAnimationBegins_Init();
     libHCHR_gt_HeroChromieTemporalLoopCameraSnap_Init();
     libHCHR_gt_HeroChromieTemporalLoopTeleportDetection_Init();
     libHCHR_gt_HeroChromieTimeTrapController_Init();

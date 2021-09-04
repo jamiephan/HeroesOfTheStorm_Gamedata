@@ -100,7 +100,7 @@
     <ImpactMap index="Shield" Sound="Merc_AlteracPass_SuperCavalry_Horde_AttackImpact_Energy" />
   </CActorAction>
   <CActorModel id="CavalryEmpoweredBuff1" parent="StormModelAnimationStyleOneShotUnit">
-    <On Terms="Behavior.CavalryEmpoweredHeroBuff.Create" Send="Create" />
+    <On Terms="Behavior.CavalryEmpoweredHeroDamageDealtBuff.Create" Send="Create" />
     <HostSiteOps Ops="SOpAttachCenter" />
     <AutoScaleFactor value="1.000000" />
   </CActorModel>
@@ -135,6 +135,14 @@
       <ArmorMitigationTable index="Ability" value="25" />
     </ArmorSet>
   </CArmor>
+  <CBehaviorBuff id="CavalryEmpoweredHeroMovementSpeedBuff" parent="StormSprint">
+    <Modification>
+      <UnifiedMoveSpeedFactor value="0.3" />
+    </Modification>
+    <RemoveValidatorArray value="SuperCavalryEmpowerTargetCloseToCaster" />
+    <RemoveValidatorArray value="CasterNotDead" />
+    <RemoveValidatorArray value="TargetNotSpecialDeathState" />
+  </CBehaviorBuff>
   <CBehaviorVeterancy id="SuperCavalryScaling">
     <InfoFlags index="Hidden" value="1" />
     <XPFraction index="Kills" value="0" />
@@ -516,22 +524,20 @@
       <UnitDamageType index="Summon" value="0" />
     </DamageResponse>
   </CBehaviorBuff>
-  <CBehaviorBuff id="CavalryEmpoweredHeroBuff" parent="StormDamageIncrease">
+  <CBehaviorBuff id="CavalryEmpoweredHeroDamageDealtBuff" parent="StormDamageIncrease">
     <Alignment value="Positive" />
-    <BehaviorCategories index="Fast" value="1" />
     <BehaviorCategories index="BuffAutoattackDPS" value="1" />
     <BehaviorCategories index="BuffAbilityPower" value="1" />
     <Aliases value="RangedDamageCrit" />
     <Aliases value="CritAliasSpellPower" />
+    <RemoveValidatorArray value="SuperCavalryEmpowerTargetCloseToCaster" />
+    <RemoveValidatorArray value="CasterNotDead" />
+    <RemoveValidatorArray value="TargetNotSpecialDeathState" />
     <Modification>
-      <UnifiedMoveSpeedFactor value="0.3" />
       <DamageDealtFraction index="Splash" value="0.1" />
       <DamageDealtFraction index="Basic" value="0.1" />
       <DamageDealtFraction index="Ability" value="0.1" />
     </Modification>
-    <RemoveValidatorArray value="SuperCavalryEmpowerTargetCloseToCaster" />
-    <RemoveValidatorArray value="CasterNotDead" />
-    <RemoveValidatorArray value="TargetNotSpecialDeathState" />
   </CBehaviorBuff>
   <CBehaviorBuff id="CavalryEmpoweredMinionBuff">
     <Alignment value="Positive" />
@@ -555,6 +561,11 @@
     <AttributeFactor index="Minion" value="1.5" />
     <AttributeFactor index="Structure" value="0.75" />
   </CEffectDamage>
+  <CEffectApplyBehavior id="CavalryEmpowerHeroesApplyMovementSpeedBehavior">
+    <ValidatorArray index="0" value="TargetIsNotABossUnitOrMonsterMinorCombine" />
+    <ValidatorArray value="TargetIsHero" />
+    <Behavior value="CavalryEmpoweredHeroMovementSpeedBuff" />
+  </CEffectApplyBehavior>
   <CEffectDamage id="AllianceSuperCavalryWeaponDamage" parent="AlteracSuperCavalryWeaponDamage" />
   <CEffectDamage id="HordeSuperCavalryWeaponDamage" parent="AlteracSuperCavalryWeaponDamage" />
   <CEffectApplyBehavior id="CavalryEmpoweredApplyMSBuff">
@@ -578,22 +589,23 @@
     <SearchFlags index="ExtendByUnitRadius" value="1" />
     <ValidatorArray value="TargetNotSpecialDeathState" />
   </CEffectEnumArea>
+  <CEffectApplyBehavior id="CavalryEmpowerHeroesApplyDamageDealtBehavior">
+    <ValidatorArray index="0" value="TargetIsNotABossUnitOrMonsterMinorCombine" />
+    <ValidatorArray value="TargetIsHero" />
+    <Behavior value="CavalryEmpoweredHeroDamageDealtBuff" />
+  </CEffectApplyBehavior>
   <CEffectRemoveBehavior id="CavalrySpawnSpeedBoostRemoveBehavior">
     <BehaviorLink value="CavalrySpawnSpeedBoost" />
     <WhichUnit Value="Source" />
   </CEffectRemoveBehavior>
-  <CEffectApplyBehavior id="CavalryEmpowerHeroesApplyBehavior">
-    <ValidatorArray index="0" value="TargetIsNotABossUnitOrMonsterMinorCombine" />
-    <ValidatorArray value="TargetIsHero" />
-    <Behavior value="CavalryEmpoweredHeroBuff" />
-  </CEffectApplyBehavior>
   <CEffectApplyBehavior id="CavalryEmpowerMinionsApplyBehavior">
     <ValidatorArray index="0" value="TargetIsNotABossUnitOrMonsterMinorCombine" />
     <ValidatorArray value="IsMinion" />
     <Behavior value="CavalryEmpoweredMinionBuff" />
   </CEffectApplyBehavior>
   <CEffectSet id="CavalryEmpowerBuffSet">
-    <EffectArray value="CavalryEmpowerHeroesApplyBehavior" />
+    <EffectArray value="CavalryEmpowerHeroesApplyDamageDealtBehavior" />
+    <EffectArray value="CavalryEmpowerHeroesApplyMovementSpeedBehavior" />
     <EffectArray value="CavalryEmpowerMinionsApplyBehavior" />
     <ValidatorArray value="DoesNotHaveCavalryEmpoweredBuffAlready" />
   </CEffectSet>
@@ -1468,7 +1480,7 @@
     <Value Effect="CavalryEmpowerBuffSet" Value="TargetUnit" />
   </CValidatorLocationCompareRange>
   <CValidatorUnitCompareBehaviorCount id="DoesNotHaveCavalryHeroEmpoweredBuffAlready">
-    <Behavior value="CavalryEmpoweredHeroBuff" />
+    <Behavior value="CavalryEmpoweredHeroDamageDealtBuff" />
   </CValidatorUnitCompareBehaviorCount>
   <CValidatorUnitCompareBehaviorCount id="DoesNotHaveCavalryMinionEmpoweredBuffAlready">
     <Behavior value="CavalryEmpoweredMinionBuff" />

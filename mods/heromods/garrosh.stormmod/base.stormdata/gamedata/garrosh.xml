@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="us-ascii"?>
 <Catalog>
+  <const id="$GarroshWreckingBallIntoTheFraySearchFilters" value="-;Self,Player,Neutral,Enemy,ImmuneToAOE,Structure,Missile,ImmuneToFriendlyAbilities,Stasis,Dead,Hidden,Summoned,MapCreature,MapBoss" />
   <CAbilEffectTarget id="GarroshGroundbreaker">
     <AbilityCategories index="Reveals" value="1" />
     <Activity value="Abil/Activity/GarroshGroundbreaker" />
@@ -10,7 +11,7 @@
     <Flags index="RequireTargetVision" value="0" />
     <Flags index="TargetVectorLock" value="1" />
     <Cost>
-      <Vital index="Energy" value="30" />
+      <Vital index="Energy" value="40" />
       <Cooldown TimeUse="8" />
     </Cost>
     <Range value="500" />
@@ -888,7 +889,6 @@
   </CBehaviorBuff>
   <CBehaviorBuff id="GarroshWreckingBallMarkerBehavior">
     <RemoveValidatorArray value="GarroshWreckingBallIsUnitTracked" />
-    <RemoveValidatorArray value="StitchesNotHooked" />
     <RemoveValidatorArray value="TargetNotHibernating" />
   </CBehaviorBuff>
   <CBehaviorUnitTracker id="GarroshWreckingBallMarkerEnemyUnitTracker">
@@ -1049,7 +1049,6 @@
     <Duration value="0.1875" />
     <InitialEffect value="GarroshWreckingBallIntoTheFrayMarkerAllyUnitTrackerAdd" />
     <FinalEffect value="GarroshWreckingBallIntoTheFrayMarkerAllyUnitTrackerRemove" />
-    <RemoveValidatorArray value="StitchesNotHooked" />
   </CBehaviorBuff>
   <CBehaviorBuff id="GarroshWarlordsChallengeCasterDummyBehavior">
     <Duration value="0.25" />
@@ -1626,8 +1625,6 @@
   </CEffectEnumArea>
   <CEffectApplyBehavior id="GarroshWreckingBallApplyMarkerBehavior">
     <ValidatorArray value="GarroshTargetDoesNotHaveWreckingBallDisplacementBehavior" />
-    <ValidatorArray value="TargetIsGroundMover" />
-    <ValidatorArray value="StitchesNotHooked" />
     <Behavior value="GarroshWreckingBallMarkerBehavior" />
   </CEffectApplyBehavior>
   <CEffectAddTrackedUnit id="GarroshWreckingBallMarkerEnemyUnitTrackerAdd">
@@ -1822,10 +1819,11 @@
   </CEffectSet>
   <CEffectEnumTrackedUnits id="GarroshWreckingBallIntoTheFrayUnitTrackerEnum">
     <Effect value="GarroshWreckingBallIntotheFrayCastStartSet" />
-    <TrackedUnitFilters value="-;Player,Neutral,Enemy,ImmuneToAOE,Missile,Stasis,Dead,Hidden,Invulnerable,Summoned,Unstoppable" />
+    <TrackedUnitFilters value="$GarroshWreckingBallIntoTheFraySearchFilters" />
     <BehaviorLink value="GarroshWreckingBallIntoTheFrayMarkerAllyUnitTracker" />
   </CEffectEnumTrackedUnits>
   <CEffectSet id="GarroshWreckingBallIntotheFrayCastStartSet">
+    <EffectArray value="GarroshWreckingBallAbortMissileTarget" />
     <EffectArray value="GarroshWreckingBallModifyFacing" />
     <EffectArray value="GarroshWreckingBallWeaponDisableApplyBehavior" />
     <EffectArray value="GarroshWreckingBallApplyChannelBehavior" />
@@ -1973,14 +1971,18 @@
   <CEffectApplyBehavior id="GarroshIndomitableApplyBehavior">
     <Behavior value="GarroshIndomitableUnstoppableBehavior" />
   </CEffectApplyBehavior>
+  <CEffectAbortMissile id="GarroshWreckingBallAbortMissileTarget">
+    <ValidatorArray value="TargetCanBeAborted" />
+  </CEffectAbortMissile>
   <CEffectApplyBehavior id="GarroshWreckingBallIntoTheFrayAllyMarkerApplyBehavior">
-    <ValidatorArray index="0" value="GarroshWreckingBallAllyProximityCombine" />
-    <ValidatorArray value="TargetIsGroundMover" />
-    <ValidatorArray value="StitchesNotHooked" />
+    <ValidatorArray value="GarroshWreckingBallAllyProximityCombine" />
+    <ValidatorArray value="TargetNotPseudoStructure" />
+    <ValidatorArray value="TargetNotImmuneToAllyDisplacement" />
+    <ValidatorArray value="TargetNotImmuneToEnemyDisplacement" />
     <Behavior value="GarroshWreckingBallIntoTheFrayAllyMarkerBehavior" />
   </CEffectApplyBehavior>
   <CEffectEnumArea id="GarroshWreckingBallIntoTheFrayAllySearchAreaMarker">
-    <SearchFilters value="-;Self,Player,Neutral,Enemy,ImmuneToAOE,Structure,Worker,Missile,Item,Stasis,Dead,Hidden,Invulnerable,Summoned,Unstoppable,MapCreature" />
+    <SearchFilters value="$GarroshWreckingBallIntoTheFraySearchFilters" />
     <TargetSorts>
       <SortArray value="TSDistance" />
     </TargetSorts>
@@ -2072,6 +2074,7 @@
     <HeroAbilArray Abil="GarroshArmorUpDoubleUp" Button="GarroshArmorUpDoubleUp">
       <Flags index="ShowInQuickCastSetting" value="1" />
       <Flags index="AffectedByCooldownReduction" value="1" />
+      <Flags index="Trait" value="1" />
     </HeroAbilArray>
     <SkinArray value="GarroshRoad" />
     <SkinArray value="GarroshSummer18" />
@@ -2251,7 +2254,7 @@
       <Complexity value="6" />
     </Ratings>
     <HeroSpecificUIArray Location="Status" DescName="Garrosh/GarroshTraitFrame" />
-    <CollectionCategory value="Warrior" />
+    <ExpandedRole value="Tank" />
     <ReleaseDate Month="8" Day="8" Year="2017" />
     <Rarity value="Legendary" />
     <TalentAIBuildsArray ChanceToPick="16">
@@ -3498,7 +3501,6 @@
   </CValidatorLocationCompareRange>
   <CValidatorCombine id="GarroshWreckingBallEnemyProximityCombine">
     <CombineArray value="GarroshWreckingBallEnemyProximity" />
-    <CombineArray value="GarroshWreckingBallMountedHeroProximity" />
     <CombineArray value="NotVehicle" />
   </CValidatorCombine>
   <CValidatorLocationEnumArea id="GarroshWreckingBallEnemyProximity">
@@ -3508,29 +3510,18 @@
     </AreaArray>
     <SearchFilters value="Visible;Self,Player,Ally,ImmuneToAOE,NoMinionAggro,Structure,Missile,Item,Stasis,Dead,Hidden,Invulnerable,Passive,Summoned,Unstoppable,MapBoss,MapCreature" />
   </CValidatorLocationEnumArea>
-  <CValidatorLocationEnumArea id="GarroshWreckingBallMountedHeroProximity">
-    <WhichLocation Value="CasterUnit" />
-    <AreaArray Compare="GT" Count="0">
-      <Radius value="2.75" />
-    </AreaArray>
-    <SearchFilters value="Visible;Player,Ally,Neutral,ImmuneToAOE,Structure,ImmuneToFriendlyAbilities,Missile,Item,Stasis,Dead,Hidden,Invulnerable,Summoned,Unstoppable,MapBoss,MapCreature" />
-  </CValidatorLocationEnumArea>
   <CValidatorCompareTrackedUnitsCount id="GarroshWreckingBallMarkerEnemyWithinProximity">
     <Compare value="GT" />
     <BehaviorLink value="GarroshWreckingBallMarkerEnemyUnitTracker" />
-    <TrackedUnitValidatorArray value="TargetIsGroundMover" />
     <TrackedUnitValidatorArray value="GarroshWreckingBallTargetWithinRange" />
-    <TrackedUnitValidatorArray value="StitchesNotHooked" />
     <TrackedUnitFilters value="Visible;Player,Ally,Neutral,ImmuneToAOE,Structure,Missile,Item,Stasis,Dead,Hidden,Invulnerable,Summoned,Unstoppable,MapBoss,MapCreature" />
   </CValidatorCompareTrackedUnitsCount>
   <CValidatorCompareTrackedUnitsCount id="GarroshWreckingBallIntoTheFrayMarkerAllyWithinProximity">
     <Compare value="GT" />
     <BehaviorLink value="GarroshWreckingBallIntoTheFrayMarkerAllyUnitTracker" />
-    <TrackedUnitValidatorArray value="TargetIsGroundMover" />
     <TrackedUnitValidatorArray value="GarroshWreckingBallTargetWithinRange" />
-    <TrackedUnitValidatorArray value="StitchesNotHooked" />
     <TrackedUnitValidatorArray value="HallOfStormsCasterDoesNotHaveProtectionBuff" />
-    <TrackedUnitFilters value="Visible;Self,Player,Neutral,Enemy,Structure,Missile,Item,Stasis,Dead,Hidden,Invulnerable,Summoned,Unstoppable,MapBoss" />
+    <TrackedUnitFilters value="$GarroshWreckingBallIntoTheFraySearchFilters" />
   </CValidatorCompareTrackedUnitsCount>
   <CValidatorLocationCompareRange id="GarroshWreckingBallTargetWithinRange">
     <WhichLocation Value="TargetUnit" />
@@ -3559,20 +3550,12 @@
     <AreaArray Compare="GT" Count="0">
       <Radius value="2.75" />
     </AreaArray>
-    <SearchFilters value="Visible;Self,Player,Neutral,Enemy,Creep,ImmuneToAOE,NoMinionAggro,Structure,User1,Missile,Item,Stasis,Dead,Hidden,Invulnerable,Passive,Summoned" />
-  </CValidatorLocationEnumArea>
-  <CValidatorLocationEnumArea id="GarroshWreckingBallAllyMountedHeroProximity">
-    <WhichLocation Value="CasterUnit" />
-    <AreaArray Compare="GT" Count="0">
-      <Radius value="2.75" />
-    </AreaArray>
-    <SearchFilters value="Visible;Self,Player,Neutral,Enemy,Creep,Structure,Missile,Item,Stasis,Dead,Hidden,Invulnerable,Summoned,MapBoss" />
+    <SearchFilters value="$GarroshWreckingBallIntoTheFraySearchFilters" />
   </CValidatorLocationEnumArea>
   <CValidatorUnitType id="TargetIsAbathur">
     <Value value="HeroAbathur" />
   </CValidatorUnitType>
   <CValidatorCombine id="GarroshWreckingBallAllyProximityCombine">
-    <CombineArray value="GarroshWreckingBallAllyMountedHeroProximity" />
     <CombineArray value="GarroshWreckingBallTalentAllyProximity" />
     <CombineArray value="NotVehicle" />
   </CValidatorCombine>

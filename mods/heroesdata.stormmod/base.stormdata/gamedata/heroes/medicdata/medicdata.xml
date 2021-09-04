@@ -639,7 +639,7 @@
     <HostSiteOps Ops="SOpAttachHardPoint" />
   </CActorModel>
   <CActorSound id="MedicStimDroneEndSound" parent="SoundOneShot">
-    <On Terms="Behavior.MedicStimDroneBuff.Off" Send="Create" />
+    <On Terms="Behavior.MedicStimDroneAttackSpeedBuff.Off" Send="Create" />
     <Sound value="Medic_StimDrone_End" />
   </CActorSound>
   <CActorSound id="MedicHealingBeamLifeFullSound" parent="SoundOneShot">
@@ -672,8 +672,8 @@
   <CActorModel id="MedicStimDroneBuff" parent="StormModelAnimationStyleContinuousUnit">
     <Aliases value="_TimeStopAffectedActor" />
     <Aliases value="_BurrowState" />
-    <On Terms="Behavior.MedicStimDroneBuff.On" Send="Create" />
-    <On Terms="Behavior.MedicStimDroneBuff.Off" Send="AnimBracketStop BSD" />
+    <On Terms="Behavior.MedicStimDroneAttackSpeedBuff.On" Send="Create" />
+    <On Terms="Behavior.MedicStimDroneAttackSpeedBuff.Off" Send="AnimBracketStop BSD" />
     <On Terms="StatusOn.*.TimeStopPaused" Send="AnimSetPausedAll" />
     <On Terms="StatusOff.*.TimeStopPaused" Send="AnimSetPausedAll 0" />
     <On Terms="ActorCreation" Send="AnimPlay GLStrand GLstand PlayForever,RandomStartOffset -1.000000 -1.000000 1.000000 AsTimeScale" />
@@ -683,8 +683,8 @@
     <Macros value="BurrowStateMacro" />
   </CActorModel>
   <CActorModel id="MedicStimDroneBuffGround" parent="StormModelAnimationStyleContinuousUnit">
-    <On Terms="Behavior.MedicStimDroneBuff.On" Send="Create" />
-    <On Terms="Behavior.MedicStimDroneBuff.Off" Send="AnimBracketStop BSD" />
+    <On Terms="Behavior.MedicStimDroneAttackSpeedBuff.On" Send="Create" />
+    <On Terms="Behavior.MedicStimDroneAttackSpeedBuff.Off" Send="AnimBracketStop BSD" />
     <On Terms="ActorCreation; !ValidateUnit NoStageDiveChannel" Send="SetOpacity" />
     <On Terms="Behavior.StageDiveChannel.On" Send="SetOpacity" />
     <On Terms="Behavior.StageDiveChannel.Off" Send="SetOpacity 1.000000" />
@@ -1053,9 +1053,9 @@
   <CActorModelMaterial id="MedicStimDroneBuffGlaze" parent="StormModelAnimationStyleContinuous">
     <Inherits index="CloakEffect" value="1" />
     <Inherits index="Visibility" value="1" />
-    <On Terms="Behavior.MedicStimDroneBuff.On" Send="Create" />
+    <On Terms="Behavior.MedicStimDroneAttackSpeedBuff.On" Send="Create" />
     <On Terms="ActorCreation" Send="ModelMaterialApplyTo ::Main" />
-    <On Terms="Behavior.MedicStimDroneBuff.Off" Send="AnimBracketStop BSD" />
+    <On Terms="Behavior.MedicStimDroneAttackSpeedBuff.Off" Send="AnimBracketStop BSD" />
   </CActorModelMaterial>
   <CActorSound id="HeroMedicTauntVO" parent="SoundOneShot">
     <Sound value="MedicBase_Taunt" />
@@ -1063,6 +1063,12 @@
   <CActorSound id="HeroMedicTauntUEVO" parent="SoundOneShot">
     <Sound value="MedicBase_Taunt_Evo" />
   </CActorSound>
+  <CBehaviorBuff id="MedicStimDroneMovementSpeedBuff" parent="StormSprint">
+    <Modification>
+      <UnifiedMoveSpeedFactor value="0.25" />
+    </Modification>
+    <RemoveValidatorArray value="MedicUnitHasStimDroneAttackSpeedBuff" />
+  </CBehaviorBuff>
   <CBehaviorAbility id="MedicReinforcements">
     <Buttons Face="MedicReinforcements" Type="AbilCmd" AbilCmd="MedicReinforcements,Execute" />
   </CBehaviorAbility>
@@ -1400,6 +1406,19 @@
     </Modification>
     <ExpireEffect value="MedicMedivacDropshipApplyInitialDescentDelay" />
   </CBehaviorBuff>
+  <CBehaviorBuff id="MedicStimDroneAttackSpeedBuff">
+    <InfoFlags index="AlwaysUseGameText" value="1" />
+    <InfoIcon value="Assets\Textures\storm_ui_icon_medic_stim.dds" />
+    <BehaviorCategories index="Restorable" value="1" />
+    <BehaviorCategories index="BuffAutoattackDPS" value="1" />
+    <RemoveValidatorArray value="TargetNotSpecialDeathState" />
+    <Duration value="10" />
+    <InitialEffect value="MedicStimDroneCreateSoundPersistent" />
+    <FinalEffect value="MedicStimDroneEndedDummy" />
+    <Modification>
+      <AdditiveAttackSpeedFactor value="0.75" />
+    </Modification>
+  </CBehaviorBuff>
   <CBehaviorBuff id="MedicMedivacDropshipDepartureDelay">
     <Duration value="9.5" />
     <ExpireEffect value="MedicMedivacDropshipApplyDepartureAscent" />
@@ -1433,20 +1452,6 @@
       <AbilClassDisableArray index="CAbilMove" value="1" />
     </Modification>
     <Period value="0.5" />
-  </CBehaviorBuff>
-  <CBehaviorBuff id="MedicStimDroneBuff" parent="StormSprint">
-    <InfoIcon value="Assets\Textures\storm_ui_icon_medic_stim.dds" />
-    <BehaviorCategories index="Restorable" value="1" />
-    <BehaviorCategories index="BuffAutoattackDPS" value="1" />
-    <RemoveValidatorArray value="TargetNotSpecialDeathState" />
-    <Duration value="10" />
-    <FinalEffect value="MedicStimDroneEndedDummy" />
-    <Modification>
-      <UnifiedMoveSpeedFactor value="0.25" />
-      <AdditiveAttackSpeedFactor value="0.75" />
-    </Modification>
-    <InfoFlags index="AlwaysUseGameText" value="1" />
-    <InitialEffect value="MedicStimDroneCreateSoundPersistent" />
   </CBehaviorBuff>
   <CBehaviorBuff id="MedicHealingBeamDisplayBuff">
     <Duration value="0.5625" />
@@ -1654,6 +1659,9 @@
     <Variations Model="MedicPortrait" Actor="MedicPortrait" />
     <Unit value="HeroMedic" />
   </CCharacter>
+  <CEffectApplyBehavior id="MedicStimDroneApplyStimMovementSpeedBuff">
+    <Behavior value="MedicStimDroneMovementSpeedBuff" />
+  </CEffectApplyBehavior>
   <CEffectSet id="MedicMedivacDropshipUnitInsideInitialSet">
     <EffectArray value="HeroGenericApplyInCargo" />
     <EffectArray value="MedicMedivacAddTrackedUnit" />
@@ -1676,7 +1684,7 @@
   <CEffectCreatePersistent id="MedicStimDroneCreateSoundPersistent">
     <WhichLocation Value="TargetUnit" />
     <Flags index="PersistUntilDestroyed" value="1" />
-    <PeriodicValidator value="MedicUnitHasStimDroneBuff" />
+    <PeriodicValidator value="MedicUnitHasStimDroneAttackSpeedBuff" />
     <PeriodicPeriodArray value="0.0625" />
   </CEffectCreatePersistent>
   <CEffectSet id="MedicStimDronePrepSet">
@@ -2142,8 +2150,8 @@
     <Cost Abil="MedicStimDrone,Execute" CooldownOperation="Set" CooldownTimeUse="10" />
   </CEffectModifyUnit>
   <CEffectSet id="MedicStimDroneExpirationSet">
-    <EffectArray value="MedicStimDroneApplyStimBuff" />
-    <EffectArray value="MedicStimDroneTransfusionMasteryApplyCasterBehavior" />
+    <EffectArray value="MedicStimDroneApplyStimAttackSpeedBuff" />
+    <EffectArray value="MedicStimDroneApplyStimMovementSpeedBuff" />
   </CEffectSet>
   <CEffectApplyBehavior id="MedicDisplacementGrenadeSystemShockMasteryApplyDebuff">
     <Behavior value="MedicDisplacementGrenadeSystemShockTalentDebuff" />
@@ -2328,12 +2336,12 @@
   <CEffectApplyBehavior id="MedicSafeguardApplyBehavior">
     <Behavior value="MedicSafeguardBuff" />
   </CEffectApplyBehavior>
-  <CEffectApplyBehavior id="MedicStimDroneApplyStimBuff">
-    <Behavior value="MedicStimDroneBuff" />
+  <CEffectApplyBehavior id="MedicStimDroneApplyStimAttackSpeedBuff">
+    <Behavior value="MedicStimDroneAttackSpeedBuff" />
   </CEffectApplyBehavior>
   <CEffectSet id="MedicStimDroneCastSet">
-    <EffectArray value="MedicStimDroneApplyStimBuff" />
-    <EffectArray value="MedicStimDroneTransfusionMasteryApplyCasterBehavior" />
+    <EffectArray value="MedicStimDroneApplyStimAttackSpeedBuff" />
+    <EffectArray value="MedicStimDroneApplyStimMovementSpeedBuff" />
     <EffectArray value="MedicStimDroneMonitor" />
   </CEffectSet>
   <CEffectCreateHealer id="MedicCaduceusReactorCreateHealer" parent="StormSelfOnlyHealingSpellPercent">
@@ -2687,7 +2695,6 @@
     <Role value="Support" />
     <RolesMultiClass value="Support" />
     <RoleScoreValueOverride value="Support" />
-    <CollectionCategory value="Support" />
     <IntroCutsceneSize value="Medium" />
     <HeroAbilArray Abil="MedicHealingBeam" Button="MedicHealingBeam">
       <Flags index="ShowInHeroSelect" value="1" />
@@ -3252,7 +3259,7 @@
       <Modifications>
         <Type value="FlatModification" />
         <Catalog value="Behavior" />
-        <Entry value="MedicStimDroneBuff" />
+        <Entry value="MedicStimDroneMovementSpeedBuff" />
         <Field value="Modification.UnifiedMoveSpeedFactor" />
         <Value value="0.250000" />
       </Modifications>
@@ -3722,14 +3729,14 @@
     <Value value="MedicDisplacementGrenadeMissile" />
   </CValidatorUnitType>
   <CValidatorLocationEnumArea id="MedicStimDroneActiveOnTeammate">
-    <AreaArray Validator="MedicUnitHasStimDroneBuff">
+    <AreaArray Validator="MedicUnitHasStimDroneAttackSpeedBuff">
       <Radius value="500" />
     </AreaArray>
     <SearchFilters value="-;Neutral,Enemy,Dead" />
   </CValidatorLocationEnumArea>
-  <CValidatorUnitCompareBehaviorCount id="MedicUnitHasStimDroneBuff">
+  <CValidatorUnitCompareBehaviorCount id="MedicUnitHasStimDroneAttackSpeedBuff">
     <Value value="1" />
-    <Behavior value="MedicStimDroneBuff" />
+    <Behavior value="MedicStimDroneAttackSpeedBuff" />
   </CValidatorUnitCompareBehaviorCount>
   <CValidatorUnitCompareBehaviorCount id="HasDisplacementGrenadeKnockbackBehavior">
     <Value value="1" />

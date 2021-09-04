@@ -1,5 +1,10 @@
 <?xml version="1.0" encoding="us-ascii"?>
 <Catalog>
+  <const id="$JunkratRIPTireMaximumDamage" value="775" />
+  <const id="$JunkratRIPTireMinimumDamage" value="475" />
+  <const id="$JunkratRIPTireSearchRadius" value="6" />
+  <const id="$JunkratRIPTireMinimumAccumulation" value="-($JunkratRIPTireMinimumDamage $JunkratRIPTireMaximumDamage)" evaluateAsExpression="1" />
+  <const id="$JunkratRIPTireDistanceScaler" value="/($JunkratRIPTireMinimumAccumulation $JunkratRIPTireSearchRadius)" evaluateAsExpression="1" />
   <CAbilEffectTarget id="JunkratFragLauncher">
     <PrepEffect value="DismountDecloakCasterSet" />
     <Effect value="JunkratFragLauncherBurstFireSwitch" />
@@ -147,7 +152,7 @@
     <PlaceUnit value="JunkratRIPTireDummy" />
     <CursorRangeFlags index="ClampMin" value="1" />
     <CursorRangeFlags index="ClampMax" value="1" />
-    <CursorEffect value="JunkratRIPTireSearchAreaImpactOuter" />
+    <CursorEffect value="JunkratRIPTireSearchAreaImpact" />
     <UninterruptibleArray index="Cast" value="1" />
     <Flags index="RequireTargetVision" value="0" />
     <Activity value="Abil/Activity/JunkratRIPTire" />
@@ -180,6 +185,27 @@
     <TokenId value="JunkratFragLauncherTasteForExplosionsTokenCounter" />
     <Scale value="0.5" />
   </CAccumulatorToken>
+  <CAccumulatorDistance id="JunkratRIPTireDistanceAccumulator" parent="BaseAccumulator">
+    <MaxAccumulation value="0" />
+    <StartLocation>
+      <Effect value="JunkratRIPTireDamage" />
+      <Value value="SourceUnitOrPoint" />
+      <ProjectionSourceEffect value="JunkratRIPTireDamage" />
+      <ProjectionSourceValue value="SourceUnitOrPoint" />
+      <ProjectionTargetValue value="SourceUnitOrPoint" />
+    </StartLocation>
+    <EndLocation>
+      <Effect value="JunkratRIPTireDamage" />
+      <Value value="TargetUnitOrPoint" />
+      <ProjectionSourceEffect value="JunkratRIPTireDamage" />
+      <ProjectionSourceValue value="TargetUnitOrPoint" />
+      <ProjectionTargetValue value="TargetUnitOrPoint" />
+      <UsesLineDash value="1" />
+    </EndLocation>
+    <Scale value="$JunkratRIPTireDistanceScaler" />
+    <MinAccumulation value="$JunkratRIPTireMinimumAccumulation" />
+    <ApplicationRule value="Add" />
+  </CAccumulatorDistance>
   <CActorModel id="JunkratConcussionMineWarningPlacement" parent="StormPlacementModel">
     <Filter index="All" value="0" />
     <Inherits index="Visibility" value="1" />
@@ -366,9 +392,7 @@
     <On Terms="SceneEffectSearchNotifyResults.JunkratFragLauncherExplosionSearch" Send="SceneEffectSearchResponse DoodadImpactable" />
     <On Terms="SceneEffectSearchNotifyResults.JunkratHeroWeaponRangedExplosionSearch" Send="SceneEffectSearchResponse DoodadImpactable" />
     <On Terms="SceneEffectSearchNotifyResults.JunkratConcussionMineDetonateMineSearchAreaImpact" Send="SceneEffectSearchResponse DoodadImpactable" />
-    <On Terms="SceneEffectSearchNotifyResults.JunkratRIPTireSearchAreaImpactInner" Send="SceneEffectSearchResponse DoodadImpactable" />
-    <On Terms="SceneEffectSearchNotifyResults.JunkratRIPTireSearchAreaImpactMid" Send="SceneEffectSearchResponse DoodadImpactable" />
-    <On Terms="SceneEffectSearchNotifyResults.JunkratRIPTireSearchAreaImpactOuter" Send="SceneEffectSearchResponse DoodadImpactable" />
+    <On Terms="SceneEffectSearchNotifyResults.JunkratRIPTireSearchAreaImpact" Send="SceneEffectSearchResponse DoodadImpactable" />
     <On Terms="SceneEffectSearchNotifyResults.JunkratRocketRideExplosionSearch" Send="SceneEffectSearchResponse DoodadImpactable" />
     <On Terms="SceneEffectSearchNotifyResults.JunkratTotalMayhemSearchArea" Send="SceneEffectSearchResponse DoodadImpactable" />
   </CActorScene>
@@ -828,7 +852,6 @@
     <On Terms="Effect.JunkratConcussionMineLaunchMineMissileCreateWarningPersistent.Stop" Send="Destroy Immediate" />
     <On Terms="ActorCreation" Send="Create JunkratConcussionMineWarningPlacement" />
     <On Terms="ActorDestruction" Target="JunkratConcussionMineWarningPlacement" Send="Destroy Immediate" />
-    <ModelFlags index="AllowHitTest" value="0" />
   </CActorModel>
   <CActorSiteOpBankerUnit id="SOpBankerRIPTire" parent="SOpBankerUnit">
     <RollMax value="25.000000" />
@@ -895,9 +918,7 @@
     <VisibilityShape Shape="JunkratRIPTireExplosion" />
   </CActorModel>
   <CActorModel id="JunkratRIPTireImpact" parent="StormModelAnimationStyleOneShotUnit">
-    <On Terms="Effect.JunkratRIPTireImpactSetInner.Start; At Target" Send="Create" />
-    <On Terms="Effect.JunkratRIPTireImpactSetMid.Start; At Target" Send="Create" />
-    <On Terms="Effect.JunkratRIPTireImpactSetOuter.Start; At Target" Send="Create" />
+    <On Terms="Effect.JunkratRIPTireImpactSet.Start; At Target" Send="Create" />
     <HostSiteOps Ops="SOpAttachCenter" />
   </CActorModel>
   <CActorRange id="JunkratRIPTireRange" parent="StormRangeAbilPlusSplat" abil="JunkratRIPTire" />
@@ -2798,29 +2819,19 @@
     <PeriodicPeriodArray value="0.0625" />
     <ValidatorArray value="TargetNotUnstoppable" />
   </CEffectCreatePersistent>
-  <CEffectDamage id="JunkratRIPTireDamageMid" parent="StormSpell">
-    <Amount value="625" />
+  <CEffectDamage id="JunkratRIPTireDamage" parent="StormSpell">
+    <Amount value="775">
+      <AccumulatorArray value="JunkratRIPTireDistanceAccumulator" />
+    </Amount>
   </CEffectDamage>
-  <CEffectDamage id="JunkratRIPTireDamageOuter" parent="StormSpell">
-    <Amount value="475" />
-  </CEffectDamage>
-  <CEffectSet id="JunkratRIPTireImpactSetMid">
-    <EffectArray value="JunkratRIPTireDamageMid" />
+  <CEffectSet id="JunkratRIPTireImpactSet">
+    <ValidatorArray value="noMarkers" />
+    <EffectArray value="JunkratRIPTireDamage" />
     <EffectArray value="JunkratRIPTireApplyKnockbackBehavior" />
     <EffectArray value="JunkratRIPTireCreateKnockbackPersistent" />
     <EffectArray value="JunkratRIPTireExtraOomphReduceCooldown" />
     <EffectArray value="JunkratRIPTireExtraOomphFatFingerProtectionApplyBehavior" />
     <EffectArray value="CameraShakeLightTauntingTotemSet" />
-    <ValidatorArray value="noMarkers" />
-  </CEffectSet>
-  <CEffectSet id="JunkratRIPTireImpactSetOuter">
-    <EffectArray value="JunkratRIPTireDamageOuter" />
-    <EffectArray value="JunkratRIPTireApplyKnockbackBehavior" />
-    <EffectArray value="JunkratRIPTireCreateKnockbackPersistent" />
-    <EffectArray value="JunkratRIPTireExtraOomphReduceCooldown" />
-    <EffectArray value="JunkratRIPTireExtraOomphFatFingerProtectionApplyBehavior" />
-    <EffectArray value="CameraShakeLightTauntingTotemSet" />
-    <ValidatorArray value="noMarkers" />
   </CEffectSet>
   <CEffectSet id="JunkratRIPTireInitialSet">
     <EffectArray value="JunkratRIPTireApplyChannelingBehavior" />
@@ -2880,23 +2891,15 @@
     <WhichUnit Value="Caster" />
     <BehaviorLink value="JunkratRIPTireChanneling" />
   </CEffectRemoveBehavior>
-  <CEffectEnumArea id="JunkratRIPTireSearchAreaImpactOuter">
+  <CEffectEnumArea id="JunkratRIPTireSearchAreaImpact">
     <ImpactLocation Value="TargetPoint" />
     <SearchFilters value="-;Player,Ally,Neutral,Missile,Item,Stasis,Dead,Hidden,Invulnerable" />
-    <AreaArray Effect="JunkratRIPTireImpactSetOuter">
-      <Radius value="6" />
+    <AreaArray Effect="JunkratRIPTireImpactSet">
+      <Radius value="$JunkratRIPTireSearchRadius" />
     </AreaArray>
     <RevealerParams Duration="1.5" ShapeExpansion="1">
       <RevealFlags index="Unfog" value="1" />
     </RevealerParams>
-    <SearchFlags index="DoActorSearch" value="1" />
-  </CEffectEnumArea>
-  <CEffectEnumArea id="JunkratRIPTireSearchAreaImpactMid">
-    <ImpactLocation Value="TargetPoint" />
-    <SearchFilters value="-;Player,Ally,Neutral,Missile,Item,Stasis,Dead,Hidden,Invulnerable" />
-    <AreaArray Effect="JunkratRIPTireImpactSetMid">
-      <Radius value="4" />
-    </AreaArray>
     <SearchFlags index="DoActorSearch" value="1" />
   </CEffectEnumArea>
   <CEffectSet id="JunkratRIPTireTireDeathFinalSet">
@@ -3163,39 +3166,17 @@
     </RevealerParams>
     <SearchFlags index="DoActorSearch" value="1" />
   </CEffectEnumArea>
-  <CEffectDamage id="JunkratRIPTireDamageInner" parent="StormSpell">
-    <Amount value="775" />
-  </CEffectDamage>
   <CEffectSet id="JunkratRIPTireDetonationSet">
-    <EffectArray value="JunkratRIPTireSearchAreaImpactInner" />
-    <EffectArray value="JunkratRIPTireSearchAreaImpactMid" />
-    <EffectArray value="JunkratRIPTireSearchAreaImpactOuter" />
+    <EffectArray value="JunkratRIPTireSearchAreaImpact" />
     <Marker>
       <MatchFlags index="Id" value="1" />
     </Marker>
     <ValidatorArray value="JunkratRIPTireDetonateCombine" />
   </CEffectSet>
-  <CEffectSet id="JunkratRIPTireImpactSetInner">
-    <EffectArray value="JunkratRIPTireDamageInner" />
-    <EffectArray value="JunkratRIPTireApplyKnockbackBehavior" />
-    <EffectArray value="JunkratRIPTireCreateKnockbackPersistent" />
-    <EffectArray value="JunkratRIPTireExtraOomphReduceCooldown" />
-    <EffectArray value="JunkratRIPTireExtraOomphFatFingerProtectionApplyBehavior" />
-    <EffectArray value="CameraShakeMediumTauntingTotemSet" />
-    <ValidatorArray value="noMarkers" />
-  </CEffectSet>
   <CEffectDamage id="JunkratRIPTireKillUnit">
     <Flags index="Kill" value="1" />
     <FloaterCreation value="Suppress" />
   </CEffectDamage>
-  <CEffectEnumArea id="JunkratRIPTireSearchAreaImpactInner">
-    <ImpactLocation Value="TargetPoint" />
-    <SearchFilters value="-;Player,Ally,Neutral,Missile,Item,Stasis,Dead,Hidden,Invulnerable" />
-    <AreaArray Effect="JunkratRIPTireImpactSetInner">
-      <Radius value="1.5" />
-    </AreaArray>
-    <SearchFlags index="DoActorSearch" value="1" />
-  </CEffectEnumArea>
   <CEffectApplyBehavior id="JunkratSteelTrapApplyRootBehavior">
     <Behavior value="JunkratSteelTrapRoot" />
     <ValidatorArray value="TargetNotUnstoppable" />
@@ -3463,23 +3444,7 @@
     <LevelScalingArray Ability="JunkratRIPTire">
       <Modifications>
         <Catalog value="Effect" />
-        <Entry value="JunkratRIPTireDamageInner" />
-        <Field value="Amount" />
-        <Value value="0.040000" />
-        <AffectedByAbilityPower value="1" />
-        <AffectedByOverdrive value="1" />
-      </Modifications>
-      <Modifications>
-        <Catalog value="Effect" />
-        <Entry value="JunkratRIPTireDamageMid" />
-        <Field value="Amount" />
-        <Value value="0.040000" />
-        <AffectedByAbilityPower value="1" />
-        <AffectedByOverdrive value="1" />
-      </Modifications>
-      <Modifications>
-        <Catalog value="Effect" />
-        <Entry value="JunkratRIPTireDamageOuter" />
+        <Entry value="JunkratRIPTireDamage" />
         <Field value="Amount" />
         <Value value="0.040000" />
         <AffectedByAbilityPower value="1" />
@@ -3518,7 +3483,6 @@
     <AllowedMountCategoryArray value="Ridebeast" />
     <AllowedMountCategoryArray value="Ridebike" />
     <AllowedMountCategoryArray value="Ridesurf" />
-    <CollectionCategory value="Damage" />
     <HeroSpecificUIArray Location="Status" DescName="Junkrat/JunkratFrame" />
     <Difficulty value="Medium" />
     <Ratings>
@@ -5598,7 +5562,7 @@
     <Radius value="0.75" />
     <AIThinkTree value="AI/RIPTire_Tire.aitree" />
     <EffectArray index="Death" value="JunkratHeroicAbilityUnitDiesDummy" />
-    <AINotifySettings AreaEffect="JunkratRIPTireSearchAreaImpactOuter">
+    <AINotifySettings AreaEffect="JunkratRIPTireSearchAreaImpact">
       <Flags index="HurtsEnemy" value="1" />
     </AINotifySettings>
   </CUnit>

@@ -249,6 +249,7 @@ void libGame_InitVariables () {
         libGame_gv_players[init_i].lv_heroSpawnReady = true;
         libGame_gv_players[init_i].lv_playerLeftAnnouncementTimer = TimerCreate();
         libGame_gv_players[init_i].lv_heroData.lv_class = c_heroRoleWarrior;
+        libGame_gv_players[init_i].lv_heroData.lv_expandedRole = 1;
         libGame_gv_players[init_i].lv_heroData.lv_heroRoles = PlayerGroupEmpty();
         libGame_gv_players[init_i].lv_heroData.lv_heroScoreOverride = PlayerGroupEmpty();
         libGame_gv_players[init_i].lv_heroData.lv_universe = c_heroUniverseWarcraft;
@@ -3623,6 +3624,32 @@ bool libGame_gf_HeroAIEndingCampAttackSuccess () {
     // Automatic Variable Declarations
     // Implementation
     return DataTableGetBool(false, TriggerEventParamName(libGame_gv_eventID_HeroAIEndingCampAttack_C, libGame_gv_eventParam_HeroAIEndingCampAttack_Success_C));
+}
+
+void libGame_gf_HeroParticipatedInCreepTakedown (trigger t) {
+    // Automatic Variable Declarations
+    // Implementation
+    TriggerAddEventGeneric(t, libGame_gv_eventID_HeroParticipatedInCreepTakedown_C);
+}
+
+void libGame_gf_SendEventHeroParticipatedInCreepTakedown (int lp_player, unit lp_unit) {
+    // Automatic Variable Declarations
+    // Implementation
+    DataTableSetInt(false, TriggerEventParamName(libGame_gv_eventID_HeroParticipatedInCreepTakedown_C, libGame_gv_eventParam_HeroParticipatedInCreepTakedown_Player_C), lp_player);
+    DataTableSetUnit(false, TriggerEventParamName(libGame_gv_eventID_HeroParticipatedInCreepTakedown_C, libGame_gv_eventParam_HeroParticipatedInCreepTakedown_NPC_C), lp_unit);
+    TriggerSendEvent(libGame_gv_eventID_HeroParticipatedInCreepTakedown_C);
+}
+
+int libGame_gf_HeroParticipatedInCreepTakedownKillingPlayer () {
+    // Automatic Variable Declarations
+    // Implementation
+    return DataTableGetInt(false, TriggerEventParamName(libGame_gv_eventID_HeroParticipatedInCreepTakedown_C, libGame_gv_eventParam_HeroParticipatedInCreepTakedown_Player_C));
+}
+
+unit libGame_gf_HeroParticipatedInCreepTakedownCreep () {
+    // Automatic Variable Declarations
+    // Implementation
+    return DataTableGetUnit(false, TriggerEventParamName(libGame_gv_eventID_HeroParticipatedInCreepTakedown_C, libGame_gv_eventParam_HeroParticipatedInCreepTakedown_NPC_C));
 }
 
 void libGame_gf_ClearHeroSpecificUI (trigger t) {
@@ -9468,6 +9495,7 @@ void libGame_gf_CreepDies (unit lp_creepUnit, int lp_killingPlayer, fixed lp_kil
     }
 
     UnitXPAddXP(libMapM_gv_jungleCreepCamps[lv_camp].lv_campOwnershipFlagUnit, null, lp_killXP);
+    libGame_gf_SendEventHeroParticipatedInCreepTakedown(lp_killingPlayer, lp_creepUnit);
 }
 
 void libGame_gf_MinionDies (unit lp_minionUnit, int lp_killingPlayer, fixed lp_killXP) {
@@ -11326,14 +11354,10 @@ void libGame_gf_ScoreValuesReportForPlayer (int lp_player) {
     // Automatic Variable Declarations
     const int autoA70CB022_ae = 7;
     const int autoA70CB022_ai = 1;
-    playergroup autoD72F65EA_g;
-    int autoD72F65EA_var;
-    int autoD482BBB2_val;
+    int auto6381B585_val;
     int autoE4DEA447_val;
     int auto4351418E_val;
-    playergroup auto2D9D1B0F_g;
-    int auto2D9D1B0F_var;
-    int autoDCD541B0_val;
+    int auto7FC2C1DC_val;
     int autoC92E084A_val;
     int autoD6CBF14B_val;
     playergroup auto9665A00A_g;
@@ -11393,26 +11417,26 @@ void libGame_gf_ScoreValuesReportForPlayer (int lp_player) {
     for ( ; ( (autoA70CB022_ai >= 0 && lv_it_TalentTier <= autoA70CB022_ae) || (autoA70CB022_ai < 0 && lv_it_TalentTier >= autoA70CB022_ae) ) ; lv_it_TalentTier += autoA70CB022_ai ) {
         libGame_gf_ScoreValuesReportIntegerValueAndLog(lp_player, (("Tier" + IntToString(lv_it_TalentTier) + "Talent")), libGame_gv_talents_TalentChoices[lp_player][lv_it_TalentTier].lv_selection);
     }
-    autoD72F65EA_g = libGame_gv_players[lp_player].lv_heroData.lv_heroRoles;
-    autoD72F65EA_var = -1;
-    while (true) {
-        	autoD72F65EA_var = PlayerGroupNextPlayer(autoD72F65EA_g, autoD72F65EA_var);
-        	if (autoD72F65EA_var<0) { break; }
-        	autoD482BBB2_val = autoD72F65EA_var;
-        if (autoD482BBB2_val == c_heroRoleWarrior) {
-            libGame_gf_ScoreValuesReportIntegerValueAndLog(lp_player, "PlaysWarrior", 1);
-        }
-        else if (autoD482BBB2_val == c_heroRoleDamage) {
-            libGame_gf_ScoreValuesReportIntegerValueAndLog(lp_player, "PlaysAssassin", 1);
-        }
-        else if (autoD482BBB2_val == c_heroRoleSupport) {
-            libGame_gf_ScoreValuesReportIntegerValueAndLog(lp_player, "PlaysSupport", 1);
-        }
-        else if (autoD482BBB2_val == c_heroRoleSpecialist) {
-            libGame_gf_ScoreValuesReportIntegerValueAndLog(lp_player, "PlaysSpecialist", 1);
-        }
-        else {
-        }
+    auto6381B585_val = libGame_gv_players[lv_heroIndex].lv_heroData.lv_expandedRole;
+    if (auto6381B585_val == 1) {
+        libGame_gf_ScoreValuesReportIntegerValueAndLog(lp_player, "PlaysWarrior", 1);
+    }
+    else if (auto6381B585_val == 2) {
+        libGame_gf_ScoreValuesReportIntegerValueAndLog(lp_player, "PlaysWarrior", 1);
+    }
+    else if (auto6381B585_val == 3) {
+        libGame_gf_ScoreValuesReportIntegerValueAndLog(lp_player, "PlaysAssassin", 1);
+    }
+    else if (auto6381B585_val == 4) {
+        libGame_gf_ScoreValuesReportIntegerValueAndLog(lp_player, "PlaysAssassin", 1);
+    }
+    else if (auto6381B585_val == 5) {
+        libGame_gf_ScoreValuesReportIntegerValueAndLog(lp_player, "PlaysSupport", 1);
+    }
+    else if (auto6381B585_val == 6) {
+        libGame_gf_ScoreValuesReportIntegerValueAndLog(lp_player, "PlaysSupport", 1);
+    }
+    else {
     }
     autoE4DEA447_val = libGame_gv_players[lv_heroIndex].lv_heroData.lv_universe;
     if (autoE4DEA447_val == c_heroUniverseWarcraft) {
@@ -11439,26 +11463,26 @@ void libGame_gf_ScoreValuesReportForPlayer (int lp_player) {
     else {
     }
     if ((libGame_gv_players[lp_player].lv_victoryDefeat == c_gameOverVictory)) {
-        auto2D9D1B0F_g = libGame_gv_players[lp_player].lv_heroData.lv_heroRoles;
-        auto2D9D1B0F_var = -1;
-        while (true) {
-            	auto2D9D1B0F_var = PlayerGroupNextPlayer(auto2D9D1B0F_g, auto2D9D1B0F_var);
-            	if (auto2D9D1B0F_var<0) { break; }
-            	autoDCD541B0_val = auto2D9D1B0F_var;
-            if (autoDCD541B0_val == c_heroRoleWarrior) {
-                libGame_gf_ScoreValuesReportIntegerValueAndLog(lp_player, "WinsWarrior", 1);
-            }
-            else if (autoDCD541B0_val == c_heroRoleDamage) {
-                libGame_gf_ScoreValuesReportIntegerValueAndLog(lp_player, "WinsAssassin", 1);
-            }
-            else if (autoDCD541B0_val == c_heroRoleSupport) {
-                libGame_gf_ScoreValuesReportIntegerValueAndLog(lp_player, "WinsSupport", 1);
-            }
-            else if (autoDCD541B0_val == c_heroRoleSpecialist) {
-                libGame_gf_ScoreValuesReportIntegerValueAndLog(lp_player, "WinsSpecialist", 1);
-            }
-            else {
-            }
+        auto7FC2C1DC_val = libGame_gv_players[lv_heroIndex].lv_heroData.lv_expandedRole;
+        if (auto7FC2C1DC_val == 1) {
+            libGame_gf_ScoreValuesReportIntegerValueAndLog(lp_player, "WinsWarrior", 1);
+        }
+        else if (auto7FC2C1DC_val == 2) {
+            libGame_gf_ScoreValuesReportIntegerValueAndLog(lp_player, "WinsWarrior", 1);
+        }
+        else if (auto7FC2C1DC_val == 3) {
+            libGame_gf_ScoreValuesReportIntegerValueAndLog(lp_player, "WinsAssassin", 1);
+        }
+        else if (auto7FC2C1DC_val == 4) {
+            libGame_gf_ScoreValuesReportIntegerValueAndLog(lp_player, "WinsAssassin", 1);
+        }
+        else if (auto7FC2C1DC_val == 5) {
+            libGame_gf_ScoreValuesReportIntegerValueAndLog(lp_player, "WinsSupport", 1);
+        }
+        else if (auto7FC2C1DC_val == 6) {
+            libGame_gf_ScoreValuesReportIntegerValueAndLog(lp_player, "WinsSupport", 1);
+        }
+        else {
         }
         autoC92E084A_val = libGame_gv_players[lv_heroIndex].lv_heroData.lv_universe;
         if (autoC92E084A_val == c_heroUniverseWarcraft) {

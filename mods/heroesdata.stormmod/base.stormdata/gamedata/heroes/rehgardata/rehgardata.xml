@@ -159,8 +159,7 @@
   <CAccumulatorToken id="RehgarLightningShieldLightningStormDamageAccumulator" parent="BaseTokenAccumulator">
     <ApplicationRule value="Add" />
     <TokenId value="RehgarLightningShieldRisingStormTokenCounter" />
-    <Scale value="0.15" />
-    <UnitSource Value="Source" />
+    <Scale value="0.1" />
   </CAccumulatorToken>
   <CActorRange id="RehgarHealingTotemRange" parent="StormRangeAbilPlusSplat" abil="RehgarHealingTotem" />
   <CActorSplat id="RehgarHealingTotemRangeSplat" parent="StormRangeSplat">
@@ -404,14 +403,14 @@
     <ImpactMap index="Wood" Sound="Rehgar_Attack_Impact_Wood" />
   </CActorAction>
   <CActorModel id="RehgarBloodlustBuffFX" parent="StormModelAnimationStyleOneShotUnit">
-    <On Terms="Behavior.RehgarBloodlustBuff.Off" Send="Destroy" />
+    <On Terms="Behavior.RehgarBloodlustBasicAttackBuff.Off" Send="Destroy" />
     <On Terms="ActorCreation" Send="AnimPlay BirthOnly Birth" />
     <On Terms="AnimDone; AnimName BirthOnly" Send="Destroy" />
     <Host Subject="_Selectable" />
     <HostSiteOps Ops="SOpAttachOverhead" />
   </CActorModel>
   <CActorModel id="RehgarBloodlustCastAlly" parent="StormModelAnimationStyleOneShotUnit">
-    <On Terms="Effect.RehgarBloodlustTargetApplyBehavior.Start; At Target" Send="Create" />
+    <On Terms="Effect.RehgarBloodlustTargetApplyBasicAttackBehavior.Start; At Target" Send="Create" />
     <On Terms="ActorCreation" Send="Create RehgarBloodlustBuffFX" />
     <On Terms="ActorCreation" Send="Create RehgarBloodlustCastSound" />
   </CActorModel>
@@ -442,19 +441,19 @@
     <Scale value="9.000000" />
   </CActorSplat>
   <CActorSimple id="RehgarBloodlustUnitScaling">
-    <On Terms="Behavior.RehgarBloodlustBuff.On" Send="Create" />
+    <On Terms="Behavior.RehgarBloodlustBasicAttackBuff.On" Send="Create" />
     <On Terms="ActorCreation" Send="StatusSet BloodlustScalingActive 1" />
     <On Terms="ActorCreation" Target="_Unit" Send="PhysicsTerminate" />
     <On Terms="ActorCreation" Target="_Unit" Send="SetScale 1.200000 0.500000 BloodlustScale" />
     <On Terms="ActorCreation" Send="TimerSet 0.600000 PhysicsRestart" />
     <On Terms="TimerExpired; TimerName PhysicsRestart" Target="_Unit" Send="PhysicsInitialize" />
     <On Terms="TimerExpired; TimerName PhysicsRestart" Send="StatusSet BloodlustScalingActive 0" />
-    <On Terms="Behavior.RehgarBloodlustBuff.Off" Send="TimerKill PhysicsRestart" />
-    <On Terms="Behavior.RehgarBloodlustBuff.Off" Target="_Unit" Send="PhysicsTerminate" />
-    <On Terms="Behavior.RehgarBloodlustBuff.Off" Target="_Unit" Send="ClearScale 0.500000 BloodlustScale" />
-    <On Terms="Behavior.RehgarBloodlustBuff.Off" Send="Create RehgarBloodlustEndSound" />
-    <On Terms="Behavior.RehgarBloodlustBuff.Off" Send="StatusSet BloodlustScalingActive 1" />
-    <On Terms="Behavior.RehgarBloodlustBuff.Off" Send="TimerSet 0.600000 DelayDestroy" />
+    <On Terms="Behavior.RehgarBloodlustBasicAttackBuff.Off" Send="TimerKill PhysicsRestart" />
+    <On Terms="Behavior.RehgarBloodlustBasicAttackBuff.Off" Target="_Unit" Send="PhysicsTerminate" />
+    <On Terms="Behavior.RehgarBloodlustBasicAttackBuff.Off" Target="_Unit" Send="ClearScale 0.500000 BloodlustScale" />
+    <On Terms="Behavior.RehgarBloodlustBasicAttackBuff.Off" Send="Create RehgarBloodlustEndSound" />
+    <On Terms="Behavior.RehgarBloodlustBasicAttackBuff.Off" Send="StatusSet BloodlustScalingActive 1" />
+    <On Terms="Behavior.RehgarBloodlustBasicAttackBuff.Off" Send="TimerSet 0.600000 DelayDestroy" />
     <On Terms="TimerExpired; TimerName DelayDestroy" Send="StatusSet BloodlustScalingActive 0" />
     <On Terms="TimerExpired; TimerName DelayDestroy" Target="_Unit" Send="PhysicsInitialize" />
     <On Terms="TimerExpired; TimerName DelayDestroy" Send="Destroy" />
@@ -745,6 +744,18 @@
   <CActorModelMaterial id="RehgarGhostWolfGlaze" parent="StormModelAnimationStyleContinuous">
     <Remove Terms="ActorCreation" Send="AnimBracketStart BSD Birth Stand Death" />
   </CActorModelMaterial>
+  <CBehaviorBuff id="RehgarLightningShieldRisingStormDummyBehavior">
+    <BehaviorFlags index="Permanent" value="1" />
+    <BehaviorFlags index="EnabledWhileDead" value="1" />
+    <Duration value="5" />
+    <FinalEffect value="RehgarLightningShieldRisingStormDelayPersistent" />
+  </CBehaviorBuff>
+  <CBehaviorBuff id="RehgarBloodlustMovementSpeedBuff" parent="StormSprint">
+    <Modification>
+      <UnifiedMoveSpeedFactor value="0.25" />
+    </Modification>
+    <RemoveValidatorArray value="RehgarTargetHasBloodlustBasicAttackBuff" />
+  </CBehaviorBuff>
   <CBehaviorAbility id="RehgarHealingTotemItem">
     <Buttons Face="RehgarHealingTotem" Type="AbilCmd" AbilCmd="RehgarHealingTotem,Execute" />
   </CBehaviorAbility>
@@ -793,9 +804,10 @@
     <RemoveValidatorArray value="RehgarLightningShieldTargetDoesNotHaveBuff" />
     <Duration value="5" />
     <Period value="0.5" />
-    <InitialEffect value="RehgarLightningShieldLightningBondSearch" />
+    <InitialEffect value="RehgarLightningShieldLightningBondBuffInitialSet" />
     <PeriodicEffect value="RehgarLightningShieldLightningBondSearch" />
     <Alignment value="Positive" />
+    <RefreshEffect value="RehgarLightningShieldRisingStormTokenCounterApplyBehavior" />
   </CBehaviorBuff>
   <CBehaviorTokenCounter id="RehgarLightningShieldRisingStormTokenCounter" parent="StormGenericToken">
     <Max value="15" />
@@ -807,6 +819,18 @@
       <Kind index="Ability" value="0" />
       <ProvideCategories index="Proc" value="1" />
     </DamageResponse>
+  </CBehaviorBuff>
+  <CBehaviorBuff id="RehgarBloodlustBasicAttackBuff">
+    <InfoIcon value="Assets\Textures\storm_ui_icon_rehgar_bloodlust.dds" />
+    <RemoveValidatorArray value="TargetNotSpecialDeathState" />
+    <Duration value="8" />
+    <Modification>
+      <AdditiveAttackSpeedFactor value="0.4" />
+      <VitalDamageLeechArray index="Life">
+        <KindArray index="Basic" value="0.3" />
+      </VitalDamageLeechArray>
+      <VitalDamageLeechScoreArray Value="Healing" />
+    </Modification>
   </CBehaviorBuff>
   <CBehaviorBuff id="RehgarLightningShieldEarthShieldBuff" parent="StormShield">
     <Duration value="3" />
@@ -821,19 +845,6 @@
       <VitalRegenMultiplier index="Life" value="0.75" />
       <VitalRegenMultiplier index="Energy" value="0.75" />
     </Modification>
-  </CBehaviorBuff>
-  <CBehaviorBuff id="RehgarBloodlustBuff" parent="StormSprint">
-    <InfoIcon value="Assets\Textures\storm_ui_icon_rehgar_bloodlust.dds" />
-    <Duration value="8" />
-    <Modification>
-      <UnifiedMoveSpeedFactor value="0.25" />
-      <AdditiveAttackSpeedFactor value="0.4" />
-      <VitalDamageLeechArray index="Life">
-        <KindArray index="Basic" value="0.3" />
-      </VitalDamageLeechArray>
-      <VitalDamageLeechScoreArray Value="Healing" />
-    </Modification>
-    <RemoveValidatorArray value="TargetNotSpecialDeathState" />
   </CBehaviorBuff>
   <CBehaviorBuff id="RehgarChainHealTidalWavesCounter">
     <BehaviorFlags index="Permanent" value="1" />
@@ -1018,6 +1029,27 @@
     <Unit value="HeroRehgar" />
     <Variations Model="RehgarPortrait" Actor="RehgarPortrait" />
   </CCharacter>
+  <CEffectSet id="RehgarLightningShieldLightningBondBuffInitialSet">
+    <EffectArray value="RehgarLightningShieldLightningBondSearch" />
+    <EffectArray value="RehgarLightningShieldRisingStormTokenCounterApplyBehavior" />
+  </CEffectSet>
+  <CEffectCreatePersistent id="RehgarLightningShieldRisingStormDelayPersistent">
+    <WhichLocation Value="CasterUnit" />
+    <InitialDelay value="0.0625" />
+    <FinalEffect value="RehgarLightningShieldRisingStormTokenCounterRemoveBehavior" />
+  </CEffectCreatePersistent>
+  <CEffectApplyBehavior id="RehgarLightningShieldRisingStormDummyApplyBehavior">
+    <ValidatorArray value="RehgarLightningShieldRisingStormHasTalent" />
+    <WhichUnit Value="Caster" />
+    <Behavior value="RehgarLightningShieldRisingStormDummyBehavior" />
+  </CEffectApplyBehavior>
+  <CEffectApplyBehavior id="RehgarBloodlustCasterApplyMovementSpeedBehavior">
+    <WhichUnit Value="Caster" />
+    <Behavior value="RehgarBloodlustMovementSpeedBuff" />
+  </CEffectApplyBehavior>
+  <CEffectApplyBehavior id="RehgarBloodlustTargetApplyMovementSpeedBehavior">
+    <Behavior value="RehgarBloodlustMovementSpeedBuff" />
+  </CEffectApplyBehavior>
   <CEffectSet id="TotemicProjectionDeathDummyEffect">
     <TargetLocationType value="Point" />
   </CEffectSet>
@@ -1026,7 +1058,6 @@
     <EffectArray value="RehgarLightningShieldSearch" />
   </CEffectSet>
   <CEffectSet id="RehgarLightningShieldBuffFinalSet">
-    <EffectArray value="RehgarLightningShieldRisingStormTokenCounterRemoveBehavior" />
     <EffectArray value="RehgarLightningShieldStormcallerRefundStackRemoveAll" />
   </CEffectSet>
   <CEffectRemoveBehavior id="RehgarLightningShieldStormcallerRefundStackRemoveAll">
@@ -1037,13 +1068,13 @@
   <CEffectApplyBehavior id="RehgarLightningShieldRisingStormTokenCounterApplyBehavior">
     <Chance value="0" />
     <Behavior value="RehgarLightningShieldRisingStormTokenCounter" />
+    <WhichUnit Value="Caster" />
   </CEffectApplyBehavior>
   <CEffectRemoveBehavior id="RehgarLightningShieldRisingStormTokenCounterRemoveBehavior">
     <BehaviorLink value="RehgarLightningShieldRisingStormTokenCounter" />
   </CEffectRemoveBehavior>
   <CEffectModifyTokenCount id="RehgarLightningShieldRisingStormTokenCounterIncrease" parent="BaseEffectModifyTokenCount">
     <ValidatorArray value="TargetIsHero" />
-    <WhichUnit Value="Source" />
     <TokenId value="RehgarLightningShieldRisingStormTokenCounter" />
   </CEffectModifyTokenCount>
   <CEffectRedirectMissile id="RehgarGhostWolfLungeMissileRedirect">
@@ -1294,6 +1325,7 @@
     <ValidatorArray value="EarthbindTotemImmuneToFriendlyAbilitiesCombine" />
     <EffectArray value="RehgarLightningShieldStormcallerRefundStackApplyBehavior" />
     <EffectArray value="RehgarLightningShieldRisingStormTokenCounterRemoveBehavior" />
+    <EffectArray value="RehgarLightningShieldRisingStormDummyApplyBehavior" />
     <EffectArray value="RehgarLightningShieldApplyBuffBehavior" />
     <EffectArray value="RehgarLightningShieldEarthShieldApplyBuffBehavior" />
     <EffectArray value="RehgarLightningShieldLightningBondApplyUntalentedBehavior" />
@@ -1312,6 +1344,7 @@
   <CEffectSet id="RehgarLightningShieldLightningBondImpactSet">
     <EffectArray value="RehgarLightningShieldDamage" />
     <EffectArray value="ApplyAbilityImpactReveal" />
+    <EffectArray value="RehgarLightningShieldRisingStormTokenCounterIncrease" />
   </CEffectSet>
   <CEffectCreateHealer id="RehgarAncestralHealingFarseersBlessingCreateHealer" parent="StormHealingSpell">
     <RechargeVitalRate value="0.75" />
@@ -1333,7 +1366,8 @@
   </CEffectSwitch>
   <CEffectSet id="RehgarBloodlustInitialSet">
     <EffectArray value="RehgarBloodlustSearch" />
-    <EffectArray value="RehgarBloodlustCasterApplyBehavior" />
+    <EffectArray value="RehgarBloodlustCasterApplyBasicAttackBehavior" />
+    <EffectArray value="RehgarBloodlustCasterApplyMovementSpeedBehavior" />
   </CEffectSet>
   <CEffectEnumArea id="RehgarBloodlustSearch">
     <SearchFilters value="Heroic;Self,Neutral,Enemy,Minion,Merc,NoMinionAggro,Structure,ImmuneToFriendlyAbilities,Worker,Missile,Item,Stasis,Dead,Hidden" />
@@ -1342,16 +1376,17 @@
     </AreaArray>
     <SearchFlags index="ExtendByUnitRadius" value="1" />
   </CEffectEnumArea>
-  <CEffectSet id="RehgarBloodlustImpactSet">
-    <EffectArray value="RehgarBloodlustTargetApplyBehavior" />
-  </CEffectSet>
-  <CEffectApplyBehavior id="RehgarBloodlustTargetApplyBehavior">
-    <Behavior value="RehgarBloodlustBuff" />
-  </CEffectApplyBehavior>
-  <CEffectApplyBehavior id="RehgarBloodlustCasterApplyBehavior">
+  <CEffectApplyBehavior id="RehgarBloodlustCasterApplyBasicAttackBehavior">
     <WhichUnit Value="Caster" />
-    <Behavior value="RehgarBloodlustBuff" />
+    <Behavior value="RehgarBloodlustBasicAttackBuff" />
   </CEffectApplyBehavior>
+  <CEffectApplyBehavior id="RehgarBloodlustTargetApplyBasicAttackBehavior">
+    <Behavior value="RehgarBloodlustBasicAttackBuff" />
+  </CEffectApplyBehavior>
+  <CEffectSet id="RehgarBloodlustImpactSet">
+    <EffectArray value="RehgarBloodlustTargetApplyBasicAttackBehavior" />
+    <EffectArray value="RehgarBloodlustTargetApplyMovementSpeedBehavior" />
+  </CEffectSet>
   <CEffectCreatePersistent id="RehgarChainHeal1Delay">
     <WhichLocation Value="TargetUnit" />
     <ExpireDelay value="0.25" />
@@ -1498,7 +1533,7 @@
   <CEffectDamage id="RehgarLightningShieldDamage" parent="StormSpell">
     <Visibility value="Hidden" />
     <Amount value="32" />
-    <MultiplicativeModifierArray index="0" Validator="RehgarLightningShieldSourceHasBuff" Accumulator="RehgarLightningShieldLightningStormDamageAccumulator" />
+    <MultiplicativeModifierArray index="0" Validator="RehgarLightningShieldRisingStormHasTalent" Accumulator="RehgarLightningShieldLightningStormDamageAccumulator" />
     <CritValidatorArray index="0" value="RehgarLightningShieldCritValidatorCombine" />
   </CEffectDamage>
   <CEffectEnumArea id="RehgarLightningShieldSearch">
@@ -1550,7 +1585,6 @@
     <ReleaseDate Month="7" Day="22" />
     <Role value="Support" />
     <RolesMultiClass value="Support" />
-    <CollectionCategory value="Support" />
     <RoleScoreValueOverride value="Support" />
     <Flags index="UsesMount" value="0" />
     <Flags index="GoodForModeA" value="1" />
@@ -1912,6 +1946,13 @@
         <Field value="Chance" />
         <Value value="1.000000" />
       </Modifications>
+      <Modifications>
+        <Type value="FlatModification" />
+        <Catalog value="Effect" />
+        <Entry value="RehgarLightningShieldLightningBondApplyUntalentedBehavior" />
+        <Field value="Chance" />
+        <Value value="1.000000" />
+      </Modifications>
     </AbilityModificationArray>
   </CTalent>
   <CTalent id="RehgarTotemicProjection">
@@ -2125,7 +2166,7 @@
       <Modifications>
         <Type value="FlatModification" />
         <Catalog value="Behavior" />
-        <Entry value="RehgarBloodlustBuff" />
+        <Entry value="RehgarBloodlustBasicAttackBuff" />
         <Field value="Modification.VitalDamageLeechArray[0].KindArray[1]" />
         <Value value="0.300000" />
       </Modifications>
@@ -2234,6 +2275,10 @@
     <Radius value="0.125" />
     <InnerRadius value="0.125" />
   </CUnit>
+  <CValidatorUnitCompareBehaviorCount id="RehgarTargetHasBloodlustBasicAttackBuff">
+    <Compare value="GT" />
+    <Behavior value="RehgarBloodlustBasicAttackBuff" />
+  </CValidatorUnitCompareBehaviorCount>
   <CValidatorCombine id="TidalWavesCombine">
     <Type value="And" />
     <CombineArray value="RehgarHasTidalWaves" />
@@ -2273,6 +2318,7 @@
   <CValidatorUnitCompareTokenCount id="RehgarLightningShieldRisingStormTargetHasMaxTokenCounter">
     <Value value="15" />
     <TokenId value="RehgarLightningShieldRisingStormTokenCounter" />
+    <WhichUnit Value="Caster" />
   </CValidatorUnitCompareTokenCount>
   <CValidatorUnitMover id="RehgarGhostWolfCasterIsLungeMover">
     <Value value="RehgarGhostWolfLungeMissileMover" />

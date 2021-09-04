@@ -34,7 +34,8 @@ void libHVAR_gf_HeroVarianIncrementHeroCount () {
     if ((libHVAR_gv_heroVarianTriggerRegistrationCount == 1)) {
         TriggerEnable(libHVAR_gt_VarianHighKingsQuestHeroTakedown, true);
         TriggerEnable(libHVAR_gt_VarianParryBehaviorMonitor, true);
-        TriggerEnable(libHVAR_gt_VarianVictoryRushTakedownReset, true);
+        TriggerEnable(libHVAR_gt_VarianVictoryRushMinionTakedownReset, true);
+        TriggerEnable(libHVAR_gt_VarianVictoryRushMonsterTakedownReset, true);
         TriggerEnable(libHVAR_gt_VarianUIFloatingCombatTextParried, true);
     }
 
@@ -51,7 +52,8 @@ void libHVAR_gf_HeroVarianDecrementHeroCount () {
     if ((libHVAR_gv_heroVarianTriggerRegistrationCount == 0)) {
         TriggerEnable(libHVAR_gt_VarianHighKingsQuestHeroTakedown, false);
         TriggerEnable(libHVAR_gt_VarianParryBehaviorMonitor, false);
-        TriggerEnable(libHVAR_gt_VarianVictoryRushTakedownReset, false);
+        TriggerEnable(libHVAR_gt_VarianVictoryRushMinionTakedownReset, false);
+        TriggerEnable(libHVAR_gt_VarianVictoryRushMonsterTakedownReset, false);
         TriggerEnable(libHVAR_gt_VarianUIFloatingCombatTextParried, false);
     }
 
@@ -173,9 +175,9 @@ void libHVAR_gt_VarianParryBehaviorMonitor_Init () {
 }
 
 //--------------------------------------------------------------------------------------------------
-// Trigger: Varian - Victory Rush - Takedown Reset
+// Trigger: Varian - Victory Rush - Minion Takedown Reset
 //--------------------------------------------------------------------------------------------------
-bool libHVAR_gt_VarianVictoryRushTakedownReset_Func (bool testConds, bool runActions) {
+bool libHVAR_gt_VarianVictoryRushMinionTakedownReset_Func (bool testConds, bool runActions) {
     // Variable Declarations
     int lv_varianPlayer;
     unit lv_varianUnit;
@@ -197,7 +199,7 @@ bool libHVAR_gt_VarianVictoryRushTakedownReset_Func (bool testConds, bool runAct
             return false;
         }
 
-        if (!((((UnitTypeTestAttribute(UnitGetType(lv_nPCUnit), c_unitAttributeMinion) == true) && (UnitFilterMatch(lv_nPCUnit, lv_varianPlayer, UnitFilter(0, 0, (1 << c_targetFilterCreep) | (1 << c_targetFilterMerc), 0)) == true)) || (UnitTypeTestAttribute(UnitGetType(lv_nPCUnit), c_unitAttributeMapCreature) == true)))) {
+        if (!(((UnitTypeTestAttribute(UnitGetType(lv_nPCUnit), c_unitAttributeMinion) == true) && (UnitFilterMatch(lv_nPCUnit, lv_varianPlayer, UnitFilter(0, 0, (1 << c_targetFilterCreep) | (1 << c_targetFilterMerc), 0)) == true)))) {
             return false;
         }
     }
@@ -212,17 +214,64 @@ bool libHVAR_gt_VarianVictoryRushTakedownReset_Func (bool testConds, bool runAct
 }
 
 //--------------------------------------------------------------------------------------------------
-void libHVAR_gt_VarianVictoryRushTakedownReset_Init () {
-    libHVAR_gt_VarianVictoryRushTakedownReset = TriggerCreate("libHVAR_gt_VarianVictoryRushTakedownReset_Func");
-    TriggerEnable(libHVAR_gt_VarianVictoryRushTakedownReset, false);
-    libGame_gf_HeroParticipatedInNPCTakedown(libHVAR_gt_VarianVictoryRushTakedownReset);
+void libHVAR_gt_VarianVictoryRushMinionTakedownReset_Init () {
+    libHVAR_gt_VarianVictoryRushMinionTakedownReset = TriggerCreate("libHVAR_gt_VarianVictoryRushMinionTakedownReset_Func");
+    TriggerEnable(libHVAR_gt_VarianVictoryRushMinionTakedownReset, false);
+    libGame_gf_HeroParticipatedInNPCTakedown(libHVAR_gt_VarianVictoryRushMinionTakedownReset);
+}
+
+//--------------------------------------------------------------------------------------------------
+// Trigger: Varian - Victory Rush - Monster Takedown Reset
+//--------------------------------------------------------------------------------------------------
+bool libHVAR_gt_VarianVictoryRushMonsterTakedownReset_Func (bool testConds, bool runActions) {
+    // Variable Declarations
+    int lv_varianPlayer;
+    unit lv_varianUnit;
+    unit lv_nPCUnit;
+
+    // Automatic Variable Declarations
+    // Variable Initialization
+    lv_varianPlayer = libGame_gf_HeroParticipatedInCreepTakedownKillingPlayer();
+    lv_varianUnit = libGame_gv_players[lv_varianPlayer].lv_heroUnit;
+    lv_nPCUnit = libGame_gf_HeroParticipatedInCreepTakedownCreep();
+
+    // Conditions
+    if (testConds) {
+        if (!((PlayerHero(libGame_gf_HeroParticipatedInCreepTakedownKillingPlayer()) == "Varian"))) {
+            return false;
+        }
+
+        if (!((PlayerHasTalent(lv_varianPlayer, "VarianVictoryRush") == true))) {
+            return false;
+        }
+
+        if (!((UnitTypeTestAttribute(UnitGetType(lv_nPCUnit), c_unitAttributeMapCreature) == true))) {
+            return false;
+        }
+    }
+
+    // Actions
+    if (!runActions) {
+        return true;
+    }
+
+    UnitCreateEffectUnit(lv_varianUnit, "VarianVictoryRushCasterReset", lv_varianUnit);
+    return true;
+}
+
+//--------------------------------------------------------------------------------------------------
+void libHVAR_gt_VarianVictoryRushMonsterTakedownReset_Init () {
+    libHVAR_gt_VarianVictoryRushMonsterTakedownReset = TriggerCreate("libHVAR_gt_VarianVictoryRushMonsterTakedownReset_Func");
+    TriggerEnable(libHVAR_gt_VarianVictoryRushMonsterTakedownReset, false);
+    libGame_gf_HeroParticipatedInCreepTakedown(libHVAR_gt_VarianVictoryRushMonsterTakedownReset);
 }
 
 void libHVAR_InitTriggers () {
     libHVAR_gt_VarianHighKingsQuestHeroTakedown_Init();
     libHVAR_gt_VarianUIFloatingCombatTextParried_Init();
     libHVAR_gt_VarianParryBehaviorMonitor_Init();
-    libHVAR_gt_VarianVictoryRushTakedownReset_Init();
+    libHVAR_gt_VarianVictoryRushMinionTakedownReset_Init();
+    libHVAR_gt_VarianVictoryRushMonsterTakedownReset_Init();
 }
 
 //--------------------------------------------------------------------------------------------------

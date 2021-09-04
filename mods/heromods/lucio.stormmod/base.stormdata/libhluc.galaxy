@@ -46,6 +46,7 @@ void libHLUC_gf_HeroLucioIncrementHeroCountFunction () {
         TriggerEnable(libHLUC_gt_HeroLucioBackInTheMix, true);
         TriggerEnable(libHLUC_gt_HeroLucioCantStopWontStop, true);
         TriggerEnable(libHLUC_gt_HeroLucioCrossfadeBoomboxSynaesthesiaAuditiva, true);
+        TriggerEnable(libHLUC_gt_HeroLucioGoodVibrationsShieldsCombatText, true);
     }
 
 }
@@ -71,6 +72,7 @@ void libHLUC_gf_HeroLucioDecrementHeroCountFunction () {
         TriggerEnable(libHLUC_gt_HeroLucioBackInTheMix, false);
         TriggerEnable(libHLUC_gt_HeroLucioCantStopWontStop, false);
         TriggerEnable(libHLUC_gt_HeroLucioCrossfadeBoomboxSynaesthesiaAuditiva, false);
+        TriggerEnable(libHLUC_gt_HeroLucioGoodVibrationsShieldsCombatText, false);
     }
 
 }
@@ -630,6 +632,45 @@ void libHLUC_gt_HeroLucioCrossfadeBoomboxSynaesthesiaAuditiva_Init () {
     TriggerAddEventUnitBehaviorChange(libHLUC_gt_HeroLucioCrossfadeBoomboxSynaesthesiaAuditiva, null, "LucioBoomboxAmpItUpDetector", c_unitBehaviorChangeActivate);
 }
 
+//--------------------------------------------------------------------------------------------------
+// Trigger: Hero - Lucio - Good Vibrations - Shields Combat Text
+//--------------------------------------------------------------------------------------------------
+bool libHLUC_gt_HeroLucioGoodVibrationsShieldsCombatText_Func (bool testConds, bool runActions) {
+    // Variable Declarations
+    int lv_casterPlayer;
+    fixed lv_shieldsToAdd;
+    fixed lv_vertOffset;
+    fixed lv_horizOffset;
+
+    // Automatic Variable Declarations
+    // Variable Initialization
+
+    // Actions
+    if (!runActions) {
+        return true;
+    }
+
+    lv_casterPlayer = EventPlayerEffectUsedUnitOwner(c_effectPlayerCaster);
+    if ((EventPlayerEffectUsed() == "LucioSoundwaveGoodVibrationsApplyShieldBehaviorHero")) {
+        lv_shieldsToAdd = (CatalogFieldValueGetAsFixed(c_gameCatalogEffect, "LucioSoundwaveGoodVibrationsApplyShieldBehaviorHero", "Count", lv_casterPlayer) * CatalogFieldValueGetAsFixed(c_gameCatalogBehavior, "LucioSoundwaveGoodVibrationsShield", "DamageResponse.ModifyLimit", lv_casterPlayer));
+    }
+    else {
+        lv_shieldsToAdd = (CatalogFieldValueGetAsFixed(c_gameCatalogEffect, "LucioSoundwaveGoodVibrationsApplyShieldBehavior", "Count", lv_casterPlayer) * CatalogFieldValueGetAsFixed(c_gameCatalogBehavior, "LucioSoundwaveGoodVibrationsShield", "DamageResponse.ModifyLimit", lv_casterPlayer));
+    }
+    lv_vertOffset = 2.0;
+    lv_horizOffset = RandomFixed(-0.4, -0.6);
+    FloatingCombatElementCreateTextAtUnit(PlayerGroupSingle(lv_casterPlayer), "FloatingCombatElements/FloatingCombatLesserAmountReceived", "ShieldState", EventPlayerEffectUsedUnit(c_effectUnitTarget), FixedToText(lv_shieldsToAdd, 0), libNtve_gv_FloatingCombatTextAutoRandomSeed);
+    return true;
+}
+
+//--------------------------------------------------------------------------------------------------
+void libHLUC_gt_HeroLucioGoodVibrationsShieldsCombatText_Init () {
+    libHLUC_gt_HeroLucioGoodVibrationsShieldsCombatText = TriggerCreate("libHLUC_gt_HeroLucioGoodVibrationsShieldsCombatText_Func");
+    TriggerEnable(libHLUC_gt_HeroLucioGoodVibrationsShieldsCombatText, false);
+    TriggerAddEventPlayerEffectUsed(libHLUC_gt_HeroLucioGoodVibrationsShieldsCombatText, c_playerAny, "LucioSoundwaveGoodVibrationsApplyShieldBehaviorHero");
+    TriggerAddEventPlayerEffectUsed(libHLUC_gt_HeroLucioGoodVibrationsShieldsCombatText, c_playerAny, "LucioSoundwaveGoodVibrationsApplyShieldBehavior");
+}
+
 void libHLUC_InitTriggers () {
     libHLUC_gt_HeroLucioSoundtrackInitialization_Init();
     libHLUC_gt_HeroLucioHeroWeaponApplyTargetingUnit_Init();
@@ -643,6 +684,7 @@ void libHLUC_InitTriggers () {
     libHLUC_gt_HeroLucioBackInTheMix_Init();
     libHLUC_gt_HeroLucioCantStopWontStop_Init();
     libHLUC_gt_HeroLucioCrossfadeBoomboxSynaesthesiaAuditiva_Init();
+    libHLUC_gt_HeroLucioGoodVibrationsShieldsCombatText_Init();
 }
 
 //--------------------------------------------------------------------------------------------------

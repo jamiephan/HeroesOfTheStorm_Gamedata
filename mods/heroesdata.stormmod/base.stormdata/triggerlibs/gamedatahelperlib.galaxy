@@ -8025,9 +8025,18 @@ bool libGDHL_gt_HeroChenWanderingKegActivate_Func (bool testConds, bool runActio
     libGDHL_gv_heroChenWanderingKegAngleMoveTo[lv_player] = UnitGetFacing(lv_chen);
     TriggerEnable(libGDHL_gt_HeroChenWanderingKegMoveTracker, true);
     libGDHL_gv_heroChenWanderingKegActive[lv_player] = true;
+    if ((libAIAI_gf_HeroAIIsAIEnabledForPlayer(lv_player) == false)) {
+        UnitBehaviorAdd(lv_chen, "ChenWanderingKegMovementDisabler", lv_chen, 1);
+    }
+
     while ((UnitIsAlive(lv_chen) == true) && (UnitHasBehavior2(lv_chen, "ChenWanderingKegCasterBuff") == true)) {
         UnitIssueOrder(lv_chen, OrderTargetingPoint(AbilityCommand("ChenWanderingKegMoveDummy", 0), PointWithOffsetPolar(UnitGetPosition(lv_chen), 4.0, libGDHL_gv_heroChenWanderingKegAngleMoveTo[lv_player])), c_orderQueueReplace);
-        Wait(0.1, c_timeGame);
+        if ((libAIAI_gf_HeroAIIsAIEnabledForPlayer(lv_player) == false)) {
+            Wait(0.1, c_timeGame);
+        }
+        else {
+            Wait(0.25, c_timeGame);
+        }
     }
     lv_itPlayer = 1;
     for ( ; ( (auto9AF15E39_ai >= 0 && lv_itPlayer <= auto9AF15E39_ae) || (auto9AF15E39_ai < 0 && lv_itPlayer >= auto9AF15E39_ae) ) ; lv_itPlayer += auto9AF15E39_ai ) {
@@ -15565,7 +15574,7 @@ bool libGDHL_gt_HeroMedicStimDroneFullscreenOverlayOn_Func (bool testConds, bool
 void libGDHL_gt_HeroMedicStimDroneFullscreenOverlayOn_Init () {
     libGDHL_gt_HeroMedicStimDroneFullscreenOverlayOn = TriggerCreate("libGDHL_gt_HeroMedicStimDroneFullscreenOverlayOn_Func");
     TriggerEnable(libGDHL_gt_HeroMedicStimDroneFullscreenOverlayOn, false);
-    TriggerAddEventUnitBehaviorChange(libGDHL_gt_HeroMedicStimDroneFullscreenOverlayOn, null, "MedicStimDroneBuff", c_unitBehaviorChangeActivate);
+    TriggerAddEventUnitBehaviorChange(libGDHL_gt_HeroMedicStimDroneFullscreenOverlayOn, null, "MedicStimDroneAttackSpeedBuff", c_unitBehaviorChangeActivate);
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -15589,8 +15598,8 @@ bool libGDHL_gt_HeroMedicStimDroneFullscreenOverlayOff_Func (bool testConds, boo
 void libGDHL_gt_HeroMedicStimDroneFullscreenOverlayOff_Init () {
     libGDHL_gt_HeroMedicStimDroneFullscreenOverlayOff = TriggerCreate("libGDHL_gt_HeroMedicStimDroneFullscreenOverlayOff_Func");
     TriggerEnable(libGDHL_gt_HeroMedicStimDroneFullscreenOverlayOff, false);
-    TriggerAddEventUnitBehaviorChange(libGDHL_gt_HeroMedicStimDroneFullscreenOverlayOff, null, "MedicStimDroneBuff", c_unitBehaviorChangeDestroy);
-    TriggerAddEventUnitBehaviorChange(libGDHL_gt_HeroMedicStimDroneFullscreenOverlayOff, null, "MedicStimDroneBuff", c_unitBehaviorChangeDeactivate);
+    TriggerAddEventUnitBehaviorChange(libGDHL_gt_HeroMedicStimDroneFullscreenOverlayOff, null, "MedicStimDroneAttackSpeedBuff", c_unitBehaviorChangeDestroy);
+    TriggerAddEventUnitBehaviorChange(libGDHL_gt_HeroMedicStimDroneFullscreenOverlayOff, null, "MedicStimDroneAttackSpeedBuff", c_unitBehaviorChangeDeactivate);
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -21996,17 +22005,20 @@ bool libGDHL_gt_HeroSylvanasDarkLadysCallTalentResetAllyVisionSuppression_Func (
         return true;
     }
 
-    libGame_gf_ShareUnshareVisionOfAlliesForPlayer(true, lv_targetPlayer);
-    lv_allyPlayerGroup = libGame_gf_AlliedPlayerGroupOfPlayer(lv_targetPlayer);
-    autoC255B45D_g = lv_allyPlayerGroup;
-    lv_p = -1;
-    while (true) {
-        	lv_p = PlayerGroupNextPlayer(autoC255B45D_g, lv_p);
-        	if (lv_p<0) { break; }
-        	PlayerSetAlliance(lv_p, c_allianceIdSeekHelp, lv_targetPlayer, true);
-        PlayerSetAlliance(lv_p, c_allianceIdGiveHelp, lv_targetPlayer, true);
+    if ((UnitHasBehaviorWithCategoryFlag(lv_targetHero, c_behaviorCategoryVisionRemoval) == false)) {
+        libGame_gf_ShareUnshareVisionOfAlliesForPlayer(true, lv_targetPlayer);
+        lv_allyPlayerGroup = libGame_gf_AlliedPlayerGroupOfPlayer(lv_targetPlayer);
+        autoC255B45D_g = lv_allyPlayerGroup;
+        lv_p = -1;
+        while (true) {
+            	lv_p = PlayerGroupNextPlayer(autoC255B45D_g, lv_p);
+            	if (lv_p<0) { break; }
+            	PlayerSetAlliance(lv_p, c_allianceIdSeekHelp, lv_targetPlayer, true);
+            PlayerSetAlliance(lv_p, c_allianceIdGiveHelp, lv_targetPlayer, true);
+        }
+        VisRevealerEnable(libGame_gv_baseRevealers[lv_targetPlayer], true);
     }
-    VisRevealerEnable(libGame_gv_baseRevealers[lv_targetPlayer], true);
+
     return true;
 }
 
@@ -24850,7 +24862,7 @@ bool libGDHL_gt_HeroUtherDivineShieldFullscreenOverlayOn_Func (bool testConds, b
 void libGDHL_gt_HeroUtherDivineShieldFullscreenOverlayOn_Init () {
     libGDHL_gt_HeroUtherDivineShieldFullscreenOverlayOn = TriggerCreate("libGDHL_gt_HeroUtherDivineShieldFullscreenOverlayOn_Func");
     TriggerEnable(libGDHL_gt_HeroUtherDivineShieldFullscreenOverlayOn, false);
-    TriggerAddEventUnitBehaviorChange(libGDHL_gt_HeroUtherDivineShieldFullscreenOverlayOn, null, "DivineIntervention", c_unitBehaviorChangeActivate);
+    TriggerAddEventUnitBehaviorChange(libGDHL_gt_HeroUtherDivineShieldFullscreenOverlayOn, null, "DivineInterventionInvulnerable", c_unitBehaviorChangeActivate);
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -24874,8 +24886,8 @@ bool libGDHL_gt_HeroUtherDivineShieldFullscreenOverlayOff_Func (bool testConds, 
 void libGDHL_gt_HeroUtherDivineShieldFullscreenOverlayOff_Init () {
     libGDHL_gt_HeroUtherDivineShieldFullscreenOverlayOff = TriggerCreate("libGDHL_gt_HeroUtherDivineShieldFullscreenOverlayOff_Func");
     TriggerEnable(libGDHL_gt_HeroUtherDivineShieldFullscreenOverlayOff, false);
-    TriggerAddEventUnitBehaviorChange(libGDHL_gt_HeroUtherDivineShieldFullscreenOverlayOff, null, "DivineIntervention", c_unitBehaviorChangeDestroy);
-    TriggerAddEventUnitBehaviorChange(libGDHL_gt_HeroUtherDivineShieldFullscreenOverlayOff, null, "DivineIntervention", c_unitBehaviorChangeDeactivate);
+    TriggerAddEventUnitBehaviorChange(libGDHL_gt_HeroUtherDivineShieldFullscreenOverlayOff, null, "DivineInterventionInvulnerable", c_unitBehaviorChangeDestroy);
+    TriggerAddEventUnitBehaviorChange(libGDHL_gt_HeroUtherDivineShieldFullscreenOverlayOff, null, "DivineInterventionInvulnerable", c_unitBehaviorChangeDeactivate);
 }
 
 //--------------------------------------------------------------------------------------------------
