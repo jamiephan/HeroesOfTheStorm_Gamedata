@@ -106,7 +106,7 @@
     <Flags index="RequireTargetVision" value="0" />
     <Flags index="TargetVectorLock" value="1" />
     <Cost>
-      <Vital index="Energy" value="60" />
+      <Vital index="Energy" value="40" />
       <Charge Link="Abil/ThrallSpiritWolf" />
       <Cooldown Link="Abil/ThrallSpiritWolf" TimeUse="12" />
     </Cost>
@@ -153,6 +153,11 @@
     </Cost>
     <CmdButtonArray index="Execute" DefaultButtonFace="ThrallFrostwolfResilienceSurgeOfHealing" Requirements="ThrallHasFrostwolfsGrace" />
   </CAbilEffectInstant>
+  <CAccumulatorVitals id="ThrallFrostwolfsGraceAccumulator" parent="BaseVitalAccumulator">
+    <ApplicationRule value="Add" />
+    <Missing value="1" />
+    <VitalType value="Life" />
+  </CAccumulatorVitals>
   <CAccumulatorToken id="ThrallThunderstormSlowAccumulator" parent="BaseTokenAccumulator">
     <MinAccumulation value="-0.4" />
     <MaxAccumulation value="0" />
@@ -1128,7 +1133,7 @@
     <InfoIcon value="Assets\Textures\storm_ui_icon_talent_spellshield.dds" />
     <DisableValidatorArray value="SourceNotDead" />
     <DisableValidatorArray value="TargetNotSpecialDeathState" />
-    <Duration value="2.5" />
+    <Duration value="4" />
     <DamageResponse Chance="1" Handled="ThrallSpiritShieldImpactDummySet" Priority="55">
       <Kind index="Basic" value="0" />
       <ProvideCategories index="Proc" value="1" />
@@ -1234,10 +1239,11 @@
     <Duration value="0.1875" />
     <ExpireEffect value="StormSuicide" />
   </CBehaviorBuff>
-  <CBehaviorBuff id="BattleMomentumCarryBehaviorThrall" parent="CarryBehaviorParent">
-    <DamageResponse Chance="1" Handled="BattleMomentumModifyCooldownsThrall" Location="Attacker">
+  <CBehaviorBuff id="ThrallElementalMomentumCarryBehavior" parent="CarryBehaviorParent">
+    <DamageResponse Chance="1" Handled="ThrallElementalMomentumSwitch" Location="Attacker">
       <ValidatorArray value="TargetNotEvading" />
       <Kind index="Ability" value="0" />
+      <ProvideCategories index="Proc" value="1" />
     </DamageResponse>
   </CBehaviorBuff>
   <CBehaviorBuff id="EarthenShieldDummyBehavior">
@@ -1359,6 +1365,9 @@
       <AbilLinkDisableArray value="attack" />
     </Modification>
   </CBehaviorBuff>
+  <CButton id="ThrallElementalMomentum" parent="StormButtonParent">
+    <Icon value="Assets\Textures\storm_ui_icon_talent_autoattack_cooldown.dds" />
+  </CButton>
   <CButton id="ThrallAncestralWrath" parent="StormButtonParent">
     <TooltipFlags index="ShowCooldown" value="0" />
     <Icon value="Assets\Textures\storm_ui_icon_talent_bloodforblood.dds" />
@@ -1504,6 +1513,26 @@
     <Variations Model="ThrallPortrait" Actor="ThrallPortrait" />
     <Unit value="HeroThrall" />
   </CCharacter>
+  <CEffectModifyUnit id="ThrallElementalMomentumModifyCooldowns">
+    <ImpactUnit Value="Caster" />
+    <Cost Abil="ThrallChainLightning,Execute" ChargeTimeUse="-0.25" CooldownOperation="Add" />
+    <Cost Abil="ThrallFeralSpirit,Execute" CooldownOperation="Add" CooldownTimeUse="-0.25" />
+    <Cost Abil="ThrallWindfury,Execute" CooldownOperation="Add" CooldownTimeUse="-0.25" />
+    <Cost Abil="ThrallSundering,Execute" CooldownOperation="Add" CooldownTimeUse="-0.25" />
+    <Cost Abil="ThrallEarthquake,Execute" CooldownOperation="Add" CooldownTimeUse="-0.25" />
+  </CEffectModifyUnit>
+  <CEffectModifyUnit id="ThrallElementalMomentumHeroicModifyCooldowns">
+    <ImpactUnit Value="Caster" />
+    <Cost Abil="ThrallChainLightning,Execute" ChargeTimeUse="-0.5" CooldownOperation="Add" />
+    <Cost Abil="ThrallFeralSpirit,Execute" CooldownOperation="Add" CooldownTimeUse="-0.5" />
+    <Cost Abil="ThrallWindfury,Execute" CooldownOperation="Add" CooldownTimeUse="-0.5" />
+    <Cost Abil="ThrallSundering,Execute" CooldownOperation="Add" CooldownTimeUse="-0.5" />
+    <Cost Abil="ThrallEarthquake,Execute" CooldownOperation="Add" CooldownTimeUse="-0.5" />
+  </CEffectModifyUnit>
+  <CEffectSwitch id="ThrallElementalMomentumSwitch">
+    <CaseArray Validator="TargetIsHero" Effect="ThrallElementalMomentumHeroicModifyCooldowns" />
+    <CaseDefault value="ThrallElementalMomentumModifyCooldowns" />
+  </CEffectSwitch>
   <CEffectRemoveBehavior id="ThrallChainLightningThunderstormTalentRemoveTargetMarkerNoEffectTree">
     <BehaviorLink value="ThrallChainLightningThunderstormTalentTargetMarker" />
     <Count value="1" />
@@ -1540,7 +1569,7 @@
     <PeriodicEffectArray value="ThrallFrostwolfResilienceImpactSwitch" />
   </CEffectCreatePersistent>
   <CEffectCreateHealer id="ThrallFrostwolfsGraceCreateHealer" parent="StormSelfOnlyHealingSpell">
-    <MultiplicativeModifierArray index="ThrallFrostwolfsGrace" Validator="ThrallHasFrostwolfsGrace" Modifier="0.5" />
+    <MultiplicativeModifierArray index="ThrallFrostwolfsGrace" Validator="ThrallHasFrostwolfsGrace" Accumulator="ThrallFrostwolfsGraceAccumulator" />
     <ImpactUnit Value="Caster" />
     <RechargeVitalRate value="223" />
     <SourceButtonFace value="ThrallFrostwolfResilience" />
@@ -1643,7 +1672,7 @@
     <Behavior value="ThrallWindfuryMaelstromWeapon2ndQuestCompletionMoveSpeedCarry" />
   </CEffectApplyBehavior>
   <CEffectModifyPlayer id="ThrallChainLightningEchooftheElementsTalent1stQuestModifyPlayer">
-    <EffectArray Operation="Set" Reference="Abil,ThrallChainLightning,Cost.Vital[Energy]" Value="25" />
+    <EffectArray Operation="Set" Reference="Abil,ThrallChainLightning,Cost.Vital[Energy]" Value="20" />
   </CEffectModifyPlayer>
   <CEffectCreateHealer id="ThrallAncestralWrathDummyHealer">
     <Chance value="0" />
@@ -2016,7 +2045,7 @@
     <Value value="0" />
   </CEffectModifyTokenCount>
   <CEffectModifyPlayer id="ThrallFeralSpiritFrostwolfPackTalentModifyPlayer">
-    <EffectArray Operation="Set" Reference="Abil,ThrallFeralSpirit,Cost.Vital[Energy]" Value="30" />
+    <EffectArray Operation="Set" Reference="Abil,ThrallFeralSpirit,Cost.Vital[Energy]" Value="20" />
     <EffectArray Operation="Set" Reference="Abil,ThrallFeralSpirit,Cost.Cooldown.TimeUse" Value="6.000000" />
   </CEffectModifyPlayer>
   <CEffectModifyTokenCount id="ThrallFeralSpiritFrostwolfPackTalentDeathResetTokenCount" parent="BaseEffectModifyTokenCount">
@@ -2233,11 +2262,11 @@
   <CEffectCreatePersistent id="ThrallSunderingWarningPersistent">
     <OffsetVectorStartLocation Value="OriginPoint" />
   </CEffectCreatePersistent>
-  <CEffectCreatePersistent id="ThrallFrostwolfResilience3StackPersistent">
-    <PeriodCount value="3" />
+  <CEffectCreatePersistent id="ThrallFrostwolfResilience4StackPersistent">
+    <WhichLocation Value="CasterUnit" />
+    <PeriodCount value="4" />
     <PeriodicEffectArray value="ThrallFrostwolfResilienceApplySwitch" />
     <PeriodicPeriodArray value="0.0625" />
-    <WhichLocation Value="CasterUnit" />
   </CEffectCreatePersistent>
   <CEffectCreatePersistent id="ThrallFrostwolfResilience2StackPersistent">
     <PeriodCount value="2" />
@@ -2791,7 +2820,7 @@
     <ValidatorArray value="noMarkers" />
   </CEffectSet>
   <CEffectSwitch id="ThrallFeralSpiritFrostwolfResilienceSwitch">
-    <CaseArray Validator="ThrallHasFeralResilienceTalent" Effect="ThrallFrostwolfResilience3StackPersistent" />
+    <CaseArray Validator="ThrallHasFeralResilienceTalent" Effect="ThrallFrostwolfResilience4StackPersistent" />
     <CaseDefault value="ThrallFrostwolfResilienceImpactSwitch" />
   </CEffectSwitch>
   <CEffectCreatePersistent id="ThrallFeralSpiritImpactVisualPersistent">
@@ -3398,8 +3427,9 @@
     <TalentTreeArray Talent="ThrallMasteryEarthenShields" Tier="7" Column="2">
       <PrerequisiteTalentArray value="ThrallHeroicAbilityEarthquake" />
     </TalentTreeArray>
-    <TalentTreeArray Talent="GenericTalentNexusBlades" Tier="7" Column="3" />
-    <TalentTreeArray Talent="ThrallWindRush" Tier="7" Column="4" />
+    <TalentTreeArray Talent="ThrallElementalMomentum" Tier="7" Column="3" />
+    <TalentTreeArray Talent="GenericTalentNexusBlades" Tier="7" Column="4" />
+    <TalentTreeArray Talent="ThrallWindRush" Tier="7" Column="5" />
     <TalentAIBuildsArray ChanceToPick="16">
       <TalentsArray value="ThrallEchooftheElements" />
       <TalentsArray value="ThrallFeralResilience" />
@@ -3607,6 +3637,12 @@
   <CShapeQuad id="ThrallSunderingVisibilityShape">
     <Quad value="-1,-15.75,1,1" />
   </CShapeQuad>
+  <CTalent id="ThrallElementalMomentum">
+    <Face value="ThrallElementalMomentum" />
+    <RankArray>
+      <BehaviorArray value="ThrallElementalMomentumCarryBehavior" />
+    </RankArray>
+  </CTalent>
   <CTalent id="ThrallAncestralWrath">
     <Face value="ThrallAncestralWrath" />
     <Abil value="ThrallAncestralWrath" />
@@ -4359,10 +4395,10 @@
     <Find value="1" />
     <Value value="ThrallMasteryFeralArmor" />
   </CValidatorPlayerTalent>
-  <CValidatorPlayerTalent id="ThrallHasBattleMomentum">
+  <CValidatorPlayerTalent id="ThrallHasElementalMomentum">
     <WhichPlayer Value="Caster" />
     <Find value="1" />
-    <Value value="BattleMomentumThrall" />
+    <Value value="ThrallElementalMomentum" />
   </CValidatorPlayerTalent>
   <CValidatorCombine id="WarlordsAggressionCombine">
     <Type value="And" />

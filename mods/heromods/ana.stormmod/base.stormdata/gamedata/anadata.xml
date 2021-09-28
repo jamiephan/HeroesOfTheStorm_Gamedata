@@ -222,7 +222,7 @@
   </CAbilEffectInstant>
   <CAccumulatorToken id="AnaEyeOfHorusDeadeyeAccumulator" parent="BaseAccumulator">
     <TokenId value="AnaEyeOfHorusDeadeyeTokenCounter" />
-    <Scale value="0.04" />
+    <Scale value="0.05" />
   </CAccumulatorToken>
   <CAccumulatorToken id="AnaHealingDartSharpshooter" parent="BaseTokenAccumulator">
     <TokenId value="AnaHealingDartSharpshooter" />
@@ -239,7 +239,7 @@
   <CAccumulatorToken id="AnaHealingDartConcentratedDosesTokenCounter" parent="BaseTokenAccumulator">
     <ApplicationRule value="Add" />
     <TokenId value="AnaHealingDartConcentratedDosesTokenCounter" />
-    <Scale value="0.1" />
+    <Scale value="0.12" />
   </CAccumulatorToken>
   <CAccumulatorToken id="AnaShrikeDotDamageToken" parent="BaseAccumulator">
     <MaxAccumulation value="4" />
@@ -1116,6 +1116,9 @@
   <CBehaviorAbility id="AnaDebilitatingDartItem">
     <Buttons Face="AnaDebilitatingDart" Type="AbilCmd" AbilCmd="AnaDebilitatingDart,Execute" />
   </CBehaviorAbility>
+  <CBehaviorBuff id="AnaDebilitatingDartMissMarkerBuff">
+    <Duration value="0.625" />
+  </CBehaviorBuff>
   <CBehaviorAbility id="AnaDetachableBoxMagazineItem">
     <Buttons Face="AnaDetachableBoxMagazineActive" Type="AbilCmd" AbilCmd="AnaDetachableBoxMagazine,Execute" />
     <DisableValidatorArray value="AnaHealingDartAddOnMagazineChargeBuffCasterDoesNotHaveBuff" />
@@ -1137,6 +1140,9 @@
     </Modification>
   </CBehaviorBuff>
   <CBehaviorBuff id="AnaHealingDartPiercingDartsImpactCountTracker" />
+  <CBehaviorBuff id="AnaHealingDartSharpshooterMaxStacksCarry" parent="CarryBehaviorParent">
+    <RemoveValidatorArray value="AnaHasGTE10SharpshooterToken" />
+  </CBehaviorBuff>
   <CBehaviorBuff id="AnaHealingDartSpeedSerum" parent="StormSprint">
     <Duration value="1.5" />
     <Modification>
@@ -1160,7 +1166,7 @@
     <AtMinEvents index="0" EventId="QuestReset" Effect="AnaHealingDartSharpshooterRemoveTokens" />
     <Max value="10" />
     <SortIndex value="60" />
-    <AtMaxEvents index="0" EventId="" />
+    <AtMaxEvents index="0" EventId="" Effect="AnaHealingDartSharpshooterMaxStacksCarryApplyBehavior" />
   </CBehaviorTokenCounter>
   <CBehaviorTokenCounter id="AnaHealingDartConcentratedDosesTokenCounter" parent="StormGenericToken">
     <Max value="65535" />
@@ -1354,9 +1360,7 @@
   <CBehaviorTokenCounter id="AnaShrikeDotDamageToken" parent="StormGenericToken">
     <BehaviorCategories index="DamageOverTime" value="1" />
     <Max value="4" />
-    <AtMaxEvents Effect="AnaShrikeVampiricRoundsAdd3Tokens" />
-    <AtMaxEvents Effect="AnaShrikeVampiricRoundsAdd3Tokens" />
-    <AtMaxEvents Effect="AnaShrikeVampiricRoundsAdd3Tokens" />
+    <AtMaxEvents Effect="AnaShrikeVampiricRoundsAdd4Tokens" />
     <AtMaxEvents Effect="AnaSomnolentDosesApplyBehaviorDelayCP" />
     <AtMaxEvents Effect="AnaShrikeDotDamageMaxStack" />
   </CBehaviorTokenCounter>
@@ -1588,6 +1592,11 @@
     <EffectArray value="AnaAimDownSightsDeactivateSetCooldown" />
     <EffectArray value="AnaShrikeAimDownSightsModifyPlayerDeactivate" />
   </CEffectSet>
+  <CEffectModifyUnit id="AnaDebilitatingDartMissMarkerModifyCooldown">
+    <ValidatorArray value="AnaCasterDoesNotHaveDebilitatingDartMissMarker" />
+    <ImpactUnit Value="Caster" />
+    <Cost Abil="AnaDebilitatingDart,Execute" CooldownOperation="Add" CooldownTimeUse="-8" />
+  </CEffectModifyUnit>
   <CEffectApplyBehavior id="AnaEyeOfHorusDeadeyeTokenCounterApplyBehavior">
     <Chance value="0" />
     <WhichUnit Value="Caster" />
@@ -1614,6 +1623,14 @@
     <PeriodicEffectArray value="AnaEyeOfHorusDeadeyeTokenCounterRemoveBehavior" />
     <PeriodicPeriodArray value="0.125" />
   </CEffectCreatePersistent>
+  <CEffectRemoveBehavior id="AnaHealingDartSharpshooterMaxStacksCarryRemoveBehavior">
+    <WhichUnit Value="Caster" />
+    <BehaviorLink value="AnaHealingDartSharpshooterMaxStacksCarry" />
+  </CEffectRemoveBehavior>
+  <CEffectApplyBehavior id="AnaHealingDartSharpshooterMaxStacksCarryApplyBehavior">
+    <WhichUnit Value="Caster" />
+    <Behavior value="AnaHealingDartSharpshooterMaxStacksCarry" />
+  </CEffectApplyBehavior>
   <CEffectSet id="AnaShrikeSelfHealPoisonTraitHealSet">
     <EffectArray value="AnaShrikeSelfHealPoisonTraitHeal" />
     <EffectArray value="AnaShrikeSelfHealPoisonTraitHealResetTokens" />
@@ -1701,6 +1718,7 @@
     <MultiplicativeModifierArray index="PurifyingDarts" Validator="AnaTargetHasAnaHealingDartPurifyingDartHeroHitBehavior" Modifier="0.2" Crit="1" />
     <MultiplicativeModifierArray index="ConcentratedDoses" Validator="AnaConcentratedDosesCombine" Accumulator="AnaHealingDartConcentratedDosesTokenCounter" Crit="1" />
     <MultiplicativeModifierArray index="Sharpshooter" Validator="AnaHasGTE1SharpshooterToken" Accumulator="AnaHealingDartSharpshooter" Crit="1" />
+    <MultiplicativeModifierArray index="SharpershooterBonus" Validator="AnaHasGTE10SharpshooterToken" Modifier="0.35" Crit="1" />
     <MultiplicativeModifierArray index="BioticGrenadeHealing" Validator="AnaTargetHasBioticGrenadeAllyBuff" Modifier="0.25" />
   </CEffectCreateHealer>
   <CEffectDamage id="AnaHealingDartDummyDamage" />
@@ -1996,6 +2014,7 @@
   </CEffectSet>
   <CEffectDamage id="AnaBioticGrenadeEnemyImpactDamage" parent="StormSpell">
     <MultiplicativeModifierArray index="GrenadeCalibration" Accumulator="AnaBioticGrenadeGrenadeCalibrationCountTracker" />
+    <MultiplicativeModifierArray index="ContactHealing" Validator="AnaBioticGrenadeHasContactHealingTalent" Accumulator="AnaBioticGrenadeContactHealingCountTracker" Crit="1" />
     <Amount value="60" />
   </CEffectDamage>
   <CEffectApplyBehavior id="AnaBioticGrenadeEnemyBuffAB">
@@ -2147,10 +2166,11 @@
     <ValidatorArray value="TargetNotImmuneToFriendlyAbilities" />
     <TokenId value="AnaBioticGrenadeContactHealingCountTracker" />
   </CEffectModifyTokenCount>
-  <CEffectModifyTokenCount id="AnaShrikeVampiricRoundsAdd3Tokens" parent="BaseEffectModifyTokenCount">
+  <CEffectModifyTokenCount id="AnaShrikeVampiricRoundsAdd4Tokens" parent="BaseEffectModifyTokenCount">
     <ValidatorArray value="TargetIsHero" />
-    <TokenId value="AnaShrikeVampiricRoundsTokenCounter" />
     <Chance value="0" />
+    <TokenId value="AnaShrikeVampiricRoundsTokenCounter" />
+    <Value value="4" />
   </CEffectModifyTokenCount>
   <CEffectModifyTokenCount id="AnaShrikeVampiricRoundsAddToken" parent="BaseEffectModifyTokenCount">
     <ValidatorArray value="TargetIsHero" />
@@ -2347,7 +2367,6 @@
     <Marker>
       <MatchFlags index="Id" value="1" />
     </Marker>
-    <LaunchEffect value="AnaDebilitatingDartMissilePersistent" />
     <ImpactLocation>
       <Value value="TargetPoint" />
       <ProjectionMultiplier value="1" />
@@ -2358,6 +2377,7 @@
     <SharedFlags index="DynamicSearchArea" value="1" />
     <SharedFlags index="DisableArriveOnLaunch" value="1" />
     <SearchEffect value="AnaDebilitatingDartMissileScan" />
+    <FinishEffect value="AnaDebilitatingDartMissMarkerModifyCooldown" />
   </CEffectLaunchMissile>
   <CEffectEnumArea id="AnaDebilitatingDartMissileScan">
     <ImpactLocation Value="TargetPoint" />
@@ -2379,6 +2399,7 @@
     <EffectArray value="HeroGenericDummyAbilityImpactSet" />
     <EffectArray value="AnaDebilitatingDartApplyBehavior" />
     <EffectArray value="AnaDebilitatingDartSlowApplyBehavior" />
+    <EffectArray value="AnaDebilitatingDartMissMarkerApplyBehavior" />
     <EffectArray value="DismountDecloakTargetSet" />
     <EffectArray value="SuicideRemove" />
   </CEffectSet>
@@ -2773,6 +2794,10 @@
   </CEffectCreateHealer>
   <CEffectApplyBehavior id="AnaEyeOfHorusMainTargetMarkerApplyBehavior">
     <Behavior value="AnaEyeOfHorusMainTargetMarker" />
+  </CEffectApplyBehavior>
+  <CEffectApplyBehavior id="AnaDebilitatingDartMissMarkerApplyBehavior">
+    <WhichUnit Value="Caster" />
+    <Behavior value="AnaDebilitatingDartMissMarkerBuff" />
   </CEffectApplyBehavior>
   <CEffectEnumArea id="EyeOfHorusAttackDamageSearch">
     <ImpactLocation>
@@ -4432,7 +4457,7 @@
         <Type value="FlatModification" />
         <Entry value="AnaBioticGrenade" />
         <Field value="Cost[0].Cooldown.TimeUse" />
-        <Value value="-2.000000" />
+        <Value value="-3.000000" />
       </Modifications>
     </AbilityModificationArray>
   </CTalent>
@@ -4854,7 +4879,7 @@
       <Modifications>
         <Type value="FlatModification" />
         <Catalog value="Effect" />
-        <Entry value="AnaShrikeVampiricRoundsAdd3Tokens" />
+        <Entry value="AnaShrikeVampiricRoundsAdd4Tokens" />
         <Field value="Chance" />
         <Value value="1.000000" />
       </Modifications>
@@ -5072,6 +5097,12 @@
     <Value value="1" />
     <TokenId value="AnaHealingDartSharpshooter" />
   </CValidatorUnitCompareTokenCount>
+  <CValidatorUnitCompareTokenCount id="AnaHasGTE10SharpshooterToken">
+    <WhichUnit Value="Caster" />
+    <Compare value="GE" />
+    <Value value="10" />
+    <TokenId value="AnaHealingDartSharpshooter" />
+  </CValidatorUnitCompareTokenCount>
   <CValidatorUnitCompareTokenCount id="AnaHasGTE1ShrikeHealToken">
     <WhichUnit Value="Target" />
     <Compare value="GE" />
@@ -5098,6 +5129,10 @@
     <Find value="1" />
     <Value value="AnaSleepDartNightTerrors" />
   </CValidatorPlayerTalent>
+  <CValidatorUnitCompareBehaviorCount id="AnaCasterDoesNotHaveDebilitatingDartMissMarker">
+    <WhichUnit Value="Caster" />
+    <Behavior value="AnaDebilitatingDartMissMarkerBuff" />
+  </CValidatorUnitCompareBehaviorCount>
   <CValidatorCompareTrackedUnitsCount id="AnaSleepDartCasterHasTrackedUnits">
     <Compare value="GT" />
     <BehaviorLink value="AnaSleepDartUnitTracker" />

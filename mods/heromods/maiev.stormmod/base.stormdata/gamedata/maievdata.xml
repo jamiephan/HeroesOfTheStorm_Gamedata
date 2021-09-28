@@ -113,7 +113,14 @@
   <CAbilEffectInstant id="MaievVaultOfTheWardens">
     <Effect value="MaievVaultOfTheWardensAirborneStasisApplyBehavior" />
     <Cost>
-      <Cooldown TimeUse="13" />
+      <Charge>
+        <CountMax value="1" />
+        <CountStart value="1" />
+        <CountUse value="1" />
+        <HideCount value="1" />
+        <TimeUse value="13" />
+      </Charge>
+      <Cooldown TimeUse="0.75" />
     </Cost>
     <CmdButtonArray index="Execute" DefaultButtonFace="MaievVaultOfTheWardens" />
     <PrepEffect value="DismountDecloakCasterSet" />
@@ -1201,6 +1208,9 @@
     <On Terms="SceneEffectSearchNotifyResults.MaievFanOfKnivesBladeDanceSearch" Send="SceneEffectSearchResponse DoodadImpactable" />
   </CActorScene>
   <CActorModel id="HeroMaievDeathRagdoll" parent="StormHeroDeathRagdoll" />
+  <CBehaviorBuff id="MaievContainmentDiscSilence" parent="StormSilence">
+    <Duration value="1.5" />
+  </CBehaviorBuff>
   <CBehaviorBuff id="MaievFanOfKnivesVengefulKnivesDummyRemoveThenApplyTokenStacksBehavior">
     <MaxStackCount value="5" />
     <Duration value="0.125" />
@@ -1210,9 +1220,9 @@
     <FinalEffect value="MaievSpiritOfVengeanceVengefulKnivesIncreaseTokenCount" />
   </CBehaviorBuff>
   <CBehaviorBuff id="MaievUmbralBindBondsOfCorruptionSlow" parent="StormSlowParent">
-    <Duration value="4" />
+    <Duration value="3" />
     <Modification>
-      <UnifiedMoveSpeedFactor value="-0.2" />
+      <UnifiedMoveSpeedFactor value="-0.25" />
     </Modification>
   </CBehaviorBuff>
   <CBehaviorAbility id="MaievShadowOrbVengeanceItem">
@@ -1335,7 +1345,7 @@
   </CBehaviorTokenCounter>
   <CBehaviorTokenCounter id="MaievFanOfKnivesPinDownDamageToken" parent="StormGenericToken">
     <Face value="MaievFanOfKnivesPinDownQuestToken" />
-    <Max value="40" />
+    <Max value="50" />
   </CBehaviorTokenCounter>
   <CBehaviorTokenCounter id="MaievFanOfKnivesPinDownQuestToken" parent="StormQuestToken">
     <SortIndex value="20" />
@@ -1447,9 +1457,9 @@
     <BuffFlags index="RefreshStack" value="1" />
     <MaxStackCount value="5" />
     <MaxStackCountPerCaster value="1" />
-    <Duration value="4" />
+    <Duration value="3" />
     <ArmorModification StackCount="5">
-      <AllArmorBonus value="-10" />
+      <AllArmorBonus value="-15" />
     </ArmorModification>
   </CBehaviorBuff>
   <CBehaviorUnitTracker id="MaievContainmentDiscTrackedUnit">
@@ -1483,7 +1493,7 @@
     <DisplayDuration index="Enemy" value="1" />
     <Duration value="4" />
     <InitialEffect value="MaievContainmentDiscTimeStopActiveSet" />
-    <FinalEffect value="MaievContainmentDiscVisionDummy" />
+    <FinalEffect value="MaievContainmentDiscFinalSet" />
     <ExpireEffect value="HeroGenericRemoveMovementSuppressionBuff" />
     <Modification>
       <ModifyFlags index="Reveal" value="1" />
@@ -1496,6 +1506,14 @@
     <BehaviorFlags index="Permanent" value="1" />
     <BehaviorFlags index="EnabledWhileDead" value="1" />
   </CBehaviorBuff>
+  <CBehaviorTokenCounter id="MaievVigorousVaulterTokenCounter" parent="StormGenericToken">
+    <Face value="MiaevVigorousVaulter" />
+    <InfoFlags index="Hidden" value="1" />
+    <BehaviorCategories index="Quest" value="1" />
+    <AtMaxEvents EventId="QuestComplete" ValidRange="1,1" />
+    <Max value="1" />
+    <TokenCounterFlags index="HideStackCountAtMax" value="1" />
+  </CBehaviorTokenCounter>
   <CBehaviorBuff id="MaievWardensCagePush" parent="PushPullParent">
     <RemoveValidatorArray value="MaievTargetNotAtWardensCageCenter" />
     <Duration value="0.375" />
@@ -1663,6 +1681,16 @@
   <CButton id="MaievShadowOrbHuntress" parent="StormButtonParent">
     <Icon value="Assets\Textures\storm_ui_icon_maiev_shadoworb_relentless.dds" />
   </CButton>
+  <CButton id="MiaevVigorousVaulter" parent="StormButtonParent">
+    <Icon value="Assets\Textures\storm_ui_icon_maiev_trait.dds" />
+  </CButton>
+  <CEffectApplyBehavior id="MaievContainmentDiscApplySilence">
+    <Behavior value="MaievContainmentDiscSilence" />
+  </CEffectApplyBehavior>
+  <CEffectSet id="MaievContainmentDiscFinalSet">
+    <EffectArray value="MaievContainmentDiscVisionDummy" />
+    <EffectArray value="MaievContainmentDiscApplySilence" />
+  </CEffectSet>
   <CEffectApplyBehavior id="MaievFanOfKnivesVengefulKnivesDummyRemoveThenApplyTokenStacksApplyBehavior">
     <ValidatorArray value="TargetIsHero" />
     <ValidatorArray value="MaievHasSpiritOfVengeanceVengefulKnivesTalent" />
@@ -1882,6 +1910,19 @@
     <Cost Abil="MaievUmbralBind,Execute" CooldownOperation="Add" CooldownTimeUse="-1" />
     <ValidatorArray value="TargetIsHero" />
   </CEffectModifyUnit>
+  <CEffectModifyTokenCount id="MaievVigorousVaulterAddToken" parent="BaseEffectModifyTokenCount">
+    <ContextUnit Value="Caster" />
+    <TokenId value="MaievVigorousVaulterTokenCounter" />
+  </CEffectModifyTokenCount>
+  <CEffectModifyPlayer id="MaievVigorousVaulterModifyPlayer">
+    <EffectArray Reference="Abil,MaievVaultOfTheWardens,Cost.Charge.CountMax" Value="1" />
+    <EffectArray Operation="Set" Reference="Abil,MaievVaultOfTheWardens,Cost.Charge.HideCount" Value="0" />
+  </CEffectModifyPlayer>
+  <CEffectModifyPlayer id="MaievVigorousVaulterResetPlayer">
+    <Marker Link="Effect/MaievVigorousVaulterModifyPlayer" />
+    <EffectArray Operation="Subtract" Reference="Abil,MaievVaultOfTheWardens,Cost.Charge.CountMax" Value="1" />
+    <EffectArray Operation="Set" Reference="Abil,MaievVaultOfTheWardens,Cost.Charge.HideCount" Value="1" />
+  </CEffectModifyPlayer>
   <CEffectSet id="MaievWeaponUniversalSet">
     <EffectArray value="UniversalWeaponLaunchSet" />
     <EffectArray value="UniversalWeaponImpact" />
@@ -1900,11 +1941,12 @@
   </CEffectSet>
   <CEffectDamage id="MaievWeaponDamage" parent="StormWeapon">
     <Amount value="145" />
-    <MultiplicativeModifierArray index="MaievArmoredAssault" Validator="MaievArmoredAssaultCombine" Modifier="0.2" Crit="1" />
+    <MultiplicativeModifierArray index="MaievArmoredAssault" Validator="MaievArmoredAssaultCombine" Modifier="0.25" Crit="1" />
     <MultiplicativeModifierArray index="MaievBondsOfJustice" Validator="MaievUmbralBindPrimedAndBondsOfJusticeTokenCountIsGTE10" Modifier="0.3" Crit="1" />
     <MultiplicativeModifierArray index="RuthlessSpirit" Validator="MaievSpiritOfVengeanceRuthlessSpiritCombine" Accumulator="MaievSpiritOfVengeanceRuthlessSpiritDamageAccumulator" Crit="1" />
   </CEffectDamage>
   <CEffectDamage id="MaievWeaponUmbralBindDamage" parent="MaievWeaponDamage">
+    <MultiplicativeModifierArray index="MaievArmoredAssault" Validator="MaievArmoredAssaultCombine" Modifier="0.2" Crit="1" />
     <MultiplicativeModifierArray index="MaievBondsOfJustice" Validator="MaievUmbralBindBondsOfJusticeTokenCountIsGTE10" Modifier="0.3" Crit="1" />
   </CEffectDamage>
   <CEffectApplyBehavior id="MaievFanOfKnivesSuppressTurningApplyBehavior">
@@ -2186,7 +2228,7 @@
   </CEffectModifyPlayer>
   <CEffectModifyTokenCount id="MaievFanOfKnivesPinDownFirstStackModifyDamageTokenCount" parent="BaseEffectModifyTokenCount">
     <TokenId value="MaievFanOfKnivesPinDownDamageToken" />
-    <Value value="20" />
+    <Value value="30" />
   </CEffectModifyTokenCount>
   <CEffectModifyTokenCount id="MaievFanOfKnivesPinDownModifyDamageTokenCount" parent="BaseEffectModifyTokenCount">
     <TokenId value="MaievFanOfKnivesPinDownDamageToken" />
@@ -2631,7 +2673,7 @@
     <EffectArray value="MaievSpiritOfVengeanceVengefulKnivesIncreaseTokenCount" />
   </CEffectSet>
   <CEffectDamage id="MaievFanOfKnivesBladeDanceDamage" parent="StormWeapon">
-    <MultiplicativeModifierArray index="MaievArmoredAssault" Validator="MaievArmoredAssaultCombine" Modifier="0.2" Crit="1" />
+    <MultiplicativeModifierArray index="MaievArmoredAssault" Validator="MaievArmoredAssaultCombine" Modifier="0.25" Crit="1" />
     <MultiplicativeModifierArray index="RuthlessSpirit" Validator="MaievSpiritOfVengeanceRuthlessSpiritCombine" Accumulator="MaievSpiritOfVengeanceRuthlessSpiritDamageAccumulator" Crit="1" />
     <Amount value="50" />
     <SourceButtonFace value="MaievFanOfKnivesBladeDance" />
@@ -2884,6 +2926,7 @@
     </HeroAbilArray>
     <HeroAbilArray Abil="MaievVaultOfTheWardens" Button="MaievVaultOfTheWardens">
       <Flags index="ShowInHeroSelect" value="1" />
+      <Flags index="UsesCharges" value="1" />
       <Flags index="AffectedByCooldownReduction" value="1" />
       <Flags index="AffectedByOverdrive" value="1" />
       <Flags index="Trait" value="1" />
@@ -3129,6 +3172,11 @@
     </RankArray>
     <Active value="1" />
     <Abil value="MaievContainmentDisc" />
+  </CTalent>
+  <CTalent id="MaievVigorousVaulter">
+    <Face value="MiaevVigorousVaulter" />
+    <Abil value="MaievVaultOfTheWardens" />
+    <QuestData StackBehavior="MaievVigorousVaulterTokenCounter" TargetCount="1" />
   </CTalent>
   <CTalent id="MaievWardensCage">
     <Face value="MaievWardensCage" />
@@ -3494,6 +3542,7 @@
     <BehaviorArray Link="ExcellentMana" />
     <BehaviorArray Link="MaievFanOfKnivesTargetCounter" />
     <BehaviorArray Link="MaievUmbralBindTargetCounter" />
+    <BehaviorArray Link="MaievVigorousVaulterTokenCounter" />
     <WeaponArray Link="HeroMaievWeapon" />
     <CardLayouts index="0">
       <LayoutButtons Face="MaievContainmentDiscContain" Type="AbilCmd" AbilCmd="MaievContainmentDiscContain,Execute" Slot="Heroic" />

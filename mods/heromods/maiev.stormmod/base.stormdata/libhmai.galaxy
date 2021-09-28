@@ -46,6 +46,8 @@ void libHMAI_gf_HeroMaievIncrementHeroCountFunction () {
         TriggerEnable(libHMAI_gt_HeroMaievContainmentDiscOverlayOn, true);
         TriggerEnable(libHMAI_gt_HeroMaievContainmentDiscOverlayOff, true);
         TriggerEnable(libHMAI_gt_HeroMaievChargedTalentsRespec, true);
+        TriggerEnable(libHMAI_gt_HeroMaievVaultCharge, true);
+        TriggerEnable(libHMAI_gt_HeroMaievResetVaultCharge, true);
     }
 
 }
@@ -64,6 +66,8 @@ void libHMAI_gf_HeroMaievDecrementHeroCountFunction () {
         TriggerEnable(libHMAI_gt_HeroMaievContainmentDiscOverlayOn, false);
         TriggerEnable(libHMAI_gt_HeroMaievContainmentDiscOverlayOff, false);
         TriggerEnable(libHMAI_gt_HeroMaievChargedTalentsRespec, false);
+        TriggerEnable(libHMAI_gt_HeroMaievVaultCharge, false);
+        TriggerEnable(libHMAI_gt_HeroMaievResetVaultCharge, false);
     }
 
 }
@@ -430,6 +434,116 @@ void libHMAI_gt_HeroMaievRemoveContainmentDiscAllyVisionSuppression_Init () {
     TriggerAddEventPlayerEffectUsed(libHMAI_gt_HeroMaievRemoveContainmentDiscAllyVisionSuppression, c_playerAny, "MaievContainmentDiscVisionDummy");
 }
 
+//--------------------------------------------------------------------------------------------------
+// Trigger: Hero - Maiev - Vault Charge
+//--------------------------------------------------------------------------------------------------
+bool libHMAI_gt_HeroMaievVaultCharge_Func (bool testConds, bool runActions) {
+    // Variable Declarations
+    int lv_player;
+    unit lv_unit;
+
+    // Automatic Variable Declarations
+    // Variable Initialization
+    lv_player = libGame_gf_HeroLevelUpPlayer();
+    lv_unit = libGame_gv_players[lv_player].lv_heroUnit;
+
+    // Conditions
+    if (testConds) {
+        if (!((lv_player >= 1))) {
+            return false;
+        }
+
+        if (!((lv_player <= libCore_gv_bALMaxPlayers))) {
+            return false;
+        }
+
+        if (!((libGame_gf_HeroLevelUpLevel() >= 20))) {
+            return false;
+        }
+
+        if (!((UnitGetType(lv_unit) == "HeroMaiev"))) {
+            return false;
+        }
+
+        if (!((PlayerHasTalent(lv_player, "MaievVigorousVaulter") == false))) {
+            return false;
+        }
+    }
+
+    // Actions
+    if (!runActions) {
+        return true;
+    }
+
+    PlayerAddTalent(lv_player, "MaievVigorousVaulter");
+    UnitCreateEffectUnit(lv_unit, "MaievVigorousVaulterModifyPlayer", lv_unit);
+    UnitCreateEffectUnit(lv_unit, "MaievVigorousVaulterAddToken", lv_unit);
+    return true;
+}
+
+//--------------------------------------------------------------------------------------------------
+void libHMAI_gt_HeroMaievVaultCharge_Init () {
+    libHMAI_gt_HeroMaievVaultCharge = TriggerCreate("libHMAI_gt_HeroMaievVaultCharge_Func");
+    TriggerEnable(libHMAI_gt_HeroMaievVaultCharge, false);
+    libGame_gf_HeroLevelUp(libHMAI_gt_HeroMaievVaultCharge);
+}
+
+//--------------------------------------------------------------------------------------------------
+// Trigger: Hero - Maiev - Reset Vault Charge
+//--------------------------------------------------------------------------------------------------
+bool libHMAI_gt_HeroMaievResetVaultCharge_Func (bool testConds, bool runActions) {
+    // Variable Declarations
+    int lv_player;
+    unit lv_unit;
+
+    // Automatic Variable Declarations
+    // Variable Initialization
+    lv_player = UnitGetOwner(EventUnit());
+    lv_unit = libGame_gv_players[lv_player].lv_heroUnit;
+
+    // Conditions
+    if (testConds) {
+        if (!((lv_player >= 1))) {
+            return false;
+        }
+
+        if (!((lv_player <= libCore_gv_bALMaxPlayers))) {
+            return false;
+        }
+
+        if (!((UnitGetType(lv_unit) == "HeroMaiev"))) {
+            return false;
+        }
+
+        if (!((PlayerHasTalent(lv_player, "MaievVigorousVaulter") == true))) {
+            return false;
+        }
+    }
+
+    // Actions
+    if (!runActions) {
+        return true;
+    }
+
+    PlayerRemoveTalent(lv_player, "MaievVigorousVaulter");
+    UnitCreateEffectUnit(lv_unit, "MaievVigorousVaulterResetPlayer", lv_unit);
+    Wait(0.125, c_timeGame);
+    if ((UnitBehaviorCount(EventUnit(), "HeroDummyVeterancy") >= 20) && (PlayerHasTalent(lv_player, "MaievVigorousVaulter") == false)) {
+        PlayerAddTalent(lv_player, "MaievVigorousVaulter");
+        UnitCreateEffectUnit(lv_unit, "MaievVigorousVaulterModifyPlayer", lv_unit);
+        UnitCreateEffectUnit(lv_unit, "MaievVigorousVaulterAddToken", lv_unit);
+    }
+
+    return true;
+}
+
+//--------------------------------------------------------------------------------------------------
+void libHMAI_gt_HeroMaievResetVaultCharge_Init () {
+    libHMAI_gt_HeroMaievResetVaultCharge = TriggerCreate("libHMAI_gt_HeroMaievResetVaultCharge_Func");
+    TriggerEnable(libHMAI_gt_HeroMaievResetVaultCharge, false);
+    TriggerAddEventUnitBehaviorChange(libHMAI_gt_HeroMaievResetVaultCharge, null, "MaievVigorousVaulterTokenCounter", c_unitBehaviorChangeCreate);
+}
+
 void libHMAI_InitTriggers () {
     libHMAI_gt_HeroMaievChargedTalentsRespec_Init();
     libHMAI_gt_HeroMaievContainmentDiscOverlayOn_Init();
@@ -437,6 +551,8 @@ void libHMAI_InitTriggers () {
     libHMAI_gt_HeroMaievMultiHeroContainmentDiscController_Init();
     libHMAI_gt_HeroMaievApplyContainmentDiscAllyVisionSuppression_Init();
     libHMAI_gt_HeroMaievRemoveContainmentDiscAllyVisionSuppression_Init();
+    libHMAI_gt_HeroMaievVaultCharge_Init();
+    libHMAI_gt_HeroMaievResetVaultCharge_Init();
 }
 
 //--------------------------------------------------------------------------------------------------

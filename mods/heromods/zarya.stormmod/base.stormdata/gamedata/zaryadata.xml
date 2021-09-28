@@ -979,6 +979,9 @@
   <CBehaviorAbility id="ZaryaPainIsTemporaryItem">
     <Buttons Face="ZaryaPainIsTemporaryTalent" Type="AbilCmd" AbilCmd="ZaryaPainIsTemporary,Execute" />
   </CBehaviorAbility>
+  <CBehaviorBuff id="ZaryaParticleGrenadeDeepBurnTalentMarker">
+    <Duration value="3" />
+  </CBehaviorBuff>
   <CBehaviorAbility id="ZaryaUnyieldingDefenderItem">
     <Buttons Face="ZaryaUnyieldingDefenderTalent" Type="AbilCmd" AbilCmd="ZaryaUnyieldingDefender,Execute" />
   </CBehaviorAbility>
@@ -1012,6 +1015,8 @@
     <ExpireEffect value="HeroGenericMissileInterruptLaunchMissileSource" />
     <FinalEffect value="ZaryaGravitonSurgeOrbitRemoveKinetic" />
     <TimeScaleSource Value="Global" />
+    <Period value="0.5" />
+    <PeriodicEffect value="ZaryaGravitonSurgeDamage" />
   </CBehaviorBuff>
   <CBehaviorBuff id="ZaryaGravitonSurgePullInitial">
     <RemoveValidatorArray value="ZaryaGravitonSurgeAbilStageNotMove" />
@@ -1038,6 +1043,7 @@
     <Modification>
       <StateFlags index="OrdersPaused" value="1" />
     </Modification>
+    <InitialEffect value="ZaryaGravitonSurgeDamage" />
   </CBehaviorBuff>
   <CBehaviorBuff id="ZaryaParticleGrenadePlasmaShock" parent="StormSlowParent">
     <Duration value="2" />
@@ -1301,6 +1307,10 @@
     <Tooltip value="Button/TooltipAppender/ZaryaEnergyMaximumChargeProgress" />
     <Icon value="Assets\Textures\storm_ui_icon_Zarya_Energy.dds" />
   </CButton>
+  <CButton id="ZaryaDeepBurn" parent="StormButtonParent">
+    <Icon value="Assets\Textures\storm_ui_icon_zarya_particlegrenade_a.dds" />
+    <HotkeyAlias value="ZaryaParticleGrenade" />
+  </CButton>
   <CButton id="ZaryaShieldAllyGiveMeTwentyQuestToken" parent="StormButtonParent">
     <Tooltip value="Button/Tooltip/ZaryaShieldAllyGiveMeTwentyProgress" />
     <Icon value="Assets\Textures\storm_ui_icon_Zarya_ShieldAlly.dds" />
@@ -1395,6 +1405,7 @@
     <Icon value="Assets\Textures\storm_ui_icon_Zarya_ParticleGrenade.dds" />
     <TooltipAppender Validator="ZaryaTargetHasParticleGrenadeDemolitionsExpert" Face="ZaryaParticleGrenadeDemolitionsExpertTalent" />
     <TooltipAppender Validator="ZaryaHasParticleGrenadePinpointAccuracy" Face="ZaryaParticleGrenadePinpointAccuracyTalent" />
+    <TooltipAppender Validator="ZaryaHasDeepBurnTalent" Face="ZaryaDeepBurn" />
     <TooltipAppender Validator="ZaryaHasParticleGrenadePlasmaShock" Face="ZaryaParticleGrenadePlasmaShockTalent" />
     <TooltipAppender Validator="ZaryaHasParticleGrenadeGrenadier" Face="ZaryaParticleGrenadeGrenadierTalent" />
   </CButton>
@@ -1454,6 +1465,20 @@
     <ValidatorArray index="0" value="ZaryaDoesNotHaveGravityKillsSilence" />
     <Behavior value="ZaryaGravitonSurgeGravityKillsTalentSilence" />
   </CEffectApplyBehavior>
+  <CEffectApplyBehavior id="ZaryaParticleGrenadeDeepBurnTalentApplyMarker">
+    <ValidatorArray index="0" value="TargetIsHero" />
+    <Chance value="0" />
+    <Behavior value="ZaryaParticleGrenadeDeepBurnTalentMarker" />
+  </CEffectApplyBehavior>
+  <CEffectModifyUnit id="ZaryaParticleGrenadeDeepBurnTalentModifyUnit">
+    <ValidatorArray value="CasterNotBlindedAndTargetNotEvading" />
+    <ValidatorArray value="ZaryaTargetHasDeepBurnTalentMarker" />
+    <ImpactUnit Value="Caster" />
+    <VitalArray index="Energy">
+      <Change value="1" />
+    </VitalArray>
+    <FloaterCreation value="Suppress" />
+  </CEffectModifyUnit>
   <CEffectModifyTokenCount id="ZaryaParticleGrenadeDemolitionsExpertAddToken" parent="BaseEffectModifyTokenCount">
     <ValidatorArray value="TargetIsHero" />
     <ValidatorArray value="ZaryaDoesNotHaveParticleGrenadeDemolitionsExpertComplete" />
@@ -1543,9 +1568,8 @@
       <Radius value="3" />
     </AreaArray>
   </CEffectEnumArea>
-  <CEffectDamage id="ZaryaGravitonSurgeGravityKillsDamage" parent="StormSpell">
-    <ImpactUnitValidator value="HasZaryaGravitonSurgePull" />
-    <Amount value="25">
+  <CEffectDamage id="ZaryaGravitonSurgeDamage" parent="StormSpell">
+    <Amount value="15">
       <AccumulatorArray value="ZaryaEnergyAccumulator" />
     </Amount>
   </CEffectDamage>
@@ -1745,6 +1769,7 @@
     <EffectArray value="ZaryaWeaponDamageSwitch" />
     <EffectArray value="ZaryaWeaponTargetApplyBehavior" />
     <EffectArray value="ApplyAbilityImpactReveal" />
+    <EffectArray value="ZaryaParticleGrenadeDeepBurnTalentModifyUnit" />
     <EffectArray value="UniversalWeaponLaunchSet" />
   </CEffectSet>
   <CEffectApplyBehavior id="ZaryaWeaponTargetApplyBehavior">
@@ -1825,6 +1850,7 @@
     <EffectArray value="ZaryaParticleGrenadeDemolitionsExpertAddToken" />
     <EffectArray value="ZaryaParticleGrenadePinpointAccuracySlowApply" />
     <EffectArray value="ApplyAbilityImpactReveal" />
+    <EffectArray value="ZaryaParticleGrenadeDeepBurnTalentApplyMarker" />
     <EffectArray value="StormSuicide" />
   </CEffectSet>
   <CEffectSwitch id="ZaryaParticleGrenadeDamageSwitch">
@@ -1943,6 +1969,7 @@
     <ValidatorArray value="ZaryaWeaponSplashDamageNotOnCooldown" />
     <EffectArray value="ZaryaWeaponSplashDamageSwitch" />
     <EffectArray value="ApplyAbilityImpactReveal" />
+    <EffectArray value="ZaryaParticleGrenadeDeepBurnTalentModifyUnit" />
     <EffectArray value="ZaryaWeaponSplashDamageCooldownApplyBehavior" />
   </CEffectSet>
   <CEffectApplyBehavior id="ZaryaWeaponSplashDamageCooldownApplyBehavior">
@@ -2123,12 +2150,12 @@
     <ValidatorArray value="ZaryaParticleGrenadePinpointAccuracyDamageCombine" />
   </CEffectApplyBehavior>
   <CHero id="Zarya">
-    <AIComplexityTier value="Mid" />
-    <ProductId value="22262" />
     <AttributeId value="Zary" />
-    <VariationArray value="ZaryaBaseVar1" />
-    <VariationArray value="ZaryaBaseVar2" />
-    <VariationArray value="ZaryaBaseVar3" />
+    <Flags index="GoodForModeA" value="1" />
+    <ExpandedRole value="Support" />
+    <RolesMultiClass value="Warrior" />
+    <RoleScoreValueOverride value="Warrior" />
+    <RoleScoreValueOverride value="Support" />
     <HeroAbilArray Abil="ZaryaParticleGrenade" Button="ZaryaParticleGrenade">
       <Flags index="ShowInHeroSelect" value="1" />
       <Flags index="UsesCharges" value="1" />
@@ -2156,9 +2183,51 @@
       <Flags index="ShowInHeroSelect" value="1" />
       <Flags index="Trait" value="1" />
     </HeroAbilArray>
-    <RolesMultiClass value="Warrior" />
-    <RoleScoreValueOverride value="Warrior" />
-    <RoleScoreValueOverride value="Support" />
+    <SkinArray value="ZaryaUltimate" />
+    <SkinArray value="ZaryaThunder" />
+    <SkinArray value="ZaryaHanamura" />
+    <SkinArray value="ZaryaSpooky18" />
+    <VoiceLineArray value="ZaryaBase_VoiceLine01" />
+    <VoiceLineArray value="ZaryaBase_VoiceLine02" />
+    <VoiceLineArray value="ZaryaBase_VoiceLine03" />
+    <VoiceLineArray value="ZaryaBase_VoiceLine04" />
+    <VoiceLineArray value="ZaryaBase_VoiceLine05" />
+    <DefaultMount value="HorseCommon" />
+    <TalentTreeArray Talent="ZaryaParticleGrenadeDemolitionsExpertQuest" Tier="1" Column="1" />
+    <TalentTreeArray Talent="ZaryaShieldAllyTogetherWeAreStrong" Tier="1" Column="2" />
+    <TalentTreeArray Talent="ZaryaWeaponFeelTheHeat" Tier="1" Column="3" />
+    <TalentTreeArray Talent="ZaryaEnergyMaximumChargeQuest" Tier="1" Column="4" />
+    <TalentTreeArray Talent="ZaryaPersonalBarrierIAmTheStrongest" Tier="2" Column="1" />
+    <TalentTreeArray Talent="ZaryaShieldAllyGiveMeTwentyQuest" Tier="2" Column="2" />
+    <TalentTreeArray Talent="ZaryaShieldAllySpeedBarrier" Tier="2" Column="3" />
+    <TalentTreeArray Talent="ZaryaDefensiveShielding" Tier="2" Column="4" />
+    <TalentTreeArray Talent="ZaryaParticleGrenadePinpointAccuracy" Tier="3" Column="1" />
+    <TalentTreeArray Talent="ZaryaDeepBurn" Tier="3" Column="2" />
+    <TalentTreeArray Talent="ZaryaPersonalBarrierExplosiveBarrier" Tier="3" Column="3" />
+    <TalentTreeArray Talent="ZaryaHeroicAbilityGravitonSurge" Tier="4" Column="1" />
+    <TalentTreeArray Talent="ZaryaHeroicAbilityExpulsionZone" Tier="4" Column="2" />
+    <TalentTreeArray Talent="ZaryaPersonalBarrierUnstoppableCompetitor" Tier="5" Column="1" />
+    <TalentTreeArray Talent="ZaryaPersonalBarrierSpellBarrier" Tier="5" Column="2" />
+    <TalentTreeArray Talent="ZaryaEnergyEnduranceTraining" Tier="5" Column="3" />
+    <TalentTreeArray Talent="ZaryaPainIsTemporary" Tier="5" Column="4" />
+    <TalentTreeArray Talent="ZaryaShieldAllyCleansingShield" Tier="6" Column="1" />
+    <TalentTreeArray Talent="ZaryaShieldAllyGainTrain" Tier="6" Column="2" />
+    <TalentTreeArray Talent="ZaryaEnergyBornInBattle" Tier="6" Column="3" />
+    <TalentTreeArray Talent="ZaryaGravitonSurgeGravityKills" Tier="7" Column="1">
+      <PrerequisiteTalentArray value="ZaryaHeroicAbilityGravitonSurge" />
+    </TalentTreeArray>
+    <TalentTreeArray Talent="ZaryaExpulsionZoneClearOut" Tier="7" Column="2">
+      <PrerequisiteTalentArray value="ZaryaHeroicAbilityExpulsionZone" />
+    </TalentTreeArray>
+    <TalentTreeArray Talent="ZaryaParticleGrenadeGrenadier" Tier="7" Column="3" />
+    <TalentTreeArray Talent="ZaryaUnyieldingDefender" Tier="7" Column="4" />
+    <VariationIcon value="Assets\Textures\UI_Glues_Swatch_Blue_Gray.dds" />
+    <AIComplexityTier value="Mid" />
+    <HeroTierAchievementId value="5216701565560753704" />
+    <Gender value="Female" />
+    <Universe value="Overwatch" />
+    <UniverseIcon value="Assets\Textures\ui_glues_store_gameicon_ow.dds" />
+    <ProductId value="22262" />
     <LevelScalingArray>
       <Modifications>
         <Catalog value="Unit" />
@@ -2290,7 +2359,7 @@
     <LevelScalingArray Ability="ZaryaGravitonSurge">
       <Modifications>
         <Catalog value="Effect" />
-        <Entry value="ZaryaGravitonSurgeGravityKillsDamage" />
+        <Entry value="ZaryaGravitonSurgeDamage" />
         <Field value="Amount" />
         <Value value="0.040000" />
         <AffectedByAbilityPower value="1" />
@@ -2307,53 +2376,24 @@
         <AffectedByOverdrive value="1" />
       </Modifications>
     </LevelScalingArray>
-    <TalentTreeArray Talent="ZaryaParticleGrenadeDemolitionsExpertQuest" Tier="1" Column="1" />
-    <TalentTreeArray Talent="ZaryaShieldAllyTogetherWeAreStrong" Tier="1" Column="2" />
-    <TalentTreeArray Talent="ZaryaWeaponFeelTheHeat" Tier="1" Column="3" />
-    <TalentTreeArray Talent="ZaryaEnergyMaximumChargeQuest" Tier="1" Column="4" />
-    <TalentTreeArray Talent="ZaryaPersonalBarrierIAmTheStrongest" Tier="2" Column="1" />
-    <TalentTreeArray Talent="ZaryaShieldAllyGiveMeTwentyQuest" Tier="2" Column="2" />
-    <TalentTreeArray Talent="ZaryaShieldAllySpeedBarrier" Tier="2" Column="3" />
-    <TalentTreeArray Talent="ZaryaDefensiveShielding" Tier="2" Column="4" />
-    <TalentTreeArray Talent="ZaryaParticleGrenadePinpointAccuracy" Tier="3" Column="1" />
-    <TalentTreeArray Talent="ZaryaPersonalBarrierExplosiveBarrier" Tier="3" Column="2" />
-    <TalentTreeArray Talent="ZaryaWeaponToTheLimit" Tier="3" Column="3" />
-    <TalentTreeArray Talent="ZaryaEnergyHitMe" Tier="3" Column="4" />
-    <TalentTreeArray Talent="ZaryaHeroicAbilityGravitonSurge" Tier="4" Column="1" />
-    <TalentTreeArray Talent="ZaryaHeroicAbilityExpulsionZone" Tier="4" Column="2" />
-    <TalentTreeArray Talent="ZaryaPersonalBarrierUnstoppableCompetitor" Tier="5" Column="1" />
-    <TalentTreeArray Talent="ZaryaPersonalBarrierSpellBarrier" Tier="5" Column="2" />
-    <TalentTreeArray Talent="ZaryaEnergyEnduranceTraining" Tier="5" Column="3" />
-    <TalentTreeArray Talent="ZaryaPainIsTemporary" Tier="5" Column="4" />
-    <TalentTreeArray Talent="ZaryaShieldAllyCleansingShield" Tier="6" Column="1" />
-    <TalentTreeArray Talent="ZaryaShieldAllyGainTrain" Tier="6" Column="2" />
-    <TalentTreeArray Talent="ZaryaEnergyBornInBattle" Tier="6" Column="3" />
-    <TalentTreeArray Talent="ZaryaGravitonSurgeGravityKills" Tier="7" Column="1">
-      <PrerequisiteTalentArray value="ZaryaHeroicAbilityGravitonSurge" />
-    </TalentTreeArray>
-    <TalentTreeArray Talent="ZaryaExpulsionZoneClearOut" Tier="7" Column="2">
-      <PrerequisiteTalentArray value="ZaryaHeroicAbilityExpulsionZone" />
-    </TalentTreeArray>
-    <TalentTreeArray Talent="ZaryaParticleGrenadeGrenadier" Tier="7" Column="3" />
-    <TalentTreeArray Talent="ZaryaUnyieldingDefender" Tier="7" Column="4" />
-    <UniverseIcon value="Assets\Textures\ui_glues_store_gameicon_ow.dds" />
-    <Universe value="Overwatch" />
-    <DefaultMount value="HorseCommon" />
+    <VariationArray value="ZaryaBaseVar1" />
+    <VariationArray value="ZaryaBaseVar2" />
+    <VariationArray value="ZaryaBaseVar3" />
+    <ReleaseDate Month="9" Day="27" Year="2016" />
     <AllowedMountCategoryArray value="Ride" />
     <AllowedMountCategoryArray value="Ridebeast" />
     <AllowedMountCategoryArray value="Ridebike" />
     <AllowedMountCategoryArray value="Ridesurf" />
-    <SkinArray value="ZaryaUltimate" />
-    <SkinArray value="ZaryaThunder" />
-    <SkinArray value="ZaryaHanamura" />
-    <SkinArray value="ZaryaSpooky18" />
-    <Flags index="GoodForModeA" value="1" />
-    <VariationIcon value="Assets\Textures\UI_Glues_Swatch_Blue_Gray.dds" />
-    <ReleaseDate Month="9" Day="27" Year="2016" />
+    <Ratings>
+      <Damage value="5" />
+      <Utility value="7" />
+      <Survivability value="8" />
+      <Complexity value="7" />
+    </Ratings>
     <TalentAIBuildsArray ChanceToPick="16">
       <TalentsArray value="ZaryaShieldAllyTogetherWeAreStrong" />
       <TalentsArray value="ZaryaShieldAllySpeedBarrier" />
-      <TalentsArray value="ZaryaEnergyHitMe" />
+      <TalentsArray value="ZaryaParticleGrenadePinpointAccuracy" />
       <TalentsArray value="ZaryaHeroicAbilityGravitonSurge" />
       <TalentsArray value="ZaryaPersonalBarrierUnstoppableCompetitor" />
       <TalentsArray value="ZaryaShieldAllyGainTrain" />
@@ -2362,7 +2402,7 @@
     <TalentAIBuildsArray ChanceToPick="16">
       <TalentsArray value="ZaryaParticleGrenadeDemolitionsExpertQuest" />
       <TalentsArray value="ZaryaPersonalBarrierIAmTheStrongest" />
-      <TalentsArray value="ZaryaParticleGrenadePinpointAccuracy" />
+      <TalentsArray value="ZaryaPersonalBarrierExplosiveBarrier" />
       <TalentsArray value="ZaryaHeroicAbilityGravitonSurge" />
       <TalentsArray value="ZaryaPersonalBarrierUnstoppableCompetitor" />
       <TalentsArray value="ZaryaShieldAllyGainTrain" />
@@ -2371,7 +2411,7 @@
     <TalentAIBuildsArray ChanceToPick="16">
       <TalentsArray value="ZaryaEnergyMaximumChargeQuest" />
       <TalentsArray value="ZaryaShieldAllyGiveMeTwentyQuest" />
-      <TalentsArray value="ZaryaEnergyHitMe" />
+      <TalentsArray value="ZaryaDeepBurn" />
       <TalentsArray value="ZaryaHeroicAbilityGravitonSurge" />
       <TalentsArray value="ZaryaPainIsTemporary" />
       <TalentsArray value="ZaryaEnergyBornInBattle" />
@@ -2380,7 +2420,7 @@
     <TalentAIBuildsArray ChanceToPick="16">
       <TalentsArray value="ZaryaWeaponFeelTheHeat" />
       <TalentsArray value="ZaryaPersonalBarrierIAmTheStrongest" />
-      <TalentsArray value="ZaryaWeaponToTheLimit" />
+      <TalentsArray value="ZaryaDeepBurn" />
       <TalentsArray value="ZaryaHeroicAbilityExpulsionZone" />
       <TalentsArray value="ZaryaPersonalBarrierSpellBarrier" />
       <TalentsArray value="ZaryaShieldAllyCleansingShield" />
@@ -2398,27 +2438,14 @@
     <TalentAIBuildsArray AIOnly="1" ChanceToPick="16">
       <TalentsArray value="ZaryaParticleGrenadeDemolitionsExpertQuest" />
       <TalentsArray value="ZaryaShieldAllySpeedBarrier" />
-      <TalentsArray value="ZaryaEnergyHitMe" />
+      <TalentsArray value="ZaryaParticleGrenadePinpointAccuracy" />
       <TalentsArray value="ZaryaHeroicAbilityExpulsionZone" />
       <TalentsArray value="ZaryaPersonalBarrierUnstoppableCompetitor" />
       <TalentsArray value="ZaryaEnergyBornInBattle" />
       <TalentsArray value="ZaryaExpulsionZoneClearOut" />
     </TalentAIBuildsArray>
-    <Ratings>
-      <Damage value="5" />
-      <Utility value="7" />
-      <Survivability value="8" />
-      <Complexity value="7" />
-    </Ratings>
-    <Gender value="Female" />
-    <HeroTierAchievementId value="5216701565560753704" />
-    <VoiceLineArray value="ZaryaBase_VoiceLine01" />
-    <VoiceLineArray value="ZaryaBase_VoiceLine02" />
-    <VoiceLineArray value="ZaryaBase_VoiceLine03" />
-    <VoiceLineArray value="ZaryaBase_VoiceLine04" />
-    <VoiceLineArray value="ZaryaBase_VoiceLine05" />
+    <HeroSpecificUIArray Location="HeroSpecificStackingBuffsStatus" DescName="Zarya/ZaryaDeepBurnFrameContainer" />
     <Rarity value="Epic" />
-    <ExpandedRole value="Support" />
   </CHero>
   <CHeroMastery id="ZaryaMasteryRing1" parent="MasteryRingRank1">
     <ProductId value="66960" />
@@ -2601,6 +2628,19 @@
       <BehaviorArray value="Ultimate1Unlocked" />
     </RankArray>
     <Active value="1" />
+  </CTalent>
+  <CTalent id="ZaryaDeepBurn">
+    <Face value="ZaryaDeepBurn" />
+    <Abil value="ZaryaParticleGrenade" />
+    <AbilityModificationArray>
+      <Modifications>
+        <Type value="FlatModification" />
+        <Catalog value="Effect" />
+        <Entry value="ZaryaParticleGrenadeDeepBurnTalentApplyMarker" />
+        <Field value="Chance" />
+        <Value value="1.000000" />
+      </Modifications>
+    </AbilityModificationArray>
   </CTalent>
   <CTalent id="ZaryaShieldAllySpeedBarrier">
     <Face value="ZaryaShieldAllySpeedBarrierTalent" />
@@ -3015,6 +3055,11 @@
     <Negate value="1" />
   </CValidatorCombine>
   <CValidatorUnitCompareAbilStage id="ZaryaGravitonSurgeAbilStageMove" />
+  <CValidatorPlayerTalent id="ZaryaHasDeepBurnTalent">
+    <WhichPlayer Value="Target" />
+    <Find value="1" />
+    <Value value="ZaryaDeepBurn" />
+  </CValidatorPlayerTalent>
   <CValidatorUnitCompareChargeUsed id="ZaryaHasGE2ChargesofParticleGrenade">
     <Compare value="LE" />
     <ChargeLink value="Abil/ZaryaParticleGrenade" />
@@ -3050,6 +3095,11 @@
     <Location value="Unit" />
     <Value value="0.0625" />
   </CValidatorUnitCompareCooldown>
+  <CValidatorUnitCompareBehaviorCount id="ZaryaTargetHasDeepBurnTalentMarker">
+    <Compare value="GE" />
+    <Value value="1" />
+    <Behavior value="ZaryaParticleGrenadeDeepBurnTalentMarker" />
+  </CValidatorUnitCompareBehaviorCount>
   <CValidatorCombine id="ZaryaUnyieldingDefenderCombine">
     <CombineArray value="ZaryaShieldAllyOnCooldown" />
     <CombineArray value="ZaryaPersonalBarrierOnCooldown" />
@@ -3071,7 +3121,7 @@
   </CValidatorPlayerTalent>
   <CValidatorCombine id="ZaryaWeaponToTheLimitCombine">
     <Type value="And" />
-    <CombineArray value="ZaryaHasWeaponToTheLimit" />
+    <CombineArray value="ZaryaHasWeaponFeelTheHeat" />
     <CombineArray value="ZaryaEnergyGT39" />
   </CValidatorCombine>
   <CValidatorLocationCompareRange id="ZaryaWeaponFeelTheHeatTargetInMeleeRange">
