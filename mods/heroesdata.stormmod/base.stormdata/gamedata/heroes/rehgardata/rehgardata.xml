@@ -1,5 +1,27 @@
 <?xml version="1.0" encoding="us-ascii"?>
 <Catalog>
+  <CAbilEffectInstant id="RehgarElementalConduit">
+    <PrepEffect value="RehgarDismountDecloakCasterSet" />
+    <Effect value="RehgarElementalConduitCastSet" />
+    <Flags index="NoDeceleration" value="1" />
+    <Cost>
+      <Cooldown TimeUse="70" />
+    </Cost>
+    <CmdButtonArray index="Execute" DefaultButtonFace="RehgarElementalConduit" />
+  </CAbilEffectInstant>
+  <CAbilEffectTarget id="RehgarPurge">
+    <OrderArray index="0" Model="Assets\UI\Feedback\WayPointConfirm\WayPointConfirm.m3" LineTexture="Assets\Textures\Storm_WayPointLine.dds" />
+    <PrepEffect value="RehgarDismountDecloakCasterSet" />
+    <Effect value="RehgarPurgeTargetSwitch" />
+    <Flags index="BestUnit" value="0" />
+    <Cost>
+      <Cooldown TimeUse="45" />
+    </Cost>
+    <TargetFilters value="Heroic;Self,Neutral,Structure,Missile,Item,Stasis,Dead,Summoned" />
+    <Range value="6" />
+    <Arc value="360" />
+    <CmdButtonArray index="Execute" DefaultButtonFace="RehgarPurge" />
+  </CAbilEffectTarget>
   <CAbilEffectTarget id="RehgarTotemicProjection">
     <PrepEffect value="RehgarDismountDecloakCasterSet" />
     <Effect value="RehgarTotemicProjectionTargetPoint" />
@@ -65,7 +87,7 @@
   </CAbilEffectTarget>
   <CAbilEffectTarget id="RehgarEarthbindTotem">
     <PrepEffect value="RehgarDismountDecloakCasterSet" />
-    <Effect value="RehgarEarthbindTotemCreateUnit" />
+    <Effect value="RehgarEarthbindTotemCastSet" />
     <Flags index="RequireTargetVision" value="0" />
     <Flags index="TransientPreferred" value="1" />
     <Cost>
@@ -128,7 +150,7 @@
     <Effect value="RehgarLightningShieldInitialSet" />
     <Flags index="TransientPreferred" value="1" />
     <Cost>
-      <Vital index="Energy" value="60" />
+      <Vital index="Energy" value="50" />
       <Cooldown TimeUse="8" />
     </Cost>
     <TargetFilters value="-;Neutral,Enemy,Structure,Missile,Item,Stasis,Dead,Hidden" />
@@ -156,11 +178,185 @@
     <CmdButtonArray index="Execute" DefaultButtonFace="RehgarHealingTotem" />
     <PlaceUnit value="TalentHealingWard" />
   </CAbilEffectTarget>
+  <CAccumulatorTrackedUnitCount id="RehgarPitFighterAttackAccumulator" parent="BaseAccumulator">
+    <MaxAccumulation value="0.5" />
+    <ApplicationRule value="Add" />
+    <Scale value="0.1" />
+    <TrackingBehavior value="RehgarPitFighterUnitTracker" />
+  </CAccumulatorTrackedUnitCount>
+  <CAccumulatorTrackedUnitCount id="RehgarPitFighterSpellpowerAccumulator" parent="BaseAccumulator">
+    <MaxAccumulation value="0.25" />
+    <ApplicationRule value="Add" />
+    <Scale value="0.04" />
+    <TrackingBehavior value="RehgarPitFighterUnitTracker" />
+  </CAccumulatorTrackedUnitCount>
+  <CAccumulatorToken id="RehgarStormcallerManaAccumulator" parent="BaseTokenAccumulator">
+    <ApplicationRule value="Add" />
+    <TokenId value="RehgarLightningShieldStormcallerTalentTokenCounter" />
+  </CAccumulatorToken>
+  <CAccumulatorToken id="RehgarStormcallerHealthAccumulator" parent="BaseTokenAccumulator">
+    <ApplicationRule value="Add" />
+    <TokenId value="RehgarLightningShieldStormcallerTalentTokenCounter" />
+    <Scale value="2" />
+  </CAccumulatorToken>
   <CAccumulatorToken id="RehgarLightningShieldLightningStormDamageAccumulator" parent="BaseTokenAccumulator">
     <ApplicationRule value="Add" />
     <TokenId value="RehgarLightningShieldRisingStormTokenCounter" />
     <Scale value="0.1" />
   </CAccumulatorToken>
+  <CActorModel id="RehgarEarthbindTotemEarthgraspTotemFlavorGroundModelFX" parent="StormModelAnimationStyleOneShotUnit">
+    <Aliases index="0" removed="1" />
+    <On Terms="Effect.RehgarEarthbindTotemEarthgraspTotemSearch.Start; At Source" Send="Create" />
+    <On Terms="ActorCreation" Send="SetOpacity 0.500000" />
+    <Host Subject="" Scope="Source" />
+  </CActorModel>
+  <CActorSound id="RehgarEarthbindTotemEarthgraspTotemTalentBonusFlavorSoundFX" parent="SoundOneShot">
+    <On Terms="Effect.RehgarEarthbindTotemEarthgraspTotemSearch.Start; At Source" Send="Create" />
+    <Host Scope="Source" />
+    <HostSiteOps Ops="SOpAttachOrigin" />
+  </CActorSound>
+  <CActorModel id="RehgarElementalConduitRehgarBonusBuffFX2" parent="StormModelAddition">
+    <Inherits index="BaseModelScale" value="0" />
+    <Inherits index="CloakEffect" value="0" />
+    <Inherits index="Visibility" value="1" />
+    <AcceptedHostedPropTransfers index="Opacity" value="1" />
+    <AcceptedHostedPropTransfers index="TeamColor" value="1" />
+    <On Terms="Behavior.RehgarElementalConduitActiveBuff.On" Send="Create" />
+    <On Terms="Behavior.RehgarElementalConduitActiveBuff.Off" Send="AnimBracketStop BSD" />
+    <HostSiteOps Ops="SOpAttachCenterSoft" HoldRotation="1" />
+    <ModelFlags index="AllowHitTest" value="0" />
+  </CActorModel>
+  <CActorModel id="RehgarElementalConduitRehgarBonusBuffFX" parent="StormModelAddition">
+    <Inherits index="BaseModelScale" value="0" />
+    <Inherits index="CloakEffect" value="0" />
+    <Inherits index="Visibility" value="1" />
+    <AcceptedHostedPropTransfers index="Opacity" value="1" />
+    <AcceptedHostedPropTransfers index="TeamColor" value="1" />
+    <HostSiteOps Ops="SOpAttachCenterSoft" HoldRotation="1" />
+    <ModelFlags index="AllowHitTest" value="0" />
+  </CActorModel>
+  <CActorSound id="RehgarPurgeCastSound" parent="SoundOneShot">
+    <On Terms="Effect.RehgarPurgeTargetSwitch.Start; At Caster" Send="Create" />
+    <Sound value="Rehgar_Purge_Cast" />
+  </CActorSound>
+  <CActorModel id="RehgarPurgeEnemyCastFX" parent="StormModelAnimationStyleOneShotUnit">
+    <On Terms="Effect.RehgarPurgeTargetSwitch.Start; At Caster" Send="Create" />
+    <On Terms="ActorCreation" Send="SetTintColor {241,177,241 1.250000}" />
+    <HostSiteOps Ops="SOpAttachHandRight" />
+    <AutoScaleFactor value="0.700000" />
+  </CActorModel>
+  <CActorModel id="RehgarPurgeEnemyImpactFX" parent="StormModelAnimationStyleOneShotUnit">
+    <Inherits index="BaseModelScale" value="1" />
+    <Inherits index="Scale" value="1" />
+    <On Terms="Effect.RehgarPurgeEnemySet.Start; At Target" Send="Create" />
+    <HostSiteOps Ops="SOpAttachCenter" />
+    <Model value="RehgarPurgeEnemyImpact" />
+    <AutoScaleFactor value="0.700000" />
+  </CActorModel>
+  <CActorModel id="RehgarPurgeEnemyImpactFXLayer" parent="StormModelAnimationStyleOneShotUnit">
+    <Inherits index="BaseModelScale" value="1" />
+    <Inherits index="Scale" value="1" />
+    <On Terms="Effect.RehgarPurgeEnemySet.Start; At Target" Send="Create" />
+    <On Terms="ActorCreation" Send="SetTintColor 0,255,255" />
+    <HostSiteOps Ops="SOpAttachCenter SOpMoveDownBy1" />
+    <AutoScaleFactor value="0.700000" />
+  </CActorModel>
+  <CActorSound id="RehgarPurgeEnemyImpactSound" parent="SoundOneShot">
+    <On Terms="Effect.RehgarPurgeEnemySet.Start; At Target" Send="Create" />
+    <Sound value="Rehgar_Purge_EnemyImpact" />
+    <Layers Sound="Rehgar_Purge_EnemyImpactLayer" />
+    <Layers Sound="Rehgar_Purge_EnemyImpactBassLayer" />
+  </CActorSound>
+  <CActorSound id="RehgarElementalConduitCastSound" parent="SoundOneShot">
+    <On Terms="Effect.RehgarElementalConduitCastSet.Start; At Caster" Send="Create" />
+  </CActorSound>
+  <CActorModel id="RehgarElementalConduitCastFX" parent="StormModelAnimationStyleOneShotUnit">
+    <On Terms="Abil.RehgarElementalConduit.SourceCastStart" Send="Create" />
+    <HostSiteOps HoldRotation="1" />
+  </CActorModel>
+  <CActorModel id="RehgarElementalConduitBuffFX" parent="StormModelAddition">
+    <Inherits index="Visibility" value="1" />
+    <On Terms="Behavior.RehgarElementalConduitTalentShieldStack.On" Send="Create" />
+    <On Terms="Behavior.RehgarElementalConduitTalentShieldStack.Off" Send="AnimBracketStop BSD" />
+    <On Terms="Effect.RehgarElementalConduitAddBaseShield.Start" Send="AnimPlay Birth Birth 0 -1.000000 -1.000000 1.000000 AsTimeScale" />
+    <Host Subject="_Unit" />
+    <HostSiteOps Ops="SOpAttachCenterSoft" HoldRotation="1" />
+    <Model value="RehgarElementalConduitShieldFX" />
+    <AutoScaleFactor value="1.000000" />
+  </CActorModel>
+  <CActorRange id="RehgarElementalConduitRange" parent="StormRangeAbilPlusSplat" abil="RehgarElementalConduit" />
+  <CActorSplat id="RehgarElementalConduitRangeSplat" parent="StormRangeSplat">
+    <Scale value="8.000000" />
+  </CActorSplat>
+  <CActorBeamSimple id="RehgarEarthbindTotemWellspringTalentChainHeal1Beam">
+    <Flags index="SuppressSaveLoad" value="1" />
+    <On Terms="ActorCreation" Send="AnimBracketStart BSD Birth Stand Death ContentPlayOnce 1.000000 AsTimeScale" />
+    <On Terms="AnimBracketState.*.AfterClosing; AnimName BSD" Send="Destroy" />
+    <On Terms="ActorCreation" Send="Create RehgarChainHealLaunchSound" />
+    <Model value="RehgarEarthbindTotemWellspringTalentChainHealBeam" />
+    <HostLaunch Subject="::scope.Chain1Launch" />
+    <HostImpact Subject="::Creator" />
+  </CActorBeamSimple>
+  <CActorBeamSimple id="RehgarEarthbindTotemWellspringTalentChainHeal2Beam">
+    <Flags index="SuppressSaveLoad" value="1" />
+    <On Terms="ActorCreation" Send="AnimBracketStart BSD Birth Stand Death ContentPlayOnce 1.000000 AsTimeScale" />
+    <On Terms="AnimBracketState.*.AfterClosing; AnimName BSD" Send="Destroy" />
+    <Model value="RehgarChainHealBeam" />
+    <HostLaunch Subject="::scope.Chain2Launch" />
+    <HostImpact Subject="::Creator" />
+  </CActorBeamSimple>
+  <CActorBeamSimple id="RehgarEarthbindTotemWellspringTalentChainHeal3Beam">
+    <Flags index="SuppressSaveLoad" value="1" />
+    <On Terms="ActorCreation" Send="AnimBracketStart BSD Birth Stand Death ContentPlayOnce 1.000000 AsTimeScale" />
+    <On Terms="AnimBracketState.*.AfterClosing; AnimName BSD" Send="Destroy" />
+    <Model value="RehgarChainHealBeam" />
+    <HostLaunch Subject="::scope.Chain3Launch" />
+    <HostImpact Subject="::Creator" />
+  </CActorBeamSimple>
+  <CActorSite id="RehgarEarthbindTotemWellspringTalentChainHeal1ImpactSite" parent="SiteCenter">
+    <On Terms="Effect.RehgarEarthbindTotemWellspringTalentChainHeal1ImpactSetSecondary.Start; At Target" Send="Create" />
+    <On Terms="ActorCreation" Send="RefSetFromRequest ::scope.Chain1Launch RehgarEarthbindTotemWellspringTalentChainHeal1LaunchSite Source Find" />
+    <On Terms="ActorCreation" Send="Create RehgarChainHealImpactSound" />
+    <On Terms="ActorCreation" Send="Create RehgarEarthbindTotemWellspringTalentChainHeal1Beam" />
+  </CActorSite>
+  <CActorSite id="RehgarEarthbindTotemWellspringTalentChainHeal1LaunchSite" parent="SiteWeapon">
+    <On Terms="Effect.RehgarEarthbindTotemWellspringTalentChainHeal1ImpactSetSecondary.Start; At Source" Send="Create" />
+    <HostSiteOps Ops="SOpAttachCenter" />
+  </CActorSite>
+  <CActorSite id="RehgarEarthbindTotemWellspringTalentChainHeal2ImpactSite" parent="SiteCenter">
+    <On Terms="Effect.RehgarEarthbindTotemWellspringTalentChainHeal2ImpactSet.Start; At Target" Send="Create" />
+    <On Terms="ActorCreation" Send="RefSetFromRequest ::scope.Chain2Launch RehgarEarthbindTotemWellspringTalentChainHeal2LaunchSite Implicit Find" />
+    <On Terms="ActorCreation" Send="Create RehgarChainHealImpactSound" />
+    <On Terms="ActorCreation" Send="Create RehgarEarthbindTotemWellspringTalentChainHeal2Beam" />
+  </CActorSite>
+  <CActorSite id="RehgarEarthbindTotemWellspringTalentChainHeal2LaunchSite" parent="SiteCenter">
+    <On Terms="Effect.RehgarEarthbindTotemWellspringTalentChainHeal1ImpactSetSecondary.Start; At Target" Send="Create" />
+    <On Terms="ActorCreation" Send="Create RehgarChainHealImpactModel" />
+  </CActorSite>
+  <CActorSite id="RehgarEarthbindTotemWellspringTalentChainHeal3ImpactSite" parent="SiteCenter">
+    <On Terms="Effect.RehgarEarthbindTotemWellspringTalentChainHeal3ImpactSet.Start; At Target" Send="Create" />
+    <On Terms="ActorCreation" Send="RefSetFromRequest ::scope.Chain3Launch RehgarEarthbindTotemWellspringTalentChainHeal3LaunchSite Implicit Find" />
+    <On Terms="ActorCreation" Send="Create RehgarChainHealImpactSound" />
+    <On Terms="ActorCreation" Send="Create RehgarEarthbindTotemWellspringTalentChainHeal3Beam" />
+  </CActorSite>
+  <CActorSite id="RehgarEarthbindTotemWellspringTalentChainHeal3LaunchSite" parent="SiteCenter">
+    <On Terms="Effect.RehgarEarthbindTotemWellspringTalentChainHeal2ImpactSet.Start; At Target" Send="Create" />
+    <On Terms="ActorCreation" Send="Create RehgarChainHealImpactModel" />
+  </CActorSite>
+  <CActorSite id="RehgarEarthbindTotemWellspringTalentChainHeal4LaunchSite" parent="SiteCenter">
+    <On Terms="Effect.RehgarEarthbindTotemWellspringTalentChainHeal3ImpactSet.Start; At Target" Send="Create" />
+    <On Terms="ActorCreation" Send="Create RehgarChainHealImpactModel" />
+  </CActorSite>
+  <CActorSimple id="RehgarPurgeBuffUnstoppableSimple">
+    <On Terms="Behavior.RehgarPurgeBuff.On" Send="Create" />
+    <On Terms="Behavior.RehgarPurgeBuff.Off" Send="Destroy" />
+    <On Terms="ActorCreation" Target="_Unit" Send="ModelMaterialApply TalentCleanseGlaze" />
+    <On Terms="ActorDestruction" Target="TalentCleanseGlaze" Send="AnimBracketStop BSD" />
+  </CActorSimple>
+  <CActorRange id="RehgarPurgeRange" parent="StormRangeAbilPlusSplat" abil="RehgarPurge" />
+  <CActorSplat id="RehgarPurgeRangeSplat" parent="StormRangeSplat">
+    <Scale value="7.000000" />
+  </CActorSplat>
   <CActorRange id="RehgarHealingTotemRange" parent="StormRangeAbilPlusSplat" abil="RehgarHealingTotem" />
   <CActorSplat id="RehgarHealingTotemRangeSplat" parent="StormRangeSplat">
     <Scale value="7.000000" />
@@ -194,8 +390,8 @@
     <Filter index="All" value="1" />
     <VisibleTo index="Self" value="1" />
     <Inherits index="Visibility" value="0" />
-    <On Terms="Behavior.RehgarEarthlivingEchnatViableTarget.On" Send="Create" />
-    <On Terms="Behavior.RehgarEarthlivingEchnatViableTarget.Off" Send="AnimBracketStop BSD" />
+    <On Terms="Behavior.RehgarEarthlivingEnchantViableTarget.On" Send="Create" />
+    <On Terms="Behavior.RehgarEarthlivingEnchantViableTarget.Off" Send="AnimBracketStop BSD" />
     <HostSiteOps Ops="SOpAttachOverhead SOpPointSouthWorld" HoldRotation="1" />
   </CActorModel>
   <CActorSound id="HeroRehgarTauntVO" parent="SoundOneShot">
@@ -317,11 +513,11 @@
     <On Terms="Abil.RehgarBloodlust.SourceCastStart; ValidateUnit RehgarIsNotGhostWolf; AnimPlaying WalkMorphEnd" Send="AnimClear WalkMorphEnd 0.000000" />
     <On Terms="Abil.RehgarBloodlust.SourceCastStart; ValidateUnit RehgarIsNotGhostWolf" Send="AnimPlay Spell Spell,C 0 -1.000000 -1.000000 1.000000 AsTimeScale" />
     <On Terms="Abil.RehgarBloodlust.SourceCastStart" Send="Create RehgarBloodlustCastSound" />
-    <On Terms="Abil.RehgarEarthShield.SourceCastStart; AnimPlaying StandMorphStart" Send="AnimClear StandMorphStart 0.000000" />
-    <On Terms="Abil.RehgarEarthShield.SourceCastStart; AnimPlaying WalkMorphStart" Send="AnimClear WalkMorphStart 0.000000" />
-    <On Terms="Abil.RehgarEarthShield.SourceCastStart; AnimPlaying StandMorphEnd" Send="AnimClear StandMorphEnd 0.000000" />
-    <On Terms="Abil.RehgarEarthShield.SourceCastStart; AnimPlaying WalkMorphEnd" Send="AnimClear WalkMorphEnd 0.000000" />
-    <On Terms="Abil.RehgarEarthShield.SourceCastStart" Send="AnimPlay Spell Spell,E 0 -1.000000 -1.000000 1.000000 AsTimeScale" />
+    <On Terms="Abil.RehgarPurge.SourceCastStart; AnimPlaying StandMorphStart" Send="AnimClear StandMorphStart 0.000000" />
+    <On Terms="Abil.RehgarPurge.SourceCastStart; AnimPlaying WalkMorphStart" Send="AnimClear WalkMorphStart 0.000000" />
+    <On Terms="Abil.RehgarPurge.SourceCastStart; AnimPlaying StandMorphEnd" Send="AnimClear StandMorphEnd 0.000000" />
+    <On Terms="Abil.RehgarPurge.SourceCastStart; AnimPlaying WalkMorphEnd" Send="AnimClear WalkMorphEnd 0.000000" />
+    <On Terms="Abil.RehgarPurge.SourceCastStart" Send="AnimPlay Spell Spell,Omni 0 -1.000000 -1.000000 1.000000 AsTimeScale" />
     <On Terms="Abil.Hearthstone.SourceCastStart; AnimPlaying StandMorphStart" Send="AnimClear StandMorphStart 0.000000" />
     <On Terms="Abil.Hearthstone.SourceCastStart; AnimPlaying WalkMorphStart" Send="AnimClear WalkMorphStart 0.000000" />
     <On Terms="Abil.Hearthstone.SourceCastStart; AnimPlaying StandMorphEnd" Send="AnimClear StandMorphEnd 0.000000" />
@@ -683,6 +879,7 @@
     <Inherits index="BaseModelScale" value="1" />
     <Inherits index="Scale" value="1" />
     <On Terms="Effect.RehgarLightningShieldDamage.Start; At Target" Send="Create" />
+    <On Terms="Effect.RehgarLightningShieldElectricChargeTalentDamage.Start; At Target" Send="Create" />
     <HostSiteOps Ops="SOpAttachCenter" />
     <AutoScaleFactor value="0.700000" />
   </CActorModel>
@@ -707,6 +904,7 @@
   </CActorForceSphere>
   <CActorSound id="RehgarLightningShieldImpactSound" parent="SoundOneShot">
     <On Terms="Effect.RehgarLightningShieldDamage.Start; At Target" Send="Create" />
+    <On Terms="Effect.RehgarLightningShieldElectricChargeTalentDamage.Start; At Target" Send="Create" />
     <Sound value="Rehgar_LightningShield_Impact" />
   </CActorSound>
   <CActorRange id="RehgarLightningShieldRange" parent="StormRangeAbilPlusSplat" abil="RehgarLightningShield" />
@@ -747,6 +945,154 @@
   <CActorModelMaterial id="RehgarGhostWolfGlaze" parent="StormModelAnimationStyleContinuous">
     <Remove Terms="ActorCreation" Send="AnimBracketStart BSD Birth Stand Death" />
   </CActorModelMaterial>
+  <CBehaviorBuff id="RehgarGhostWolfFeralHeartTalentBuff">
+    <RemoveValidatorArray value="HasGhostWolfCaster" />
+    <Duration value="1" />
+    <InitialEffect value="RehgarGhostWolfFeralHeartTalentModifyPlayer" />
+    <FinalEffect value="RehgarGhostWolfFeralHeartTalentResetPlayer" />
+  </CBehaviorBuff>
+  <CBehaviorBuff id="RehgarLightningShieldElectricChargeSpeedBuff" parent="StormSprint">
+    <Duration value="0.5625" />
+    <Modification>
+      <UnifiedMoveSpeedFactor value="0.1" />
+    </Modification>
+  </CBehaviorBuff>
+  <CBehaviorTokenCounter id="RehgarPitFighterTokenCounter" parent="StormGenericToken">
+    <Face value="RehgarPitFighterToken" />
+    <Alignment value="Positive" />
+    <InfoFlags index="AlwaysUseGameText" value="1" />
+    <Max value="5" />
+  </CBehaviorTokenCounter>
+  <CBehaviorBuff id="RehgarPitFighterCarry" parent="CarryBehaviorParent">
+    <Period value="0.25" />
+    <PeriodicEffect value="RehgarPitFighterPeriodicSet" />
+    <Modification>
+      <HealDealtAdditiveMultiplier index="Life" value="0">
+        <AccumulatorArray value="RehgarPitFighterSpellpowerAccumulator" />
+      </HealDealtAdditiveMultiplier>
+      <HealDealtAdditiveMultiplier index="Shields" value="0">
+        <AccumulatorArray value="RehgarPitFighterSpellpowerAccumulator" />
+      </HealDealtAdditiveMultiplier>
+      <DamageDealtFraction index="Basic" value="0">
+        <AccumulatorArray value="RehgarPitFighterAttackAccumulator" />
+      </DamageDealtFraction>
+      <DamageDealtFraction index="Ability" value="0">
+        <AccumulatorArray value="RehgarPitFighterSpellpowerAccumulator" />
+      </DamageDealtFraction>
+    </Modification>
+  </CBehaviorBuff>
+  <CBehaviorUnitTracker id="RehgarPitFighterUnitTracker">
+    <Face value="RehgarPitFighter" />
+    <BehaviorFlags index="Permanent" value="1" />
+    <BehaviorFlags index="EnabledWhileDead" value="1" />
+    <TrackingValidatorArray value="TargetNotDeadOrSpecialDeathStateOrStasisOrTimeStopped" />
+    <MaxTrackedUnits value="5" />
+  </CBehaviorUnitTracker>
+  <CBehaviorBuff id="RehgarLightningShieldStormcallerTalentCarry" parent="CarryBehaviorParent">
+    <Modification>
+      <VitalMaxArray index="Life" value="0">
+        <AccumulatorArray value="RehgarStormcallerHealthAccumulator" />
+      </VitalMaxArray>
+      <VitalMaxArray index="Energy" value="0">
+        <AccumulatorArray value="RehgarStormcallerManaAccumulator" />
+      </VitalMaxArray>
+    </Modification>
+  </CBehaviorBuff>
+  <CBehaviorTokenCounter id="RehgarLightningShieldStormcallerTalentTokenCounter" parent="StormQuestToken">
+    <DeltaEvents Delta="5" OnlyIncrease="1" FireForEachDelta="1">
+      <Event EventId="QuestIncrease" />
+    </DeltaEvents>
+    <IncreaseEvents index="0" EventId="" ValidRange="0,0" />
+    <Max value="300" />
+    <Face value="RehgarLightningShieldStormcallerTalentToken" />
+  </CBehaviorTokenCounter>
+  <CBehaviorBuff id="RehgarPurgePurificationTalentHealingReduction" parent="StormHealReduction">
+    <Modification>
+      <HealTakenAdditiveMultiplier index="Life" value="-0.4" />
+      <VitalRegenMultiplier index="Life" value="-0.4" />
+    </Modification>
+    <Duration value="3" />
+  </CBehaviorBuff>
+  <CBehaviorBuff id="RehgarPurgeSlow" parent="StormSlowParent">
+    <MaxStackCount value="32" />
+    <MaxStackCountPerCaster value="32" />
+    <Duration value="2" />
+    <Modification>
+      <UnifiedMoveSpeedFactor value="-0.025" />
+    </Modification>
+  </CBehaviorBuff>
+  <CBehaviorBuff id="RehgarPurgeSlowController">
+    <Alignment value="Negative" />
+    <BehaviorCategories index="Slow" value="1" />
+    <Duration value="2" />
+    <Period value="0.0625" />
+    <PeriodicEffect value="RehgarPurgeRemoveStack" />
+  </CBehaviorBuff>
+  <CBehaviorBuff id="RehgarElementalConduitTalentBaseShield" parent="StormShield">
+    <Duration value="5" />
+    <DamageResponse>
+      <ModifyLimitVitalMaxFractionArray index="Life" value="0.1" />
+    </DamageResponse>
+  </CBehaviorBuff>
+  <CBehaviorAbility id="RehgarElementalConduit">
+    <Buttons Face="RehgarElementalConduit" Type="AbilCmd" AbilCmd="RehgarElementalConduit,Execute" />
+  </CBehaviorAbility>
+  <CBehaviorBuff id="RehgarElementalConduitActiveBuff">
+    <Duration value="5" />
+    <InfoFlags index="Hidden" value="0" />
+    <BehaviorCategories index="Restorable" value="1" />
+    <FinalEffect value="RehgarElementalConduitActiveBuffFinalSet" />
+  </CBehaviorBuff>
+  <CBehaviorBuff id="RehgarElementalConduitTalentShieldStack" parent="StormShield">
+    <MaxStackCount value="50" />
+    <MaxStackCountPerCaster value="50" />
+    <DamageResponse>
+      <ModifyLimitVitalMaxFractionArray index="Life" value="0.015" />
+    </DamageResponse>
+    <Duration value="5" />
+  </CBehaviorBuff>
+  <CBehaviorUnitTracker id="RehgarElementalConduitUnitTracker">
+    <BehaviorFlags index="Permanent" value="1" />
+    <BehaviorFlags index="EnabledWhileDead" value="1" />
+    <MaxTrackedUnits value="15" />
+  </CBehaviorUnitTracker>
+  <CBehaviorBuff id="RehgarEarthbindTotemWellspringTalentBuff">
+    <Period value="2" />
+    <PeriodicEffect value="RehgarEarthbindTotemWellspringTalentPeriodicSearch" />
+  </CBehaviorBuff>
+  <CBehaviorBuff id="RehgarGhostWolfEarthShockTalentSilence" parent="StormSilence">
+    <Duration value="1" />
+  </CBehaviorBuff>
+  <CBehaviorAbility id="RehgarPurgeAbility">
+    <Buttons Face="RehgarPurge" Type="AbilCmd" AbilCmd="RehgarPurge,Execute" />
+  </CBehaviorAbility>
+  <CBehaviorBuff id="RehgarPurgeBuff" parent="StormUnstoppableParent">
+    <Duration value="0.5" />
+  </CBehaviorBuff>
+  <CBehaviorBuff id="RehgarTotemicMasteryTalentLightningShieldBuff">
+    <Alignment value="Positive" />
+    <BehaviorCategories index="Temporary" value="1" />
+    <DisableValidatorArray value="TargetNotStasis" />
+    <RemoveValidatorArray value="TargetNotSpecialDeathState" />
+    <Duration value="5" />
+    <Period value="0.5" />
+    <PeriodicEffect value="RehgarLightningShieldTotemicMasteryTalentSearch" />
+    <AINotifySettings AreaEffect="RehgarLightningShieldSearch">
+      <Flags index="Disabled" value="1" />
+    </AINotifySettings>
+  </CBehaviorBuff>
+  <CBehaviorBuff id="RehgarGhostWolfFeralHeartTalentArmor" parent="StormArmor">
+    <Duration value="2" />
+    <ArmorModification>
+      <AllArmorBonus value="20" />
+    </ArmorModification>
+  </CBehaviorBuff>
+  <CBehaviorBuff id="RehgarGhostWolfWolfRunTalentCarry" parent="CarryBehaviorParent">
+    <DisableValidatorArray value="HasGhostWolf" />
+    <Period value="0.5" />
+    <PeriodicEffect value="RehgarGhostWolfWolfRunTalentPeriodicSet" />
+    <DisableEffect value="RehgarGhostWolfWolfRunTalentDisableSet" />
+  </CBehaviorBuff>
   <CBehaviorBuff id="RehgarAncestralHealingFarseersBlessingDelayBehavior">
     <Duration value="1.5" />
     <FinalEffect value="RehgarAncestralHealingCreatePersistent" />
@@ -757,21 +1103,10 @@
     <BehaviorFlags index="EnabledWhileDead" value="1" />
     <Duration value="5" />
   </CBehaviorBuff>
-  <CBehaviorBuff id="RehgarGhostWolfFeralHeartBuff" parent="CarryBehaviorParent">
-    <DisableValidatorArray value="HasGhostWolf" />
-    <DamageResponse Chance="1" Handled="RehgarGhostWolfFeralHeartCreateManaHealer" Location="Attacker">
-      <ValidatorArray value="TargetNotEvading" />
-      <Kind index="Ability" value="0" />
-      <ProvideCategories index="Proc" value="1" />
-    </DamageResponse>
-    <Modification>
-      <VitalRegenMultiplier index="Life" value="0.75" />
-    </Modification>
-  </CBehaviorBuff>
   <CBehaviorBuff id="RehgarLightningShieldRisingStormDummyBehavior">
     <BehaviorFlags index="Permanent" value="1" />
     <BehaviorFlags index="EnabledWhileDead" value="1" />
-    <Duration value="5" />
+    <Duration value="8" />
     <FinalEffect value="RehgarLightningShieldRisingStormDelayPersistent" />
   </CBehaviorBuff>
   <CBehaviorBuff id="RehgarBloodlustMovementSpeedBuff" parent="StormSprint">
@@ -786,13 +1121,6 @@
   <CBehaviorAbility id="RehgarFarsightItem">
     <Buttons Face="RehgarFarsight" Type="AbilCmd" AbilCmd="RehgarFarsight,Execute" />
   </CBehaviorAbility>
-  <CBehaviorBuff id="RehgarLightningShieldStormcallerRefundStack">
-    <BehaviorFlags index="Permanent" value="1" />
-    <RemoveValidatorArray value="CasterNotDead" />
-    <BuffFlags index="RefreshStack" value="1" />
-    <MaxStackCount value="25" />
-    <FinalEffect value="RehgarLightningShieldStormcallerManaRestore" />
-  </CBehaviorBuff>
   <CBehaviorBuff id="RehgarChainHealEarthlivingEnchantHeal">
     <Alignment value="Positive" />
     <InfoIcon value="Assets\Textures\storm_ui_icon_rehgar_chainheal.dds" />
@@ -808,7 +1136,7 @@
     <Duration value="8" />
     <InitialEffect value="RehgarEarthbindTotemProjectionEnablerApplyCoolUp" />
   </CBehaviorBuff>
-  <CBehaviorBuff id="RehgarEarthlivingEchnatViableTarget">
+  <CBehaviorBuff id="RehgarEarthlivingEnchantViableTarget">
     <RemoveValidatorArray value="TargetLifeLT50Percent" />
     <RemoveValidatorArray value="TargetisLTE15" />
     <RemoveValidatorArray value="RehgarEarthlivingEnchantSourceIsSearchingforTargets" />
@@ -838,7 +1166,7 @@
   </CBehaviorTokenCounter>
   <CBehaviorBuff id="RehgarGhostWolfBloodAndThunderLungeController" parent="CarryBehaviorParent">
     <DisableValidatorArray value="HasGhostWolf" />
-    <DamageResponse Chance="1" Handled="RehgarGhostWolfBloodAndThunderModifyUnitCooldown" Location="Attacker">
+    <DamageResponse Chance="1" Handled="RehgarGhostWolfBloodAndThunderTalentProcSet" Location="Attacker">
       <ValidatorArray value="TargetNotEvading" />
       <Kind index="Ability" value="0" />
       <ProvideCategories index="Proc" value="1" />
@@ -859,7 +1187,7 @@
   <CBehaviorBuff id="RehgarLightningShieldEarthShieldBuff" parent="StormShield">
     <Duration value="3" />
     <DamageResponse>
-      <ModifyLimitVitalMaxFractionArray index="Life" value="0.12" />
+      <ModifyLimitVitalMaxFractionArray index="Life" value="0.14" />
       <ModifyScoreArray index="0" Value="Healing" />
     </DamageResponse>
   </CBehaviorBuff>
@@ -883,7 +1211,7 @@
     <RemoveValidatorArray value="RehgarEarthbindTotemTargetIsNearCasterCombine" />
     <RemoveValidatorArray value="CasterNotDead" />
     <Period value="0.0625" />
-    <PeriodicEffect value="RehgarEarthbindTotemGroundedTotemApplyAttackSpeedSlowBehavior" />
+    <PeriodicEffect value="RehgarEarthbindTotemGroundedTotemTalentPeriodicSet" />
   </CBehaviorBuff>
   <CBehaviorBuff id="RehgarEarthbindTotemTimedLife" parent="StormTimedLife">
     <Duration value="8" />
@@ -892,7 +1220,7 @@
     <PeriodicEffect value="RehgarEarthbindTotemSearch" />
   </CBehaviorBuff>
   <CBehaviorBuff id="RehgarEarthbindTotemPulseArtHook">
-    <Duration value="8" />
+    <Duration value="12" />
     <Period value="1" />
     <InitialEffect value="RehgarEarthbindTotemPulseArtHookMU" />
     <PeriodicEffect value="RehgarEarthbindTotemPulseArtHookMU" />
@@ -913,10 +1241,24 @@
       <AdditiveAttackSpeedFactor value="-0.4" />
     </Modification>
   </CBehaviorBuff>
-  <CBehaviorBuff id="RehgarEarthbindTotemGroundedTotemBonusHealthBehavior" parent="CarryBehaviorParent">
-    <DisableValidatorArray value="RehgarHasEarthbindTotemGroundedTotemTalent" />
+  <CBehaviorBuff id="RehgarEarthbindTotemGroundedTotemTalentSpellpowerDebuff" parent="StormDamageReduction">
+    <BehaviorCategories index="DebuffAbilityPower" value="1" />
+    <DisplayDuration index="Self" value="0" />
+    <DisplayDuration index="Ally" value="0" />
+    <DisplayDuration index="Enemy" value="0" />
+    <RemoveValidatorArray value="TargetNotSpecialDeathState" />
+    <BuffFlags index="RefreshStack" value="1" />
+    <Duration value="0.125" />
     <Modification>
-      <VitalMaxFractionArray index="Life" value="1" />
+      <HealDealtAdditiveMultiplier index="Life" value="-0.2" />
+      <HealDealtAdditiveMultiplier index="Shields" value="-0.2" />
+      <DamageDealtFraction index="Ability" value="-0.2" />
+    </Modification>
+  </CBehaviorBuff>
+  <CBehaviorBuff id="RehgarEarthbindTotemColossalTotemTalentHealthBuff" parent="CarryBehaviorParent">
+    <DisableValidatorArray value="RehgarEarthbindTotemColossalTotemHasTalent" />
+    <Modification>
+      <VitalMaxFractionArray index="Life" value="0.5" />
     </Modification>
   </CBehaviorBuff>
   <CBehaviorBuff id="RehgarGhostWolfLungeDisabler">
@@ -946,11 +1288,38 @@
     <BuffFlags index="RefreshStack" value="1" />
     <Duration value="3" />
   </CBehaviorBuff>
+  <CButton id="RehgarPitFighterToken" parent="StormButtonParent">
+    <Icon value="Assets\Textures\storm_ui_ingame_heroselect_btn_rehgar.dds" />
+    <HotkeyAlias value="RehgarGhostWolfWolfRunTalent" />
+  </CButton>
+  <CButton id="RehgarPitFighter" parent="StormButtonParent">
+    <Icon value="Assets\Textures\storm_ui_ingame_heroselect_btn_rehgar.dds" />
+  </CButton>
+  <CButton id="RehgarLightningShieldStormcallerTalentToken" parent="StormButtonParent">
+    <Icon value="Assets\Textures\storm_ui_icon_rehgar_lightningshield.dds" />
+    <HotkeyAlias value="RehgarGhostWolfWolfRunTalent" />
+  </CButton>
+  <CButton id="RehgarPurification" parent="StormButtonParent">
+    <Icon value="Assets\Textures\storm_ui_icon_rehgar_purge.dds" />
+    <HotkeyAlias value="GenericCleanse" />
+  </CButton>
+  <CButton id="RehgarElementalConduit" parent="StormButtonParent">
+    <Icon value="Assets\Textures\storm_ui_icon_talent_stormshield.dds" />
+    <HotkeyAlias value="GenericCleanse" />
+  </CButton>
+  <CButton id="RehgarWellspring" parent="StormButtonParent">
+    <Icon value="Assets\Textures\storm_ui_icon_rehgar_earthbindtotem.dds" />
+  </CButton>
+  <CButton id="RehgarPurge" parent="StormButtonParent">
+    <Icon value="Assets\Textures\storm_ui_icon_rehgar_purge.dds" />
+    <HotkeyAlias value="GenericCleanse" />
+    <TooltipAppender Validator="RehgarHasPurificationTalent" Face="RehgarPurification" />
+  </CButton>
   <CButton id="RehgarEarthbindTotemGroundedTotem" parent="StormButtonParent">
     <Icon value="Assets\Textures\storm_ui_icon_rehgar_earthbindtotem.dds" />
   </CButton>
   <CButton id="RehgarEarthlivingEnchant" parent="StormButtonParent">
-    <Icon value="Assets\Textures\storm_ui_icon_rehgar_chainheal_a.dds" />
+    <Icon value="Assets\Textures\storm_ui_icon_rehgar_chainheal.dds" />
   </CButton>
   <CButton id="RehgarHungeroftheWolf" parent="StormButtonParent">
     <Icon value="Assets\Textures\storm_ui_icon_rehgar_ghostwolf.dds" />
@@ -961,9 +1330,6 @@
   </CButton>
   <CButton id="RehgarTotemicProjection" parent="StormButtonParent">
     <Icon value="Assets\Textures\storm_ui_icon_rehgar_earthbindtotem_a.dds" />
-  </CButton>
-  <CButton id="RehgarTotemicProjectionTalent" parent="StormButtonParent">
-    <Icon value="Assets\Textures\storm_ui_icon_rehgar_earthbindtotem.dds" />
   </CButton>
   <CButton id="RehgarBloodAndThunder" parent="StormButtonParent">
     <Icon value="Assets\Textures\storm_ui_icon_rehgar_ghostwolf.dds" />
@@ -991,13 +1357,10 @@
     <TooltipAppender Validator="RehgarHasEarthlivingEnchantTalent" Face="RehgarEarthlivingEnchant" />
     <Icon value="Assets\Textures\storm_ui_icon_rehgar_chainheal.dds" />
   </CButton>
-  <CButton id="RehgarChainHealSpiritwalkersGraceTalent" parent="StormButtonParent">
-    <Icon value="Assets\Textures\storm_ui_icon_rehgar_chainheal.dds" />
-    <HotkeyAlias value="RehgarChainHealEnhancedHealingTalent" />
-  </CButton>
   <CButton id="RehgarEarthbindTotem" parent="StormButtonParent">
+    <TooltipAppender Validator="RehgarHasEarthbindTotemGroundedTotemTalent" Face="RehgarEarthbindTotemGroundedTotem" />
     <TooltipAppender Validator="RehgarEarthbindTotemColossalTotemHasTalent" Face="RehgarEarthbindTotemColossalTotem" />
-    <TooltipAppender Validator="RehgarHasTotemicProjectionTalent" Face="RehgarTotemicProjectionTalent" />
+    <TooltipAppender Validator="RehgarHasWellspringTalent" Face="RehgarWellspring" />
     <TooltipAppender Validator="RehgarEarthbindTotemEarthgraspTotemHasTalent" Face="RehgarEarthbindTotemEarthgraspTotem" />
     <Icon value="Assets\Textures\storm_ui_icon_rehgar_earthbindtotem.dds" />
   </CButton>
@@ -1017,10 +1380,14 @@
     <TooltipAppender Validator="RehgarGhostWolfBloodAndThunderHasTalent" Face="RehgarBloodAndThunder" />
     <TooltipAppender Validator="RehgarGhostWolfHungerOfTheWolfHasTalent" Face="RehgarHungeroftheWolf" />
     <Icon value="Assets\Textures\storm_ui_icon_rehgar_ghostwolf.dds" />
+    <TooltipCooldownOverrideText value="RehgarGhostWolfButtonCooldownOverride" />
   </CButton>
   <CButton id="RehgarGhostWolfActivate" parent="StormButtonParent">
     <Icon value="Assets\Textures\storm_ui_icon_rehgar_mount.dds" />
     <TooltipCooldownOverrideText value="Button/CooldownOverride/RehgarGhostWolfActivate" />
+    <TooltipAppender Validator="RehgarGhostWolfFeralHeartHasTalent" Face="RehgarGhostWolfFeralHeartTalent" />
+    <TooltipAppender Validator="RehgarGhostWolfBloodAndThunderHasTalent" Face="RehgarBloodAndThunder" />
+    <TooltipAppender Validator="RehgarGhostWolfHungerOfTheWolfHasTalent" Face="RehgarHungeroftheWolf" />
   </CButton>
   <CButton id="RehgarGhostWolfDeactivate" parent="StormButtonParent">
     <TooltipFlags index="ShowCooldown" value="0" />
@@ -1029,14 +1396,11 @@
   <CButton id="RehgarGhostWolfFeralHeartTalent" parent="StormButtonParent">
     <Icon value="Assets\Textures\storm_ui_icon_rehgar_ghostwolf.dds" />
   </CButton>
-  <CButton id="RehgarGhostWolfWolfRunTalent" parent="StormButtonParent">
-    <Icon value="Assets\Textures\storm_ui_icon_rehgar_ghostwolf.dds" />
-  </CButton>
   <CButton id="RehgarHealingTotem" parent="StormButtonParent">
     <Icon value="Assets\Textures\storm_ui_icon_talent_healingward.dds" />
   </CButton>
   <CButton id="RehgarLightningShield" parent="StormButtonParent">
-    <TooltipAppender Validator="RehgarLightningShieldElectricChargeHasTalent" Face="RehgarLightningShieldElectricCharge" />
+    <TooltipAppender Validator="RehgarCasterHasElectricChargeTalent" Face="RehgarLightningShieldElectricCharge" />
     <TooltipAppender Validator="RehgarLightningShieldLightningBondHasTalent" Face="RehgarLightningShieldLightningBond" />
     <TooltipAppender Validator="RehgarLightningShieldStormcallerHasTalent" Face="RehgarLightningShieldStormcaller" />
     <TooltipAppender Validator="RehgarLightningShieldEarthShieldHasTalent" Face="RehgarLightningShieldEarthShield" />
@@ -1048,9 +1412,6 @@
   </CButton>
   <CButton id="RehgarLightningShieldElectricCharge" parent="StormButtonParent">
     <Icon value="Assets\Textures\storm_ui_icon_rehgar_lightningshield.dds" />
-  </CButton>
-  <CButton id="RehgarLightningShieldLightningBond" parent="StormButtonParent">
-    <Icon value="Assets\Textures\storm_ui_icon_rehgar_lightningshield_a.dds" />
   </CButton>
   <CButton id="RehgarLightningShieldStormcaller" parent="StormButtonParent">
     <Icon value="Assets\Textures\storm_ui_icon_rehgar_lightningshield.dds" />
@@ -1064,6 +1425,398 @@
     <Unit value="HeroRehgar" />
     <Variations Model="RehgarPortrait" Actor="RehgarPortrait" />
   </CCharacter>
+  <CEffectSet id="RehgarDeathSet">
+    <EffectArray value="RehgarPitFighterClearTrackedUnits" />
+    <EffectArray value="RehgarPitFighterResetToken" />
+  </CEffectSet>
+  <CEffectClearTrackedUnits id="RehgarPitFighterClearTrackedUnits">
+    <BehaviorLink value="RehgarPitFighterUnitTracker" />
+  </CEffectClearTrackedUnits>
+  <CEffectModifyTokenCount id="RehgarPitFighterResetToken" parent="BaseEffectModifyTokenCount">
+    <Marker Link="Effect/RehgarPitFighterRemoveToken" />
+    <CollationId value="RehgarPitFighterAddToken" />
+    <TokenId value="RehgarPitFighterTokenCounter" />
+    <Operation value="Set" />
+    <Value value="0" />
+  </CEffectModifyTokenCount>
+  <CEffectEnumArea id="RehgarEarthbindTotemEarthgraspTotemDamageSearch">
+    <Chance value="0" />
+    <SearchFilters value="-;Player,Ally,Neutral,ImmuneToAOE,Structure,Missile,Item,Dead,Hidden,Invulnerable" />
+    <AreaArray Effect="RehgarEarthbindTotemEarthgraspTotemTalentDamage">
+      <Radius value="3.5" />
+    </AreaArray>
+  </CEffectEnumArea>
+  <CEffectSet id="RehgarEarthbindTotemCastSet">
+    <EffectArray value="RehgarEarthbindTotemCreateUnit" />
+    <EffectArray value="RehgarEarthbindTotemEarthgraspTotemDamageSearch" />
+    <TargetLocationType value="Point" />
+  </CEffectSet>
+  <CEffectApplyBehavior id="RehgarGhostWolfFeralHeartTalentApplyBuff">
+    <Chance value="0" />
+    <WhichUnit Value="Caster" />
+    <Behavior value="RehgarGhostWolfFeralHeartTalentBuff" />
+  </CEffectApplyBehavior>
+  <CEffectModifyPlayer id="RehgarGhostWolfFeralHeartTalentResetPlayer">
+    <Chance value="0" />
+    <EffectArray Operation="Set" Reference="Behavior,RehgarGhostWolfBuff,Modification.UnifiedMoveSpeedFactor" Value="0.3" />
+  </CEffectModifyPlayer>
+  <CEffectModifyPlayer id="RehgarGhostWolfFeralHeartTalentModifyPlayer">
+    <EffectArray Operation="Set" Reference="Behavior,RehgarGhostWolfBuff,Modification.UnifiedMoveSpeedFactor" Value="0.4" />
+    <Chance value="0" />
+  </CEffectModifyPlayer>
+  <CEffectDamage id="RehgarEarthbindTotemEarthgraspTotemTalentDamage" parent="StormSpell">
+    <Amount value="145" />
+    <SourceButtonFace value="RehgarEarthbindTotem" />
+  </CEffectDamage>
+  <CEffectSet id="RehgarEarthbindTotemEarthgraspTotemImpactSet">
+    <EffectArray value="RehgarEarthbindTotemEarthgraspTotemSlowApplyBehavior" />
+  </CEffectSet>
+  <CEffectApplyBehavior id="RehgarLightningShieldElectricChargeTalentApplySpeed">
+    <Chance value="0" />
+    <WhichUnit Value="Source" />
+    <Behavior value="RehgarLightningShieldElectricChargeSpeedBuff" />
+  </CEffectApplyBehavior>
+  <CEffectRemoveBehavior id="RehgarElementalConduitRemoveActiveBuff">
+    <BehaviorLink value="RehgarElementalConduitActiveBuff" />
+    <Count value="1" />
+  </CEffectRemoveBehavior>
+  <CEffectEnumArea id="RehgarElementalConduitHeroImpactAllySearch">
+    <ValidatorArray value="TargetIsHero" />
+    <ValidatorArray value="SourceIsPlayer" />
+    <ValidatorArray value="RehgarSourceHasElementalConduitActive" />
+    <Chance value="0" />
+    <SearchFilters value="Heroic;Neutral,Enemy,Structure,ImmuneToFriendlyAbilities,Missile,Item,Stasis,Dead,Hidden" />
+    <AreaArray Effect="RehgarElementalConduitShieldIncrementSet">
+      <Radius value="8" />
+    </AreaArray>
+  </CEffectEnumArea>
+  <CEffectModifyTokenCount id="RehgarPitFighterAddToken" parent="BaseEffectModifyTokenCount">
+    <TokenId value="RehgarPitFighterTokenCounter" />
+  </CEffectModifyTokenCount>
+  <CEffectModifyTokenCount id="RehgarPitFighterRemoveToken" parent="BaseEffectModifyTokenCount">
+    <CollationId value="RehgarPitFighterAddToken" />
+    <TokenId value="RehgarPitFighterTokenCounter" />
+    <Value value="-1" />
+  </CEffectModifyTokenCount>
+  <CEffectSet id="RehgarPitFighterRemoveTrackedUnitSet">
+    <ValidatorArray value="RehgarPitFighterTargetNotWithinRange" />
+    <EffectArray value="RehgarPitFighterRemoveTrackedUnit" />
+    <EffectArray value="RehgarPitFighterRemoveToken" />
+  </CEffectSet>
+  <CEffectAddTrackedUnit id="RehgarPitFighterAddTrackedUnit">
+    <BehaviorLink value="RehgarPitFighterUnitTracker" />
+    <TrackedUnit Value="Target" />
+  </CEffectAddTrackedUnit>
+  <CEffectEnumTrackedUnits id="RehgarPitFighterEnumerateTrackedUnits">
+    <BehaviorLink value="RehgarPitFighterUnitTracker" />
+    <Effect value="RehgarPitFighterRemoveTrackedUnitSet" />
+  </CEffectEnumTrackedUnits>
+  <CEffectRemoveTrackedUnit id="RehgarPitFighterRemoveTrackedUnit">
+    <ValidatorArray value="RehgarPitFighterTargetNotWithinRange" />
+    <BehaviorLink value="RehgarPitFighterUnitTracker" />
+    <TrackedUnit Value="Target" />
+  </CEffectRemoveTrackedUnit>
+  <CEffectModifyUnit id="RehgarPitFighterModifyUnit">
+    <Cost Abil="RehgarPurge,Execute" CooldownOperation="Add" CooldownTimeUse="-0.125" />
+    <ValidatorArray value="RehgarHasGTE2PitFighterTrackedUnits" />
+  </CEffectModifyUnit>
+  <CEffectSet id="RehgarPitFighterPeriodicSet">
+    <EffectArray value="RehgarPitFighterEnumerateTrackedUnits" />
+    <EffectArray value="RehgarPitFighterSearch" />
+    <EffectArray value="RehgarPitFighterModifyUnit" />
+  </CEffectSet>
+  <CEffectEnumArea id="RehgarPitFighterSearch">
+    <SearchFilters value="Heroic;Neutral,Enemy,ImmuneToFriendlyAbilities,Missile,Item,Stasis,Dead" />
+    <AreaArray Effect="RehgarPitFighterSearchImpactSet">
+      <Radius value="8.5" />
+    </AreaArray>
+  </CEffectEnumArea>
+  <CEffectSet id="RehgarPitFighterSearchImpactSet">
+    <EffectArray value="RehgarPitFighterAddTrackedUnit" />
+    <EffectArray value="RehgarPitFighterAddToken" />
+    <ValidatorArray value="RehgarTargetNotAlreadyTrackedPitFighterTalent" />
+    <ValidatorArray value="TargetIsNotDeathwing" />
+    <ValidatorArray value="TargetIsNotDeathwingDragonflightUnit" />
+  </CEffectSet>
+  <CEffectCreateHealer id="RehgarLightningShieldTotemticMasteryTalentManaRestore" parent="StormManaRestore">
+    <ImpactUnit Effect="RehgarLightningShieldGroundedTotemTalentApplyBuff" Value="Source" />
+    <RechargeVitalRate value="2" />
+  </CEffectCreateHealer>
+  <CEffectSet id="RehgarGhostWolfWolfRunTalentDisableSet">
+    <EffectArray value="RehgarGhostWolfWolfRunTalentResetToken" />
+    <EffectArray value="RehgarGhostWolfWolfRunTalentModifyCatalog" />
+  </CEffectSet>
+  <CEffectSet id="RehgarGhostWolfWolfRunTalentPeriodicSet">
+    <EffectArray value="RehgarGhostWolfWolfRunTalentAddToken" />
+    <EffectArray value="RehgarGhostWolfWolfRunTalentModifyCatalog" />
+  </CEffectSet>
+  <CEffectModifyTokenCount id="RehgarGhostWolfWolfRunTalentResetToken" parent="BaseEffectModifyTokenCount">
+    <CollationId value="RehgarGhostWolfWolfRunTalentAddToken" />
+    <TokenId value="RehgarWolfRunTalentTokenCounter" />
+    <Operation value="Set" />
+    <Value value="0" />
+  </CEffectModifyTokenCount>
+  <CEffectModifyTokenCount id="RehgarLightningShieldStormcallerTalentAddToken" parent="BaseEffectModifyTokenCount">
+    <ValidatorArray value="TargetIsHero" />
+    <TokenId value="RehgarLightningShieldStormcallerTalentTokenCounter" />
+  </CEffectModifyTokenCount>
+  <CEffectCreateHealer id="RehgarPurgePurificationTalentHeal" parent="StormHealingParent">
+    <RechargeVitalRate value="260" />
+    <Flags index="Crit" value="1" />
+    <SourceButtonFace value="RehgarPurge" />
+  </CEffectCreateHealer>
+  <CEffectApplyBehavior id="RehgarPurgePurificationTalentApplyHealingReductionDebuff">
+    <Behavior value="RehgarPurgePurificationTalentHealingReduction" />
+  </CEffectApplyBehavior>
+  <CEffectSet id="RehgarPurgePurificationTalentEnemyProcSet">
+    <Chance value="0" />
+    <EffectArray value="RehgarPurgePurificationTalentApplyHealingReductionDebuff" />
+    <EffectArray value="RehgarPurgePurificationTalentDamage" />
+  </CEffectSet>
+  <CEffectDamage id="RehgarPurgePurificationTalentDamage" parent="StormSpell">
+    <Flags index="Crit" value="1" />
+    <Flags index="DontDamageLife" value="1" />
+    <Amount value="330" />
+    <SourceButtonFace value="RehgarPurge" />
+  </CEffectDamage>
+  <CEffectSet id="RehgarPurgePurificationTalentAllyProcSet">
+    <ValidatorArray value="TargetIsRootedOrSilencedOrSlowedOrStunned" />
+    <Chance value="0" />
+    <EffectArray value="RehgarPurgePurificationTalentModifyUnit" />
+    <EffectArray value="RehgarPurgePurificationTalentHeal" />
+  </CEffectSet>
+  <CEffectModifyUnit id="RehgarPurgePurificationTalentModifyUnit">
+    <ImpactUnit Value="Caster" />
+    <Cost Abil="RehgarPurge,Execute" CooldownOperation="Add">
+      <Fraction Cooldown="-0.4" />
+    </Cost>
+    <FloaterCreation value="Force" />
+  </CEffectModifyUnit>
+  <CEffectApplyBehavior id="RehgarPurgeApplySlowStacks" parent="StormSlowApply">
+    <Behavior value="RehgarPurgeSlow" />
+    <Count value="32" />
+  </CEffectApplyBehavior>
+  <CEffectApplyBehavior id="RehgarPurgeApplySlowController" parent="StormSlowApply">
+    <Behavior value="RehgarPurgeSlowController" />
+  </CEffectApplyBehavior>
+  <CEffectSet id="RehgarPurgeEnemySet">
+    <EffectArray value="RehgarPurgeApplySlowStacks" />
+    <EffectArray value="RehgarPurgeApplySlowController" />
+    <EffectArray value="RehgarPurgePurificationTalentEnemyProcSet" />
+  </CEffectSet>
+  <CEffectRemoveBehavior id="RehgarPurgeRemoveStack">
+    <BehaviorLink value="RehgarPurgeSlow" />
+    <Count value="1" />
+  </CEffectRemoveBehavior>
+  <CEffectApplyBehavior id="RehgarGhostWolfFeralHeartTalentApplyArmor">
+    <Chance value="0" />
+    <WhichUnit Value="Caster" />
+    <Behavior value="RehgarGhostWolfFeralHeartTalentArmor" />
+  </CEffectApplyBehavior>
+  <CEffectSwitch id="RehgarPurgeTargetSwitch">
+    <ValidatorArray value="RehgarPurgeTargetCombine" />
+    <ValidatorArray value="TargetIsNotDeathwing" />
+    <CaseArray Validator="TargetIsEnemyAndHero" Effect="RehgarPurgeEnemySet" />
+    <CaseDefault value="RehgarPurgeAllySet" />
+  </CEffectSwitch>
+  <CEffectSet id="RehgarElementalConduitShieldIncrementSet">
+    <EffectArray value="RehgarElementalConduitModifyBaseShieldDuration" />
+    <EffectArray value="RehgarElementalConduitAddShieldStack" />
+  </CEffectSet>
+  <CEffectCreatePersistent id="RehgarElementalConduitLightningShieldPersistent">
+    <WhichLocation Value="CasterUnit" />
+    <PeriodCount value="1" />
+    <PeriodicEffectArray value="RehgarLightningShieldInitialSet" />
+    <PeriodicPeriodArray value="0" />
+  </CEffectCreatePersistent>
+  <CEffectModifyBehaviorBuffDuration id="RehgarElementalConduitModifyBaseShieldDuration">
+    <WhichUnit Value="Target" />
+    <Behavior value="RehgarElementalConduitTalentBaseShield" />
+    <Operation value="Set" />
+    <Value value="4" />
+  </CEffectModifyBehaviorBuffDuration>
+  <CEffectApplyBehavior id="RehgarElementalConduitAddShieldStack">
+    <Behavior value="RehgarElementalConduitTalentShieldStack" />
+  </CEffectApplyBehavior>
+  <CEffectEnumTrackedUnits id="RehgarElementalConduitEnumerateTrackedUnits">
+    <ValidatorArray value="TargetIsHero" />
+    <ValidatorArray value="SourceIsPlayer" />
+    <Chance value="0" />
+    <BehaviorLink value="RehgarElementalConduitUnitTracker" />
+    <Effect value="RehgarElementalConduitShieldIncrementSet" />
+    <TrackedUnitFilters value="Heroic;Neutral,Enemy,ImmuneToFriendlyAbilities,Stasis,Dead" />
+  </CEffectEnumTrackedUnits>
+  <CEffectApplyBehavior id="RehgarElementalConduitActiveBuffApply">
+    <WhichUnit Value="Caster" />
+    <Behavior value="RehgarElementalConduitActiveBuff" />
+  </CEffectApplyBehavior>
+  <CEffectSet id="RehgarElementalConduitActiveBuffFinalSet">
+    <EffectArray value="RehgarElementalConduitClearTrackedUnits" />
+  </CEffectSet>
+  <CEffectApplyBehavior id="RehgarElementalConduitAddBaseShield">
+    <Behavior value="RehgarElementalConduitTalentBaseShield" />
+  </CEffectApplyBehavior>
+  <CEffectAddTrackedUnit id="RehgarElementalConduitAddTrackedUnit">
+    <BehaviorLink value="RehgarElementalConduitUnitTracker" />
+    <TrackedUnit Value="Target" />
+  </CEffectAddTrackedUnit>
+  <CEffectClearTrackedUnits id="RehgarElementalConduitClearTrackedUnits">
+    <BehaviorLink value="RehgarElementalConduitUnitTracker" />
+  </CEffectClearTrackedUnits>
+  <CEffectSet id="RehgarElementalConduitCastSet">
+    <EffectArray value="RehgarElementalConduitActiveBuffApply" />
+    <EffectArray value="RehgarElementalConduitLightningShieldPersistent" />
+    <EffectArray value="RehgarElementalConduitSearch" />
+  </CEffectSet>
+  <CEffectEnumArea id="RehgarElementalConduitSearch">
+    <SearchFilters value="Heroic;Neutral,Enemy,Structure,ImmuneToFriendlyAbilities,Missile,Item,Stasis,Dead,Hidden" />
+    <AreaArray Effect="RehgarElementalConduitSearchImpactSet">
+      <Radius value="8" />
+    </AreaArray>
+  </CEffectEnumArea>
+  <CEffectSet id="RehgarElementalConduitSearchImpactSet">
+    <EffectArray value="RehgarElementalConduitAddBaseShield" />
+  </CEffectSet>
+  <CEffectSet id="RehgarEarthbindTotemWellspringTalentChainHeal1ImpactSet">
+    <ValidatorArray value="TargetIsMinionNotMercLanerORTargetIsSummonedOrHeroic" />
+    <EffectArray value="RehgarEarthbindTotemWellspringTalentChainHeal1ImpactSetSecondary" />
+  </CEffectSet>
+  <CEffectCreatePersistent id="RehgarEarthbindTotemWellspringTalentChainHeal1Delay">
+    <WhichLocation Value="TargetUnit" />
+    <ExpireDelay value="0.25" />
+    <FinalEffect value="RehgarEarthbindTotemWellspringTalentChainHeal1SearchForNewTarget" />
+  </CEffectCreatePersistent>
+  <CEffectSet id="RehgarEarthbindTotemWellspringTalentChainHeal1ImpactSetSecondary">
+    <Marker Link="RehgarWellspringChainHeal">
+      <MatchFlags index="Link" value="1" />
+    </Marker>
+    <EffectArray value="RehgarEarthbindTotemWellspringTalentChainHeal1Delay" />
+    <EffectArray value="RehgarEarthbindTotemWellspringTalentChainHealPrimaryHeal" />
+  </CEffectSet>
+  <CEffectEnumArea id="RehgarEarthbindTotemWellspringTalentChainHeal1SearchForNewTarget">
+    <ImpactLocation Effect="RehgarEarthbindTotemWellspringTalentChainHeal1Delay" Value="TargetUnit" />
+    <ExcludeArray Value="Target" />
+    <SearchFilters value="Visible;Neutral,Enemy,Creep,Structure,ImmuneToFriendlyAbilities,Missile,Item,Stasis,Dead,Hidden" />
+    <TargetSorts>
+      <SortArray value="TSHeroic" />
+      <SortArray value="TSLifeFraction" />
+      <SortArray value="TSDistanceToTarget" />
+    </TargetSorts>
+    <AreaArray MaxCount="1" Effect="RehgarEarthbindTotemWellspringTalentChainHeal2ImpactSet">
+      <Radius value="7" />
+    </AreaArray>
+    <SearchFlags index="ExtendByUnitRadius" value="1" />
+  </CEffectEnumArea>
+  <CEffectCreatePersistent id="RehgarEarthbindTotemWellspringTalentChainHeal2Delay">
+    <WhichLocation Value="TargetUnit" />
+    <ExpireDelay value="0.25" />
+    <FinalEffect value="RehgarEarthbindTotemWellspringTalentChainHeal2SearchForNewTarget" />
+  </CEffectCreatePersistent>
+  <CEffectSet id="RehgarEarthbindTotemWellspringTalentChainHeal2ImpactSet">
+    <ValidatorArray value="noMarkers" />
+    <ValidatorArray value="TargetIsMinionNotMercLanerORTargetIsSummonedOrHeroic" />
+    <EffectArray value="RehgarEarthbindTotemWellspringTalentChainHeal2Delay" />
+    <EffectArray value="RehgarEarthbindTotemWellspringTalentChainHealSecondaryHeal" />
+  </CEffectSet>
+  <CEffectEnumArea id="RehgarEarthbindTotemWellspringTalentChainHeal2SearchForNewTarget">
+    <ImpactLocation Effect="RehgarEarthbindTotemWellspringTalentChainHeal2Delay" Value="TargetUnit" />
+    <ExcludeArray Value="Target" />
+    <SearchFilters value="Visible;Neutral,Enemy,Creep,Structure,ImmuneToFriendlyAbilities,Missile,Item,Stasis,Dead,Hidden" />
+    <TargetSorts>
+      <SortArray value="TSHeroic" />
+      <SortArray value="TSLifeFraction" />
+      <SortArray value="TSDistanceToTarget" />
+    </TargetSorts>
+    <AreaArray MaxCount="1" Effect="RehgarEarthbindTotemWellspringTalentChainHeal3ImpactSet">
+      <Radius value="7" />
+    </AreaArray>
+    <SearchFlags index="ExtendByUnitRadius" value="1" />
+  </CEffectEnumArea>
+  <CEffectSet id="RehgarEarthbindTotemWellspringTalentChainHeal3ImpactSet">
+    <ValidatorArray value="noMarkers" />
+    <ValidatorArray value="TargetIsMinionNotMercLanerORTargetIsSummonedOrHeroic" />
+    <EffectArray value="RehgarEarthbindTotemWellspringTalentChainHealSecondaryHeal" />
+  </CEffectSet>
+  <CEffectCreateHealer id="RehgarEarthbindTotemWellspringTalentChainHealPrimaryHeal" parent="StormHealingSpell">
+    <RechargeVitalRate value="91" />
+  </CEffectCreateHealer>
+  <CEffectCreateHealer id="RehgarEarthbindTotemWellspringTalentChainHealSecondaryHeal" parent="StormHealingSpell">
+    <RechargeVitalRate value="91" />
+  </CEffectCreateHealer>
+  <CEffectApplyBehavior id="RehgarEarthbindTotemWellspringTalentApplyBuff">
+    <Chance value="0" />
+    <Behavior value="RehgarEarthbindTotemWellspringTalentBuff" />
+  </CEffectApplyBehavior>
+  <CEffectSet id="RehgarPurgeAllySet">
+    <ValidatorArray value="TargetNotImmuneToFriendlyAbilities" />
+    <EffectArray value="RehgarPurgePurificationTalentAllyProcSet" />
+    <EffectArray value="HeroGenericCleanseRemoveCCBehaviorCategoriesTarget" />
+    <EffectArray value="RehgarPurgeApplyBehavior" />
+  </CEffectSet>
+  <CEffectEnumArea id="RehgarEarthbindTotemWellspringTalentPeriodicSearch">
+    <SearchFilters value="Heroic;Neutral,Enemy,Creep,Structure,ImmuneToFriendlyAbilities,Missile,Item,Stasis,Dead" />
+    <AreaArray MaxCount="1" Effect="RehgarEarthbindTotemWellspringTalentChainHeal1ImpactSet">
+      <Radius value="6" />
+    </AreaArray>
+    <TargetSorts>
+      <SortArray value="TSHeroic" />
+      <SortArray value="TSLifeFraction" />
+      <SortArray value="TSDistanceToTarget" />
+    </TargetSorts>
+    <MaxCount value="1" />
+  </CEffectEnumArea>
+  <CEffectApplyBehavior id="RehgarGhostWolfEarthShockTalentApplySilence">
+    <ValidatorArray index="0" value="TargetIsHero" />
+    <ValidatorArray value="RehgarCasterHasGhostWolf" />
+    <Chance value="0" />
+    <Behavior value="RehgarGhostWolfEarthShockTalentSilence" />
+  </CEffectApplyBehavior>
+  <CEffectSet id="RehgarEarthbindTotemGroundedTotemTalentPeriodicSet">
+    <EffectArray value="RehgarEarthbindTotemGroundedTotemTalentApplySpellpowerReduction" />
+    <EffectArray value="RehgarEarthbindTotemGroundedTotemApplyAttackSpeedSlowBehavior" />
+    <ValidatorArray value="RehgarHasEarthbindTotemGroundedTotemTalent" />
+  </CEffectSet>
+  <CEffectApplyBehavior id="RehgarEarthbindTotemGroundedTotemTalentApplySpellpowerReduction">
+    <Behavior value="RehgarEarthbindTotemGroundedTotemTalentSpellpowerDebuff" />
+    <ValidatorArray index="0" value="TargetIsHero" />
+  </CEffectApplyBehavior>
+  <CEffectApplyBehavior id="RehgarPurgeApplyBehavior">
+    <Behavior value="RehgarPurgeBuff" />
+  </CEffectApplyBehavior>
+  <CEffectSet id="RehgarGhostWolfBloodAndThunderTalentProcSet">
+    <EffectArray value="RehgarGhostWolfBloodAndThunderTalentManaRestore" />
+    <EffectArray value="RehgarGhostWolfBloodAndThunderModifyUnitCooldown" />
+  </CEffectSet>
+  <CEffectApplyBehavior id="RehgarLightningShieldGroundedTotemTalentApplyBuff">
+    <Chance value="0" />
+    <Behavior value="RehgarTotemicMasteryTalentLightningShieldBuff" />
+  </CEffectApplyBehavior>
+  <CEffectModifyTokenCount id="RehgarGhostWolfWolfRunTalentAddToken" parent="BaseEffectModifyTokenCount">
+    <ValidatorArray value="HasGhostWolfCaster" />
+    <TokenId value="RehgarWolfRunTalentTokenCounter" />
+  </CEffectModifyTokenCount>
+  <CEffectModifyCatalogNumeric id="RehgarGhostWolfWolfRunTalentModifyCatalog">
+    <CatalogModifications Operation="Set" Reference="Behavior,RehgarGhostWolfBuff,Modification.UnifiedMoveSpeedFactor">
+      <Value value="0.3">
+        <AccumulatorArray value="RehgarWolfRunTalentSpeedAccumulator" />
+      </Value>
+    </CatalogModifications>
+  </CEffectModifyCatalogNumeric>
+  <CEffectSet id="RehgarLightningShieldTotemicMasteryImpactSet">
+    <EffectArray value="RehgarLightningShieldTotemicMasteryTalentDamage" />
+    <EffectArray value="RehgarLightningShieldTotemticMasteryTalentManaRestore" />
+    <EffectArray value="ApplyAbilityImpactReveal" />
+  </CEffectSet>
+  <CEffectEnumArea id="RehgarLightningShieldTotemicMasteryTalentSearch">
+    <SearchFilters value="-;Player,Ally,Neutral,ImmuneToAOE,Missile,Destructible,Item,Stasis,Dead,Hidden,Invulnerable" />
+    <AreaArray Effect="RehgarLightningShieldTotemicMasteryImpactSet">
+      <Radius value="2.5" />
+    </AreaArray>
+  </CEffectEnumArea>
+  <CEffectSwitch id="RehgarLightningShieldDamageSwitch">
+    <CaseArray Validator="RehgarLightningShieldElectricChargeRehgarTargetCombine" Effect="RehgarLightningShieldElectricChargeTalentDamage" />
+    <CaseDefault value="RehgarLightningShieldDamage" />
+  </CEffectSwitch>
   <CEffectSet id="RehgarAncestralHealingFarseersBlessingApplyBehaviorSet">
     <ValidatorArray value="RehgarTargetDoesNotHaveFarseersBlessingDummyBehavior" />
     <ValidatorArray value="TargetNotDeadAndNoSpecialDeathState" />
@@ -1087,14 +1840,13 @@
     <CaseArray Validator="RehgarTargetHasFarseersBlessingDummyBehavior" Effect="RehgarAncestralHealingFarseersBlessingHealingImpactSet" />
     <CaseDefault value="RehgarAncestralHealingImpactSwitch" />
   </CEffectSwitch>
-  <CEffectCreateHealer id="RehgarGhostWolfFeralHeartCreateManaHealer" parent="StormManaRestore">
+  <CEffectCreateHealer id="RehgarGhostWolfBloodAndThunderTalentManaRestore" parent="StormManaRestore">
     <ImpactUnit Value="Caster" />
-    <MultiplicativeModifierArray index="Heroic" Validator="TargetIsHero" Modifier="4" Crit="1" />
-    <RechargeVitalFraction value="0.01" />
+    <RechargeVitalFraction value="0.05" />
   </CEffectCreateHealer>
   <CEffectApplyBehavior id="RehgarEarthbindTotemGroundedTotemApplyAttackSpeedSlowBehavior">
-    <ValidatorArray index="0" value="RehgarHasEarthbindTotemGroundedTotemTalent" />
     <Behavior value="RehgarEarthbindTotemGroundedTotemAttackSpeedDebuff" />
+    <ValidatorArray index="0" value="TargetIsHero" />
   </CEffectApplyBehavior>
   <CEffectSet id="RehgarLightningShieldLightningBondBuffInitialSet">
     <EffectArray value="RehgarLightningShieldLightningBondSearch" />
@@ -1127,11 +1879,6 @@
   <CEffectSet id="RehgarLightningShieldBuffFinalSet">
     <EffectArray value="RehgarLightningShieldStormcallerRefundStackRemoveAll" />
   </CEffectSet>
-  <CEffectRemoveBehavior id="RehgarLightningShieldStormcallerRefundStackRemoveAll">
-    <WhichUnit Value="Source" />
-    <BehaviorLink value="RehgarLightningShieldStormcallerRefundStack" />
-    <Count value="25" />
-  </CEffectRemoveBehavior>
   <CEffectApplyBehavior id="RehgarLightningShieldRisingStormTokenCounterApplyBehavior">
     <Chance value="0" />
     <Behavior value="RehgarLightningShieldRisingStormTokenCounter" />
@@ -1156,25 +1903,17 @@
     <Chance value="0" />
   </CEffectModifyUnit>
   <CEffectCreateHealer id="RehgarChainHealEarthlivingEnchantHealer" parent="StormHealingSpell">
-    <RechargeVitalRate value="45" />
+    <RechargeVitalRate value="50" />
   </CEffectCreateHealer>
-  <CEffectApplyBehavior id="RehgarLightningShieldStormcallerRefundStackApplyBehavior">
-    <Chance value="0" />
-    <Behavior value="RehgarLightningShieldStormcallerRefundStack" />
-    <Count value="25" />
-  </CEffectApplyBehavior>
-  <CEffectRemoveBehavior id="RehgarLightningShieldStormcallerRefundStackRemoveBehavior">
-    <ValidatorArray value="CasterNotDead" />
-    <Chance value="0" />
-    <WhichUnit Value="Source" />
-    <BehaviorLink value="RehgarLightningShieldStormcallerRefundStack" />
-    <Count value="1" />
-  </CEffectRemoveBehavior>
-  <CEffectCreateHealer id="RehgarLightningShieldStormcallerManaRestore" parent="StormManaRestore">
-    <ValidatorArray value="RehgarLightningShieldSourceHasBuff" />
-    <ImpactUnit Value="Caster" />
-    <RechargeVitalRate value="4" />
+  <CEffectCreateHealer id="RehgarLightningShieldManaRestore" parent="StormManaRestore">
+    <ImpactUnit Effect="RehgarLightningShieldApplyBuffBehavior" Value="Source" />
+    <RechargeVitalRate value="2" />
   </CEffectCreateHealer>
+  <CEffectSet id="RehgarEarthbindTotemSpawnSet">
+    <EffectArray value="RehgarEarthbindTotemApplyTotemicProjectionEnabler" />
+    <EffectArray value="RehgarLightningShieldGroundedTotemTalentApplyBuff" />
+    <EffectArray value="RehgarEarthbindTotemWellspringTalentApplyBuff" />
+  </CEffectSet>
   <CEffectModifyUnit id="RehgarChainHealTidalWavesModifyCooldownRehgarDummy">
     <ValidatorArray value="TargetIsHero" />
     <Chance value="0" />
@@ -1184,21 +1923,18 @@
     <WhichUnit Value="Caster" />
     <Behavior value="RehgarEarthbindTotemTotemicProjectionEnabler" />
   </CEffectApplyBehavior>
-  <CEffectSet id="RehgarEarthbindTotemCreateUnitSet">
-    <EffectArray value="RehgarEarthbindTotemApplyTotemicProjectionEnabler" />
-  </CEffectSet>
   <CEffectModifyUnit id="RehgarEarthbindTotemProjectionEnablerApplyCoolUp">
     <ImpactUnit Value="Source" />
     <Cost Abil="RehgarTotemicProjection,Execute" CooldownOperation="Add" CooldownTimeUse="0.5" />
   </CEffectModifyUnit>
-  <CEffectApplyBehavior id="RehgarEarthlivingEchnatApplyViableTarget">
+  <CEffectApplyBehavior id="RehgarEarthlivingEnchantApplyViableTarget">
     <ValidatorArray index="0" value="TargetLifeLT50Percent" />
     <ValidatorArray value="TargetIsHero" />
-    <Behavior value="RehgarEarthlivingEchnatViableTarget" />
+    <Behavior value="RehgarEarthlivingEnchantViableTarget" />
   </CEffectApplyBehavior>
   <CEffectEnumArea id="RehgarEarthlivingEnchantViableTargetSearch">
     <SearchFilters value="Visible;Neutral,Enemy,Creep,Structure,ImmuneToFriendlyAbilities,Missile,Item,Stasis,Dead,Hidden" />
-    <AreaArray Effect="RehgarEarthlivingEchnatApplyViableTarget">
+    <AreaArray Effect="RehgarEarthlivingEnchantApplyViableTarget">
       <Radius value="15" />
     </AreaArray>
   </CEffectEnumArea>
@@ -1215,14 +1951,14 @@
     <Chance value="0" />
     <LaunchUnit History="Healing" />
     <ImpactUnit Value="Caster" />
-    <RechargeVitalFraction value="0.0507" />
+    <RechargeVitalFraction value="0.06" />
   </CEffectCreateHealer>
   <CEffectDamage id="RehgarGhostWolfHungerOfTheWolfDamage" parent="StormSpellPercentDamage">
     <ValidatorArray value="TargetIsHero" />
     <ValidatorArray value="HasGhostWolfCaster" />
     <Chance value="0" />
     <ImpactLocation Value="TargetUnit" />
-    <VitalFractionMax index="Life" value="0.05" />
+    <VitalFractionMax index="Life" value="0.06" />
   </CEffectDamage>
   <CEffectRemoveBehavior id="RehgarTotemicProjectionRemoveCasterBehavior">
     <WhichUnit Value="Caster" />
@@ -1262,9 +1998,9 @@
   </CEffectModifyUnit>
   <CEffectModifyUnit id="RehgarGhostWolfBloodAndThunderModifyUnitCooldown">
     <ImpactUnit Value="Caster" />
-    <Cost Abil="RehgarEarthbindTotem,Execute" CooldownOperation="Add" CooldownTimeUse="-2" />
-    <Cost Abil="RehgarLightningShield,Execute" CooldownOperation="Add" CooldownTimeUse="-2" />
-    <Cost Abil="RehgarChainHeal,Execute" CooldownOperation="Add" CooldownTimeUse="-2" />
+    <Cost Abil="RehgarEarthbindTotem,Execute" CooldownOperation="Add" CooldownTimeUse="-1.5" />
+    <Cost Abil="RehgarLightningShield,Execute" CooldownOperation="Add" CooldownTimeUse="-1.5" />
+    <Cost Abil="RehgarChainHeal,Execute" CooldownOperation="Add" CooldownTimeUse="-1.5" />
   </CEffectModifyUnit>
   <CEffectSwitch id="RehgarChainHealSecondaryHealingSwitch">
     <CaseDefault value="RehgarChainHealSecondaryHeal" />
@@ -1301,10 +2037,12 @@
   </CEffectEnumArea>
   <CEffectSet id="RehgarGhostWolfInitialSet">
     <ValidatorArray value="IsNotGhostWolf" />
-    <EffectArray value="AbilityUseDismountDecloakRemoveBehaviorCaster" />
+    <EffectArray value="DismountDecloakCasterSet" />
     <EffectArray value="RehgarGhostWolfModifyCancelCooldown" />
     <EffectArray value="RehgarGhostWolfModifyWeaponCooldown" />
     <EffectArray value="RehgarGhostWolfApplyBuff" />
+    <EffectArray value="RehgarGhostWolfFeralHeartTalentApplyBuff" />
+    <EffectArray value="RehgarGhostWolfFeralHeartTalentApplyArmor" />
   </CEffectSet>
   <CEffectCreatePersistent id="RehgarGhostWolfWolfRunCooldownReductionPersistent">
     <ValidatorArray value="RehgarCasterHasGhostWolf" />
@@ -1406,7 +2144,6 @@
     <EffectArray value="RehgarLightningShieldRisingStormDummyApplyBehavior" />
     <EffectArray value="RehgarLightningShieldApplyBuffBehavior" />
     <EffectArray value="RehgarLightningShieldEarthShieldApplyBuffBehavior" />
-    <EffectArray value="RehgarLightningShieldLightningBondApplyUntalentedBehavior" />
   </CEffectSet>
   <CEffectApplyBehavior id="RehgarLightningShieldEarthShieldApplyBuffBehavior">
     <Chance value="0" />
@@ -1414,10 +2151,13 @@
     <ValidatorArray value="TargetIsHero" />
   </CEffectApplyBehavior>
   <CEffectSet id="RehgarLightningShieldImpactSet">
-    <EffectArray value="RehgarLightningShieldDamage" />
+    <EffectArray value="RehgarLightningShieldStormcallerTalentAddToken" />
+    <EffectArray value="RehgarLightningShieldDamageSwitch" />
     <EffectArray value="ApplyAbilityImpactReveal" />
     <EffectArray value="RehgarLightningShieldRisingStormTokenCounterIncrease" />
-    <EffectArray value="RehgarLightningShieldStormcallerRefundStackRemoveBehavior" />
+    <EffectArray value="RehgarLightningShieldManaRestore" />
+    <EffectArray value="RehgarLightningShieldElectricChargeTalentApplySpeed" />
+    <EffectArray value="RehgarElementalConduitHeroImpactAllySearch" />
   </CEffectSet>
   <CEffectSet id="RehgarLightningShieldLightningBondImpactSet">
     <EffectArray value="RehgarLightningShieldDamage" />
@@ -1565,7 +2305,7 @@
   </CEffectApplyBehavior>
   <CEffectCreateUnit id="RehgarEarthbindTotemCreateUnit">
     <WhichLocation Value="TargetPoint" />
-    <SpawnEffect value="RehgarEarthbindTotemCreateUnitSet" />
+    <SpawnEffect value="RehgarEarthbindTotemSpawnSet" />
     <SpawnUnit value="RehgarEarthbindTotem" />
     <SpawnRange value="1" />
   </CEffectCreateUnit>
@@ -1576,7 +2316,7 @@
   <CEffectEnumArea id="RehgarEarthbindTotemEarthgraspTotemSearch">
     <Chance value="0" />
     <SearchFilters value="-;Player,Ally,Neutral,ImmuneToAOE,Structure,Missile,Item,Dead,Hidden,Invulnerable" />
-    <AreaArray Effect="RehgarEarthbindTotemEarthgraspTotemSlowApplyBehavior">
+    <AreaArray Effect="RehgarEarthbindTotemEarthgraspTotemImpactSet">
       <Radius value="3.5" />
     </AreaArray>
   </CEffectEnumArea>
@@ -1596,6 +2336,7 @@
   <CEffectSet id="RehgarGhostWolfFinalSet">
     <EffectArray value="HoldFireRemoveBehavior" />
     <EffectArray value="RehgarGhostWolfModifyActivateCooldown" />
+    <EffectArray value="RehgarGhostWolfFeralHeartTalentApplyArmor" />
   </CEffectSet>
   <CEffectModifyUnit id="RehgarGhostWolfModifyCancelCooldown">
     <ImpactUnit Value="Caster" />
@@ -1614,8 +2355,14 @@
     <Amount value="32" />
     <MultiplicativeModifierArray index="0" Validator="RehgarLightningShieldRisingStormHasTalent" Accumulator="RehgarLightningShieldLightningStormDamageAccumulator" />
     <CritValidatorArray index="0" value="RehgarLightningShieldCritValidatorCombine" />
-    <LeechValidator index="Life" value="RehgarLightningShieldElectricChargeCombine" />
-    <LeechFraction index="Life" value="0.3" />
+    <LeechValidator index="Life" value="RehgarLightningShieldElectricChargeExternalTargetCombine" />
+    <LeechFraction index="Life" value="0.2" />
+    <LeechRecipientArray index="0" Value="Source" />
+  </CEffectDamage>
+  <CEffectDamage id="RehgarLightningShieldElectricChargeTalentDamage" parent="RehgarLightningShieldDamage">
+    <LeechValidator index="Life" value="RehgarLightningShieldElectricChargeRehgarTargetCombine" />
+    <LeechFraction index="Life" value="0.4" />
+    <LeechRecipientArray index="0" Value="Caster" />
   </CEffectDamage>
   <CEffectEnumArea id="RehgarLightningShieldSearch">
     <SearchFilters value="-;Player,Ally,Neutral,ImmuneToAOE,Missile,Destructible,Item,Stasis,Dead,Hidden,Invulnerable" />
@@ -1629,9 +2376,12 @@
       <Radius value="2.5" />
     </AreaArray>
   </CEffectEnumArea>
+  <CEffectDamage id="RehgarLightningShieldTotemicMasteryTalentDamage" parent="RehgarLightningShieldDamage">
+    <LeechFraction index="Life" value="0" />
+  </CEffectDamage>
   <CEffectDamage id="RehgarWeaponDamage" parent="StormWeapon">
     <MultiplicativeModifierArray index="0" Validator="HasGhostWolfCaster" Modifier="0.75" Crit="1" />
-    <Amount value="106" />
+    <Amount value="115" />
   </CEffectDamage>
   <CEffectSet id="RehgarWeaponSet">
     <EffectArray value="UniversalWeaponImpact" />
@@ -1641,7 +2391,6 @@
     <EffectArray value="RehgarDamageDummy" />
     <EffectArray value="RehgarWeaponDamage" />
     <EffectArray value="DecloakCasterSet" />
-    <EffectArray value="RehgarGhostWolfWolfRunCooldownReductionPersistent" />
     <EffectArray value="RehgarGhostWolfRemoveBehavior" />
   </CEffectSet>
   <CEffectSet id="RehgarDismountDecloakCasterSet">
@@ -1661,108 +2410,16 @@
     <BehaviorLink value="RehgarGhostWolfBuff" />
   </CEffectRemoveBehavior>
   <CHero id="Rehgar">
-    <AIComplexityTier value="Low" />
     <AttributeId value="Rehg" />
-    <ProductId value="10629" />
-    <ReleaseDate Month="7" Day="22" />
-    <Role value="Support" />
-    <RolesMultiClass value="Support" />
-    <RoleScoreValueOverride value="Support" />
     <Flags index="UsesMount" value="0" />
     <Flags index="GoodForModeA" value="1" />
+    <Role value="Support" />
+    <ExpandedRole value="Healer" />
+    <RolesMultiClass value="Support" />
+    <RoleScoreValueOverride value="Support" />
+    <Melee value="1" />
     <SelectScreenButtonImage value="Assets\Textures\storm_ui_ingame_heroselect_btn_rehgar.dds" />
-    <UniverseIcon value="Assets\Textures\UI_Glues_Store_GameIcon_Wow.dds" />
     <IntroCutsceneSize value="Medium" />
-    <VariationIcon value="Assets\Textures\UI_Glues_Swatch_Blue_Gray.dds" />
-    <SkinArray value="RehgarUltimate" />
-    <SkinArray value="RehgarIronClaw" />
-    <SkinArray value="RehgarGFWinter" />
-    <SkinArray value="RehgarMecha" />
-    <SkinArray value="RehgarWCAV" />
-    <SkinArray value="RehgarClassic21" />
-    <VariationArray value="RehgarGreen" />
-    <VariationArray value="RehgarRed" />
-    <VariationArray value="RehgarBaseVar3" />
-    <VariationArray value="RehgarBaseVar4" />
-    <TalentTreeArray Talent="RehgarLightningShieldElectricCharge" Tier="1" Column="1" />
-    <TalentTreeArray Talent="RehgarEarthbindTotemColossalTotem" Tier="1" Column="2" />
-    <TalentTreeArray Talent="RehgarWolfRun" Tier="1" Column="3" />
-    <TalentTreeArray Talent="RehgarLightningShieldStormcaller" Tier="2" Column="1" />
-    <TalentTreeArray Talent="RehgarFeralHeart" Tier="2" Column="2" />
-    <TalentTreeArray Talent="RehgarHealingTotem" Tier="2" Column="3" />
-    <TalentTreeArray Talent="RehgarEarthbindTotemGroundedTotem" Tier="3" Column="1" />
-    <TalentTreeArray Talent="RehgarBloodAndThunder" Tier="3" Column="2" />
-    <TalentTreeArray Talent="GenericTalentCleanse" Tier="3" Column="3" />
-    <TalentTreeArray Talent="RehgarAncestralHealing" Tier="4" Column="1" />
-    <TalentTreeArray Talent="RehgarBloodlust" Tier="4" Column="2" />
-    <TalentTreeArray Talent="RehgarMasteryTidalWaves" Tier="5" Column="1" />
-    <TalentTreeArray Talent="RehgarEarthlivingEnchant" Tier="5" Column="2" />
-    <TalentTreeArray Talent="RehgarLightningShieldEarthShield" Tier="5" Column="3" />
-    <TalentTreeArray Talent="RehgarLightningShieldRisingStorm" Tier="6" Column="1" />
-    <TalentTreeArray Talent="RehgarEarthbindTotemEarthgraspTotem" Tier="6" Column="2" />
-    <TalentTreeArray Talent="RehgarHungerOfTheWolf" Tier="6" Column="3" />
-    <TalentTreeArray Talent="RehgarAncestralHealingFarseersBlessing" Tier="7" Column="1">
-      <PrerequisiteTalentArray value="RehgarAncestralHealing" />
-    </TalentTreeArray>
-    <TalentTreeArray Talent="RehgarGladiatorsWarShout" Tier="7" Column="2">
-      <PrerequisiteTalentArray value="RehgarBloodlust" />
-    </TalentTreeArray>
-    <TalentTreeArray Talent="GenericTalentRewind" Tier="7" Column="3" />
-    <TalentTreeArray Talent="GenericTalentStormShield" Tier="7" Column="4" />
-    <TalentAIBuildsArray ChanceToPick="16">
-      <TalentsArray value="RehgarLightningShieldElectricCharge" />
-      <TalentsArray value="RehgarLightningShieldStormcaller" />
-      <TalentsArray value="RehgarBloodAndThunder" />
-      <TalentsArray value="RehgarAncestralHealing" />
-      <TalentsArray value="RehgarLightningShieldEarthShield" />
-      <TalentsArray value="RehgarLightningShieldRisingStorm" />
-      <TalentsArray value="GenericTalentRewind" />
-    </TalentAIBuildsArray>
-    <TalentAIBuildsArray ChanceToPick="16">
-      <TalentsArray value="RehgarEarthbindTotemColossalTotem" />
-      <TalentsArray value="RehgarLightningShieldStormcaller" />
-      <TalentsArray value="GenericTalentCleanse" />
-      <TalentsArray value="RehgarAncestralHealing" />
-      <TalentsArray value="RehgarMasteryTidalWaves" />
-      <TalentsArray value="RehgarEarthbindTotemEarthgraspTotem" />
-      <TalentsArray value="GenericTalentRewind" />
-    </TalentAIBuildsArray>
-    <TalentAIBuildsArray ChanceToPick="16">
-      <TalentsArray value="RehgarWolfRun" />
-      <TalentsArray value="RehgarFeralHeart" />
-      <TalentsArray value="RehgarBloodAndThunder" />
-      <TalentsArray value="RehgarAncestralHealing" />
-      <TalentsArray value="RehgarEarthlivingEnchant" />
-      <TalentsArray value="RehgarHungerOfTheWolf" />
-      <TalentsArray value="GenericTalentStormShield" />
-    </TalentAIBuildsArray>
-    <TalentAIBuildsArray ChanceToPick="16">
-      <TalentsArray value="RehgarEarthbindTotemColossalTotem" />
-      <TalentsArray value="RehgarHealingTotem" />
-      <TalentsArray value="RehgarEarthbindTotemGroundedTotem" />
-      <TalentsArray value="RehgarAncestralHealing" />
-      <TalentsArray value="RehgarMasteryTidalWaves" />
-      <TalentsArray value="RehgarEarthbindTotemEarthgraspTotem" />
-      <TalentsArray value="GenericTalentRewind" />
-    </TalentAIBuildsArray>
-    <TalentAIBuildsArray AIOnly="1" ChanceToPick="16">
-      <TalentsArray value="RehgarWolfRun" />
-      <TalentsArray value="RehgarLightningShieldStormcaller" />
-      <TalentsArray value="GenericTalentCleanse" />
-      <TalentsArray value="RehgarBloodlust" />
-      <TalentsArray value="RehgarLightningShieldEarthShield" />
-      <TalentsArray value="RehgarHungerOfTheWolf" />
-      <TalentsArray value="RehgarGladiatorsWarShout" />
-    </TalentAIBuildsArray>
-    <TalentAIBuildsArray AIOnly="1" ChanceToPick="16">
-      <TalentsArray value="RehgarEarthbindTotemColossalTotem" />
-      <TalentsArray value="RehgarHealingTotem" />
-      <TalentsArray value="GenericTalentCleanse" />
-      <TalentsArray value="RehgarBloodlust" />
-      <TalentsArray value="RehgarEarthlivingEnchant" />
-      <TalentsArray value="RehgarEarthbindTotemEarthgraspTotem" />
-      <TalentsArray value="RehgarGladiatorsWarShout" />
-    </TalentAIBuildsArray>
     <HeroAbilArray Abil="RehgarChainHeal" Button="RehgarChainHeal">
       <Flags index="ShowInHeroSelect" value="1" />
       <Flags index="AffectedByCooldownReduction" value="1" />
@@ -1785,21 +2442,61 @@
       <Flags index="AffectedByCooldownReduction" value="1" />
       <Flags index="Heroic" value="1" />
     </HeroAbilArray>
-    <HeroAbilArray Button="RehgarGhostWolf">
+    <HeroAbilArray Abil="RehgarTotemicProjection" Button="RehgarTotemicProjection">
+      <Flags index="AffectedByCooldownReduction" value="1" />
+    </HeroAbilArray>
+    <HeroAbilArray Abil="RehgarGhostWolfActivate" Button="RehgarGhostWolf">
+      <Flags index="ShowInHeroSelect" value="1" />
+      <Flags index="MountReplacement" value="1" />
+    </HeroAbilArray>
+    <HeroAbilArray Abil="RehgarPurge" Button="RehgarPurge">
       <Flags index="ShowInHeroSelect" value="1" />
       <Flags index="AffectedByCooldownReduction" value="1" />
       <Flags index="Trait" value="1" />
     </HeroAbilArray>
-    <HeroAbilArray Abil="RehgarTotemicProjection" Button="RehgarTotemicProjection">
-      <Flags index="AffectedByCooldownReduction" value="1" />
-    </HeroAbilArray>
-    <HeroAbilArray Abil="RehgarGhostWolfActivate" Button="RehgarGhostWolfActivate">
-      <Flags index="MountReplacement" value="1" />
-    </HeroAbilArray>
+    <SkinArray value="RehgarUltimate" />
+    <SkinArray value="RehgarIronClaw" />
+    <SkinArray value="RehgarGFWinter" />
+    <SkinArray value="RehgarMecha" />
+    <SkinArray value="RehgarWCAV" />
+    <SkinArray value="RehgarClassic21" />
+    <VoiceLineArray value="RehgarBase_VoiceLine01" />
+    <VoiceLineArray value="RehgarBase_VoiceLine02" />
+    <VoiceLineArray value="RehgarBase_VoiceLine03" />
+    <VoiceLineArray value="RehgarBase_VoiceLine04" />
+    <VoiceLineArray value="RehgarBase_VoiceLine05" />
+    <TalentTreeArray Talent="RehgarLightningShieldStormcaller" Tier="1" Column="1" />
+    <TalentTreeArray Talent="RehgarEarthbindTotemGroundedTotem" Tier="1" Column="2" />
+    <TalentTreeArray Talent="RehgarFeralHeart" Tier="1" Column="3" />
+    <TalentTreeArray Talent="RehgarEarthlivingEnchant" Tier="2" Column="1" />
+    <TalentTreeArray Talent="RehgarLightningShieldElectricCharge" Tier="2" Column="2" />
+    <TalentTreeArray Talent="RehgarHealingTotem" Tier="2" Column="3" />
+    <TalentTreeArray Talent="RehgarEarthbindTotemColossalTotem" Tier="3" Column="1" />
+    <TalentTreeArray Talent="RehgarPurification" Tier="3" Column="2" />
+    <TalentTreeArray Talent="RehgarBloodAndThunder" Tier="3" Column="3" />
+    <TalentTreeArray Talent="RehgarAncestralHealing" Tier="4" Column="1" />
+    <TalentTreeArray Talent="RehgarBloodlust" Tier="4" Column="2" />
+    <TalentTreeArray Talent="RehgarMasteryTidalWaves" Tier="5" Column="1" />
+    <TalentTreeArray Talent="RehgarLightningShieldEarthShield" Tier="5" Column="2" />
+    <TalentTreeArray Talent="RehgarWellspring" Tier="5" Column="3" />
+    <TalentTreeArray Talent="RehgarLightningShieldRisingStorm" Tier="6" Column="1" />
+    <TalentTreeArray Talent="RehgarEarthbindTotemEarthgraspTotem" Tier="6" Column="2" />
+    <TalentTreeArray Talent="RehgarHungerOfTheWolf" Tier="6" Column="3" />
+    <TalentTreeArray Talent="RehgarAncestralHealingFarseersBlessing" Tier="7" Column="1">
+      <PrerequisiteTalentArray value="RehgarAncestralHealing" />
+    </TalentTreeArray>
+    <TalentTreeArray Talent="RehgarGladiatorsWarShout" Tier="7" Column="2">
+      <PrerequisiteTalentArray value="RehgarBloodlust" />
+    </TalentTreeArray>
+    <TalentTreeArray Talent="RehgarElementalConduit" Tier="7" Column="3" />
+    <TalentTreeArray Talent="RehgarPitFighter" Tier="7" Column="4" />
+    <VariationIcon value="Assets\Textures\UI_Glues_Swatch_Blue_Gray.dds" />
     <Difficulty value="Medium" />
-    <Melee value="1" />
-    <Universe value="Warcraft" />
+    <AIComplexityTier value="Low" />
     <HeroTierAchievementId value="5216701565559141750" />
+    <Universe value="Warcraft" />
+    <UniverseIcon value="Assets\Textures\UI_Glues_Store_GameIcon_Wow.dds" />
+    <ProductId value="10629" />
     <LevelScalingArray>
       <Modifications>
         <Catalog value="Unit" />
@@ -1829,6 +2526,20 @@
         <Value value="0.040000" />
         <AffectedByOverdrive value="1" />
       </Modifications>
+      <Modifications>
+        <Catalog value="Unit" />
+        <Entry value="TalentHealingWard" />
+        <Field value="LifeStart" />
+        <Value value="0.040000" />
+        <AffectedByOverdrive value="1" />
+      </Modifications>
+      <Modifications>
+        <Catalog value="Unit" />
+        <Entry value="TalentHealingWard" />
+        <Field value="LifeMax" />
+        <Value value="0.040000" />
+        <AffectedByOverdrive value="1" />
+      </Modifications>
     </LevelScalingArray>
     <LevelScalingArray Ability="RehgarChainHeal">
       <Modifications>
@@ -1855,6 +2566,22 @@
         <AffectedByAbilityPower value="1" />
         <AffectedByOverdrive value="1" />
       </Modifications>
+      <Modifications>
+        <Catalog value="Effect" />
+        <Entry value="RehgarEarthbindTotemWellspringTalentChainHealPrimaryHeal" />
+        <Field value="RechargeVitalRate" />
+        <Value value="0.040000" />
+        <AffectedByAbilityPower value="1" />
+        <AffectedByOverdrive value="1" />
+      </Modifications>
+      <Modifications>
+        <Catalog value="Effect" />
+        <Entry value="RehgarEarthbindTotemWellspringTalentChainHealSecondaryHeal" />
+        <Field value="RechargeVitalRate" />
+        <Value value="0.040000" />
+        <AffectedByAbilityPower value="1" />
+        <AffectedByOverdrive value="1" />
+      </Modifications>
     </LevelScalingArray>
     <LevelScalingArray Ability="RehgarLightningShield">
       <Modifications>
@@ -1873,6 +2600,22 @@
         <AffectedByAbilityPower value="1" />
         <AffectedByOverdrive value="1" />
       </Modifications>
+      <Modifications>
+        <Catalog value="Effect" />
+        <Entry value="RehgarLightningShieldElectricChargeTalentDamage" />
+        <Field value="Amount" />
+        <Value value="0.040000" />
+        <AffectedByAbilityPower value="1" />
+        <AffectedByOverdrive value="1" />
+      </Modifications>
+      <Modifications>
+        <Catalog value="Effect" />
+        <Entry value="RehgarLightningShieldTotemicMasteryTalentDamage" />
+        <Field value="Amount" />
+        <Value value="0.040000" />
+        <AffectedByAbilityPower value="1" />
+        <AffectedByOverdrive value="1" />
+      </Modifications>
     </LevelScalingArray>
     <LevelScalingArray Ability="RehgarEarthbindTotem">
       <Modifications>
@@ -1887,6 +2630,14 @@
         <Entry value="RehgarEarthbindTotem" />
         <Field value="LifeMax" />
         <Value value="0.040000" />
+        <AffectedByOverdrive value="1" />
+      </Modifications>
+      <Modifications>
+        <Catalog value="Effect" />
+        <Entry value="RehgarEarthbindTotemEarthgraspTotemTalentDamage" />
+        <Field value="Amount" />
+        <Value value="0.040000" />
+        <AffectedByAbilityPower value="1" />
         <AffectedByOverdrive value="1" />
       </Modifications>
     </LevelScalingArray>
@@ -1908,19 +2659,90 @@
         <AffectedByOverdrive value="1" />
       </Modifications>
     </LevelScalingArray>
+    <LevelScalingArray Ability="RehgarPurge">
+      <Modifications>
+        <Catalog value="Effect" />
+        <Entry value="RehgarPurgePurificationTalentDamage" />
+        <Field value="Amount" />
+        <Value value="0.040000" />
+        <AffectedByAbilityPower value="1" />
+        <AffectedByOverdrive value="1" />
+      </Modifications>
+      <Modifications>
+        <Catalog value="Effect" />
+        <Entry value="RehgarPurgePurificationTalentHeal" />
+        <Field value="RechargeVitalRate" />
+        <Value value="0.040000" />
+        <AffectedByAbilityPower value="1" />
+        <AffectedByOverdrive value="1" />
+      </Modifications>
+    </LevelScalingArray>
+    <VariationArray value="RehgarGreen" />
+    <VariationArray value="RehgarRed" />
+    <VariationArray value="RehgarBaseVar3" />
+    <VariationArray value="RehgarBaseVar4" />
+    <ReleaseDate Month="7" Day="22" />
     <Ratings>
       <Damage value="5" />
       <Utility value="7" />
       <Survivability value="7" />
       <Complexity value="6" />
     </Ratings>
-    <VoiceLineArray value="RehgarBase_VoiceLine01" />
-    <VoiceLineArray value="RehgarBase_VoiceLine02" />
-    <VoiceLineArray value="RehgarBase_VoiceLine03" />
-    <VoiceLineArray value="RehgarBase_VoiceLine04" />
-    <VoiceLineArray value="RehgarBase_VoiceLine05" />
+    <TalentAIBuildsArray ChanceToPick="16">
+      <TalentsArray value="RehgarLightningShieldStormcaller" />
+      <TalentsArray value="RehgarLightningShieldElectricCharge" />
+      <TalentsArray value="RehgarBloodAndThunder" />
+      <TalentsArray value="RehgarBloodlust" />
+      <TalentsArray value="RehgarLightningShieldEarthShield" />
+      <TalentsArray value="RehgarLightningShieldRisingStorm" />
+      <TalentsArray value="RehgarElementalConduit" />
+    </TalentAIBuildsArray>
+    <TalentAIBuildsArray ChanceToPick="16">
+      <TalentsArray value="RehgarEarthbindTotemGroundedTotem" />
+      <TalentsArray value="RehgarHealingTotem" />
+      <TalentsArray value="RehgarEarthbindTotemColossalTotem" />
+      <TalentsArray value="RehgarAncestralHealing" />
+      <TalentsArray value="RehgarWellspring" />
+      <TalentsArray value="RehgarEarthbindTotemEarthgraspTotem" />
+      <TalentsArray value="RehgarAncestralHealingFarseersBlessing" />
+    </TalentAIBuildsArray>
+    <TalentAIBuildsArray ChanceToPick="16">
+      <TalentsArray value="RehgarFeralHeart" />
+      <TalentsArray value="RehgarEarthlivingEnchant" />
+      <TalentsArray value="RehgarBloodAndThunder" />
+      <TalentsArray value="RehgarAncestralHealing" />
+      <TalentsArray value="RehgarMasteryTidalWaves" />
+      <TalentsArray value="RehgarHungerOfTheWolf" />
+      <TalentsArray value="RehgarPitFighter" />
+    </TalentAIBuildsArray>
+    <TalentAIBuildsArray ChanceToPick="16">
+      <TalentsArray value="RehgarLightningShieldStormcaller" />
+      <TalentsArray value="RehgarEarthlivingEnchant" />
+      <TalentsArray value="RehgarPurification" />
+      <TalentsArray value="RehgarAncestralHealing" />
+      <TalentsArray value="RehgarMasteryTidalWaves" />
+      <TalentsArray value="RehgarLightningShieldRisingStorm" />
+      <TalentsArray value="RehgarAncestralHealingFarseersBlessing" />
+    </TalentAIBuildsArray>
+    <TalentAIBuildsArray AIOnly="1" ChanceToPick="16">
+      <TalentsArray value="RehgarWolfRun" />
+      <TalentsArray value="RehgarLightningShieldElectricCharge" />
+      <TalentsArray value="RehgarBloodAndThunder" />
+      <TalentsArray value="RehgarBloodlust" />
+      <TalentsArray value="RehgarLightningShieldEarthShield" />
+      <TalentsArray value="RehgarHungerOfTheWolf" />
+      <TalentsArray value="RehgarGladiatorsWarShout" />
+    </TalentAIBuildsArray>
+    <TalentAIBuildsArray AIOnly="1" ChanceToPick="16">
+      <TalentsArray value="RehgarEarthbindTotemGroundedTotem" />
+      <TalentsArray value="RehgarHealingTotem" />
+      <TalentsArray value="RehgarPurification" />
+      <TalentsArray value="RehgarBloodlust" />
+      <TalentsArray value="RehgarWellspring" />
+      <TalentsArray value="RehgarEarthbindTotemEarthgraspTotem" />
+      <TalentsArray value="RehgarGladiatorsWarShout" />
+    </TalentAIBuildsArray>
     <Rarity value="Epic" />
-    <ExpandedRole value="Healer" />
   </CHero>
   <CHeroMastery id="RehgarMasteryRing1" parent="MasteryRingRank1">
     <ProductId value="66993" />
@@ -1989,9 +2811,96 @@
   <CRewardHeroMastery id="RehgarMasteryRing3">
     <License value="52258" />
   </CRewardHeroMastery>
+  <CTalent id="RehgarPitFighter">
+    <Face value="RehgarPitFighter" />
+    <RankArray>
+      <BehaviorArray value="RehgarPitFighterUnitTracker" />
+      <BehaviorArray value="RehgarPitFighterCarry" />
+      <BehaviorArray value="RehgarPitFighterTokenCounter" />
+    </RankArray>
+  </CTalent>
+  <CTalent id="RehgarElementalConduit">
+    <Face value="RehgarElementalConduit" />
+    <Abil value="RehgarElementalConduit" />
+    <RankArray>
+      <BehaviorArray value="RehgarElementalConduit" />
+    </RankArray>
+    <Active value="1" />
+    <AbilityModificationArray>
+      <Modifications>
+        <Type value="FlatModification" />
+        <Catalog value="Effect" />
+        <Entry value="RehgarElementalConduitHeroImpactAllySearch" />
+        <Field value="Chance" />
+        <Value value="1.000000" />
+      </Modifications>
+    </AbilityModificationArray>
+  </CTalent>
+  <CTalent id="RehgarWellspring">
+    <Face value="RehgarWellspring" />
+    <Abil value="RehgarEarthbindTotem" />
+    <AbilityModificationArray>
+      <Modifications>
+        <Type value="FlatModification" />
+        <Catalog value="Effect" />
+        <Entry value="RehgarEarthbindTotemWellspringTalentApplyBuff" />
+        <Field value="Chance" />
+        <Value value="1.000000" />
+      </Modifications>
+    </AbilityModificationArray>
+  </CTalent>
+  <CTalent id="RehgarPurification">
+    <Face value="RehgarPurification" />
+    <Abil value="RehgarPurge" />
+    <AbilityModificationArray>
+      <Modifications>
+        <Type value="FlatModification" />
+        <Catalog value="Effect" />
+        <Entry value="RehgarPurgePurificationTalentAllyProcSet" />
+        <Field value="Chance" />
+        <Value value="1.000000" />
+      </Modifications>
+      <Modifications>
+        <Type value="FlatModification" />
+        <Catalog value="Effect" />
+        <Entry value="RehgarPurgePurificationTalentEnemyProcSet" />
+        <Field value="Chance" />
+        <Value value="1.000000" />
+      </Modifications>
+    </AbilityModificationArray>
+    <Trait value="1" />
+  </CTalent>
   <CTalent id="RehgarEarthbindTotemGroundedTotem">
     <Face value="RehgarEarthbindTotemGroundedTotem" />
     <Abil value="RehgarEarthbindTotem" />
+    <AbilityModificationArray>
+      <Modifications>
+        <Type value="FlatModification" />
+        <Entry value="RehgarEarthbindTotem" />
+        <Field value="Range[0]" />
+        <Value value="2.000000" />
+      </Modifications>
+      <Modifications>
+        <Type value="FlatModification" />
+        <Catalog value="Actor" />
+        <Entry value="RehgarEarthbindTotemRangeSplat" />
+        <Field value="Scale" />
+        <Value value="2.000000" />
+      </Modifications>
+      <Modifications>
+        <Type value="FlatModification" />
+        <Entry value="RehgarTotemicProjection" />
+        <Field value="Range[0]" />
+        <Value value="2.000000" />
+      </Modifications>
+      <Modifications>
+        <Type value="FlatModification" />
+        <Catalog value="Actor" />
+        <Entry value="RehgarEarthbindTotemicProjectionRangeSplat" />
+        <Field value="Scale" />
+        <Value value="2.000000" />
+      </Modifications>
+    </AbilityModificationArray>
   </CTalent>
   <CTalent id="RehgarBloodAndThunder">
     <Face value="RehgarBloodAndThunder" />
@@ -1999,6 +2908,7 @@
     <RankArray>
       <BehaviorArray value="RehgarGhostWolfBloodAndThunderLungeController" />
     </RankArray>
+    <AbilityModificationArray />
   </CTalent>
   <CTalent id="RehgarEarthlivingEnchant">
     <Face value="RehgarEarthlivingEnchant" />
@@ -2039,13 +2949,14 @@
   <CTalent id="RehgarWolfRun">
     <Face value="RehgarGhostWolfWolfRunTalent" />
     <Abil value="RehgarGhostWolfActivate" />
+    <RankArray />
     <AbilityModificationArray>
       <Modifications>
         <Type value="FlatModification" />
-        <Catalog value="Behavior" />
-        <Entry value="RehgarGhostWolfBuff" />
-        <Field value="Modification.UnifiedMoveSpeedFactor" />
-        <Value value="0.100000" />
+        <Catalog value="Effect" />
+        <Entry value="RehgarGhostWolfModifyActivateCooldown" />
+        <Field value="Cost[0].CooldownTimeUse" />
+        <Value value="-1.000000" />
       </Modifications>
     </AbilityModificationArray>
   </CTalent>
@@ -2062,10 +2973,10 @@
       </Modifications>
       <Modifications>
         <Type value="FlatModification" />
-        <Catalog value="Effect" />
-        <Entry value="RehgarLightningShieldLightningBondApplyUntalentedBehavior" />
-        <Field value="Chance" />
-        <Value value="1.000000" />
+        <Catalog value="Behavior" />
+        <Entry value="RehgarLightningShieldBuff" />
+        <Field value="Duration" />
+        <Value value="3.000000" />
       </Modifications>
     </AbilityModificationArray>
   </CTalent>
@@ -2137,7 +3048,7 @@
         <Type value="FlatModification" />
         <Entry value="RehgarChainHeal" />
         <Field value="Cost[0].Vital[Energy]" />
-        <Value value="-15.000000" />
+        <Value value="-20.000000" />
       </Modifications>
     </AbilityModificationArray>
   </CTalent>
@@ -2182,36 +3093,31 @@
       </Modifications>
       <Modifications>
         <Type value="FlatModification" />
-        <Entry value="RehgarEarthbindTotem" />
-        <Field value="Range[0]" />
-        <Value value="1.750000" />
-      </Modifications>
-      <Modifications>
-        <Type value="FlatModification" />
-        <Catalog value="Actor" />
-        <Entry value="RehgarEarthbindTotemRangeSplat" />
-        <Field value="Scale" />
-        <Value value="1.750000" />
-      </Modifications>
-      <Modifications>
-        <Type value="FlatModification" />
-        <Entry value="RehgarTotemicProjection" />
-        <Field value="Range[0]" />
-        <Value value="1.750000" />
-      </Modifications>
-      <Modifications>
-        <Type value="FlatModification" />
-        <Catalog value="Actor" />
-        <Entry value="RehgarEarthbindTotemicProjectionRangeSplat" />
-        <Field value="Scale" />
-        <Value value="1.750000" />
-      </Modifications>
-      <Modifications>
-        <Type value="FlatModification" />
         <Catalog value="Effect" />
         <Entry value="RehgarEarthbindTotemApplyTotemicProjectionEnabler" />
         <Field value="Chance" />
         <Value value="1.000000" />
+      </Modifications>
+      <Modifications>
+        <Type value="FlatModification" />
+        <Catalog value="Behavior" />
+        <Entry value="RehgarEarthbindTotemTimedLife" />
+        <Field value="Duration" />
+        <Value value="4.000000" />
+      </Modifications>
+      <Modifications>
+        <Type value="FlatModification" />
+        <Catalog value="Effect" />
+        <Entry value="RehgarEarthbindTotemEarthgraspTotemDamageSearch" />
+        <Field value="AreaArray[0].Radius" />
+        <Value value="1.750000" />
+      </Modifications>
+      <Modifications>
+        <Type value="FlatModification" />
+        <Catalog value="Actor" />
+        <Entry value="RehgarEarthbindTotemEarthgraspTotemFlavorGroundModelFX" />
+        <Field value="Scale" />
+        <Value value="0.500000" />
       </Modifications>
     </AbilityModificationArray>
   </CTalent>
@@ -2231,6 +3137,13 @@
         <Catalog value="Model" />
         <Entry value="RehgarEarthbindTotemInitialPulse" />
         <StringReplacement value="RehgarEarthbindTotemEarthgraspTotemInitialPulse" />
+      </Modifications>
+      <Modifications>
+        <Type value="FlatModification" />
+        <Catalog value="Effect" />
+        <Entry value="RehgarEarthbindTotemEarthgraspTotemDamageSearch" />
+        <Field value="Chance" />
+        <Value value="1.000000" />
       </Modifications>
     </AbilityModificationArray>
   </CTalent>
@@ -2254,16 +3167,9 @@
       <Modifications>
         <Type value="FlatModification" />
         <Catalog value="Effect" />
-        <Entry value="RehgarLightningShieldSearch" />
-        <Field value="AreaArray[0].Radius" />
-        <Value value="0.625000" />
-      </Modifications>
-      <Modifications>
-        <Type value="FlatModification" />
-        <Catalog value="Actor" />
-        <Entry value="RehgarLightningShieldBuff" />
-        <Field value="Scale" />
-        <Value value="0.250000" />
+        <Entry value="RehgarLightningShieldElectricChargeTalentApplySpeed" />
+        <Field value="Chance" />
+        <Value value="1.000000" />
       </Modifications>
     </AbilityModificationArray>
   </CTalent>
@@ -2282,9 +3188,43 @@
   <CTalent id="RehgarFeralHeart">
     <Face value="RehgarGhostWolfFeralHeartTalent" />
     <Abil value="RehgarGhostWolfActivate" />
-    <RankArray>
-      <BehaviorArray value="RehgarGhostWolfFeralHeartBuff" />
-    </RankArray>
+    <AbilityModificationArray>
+      <Modifications>
+        <Type value="FlatModification" />
+        <Catalog value="Effect" />
+        <Entry value="RehgarGhostWolfFeralHeartTalentApplyArmor" />
+        <Field value="Chance" />
+        <Value value="1.000000" />
+      </Modifications>
+      <Modifications>
+        <Type value="FlatModification" />
+        <Catalog value="Behavior" />
+        <Entry value="RehgarGhostWolfBuff" />
+        <Field value="Modification.UnifiedMoveSpeedFactor" />
+        <Value value="0.100000" />
+      </Modifications>
+      <Modifications>
+        <Type value="FlatModification" />
+        <Catalog value="Effect" />
+        <Entry value="RehgarGhostWolfFeralHeartTalentResetPlayer" />
+        <Field value="Chance" />
+        <Value value="1.000000" />
+      </Modifications>
+      <Modifications>
+        <Type value="FlatModification" />
+        <Catalog value="Effect" />
+        <Entry value="RehgarGhostWolfFeralHeartTalentModifyPlayer" />
+        <Field value="Chance" />
+        <Value value="1.000000" />
+      </Modifications>
+      <Modifications>
+        <Type value="FlatModification" />
+        <Catalog value="Effect" />
+        <Entry value="RehgarGhostWolfFeralHeartTalentApplyBuff" />
+        <Field value="Chance" />
+        <Value value="1.000000" />
+      </Modifications>
+    </AbilityModificationArray>
   </CTalent>
   <CTalent id="RehgarGladiatorsWarShout">
     <Face value="RehgarBloodlustGladiatorsWarShout" />
@@ -2313,19 +3253,6 @@
       </Modifications>
     </AbilityModificationArray>
   </CTalent>
-  <CTalent id="RehgarLightningShieldLightningBond">
-    <Face value="RehgarLightningShieldLightningBond" />
-    <Abil value="RehgarLightningShield" />
-    <AbilityModificationArray>
-      <Modifications>
-        <Type value="FlatModification" />
-        <Catalog value="Effect" />
-        <Entry value="RehgarLightningShieldLightningBondApplyUntalentedBehavior" />
-        <Field value="Chance" />
-        <Value value="1.000000" />
-      </Modifications>
-    </AbilityModificationArray>
-  </CTalent>
   <CTalent id="RehgarHealingTotem">
     <Face value="RehgarHealingTotem" />
     <Abil value="RehgarHealingTotem" />
@@ -2334,18 +3261,6 @@
     </RankArray>
     <Active value="1" />
   </CTalent>
-  <CTalent id="RehgarMasterySpiritwalkersGrace">
-    <Face value="RehgarChainHealSpiritwalkersGraceTalent" />
-    <Abil value="RehgarChainHeal" />
-    <AbilityModificationArray>
-      <Modifications>
-        <Type value="FlatModification" />
-        <Entry value="RehgarChainHeal" />
-        <Field value="Cost[0].Vital[Energy]" />
-        <Value value="-15.000000" />
-      </Modifications>
-    </AbilityModificationArray>
-  </CTalent>
   <CTalent id="RehgarLightningShieldStormcaller">
     <Face value="RehgarLightningShieldStormcaller" />
     <Abil value="RehgarLightningShield" />
@@ -2353,18 +3268,23 @@
       <Modifications>
         <Type value="FlatModification" />
         <Catalog value="Effect" />
-        <Entry value="RehgarLightningShieldStormcallerRefundStackApplyBehavior" />
-        <Field value="Chance" />
-        <Value value="1.000000" />
+        <Entry value="RehgarLightningShieldSearch" />
+        <Field value="AreaArray[0].Radius" />
+        <Value value="0.625000" />
       </Modifications>
       <Modifications>
         <Type value="FlatModification" />
-        <Catalog value="Effect" />
-        <Entry value="RehgarLightningShieldStormcallerRefundStackRemoveBehavior" />
-        <Field value="Chance" />
-        <Value value="1.000000" />
+        <Catalog value="Actor" />
+        <Entry value="RehgarLightningShieldBuff" />
+        <Field value="Scale" />
+        <Value value="0.250000" />
       </Modifications>
     </AbilityModificationArray>
+    <RankArray>
+      <BehaviorArray value="RehgarLightningShieldStormcallerTalentTokenCounter" />
+      <BehaviorArray value="RehgarLightningShieldStormcallerTalentCarry" />
+    </RankArray>
+    <QuestData StackBehavior="RehgarLightningShieldStormcallerTalentTokenCounter" />
   </CTalent>
   <CUnit id="HeroRehgar" parent="StormHeroMountedCustom">
     <LifeStart value="2000" />
@@ -2379,6 +3299,7 @@
     <AbilArray Link="RehgarGhostWolfDeactivate" />
     <AbilArray Link="RehgarGhostWolfLunge" />
     <AbilArray Link="RehgarTotemicProjection" />
+    <AbilArray Link="RehgarPurge" />
     <BehaviorArray Link="ExcellentMana" />
     <WeaponArray Link="HeroRehgar" />
     <CardLayouts index="0">
@@ -2387,11 +3308,11 @@
       <LayoutButtons Face="RehgarChainHeal" Type="AbilCmd" AbilCmd="RehgarChainHeal,Execute" Slot="Ability1" />
       <LayoutButtons Face="RehgarLightningShield" Type="AbilCmd" AbilCmd="RehgarLightningShield,Execute" Slot="Ability2" />
       <LayoutButtons Face="RehgarTotemicProjection" Type="AbilCmd" AbilCmd="RehgarTotemicProjection,Execute" Slot="Ability3" />
+      <LayoutButtons Face="RehgarEarthbindTotem" Type="AbilCmd" AbilCmd="RehgarEarthbindTotem,Execute" Slot="Ability3" />
       <LayoutButtons Face="RehgarGhostWolfDeactivate" Type="AbilCmd" AbilCmd="RehgarGhostWolfDeactivate,Execute" Slot="Mount" />
       <LayoutButtons Face="RehgarGhostWolfActivate" Type="AbilCmd" AbilCmd="RehgarGhostWolfActivate,Execute" Slot="Mount" />
-      <LayoutButtons Face="RehgarGhostWolf" Type="Passive" Slot="Trait" />
-      <LayoutButtons Face="RehgarGhostWolf" Type="AbilCmd" AbilCmd="RehgarGhostWolfLunge,Execute" Slot="Trait" />
-      <LayoutButtons Face="RehgarEarthbindTotem" Type="AbilCmd" AbilCmd="RehgarEarthbindTotem,Execute" Slot="Ability3" />
+      <LayoutButtons Face="RehgarGhostWolf" Type="AbilCmd" AbilCmd="RehgarGhostWolfLunge,Execute" Slot="Mount" />
+      <LayoutButtons Face="RehgarPurge" Type="AbilCmd" AbilCmd="RehgarPurge,Execute" Slot="Trait" />
     </CardLayouts>
     <Radius value="0.75" />
     <InnerRadius value="0.75" />
@@ -2406,17 +3327,78 @@
     <HeroPlaystyleFlags index="Overconfident" value="1" />
     <HeroPlaystyleFlags index="RoleSupport" value="1" />
     <HeroPlaystyleFlags index="SelfHealer" value="1" />
+    <EffectArray index="Death" value="RehgarDeathSet" />
   </CUnit>
   <CUnit id="RehgarEarthbindTotem" parent="StormSummonPassive">
-    <LifeStart value="217" />
-    <LifeMax value="217" />
+    <LifeStart value="326" />
+    <LifeMax value="326" />
     <Sight value="7" />
     <BehaviorArray Link="RehgarEarthbindTotemTimedLife" />
     <BehaviorArray Link="RehgarEarthbindTotemPulseArtHook" />
-    <BehaviorArray Link="RehgarEarthbindTotemGroundedTotemBonusHealthBehavior" />
+    <BehaviorArray Link="RehgarEarthbindTotemColossalTotemTalentHealthBuff" />
     <Radius value="0.125" />
     <InnerRadius value="0.125" />
   </CUnit>
+  <CValidatorPlayerTalent id="RehgarHasWellspringTalent">
+    <Find value="1" />
+    <Value value="RehgarWellspring" />
+  </CValidatorPlayerTalent>
+  <CValidatorUnitCompareBehaviorCount id="RehgarSourceHasElementalConduitActive">
+    <WhichUnit Value="Source" />
+    <Value value="1" />
+    <Behavior value="RehgarElementalConduitActiveBuff" />
+  </CValidatorUnitCompareBehaviorCount>
+  <CValidatorIsUnitTracked id="RehgarTargetNotAlreadyTrackedPitFighterTalent">
+    <BehaviorLink value="RehgarPitFighterUnitTracker" />
+    <TrackedUnit Value="Target" />
+  </CValidatorIsUnitTracked>
+  <CValidatorIsUnitTracked id="RehgarTargetIsAlreadyTracked">
+    <Find value="1" />
+    <BehaviorLink value="RehgarPitFighterUnitTracker" />
+    <TrackedUnit Value="Target" />
+  </CValidatorIsUnitTracked>
+  <CValidatorCombine id="RehgarStormcallerTalentProcCombine">
+    <Type value="And" />
+    <CombineArray value="TargetIsHero" />
+    <CombineArray value="RehgarLightningShieldStormcallerHasTalent" />
+  </CValidatorCombine>
+  <CValidatorCompareTrackedUnitsCount id="RehgarHasGTE2PitFighterTrackedUnits">
+    <Compare value="GE" />
+    <Value value="2" />
+    <BehaviorLink value="RehgarPitFighterUnitTracker" />
+  </CValidatorCompareTrackedUnitsCount>
+  <CValidatorLocationCompareRange id="RehgarPitFighterTargetNotWithinRange">
+    <WhichLocation Value="TargetUnit" />
+    <Compare value="GE" />
+    <Range value="8.125" />
+  </CValidatorLocationCompareRange>
+  <CValidatorPlayerTalent id="RehgarHasTotemicMasteryTalent">
+    <Find value="1" />
+    <Value value="RehgarHealingTotem" />
+  </CValidatorPlayerTalent>
+  <CValidatorPlayerTalent id="RehgarHasPurificationTalent">
+    <Find value="1" />
+    <Value value="RehgarPurification" />
+  </CValidatorPlayerTalent>
+  <CValidatorCombine id="RehgarPurgeTargetCombine">
+    <CombineArray value="TargetIsAlly" />
+    <CombineArray value="TargetNotUnstoppableEnemyNonFilterCombine" />
+  </CValidatorCombine>
+  <CValidatorUnitType id="RehgarSourceIsRehgarUnitType">
+    <WhichUnit Value="Source" />
+    <Value value="HeroRehgar" />
+  </CValidatorUnitType>
+  <CValidatorCombine id="RehgarLightningShieldElectricChargeRehgarTargetCombine">
+    <Type value="And" />
+    <CombineArray value="RehgarCasterHasElectricChargeTalent" />
+    <CombineArray value="RehgarSourceIsRehgarUnitType" />
+    <CombineArray value="TargetIsHero" />
+  </CValidatorCombine>
+  <CValidatorPlayerTalent id="RehgarTargetHasElectricChargeTalent">
+    <WhichPlayer Value="Target" />
+    <Find value="1" />
+    <Value value="RehgarLightningShieldElectricCharge" />
+  </CValidatorPlayerTalent>
   <CValidatorUnitCompareBehaviorCount id="RehgarTargetHasFarseersBlessingDummyBehavior">
     <Value value="1" />
     <Behavior value="RehgarAncestralHealingFarseersBlessingDummyBehavior" />
@@ -2429,16 +3411,16 @@
     <CombineArray value="RehgarGhostWolfWolfRunHasTalent" />
     <CombineArray value="TargetIsHero" />
   </CValidatorCombine>
+  <CValidatorCombine id="RehgarLightningShieldElectricChargeExternalTargetCombine">
+    <Type value="And" />
+    <CombineArray value="RehgarCasterHasElectricChargeTalent" />
+    <CombineArray value="TargetIsHero" />
+  </CValidatorCombine>
   <CValidatorPlayerTalent id="RehgarHasEarthbindTotemGroundedTotemTalent">
     <WhichPlayer Value="Caster" />
     <Find value="1" />
     <Value value="RehgarEarthbindTotemGroundedTotem" />
   </CValidatorPlayerTalent>
-  <CValidatorCombine id="RehgarLightningShieldElectricChargeCombine">
-    <Type value="And" />
-    <CombineArray value="RehgarLightningShieldElectricChargeHasTalent" />
-    <CombineArray value="TargetIsHero" />
-  </CValidatorCombine>
   <CValidatorUnitCompareBehaviorCount id="RehgarTargetHasBloodlustBasicAttackBuff">
     <Compare value="GT" />
     <Behavior value="RehgarBloodlustBasicAttackBuff" />
@@ -2506,7 +3488,7 @@
     <Behavior value="RehgarLightningShieldBuff" />
   </CValidatorUnitCompareBehaviorCount>
   <CValidatorUnitFilters id="RehgarEarthbindTotemIsAlive">
-    <WhichUnit Effect="RehgarEarthbindTotemCreateUnitSet" />
+    <WhichUnit Effect="RehgarEarthbindTotemSpawnSet" />
     <Filters value="-;Dead" />
   </CValidatorUnitFilters>
   <CValidatorUnitCompareBehaviorCount id="RehgarEarthlivingEnchantSourceIsSearchingforTargets">
@@ -2634,7 +3616,7 @@
     <Find value="1" />
     <Value value="RehgarLightningShieldEarthShield" />
   </CValidatorPlayerTalent>
-  <CValidatorPlayerTalent id="RehgarLightningShieldElectricChargeHasTalent">
+  <CValidatorPlayerTalent id="RehgarCasterHasElectricChargeTalent">
     <WhichPlayer Value="Caster" />
     <Find value="1" />
     <Value value="RehgarLightningShieldElectricCharge" />
@@ -2681,7 +3663,7 @@
     <Options index="Melee" value="1" />
     <DisplayEffect value="RehgarWeaponDamage" />
     <Range value="1.5" />
-    <Period value="0.8" />
+    <Period value="0.9" />
     <Effect value="RehgarWeaponSet" />
     <LegacyOptions index="FaceTargetWhileInCooldown" value="1" />
   </CWeaponLegacy>

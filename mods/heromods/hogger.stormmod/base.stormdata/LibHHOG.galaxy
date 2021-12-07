@@ -34,6 +34,7 @@ void libHHOG_gf_HeroHoggerIncrementHeroCountFunction () {
     if ((libHHOG_gv_heroHoggerTriggerRegistrationVariable == 1)) {
         TriggerEnable(libHHOG_gt_HeroHoggerCancelHoggWildCast, true);
         TriggerEnable(libHHOG_gt_HeroHoggerHoggWildBailOut, true);
+        TriggerEnable(libHHOG_gt_HeroHoggerRageGainFCTTrigger, true);
     }
 
 }
@@ -49,11 +50,53 @@ void libHHOG_gf_HeroHoggerDecrementHeroCountFunction () {
     if ((libHHOG_gv_heroHoggerTriggerRegistrationVariable == 0)) {
         TriggerEnable(libHHOG_gt_HeroHoggerCancelHoggWildCast, false);
         TriggerEnable(libHHOG_gt_HeroHoggerHoggWildBailOut, false);
+        TriggerEnable(libHHOG_gt_HeroHoggerRageGainFCTTrigger, false);
     }
 
 }
 
+void libHHOG_gf_HeroHoggerRageGainFCT (unit lp_unit, int lp_owner, fixed lp_amount) {
+    // Automatic Variable Declarations
+    // Implementation
+    FloatingCombatElementCreateTextAtUnit(PlayerGroupAll(), "Hogger/HoggerRageReceived", "", lp_unit, FixedToText(lp_amount, c_fixedPrecisionAny), libNtve_gv_FloatingCombatTextAutoRandomSeed);
+}
+
 // Triggers
+//--------------------------------------------------------------------------------------------------
+// Trigger: Hero - Hogger - Rage Gain FCT Trigger
+//--------------------------------------------------------------------------------------------------
+bool libHHOG_gt_HeroHoggerRageGainFCTTrigger_Func (bool testConds, bool runActions) {
+    // Variable Declarations
+    unit lv_hogger;
+    int lv_hoggerPlayer;
+    fixed lv_amount;
+
+    // Automatic Variable Declarations
+    // Variable Initialization
+    lv_hogger = EventPlayerEffectUsedUnit(c_effectUnitCaster);
+    lv_hoggerPlayer = UnitGetOwner(lv_hogger);
+
+    // Actions
+    if (!runActions) {
+        return true;
+    }
+
+    lv_amount = CatalogFieldValueGetAsFixed(c_gameCatalogEffect, EventPlayerEffectUsed(), "VitalArray[" + IntToString(c_unitVitalEnergy) + "].Change", c_playerAny);
+    if ((UnitGetPropertyFixed(lv_hogger, c_unitPropEnergy, c_unitPropCurrent) < 99.0)) {
+        libHHOG_gf_HeroHoggerRageGainFCT(lv_hogger, lv_hoggerPlayer, lv_amount);
+    }
+
+    return true;
+}
+
+//--------------------------------------------------------------------------------------------------
+void libHHOG_gt_HeroHoggerRageGainFCTTrigger_Init () {
+    libHHOG_gt_HeroHoggerRageGainFCTTrigger = TriggerCreate("libHHOG_gt_HeroHoggerRageGainFCTTrigger_Func");
+    TriggerAddEventPlayerEffectUsed(libHHOG_gt_HeroHoggerRageGainFCTTrigger, c_playerAny, "HoggerEzThroDynamiteDirectHitGnollFrenzyRage");
+    TriggerAddEventPlayerEffectUsed(libHHOG_gt_HeroHoggerRageGainFCTTrigger, c_playerAny, "HoggerStaggeringBlowCollisionProcGnollFrenzyRage");
+    TriggerAddEventPlayerEffectUsed(libHHOG_gt_HeroHoggerRageGainFCTTrigger, c_playerAny, "HoggerShockwavePowerSpikeTalentRage");
+}
+
 //--------------------------------------------------------------------------------------------------
 // Trigger: Hero - Hogger - Trait CDR
 //--------------------------------------------------------------------------------------------------
@@ -181,6 +224,7 @@ void libHHOG_gt_HeroHoggerCancelHoggWildCast_Init () {
 }
 
 void libHHOG_InitTriggers () {
+    libHHOG_gt_HeroHoggerRageGainFCTTrigger_Init();
     libHHOG_gt_HeroHoggerTraitCDR_Init();
     libHHOG_gt_HeroHoggerHoggWildBailOut_Init();
     libHHOG_gt_HeroHoggerCancelHoggWildCast_Init();

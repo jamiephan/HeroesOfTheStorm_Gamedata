@@ -131,12 +131,6 @@
     </CmdButtonArray>
     <PrepEffect value="DismountDecloakCasterSet" />
   </CAbilEffectInstant>
-  <CAccumulatorToken id="ProbiusDisruptionPulseParticleAccelerator" parent="BaseAccumulator">
-    <TokenId value="ProbiusDisruptionPulseParticleAcceleratorTokenCounter" />
-    <Scale value="0.15" />
-    <UnitSource Value="Source" />
-    <MaxAccumulation value="0.6" />
-  </CAccumulatorToken>
   <CAccumulatorToken id="ProbiusWarpRiftWarpResonanceQuestAccumulator" parent="BaseTokenAccumulator">
     <MinAccumulation value="0" />
     <MaxAccumulation value="20" />
@@ -699,7 +693,6 @@
     <HostImpactSiteOps Ops="SOpTargetPointStationary" />
   </CActorBeamSimple>
   <CActorModel id="ProbiusWarpRiftRiftShockVulnerabilityModel" parent="VulnerableModel">
-    <On Terms="Effect.ProbiusWarpRiftRiftShockApplyVulnerabilityBehavior.Start; At Target" Send="Create" />
     <On Terms="ActorCreation" Send="Create ProbiusWarpRiftRiftShockVulnerabiltySound" />
   </CActorModel>
   <CActorSound id="ProbiusWarpRiftRiftShockVulnerabiltySound" parent="SoundOneShot">
@@ -1261,6 +1254,17 @@
     <Layers Sound="Probius_Dance_MX_PT2" PlayDelay="3809,3809" PlayDelaySource="Actor" />
     <Layers Sound="Probius_Dance_MX_PT3" PlayDelay="7618,7618" PlayDelaySource="Actor" />
   </CActorSound>
+  <CBehaviorBuff id="ProbiusPhotonCannonAttackSpeedBuff">
+    <MaxStackCount value="16" />
+    <Modification>
+      <AdditiveAttackSpeedFactor value="0.025" />
+    </Modification>
+    <DisableValidatorArray value="ProbiusTargetNearPylonOrOverchargedPylon" />
+  </CBehaviorBuff>
+  <CBehaviorBuff id="ProbiusPhotonCannonGatherMineralsBonusDamage">
+    <Alignment value="Positive" />
+    <BehaviorCategories index="BuffAutoattackDPS" value="1" />
+  </CBehaviorBuff>
   <CBehaviorTokenCounter id="ProbiusPhotonCannonGatherMineralsQuestTokenFXController" parent="StormQuestToken">
     <Face value="ProbiusGatherMineralsPhotonCannonQuestTalent" />
     <InfoFlags index="Hidden" value="1" />
@@ -1272,7 +1276,7 @@
   <CBehaviorBuff id="ProbiusWarpRiftQuantumEntanglementSlow" parent="StormSlowParent">
     <Duration value="3" />
     <Modification>
-      <UnifiedMoveSpeedFactor value="-0.2" />
+      <UnifiedMoveSpeedFactor value="-0.25" />
     </Modification>
     <RevealUnit Value="Source" />
   </CBehaviorBuff>
@@ -1287,6 +1291,9 @@
   </CBehaviorBuff>
   <CBehaviorTokenCounter id="ProbiusDisruptionPulseParticleAcceleratorTokenCounter" parent="StormGenericToken">
     <Max value="4" />
+    <Face value="ProbiusParticleAcceleratorDisruptionPulsetQuestTokenBehavior" />
+    <Alignment value="Positive" />
+    <MinStackCountDisplayed value="0" />
   </CBehaviorTokenCounter>
   <CBehaviorBuff id="ProbiusWarpInPylonFXSuppressor">
     <Duration value="5" />
@@ -1437,7 +1444,7 @@
     </Modification>
     <RevealUnit Value="Source" />
     <RemoveValidatorArray value="ProbiusWarpRiftGravityWellTargetIsWithinMediumRangeOfWarpRiftUnit" />
-    <RemoveValidatorArray value="ProbiusWarpRiftUnitIsNotDead" />
+    <RemoveValidatorArray value="SourceNotDead" />
   </CBehaviorBuff>
   <CBehaviorBuff id="ProbiusWarpRiftGravityWell60Slow" parent="StormSlowParent">
     <Modification>
@@ -1445,7 +1452,14 @@
     </Modification>
     <RevealUnit Value="Source" />
     <RemoveValidatorArray value="ProbiusWarpRiftGravityWellTargetIsWithinCloseRangeOfWarpRiftUnit" />
-    <RemoveValidatorArray value="ProbiusWarpRiftUnitIsNotDead" />
+    <RemoveValidatorArray value="SourceNotDead" />
+  </CBehaviorBuff>
+  <CBehaviorBuff id="ProbiusWarpRiftRiftShockDoT" parent="StormDot">
+    <Duration value="3" />
+    <Period value="1" />
+    <PeriodCount value="3" />
+    <PeriodicEffect value="ProbiusWarpRiftRiftShockDamage" />
+    <PeriodicDisplayEffect value="ProbiusWarpRiftRiftShockDamage" />
   </CBehaviorBuff>
   <CBehaviorBuff id="ProbiusWarpRiftRepulsorPushTarget" parent="PushPullParent">
     <Duration value="0.1875" />
@@ -1457,12 +1471,12 @@
       <MoveSpeedMinimum value="12" />
     </Modification>
   </CBehaviorBuff>
-  <CBehaviorBuff id="ProbiusWarpRiftRiftShockVulnerabilityBehavior">
-    <Duration value="10" />
-    <DamageResponse Chance="1" ModifyFraction="1.2">
-      <ValidatorArray value="ProbiusSourceHasWarpRiftRiftShock" />
-    </DamageResponse>
-    <Alignment value="Negative" />
+  <CBehaviorBuff id="ProbiusWarpRiftRiftShockTimerBehavior">
+    <DisableValidatorArray value="ProbiusTargetDoesNotHaveWarpRiftBuildInProgressBehavior" />
+    <Duration value="1" />
+    <Modification>
+      <StateFlags index="Summoned" value="1" />
+    </Modification>
   </CBehaviorBuff>
   <CBehaviorBuff id="ProbiusWarpRiftBuildInProgressBehavior">
     <Duration value="1.25" />
@@ -1473,14 +1487,14 @@
     </Modification>
     <RevealUnit Value="Source" />
     <RemoveValidatorArray value="ProbiusWarpRiftTargetIsWithinRangeOfWarpRiftUnit" />
-    <RemoveValidatorArray value="ProbiusWarpRiftUnitIsNotDead" />
+    <RemoveValidatorArray value="SourceNotDead" />
   </CBehaviorBuff>
   <CBehaviorBuff id="ProbiusWarpRiftTimedLifeBehavior" parent="StormTimedLife">
-    <Duration value="9" />
+    <Duration value="3" />
     <Period value="0.25" />
     <PeriodicEffect value="ProbiusWarpRiftPeriodicSet" />
-    <FinalEffect value="ProbiusWarpRiftDetonationImpactSet" />
     <DisableValidatorArray value="ProbiusTargetDoesNotHaveWarpRiftBuildInProgressBehavior" />
+    <ExpireEffect value="ProbiusWarpRiftDetonationSet" />
   </CBehaviorBuff>
   <CBehaviorTokenCounter id="ProbiusWarpRiftWarpResonanceQuestToken" parent="StormQuestToken">
     <Face value="ProbiusWarpResonanceWarpRiftQuestTokenBehavior" />
@@ -1518,9 +1532,9 @@
     <TimeScaleSource Effect="ProbiusPhotonCannonApplyTimedLifeBehavior" />
   </CBehaviorBuff>
   <CBehaviorBuff id="ProbiusPhotonCannonGatherMineralsRevealerIcon">
-    <DisableValidatorArray value="ProbiusCasterHasPhotonCannonGatherMineralsComplete" />
     <DisableValidatorArray value="ProbiusTargetDoesNotHavePhotonCannonBuildInProgressBehavior" />
     <DisableValidatorArray value="ProbiusTargetDoesNotHavePhotonCannonWarpOutBehavior" />
+    <DisableValidatorArray value="ProbiusTargetNearPylonOrOverchargedPylon" />
   </CBehaviorBuff>
   <CBehaviorBuff id="ProbiusPhotonCannonGatherMineralsModelBuff" parent="StormReveal">
     <Duration value="0.5625" />
@@ -1633,20 +1647,28 @@
   <CBehaviorBuff id="ProbiusPylonOverchargeDummyUIBehavior">
     <InfoFlags index="AlwaysUseGameText" value="1" />
     <BehaviorCategories index="Restorable" value="1" />
-    <Duration value="10" />
+    <Duration value="8" />
     <TimeScaleSource Value="Global" />
+    <InitialEffect value="ProbiusPylonOverchargeModifyPlayer" />
+    <FinalEffect value="ProbiusPylonOverchargeResetPlayer" />
+    <BehaviorFlags index="Permanent" value="1" />
+    <BehaviorFlags index="EnabledWhileDead" value="1" />
   </CBehaviorBuff>
   <CBehaviorBuff id="ProbiusPylonOverchargeWeaponBehavior">
-    <Duration value="10" />
+    <Duration value="8" />
     <Modification>
+      <StateFlags index="Invulnerable" value="1" />
       <WeaponArray Link="ProbiusPylonOverchargeAttackHeroicWeapon" />
-      <WeaponArray Link="ProbiusPylonOverchargeAttackNonHeroicWeapon" />
     </Modification>
     <Period value="1" />
     <PeriodicEffect value="ProbiusPylonOverchargeAttackTargetSearch" />
     <BehaviorCategories index="BuffAutoattackDPS" value="1" />
     <InitialEffect value="ProbiusPylonOverchargeAttackTargetSearch" />
     <TimeScaleSource Value="Global" />
+    <DisplayDuration index="Self" value="1" />
+    <DisplayDuration index="Ally" value="1" />
+    <DisplayDuration index="Neutral" value="1" />
+    <DisplayDuration index="Enemy" value="1" />
   </CBehaviorBuff>
   <CBehaviorBuff id="ProbiusNullGateSlowBehavior" parent="StormSlowParent">
     <Duration value="0.3125" />
@@ -1731,6 +1753,10 @@
   <CButton id="ProbiusWarpResonanceWarpRiftQuestTokenBehavior">
     <Icon value="Assets\Textures\storm_ui_icon_probius_warprift.dds" />
   </CButton>
+  <CButton id="ProbiusParticleAcceleratorDisruptionPulsetQuestTokenBehavior">
+    <Icon value="Assets\Textures\storm_ui_icon_probius_disruptionpulse.dds" />
+    <HotkeyAlias value="ProbiusWarpResonanceWarpRiftQuestTokenBehavior" />
+  </CButton>
   <CButton id="ProbiusWarpRift" parent="StormButtonParent">
     <Icon value="Assets\Textures\storm_ui_icon_probius_warprift.dds" />
     <SimpleDisplayText value="Button/Simple/ProbiusWarpRift" />
@@ -1803,7 +1829,6 @@
   </CButton>
   <CEffectSet id="ProbiusDisruptionPulseEchoPulseLaunchMissileSet">
     <EffectArray value="ProbiusDisruptionPulseEchoPulseMissilePersistent" />
-    <EffectArray value="ProbiusDisruptionPulseEchoPulseParticleAcceleratorTransferTokenCountBehavior" />
   </CEffectSet>
   <CEffectTransferBehavior id="ProbiusDisruptionPulseEchoPulseParticleAcceleratorTransferTokenCountBehavior">
     <LaunchUnit Effect="ProbiusDisruptionPulseEchoPulseReturnPersistent" Value="Source" />
@@ -1813,7 +1838,6 @@
   </CEffectTransferBehavior>
   <CEffectSet id="ProbiusDisruptionPulseLaunchMissileSet">
     <EffectArray value="ProbiusDisruptionPulseMissilePersistent" />
-    <EffectArray value="ProbiusDisruptionPulseParticleAcceleratorTokenCounterApplyBehavior" />
   </CEffectSet>
   <CEffectModifyTokenCount id="ProbiusDisruptionPulseParticleAcceleratorReturnMissileAddTokens" parent="BaseEffectModifyTokenCount">
     <WhichUnit Value="Source" />
@@ -1822,10 +1846,18 @@
     <Operation value="Set" />
     <Value value="0" />
   </CEffectModifyTokenCount>
-  <CEffectApplyBehavior id="ProbiusDisruptionPulseParticleAcceleratorTokenCounterApplyBehavior">
-    <ValidatorArray value="ProbiusHasDisruptionPulseParticleAcceleratorTalent" />
+  <CEffectDamage id="ProbiusDisruptionPulseShootEmUpDamage" parent="StormSpellPercentDamage">
+    <ValidatorArray value="TargetIsHero" />
+    <Chance value="0" />
+    <VitalFractionMax index="Life" value="0.025" />
+  </CEffectDamage>
+  <CEffectApplyBehavior id="ProbiusPhotonCannonApplyAttackSpeedBehavior">
     <WhichUnit Value="Source" />
-    <Behavior value="ProbiusDisruptionPulseParticleAcceleratorTokenCounter" />
+    <Behavior value="ProbiusPhotonCannonAttackSpeedBuff" />
+  </CEffectApplyBehavior>
+  <CEffectApplyBehavior id="ProbiusPhotonCannonGatherMineralsApplyBonusDamage">
+    <Chance value="0" />
+    <Behavior value="ProbiusPhotonCannonGatherMineralsBonusDamage" />
   </CEffectApplyBehavior>
   <CEffectModifyUnit id="ProbiusPhotonCannonTowerDefenseReduceCooldown">
     <Cost Abil="ProbiusPhotonCannon,Execute" CooldownOperation="Add" CooldownTimeUse="-4" />
@@ -1852,6 +1884,27 @@
   <CEffectApplyBehavior id="ProbiusPylonOverchargeApplyPowerOverflowingSummonedUnitBuff">
     <Behavior value="ProbiusWarpInPylonPowerOverflowingSummonedUnitBuff" />
   </CEffectApplyBehavior>
+  <CEffectModifyPlayer id="ProbiusPylonOverchargeModifyPlayer">
+    <EffectArray Operation="Set" Reference="Actor,ProbiusPylon,CustomUnitStatusFrame" Value="Probius/ProbiusStructureUnitStatusFramePylonOvercharge" />
+  </CEffectModifyPlayer>
+  <CEffectModifyPlayer id="ProbiusPylonOverchargeResetPlayer">
+    <EffectArray Operation="Set" Reference="Actor,ProbiusPylon,CustomUnitStatusFrame" Value="Probius/ProbiusStructureUnitStatusFrameTemplate" />
+  </CEffectModifyPlayer>
+  <CEffectEnumArea id="ProbiusWarpRiftRiftShockDetonationSearch">
+    <ValidatorArray value="ProbiusWarpRiftHasRiftShockTimer" />
+    <LaunchLocation Value="TargetUnit" />
+    <SearchFilters value="-;Player,Ally,ImmuneToAOE,Missile,Item,Stasis,Dead,Hidden,Invulnerable" />
+    <AreaArray Effect="ProbiusWarpRiftRiftShockApplyDoTBehavior">
+      <Radius value="3" />
+    </AreaArray>
+  </CEffectEnumArea>
+  <CEffectDamage id="ProbiusWarpRiftRiftShockDamage" parent="StormSpellDot">
+    <Amount value="30" />
+    <SourceButtonFace value="ProbiusRiftShockWarpRiftTalent" />
+  </CEffectDamage>
+  <CEffectApplyBehavior id="ProbiusWarpRiftRiftShockApplyTimerBehavior">
+    <Behavior value="ProbiusWarpRiftRiftShockTimerBehavior" />
+  </CEffectApplyBehavior>
   <CEffectRemoveBehavior id="ProbiusWarpRiftQuantumEntanglementRemoveSlowBehavior">
     <Chance value="0" />
     <BehaviorLink value="ProbiusWarpRiftQuantumEntanglementSlow" />
@@ -1865,10 +1918,11 @@
     <TokenId value="ProbiusDisruptionPulseParticleAcceleratorTokenCounter" />
     <Operation value="Set" />
     <Value value="0" />
+    <ValidatorArray value="ProbiusCasterHasDisruptionPulseParticleAccelerator4Tokens" />
   </CEffectModifyTokenCount>
   <CEffectModifyTokenCount id="ProbiusDisruptionPulseParticleAcceleratorTokenIncrement" parent="BaseEffectModifyTokenCount">
     <TokenId value="ProbiusDisruptionPulseParticleAcceleratorTokenCounter" />
-    <WhichUnit Value="Source" />
+    <ValidatorArray value="TargetIsHero" />
   </CEffectModifyTokenCount>
   <CEffectSet id="ProbiusPowerUserPeriodicSet">
     <EffectArray value="ProbiusWorkerRushTurboChargedPeriodicSet" />
@@ -1963,7 +2017,6 @@
     <PeriodCount value="4" />
     <PeriodicEffectArray value="ProbiusDisruptionPulseShootEmUpLaunchMissile" />
     <PeriodicPeriodArray value="0" />
-    <Chance value="0" />
     <PeriodicOffsetArray X="-10" Z="0.75" />
     <PeriodicOffsetArray X="10" Z="0.75" />
     <PeriodicOffsetArray X="-5" Y="-8.66" Z="0.75" />
@@ -1971,6 +2024,7 @@
     <Marker>
       <MatchFlags index="Link" value="1" />
     </Marker>
+    <ValidatorArray value="ProbiusCasterHasDisruptionPulseParticleAccelerator4Tokens" />
   </CEffectCreatePersistent>
   <CEffectLaunchMissile id="ProbiusDisruptionPulseShootEmUpLaunchMissile">
     <ValidatorArray index="0" value="CasterNotDead" />
@@ -1989,7 +2043,7 @@
   </CEffectCreatePersistent>
   <CEffectEnumArea id="ProbiusDisruptionPulseEchoPulseEnemyMissileScan">
     <ImpactLocation Value="SourceUnit" />
-    <SearchFilters value="-;Player,Ally,Neutral,Missile,Item,Stasis,Dead,Hidden" />
+    <SearchFilters value="-;Player,Ally,Neutral,ImmuneToAOE,User1,Missile,Item,Stasis,Dead,Hidden,Invulnerable" />
     <AreaArray Effect="ProbiusDisruptionPulseEchoPulseImpactSet">
       <RectangleWidth value="1" />
       <RectangleHeight value="1.7" />
@@ -2002,8 +2056,9 @@
   </CEffectEnumArea>
   <CEffectSet id="ProbiusDisruptionPulseEchoPulseImpactSet">
     <ValidatorArray value="noMarkers" />
-    <EffectArray value="ProbiusDisruptionPulseDamage" />
     <EffectArray value="ProbiusDisruptionPulseParticleAcceleratorTokenIncrement" />
+    <EffectArray value="ProbiusDisruptionPulseDamage" />
+    <EffectArray value="ProbiusDisruptionPulseShootEmUpDamage" />
     <EffectArray value="ProbiusPhotonCannonTowerDefenseReduceCooldown" />
   </CEffectSet>
   <CEffectCreatePersistent id="ProbiusDisruptionPulseEchoPulseMissilePersistent">
@@ -2031,23 +2086,22 @@
   </CEffectLaunchMissile>
   <CEffectDamage id="ProbiusDisruptionPulseDamage" parent="StormSpell">
     <MultiplicativeModifierArray index="0" Validator="ProbiusSourceIsShootEmUpMissile" Modifier="-0.5" />
-    <MultiplicativeModifierArray index="1" Validator="ProbiusSourceIsEchoPulseMissile" Modifier="-0.25" />
-    <MultiplicativeModifierArray index="2" Validator="ProbiusSourceIsEchoPulseMissileOrDisruptionPulseMissile" Accumulator="ProbiusDisruptionPulseParticleAccelerator" />
     <Amount value="142" />
     <SourceButtonFace value="ProbiusDisruptionPulse" />
   </CEffectDamage>
   <CEffectSet id="ProbiusDisruptionPulseDetonateWarpRiftSet">
     <ValidatorArray value="ProbiusTargetIsWarpRift" />
     <ValidatorArray value="ProbiusTargetDoesNotHaveWarpRiftBuildInProgressBehavior" />
+    <EffectArray value="ProbiusWarpRiftRiftShockDetonationSearch" />
     <EffectArray value="ProbiusWarpRiftDetonationSet" />
-    <EffectArray value="ProbiusDisruptionPulseParticleAcceleratorTokenIncrement" />
-    <EffectArray value="ProbiusDisruptionPulseParticleAcceleratorHitWarpRiftCooldownReduction" />
     <EffectArray value="ProbiusDisruptionPulseShootEmUpCreatePersistent" />
+    <EffectArray value="ProbiusDisruptionPulseParticleAcceleratorTokenClear" />
   </CEffectSet>
   <CEffectSet id="ProbiusDisruptionPulseImpactSet">
     <ValidatorArray value="noMarkers" />
-    <EffectArray value="ProbiusDisruptionPulseDamage" />
     <EffectArray value="ProbiusDisruptionPulseParticleAcceleratorTokenIncrement" />
+    <EffectArray value="ProbiusDisruptionPulseDamage" />
+    <EffectArray value="ProbiusDisruptionPulseShootEmUpDamage" />
     <EffectArray value="ProbiusPhotonCannonTowerDefenseReduceCooldown" />
   </CEffectSet>
   <CEffectCreatePersistent id="ProbiusDisruptionPulseInitialOffset">
@@ -2058,7 +2112,6 @@
   </CEffectCreatePersistent>
   <CEffectSet id="ProbiusDisruptionPulseInitialSet">
     <EffectArray value="ProbiusDisruptionPulseInitialOffset" />
-    <EffectArray value="ProbiusDisruptionPulseParticleAcceleratorTokenClear" />
     <TargetLocationType value="Point" />
   </CEffectSet>
   <CEffectLaunchMissile id="ProbiusDisruptionPulseLaunchMissile">
@@ -2141,6 +2194,10 @@
     <EffectArray value="ProbiusWarpRiftPeriodicSearch" />
     <EffectArray value="ProbiusWarpRiftGravityWellPeriodicSet" />
   </CEffectSet>
+  <CEffectApplyBehavior id="ProbiusWarpRiftRiftShockApplyDoTBehavior">
+    <Chance value="0" />
+    <Behavior value="ProbiusWarpRiftRiftShockDoT" />
+  </CEffectApplyBehavior>
   <CEffectApplyBehavior id="ProbiusWarpRiftGravityWellApply60Slow">
     <ValidatorArray index="0" value="TargetNotUnstoppable" />
     <Behavior value="ProbiusWarpRiftGravityWell60Slow" />
@@ -2168,11 +2225,6 @@
   <CEffectApplyBehavior id="ProbiusWarpRiftGravityWellApply40Slow">
     <ValidatorArray index="0" value="TargetNotUnstoppable" />
     <Behavior value="ProbiusWarpRiftGravityWell40Slow" />
-  </CEffectApplyBehavior>
-  <CEffectApplyBehavior id="ProbiusWarpRiftRiftShockApplyVulnerabilityBehavior">
-    <Chance value="0" />
-    <Behavior value="ProbiusWarpRiftRiftShockVulnerabilityBehavior" />
-    <ValidatorArray index="0" value="TargetisHeroorActiveVehicle" />
   </CEffectApplyBehavior>
   <CEffectCreatePersistent id="ProbiusWarpRiftInitialPersistent">
     <InitialEffect value="ProbiusWarpRiftCreateUnit" />
@@ -2234,6 +2286,7 @@
   <CEffectSet id="ProbiusWarpRiftCreationSet">
     <EffectArray value="ProbiusWarpRiftApplyBuildInProgressBehavior" />
     <EffectArray value="ProbiusWarpRiftApplyTimedLifeBehavior" />
+    <EffectArray value="ProbiusWarpRiftRiftShockApplyTimerBehavior" />
   </CEffectSet>
   <CEffectSet id="ProbiusWarpRiftDetonationSet">
     <ValidatorArray value="ProbiusTargetIsWarpRift" />
@@ -2264,7 +2317,6 @@
   <CEffectSet id="ProbiusWarpRiftDetonationImpactSet">
     <EffectArray value="ProbiusWarpRiftDetonationDamage" />
     <EffectArray value="ProbiusWarpRiftWarpResonanceModifyQuestToken" />
-    <EffectArray value="ProbiusWarpRiftRiftShockApplyVulnerabilityBehavior" />
     <EffectArray value="ProbiusPhotonCannonTowerDefenseReduceCooldown" />
     <EffectArray value="ProbiusWarpRiftRepulsorCreateKnockbackPersistent" />
     <EffectArray value="ProbiusWarpRiftInterferenceApplyDebuff" />
@@ -2340,7 +2392,7 @@
     <Behavior value="ProbiusPhotonCannonPhotonBarrierPowered" />
   </CEffectApplyBehavior>
   <CEffectSwitch id="ProbiusPhotonCannonDamageSwitch">
-    <CaseArray Validator="ProbiusPhotonCannonHasPhotonCannonGatherMineralsRevealerIcon" Effect="ProbiusPhotonCannonGatherMineralsWeaponDamage" />
+    <CaseArray Validator="ProbiusPhotonCannonHasPhotonCannonGatherMineralsBonusDamage" Effect="ProbiusPhotonCannonGatherMineralsWeaponDamage" />
     <CaseDefault value="ProbiusPhotonCannonWeaponDamage" />
   </CEffectSwitch>
   <CEffectApplyBehavior id="ProbiusPhotonCannonGatherMineralsApplyBonusHealth">
@@ -2352,6 +2404,7 @@
     <EffectArray value="ProbiusPhotonCannonGatherMineralsApplyRevealerIconBehavior" />
     <EffectArray value="ProbiusPhotonCannonGatherMineralsTransferTokenCount" />
     <EffectArray value="ProbiusPhotonCannonGatherMineralsApplyBonusHealth" />
+    <EffectArray value="ProbiusPhotonCannonGatherMineralsApplyBonusDamage" />
     <EffectArray value="ProbiusPhotonCannonApplyPowerOverflowingSummonedUnitBuff" />
   </CEffectSet>
   <CEffectApplyBehavior id="ProbiusPhotonCannonGatherMineralsApplyRevealerIconBehavior">
@@ -2362,14 +2415,12 @@
   </CEffectApplyBehavior>
   <CEffectModifyPlayer id="ProbiusPhotonCannonGatherMineralsQuestCompleteModify">
     <EffectCategory index="Quest" value="1" />
-    <EffectArray Reference="Unit,ProbiusPhotonCannon,VisionHeight" Value="8" />
-    <EffectArray Reference="Effect,ProbiusPhotonCannonGatherMineralsRevealSearch,Chance" Value="1" />
+    <EffectArray Operation="Set" Reference="Effect,ProbiusPhotonCannonGatherMineralsApplyBonusDamage,Chance" Value="1" />
   </CEffectModifyPlayer>
   <CEffectEnumArea id="ProbiusPhotonCannonGatherMineralsRevealSearch">
-    <Chance value="0" />
     <SearchFilters value="-;Player,Ally,Neutral,ImmuneToAOE,Missile,Item,Dead,Hidden,Invulnerable" />
     <AreaArray Effect="ProbiusPhotonCannonGatherMineralsApplyModelBuff">
-      <Radius value="7" />
+      <Radius value="7.5" />
     </AreaArray>
   </CEffectEnumArea>
   <CEffectSet id="ProbiusPhotonCannonGatherMineralsImpactSet">
@@ -2385,6 +2436,7 @@
     <ValidatorArray value="ProbiusNearPylonOrOverchargedPylon" />
     <EffectArray value="ProbiusPhotonCannonGatherMineralsRevealSearch" />
     <EffectArray value="ProbiusPhotonCannonPhotonBarrierApplyPoweredBehavior" />
+    <EffectArray value="ProbiusPhotonCannonApplyAttackSpeedBehavior" />
   </CEffectSet>
   <CEffectSwitch id="ProbiusPhotonCannonWeaponImpactSwitch" parent="SummonedBasicAttackAbilityDamageMissCheck">
     <CaseDefault value="ProbiusPhotonCannonWeaponImpactSet" />
@@ -2413,16 +2465,7 @@
     <SourceButtonFace value="ProbiusPhotonCannon" />
   </CEffectDamage>
   <CEffectDamage id="ProbiusPhotonCannonGatherMineralsWeaponDamage" parent="ProbiusPhotonCannonWeaponDamage">
-    <AttributeFactor index="Creep" value="0.35" />
-    <AttributeFactor index="Tower" value="0.35" />
-    <AttributeFactor index="Minion" value="0.35" />
-    <AttributeFactor index="Merc" value="0.35" />
-    <AttributeFactor index="Structure" value="0.35" />
-    <AttributeFactor index="Heroic" value="0.35" />
-    <AttributeFactor index="Summoned" value="0.35" />
-    <AttributeFactor index="User1" value="0.35" />
-    <AttributeFactor index="MapBoss" value="0.35" />
-    <AttributeFactor index="MapCreature" value="0.35" />
+    <MultiplicativeModifierArray index="GatherMinerals" Modifier="0.35" />
   </CEffectDamage>
   <CEffectLaunchMissile id="ProbiusPhotonCannonWeaponLaunchMissile">
     <ValidatorArray index="0" value="TargetNotDead" />
@@ -2443,7 +2486,6 @@
   <CEffectSet id="ProbiusPhotonCannonInitialSet">
     <EffectArray value="ProbiusPhotonCannonCreateUnit" />
     <TargetLocationType value="Point" />
-    <ValidatorArray value="ProbiusTargetPointIsNearPylonOrOverchargedPylon" />
     <ValidatorArray value="TargetPointWalkable" />
   </CEffectSet>
   <CEffectApplyBehavior id="ProbiusPylonOverchargeApplyWeaponInitialCoolup">
@@ -2708,6 +2750,14 @@
       <Modifications>
         <Catalog value="Effect" />
         <Entry value="ProbiusWarpRiftDetonationDamage" />
+        <Field value="Amount" />
+        <Value value="0.050000" />
+        <AffectedByAbilityPower value="1" />
+        <AffectedByOverdrive value="1" />
+      </Modifications>
+      <Modifications>
+        <Catalog value="Effect" />
+        <Entry value="ProbiusWarpRiftRiftShockDamage" />
         <Field value="Amount" />
         <Value value="0.050000" />
         <AffectedByAbilityPower value="1" />
@@ -3937,9 +3987,16 @@
     <AbilityModificationArray>
       <Modifications>
         <Type value="FlatModification" />
+        <Entry value="ProbiusDisruptionPulse" />
+        <Field value="Cost[0].Cooldown.TimeUse" />
+        <Value value="-0.500000" />
+      </Modifications>
+      <Modifications>
+        <Type value="FlatModification" />
         <Catalog value="Effect" />
-        <Entry value="ProbiusDisruptionPulseShootEmUpCreatePersistent" />
+        <Entry value="ProbiusDisruptionPulseShootEmUpDamage" />
         <Field value="Chance" />
+        <FieldIsInteger value="1" />
         <Value value="1.000000" />
       </Modifications>
     </AbilityModificationArray>
@@ -3954,14 +4011,10 @@
         <Field value="Cost[0].Cooldown.TimeUse" />
         <Value value="-0.500000" />
       </Modifications>
-      <Modifications>
-        <Type value="FlatModification" />
-        <Catalog value="Effect" />
-        <Entry value="ProbiusDisruptionPulseParticleAcceleratorHitWarpRiftCooldownReduction" />
-        <Field value="Chance" />
-        <Value value="1.000000" />
-      </Modifications>
     </AbilityModificationArray>
+    <RankArray>
+      <BehaviorArray value="ProbiusDisruptionPulseParticleAcceleratorTokenCounter" />
+    </RankArray>
   </CTalent>
   <CTalent id="ProbiusInterferenceWarpRift">
     <Face value="ProbiusInterferenceWarpRiftTalent" />
@@ -4059,7 +4112,7 @@
       <Modifications>
         <Type value="FlatModification" />
         <Catalog value="Effect" />
-        <Entry value="ProbiusWarpRiftRiftShockApplyVulnerabilityBehavior" />
+        <Entry value="ProbiusWarpRiftRiftShockApplyDoTBehavior" />
         <Field value="Chance" />
         <Value value="1.000000" />
       </Modifications>
@@ -4081,6 +4134,12 @@
         <Entry value="ProbiusPhotonCannonGatherMineralsApplyBonusHealth" />
         <Field value="Chance" />
         <Value value="1.000000" />
+      </Modifications>
+      <Modifications>
+        <Type value="FlatModification" />
+        <Catalog value="Effect" />
+        <Entry value="ProbiusPhotonCannonGatherMineralsApplyBonusDamage" />
+        <Field value="Chance" />
       </Modifications>
       <Modifications>
         <Type value="FlatModification" />
@@ -4304,7 +4363,6 @@
     <Radius value="1" />
     <Sight value="7" />
     <BehaviorArray Link="HallOfStormsKnockbackKillable" />
-    <BehaviorArray Link="ProbusPhotonCannonRequirePower" />
     <BehaviorArray Link="ProbiusPhotonCannonGatherMineralsRevealerIcon" />
     <MinimapRadius value="0.75" />
     <PushPriority value="0" />
@@ -4318,6 +4376,7 @@
   </CUnit>
   <CUnit id="ProbiusPhotonCannonPlaceholderDummy" parent="ProbiusPhotonCannon">
     <Mover value="Fly" />
+    <BehaviorArray Link="ProbiusPhotonCannonGatherMineralsRevealerIcon" />
   </CUnit>
   <CValidatorUnitCompareBehaviorCount id="ProbiusCasterHasFriendlyWarpInPylonPowerOverflowingBuff">
     <WhichUnit Value="Source" />
@@ -4333,10 +4392,40 @@
     <Value value="1" />
     <Behavior value="ProbiusWarpInPylonPowerOverflowingCasterBuff" />
   </CValidatorUnitCompareBehaviorCount>
+  <CValidatorUnitCompareTokenCount id="ProbiusCasterHasDisruptionPulseParticleAccelerator4Tokens">
+    <WhichUnit Value="Caster" />
+    <Value value="4" />
+    <TokenId value="ProbiusDisruptionPulseParticleAcceleratorTokenCounter" />
+  </CValidatorUnitCompareTokenCount>
+  <CValidatorUnitCompareBehaviorCount id="ProbiusPhotonCannonHasPhotonCannonGatherMineralsBonusDamage">
+    <WhichUnit Value="Caster" />
+    <Value value="1" />
+    <Behavior value="ProbiusPhotonCannonGatherMineralsBonusDamage" />
+  </CValidatorUnitCompareBehaviorCount>
+  <CValidatorCombine id="ProbiusTargetNearPylonOrOverchargedPylon">
+    <CombineArray value="ProbiusTargetNearPylon" />
+    <CombineArray value="ProbiusTargetNearOverchargedPylon" />
+  </CValidatorCombine>
+  <CValidatorLocationEnumArea id="ProbiusTargetNearOverchargedPylon">
+    <AreaArray Compare="GT" Validator="ProbiusTargetIsAnOverchargedPylonAndTargetDoesNotHavePylonBuildInProgressBehavior">
+      <Radius value="15" />
+    </AreaArray>
+    <LaunchLocation Value="TargetUnit" />
+    <SearchFilters value="Summoned;Neutral,Enemy" />
+  </CValidatorLocationEnumArea>
+  <CValidatorLocationEnumArea id="ProbiusTargetNearPylon">
+    <AreaArray Compare="GT" Validator="ProbiusTargetIsPylonAndTargetDoesNotHavePylonBuildInProgressBehaviorAndDoesNotHavePylonWarpOutBehavior">
+      <Radius value="9" />
+    </AreaArray>
+    <SearchFlags index="CenterAtLaunch" value="1" />
+    <SearchFlags index="ExtendByUnitRadius" value="1" />
+    <LaunchLocation Value="TargetUnit" />
+    <SearchFilters value="Summoned;Neutral,Enemy" />
+  </CValidatorLocationEnumArea>
   <CValidatorUnitCompareBehaviorCount id="ProbiusSourceHasWarpRiftRiftShock">
     <WhichUnit Value="Source" />
     <Compare value="GT" />
-    <Behavior value="ProbiusWarpRiftRiftShockVulnerabilityBehavior" />
+    <Behavior value="ProbiusWarpRiftRiftShockDoT" />
     <RequireOriginPlayer Value="Target" />
   </CValidatorUnitCompareBehaviorCount>
   <CValidatorUnitCompareBehaviorCount id="ProbiusCasterHasWorkerRushTurboCharged">
@@ -4437,7 +4526,7 @@
     <Behavior value="ProbiusWarpInPylonWarpOutBehavior" />
   </CValidatorUnitCompareBehaviorCount>
   <CValidatorUnitCompareBehaviorCount id="ProbiusTargetDoesNotHaveWarpRiftRiftShockVulnerabilityBehavior">
-    <Behavior value="ProbiusWarpRiftRiftShockVulnerabilityBehavior" />
+    <Behavior value="ProbiusWarpRiftRiftShockDoT" />
   </CValidatorUnitCompareBehaviorCount>
   <CValidatorUnitCompareBehaviorCount id="ProbiusTargetHasPylonBuildInProgressBehavior">
     <Value value="1" />
@@ -4445,7 +4534,7 @@
   </CValidatorUnitCompareBehaviorCount>
   <CValidatorUnitCompareBehaviorCount id="ProbiusTargetHasWarpRiftRiftShockVulnerabilityBehavior">
     <Value value="1" />
-    <Behavior value="ProbiusWarpRiftRiftShockVulnerabilityBehavior" />
+    <Behavior value="ProbiusWarpRiftRiftShockDoT" />
   </CValidatorUnitCompareBehaviorCount>
   <CValidatorCombine id="ProbiusTargetIsPylonAndTargetDoesNotHavePylonBuildInProgressBehaviorAndDoesNotHavePylonWarpOutBehavior">
     <Type value="And" />
@@ -4459,7 +4548,7 @@
   </CValidatorUnitCompareBehaviorCount>
   <CValidatorLocationEnumArea id="ProbiusNearPylon">
     <AreaArray Compare="GT" Validator="ProbiusTargetIsPylonAndTargetDoesNotHavePylonBuildInProgressBehaviorAndDoesNotHavePylonWarpOutBehavior">
-      <Radius value="9.25" />
+      <Radius value="9" />
     </AreaArray>
     <LaunchLocation Value="SourceUnit" />
     <SearchFilters value="Summoned;Neutral,Enemy" />
@@ -4521,7 +4610,7 @@
     <Behavior value="ProbiusWarpRiftGravityWell40Slow" />
   </CValidatorUnitCompareBehaviorCount>
   <CValidatorPlayerTalent id="ProbiusSourceHasWarpRiftRiftShockTalent">
-    <WhichPlayer Effect="ProbiusWarpRiftRiftShockApplyVulnerabilityBehavior" Value="Source" />
+    <WhichPlayer Effect="ProbiusWarpRiftRiftShockApplyDoTBehavior" Value="Source" />
     <Find value="1" />
     <Value value="ProbiusRiftShockWarpRift" />
   </CValidatorPlayerTalent>
@@ -4740,6 +4829,11 @@
     <Range value="2" />
     <Value Value="TargetUnit" />
   </CValidatorLocationCompareRange>
+  <CValidatorUnitCompareBehaviorCount id="ProbiusWarpRiftHasRiftShockTimer">
+    <Compare value="GE" />
+    <Value value="1" />
+    <Behavior value="ProbiusWarpRiftRiftShockTimerBehavior" />
+  </CValidatorUnitCompareBehaviorCount>
   <CValidatorLocationCompareRange id="ProbiusWarpRiftTargetIsWithinRangeOfWarpRiftUnit">
     <WhichLocation Effect="ProbiusWarpRiftApplyTimedLifeBehavior" Value="TargetUnit" />
     <Compare value="LE" />
@@ -4765,7 +4859,7 @@
     <Range value="6.5" />
     <RangeSlop value="0" />
     <ArcSlop value="11.25" />
-    <Period value="1" />
+    <Period value="1.4" />
     <DamagePoint value="0" />
     <Backswing value="0" />
     <Effect value="ProbiusPhotonCannonWeaponLaunchMissile" />
@@ -4776,6 +4870,9 @@
     <RandomDelayMin value="-0.0625" />
     <RandomDelayMax value="0.125" />
     <UninterruptibleDuration value="32767.9997" />
+    <AcquireTargetSorts>
+      <SortArray value="TSHeroic" />
+    </AcquireTargetSorts>
   </CWeaponLegacy>
   <CWeaponLegacy id="ProbiusPhotonCannonGatherMineralsPickupWeapon">
     <TargetFilters value="Heroic,Visible;Ally,Neutral,Enemy,Structure,Missile,Item,Stasis,Dead" />
@@ -4805,31 +4902,6 @@
     <ArcSlop value="11.25" />
     <DamagePoint value="0" />
     <Backswing value="0" />
-    <LegacyOptions index="Uninterruptible" value="0" />
-    <LegacyOptions index="FaceTargetWhileInCooldown" value="1" />
-    <AllowedMovement value="None" />
-    <RandomDelayMin value="-0.0625" />
-    <RandomDelayMax value="0.125" />
-  </CWeaponLegacy>
-  <CWeaponLegacy id="ProbiusPylonOverchargeAttackNonHeroicWeapon" parent="StormHeroMediumWeapon">
-    <DisplayEffect value="ProbiusPylonOverchargeWeaponDamage" />
-    <AcquireFilters value="-;Heroic" />
-    <MinScanRange value="15" />
-    <Range value="15" />
-    <Arc value="360" />
-    <Marker Link="Weapon/ProbiusPylonOverchargeAttackWeapon" />
-    <Cost>
-      <Cooldown Link="Weapon/ProbiusPylonOverchargeAttackHeroicWeapon" />
-    </Cost>
-    <Period value="0.5" />
-    <Effect value="ProbiusPylonOverchargeConstructAdditionalPylonsDamageSwitch" />
-    <TargetFilters value="Visible;Self,Player,Ally,Neutral,Heroic,Missile,Stasis,Dead,Hidden,Invulnerable,Benign" />
-    <AcquireScanFilters value="-;Heroic" />
-    <RangeSlop value="0" />
-    <ArcSlop value="11.25" />
-    <DamagePoint value="0" />
-    <Backswing value="0" />
-    <ScanValidationArray value="TargetNotNoMinionAggroAndSummoned" />
     <LegacyOptions index="Uninterruptible" value="0" />
     <LegacyOptions index="FaceTargetWhileInCooldown" value="1" />
     <AllowedMovement value="None" />
