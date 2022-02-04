@@ -116,7 +116,7 @@
         <CountStart value="1" />
         <CountUse value="1" />
         <HideCount value="1" />
-        <TimeUse value="60" />
+        <TimeUse value="50" />
       </Charge>
       <Cooldown TimeUse="3" />
     </Cost>
@@ -165,7 +165,7 @@
     <MinAccumulation value="0" />
     <MaxAccumulation value="0" />
     <ApplicationRule value="Add" />
-    <StepLoops value="32" />
+    <StepLoops value="16" />
     <MultiplierPerStep value="0.1" />
   </CAccumulatorTimed>
   <CAccumulatorToken id="NovaPrecisionSniperAccumulator" parent="BaseAccumulator">
@@ -843,7 +843,7 @@
     <InfoIcon value="Assets\Textures\storm_ui_icon_nova_pinningshot_var1.dds" />
     <RemoveValidatorArray value="CasterIsCloaked" />
     <RemoveValidatorArray value="NovaPinningShotCovertOpsHasTalent" />
-    <Duration value="4" />
+    <Duration value="2" />
     <ExpireEffect value="NovaPinningShotCovertOpsApplyActiveBehavior" />
     <SortIndex value="10" />
   </CBehaviorBuff>
@@ -873,7 +873,7 @@
   <CBehaviorBuff id="NovaPinningShotCovertOpsSlow" parent="StormSlowParent">
     <Duration value="2.25" />
     <Modification>
-      <UnifiedMoveSpeedFactor value="-0.55" />
+      <UnifiedMoveSpeedFactor value="-0.6" />
     </Modification>
   </CBehaviorBuff>
   <CBehaviorTokenCounter id="NovaCovertMissionTokenCounter" parent="BribeParent">
@@ -900,7 +900,7 @@
     <Aliases value="RangedDamageCrit" />
     <Alignment value="Positive" />
     <Modification>
-      <DamageDealtFraction index="Basic" value="0.6" />
+      <DamageDealtFraction index="Basic" value="0.65" />
     </Modification>
     <DamageResponse Chance="1" Handled="NovaOneintheChamberRemoveBehavior" Location="Attacker">
       <Kind index="Ability" value="0" />
@@ -1107,6 +1107,7 @@
   <CButton id="NovaGhostProtocol" parent="StormButtonParent">
     <Icon value="Assets\Textures\storm_ui_icon_nova_personalcloaking.dds" />
     <TooltipCooldownOverrideText value="GhostProtocolCooldownOverride" />
+    <TooltipAppender Validator="NovaHasHoloStabilityHoloDecoy" Face="NovaHoloDecoyHoloStabilityTalent" />
   </CButton>
   <CButton id="NovaSnipePsionicEfficiencyTalent" parent="StormButtonParent">
     <Icon value="Assets\Textures\storm_ui_icon_nova_snipe.dds" />
@@ -1223,6 +1224,18 @@
     <Variations Model="NovaPortrait" Actor="NovaPortrait" />
     <Unit value="HeroNova" />
   </CCharacter>
+  <CEffectModifyUnit id="NovaPerfectShotNonHeroicModifyCooldown">
+    <ValidatorArray value="TargetIsNotHeroic" />
+    <Chance value="0" />
+    <ImpactUnit Value="Caster" />
+    <Cost Abil="NovaSnipeStorm,Execute" CooldownOperation="Add" CooldownTimeUse="-2" />
+  </CEffectModifyUnit>
+  <CEffectCreateHealer id="NovaSnipePerfectShotTalentNonHeroicCreateManaHealer" parent="StormManaRestore">
+    <ValidatorArray value="TargetIsNotHeroic" />
+    <Chance value="0" />
+    <ImpactUnit Value="Caster" />
+    <RechargeVitalRate value="25" />
+  </CEffectCreateHealer>
   <CEffectSwitch id="NovaSnipeExplosiveShotDamageSwitch">
     <CaseArray Validator="CasterIsNovaHoloDecoy" Effect="NovaHoloDecoySnipeExplosiveShotDamage" />
     <CaseDefault value="SnipeExplosiveDamage" />
@@ -1381,6 +1394,12 @@
   <CEffectApplyBehavior id="NovaPinningShotCovertOpsApplySlowBehavior" parent="StormSlowApply">
     <Behavior value="NovaPinningShotCovertOpsSlow" />
   </CEffectApplyBehavior>
+  <CEffectModifyUnit id="NovaPerfectShotModifyCooldown">
+    <ValidatorArray value="TargetIsHero" />
+    <Chance value="0" />
+    <ImpactUnit Value="Caster" />
+    <Cost Abil="NovaSnipeStorm,Execute" CooldownOperation="Add" CooldownTimeUse="-4" />
+  </CEffectModifyUnit>
   <CEffectSwitch id="NovaPinningShotSlowSwitch">
     <CaseArray Validator="NovaPinningShotCovertOpsSourceHasMissileMarker" Effect="NovaPinningShotCovertOpsApplySlowBehavior" />
     <CaseDefault value="NovaPinningShotApplySlow" />
@@ -1410,12 +1429,6 @@
     <Upgrades Upgrade="NovaSnipeMasterDamageUpgrade" Count="-8" />
     <WhichPlayer Value="Source" />
   </CEffectModifyPlayer>
-  <CEffectModifyUnit id="NovaPerfectShotModifyCooldown">
-    <ValidatorArray value="TargetIsHero" />
-    <ImpactUnit Value="Caster" />
-    <Cost Abil="NovaSnipeStorm,Execute" CooldownOperation="Add" CooldownTimeUse="-4" />
-    <Chance value="0" />
-  </CEffectModifyUnit>
   <CEffectModifyPlayer id="NovaSnipeMasterApplyUpgradeStack">
     <ValidatorArray value="CasterIsNotNovaHoloClone" />
     <WhichPlayer Value="Source" />
@@ -1587,10 +1600,11 @@
     <Count value="1" />
   </CEffectRemoveBehavior>
   <CEffectSet id="NovaSnipePerfectShotImpactSet">
-    <ValidatorArray value="TargetIsHero" />
     <ValidatorArray value="HasNovaMasteryPerfectShotSnipe" />
     <EffectArray value="NovaPerfectShotModifyCooldown" />
+    <EffectArray value="NovaPerfectShotNonHeroicModifyCooldown" />
     <EffectArray value="NovaSnipePerfectShotTalentCreateManaHealer" />
+    <EffectArray value="NovaSnipePerfectShotTalentNonHeroicCreateManaHealer" />
   </CEffectSet>
   <CEffectCreateHealer id="NovaSnipePerfectShotRefundMana" parent="StormManaRestore">
     <Chance value="0" />
@@ -2471,10 +2485,10 @@
     <VOArray index="PingTransport" value="Nova_Ping_Transport" />
     <VOArray index="PingTurnIn" value="Nova_Ping_TurnIn" />
     <VOArray index="VOPing_AssistMe" value="Nova_VOPing_AssistMe" />
-    <VOArray index="VOPing_OnMyWay" value="Nova_VOPing_OnMyWay" />
     <VOArray index="VOPing_Danger" value="Nova_VOPing_Danger" />
-    <VOArray index="VOPing_EnemyMissing" value="Nova_VOPing_EnemyMissing" />
     <VOArray index="VOPing_Defend" value="Nova_VOPing_Defend" />
+    <VOArray index="VOPing_EnemyMissing" value="Nova_VOPing_EnemyMissing" />
+    <VOArray index="VOPing_OnMyWay" value="Nova_VOPing_OnMyWay" />
     <VOArray index="VOPing_Retreat" value="Nova_VOPing_Retreat" />
     <HeroAbilArray Abil="NovaSnipeStorm" Button="NovaSnipe">
       <Flags index="ShowInHeroSelect" value="1" />
@@ -2972,7 +2986,21 @@
       <Modifications>
         <Type value="FlatModification" />
         <Catalog value="Effect" />
+        <Entry value="NovaPerfectShotNonHeroicModifyCooldown" />
+        <Field value="Chance" />
+        <Value value="1.000000" />
+      </Modifications>
+      <Modifications>
+        <Type value="FlatModification" />
+        <Catalog value="Effect" />
         <Entry value="NovaSnipePerfectShotTalentCreateManaHealer" />
+        <Field value="Chance" />
+        <Value value="1.000000" />
+      </Modifications>
+      <Modifications>
+        <Type value="FlatModification" />
+        <Catalog value="Effect" />
+        <Entry value="NovaSnipePerfectShotTalentNonHeroicCreateManaHealer" />
         <Field value="Chance" />
         <Value value="1.000000" />
       </Modifications>
@@ -3015,7 +3043,7 @@
         <Type value="FlatModification" />
         <Entry value="NovaPrecisionStrike" />
         <Field value="Cost.Charge.TimeUse" />
-        <Value value="-30.000000" />
+        <Value value="-25.000000" />
       </Modifications>
     </AbilityModificationArray>
     <Abil value="NovaPrecisionStrike" />
@@ -3115,7 +3143,7 @@
         <Catalog value="Behavior" />
         <Entry value="NovaPermanentCloak" />
         <Field value="Modification.VitalRegenArray[Energy]" />
-        <Value value="2.000000" />
+        <Value value="3.000000" />
       </Modifications>
       <Modifications>
         <Type value="FlatModification" />
@@ -3174,13 +3202,13 @@
         <Type value="FlatModification" />
         <Entry value="NovaHoloDecoy" />
         <Field value="Cost[0].Cooldown.TimeUse" />
-        <Value value="-7.500000" />
+        <Value value="-9.000000" />
       </Modifications>
       <Modifications>
         <Type value="FlatModification" />
         <Entry value="NovaHoloDecoy" />
         <Field value="Cost[0].Vital[Energy]" />
-        <Value value="-25.000000" />
+        <Value value="-30.000000" />
       </Modifications>
     </AbilityModificationArray>
     <RankArray />
@@ -3208,6 +3236,12 @@
         <Entry value="NovaHoloDecoyRangeSplat" />
         <Field value="Scale" />
         <Value value="8.000000" />
+      </Modifications>
+      <Modifications>
+        <Type value="FlatModification" />
+        <Entry value="NovaGhostProtocol" />
+        <Field value="Cost.Cooldown.TimeUse" />
+        <Value value="-15.000000" />
       </Modifications>
     </AbilityModificationArray>
     <RankArray />

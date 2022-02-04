@@ -3,7 +3,7 @@
   <CAbilEffectTarget id="ProbiusWarpInPylon">
     <Effect value="ProbiusWarpInPylonInitialSet" />
     <Cost>
-      <Cooldown TimeUse="12" />
+      <Cooldown TimeUse="14" />
     </Cost>
     <Range value="3" />
     <CmdButtonArray index="Execute" DefaultButtonFace="ProbiusWarpInPylon" />
@@ -256,6 +256,18 @@
     <On Terms="Abil.ProbiusPhotonCannon.TargetOff" Send="Create ProbiusWarpInPylonPowerGridDestroyQuery" />
     <On Terms="Abil.ProbiusWarpInPylon.TargetOn" Send="Create ProbiusWarpInPylonPowerGridCreateQuery" />
     <On Terms="Abil.ProbiusWarpInPylon.TargetOff" Send="Create ProbiusWarpInPylonPowerGridDestroyQuery" />
+    <On Terms="Effect.ProbiusPhotonCannonGatherMineralsImpactSet.Start" Send="TimerKill PickupSoundPitchTimer" />
+    <On Terms="Effect.ProbiusPhotonCannonGatherMineralsImpactSet.Start" Send="TimerSet 3.000000 PickupSoundPitchTimer" />
+    <On Terms="Effect.ProbiusPhotonCannonGatherMineralsImpactSet.Start" Send="StatusIncrement PickupSoundPitch" />
+    <On Terms="Effect.ProbiusPhotonCannonGatherMineralsImpactSet.Start; IsStatus PickupSoundPitch 7" Send="StatusSet PickupSoundPitch 6" />
+    <On Terms="Effect.ProbiusPhotonCannonGatherMineralsImpactSet.Start" Send="Create TinkerSalvageImpactSound" />
+    <On Terms="Effect.ProbiusPhotonCannonGatherMineralsImpactSet.Start; IsStatus PickupSoundPitch 2" Target="TinkerSalvageImpactSound" Send="SoundSetPitch Linear 0.500000@0.000000" />
+    <On Terms="Effect.ProbiusPhotonCannonGatherMineralsImpactSet.Start; IsStatus PickupSoundPitch 3" Target="TinkerSalvageImpactSound" Send="SoundSetPitch Linear 1.000000@0.000000" />
+    <On Terms="Effect.ProbiusPhotonCannonGatherMineralsImpactSet.Start; IsStatus PickupSoundPitch 4" Target="TinkerSalvageImpactSound" Send="SoundSetPitch Linear 1.500000@0.000000" />
+    <On Terms="Effect.ProbiusPhotonCannonGatherMineralsImpactSet.Start; IsStatus PickupSoundPitch 5" Target="TinkerSalvageImpactSound" Send="SoundSetPitch Linear 2.000000@0.000000" />
+    <On Terms="Effect.ProbiusPhotonCannonGatherMineralsImpactSet.Start; IsStatus PickupSoundPitch 6" Target="TinkerSalvageImpactSound" Send="SoundSetPitch Linear 2.500000@0.000000" />
+    <On Terms="TimerExpired; TimerName PickupSoundPitchTimer" Send="StatusSet PickupSoundPitch 0" />
+    <On Terms="UnitBirth.HeroProbius" Send="SoundSetVolume Linear" />
     <Remove Terms="AnimDone; AnimName Taunt" Send="Signal ApplyReady" />
     <DeathArray index="Normal" AnimProps="Birth" ModelLink="HeroProbiusDeathRagdoll" />
     <SoundArray index="Ready" value="Probius_Revive" />
@@ -309,9 +321,9 @@
     <ModelFlags index="AutomateGlobalLoops" value="1" />
   </CActorModelMaterial>
   <CActorModelMaterial id="ProbiusWarpInPylonShieldBatteryGlaze" parent="ModelAnimationStyleContinuous">
-    <On Terms="Behavior.ProbiusWarpInPylonShieldBatteryShieldBehavior.On; ValidateUnit ProbiusDoesNotHaveWarpinPylonFXSuppressor" Send="Create" />
+    <On Terms="Behavior.ProbiusWarpInPylonShieldBatteryShieldBuff.On; ValidateUnit ProbiusDoesNotHaveWarpinPylonFXSuppressor" Send="Create" />
     <On Terms="ActorCreation" Send="ModelMaterialApplyTo ::Main" />
-    <On Terms="Behavior.ProbiusWarpInPylonShieldBatteryShieldBehavior.Off" Send="AnimBracketStop BSD" />
+    <On Terms="Behavior.ProbiusWarpInPylonShieldBatteryShieldBuff.Off" Send="AnimBracketStop BSD" />
     <ModelFlags index="AutomateGlobalLoops" value="1" />
   </CActorModelMaterial>
   <CActorModelMaterial id="ProbiusPylonPowerGlaze" parent="StormModelAnimationStyleContinuousUnit">
@@ -336,7 +348,7 @@
     </Layers>
   </CActorSound>
   <CActorModel id="ProbiusWarpInPylonShieldBatteryImpactModel" parent="StormModelAnimationStyleOneShotUnit">
-    <On Terms="Behavior.ProbiusWarpInPylonShieldBatteryShieldBehavior.Create; ValidateUnit ProbiusDoesNotHaveWarpinPylonFXSuppressor" Send="Create" />
+    <On Terms="Behavior.ProbiusWarpInPylonShieldBatteryShieldBuff.Create; ValidateUnit ProbiusDoesNotHaveWarpinPylonFXSuppressor" Send="Create" />
     <HostSiteOps Ops="SOpAttachCenter" />
     <AutoScaleFactor value="1.000000" />
   </CActorModel>
@@ -465,8 +477,8 @@
   </CActorSound>
   <CActorSound id="ProbiusWarpInPylonShieldBatterySoundLoop" parent="SoundContinuous">
     <Terms value="Cap 1" />
-    <On Terms="Effect.ProbiusWarpInShieldBatteryEnhancerApplyBehavior.Start; At Target; !ValidateEffect TargetIsSelf" Send="Create" />
-    <On Terms="Behavior.ProbiusWarpInPylonShieldBatteryShieldBehavior.Destroy" Send="Destroy" />
+    <On Terms="Effect.ProbiusWarpInShieldBatteryEnhancerApplyBuff.Start; At Target; !ValidateEffect TargetIsSelf" Send="Create" />
+    <On Terms="Behavior.ProbiusWarpInPylonShieldBatteryShieldBuff.Destroy" Send="Destroy" />
     <Sound value="Probius_ShieldBattery_Loop" />
     <Filter index="All" value="1" />
     <VisibleToAtCreation index="Target" value="1" />
@@ -1273,6 +1285,20 @@
     <AtMaxEvents index="0" EventId="QuestComplete" Effect="ProbiusPhotonCannonGatherMineralsQuestCompleteModify" />
     <Max value="70" />
   </CBehaviorTokenCounter>
+  <CBehaviorBuff id="ProbiusWarpInPylonShieldBatteryShieldBuff">
+    <Alignment value="Positive" />
+    <BehaviorFlags index="Permanent" value="1" />
+    <BehaviorFlags index="EnabledWhileDead" value="1" />
+    <DisableValidatorArray value="TargetNotStasis" />
+    <RemoveValidatorArray value="ProbiusNearPylonOrOverchargedPylon" />
+    <RemoveValidatorArray value="TargetNotImmuneToFriendlyAbilitiesOrIsDVaMech" />
+    <RemoveValidatorArray value="TargetNotSpecialDeathState" />
+    <BuffFlags index="RefreshStack" value="1" />
+    <Duration value="0.625" />
+    <Period value="0.5" />
+    <InitialEffect value="ProbiusWarpInPylonApplyFXSuppressorBehavior" />
+    <PeriodicEffect value="ProbiusWarpInShieldBatteryEnhancerApplyBehavior" />
+  </CBehaviorBuff>
   <CBehaviorBuff id="ProbiusWarpRiftQuantumEntanglementSlow" parent="StormSlowParent">
     <Duration value="3" />
     <Modification>
@@ -1290,7 +1316,7 @@
     <Duration value="5" />
   </CBehaviorBuff>
   <CBehaviorTokenCounter id="ProbiusDisruptionPulseParticleAcceleratorTokenCounter" parent="StormGenericToken">
-    <Max value="4" />
+    <Max value="3" />
     <Face value="ProbiusParticleAcceleratorDisruptionPulsetQuestTokenBehavior" />
     <Alignment value="Positive" />
     <MinStackCountDisplayed value="0" />
@@ -1516,7 +1542,6 @@
     <Duration value="-1" />
     <Period value="0.5" />
     <PeriodicEffect value="ProbiusPhotonCannonGatherMineralsPeriodicSearch" />
-    <DisableValidatorArray value="ProbiusCasterDoesNotHavePhotonCannonGatherMineralsComplete" />
     <TimeScaleSource Value="Global" />
   </CBehaviorBuff>
   <CBehaviorBuff id="ProbiusPhotonCannonGatherMineralsDeathResponseBehavior">
@@ -1827,6 +1852,10 @@
   <CButton id="ProbiusShieldCapacitorTalent" parent="StormButtonParent">
     <Icon value="Assets\Textures\storm_ui_icon_probius_shieldcapacitor.dds" />
   </CButton>
+  <CEffectDamage id="ProbiusDisruptionPulseParticleAcceleratorDamage" parent="StormSpell">
+    <Amount value="78" />
+    <SourceButtonFace value="ProbiusDisruptionPulse" />
+  </CEffectDamage>
   <CEffectSet id="ProbiusDisruptionPulseEchoPulseLaunchMissileSet">
     <EffectArray value="ProbiusDisruptionPulseEchoPulseMissilePersistent" />
   </CEffectSet>
@@ -1860,7 +1889,7 @@
     <Behavior value="ProbiusPhotonCannonGatherMineralsBonusDamage" />
   </CEffectApplyBehavior>
   <CEffectModifyUnit id="ProbiusPhotonCannonTowerDefenseReduceCooldown">
-    <Cost Abil="ProbiusPhotonCannon,Execute" CooldownOperation="Add" CooldownTimeUse="-4" />
+    <Cost Abil="ProbiusPhotonCannon,Execute" CooldownOperation="Add" CooldownTimeUse="-3.5" />
     <Chance value="0" />
     <ValidatorArray value="TargetIsHero" />
     <ImpactUnit Value="Caster" />
@@ -1890,6 +1919,13 @@
   <CEffectModifyPlayer id="ProbiusPylonOverchargeResetPlayer">
     <EffectArray Operation="Set" Reference="Actor,ProbiusPylon,CustomUnitStatusFrame" Value="Probius/ProbiusStructureUnitStatusFrameTemplate" />
   </CEffectModifyPlayer>
+  <CEffectModifyUnit id="ProbiusWarpInPylonReduceCooldown">
+    <Cost Abil="ProbiusWarpInPylon,Execute" CooldownOperation="Add" CooldownTimeUse="-0.75" />
+  </CEffectModifyUnit>
+  <CEffectApplyBehavior id="ProbiusWarpInShieldBatteryEnhancerApplyBuff">
+    <Chance value="0" />
+    <Behavior value="ProbiusWarpInPylonShieldBatteryShieldBuff" />
+  </CEffectApplyBehavior>
   <CEffectEnumArea id="ProbiusWarpRiftRiftShockDetonationSearch">
     <ValidatorArray value="ProbiusWarpRiftHasRiftShockTimer" />
     <LaunchLocation Value="TargetUnit" />
@@ -1899,7 +1935,7 @@
     </AreaArray>
   </CEffectEnumArea>
   <CEffectDamage id="ProbiusWarpRiftRiftShockDamage" parent="StormSpellDot">
-    <Amount value="30" />
+    <Amount value="35" />
     <SourceButtonFace value="ProbiusRiftShockWarpRiftTalent" />
   </CEffectDamage>
   <CEffectApplyBehavior id="ProbiusWarpRiftRiftShockApplyTimerBehavior">
@@ -1918,7 +1954,7 @@
     <TokenId value="ProbiusDisruptionPulseParticleAcceleratorTokenCounter" />
     <Operation value="Set" />
     <Value value="0" />
-    <ValidatorArray value="ProbiusCasterHasDisruptionPulseParticleAccelerator4Tokens" />
+    <ValidatorArray value="ProbiusCasterHasDisruptionPulseParticleAccelerator3Tokens" />
   </CEffectModifyTokenCount>
   <CEffectModifyTokenCount id="ProbiusDisruptionPulseParticleAcceleratorTokenIncrement" parent="BaseEffectModifyTokenCount">
     <TokenId value="ProbiusDisruptionPulseParticleAcceleratorTokenCounter" />
@@ -1937,7 +1973,7 @@
   <CEffectSet id="ProbiusWarpInPylonNearbyAllyApplyBehaviorSet">
     <EffectArray value="ProbiusWarpInPylonAggressiveMatrixApplyBehavior" />
     <EffectArray value="ProbiusWarpInPylonPowerOverflowingApplyBehavior" />
-    <EffectArray value="ProbiusWarpInShieldBatteryEnhancerApplyBehavior" />
+    <EffectArray value="ProbiusWarpInShieldBatteryEnhancerApplyBuff" />
     <ValidatorArray value="TargetNotImmuneToFriendlyAbilitiesOrIsDVaMech" />
     <ValidatorArray value="TargetNotSpecialDeathState" />
   </CEffectSet>
@@ -2000,7 +2036,7 @@
   </CEffectEnumArea>
   <CEffectSet id="ProbiusDisruptionPulseShootEmUpImpactSet">
     <ValidatorArray value="noMarkers" />
-    <EffectArray value="ProbiusDisruptionPulseDamage" />
+    <EffectArray value="ProbiusDisruptionPulseParticleAcceleratorDamage" />
   </CEffectSet>
   <CEffectCreatePersistent id="ProbiusDisruptionPulseShootEmUpMissilePersistent">
     <WhichLocation Value="SourceUnit" />
@@ -2024,7 +2060,7 @@
     <Marker>
       <MatchFlags index="Link" value="1" />
     </Marker>
-    <ValidatorArray value="ProbiusCasterHasDisruptionPulseParticleAccelerator4Tokens" />
+    <ValidatorArray value="ProbiusCasterHasDisruptionPulseParticleAccelerator3Tokens" />
   </CEffectCreatePersistent>
   <CEffectLaunchMissile id="ProbiusDisruptionPulseShootEmUpLaunchMissile">
     <ValidatorArray index="0" value="CasterNotDead" />
@@ -2085,7 +2121,6 @@
     <LaunchOffset Y="0.1" />
   </CEffectLaunchMissile>
   <CEffectDamage id="ProbiusDisruptionPulseDamage" parent="StormSpell">
-    <MultiplicativeModifierArray index="0" Validator="ProbiusSourceIsShootEmUpMissile" Modifier="-0.5" />
     <Amount value="142" />
     <SourceButtonFace value="ProbiusDisruptionPulse" />
   </CEffectDamage>
@@ -2312,7 +2347,7 @@
   <CEffectDamage id="ProbiusWarpRiftDetonationDamage" parent="StormSpell">
     <Amount value="261" />
     <SourceButtonFace value="ProbiusWarpRift" />
-    <FlatModifierArray index="0" Validator="ProbiusHasGreaterThanOrEqualTo8StacksOfWarpRiftWarpResonance" Modifier="100" />
+    <FlatModifierArray index="0" Validator="ProbiusHasGreaterThanOrEqualTo8StacksOfWarpRiftWarpResonance" Modifier="120" />
   </CEffectDamage>
   <CEffectSet id="ProbiusWarpRiftDetonationImpactSet">
     <EffectArray value="ProbiusWarpRiftDetonationDamage" />
@@ -2353,10 +2388,9 @@
     <ValidatorArray index="0" value="TargetIsMinionAndNotMercLaner" />
   </CEffectApplyBehavior>
   <CEffectCreateUnit id="ProbiusPhotonCannonGatherMineralsCreateMineralPickup">
-    <ValidatorArray value="ProbiusCasterDoesNotHavePhotonCannonGatherMineralsComplete" />
     <WhichLocation Effect="ProbiusPhotonCannonGatherMineralsApplyDeathResponseBehavior" />
-    <SpawnUnit value="ProbiusPhotonCannonGatherMineralsMineralPickup" />
     <SpawnOwner Effect="ProbiusPhotonCannonGatherMineralsApplyDeathResponseBehavior" Value="Caster" />
+    <SpawnUnit value="ProbiusPhotonCannonGatherMineralsMineralPickup" />
   </CEffectCreateUnit>
   <CEffectEnumArea id="ProbiusPhotonCannonGatherMineralsPeriodicSearch">
     <SearchFilters value="-;Player,Ally,Structure,ImmuneToFriendlyAbilities,Missile,Dead" />
@@ -2427,6 +2461,7 @@
     <EffectArray value="ProbiusPhotonCannonGatherMineralsModifyQuestToken" />
     <EffectArray value="ProbiusPhotonCannonGatherMineralsModifyQuestTokenFX" />
     <EffectArray value="ProbiusPhotonCannonGatherMineralsSuicide" />
+    <EffectArray value="ProbiusWarpInPylonReduceCooldown" />
   </CEffectSet>
   <CEffectModifyTokenCount id="ProbiusPhotonCannonGatherMineralsModifyQuestToken" parent="BaseEffectModifyTokenCount">
     <WhichUnit Value="Target" />
@@ -2607,7 +2642,7 @@
     <Behavior value="ProbiusNullGateSlowBehavior" />
   </CEffectApplyBehavior>
   <CEffectDamage id="ProbiusNullGateDamage" parent="StormSpell">
-    <Amount value="17" />
+    <Amount value="19" />
     <SourceButtonFace value="ProbiusNullGate" />
     <Visibility value="Hidden" />
   </CEffectDamage>
@@ -2740,6 +2775,14 @@
       <Modifications>
         <Catalog value="Effect" />
         <Entry value="ProbiusDisruptionPulseDamage" />
+        <Field value="Amount" />
+        <Value value="0.050000" />
+        <AffectedByAbilityPower value="1" />
+        <AffectedByOverdrive value="1" />
+      </Modifications>
+      <Modifications>
+        <Catalog value="Effect" />
+        <Entry value="ProbiusDisruptionPulseParticleAcceleratorDamage" />
         <Field value="Amount" />
         <Value value="0.050000" />
         <AffectedByAbilityPower value="1" />
@@ -3961,6 +4004,13 @@
       <Modifications>
         <Type value="FlatModification" />
         <Catalog value="Effect" />
+        <Entry value="ProbiusWarpInShieldBatteryEnhancerApplyBuff" />
+        <Field value="Chance" />
+        <Value value="1.000000" />
+      </Modifications>
+      <Modifications>
+        <Type value="FlatModification" />
+        <Catalog value="Effect" />
         <Entry value="ProbiusWarpInShieldBatteryEnhancerApplyBehavior" />
         <Field value="Chance" />
         <Value value="1.000000" />
@@ -4123,7 +4173,6 @@
     <Abil value="ProbiusPhotonCannon" />
     <RankArray>
       <BehaviorArray value="ProbiusPhotonCannonGatherMineralsQuestToken" />
-      <BehaviorArray value="ProbiusPhotonCannonGatherMineralsCarryBehavior" />
       <BehaviorArray value="ProbiusPhotonCannonGatherMineralsQuestTokenFXController" />
     </RankArray>
     <QuestData StackBehavior="ProbiusPhotonCannonGatherMineralsQuestTokenFXController" TargetCount="70" />
@@ -4210,7 +4259,7 @@
         <Type value="FlatModification" />
         <Entry value="ProbiusWorkerRush" />
         <Field value="Cost[0].Cooldown.TimeUse" />
-        <Value value="-10.000000" />
+        <Value value="-14.000000" />
       </Modifications>
       <Modifications>
         <Type value="FlatModification" />
@@ -4269,6 +4318,7 @@
     <BehaviorArray Link="ProbiusWorkerRushPassive" />
     <BehaviorArray Link="ProbiusPowerUserEnergyRegen" />
     <BehaviorArray Link="ProbiusWorkerRushFountainBehavior" />
+    <BehaviorArray Link="ProbiusPhotonCannonGatherMineralsCarryBehavior" />
     <Radius value="0.6875" />
     <InnerRadius value="0.6875" />
     <CardLayouts index="0">
@@ -4392,9 +4442,9 @@
     <Value value="1" />
     <Behavior value="ProbiusWarpInPylonPowerOverflowingCasterBuff" />
   </CValidatorUnitCompareBehaviorCount>
-  <CValidatorUnitCompareTokenCount id="ProbiusCasterHasDisruptionPulseParticleAccelerator4Tokens">
+  <CValidatorUnitCompareTokenCount id="ProbiusCasterHasDisruptionPulseParticleAccelerator3Tokens">
     <WhichUnit Value="Caster" />
-    <Value value="4" />
+    <Value value="3" />
     <TokenId value="ProbiusDisruptionPulseParticleAcceleratorTokenCounter" />
   </CValidatorUnitCompareTokenCount>
   <CValidatorUnitCompareBehaviorCount id="ProbiusPhotonCannonHasPhotonCannonGatherMineralsBonusDamage">
