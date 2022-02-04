@@ -8,61 +8,61 @@ jobs:
     name: Automatically Fetch Game Data Files
     runs-on: windows-2019
     steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-      - name: Check game version
-        run: |
-          if (Test-Path "./mods/core.stormmod/base.stormdata/buildid.txt") {
-            # Because the Content-Type is application/octet-stream, iwr automatically output as byte array
-            # So need to convert it back to string
-            $region = "us"
+#       - name: Checkout
+#         uses: actions/checkout@v2
+#       - name: Check game version
+#         run: |
+#           if (Test-Path "./mods/core.stormmod/base.stormdata/buildid.txt") {
+#             # Because the Content-Type is application/octet-stream, iwr automatically output as byte array
+#             # So need to convert it back to string
+#             $region = "us"
 
-            $response = Invoke-WebRequest "http://us.patch.battle.net:1119/hero/versions" -UseBasicParsing
-            $response = [System.Text.Encoding]::UTF8.GetString($response.Content)
-            $response = $response -split "\n" | Select-String -Pattern '^#' -NotMatch
-            $header = $response[0]
-            # remove first line header
-            $null, $configs = $response
+#             $response = Invoke-WebRequest "http://us.patch.battle.net:1119/hero/versions" -UseBasicParsing
+#             $response = [System.Text.Encoding]::UTF8.GetString($response.Content)
+#             $response = $response -split "\n" | Select-String -Pattern '^#' -NotMatch
+#             $header = $response[0]
+#             # remove first line header
+#             $null, $configs = $response
 
-            $buildIdIndex = -1
-            $regionIndex = -1
+#             $buildIdIndex = -1
+#             $regionIndex = -1
             
-            for ($i = 0; $i -lt ($header -split "\|").Count; $i++) {
-              $key = ($header -split "\|")[$i]
+#             for ($i = 0; $i -lt ($header -split "\|").Count; $i++) {
+#               $key = ($header -split "\|")[$i]
 
-              if ($key.ToLower() -like "region!*") {
-                $regionIndex = $i
-              }
-              if ($key.ToLower() -like "buildid!*") {
-                $buildIdIndex = $i
-              }
-            }
+#               if ($key.ToLower() -like "region!*") {
+#                 $regionIndex = $i
+#               }
+#               if ($key.ToLower() -like "buildid!*") {
+#                 $buildIdIndex = $i
+#               }
+#             }
 
-            # Loops each config (region)
-            foreach ($config in $configs) {
-              $regionExtracted = ($config -split "\|")[$regionIndex]
-              if ($regionExtracted -eq $region) {
-                $buildIdExtracted = ($config -split "\|")[$buildIdIndex]
-                $modsBuild = Get-Content "./mods/core.stormmod/base.stormdata/buildid.txt"
-                Write-Output "$regionExtracted, buildidtxt: $modsBuild, uptsream: B$buildIdExtracted"
-                if ($modsBuild -eq ("B" + $buildIdExtracted)) {
-                  Write-Error -Message "Current Gamedata is up to date. Abort." -ErrorAction Stop
-                  break
-                }
-              }
-            }
-          }
-      - name: Download and Install Battle.net
-        run: |
-          $ErrorView = 'NormalView'
-          Write-Output $(Invoke-WebRequest "https://ipinfo.io/json").Content
-          Invoke-WebRequest -Uri "https://us.battle.net/download/getInstaller?os=win&installer=Battle.net-Setup.exe" -OutFile "C:\Battle.net-Setup.exe"
-          Cscript.exe "./.github/workflows/install_bnet.vbs" //nologo
-          Get-Process | Where {$_.MainWindowTitle} | Select-Object ProcessName, MainWindowTitle
-      - name: Installing Heroes Of the Storm
-        run: |
-          Invoke-WebRequest -Uri "https://github.com/jamiephan/Battle.Net-Installer/releases/latest/download/BNetInstaller.exe" -OutFile "C:\BNetInstaller.exe"
-          & "C:\BNetInstaller.exe" --prod "hero" --lang "enus" --dir "C:/hero"
+#             # Loops each config (region)
+#             foreach ($config in $configs) {
+#               $regionExtracted = ($config -split "\|")[$regionIndex]
+#               if ($regionExtracted -eq $region) {
+#                 $buildIdExtracted = ($config -split "\|")[$buildIdIndex]
+#                 $modsBuild = Get-Content "./mods/core.stormmod/base.stormdata/buildid.txt"
+#                 Write-Output "$regionExtracted, buildidtxt: $modsBuild, uptsream: B$buildIdExtracted"
+#                 if ($modsBuild -eq ("B" + $buildIdExtracted)) {
+#                   Write-Error -Message "Current Gamedata is up to date. Abort." -ErrorAction Stop
+#                   break
+#                 }
+#               }
+#             }
+#           }
+#       - name: Download and Install Battle.net
+#         run: |
+#           $ErrorView = 'NormalView'
+#           Write-Output $(Invoke-WebRequest "https://ipinfo.io/json").Content
+#           Invoke-WebRequest -Uri "https://us.battle.net/download/getInstaller?os=win&installer=Battle.net-Setup.exe" -OutFile "C:\Battle.net-Setup.exe"
+#           Cscript.exe "./.github/workflows/install_bnet.vbs" //nologo
+#           Get-Process | Where {$_.MainWindowTitle} | Select-Object ProcessName, MainWindowTitle
+#       - name: Installing Heroes Of the Storm
+#         run: |
+#           Invoke-WebRequest -Uri "https://github.com/jamiephan/Battle.Net-Installer/releases/latest/download/BNetInstaller.exe" -OutFile "C:\BNetInstaller.exe"
+#           & "C:\BNetInstaller.exe" --prod "hero" --lang "enus" --dir "C:/hero"
       - name: Setup WSL
         uses: Vampire/setup-wsl@v1
         with:
