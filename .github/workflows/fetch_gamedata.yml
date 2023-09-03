@@ -106,7 +106,18 @@ jobs:
         run: |
           # Check if tree is not clean
           if($(&git status --porcelain) -ne $null) {
-            $gameVersion = [regex]::match($(Get-Content "C:/hero/.build.info"), "\|\|\|(.*)").Groups[1].Value
+            $buildVersionIdx = 12 # Default
+            $currIdx = 0
+            $([regex]::match($(Get-Content ".\build.txt" -Raw), "(.*)\n(.*)").Groups[1].Value) -split "\|" | ForEach-Object {
+                if ($_ -like "Version*") {
+                    Write-Output "build.info version index:$currIdx = $_"
+                    Set-Variable -Name "buildVersionIdx" -Value $currIdx
+                }
+                $currIdx++
+            }
+
+            $gameVersion = ($([regex]::match($(Get-Content ".\build.txt" -Raw), "(.*)\n(.*)").Groups[2].Value) -split "\|")[$buildVersionIdx]
+
             New-Item -Path "./_temp_" -ItemType "Directory" | Out-Null
             if (-Not (Test-Path "./xsd")) {
               New-Item -Path "./xsd" -ItemType "Directory" | Out-Null
@@ -120,7 +131,7 @@ jobs:
             Write-Output "Generating XDS File"
             &java -jar "./trang.jar" -I xml -O xsd "./_temp_/*.xml" "./xsd/$gameVersion.xsd"
             
-            # Replace latest.xsd 
+            # Replace latest.xsd
             if (Test-Path "./xsd/latest.xsd") {
               Remove-Item "./xsd/latest.xsd" -Recurse -Force
             }
