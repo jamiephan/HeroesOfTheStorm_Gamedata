@@ -108,7 +108,11 @@ jobs:
           if($(&git status --porcelain) -ne $null) {
             $buildVersionIdx = 12 # Default
             $currIdx = 0
-            $([regex]::match($(Get-Content "C:/hero/.build.info" -Raw), "(.*)\n(.*)").Groups[1].Value) -split "\|" | ForEach-Object {
+            $buildInfoContent = $(Get-Content "C:/hero/.build.info")
+            $buildInfoHeader = $buildInfoContent[0]
+            $buildInfoFirstEntry = $buildInfoContent[1]
+
+            $buildInfoHeader -split "|", 0, "SimpleMatch" | ForEach-Object {
                 if ($_ -like "Version*") {
                     Write-Output "build.info version index:$currIdx = $_"
                     Set-Variable -Name "buildVersionIdx" -Value $currIdx
@@ -116,7 +120,9 @@ jobs:
                 $currIdx++
             }
 
-            $gameVersion = ($([regex]::match($(Get-Content "C:/hero/.build.info" -Raw), "(.*)\n(.*)").Groups[2].Value) -split "\|")[$buildVersionIdx]
+            $gameVersion = ($buildInfoFirstEntry -split "|", 0, "SimpleMatch")[$buildVersionIdx]
+
+            Write-Output "Game Version: $gameVersion"
 
             New-Item -Path "./_temp_" -ItemType "Directory" | Out-Null
             if (-Not (Test-Path "./xsd")) {
@@ -141,7 +147,23 @@ jobs:
         run: |
           # Check if tree is not clean
           if($(&git status --porcelain) -ne $null) {
-            $gameVersion = [regex]::match($(Get-Content "C:/hero/.build.info"), "\|\|\|(.*)").Groups[1].Value
+            $buildVersionIdx = 0 # Default
+            $currIdx = 0
+            $buildInfoContent = $(Get-Content "C:/hero/.build.info")
+            $buildInfoHeader = $buildInfoContent[0]
+            $buildInfoFirstEntry = $buildInfoContent[1]
+
+            $buildInfoHeader -split "|", 0, "SimpleMatch" | ForEach-Object {
+                if ($_ -like "Version*") {
+                    Write-Output "build.info version index:$currIdx = $_"
+                    Set-Variable -Name "buildVersionIdx" -Value $currIdx
+                }
+                $currIdx++
+            }
+
+            $gameVersion = ($buildInfoFirstEntry -split "|", 0, "SimpleMatch")[$buildVersionIdx]
+            Write-Output "Game Version: $gameVersion"
+            
             git config --global user.name 'Jamie Phan'
             git config --global user.email '9488815+jamiephan@users.noreply.github.com'
             
