@@ -34,7 +34,7 @@ void libIGHS_InitVariables () {
     libIGHS_gv_shuffleSettings.lv_shufflePickMode = libIGHS_ge_ShufflePickMode_NotInitialized;
     libIGHS_gv_shuffleSettings.lv_totalTimeAllowedToPickHeroes = 30;
     libIGHS_gv_shuffleSettings.lv_heroPickTimer = TimerCreate();
-    libIGHS_gv_shuffleSettings.lv_crazyModeChance = 0.0;
+    libIGHS_gv_shuffleSettings.lv_crazyModeChance = 5.0;
     libIGHS_gv_shuffleSettings.lv_showHeroPickSuggestions = true;
     libIGHS_gv_shuffleSettings.lv_showHeroClassIcons = true;
     libIGHS_gv_shuffleUI.lv_dialog = c_invalidDialogId;
@@ -243,11 +243,11 @@ void libIGHS_gf_ResetAllHeroPicks () {
 
 void libIGHS_gf_PrepareHeroPicksRoleLocked () {
     // Variable Declarations
-    const int lv_maxWarriorsPerTeam_C = 2;
-    const int lv_maxSupportsPerTeam_C = 2;
-    const fixed lv_chanceOfAssassinInsteadOfSpecialist_C = 60.0;
-    int lv_warriorsPerTeam;
-    int lv_supportsPerTeam;
+    const int lv_maxTanksPerTeam_C = 1;
+    const int lv_maxHealersPerTeam_C = 1;
+    const fixed lv_chanceOfAssassinInsteadOfSupport_C = 60.0;
+    int lv_TanksPerTeam;
+    int lv_HealersPerTeam;
     shuffler lv_rosterSlotShuffler;
     int lv_playersAssigned;
     int[libCore_gv_bALMaxPlayersOnATeam + 1] lv_playerClassesByRosterSlot;
@@ -271,32 +271,32 @@ void libIGHS_gf_PrepareHeroPicksRoleLocked () {
     const int auto2272DB71_ai = 1;
 
     // Variable Initialization
-    lv_warriorsPerTeam = RandomInt(0, lv_maxWarriorsPerTeam_C);
-    lv_supportsPerTeam = RandomInt(0, lv_maxSupportsPerTeam_C);
+    lv_TanksPerTeam = RandomInt(0, lv_maxTanksPerTeam_C);
+    lv_HealersPerTeam = RandomInt(0, lv_maxHealersPerTeam_C);
     lv_rosterSlotShuffler = ShufflerCreate(libCore_gv_bALMaxPlayersOnATeam);
 
     // Implementation
     libIGHS_gf_ShufflePickDebugMessage(StringExternal("Param/Value/lib_IGHS_11DE1E09"));
     libIGHS_gf_ResetAllHeroPicks();
-    lv_i = lv_warriorsPerTeam;
+    lv_i = lv_TanksPerTeam;
     for ( ; ( (autoA8269F7C_ai >= 0 && lv_i <= autoA8269F7C_ae) || (autoA8269F7C_ai < 0 && lv_i >= autoA8269F7C_ae) ) ; lv_i += autoA8269F7C_ai ) {
         lv_rosterSlot = (ShufflerAdvance(lv_rosterSlotShuffler) + 1);
-        lv_playerClassesByRosterSlot[lv_rosterSlot] = c_heroRoleWarrior;
+        lv_playerClassesByRosterSlot[lv_rosterSlot] = c_expandedRoleTank;
         lv_playersAssigned += 1;
     }
-    lv_i = lv_supportsPerTeam;
+    lv_i = lv_HealersPerTeam;
     for ( ; ( (auto72819729_ai >= 0 && lv_i <= auto72819729_ae) || (auto72819729_ai < 0 && lv_i >= auto72819729_ae) ) ; lv_i += auto72819729_ai ) {
         lv_rosterSlot = (ShufflerAdvance(lv_rosterSlotShuffler) + 1);
-        lv_playerClassesByRosterSlot[lv_rosterSlot] = c_heroRoleSupport;
+        lv_playerClassesByRosterSlot[lv_rosterSlot] = c_expandedRoleHealer;
         lv_playersAssigned += 1;
     }
     while ((lv_playersAssigned < libCore_gv_bALMaxPlayersOnATeam)) {
         lv_rosterSlot = (ShufflerAdvance(lv_rosterSlotShuffler) + 1);
-        if ((libNtve_gf_RandomPercent() <= lv_chanceOfAssassinInsteadOfSpecialist_C)) {
+        if ((libNtve_gf_RandomPercent() <= lv_chanceOfAssassinInsteadOfSupport_C)) {
             lv_playerClassesByRosterSlot[lv_rosterSlot] = c_heroRoleDamage;
         }
         else {
-            lv_playerClassesByRosterSlot[lv_rosterSlot] = c_heroRoleSpecialist;
+            lv_playerClassesByRosterSlot[lv_rosterSlot] = c_expandedRoleSupport;
         }
         lv_playersAssigned += 1;
     }
@@ -336,7 +336,7 @@ void libIGHS_gf_PrepareHeroPicksUnlocked () {
     const int auto64DC54DE_ai = libCore_gv_bALMaxPlayersOnATeam;
 
     // Variable Initialization
-    lv_heroClass = c_heroRoleWarrior;
+    lv_heroClass = c_expandedRoleTank;
 
     // Implementation
     libIGHS_gf_ShufflePickDebugMessage(StringExternal("Param/Value/lib_IGHS_D705D049"));
@@ -462,27 +462,30 @@ int libIGHS_gf_GetClassofHero (string lp_heroLink) {
     string autoAC981AF1_val;
 
     // Variable Initialization
-    lv_classFromData = CatalogFieldValueGet(c_gameCatalogHero, lp_heroLink, "Role", c_playerAny);
+    lv_classFromData = CatalogFieldValueGet(c_gameCatalogHero, lp_heroLink, "ExpandedRole", c_playerAny);
 
     // Implementation
     autoAC981AF1_val = lv_classFromData;
-    if (autoAC981AF1_val == "Warrior") {
-        return c_heroRoleWarrior;
+    if (autoAC981AF1_val == "Bruiser") {
+        return c_expandedRoleBruiser;
     }
-    else if (autoAC981AF1_val == "Assassin") {
-        return c_heroRoleDamage;
+    else if (autoAC981AF1_val == "Tank") {
+        return c_expandedRoleTank;
+    }
+    else if (autoAC981AF1_val == "RangedAssassin") {
+        return c_expandedRoleRangedAssassin;
+    }
+    else if (autoAC981AF1_val == "Healer") {
+        return c_expandedRoleHealer;
+    }
+    else if (autoAC981AF1_val == "MeleeAssassin") {
+        return c_expandedRoleMeleeAssassin;
     }
     else if (autoAC981AF1_val == "Support") {
-        return c_heroRoleSupport;
-    }
-    else if (autoAC981AF1_val == "Specialist") {
-        return c_heroRoleSpecialist;
-    }
-    else if (autoAC981AF1_val == "Multiclass") {
-        return c_heroRoleWarrior;
+        return c_expandedRoleSupport;
     }
     else {
-        return c_heroRoleDamage;
+        return c_expandedRoleRangedAssassin;
     }
 }
 
@@ -1416,7 +1419,7 @@ void libIGHS_gf_ShowPickSuggestionsforTeam (int lp_team) {
     const int auto3B7ED371_ai = 1;
 
     // Variable Initialization
-    lv_heroClass = c_heroRoleWarrior;
+    lv_heroClass = c_expandedRoleTank;
     lv_playerGettingAssassinHighlights = lv_roleNotFoundYet_C;
     lv_playerGettingSupportHighlights = lv_roleNotFoundYet_C;
     lv_playerGettingTankHighlights = lv_roleNotFoundYet_C;
@@ -1432,7 +1435,7 @@ void libIGHS_gf_ShowPickSuggestionsforTeam (int lp_team) {
             if (((libIGHS_gv_shuffleSettings.lv_players[lv_player].lv_isLockedIn == false) || (lv_pick == libIGHS_gv_shuffleSettings.lv_players[lv_player].lv_currentOptionSelected))) {
                 lv_heroClass = libIGHS_gf_GetClassofHero(libIGHS_gv_shuffleSettings.lv_players[lv_player].lv_heroPickOptions[lv_pick]);
                 auto7CE5CD54_val = lv_heroClass;
-                if (auto7CE5CD54_val == c_heroRoleSupport) {
+                if (auto7CE5CD54_val == c_expandedRoleHealer) {
                     if ((lv_playerGettingSupportHighlights != lv_roleNotFoundYet_C) && (lv_playerGettingSupportHighlights != lv_player)) {
                         lv_playerGettingSupportHighlights = lv_roleFoundMultipleTimes_C;
                     }
@@ -1440,7 +1443,15 @@ void libIGHS_gf_ShowPickSuggestionsforTeam (int lp_team) {
                         lv_playerGettingSupportHighlights = lv_player;
                     }
                 }
-                else if (auto7CE5CD54_val == c_heroRoleWarrior) {
+                else if (auto7CE5CD54_val == c_expandedRoleSupport) {
+                    if ((lv_playerGettingSupportHighlights != lv_roleNotFoundYet_C) && (lv_playerGettingSupportHighlights != lv_player)) {
+                        lv_playerGettingSupportHighlights = lv_roleFoundMultipleTimes_C;
+                    }
+                    else {
+                        lv_playerGettingSupportHighlights = lv_player;
+                    }
+                }
+                else if (auto7CE5CD54_val == c_expandedRoleTank) {
                     if ((lv_playerGettingTankHighlights != lv_roleNotFoundYet_C) && (lv_playerGettingTankHighlights != lv_player)) {
                         lv_playerGettingTankHighlights = lv_roleFoundMultipleTimes_C;
                     }
@@ -1448,7 +1459,23 @@ void libIGHS_gf_ShowPickSuggestionsforTeam (int lp_team) {
                         lv_playerGettingTankHighlights = lv_player;
                     }
                 }
-                else if (auto7CE5CD54_val == c_heroRoleDamage) {
+                else if (auto7CE5CD54_val == c_expandedRoleMeleeAssassin) {
+                    if ((lv_playerGettingAssassinHighlights != lv_roleNotFoundYet_C) && (lv_playerGettingAssassinHighlights != lv_player)) {
+                        lv_playerGettingAssassinHighlights = lv_roleFoundMultipleTimes_C;
+                    }
+                    else {
+                        lv_playerGettingAssassinHighlights = lv_player;
+                    }
+                }
+                else if (auto7CE5CD54_val == c_expandedRoleBruiser) {
+                    if ((lv_playerGettingAssassinHighlights != lv_roleNotFoundYet_C) && (lv_playerGettingAssassinHighlights != lv_player)) {
+                        lv_playerGettingAssassinHighlights = lv_roleFoundMultipleTimes_C;
+                    }
+                    else {
+                        lv_playerGettingAssassinHighlights = lv_player;
+                    }
+                }
+                else if (auto7CE5CD54_val == c_expandedRoleRangedAssassin) {
                     if ((lv_playerGettingAssassinHighlights != lv_roleNotFoundYet_C) && (lv_playerGettingAssassinHighlights != lv_player)) {
                         lv_playerGettingAssassinHighlights = lv_roleFoundMultipleTimes_C;
                     }
@@ -1469,7 +1496,7 @@ void libIGHS_gf_ShowPickSuggestionsforTeam (int lp_team) {
         	if (lv_player<0) { break; }
         	lv_pick = 1;
         for ( ; ( (auto3B7ED371_ai >= 0 && lv_pick <= auto3B7ED371_ae) || (auto3B7ED371_ai < 0 && lv_pick >= auto3B7ED371_ae) ) ; lv_pick += auto3B7ED371_ai ) {
-            if ((libIGHS_gv_shuffleSettings.lv_players[lv_player].lv_isLockedIn == false) && (((lv_playerGettingSupportHighlights == lv_player) && (libIGHS_gf_GetClassofHero(libIGHS_gv_shuffleSettings.lv_players[lv_player].lv_heroPickOptions[lv_pick]) == c_heroRoleSupport)) || ((lv_playerGettingTankHighlights == lv_player) && (libIGHS_gf_GetClassofHero(libIGHS_gv_shuffleSettings.lv_players[lv_player].lv_heroPickOptions[lv_pick]) == c_heroRoleWarrior)) || ((lv_playerGettingAssassinHighlights == lv_player) && (libIGHS_gf_GetClassofHero(libIGHS_gv_shuffleSettings.lv_players[lv_player].lv_heroPickOptions[lv_pick]) == c_heroRoleDamage)))) {
+            if ((libIGHS_gv_shuffleSettings.lv_players[lv_player].lv_isLockedIn == false) && (((lv_playerGettingSupportHighlights == lv_player) && (libIGHS_gf_GetClassofHero(libIGHS_gv_shuffleSettings.lv_players[lv_player].lv_heroPickOptions[lv_pick]) == c_expandedRoleHealer)) || ((lv_playerGettingSupportHighlights == lv_player) && (libIGHS_gf_GetClassofHero(libIGHS_gv_shuffleSettings.lv_players[lv_player].lv_heroPickOptions[lv_pick]) == c_expandedRoleSupport)) || ((lv_playerGettingTankHighlights == lv_player) && (libIGHS_gf_GetClassofHero(libIGHS_gv_shuffleSettings.lv_players[lv_player].lv_heroPickOptions[lv_pick]) == c_expandedRoleTank)) || ((lv_playerGettingAssassinHighlights == lv_player) && (libIGHS_gf_GetClassofHero(libIGHS_gv_shuffleSettings.lv_players[lv_player].lv_heroPickOptions[lv_pick]) == c_expandedRoleBruiser)) || ((lv_playerGettingAssassinHighlights == lv_player) && (libIGHS_gf_GetClassofHero(libIGHS_gv_shuffleSettings.lv_players[lv_player].lv_heroPickOptions[lv_pick]) == c_expandedRoleMeleeAssassin)) || ((lv_playerGettingAssassinHighlights == lv_player) && (libIGHS_gf_GetClassofHero(libIGHS_gv_shuffleSettings.lv_players[lv_player].lv_heroPickOptions[lv_pick]) == c_expandedRoleRangedAssassin)))) {
                 DialogControlSetVisible(libIGHS_gv_shuffleUI.lv_playerSuggestedHeroImage[lv_pick], PlayerGroupSingle(lv_player), true);
             }
             else {
@@ -1832,7 +1859,7 @@ bool libIGHS_gt_DEBUGInitUnlockedPick_Func (bool testConds, bool runActions) {
         return true;
     }
 
-    libIGHS_gf_InitializeShufflePickUnlocked(libIGHS_gv_shuffleSettings.lv_titleText, true, true, 30, 0.0, true);
+    libIGHS_gf_InitializeShufflePickUnlocked(libIGHS_gv_shuffleSettings.lv_titleText, true, true, 30, 5.0, true);
     libIGHS_gf_ReshuffleHeroPicksAndShowShuffleUI();
     return true;
 }
@@ -1864,7 +1891,7 @@ bool libIGHS_gt_DEBUGInitRoleLockedPick_Func (bool testConds, bool runActions) {
         return true;
     }
 
-    libIGHS_gf_InitializeShufflePickRoleLocked(libIGHS_gv_shuffleSettings.lv_titleText, true, false, 30, 0.0);
+    libIGHS_gf_InitializeShufflePickRoleLocked(libIGHS_gv_shuffleSettings.lv_titleText, true, false, 30, 5.0);
     libIGHS_gf_ReshuffleHeroPicksAndShowShuffleUI();
     return true;
 }
@@ -2046,7 +2073,7 @@ bool libIGHS_gt_DEBUGSetRoleOptionforPlayer_Func (bool testConds, bool runAction
     // Variable Initialization
     lv_chatString = EventChatMessage(false);
     lv_roleString = "";
-    lv_role = c_heroRoleWarrior;
+    lv_role = c_expandedRoleTank;
 
     // Conditions
     if (testConds) {
@@ -2078,17 +2105,23 @@ bool libIGHS_gt_DEBUGSetRoleOptionforPlayer_Func (bool testConds, bool runAction
     }
     lv_roleString = StringCase(lv_roleString, false);
     auto3C73D8C6_val = lv_roleString;
-    if (auto3C73D8C6_val == "warrior") {
-        lv_role = c_heroRoleWarrior;
+    if (auto3C73D8C6_val == "tank") {
+        lv_role = c_expandedRoleTank;
+    }
+    else if (auto3C73D8C6_val == "healer") {
+        lv_role = c_expandedRoleHealer;
     }
     else if (auto3C73D8C6_val == "support") {
-        lv_role = c_heroRoleSupport;
+        lv_role = c_expandedRoleSupport;
     }
-    else if (auto3C73D8C6_val == "specialist") {
-        lv_role = c_heroRoleSpecialist;
+    else if (auto3C73D8C6_val == "meleeassassin") {
+        lv_role = c_expandedRoleMeleeAssassin;
     }
-    else if (auto3C73D8C6_val == "assassin") {
-        lv_role = c_heroRoleDamage;
+    else if (auto3C73D8C6_val == "rangedassassin") {
+        lv_role = c_expandedRoleRangedAssassin;
+    }
+    else if (auto3C73D8C6_val == "bruiser") {
+        lv_role = c_expandedRoleBruiser;
     }
     else {
         TextExpressionSetToken("Param/Expression/lib_IGHS_1E7DBFDD", "A", StringToText(lv_roleString));
