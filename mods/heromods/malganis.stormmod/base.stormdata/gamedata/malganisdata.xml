@@ -675,6 +675,9 @@
     <On Terms="Behavior.MalGanisVampiricTouchVampiricAuraLeechBehavior.Off" Send="AnimBracketStop BSD" />
     <HostSiteOps Ops="SOpAttachOrigin SOp2DRotation SOpShadow" HoldRotation="1" />
   </CActorModel>
+  <CActorModel id="BlockBuff">
+    <On Terms="Behavior.MalGanisNecroticEmbraceWingedGuardArmorBehavior.On" Send="Create" />
+  </CActorModel>
   <CActorForceCylinder id="MalGanisFelClawsCylinderForce">
     <On Terms="Effect.MalGanisFelClawsOffsetPersistent.Start; At Caster" Send="Create" />
     <Host Subject="_Unit" />
@@ -1819,10 +1822,11 @@
   </CEffectEnumArea>
   <CEffectSet id="MalGanisFelClawsImpactSet">
     <ValidatorArray value="noMarkers" />
-    <EffectArray value="MalGanisFelClawsVanquishTheWeakApplySlowBehavior" />
     <EffectArray value="MalGanisFelClawsDamage" />
+    <EffectArray value="MalGanisFelClawsVanquishTheWeakApplySlowBehavior" />
     <EffectArray value="MalGanisFelClawsBlackClawsApplyBehavior" />
     <EffectArray value="MalganisFelClawsWillOfTichondriusAddDamageToken" />
+    <EffectArray value="ApplyAbilityImpactRevealMalGanis" />
   </CEffectSet>
   <CEffectSet id="MalGanisFelClawsThirdPrepareSet">
     <EffectArray value="MalGanisFelClawsThirdApplyCastTimerBehavior" />
@@ -1900,13 +1904,14 @@
     <SearchFlags index="DoActorSearch" value="1" />
   </CEffectEnumArea>
   <CEffectSet id="MalGanisFelClawsThirdImpactSet">
-    <EffectArray value="MalGanisFelClawsVanquishTheWeakApplySlowBehavior" />
     <EffectArray value="MalGanisFelClawsThirdDamage" />
+    <EffectArray value="MalGanisFelClawsVanquishTheWeakApplySlowBehavior" />
     <EffectArray value="MalGanisFelClawsThirdWillOfTichondriusDamage" />
     <EffectArray value="CameraShakeMediumTauntingTotemSet" />
     <EffectArray value="MalganisFelClawsBlindAsABatCooldownReduction" />
     <EffectArray value="MalganisFelClawsWillOfTichondriusStunSwitch" />
     <EffectArray value="MalGanisFelClawsBlackClawsApplyBehavior" />
+    <EffectArray value="ApplyAbilityImpactRevealMalGanis" />
     <ValidatorArray value="noMarkers" />
   </CEffectSet>
   <CEffectApplyBehavior id="MalGanisFelClawsApplyStunBehavior">
@@ -1957,6 +1962,7 @@
   <CEffectSet id="MalGanisFelClawsBlindAsABatInitialSet">
     <EffectArray value="MalGanisFelClawsBlindAsABatInitialModifyCooldown" />
     <EffectArray value="MalGanisFelClawsBlindAsABatOnModifyPlayer" />
+    <EffectArray value="MalGanisBlindAsABatRemoveRevealSearch" />
   </CEffectSet>
   <CEffectSet id="MalGanisFelClawsBlindAsABatFinalSet">
     <EffectArray value="MalGanisFelClawsBlindAsABatOffModifyPlayer" />
@@ -1973,6 +1979,7 @@
     <EffectArray Operation="Set" Reference="Effect,MalGanisCarrionSwarmSearch,RevealerParams.RevealFlags[Unfog]" Value="0" />
     <EffectArray Operation="Set" Reference="Effect,MalGanisNecroticEmbraceSearch,RevealerParams.RevealFlags[Unfog]" Value="0" />
     <EffectArray Operation="Set" Reference="Effect,MalGanisNecroticEmbraceEchoOfDoomSearch,RevealerParams.RevealFlags[Unfog]" Value="0" />
+    <EffectArray Operation="Set" Reference="Effect,MalGanisNecroticEmbracePlagueBatsSearch,RevealerParams.RevealFlags[Unfog]" Value="0" />
     <EffectArray Operation="Set" Reference="Abil,MalGanisFelClawsFirst,Cost.Cooldown.TimeUse" Value="1.000000" />
     <EffectArray Operation="Set" Reference="Abil,MalGanisFelClawsFirst,Cost.Vital[Energy]" Value="0" />
   </CEffectModifyPlayer>
@@ -1985,9 +1992,23 @@
     <EffectArray Operation="Set" Reference="Effect,MalGanisCarrionSwarmSearch,RevealerParams.RevealFlags[Unfog]" Value="1" />
     <EffectArray Operation="Set" Reference="Effect,MalGanisNecroticEmbraceSearch,RevealerParams.RevealFlags[Unfog]" Value="1" />
     <EffectArray Operation="Set" Reference="Effect,MalGanisNecroticEmbraceEchoOfDoomSearch,RevealerParams.RevealFlags[Unfog]" Value="1" />
+    <EffectArray Operation="Set" Reference="Effect,MalGanisNecroticEmbracePlagueBatsSearch,RevealerParams.RevealFlags[Unfog]" Value="1" />
     <EffectArray Operation="Set" Reference="Abil,MalGanisFelClawsFirst,Cost.Cooldown.TimeUse" Value="8.000000" />
     <EffectArray Operation="Set" Reference="Abil,MalGanisFelClawsFirst,Cost.Vital[Energy]" Value="45" />
   </CEffectModifyPlayer>
+  <CEffectEnumArea id="MalGanisBlindAsABatRemoveRevealSearch">
+    <ImpactLocation Value="SourceUnit" />
+    <SearchFilters value="-;Self,Player,Ally,Missile,Dead" />
+    <AreaArray Effect="MalGanisBlindAsABatRemoveAbilityReveal">
+      <Radius value="26" />
+    </AreaArray>
+    <SearchFlags index="ExtendByUnitRadius" value="1" />
+  </CEffectEnumArea>
+  <CEffectRemoveBehavior id="MalGanisBlindAsABatRemoveAbilityReveal">
+    <BehaviorLink value="AbilityImpactReveal" />
+    <Count value="1" />
+    <RequireCasterUnit Value="Caster" />
+  </CEffectRemoveBehavior>
   <CEffectModifyUnit id="MalGanisFelClawsBlindAsABatInitialModifyCooldown">
     <ImpactUnit Value="Caster" />
     <Cost Abil="MalGanisFelClawsFirst,Execute" CooldownOperation="Set" />
@@ -2029,6 +2050,7 @@
   <CEffectSet id="MalGanisNecroticEmbraceImpactSet">
     <EffectArray value="MalGanisNecroticEmbraceWingedGuardApplyBlockBehavior" />
     <EffectArray value="MalGanisNecroticEmbraceDamage" />
+    <EffectArray value="ApplyAbilityImpactRevealMalGanis" />
   </CEffectSet>
   <CEffectSet id="MalGanisNecroticEmbraceFinalSet">
     <EffectArray value="MalGanisNecroticEmbraceEchoOfDoomSearch" />
@@ -2072,6 +2094,7 @@
     <EffectArray value="MalGanisNecroticEmbraceEchoOfDoomDamage" />
     <EffectArray value="MalganisNecroticEmbraceEchoOfDoomCooldownReduction" />
     <EffectArray value="MalganisNecroticEmbraceEchoOfDoomManaReturn" />
+    <EffectArray value="ApplyAbilityImpactRevealMalGanis" />
   </CEffectSet>
   <CEffectDamage id="MalGanisNecroticEmbraceEchoOfDoomDamage" parent="StormSpellDot">
     <Amount value="68" />
@@ -2254,6 +2277,7 @@
   </CEffectSet>
   <CEffectSet id="MalGanisNecroticEmbracePlagueBatsImpactSet">
     <EffectArray value="MalGanisNecroticEmbracePlagueBatsDamage" />
+    <EffectArray value="ApplyAbilityImpactRevealMalGanis" />
     <ValidatorArray value="noMarkers" />
   </CEffectSet>
   <CEffectCreatePersistent id="MalGanisNecroticEmbracePlagueBatsInitialPersistent">
@@ -2493,10 +2517,15 @@
   </CEffectApplyBehavior>
   <CEffectSet id="MalGanisCarrionSwarmSeekerSwarmImpactSet">
     <EffectArray value="MalGanisCarrionSwarmSeekerSwarmDamage" />
-    <EffectArray value="ApplyAbilityImpactReveal" />
+    <EffectArray value="ApplyAbilityImpactRevealMalGanis" />
     <EffectArray value="MalGanisCarrionSwarmSeekerSwarmApplySleepBehavior" />
     <ValidatorArray value="TargetNotTimeStopped" />
   </CEffectSet>
+  <CEffectApplyBehavior id="ApplyAbilityImpactRevealMalGanis">
+    <Behavior value="AbilityImpactReveal" />
+    <ValidatorArray value="TargetNotUnrevealable" />
+    <ValidatorArray value="MalGanisDoesNotHaveBlindAsABatActive" />
+  </CEffectApplyBehavior>
   <CEffectDamage id="MalGanisCarrionSwarmSeekerSwarmDamage" parent="StormSpellDot">
     <Amount value="132" />
     <LeechFraction index="Life" value="0.75" />
@@ -2575,8 +2604,8 @@
   </CEffectApplyBehavior>
   <CEffectSet id="MalGanisWeaponAttackSet">
     <EffectArray value="UniversalWeaponLaunchSet" />
-    <EffectArray value="MalGanisWeaponVanquishTheWeakApplySet" />
     <EffectArray value="MalGanisWeaponDamage" />
+    <EffectArray value="MalGanisWeaponVanquishTheWeakApplySet" />
     <EffectArray value="MalGanisVampiricTouchFrenziedAssaultApplyBehavior" />
     <EffectArray value="MalGanisNightRushSpreadingPlagueModifyBehavior" />
     <EffectArray value="MalganisFelClawsBlackClawsArmorReductionApplyBehavior" />
@@ -2709,7 +2738,7 @@
     </TalentTreeArray>
     <TalentTreeArray Talent="MalGanisFelClawsVanquishTheWeak" Tier="7" Column="3" />
     <TalentTreeArray Talent="MalGanisNightRushAloneInTheDark" Tier="7" Column="4" />
-    <Difficulty value="Medium" />
+    <Difficulty value="Hard" />
     <Universe value="Warcraft" />
     <UniverseIcon value="Assets\Textures\ui_glues_store_gameicon_wow.dds" />
     <VariationArray value="MalGanisBaseVar1" />
@@ -3606,6 +3635,10 @@
   <CValidatorUnitCompareBehaviorCount id="MalGanisHasFelClawsBlindAsABatActive">
     <WhichUnit Value="Caster" />
     <Value value="1" />
+    <Behavior value="MalGanisFelClawsBlindAsABatBehavior" />
+  </CValidatorUnitCompareBehaviorCount>
+  <CValidatorUnitCompareBehaviorCount id="MalGanisDoesNotHaveBlindAsABatActive">
+    <WhichUnit Value="Caster" />
     <Behavior value="MalGanisFelClawsBlindAsABatBehavior" />
   </CValidatorUnitCompareBehaviorCount>
   <CValidatorUnitCompareVital id="MalGanisLifePercentGTTargetLifePercent" parent="CasterLifePercent">

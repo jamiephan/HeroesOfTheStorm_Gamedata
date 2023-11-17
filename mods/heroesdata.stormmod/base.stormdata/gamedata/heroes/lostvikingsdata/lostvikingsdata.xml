@@ -2089,6 +2089,11 @@
     <InfoIcon value="Assets\Textures\storm_ui_icon_lostvikings_selectolaf.dds" />
     <Duration value="1" />
   </CBehaviorBuff>
+  <CBehaviorUnitTracker id="LostVikingsVikingTracker">
+    <BehaviorFlags index="Permanent" value="1" />
+    <BehaviorFlags index="EnabledWhileDead" value="1" />
+    <MaxTrackedUnits value="3" />
+  </CBehaviorUnitTracker>
   <CBehaviorBuff id="LostVikingsGravestoneStun">
     <Modification PushPriority="5000" AlliedPushPriority="5000">
       <ModifyFlags index="SuppressMoving" value="1" />
@@ -2861,6 +2866,7 @@
     <HotkeyAlias value="LostVikingsSpyGamesTalent" />
   </CButton>
   <CButton id="LostVikingsVikingHoardTokenCounter" parent="StormButtonParent">
+    <SimpleDisplayText value="Button/Tooltip/LostVikingsVikingHoardHeroSelect" />
     <Icon value="Assets\Textures\storm_ui_icon_LostVikings_VikingHoard.dds" />
     <HotkeyAlias value="LostVikingsVikingHoardTalent" />
   </CButton>
@@ -3009,7 +3015,7 @@
     <Icon value="Assets\Textures\storm_ui_icon_lostvikings_selectbaleog.dds" />
   </CButton>
   <CButton id="LostVikingsNordicAttackSquad" parent="StormButtonParent">
-    <Icon value="Assets\Textures\storm_ui_icon_talent_autoattack_damage.dds" />
+    <Icon value="Assets\Textures\storm_ui_icon_talent_autoattack_searing.dds" />
   </CButton>
   <CCharacter id="Baleog">
     <Race value="Unknown" />
@@ -3027,6 +3033,16 @@
     <Voice value="NaturalSoft Peter" />
     <Variations Model="LostVikingsOlafPortrait" Actor="LostVikingsOlafPortrait" />
   </CCharacter>
+  <CEffectAddTrackedUnit id="LostVikingsAddVikingToTracker">
+    <ValidatorArray value="IsLostVikingsController" />
+    <BehaviorLink value="LostVikingsVikingTracker" />
+    <TrackerUnit Value="Target" />
+  </CEffectAddTrackedUnit>
+  <CEffectEnumTrackedUnits id="LostVikingsEnumControllerUnit">
+    <BehaviorLink value="AllHeroicUnitsTrackingBehavior" />
+    <Effect value="LostVikingsAddVikingToTracker" />
+    <TrackedUnitFilters value="-;Ally,Neutral,Enemy" />
+  </CEffectEnumTrackedUnits>
   <CEffectDamage id="LostVikingsBaleogBowWeaponBaleogTheSavageTalentDamage" parent="StormWeapon">
     <AttributeFactor index="Creep" value="0.4" />
     <AttributeFactor index="Minion" value="0.4" />
@@ -3335,6 +3351,7 @@
   <CEffectApplyBehavior id="LostVikingsItsASabotageApplyAmmoDestructionDebuff">
     <ValidatorArray index="0" value="IsStructureTarget" />
     <ValidatorArray value="LostVikingsHasItsASabotage" />
+    <ValidatorArray value="CasterNotBlindedAndTargetNotEvading" />
     <Behavior value="LostVikingsItsASabotageStructureDebuff" />
   </CEffectApplyBehavior>
   <CEffectCreatePersistent id="LostVikingsGoGoGo64KBMarathonPersistent">
@@ -3719,6 +3736,7 @@
     <Flags index="NoVitalLeechShields" value="1" />
     <Flags index="NoVitalLeechEnergy" value="1" />
     <Amount value="34" />
+    <CritValidatorArray index="0" removed="1" />
   </CEffectDamage>
   <CEffectEnumArea id="LostVikingsHunkaBurningOlafSearch">
     <ImpactLocation Value="SourceUnit" />
@@ -4093,11 +4111,11 @@
     <ValidatorArray value="CasterNotBlindedAndTargetNotEvading" />
     <ImpactLocation Value="TargetUnit" />
     <ExcludeArray Effect="BaleogBowWeaponImpactSet" Value="Target" />
-    <SearchFilters value="-;Player,Ally,Neutral,ImmuneToAOE,Missile,Item,Stasis,Dead,Hidden,Invulnerable" />
+    <SearchFilters value="-;Self,Player,Ally,Neutral,ImmuneToAOE,Missile,Item,Stasis,Dead,Hidden,Invulnerable" />
     <AreaArray Arc="64.995" FacingAdjustment="0.9997" Effect="BaleogBowWeaponSplashDamage">
       <Radius value="5" />
     </AreaArray>
-    <RevealerParams Duration="0.5">
+    <RevealerParams Duration="0.75" ShapeExpansion="1">
       <RevealFlags index="Unfog" value="1" />
     </RevealerParams>
   </CEffectEnumArea>
@@ -4127,10 +4145,13 @@
     <ValidatorArray value="CasterNotBlindedAndTargetNotEvading" />
     <ImpactLocation Value="TargetUnit" />
     <ExcludeArray Effect="BaleogSwordWeaponImpactSet" Value="Target" />
-    <SearchFilters value="-;Player,Ally,Neutral,ImmuneToAOE,Missile,Item,Stasis,Dead,Hidden,Invulnerable" />
+    <SearchFilters value="-;Self,Player,Ally,Neutral,ImmuneToAOE,Missile,Item,Stasis,Dead,Hidden,Invulnerable" />
     <AreaArray Arc="64.995" FacingAdjustment="0.9997" Effect="BaleogSwordWeaponSplashDamage">
       <Radius value="5" />
     </AreaArray>
+    <RevealerParams Duration="0.75" ShapeExpansion="1">
+      <RevealFlags index="Unfog" value="1" />
+    </RevealerParams>
   </CEffectEnumArea>
   <CEffectDamage id="BaleogSwordWeaponSplashDamage" parent="StormWeapon">
     <MultiplicativeModifierArray index="ExplosiveAttacks" Validator="TargetNotHeroANDLostVikingsHasExplosiveAttacks" Modifier="1" Crit="1" />
@@ -4443,8 +4464,8 @@
     <RevealFlags index="Unfog" value="1" />
   </CEffectCreatePersistent>
   <CEffectSet id="LostVikingsHunkaBurningOlafImpactSet">
-    <EffectArray value="LostVikingsHunkaBurningOlafPersistentRevealer" />
     <EffectArray value="LostVikingsHunkaBurningOlafDamage" />
+    <EffectArray value="ApplyAbilityImpactReveal" />
     <ValidatorArray value="NoJungleBenignTarget" />
   </CEffectSet>
   <CEffectSet id="OlafWeaponImpactWithValiantSet">
@@ -4512,6 +4533,7 @@
   <CEffectDamage id="LostVikingsNordicAttackSquadDamage" parent="StormSpellPercentDamage">
     <ValidatorArray value="TargetNotStasisOrInvulnerable" />
     <VitalFractionMax index="Life" value="0.0124" />
+    <SourceButtonFace value="LostVikingsNordicAttackSquad" />
   </CEffectDamage>
   <CEffectApplyBehavior id="FuryoftheStormBlindOrEvadeApplyCooldownLostVikings">
     <WhichUnit Value="Caster" />
@@ -5872,6 +5894,8 @@
     <BehaviorArray Link="LostVikingsControllerUnitSpecialBehavior" />
     <BehaviorArray Link="LostVikingsControllerDamageReductionBehavior" />
     <BehaviorArray Link="HeroGenericMapMechanicPickupDisallowed" />
+    <BehaviorArray Link="LostVikingsVikingHoardTokenCounter" />
+    <BehaviorArray Link="LostVikingsVikingTracker" />
     <Radius value="0" />
     <SeparationRadius value="0" />
     <InnerRadius value="0.75" />
@@ -5979,6 +6003,7 @@
     <HeroPlaystyleFlags index="Escaper" value="1" />
     <HeroPlaystyleFlags index="Helper" value="1" />
     <HeroPlaystyleFlags index="RoleAutoAttacker" value="1" />
+    <EffectArray index="Birth" value="LostVikingsEnumControllerUnit" />
   </CUnit>
   <CUnit id="HeroBaleog" parent="StormHeroMountedCustom">
     <LifeStart value="1130" />
@@ -6068,6 +6093,7 @@
     <HeroPlaystyleFlags index="Helper" value="1" />
     <HeroPlaystyleFlags index="RoleAutoAttacker" value="1" />
     <HeroPlaystyleFlags index="WaveClearer" value="1" />
+    <EffectArray index="Birth" value="LostVikingsEnumControllerUnit" />
   </CUnit>
   <CUnit id="HeroOlaf" parent="StormHeroMountedCustom">
     <LifeStart value="1482" />
@@ -6154,6 +6180,7 @@
     <HeroPlaystyleFlags index="Helper" value="1" />
     <HeroPlaystyleFlags index="Overconfident" value="1" />
     <HeroPlaystyleFlags index="RoleTank" value="1" />
+    <EffectArray index="Birth" value="LostVikingsEnumControllerUnit" />
   </CUnit>
   <CUnit id="LostVikingsGravestone">
     <FlagArray index="Untargetable" value="1" />

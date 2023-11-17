@@ -442,6 +442,12 @@
     <Model value="JainaMissile" />
     <DeathArray index="Normal" ModelLink="JainaMissile" />
   </CActorMissile>
+  <CActorMissile id="JainaFrostboltRefactorMissile" parent="StormMissileWithDeathEarly" unitName="JainaFrostboltRefactorMissile" />
+  <CActorAction id="JainaFrostboltRefactorAction" parent="RangedHeroAttackPoint" effectLaunch="JainaFrostboltRefactorLaunchMissile">
+    <Missile value="JainaFrostboltRefactorMissile" />
+    <ImpactPointSiteOps Ops="SOpTargetPointStationary SOpShadow JainaFrostboltVolleyOffset" />
+    <LaunchSiteOps Ops="SOpForwardTargetUnit SOpOffsetLaunch" />
+  </CActorAction>
   <CActorAction id="HeroJainaAttack" parent="RangedHeroAttackMissile" effectImpact="JainaHeroWeaponImpactSet" effectLaunch="JainaWeaponLaunchMissile">
     <LaunchAssets Sound="Jaina_Attack_Launch" />
     <ImpactMap index="None" Model="JainaAttackImpact" Sound="Jaina_Attack_Impact" />
@@ -552,7 +558,7 @@
     <Model value="JainaFrostboltLaunch" />
   </CActorModel>
   <CActorSound id="JainaFrostboltLaunchSound" parent="SoundOneShot">
-    <On Terms="Effect.JainaFrostboltLaunchMissileSwitch.Start" Send="Create" />
+    <On Terms="Effect.JainaFrostboltRefactorLaunchMissile.Start" Send="Create" />
     <Host Subject="_Missile" />
     <Sound value="Jaina_Frostbolt_Volley_Launch" />
     <Layers Sound="Jaina_Frostbolt_Volley_Activate" />
@@ -577,6 +583,9 @@
     <LocalOffset Z="1.500000" />
   </CActorSiteOpLocalOffset>
   <CActorAction id="JainaFrostboltImpactAction" parent="RangedHeroAttack" effectAttack="JainaFrostboltImpactSet">
+    <ImpactMap index="None" Model="JainaFrostboltImpact" Sound="Jaina_Frostbolt_Volley_Impact" />
+  </CActorAction>
+  <CActorAction id="JainaFrostboltRefactorImpactAction" parent="RangedHeroAttack" effectAttack="JainaFrostboltRefactorImpactSet">
     <ImpactMap index="None" Model="JainaFrostboltImpact" Sound="Jaina_Frostbolt_Volley_Impact" />
   </CActorAction>
   <CActorRange id="JainaBlizzardRange" parent="StormRangeAbilPlusSplat" abil="JainaBlizzard" />
@@ -879,6 +888,9 @@
     <TerminateEvents Effect="JainaFrostbiteIceBlockResetCooldown" />
     <InfoFlags index="Hidden" value="1" />
   </CBehaviorTokenCounter>
+  <CBehaviorTokenCounter id="JainaFrostboltPierceCounter" parent="StormGenericToken">
+    <Max value="2" />
+  </CBehaviorTokenCounter>
   <CBehaviorBuff id="JainaArcaneIntellectFXController">
     <BehaviorFlags index="Permanent" value="1" />
   </CBehaviorBuff>
@@ -1055,7 +1067,7 @@
     <HotkeyAlias value="JainaFrostbolt" />
   </CButton>
   <CButton id="JainaIcefuryWand" parent="StormButtonParent">
-    <Icon value="Assets\Textures\storm_ui_icon_talent_autoattack_damage.dds" />
+    <Icon value="Assets\Textures\storm_ui_icon_talent_autoattack_cooldown.dds" />
     <HotkeyAlias value="JainaFrostbolt" />
   </CButton>
   <CButton id="JainaFrostbiteToken" parent="StormButtonParent">
@@ -1076,7 +1088,7 @@
   </CButton>
   <CButton id="JainaImprovedIceBlockHotbar" parent="StormButtonParent">
     <TooltipCooldownOverrideText value="Improved Ice Block Cooldown" />
-    <Icon value="Assets\Textures\storm_ui_icon_jaina_improvediceblock_new_active.dds" />
+    <Icon value="Assets\Textures\storm_ui_icon_talent_iceblock.dds" />
     <HotkeyAlias value="GenericRewindHotbar" />
     <TooltipAppender Validator="JainaHasLT15000FrostbiteTokens" Text="Button/TooltipAppender/GenericLockedUntilQuestComplete" />
   </CButton>
@@ -1444,9 +1456,8 @@
     <EffectArray value="JainaFrostboltIceLanceRestoreMana" />
   </CEffectSet>
   <CEffectSet id="JainaFrostboltInitialSet">
-    <EffectArray value="JainaFrostboltCreatePersistent" />
+    <EffectArray value="JainaFrostboltRefactorLaunchMissile" />
     <EffectArray value="JainaModifyAttack" />
-    <EffectArray value="JainaFrostBoltFrostShardsResetTokens" />
     <TargetLocationType value="Point" />
   </CEffectSet>
   <CEffectCreatePersistent id="JainaFrostboltMissileScanPersistentExpander">
@@ -1667,6 +1678,60 @@
     <Amount value="92" />
     <DamageModifierSource Value="Creator" />
   </CEffectDamage>
+  <CEffectLaunchMissile id="JainaFrostboltRefactorLaunchMissile">
+    <Marker>
+      <MatchFlags index="Id" value="1" />
+    </Marker>
+    <LaunchOffset Y="-1.5" />
+    <ImpactLocation>
+      <Value value="TargetPoint" />
+      <ProjectionMultiplier value="1" />
+      <ProjectionSourceValue value="OriginPoint" />
+      <ProjectionTargetValue value="TargetPoint" />
+      <UsesLineDash value="1" />
+      <LineDashType value="AllowedInUnpathable" />
+      <ProjectionDistanceScale value="10.5" />
+    </ImpactLocation>
+    <LaunchEffect value="JainaFrostboltLaunchMissileSet" />
+    <SharedFlags index="DynamicSearchArea" value="1" />
+    <Movers Link="JainaFrostboltRefactorMissile" />
+    <AmmoUnit value="JainaFrostboltRefactorMissile" />
+    <SearchEffect value="JainaFrostboltRefactorSearch" />
+  </CEffectLaunchMissile>
+  <CEffectSet id="JainaFrostboltLaunchMissileSet">
+    <EffectArray value="JainaFrostboltApplyPierceCounter" />
+  </CEffectSet>
+  <CEffectApplyBehavior id="JainaFrostboltApplyPierceCounter">
+    <WhichUnit Value="Source" />
+    <Behavior value="JainaFrostboltPierceCounter" />
+  </CEffectApplyBehavior>
+  <CEffectEnumArea id="JainaFrostboltRefactorSearch">
+    <AreaArray MaxCount="1" Effect="JainaFrostboltRefactorImpactSet">
+      <RectangleWidth value="1" />
+      <RectangleHeight value="1.6" />
+    </AreaArray>
+    <SearchFilters value="-;Player,Ally,Neutral,ImmuneToSkillshots,Missile,Item,Stasis,Dead,Hidden,Invulnerable" />
+    <RevealerParams Duration="0.5" ShapeExpansion="1">
+      <RevealFlags index="Unfog" value="1" />
+    </RevealerParams>
+    <SearchFlags index="DoActorSearch" value="1" />
+  </CEffectEnumArea>
+  <CEffectSet id="JainaFrostboltRefactorImpactSet">
+    <EffectArray value="ApplyAbilityImpactReveal" />
+    <EffectArray value="JainaFrostboltDamageSwitch" />
+    <EffectArray value="JainaFrostbiteApplyChilledBehaviorSet" />
+    <EffectArray value="JainaFrostboltSuicideRefactor" />
+    <EffectArray value="JainaFrostboltReducePierceCounter" />
+    <ValidatorArray value="noMarkers" />
+  </CEffectSet>
+  <CEffectDamage id="JainaFrostboltSuicideRefactor" parent="StormSuicideParent">
+    <ValidatorArray value="JainaFrostBoltHasNoPierceLeft" />
+  </CEffectDamage>
+  <CEffectModifyTokenCount id="JainaFrostboltReducePierceCounter">
+    <TokenId value="JainaFrostboltPierceCounter" />
+    <Value value="-1" />
+    <WhichUnit Value="Source" />
+  </CEffectModifyTokenCount>
   <CEffectSwitch id="JainaFrostboltLaunchMissileSwitch">
     <CaseArray Validator="JainaHasFostboltWintersReach" Effect="JainaFrostboltLaunchWintersReachMissile" />
     <CaseDefault value="JainaFrostboltLaunchMissile" />
@@ -2598,6 +2663,7 @@
     <AllowedMountCategoryArray value="Ridebeast" />
     <AllowedMountCategoryArray value="Ridebike" />
     <AllowedMountCategoryArray value="Ridesurf" />
+    <Difficulty value="Medium" />
     <Ratings>
       <Damage value="10" />
       <Utility value="4" />
@@ -2791,6 +2857,28 @@
       <Acceleration value="2200" />
       <Speed value="40" />
       <MaxSpeed value="40" />
+      <ThrowBandYaw value="-360,-360,-360,-360" />
+      <ThrowBandPitch value="-360,-360,-360,-360" />
+      <YawPitchRoll value="5759.6484" />
+    </MotionPhases>
+  </CMoverMissile>
+  <CMoverMissile id="JainaFrostboltRefactorMissile">
+    <MotionPhases>
+      <Driver value="Guidance" />
+      <Speed value="15" />
+      <MaxSpeed value="15" />
+      <IgnoresClearanceChecks value="1" />
+      <ThrowBandYaw value="-360,-360,-360,-360" />
+      <ThrowBandPitch value="-360,-360,-360,-360" />
+      <YawPitchRoll value="5759.6484" />
+    </MotionPhases>
+  </CMoverMissile>
+  <CMoverMissile id="JainaFrostboltRefactorWintersReachMissile">
+    <MotionPhases>
+      <Driver value="Guidance" />
+      <Speed value="19.5" />
+      <MaxSpeed value="19.5" />
+      <IgnoresClearanceChecks value="1" />
       <ThrowBandYaw value="-360,-360,-360,-360" />
       <ThrowBandPitch value="-360,-360,-360,-360" />
       <YawPitchRoll value="5759.6484" />
@@ -3157,6 +3245,13 @@
         <Field value="Chance" />
         <Value value="-1.000000" />
       </Modifications>
+      <Modifications>
+        <Type value="FlatModification" />
+        <Catalog value="Behavior" />
+        <Entry value="JainaFrostboltPierceCounter" />
+        <Field value="Init" />
+        <Value value="2.000000" />
+      </Modifications>
     </AbilityModificationArray>
     <RankArray>
       <BehaviorArray value="JainaFrostBoltFrostShardsTokenCounter" />
@@ -3200,6 +3295,19 @@
         <Entry value="JainaFrostboltMissileScan" />
         <Field value="AreaArray[0].RectangleHeight" />
         <Value value="0.400000" />
+      </Modifications>
+      <Modifications>
+        <Type value="CatalogReplacement" />
+        <Catalog value="Mover" />
+        <Entry value="JainaFrostboltRefactorMissile" />
+        <StringReplacement value="JainaFrostboltRefactorWintersReachMissile" />
+      </Modifications>
+      <Modifications>
+        <Type value="FlatModification" />
+        <Catalog value="Effect" />
+        <Entry value="JainaFrostboltRefactorLaunchMissile" />
+        <Field value="ImpactLocation.ProjectionDistanceScale" />
+        <Value value="3.150000" />
       </Modifications>
     </AbilityModificationArray>
   </CTalent>
@@ -3350,6 +3458,7 @@
   </CUnit>
   <CUnit id="JainaFrostboltMissile" parent="MISSILE_INVULNERABLE" />
   <CUnit id="JainaFrostboltWintersReachMissile" parent="MISSILE_INVULNERABLE" />
+  <CUnit id="JainaFrostboltRefactorMissile" parent="MISSILE_INVULNERABLE" />
   <CUnit id="JainaAttackMissile" parent="MISSILE_INVULNERABLE">
     <Mover value="JainaAttackMissileMover" />
   </CUnit>
@@ -3396,6 +3505,9 @@
     <Value value="2" />
     <TokenId value="JainaFrostBoltFrostShardsTokenCounter" />
     <WhichUnit Value="Caster" />
+  </CValidatorUnitCompareTokenCount>
+  <CValidatorUnitCompareTokenCount id="JainaFrostBoltHasNoPierceLeft">
+    <TokenId value="JainaFrostboltPierceCounter" />
   </CValidatorUnitCompareTokenCount>
   <CValidatorCombine id="JainaTargetIsChilledAndCasterHasIcefuryWand">
     <Type value="And" />

@@ -1586,6 +1586,7 @@
     <Duration value="5" />
     <BehaviorFlags index="Permanent" value="1" />
     <BehaviorFlags index="EnabledWhileDead" value="1" />
+    <RemoveValidatorArray value="TargetNotUnstoppable" />
   </CBehaviorBuff>
   <CBehaviorBuff id="KelThuzadDeathchillSlow" parent="StormSlowParent">
     <Duration value="3" />
@@ -1755,9 +1756,6 @@
     <ConditionalEvents Compare="GE" CompareValue="15">
       <Event Effect="KelThuzadMasterOfTheColdDarkTier1ModifyPlayer" />
     </ConditionalEvents>
-    <ConditionalEvents Compare="GE" CompareValue="15">
-      <Event EventId="QuestMilestone" Effect="KelThuzadMasterOfTheColdDarkLevelUpApply" />
-    </ConditionalEvents>
     <InfoFlags index="Hidden" value="1" />
   </CBehaviorTokenCounter>
   <CBehaviorBuff id="KelThuzadMasterOfTheColdDarkSpellPower" parent="CarryBehaviorParent">
@@ -1810,7 +1808,7 @@
       </ArmorSet>
     </ArmorModification>
   </CBehaviorBuff>
-  <CBehaviorBuff id="KelThuzadPowerOfIcecrown">
+  <CBehaviorBuff id="KelThuzadPowerOfIcecrown" parent="StormDamageIncrease">
     <Alignment value="Positive" />
     <InfoFlags index="Hidden" value="0" />
     <InfoIcon value="Assets\Textures\storm_ui_icon_kel'thuzad_poweroficecrown.dds" />
@@ -2067,6 +2065,13 @@
     <ImpactUnit Value="Caster" />
     <Cost Abil="KelThuzadFrostNova,Execute" CooldownOperation="Add" CooldownTimeUse="-0.75" />
   </CEffectModifyUnit>
+  <CEffectModifyUnit id="KelThuzadIcyGraspModifyCooldownBasicAttack">
+    <ValidatorArray value="TargetIsHero" />
+    <ValidatorArray value="CasterNotBlindedAndTargetNotEvading" />
+    <ValidatorArray value="KelThuzadHasFrostNovaSlowandIcyGraspTalent" />
+    <ImpactUnit Value="Caster" />
+    <Cost Abil="KelThuzadFrostNova,Execute" CooldownOperation="Add" CooldownTimeUse="-0.75" />
+  </CEffectModifyUnit>
   <CEffectSet id="KelThuzadChainsEnemySearchImpactTargetABInitialSet">
     <EffectArray value="KelThuzadChainsTargetRevealerApply" />
   </CEffectSet>
@@ -2163,8 +2168,8 @@
   <CEffectSet id="KelThuzadWeaponImpactSet">
     <EffectArray value="UniversalWeaponImpact" />
     <EffectArray value="KelThuzadWeaponDamage" />
-    <EffectArray value="KelThuzadHungeringColdImpactSet" />
-    <EffectArray value="KelThuzadIcyGraspModifyCooldown" />
+    <EffectArray value="KelThuzadHungeringColdImpactSetBasicAttack" />
+    <EffectArray value="KelThuzadIcyGraspModifyCooldownBasicAttack" />
   </CEffectSet>
   <CEffectDamage id="KelThuzadWeaponDamage" parent="StormWeapon">
     <Amount value="72" />
@@ -2177,7 +2182,6 @@
     <EffectArray value="KelThuzadFrostNovaRootPersistent" />
     <EffectArray value="KelThuzadModifyWeaponCooldown" />
     <TargetLocationType value="Point" />
-    <ValidatorArray value="TargetLocationIsPathable" />
   </CEffectSet>
   <CEffectCreatePersistent id="KelThuzadFrostNovaSlowPersistent">
     <ExpireEffect value="KelThuzadFrostNovaSlowSearchSet" />
@@ -2894,6 +2898,12 @@
     <EffectArray value="KelThuzadHungeringColdDamage" />
     <ValidatorArray value="TargetIsRooted" />
   </CEffectSet>
+  <CEffectSet id="KelThuzadHungeringColdImpactSetBasicAttack">
+    <ValidatorArray value="TargetIsRooted" />
+    <ValidatorArray value="CasterNotBlindedAndTargetNotEvading" />
+    <Chance value="0" />
+    <EffectArray value="KelThuzadHungeringColdDamage" />
+  </CEffectSet>
   <CEffectDamage id="KelThuzadHungeringColdDamage" parent="StormSpell">
     <Amount value="55" />
     <SourceButtonFace value="KelThuzadHungeringCold" />
@@ -3008,16 +3018,25 @@
   </CEffectRemoveBehavior>
   <CEffectLaunchMissile id="KelThuzadChillingTouchLaunchMissile">
     <ValidatorArray index="0" value="TargetNotDead" />
-    <ImpactEffect value="KelThuzadChillingTouchMissSwitch" />
+    <ImpactEffect value="KelThuzadChillingTouchMissileImpactSet" />
     <SharedFlags index="TravelValidation" value="1" />
     <SharedFlags index="ValidateWeapon" value="0" />
     <AmmoUnit value="KelThuzadChillingTouchMissile" />
   </CEffectLaunchMissile>
+  <CEffectSet id="KelThuzadChillingTouchMissileImpactSet">
+    <EffectArray value="KelThuzadChillingTouchMissSwitch" />
+    <EffectArray value="KelThuzadChillingTouchSpiderMinesImpactSet" />
+  </CEffectSet>
+  <CEffectSet id="KelThuzadChillingTouchSpiderMinesImpactSet">
+    <ValidatorArray value="SgtHammerSpiderMinesTargetIsSpiderMine" />
+    <ValidatorArray value="CasterNotBlindedAndTargetNotEvading" />
+    <EffectArray value="KelThuzadChillingTouchImpactSet" />
+  </CEffectSet>
   <CEffectSwitch id="KelThuzadChillingTouchMissSwitch" parent="AbilDmgMissCheck">
     <CaseDefault value="KelThuzadChillingTouchSearch" />
   </CEffectSwitch>
   <CEffectEnumArea id="KelThuzadChillingTouchSearch">
-    <SearchFilters value="-;Player,Ally,Neutral,ImmuneToAOE,Missile,Item,Stasis,Dead,Hidden,Invulnerable" />
+    <SearchFilters value="-;Self,Player,Ally,Neutral,ImmuneToAOE,Missile,Item,Stasis,Dead,Hidden,Invulnerable" />
     <AreaArray Effect="KelThuzadChillingTouchImpactSet">
       <Radius value="3" />
     </AreaArray>
@@ -3030,9 +3049,9 @@
     <EffectArray value="KelThuzadChillingTouchDamage" />
     <EffectArray value="KelThuzadChillingTouchApplySlow" />
     <EffectArray value="KelThuzadPowerOfIcecrownApply" />
-    <EffectArray value="KelThuzadHungeringColdImpactSet" />
+    <EffectArray value="KelThuzadHungeringColdImpactSetBasicAttack" />
     <EffectArray value="CameraShakeLightTauntingTotemSet" />
-    <EffectArray value="KelThuzadIcyGraspModifyCooldown" />
+    <EffectArray value="KelThuzadIcyGraspModifyCooldownBasicAttack" />
   </CEffectSet>
   <CEffectDamage id="KelThuzadChillingTouchDamage" parent="StormSpell">
     <Amount value="72" />
@@ -3372,7 +3391,7 @@
       <Flags index="Trait" value="1" />
     </HeroAbilArray>
     <VariationIcon value="Assets\Textures\ui_glues_swatch_purple.dds" />
-    <Difficulty value="Hard" />
+    <Difficulty value="VeryHard" />
     <Universe value="Warcraft" />
     <UniverseIcon value="Assets\Textures\UI_Glues_Store_GameIcon_Wow.dds" />
     <ProductId value="27730" />
@@ -4488,6 +4507,13 @@
         <Type value="FlatModification" />
         <Catalog value="Effect" />
         <Entry value="KelThuzadHungeringColdImpactSet" />
+        <Field value="Chance" />
+        <Value value="1.000000" />
+      </Modifications>
+      <Modifications>
+        <Type value="FlatModification" />
+        <Catalog value="Effect" />
+        <Entry value="KelThuzadHungeringColdImpactSetBasicAttack" />
         <Field value="Chance" />
         <Value value="1.000000" />
       </Modifications>

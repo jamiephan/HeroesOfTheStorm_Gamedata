@@ -192,7 +192,7 @@
   </CAbilEffectTarget>
   <CAbilEffectInstant id="RexxarMendPet">
     <PrepEffect value="DismountDecloakCasterSet" />
-    <Effect value="RexxarMendPetMishaSearch" />
+    <Effect value="RexxarMendPetFindMisha" />
     <Cost>
       <Vital index="Energy" value="70" />
       <Cooldown TimeUse="10" />
@@ -1198,6 +1198,13 @@
   <CBehaviorAbility id="RexxarFlare">
     <Buttons Face="RexxarFlare" Type="AbilCmd" AbilCmd="RexxarFlare,Execute" />
   </CBehaviorAbility>
+  <CBehaviorUnitTracker id="RexxarMishaTracker">
+    <BehaviorFlags index="Permanent" value="1" />
+    <BehaviorFlags index="EnabledWhileDead" value="1" />
+    <MaxTrackedUnits value="1" />
+    <UnitAddedAtMaxRule value="ReplaceOldest" />
+    <TrackingValidatorArray value="TargetNotDead" />
+  </CBehaviorUnitTracker>
   <CBehaviorBuff id="RexxarMishaPassiveMoveSpeed" parent="CarryBehaviorParent">
     <Modification>
       <UnifiedMoveSpeedFactor value="0.15" />
@@ -1323,7 +1330,7 @@
     <BehaviorCategories index="BuffAutoattackDPS" value="1" />
     <Duration value="4" />
     <Modification>
-      <UnifiedAttackSpeedFactor value="1.25" />
+      <AdditiveAttackSpeedFactor value="1.25" />
     </Modification>
     <SortIndex value="50" />
   </CBehaviorBuff>
@@ -2534,6 +2541,11 @@
     <ImpactLocation Value="CasterPoint" />
     <ExcludeArray />
   </CEffectEnumArea>
+  <CEffectEnumTrackedUnits id="RexxarMendPetFindMisha">
+    <BehaviorLink value="RexxarMishaTracker" />
+    <Effect value="RexxarMendPetCreatePersistent" />
+    <TrackedUnitFilters value="Heroic;Ally,Neutral,Enemy" />
+  </CEffectEnumTrackedUnits>
   <CEffectCreatePersistent id="RexxarMendPetCreatePersistent">
     <WhichLocation Value="TargetUnit" />
     <InitialDelay value="0.125" />
@@ -2634,8 +2646,13 @@
     <EffectArray value="RexxarKindredSpiritsApplyControllerBehavior" />
     <EffectArray value="MishaRemovePregameBehaviors" />
     <EffectArray value="RexxarMishaDeadRemoveSpiritBondCooldown" />
+    <EffectArray value="RexxxarMishaAddMishaToTracker" />
     <OrphanFromEffectChain value="1" />
   </CEffectSet>
+  <CEffectAddTrackedUnit id="RexxxarMishaAddMishaToTracker">
+    <BehaviorLink value="RexxarMishaTracker" />
+    <TrackedUnit Value="Target" />
+  </CEffectAddTrackedUnit>
   <CEffectSet id="RexxarMishaApplyTalentsSet">
     <EffectArray value="RexxarMishaEasyPreyAB" />
   </CEffectSet>
@@ -2962,9 +2979,13 @@
   </CEffectApplyBehavior>
   <CEffectDamage id="RexxarUnleashTheBoarsDamage" parent="StormSpell">
     <Amount value="110" />
+    <MultiplicativeModifierArray index="KillCommand" Validator="RexxarCasterHasUnleashTheBoarsKillCommand" Modifier="0.5" />
+    <DamageModifierSource Value="Creator" />
   </CEffectDamage>
   <CEffectDamage id="RexxarUnleashTheBoarsKillCommandDamage" parent="StormSpell">
-    <Amount value="164" />
+    <Amount value="110" />
+    <MultiplicativeModifierArray index="KillCommand" Validator="RexxarCasterHasUnleashTheBoarsKillCommand" Modifier="0.5" />
+    <DamageModifierSource Value="Creator" />
     <Chance value="0" />
   </CEffectDamage>
   <CEffectSet id="RexxarBestialWrathCastSet">
@@ -3019,7 +3040,7 @@
     <SearchFlags index="ExtendByUnitRadius" value="1" />
   </CEffectEnumArea>
   <CEffectSet id="RexxarSpiritBondWildfireBearImpactSet">
-    <EffectArray value="RexxarSpiritBondWildfireBearPersistentRevealer" />
+    <EffectArray value="ApplyAbilityImpactReveal" />
     <EffectArray value="RexxarSpiritBondWildfireBearDamage" />
     <ValidatorArray value="NoJungleBenignTarget" />
   </CEffectSet>
@@ -3038,6 +3059,7 @@
     <Flags index="NoVitalLeechEnergy" value="1" />
     <Amount value="28" />
     <Death value="Fire" />
+    <CritValidatorArray index="0" removed="1" />
   </CEffectDamage>
   <CEffectEnumArea id="RexxarUnleashTheBoarsForceSearch">
     <LaunchLocation Effect="RexxarUnleashTheBoarsLaunchDelayPersistent" Value="OriginPoint" />
@@ -3321,7 +3343,7 @@
         <AffectedByOverdrive value="1" />
       </Modifications>
     </LevelScalingArray>
-    <Difficulty value="Hard" />
+    <Difficulty value="VeryHard" />
     <SkinArray value="RexxarSkinMaster" />
     <SkinArray value="RexxarSkinFrost" />
     <SkinArray value="RexxarMarine" />
@@ -3897,6 +3919,7 @@
     <BehaviorArray Link="MishaFidgetInteractionController" />
     <BehaviorArray Link="ExcellentMana" />
     <BehaviorArray Link="ThreeQuarterValueHero" />
+    <BehaviorArray Link="RexxarMishaTracker" />
     <WeaponArray Link="RexxarMeleeWeapon" />
     <WeaponArray Link="RexxarRangedWeapon" />
     <CardLayouts index="0">
@@ -4401,6 +4424,11 @@
   </CValidatorPlayerTalent>
   <CValidatorPlayerTalent id="RexxarHasUnleashTheBoarsKillCommand">
     <WhichPlayer Value="Target" />
+    <Find value="1" />
+    <Value value="RexxarUnleashTheBoarsKillCommand" />
+  </CValidatorPlayerTalent>
+  <CValidatorPlayerTalent id="RexxarCasterHasUnleashTheBoarsKillCommand">
+    <WhichPlayer Value="Caster" />
     <Find value="1" />
     <Value value="RexxarUnleashTheBoarsKillCommand" />
   </CValidatorPlayerTalent>

@@ -217,7 +217,7 @@
     <HostBeam Subject="ZaryaWeaponAttackBeam" Scope="Caster" Actor="Find" />
   </CActorSiteOpBeamMonitor>
   <CActorSound id="PersonalBarrierDefensiveShieldingLaunchSound" parent="SoundOneShot">
-    <On Terms="Effect.ZaryaDefensiveShieldingApplyBehavior.Start; ValidateEffect TargetDoesNotHaveBlock" Send="Create" />
+    <On Terms="Effect.ZaryaDefensiveShieldingApplyBehavior.Start" Send="Create" />
     <Sound value="Zarya_PersonalBarrier_DefensiveShielding_Launch" />
   </CActorSound>
   <CActorSound id="ZaryaShieldImpactSound" parent="SoundOneShot">
@@ -920,6 +920,9 @@
   <CActorModel id="ZaryaExpulsionZoneLaunchAction" parent="GenericAttackModel" />
   <CActorModel id="ZaryaGravitonSurgeLaunchAction" parent="GenericAttackModel" />
   <CActorModel id="ZaryaParticleGrenadeLaunchAction" parent="GenericAttackModel" />
+  <CActorModel id="BlockBuff">
+    <On Terms="Behavior.ZaryaDefensiveShieldingBlock.On" Send="Create" />
+  </CActorModel>
   <CActorSound id="ZaryaExpulsionZoneKnockbackImpactSound" parent="SoundOneShot">
     <On Terms="Effect.ZaryaExpulsionZoneKnockbackInitialSet.Start; At Target" Send="Create" />
     <Sound value="Zarya_ExpulsionZone_DamageImpact" />
@@ -990,6 +993,9 @@
   </CBehaviorBuff>
   <CBehaviorBuff id="ZaryaShieldAllyTogetherWeAreStrongTalentBuff">
     <Duration value="3" />
+  </CBehaviorBuff>
+  <CBehaviorBuff id="ZaryaDefensiveShieldingBlock" parent="TalentBucketBlock">
+    <DamageResponse Handled="ZaryaDefensiveShieldingRemoveSet" />
   </CBehaviorBuff>
   <CBehaviorAbility id="ZaryaUnyieldingDefenderItem">
     <Buttons Face="ZaryaUnyieldingDefenderTalent" Type="AbilCmd" AbilCmd="ZaryaUnyieldingDefender,Execute" />
@@ -1170,6 +1176,7 @@
   </CBehaviorBuff>
   <CBehaviorBuff id="ZaryaWeaponSplashDamageCooldown">
     <Duration value="0.25" />
+    <TimeScaleSource Value="Global" />
   </CBehaviorBuff>
   <CBehaviorBuff id="ZaryaWeaponFeelTheHeatBuff">
     <BehaviorFlags index="Permanent" value="1" />
@@ -1342,7 +1349,7 @@
     <Icon value="Assets\Textures\storm_ui_icon_Zarya_Energy.dds" />
   </CButton>
   <CButton id="ZaryaWeaponFeelTheHeatTalent" parent="StormButtonParent">
-    <Icon value="Assets\Textures\storm_ui_icon_talent_autoattack_base.dds" />
+    <Icon value="Assets\Textures\storm_ui_icon_talent_autoattack_damage.dds" />
   </CButton>
   <CButton id="ZaryaWeaponToTheLimitTalent" parent="StormButtonParent">
     <Icon value="Assets\Textures\storm_ui_icon_talent_autoattack_base.dds" />
@@ -1769,7 +1776,7 @@
   </CEffectSwitch>
   <CEffectEnumArea id="ZaryaWeaponSplashTargetSearch">
     <ImpactLocation Value="SourcePoint" />
-    <SearchFilters value="-;Player,Ally,Neutral,ImmuneToAOE,Missile,Stasis,Dead,Hidden,Invulnerable" />
+    <SearchFilters value="-;Self,Player,Ally,Neutral,ImmuneToAOE,Missile,Item,Stasis,Dead,Hidden,Invulnerable" />
     <SearchFlags index="DoActorSearch" value="1" />
     <AreaArray Effect="ZaryaWeaponSplashDamageSet">
       <Radius value="0.5" />
@@ -1777,6 +1784,9 @@
       <RectangleHeight value="6.25" />
     </AreaArray>
     <AreaRelativeOffset Y="4.35" />
+    <RevealerParams Duration="0.75" ShapeExpansion="1">
+      <RevealFlags index="Unfog" value="1" />
+    </RevealerParams>
     <LaunchLocation Value="TargetUnit" />
   </CEffectEnumArea>
   <CEffectEnumArea id="ZaryaWeaponToTheLimitSearch" parent="ZaryaWeaponSplashTargetSearch">
@@ -1800,7 +1810,6 @@
     <EffectArray value="UniversalWeaponImpact" />
     <EffectArray value="ZaryaWeaponDamageSwitch" />
     <EffectArray value="ZaryaWeaponTargetApplyBehavior" />
-    <EffectArray value="ApplyAbilityImpactReveal" />
     <EffectArray value="ZaryaParticleGrenadeDeepBurnTalentModifyUnit" />
     <EffectArray value="UniversalWeaponLaunchSet" />
   </CEffectSet>
@@ -1988,10 +1997,17 @@
   <CEffectEnumArea id="ZaryaPersonalBarrierExplosiveBarrierSearch">
     <ImpactLocation Value="TargetPoint" />
     <SearchFilters value="-;Player,Ally,Neutral,ImmuneToAOE,Missile,Stasis,Dead,Hidden,Invulnerable" />
-    <AreaArray Effect="ZaryaPersonalBarrierExplosiveBarrierDamage">
+    <AreaArray Effect="ZaryaPersonalBarrierExplosiveBarrierImpactSet">
       <Radius value="3.25" />
     </AreaArray>
+    <RevealerParams Duration="1" ShapeExpansion="0.75">
+      <RevealFlags index="Unfog" value="1" />
+    </RevealerParams>
   </CEffectEnumArea>
+  <CEffectSet id="ZaryaPersonalBarrierExplosiveBarrierImpactSet">
+    <EffectArray value="ApplyAbilityImpactReveal" />
+    <EffectArray value="ZaryaPersonalBarrierExplosiveBarrierDamage" />
+  </CEffectSet>
   <CEffectDamage id="ZaryaPersonalBarrierExplosiveBarrierDamage" parent="StormSpell">
     <Amount value="110">
       <AccumulatorArray value="ZaryaEnergyAccumulator" />
@@ -2000,7 +2016,6 @@
   <CEffectSet id="ZaryaWeaponSplashDamageSet">
     <ValidatorArray value="ZaryaWeaponSplashDamageNotOnCooldown" />
     <EffectArray value="ZaryaWeaponSplashDamageSwitch" />
-    <EffectArray value="ApplyAbilityImpactReveal" />
     <EffectArray value="ZaryaParticleGrenadeSplashDamageDeepBurnTalentModifyUnit" />
     <EffectArray value="ZaryaWeaponSplashDamageCooldownApplyBehavior" />
   </CEffectSet>
@@ -2037,11 +2052,21 @@
   </CEffectSet>
   <CEffectApplyBehavior id="ZaryaDefensiveShieldingApplyBehavior">
     <Chance value="0" />
-    <Behavior value="TalentBucketBlock" />
+    <Behavior value="ZaryaDefensiveShieldingBlock" />
     <Count value="2" />
     <Flags index="UseDuration" value="1" />
     <Duration value="6" />
   </CEffectApplyBehavior>
+  <CEffectSet id="ZaryaDefensiveShieldingRemoveSet">
+    <EffectArray value="BlockDummyDamage" />
+    <EffectArray value="BlockDummyDamageTarget" />
+    <EffectArray value="ZaryaDefensiveShieldingRemoveArmor" />
+  </CEffectSet>
+  <CEffectRemoveBehavior id="ZaryaDefensiveShieldingRemoveArmor">
+    <WhichUnit Value="Source" />
+    <BehaviorLink value="ZaryaDefensiveShieldingBlock" />
+    <Count value="1" />
+  </CEffectRemoveBehavior>
   <CEffectSet id="ZaryaPersonalBarrierExpirationSet">
     <EffectArray value="ZaryaPersonalBarrierSpellBarrierApplyBehavior" />
     <EffectArray value="ZaryaPersonalBarrierExplosiveBarrierSet" />
@@ -2124,6 +2149,7 @@
     <EffectArray value="ZaryaExpulsionZoneKnockbackApplyBehavior" />
     <EffectArray value="ZaryaExpulsionZoneKnockbackCreatePersistent" />
     <EffectArray value="CameraShakeLightTauntingTotemSet" />
+    <EffectArray value="ApplyAbilityImpactReveal" />
     <EffectArray value="ZaryaExpulsionZoneClearOutSwitch" />
   </CEffectSet>
   <CEffectApplyForce id="ZaryaExpulsionZoneApplyForce">
@@ -2416,6 +2442,7 @@
     <AllowedMountCategoryArray value="Ridebeast" />
     <AllowedMountCategoryArray value="Ridebike" />
     <AllowedMountCategoryArray value="Ridesurf" />
+    <Difficulty value="Medium" />
     <Ratings>
       <Damage value="5" />
       <Utility value="7" />

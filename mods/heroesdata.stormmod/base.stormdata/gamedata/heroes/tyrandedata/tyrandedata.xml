@@ -672,6 +672,7 @@
     <PeriodCount value="10" />
     <PeriodicEffect value="TyrandeShadowstalkCreateHealer" />
     <PeriodicDisplayEffect value="TyrandeShadowstalkCreateHealer" />
+    <RemoveValidatorArray value="TargetNotSpecialDeathState" />
   </CBehaviorBuff>
   <CBehaviorUnitTracker id="TyrandeLightOfEluneEverlastingLightUnitTracker">
     <BehaviorFlags index="Permanent" value="1" />
@@ -866,6 +867,7 @@
   </CBehaviorBuff>
   <CBehaviorBuff id="TyrandeShadowstalkCloakDelay">
     <Duration value="0.0625" />
+    <ExpireEffect value="TyrandeShadowstalkCloakRemoveReveals" />
     <FinalEffect value="TyrandeShadowstalkApplyCloakSet" />
   </CBehaviorBuff>
   <CBehaviorBuff id="TyrandeLightofEluneQuickeningBlessingMoveSpeedBuff" parent="StormSprint">
@@ -957,11 +959,11 @@
     <Icon value="Assets\Textures\storm_ui_icon_tyrande_shadowstalk.dds" />
   </CButton>
   <CButton id="TyrandeShootingStarTalentToken" parent="StormButtonParent">
-    <Icon value="Assets\Textures\storm_ui_icon_talent_autoattack_speed.dds" />
+    <Icon value="Assets\Textures\storm_ui_icon_talent_autoattack_range.dds" />
     <HotkeyAlias value="TyrandeSentinelPierceToken" />
   </CButton>
   <CButton id="TyrandeShootingStar" parent="StormButtonParent">
-    <Icon value="Assets\Textures\storm_ui_icon_talent_autoattack_speed.dds" />
+    <Icon value="Assets\Textures\storm_ui_icon_talent_autoattack_range.dds" />
   </CButton>
   <CButton id="TyrandeDarnassianArchery" parent="StormButtonParent">
     <Icon value="Assets\Textures\storm_ui_icon_talent_autoattack_damage.dds" />
@@ -1053,6 +1055,7 @@
     <Unit value="HeroTyrande" />
   </CCharacter>
   <CEffectSwitch id="TyrandeBasicAttackSelfHealSwitch">
+    <ValidatorArray value="CasterNotBlindedAndTargetNotEvading" />
     <CaseArray Validator="TyrandeTargetHasHuntersMark" Effect="TyrandeHuntersMarkMarkedHeal" />
     <CaseDefault value="TyrandeHuntersMarkNormalHeal" />
   </CEffectSwitch>
@@ -1066,6 +1069,7 @@
     <Behavior value="TyrandeSentinelShotFirstHeroHitDummyBehavior" />
   </CEffectApplyBehavior>
   <CEffectDamage id="TyrandeSentinelShotEmpowerDamage" parent="StormSpellPercentDamage">
+    <Visibility value="Hidden" />
     <Chance value="0" />
     <VitalFractionMax index="Life" value="0.06" />
   </CEffectDamage>
@@ -1132,6 +1136,10 @@
   <CEffectDamage id="TyrandeHuntressFuryDamage" parent="StormWeapon">
     <Amount value="55" />
   </CEffectDamage>
+  <CEffectSet id="TyrandeShadowstalkCloakRemoveReveals">
+    <EffectArray value="HeroGenericRemoveGenericCloakRevealerTarget" />
+    <EffectArray value="AbilityImpactRevealRemove" />
+  </CEffectSet>
   <CEffectSet id="TyrandeShadowstalkApplyCloakSet">
     <EffectArray value="TyrandeShadowstalkApplyCloakBehavior" />
     <EffectArray value="ApplySuppressBasicAttackDecloak" />
@@ -1207,7 +1215,7 @@
   </CEffectRemoveBehavior>
   <CEffectEnumArea id="TyrandeHeroWeaponHuntressFuryTalentSearch">
     <ExcludeArray Effect="TyrandeHeroWeaponHuntressFuryTalentImpactSet" Value="Target" />
-    <SearchFilters value="Heroic,Visible;Player,Ally,ImmuneToFriendlyAbilities,User1,Missile,Item,Stasis,Dead,Hidden,Invulnerable" />
+    <SearchFilters value="Heroic,Visible;Self,Player,Ally,Neutral,Missile,Item,Stasis,Dead,Hidden,Invulnerable,Benign" />
     <AreaArray Effect="TyrandeHeroWeaponHuntressFuryTalentSearchImpactSet">
       <Radius value="7" />
     </AreaArray>
@@ -1287,6 +1295,7 @@
     <Cost Abil="TyrandeLightofElune,Execute" ChargeTimeUse="-1.5" CooldownOperation="Add" />
   </CEffectModifyUnit>
   <CEffectModifyUnit id="TyrandeSentinelSetCooldown">
+    <ValidatorArray value="SourceNotHallucination" />
     <ImpactUnit Value="Caster" />
     <Cost Abil="TyrandeSentinelShot,Execute" ChargeTimeUse="-1.5" CooldownOperation="Set" />
   </CEffectModifyUnit>
@@ -1423,18 +1432,15 @@
     <ValidatorArray index="0" value="TyrandeHasHuntressFuryTalent" />
     <Behavior value="TyrandeHuntersMarkHuntressFury" />
   </CEffectApplyBehavior>
-  <CEffectCreateHealer id="TyrandeHuntersMarkNormalHeal" parent="StormHealingSpellPercent">
-    <ValidatorArray value="CasterNotBlindedAndTargetNotEvading" />
+  <CEffectCreateHealer id="TyrandeHuntersMarkNormalHeal" parent="StormSelfOnlyHealingSpellPercent">
     <ImpactUnit Value="Caster" />
     <RechargeVitalFraction value="0.01" />
   </CEffectCreateHealer>
-  <CEffectCreateHealer id="TyrandeHuntersMarkMarkedHeal" parent="StormHealingSpellPercent">
-    <ValidatorArray value="CasterNotBlindedAndTargetNotEvading" />
+  <CEffectCreateHealer id="TyrandeHuntersMarkMarkedHeal" parent="StormSelfOnlyHealingSpellPercent">
     <ImpactUnit Value="Caster" />
     <RechargeVitalFraction value="0.02" />
   </CEffectCreateHealer>
   <CEffectCreateHealer id="TyrandeHuntersMarkMarkOfMendingMarkedHeal" parent="StormHealingSpellPercent">
-    <ValidatorArray value="CasterNotBlindedAndTargetNotEvading" />
     <RechargeVitalFraction value="0.04" />
   </CEffectCreateHealer>
   <CEffectApplyBehavior id="HuntersMarkApplyBehavior">
@@ -1696,6 +1702,7 @@
   <CEffectEnumArea id="TyrandeHuntersMarkMarkOfMendingMarkedSearch">
     <ValidatorArray value="CasterNotStasis" />
     <ValidatorArray value="TyrandeTargetHasHuntersMark" />
+    <ValidatorArray value="CasterNotBlindedAndTargetNotEvading" />
     <Chance value="0" />
     <ImpactLocation Value="TargetPoint" />
     <SearchFilters value="Heroic;Player,Neutral,Enemy,NoMinionAggro,Structure,ImmuneToFriendlyAbilities,Worker,Missile,Item,Stasis,Dead,Hidden,Summoned" />
@@ -1859,7 +1866,7 @@
     <TalentTreeArray Talent="TyrandeShootingStar" Tier="7" Column="3" />
     <TalentTreeArray Talent="TyrandeIcebladeArrows" Tier="7" Column="4" />
     <VariationIcon value="Assets\Textures\UI_Glues_Swatch_Blue_Green.dds" />
-    <Difficulty value="Medium" />
+    <Difficulty value="Hard" />
     <HeroTierAchievementId value="5216701565559126469" />
     <Gender value="Female" />
     <Universe value="Warcraft" />

@@ -17271,6 +17271,10 @@ bool libGDHL_gt_HeroMuradinHaymakerGrandSlamTalentProc_Func (bool testConds, boo
 
     // Conditions
     if (testConds) {
+        if (!((PlayerHasTalent(lv_killingPlayer, "MuradinMasteryHaymakerGrandSlam") == true))) {
+            return false;
+        }
+
         if (!((UnitHasBehavior2(lv_killedUnit, "MuradinHaymakerGrandSlamTalentDeathMarker") == true))) {
             return false;
         }
@@ -19835,6 +19839,10 @@ bool libGDHL_gt_HeroRexxarMishaSpawn_Func (bool testConds, bool runActions) {
             UnitBehaviorAdd(lv_misha, "RexxarAnimalHusbandryTokenCounter", lv_misha, 1);
             CatalogFieldValueSetInt(c_gameCatalogEffect, "RexxarAnimalHusbandryDynamicModifyTokenCounter", "Value", lv_rexxarPlayer, (UnitBehaviorCount(lv_rexxar, "RexxarAnimalHusbandryTokenCounter") / 2));
             UnitCreateEffectUnit(lv_rexxar, "RexxarAnimalHusbandryDynamicModifyTokenCounter", lv_misha);
+        }
+
+        if ((PlayerHasTalent(lv_rexxarPlayer, "RexxarSpiritBondPrimalIntimidation") == true)) {
+            UnitBehaviorAdd(lv_misha, "TalentImposingPresenceCarry", lv_misha, 1);
         }
 
         if ((PlayerHasTalent(lv_rexxarPlayer, "RexxarDireBeast") == true)) {
@@ -23089,7 +23097,10 @@ bool libGDHL_gt_HeroSylvanasPossessionRewire_Func (bool testConds, bool runActio
             libNtve_gf_CreateUnitsWithDefaultFacing(1, "RegenGlobe", c_unitCreateIgnorePlacement, lv_regenGlobeOwner, UnitGetPosition(lv_bribedUnit), null);
         }
         else {
-            UnitCreateEffectUnit(lv_bribedUnit, "ExperienceGlobeDummyImpactSetLastHit", lv_greedUnit);
+            if ((UnitHasBehavior2(lv_bribedUnit, "IsCatapultMinionOrCatapultReplacement") == false)) {
+                UnitCreateEffectUnit(lv_bribedUnit, "ExperienceGlobeDummyImpactSetLastHit", lv_greedUnit);
+            }
+
         }
     }
     libGame_gf_SendEventHeroMindControlsNPC(lv_bribedUnit, UnitGetOwner(lv_bribedUnit));
@@ -24238,7 +24249,7 @@ bool libGDHL_gt_HeroTyrandeElunesChosenDamageProc_Func (bool testConds, bool run
 
     // Automatic Variable Declarations
     // Variable Initialization
-    lv_damageDealt = EventUnitDamageAttempted();
+    lv_damageDealt = (EventUnitDamageAmount()+EventUnitDamageBehaviorShield());
     lv_damageScale = 1.75;
     lv_tyrande = EventUnitDamageSourceUnit();
     lv_tyrandePlayer = UnitGetOwner(lv_tyrande);
@@ -25575,6 +25586,7 @@ bool libGDHL_gt_HeroZagaraBanelingBarrage_Func (bool testConds, bool runActions)
 
     libNtve_gf_UnitCreateFacingPoint(1, "ZagaraBaneling", c_unitCreateIgnorePlacement, lv_triggeringPlayer, libNtve_gf_PointOffsetTowardsPoint(UnitGetPosition(lv_zagara), 0.75, lv_targetPoint), lv_targetPoint, lv_zagara);
     lv_baneling = UnitLastCreated();
+    UnitBehaviorAdd(lv_baneling, "ZagaraBanelingExplode", lv_zagara, 1);
     SoundPlayOnUnit(SoundLink("Zagara_BanelingEgg_Explode", -1), PlayerGroupAll(), lv_baneling, 0.0, 100.0, 0.0);
     lv_forwardPoint = libNtve_gf_PointOffsetTowardsPoint(UnitGetPosition(lv_baneling), lv_movementIncrement, lv_targetPoint);
     UnitIssueOrder(lv_baneling, OrderTargetingPoint(AbilityCommand("move", 0), lv_forwardPoint), c_orderQueueReplace);

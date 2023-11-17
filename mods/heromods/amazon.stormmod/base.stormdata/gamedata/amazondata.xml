@@ -499,6 +499,9 @@
   <CActorAction id="AmazonLightningFuryLightningImpact" parent="RangedHeroAttack" effectAttack="AmazonLightningFuryLightningDamage">
     <ImpactMap index="None" Model="AmazonLightningFuryImpact" Sound="Amazon_LightningFury_Impact" />
   </CActorAction>
+  <CActorAction id="AmazonStaticElectricityLightningImpact" parent="RangedHeroAttack" effectAttack="AmazonLightningFuryStaticElectricityLightningDamage">
+    <ImpactMap index="None" Model="AmazonLightningFuryImpact" Sound="Amazon_LightningFury_Impact" />
+  </CActorAction>
   <CActorMissile id="AmazonLightningFuryLightningMissile" parent="StormMissileWithDeathEarly" unitName="AmazonLightningFuryLightningMissile">
     <On Terms="ActorCreation" Send="Create AmazonLightningFuryLightningTravelSound" />
     <On Terms="ActorDestruction" Target="AmazonLightningFuryLightningTravelSound" Send="Destroy" />
@@ -1171,7 +1174,7 @@
     <Icon value="Assets\Textures\storm_ui_icon_cassia_avoidance_b.dds" />
   </CButton>
   <CButton id="AmazonBallLightningInfiniteLightning" parent="StormButtonParent">
-    <Icon value="Assets\Textures\storm_ui_icon_cassia_balllightning_a.dds" />
+    <Icon value="Assets\Textures\storm_ui_icon_cassia_balllightning.dds" />
   </CButton>
   <CButton id="AmazonBlindingLight" parent="StormButtonParent">
     <Icon value="Assets\Textures\storm_ui_icon_cassia_blindinglight.dds" />
@@ -1238,14 +1241,14 @@
     <Icon value="Assets\Textures\storm_ui_icon_cassia_avoidance_b.dds" />
   </CButton>
   <CButton id="AmazonMartialLaw" parent="StormButtonParent">
-    <Icon value="Assets\Textures\storm_ui_icon_talent_autoattack_damage.dds" />
+    <Icon value="Assets\Textures\storm_ui_icon_talent_autoattack_searing.dds" />
   </CButton>
   <CButton id="AmazonValkyrie" parent="StormButtonParent">
     <Icon value="Assets\Textures\storm_ui_icon_cassia_valkrie.dds" />
     <TooltipAppender Validator="AmazonValkyrieImprisoningLightHasTalent" Face="AmazonValkyrieImprisoningLight" />
   </CButton>
   <CButton id="AmazonValkyrieImprisoningLight" parent="StormButtonParent">
-    <Icon value="Assets\Textures\storm_ui_icon_cassia_valkrie_a.dds" />
+    <Icon value="Assets\Textures\storm_ui_icon_cassia_valkrie.dds" />
   </CButton>
   <CEffectDamage default="1" id="AmazonSpellDamageParent" parent="StormSpell">
     <MultiplicativeModifierArray index="TargetBlinded" Validator="TargetIsBlinded" Modifier="0.15" Crit="1" />
@@ -1437,22 +1440,42 @@
     </AreaArray>
     <AreaRelativeOffset Y="-1" />
   </CEffectEnumArea>
-  <CEffectSwitch id="AmazonLightningFuryLightningDamageSwitch">
-    <CaseArray Validator="AmazonHasStaticElectricityAndIsChannelingFend" Effect="AmazonLightningFuryStaticElectricityLightningDamage" />
-    <CaseDefault value="AmazonLightningFuryLightningDamage" />
-  </CEffectSwitch>
   <CEffectLaunchMissile id="AmazonFendStaticElectricityTalentLaunchMissile">
     <ImpactLocation Value="TargetPoint" />
     <SharedFlags index="DynamicSearchArea" value="1" />
     <SharedFlags index="DisableArriveOnLaunch" value="1" />
     <AmmoUnit value="AmazonLightningFuryLightningMissile" />
     <Movers Link="AmazonLightningFuryLightningMissileMover" />
-    <SearchEffect value="AmazonLightningFuryLightningMissileSearch" />
+    <SearchEffect value="AmazonStaticElectricityLightningFuryMissileSearch" />
   </CEffectLaunchMissile>
+  <CEffectEnumArea id="AmazonStaticElectricityLightningFuryMissileSearch">
+    <AreaArray Effect="AmazonStaticElectricityLightningImpactSet">
+      <RectangleWidth value="0.6" />
+      <RectangleHeight value="1" />
+    </AreaArray>
+    <RevealerParams Duration="0.75" ShapeExpansion="1.5">
+      <RevealFlags index="Unfog" value="1" />
+    </RevealerParams>
+    <SearchFilters value="-;Player,Ally,Neutral,Missile,Stasis,Dead,Hidden,Invulnerable" />
+    <LaunchLocation Value="TargetPoint" />
+    <ImpactLocation Value="SourcePoint" />
+  </CEffectEnumArea>
+  <CEffectSet id="AmazonStaticElectricityLightningImpactSet">
+    <ValidatorArray value="noMarkers" />
+    <EffectArray value="ApplyAbilityImpactReveal" />
+    <EffectArray value="AmazonLightningFuryStaticElectricityLightningDamage" />
+    <EffectArray value="AmazonLightningFuryThunderstrokeIncrementToken" />
+    <EffectArray value="AmazonPowerStrikeApplyDurationBehavior" />
+    <EffectArray value="AmazonPowerStrikeBlindingLightCastSet" />
+    <EffectArray value="AmazonLightningFuryInnerLightModifyCooldown" />
+    <EffectArray value="AmazonFendGroundingRodApplySlowBehavior" />
+    <EffectArray value="AmazonPowerStrikeModifyCooldown" />
+  </CEffectSet>
   <CEffectSet id="AmazonMartialLawDamageSet">
     <ValidatorArray value="TargetNotInvulnerable" />
     <ValidatorArray value="AmazonMartialLawHasTalent" />
     <ValidatorArray value="TargetIsHero" />
+    <ValidatorArray value="CasterNotBlindedAndTargetNotEvading" />
     <EffectArray value="AmazonMartialLawDamageSwitch" />
   </CEffectSet>
   <CEffectSet id="AmazonFendKeepAvoidanceActiveSet">
@@ -1528,6 +1551,7 @@
   </CEffectDamage>
   <CEffectSet id="AmazonAvoidanceSurgeOfLightImpactSet">
     <EffectArray value="AmazonAvoidanceSurgeOfLightDamage" />
+    <EffectArray value="ApplyAbilityImpactReveal" />
   </CEffectSet>
   <CEffectRemoveBehavior id="AmazonAvoidanceSurgeOfLightRemoveReadyBehavior">
     <WhichUnit Value="Caster" />
@@ -1539,6 +1563,9 @@
     <AreaArray Effect="AmazonAvoidanceSurgeOfLightImpactSet">
       <Radius value="5.5" />
     </AreaArray>
+    <RevealerParams Duration="0.75" ShapeExpansion="1">
+      <RevealFlags index="Unfog" value="1" />
+    </RevealerParams>
   </CEffectEnumArea>
   <CEffectApplyBehavior id="AmazonAvoidanceWarTravelerApplyBehavior">
     <ValidatorArray index="0" value="AmazonAvoidanceWarTravelerHasTalent" />
@@ -1687,6 +1714,7 @@
     <EffectArray value="AmazonFendChannelDamage" />
     <EffectArray value="AmazonFendChannelApplySoundDummyBehavior" />
     <EffectArray value="AmazonFendGroundingRodApplySlowBehavior" />
+    <EffectArray value="ApplyAbilityImpactReveal" />
   </CEffectSet>
   <CEffectSet id="AmazonFendChannelInitialSet">
     <EffectArray value="AmazonFendChannelApplyCancelSlopBehavior" />
@@ -1805,7 +1833,7 @@
   <CEffectModifyUnit id="AmazonHeroWeaponChargedStrikesImpactDummy" />
   <CEffectEnumArea id="AmazonHeroWeaponChargedStrikesSearchArea">
     <ExcludeArray Value="Target" />
-    <SearchFilters value="Heroic,Visible;Self,Player,Ally,Neutral,Stasis,Dead,Hidden,Invulnerable" />
+    <SearchFilters value="Heroic,Visible;Self,Player,Ally,Neutral,Missile,Item,Stasis,Dead,Hidden,Invulnerable,Benign" />
     <AreaArray Effect="AmazonHeroWeaponChargedStrikesImpactSet">
       <Radius value="3.5" />
     </AreaArray>
@@ -1864,10 +1892,9 @@
   <CEffectDamage id="AmazonLightningFuryStaticElectricityLightningDamage" parent="AmazonSpellDamageParent">
     <Amount value="158" />
     <LeechValidator index="Life" value="AmazonRingoftheLeechHasTalentAndTargetIsBlinded" />
-    <LeechFraction index="Life" value="0.15" />
+    <LeechFraction index="Life" value="0.2" />
     <SourceButtonFace value="AmazonLightningFury" />
     <FlatModifierArray index="Thunderstroke" Validator="AmazonLightningFuryThunderstrokeHasTalent" Accumulator="AmazonLightningFuryThunderstrokeDamageAccumulator" Modifier="15" />
-    <MultiplicativeModifierArray index="TargetBlinded" Validator="TargetIsBlinded" Modifier="0.15" Crit="0" />
   </CEffectDamage>
   <CEffectDamage id="AmazonLightningFuryMissileSuicide" parent="StormSuicideParent" />
   <CEffectDamage id="AmazonLightningFuryMissileDummySuicide" parent="StormSuicideParent">
@@ -2041,7 +2068,7 @@
   <CEffectSet id="AmazonLightningFuryLightningImpactSet">
     <ValidatorArray value="noMarkers" />
     <EffectArray value="ApplyAbilityImpactReveal" />
-    <EffectArray value="AmazonLightningFuryLightningDamageSwitch" />
+    <EffectArray value="AmazonLightningFuryLightningDamage" />
     <EffectArray value="AmazonLightningFuryThunderstrokeIncrementToken" />
     <EffectArray value="AmazonPowerStrikeApplyDurationBehavior" />
     <EffectArray value="AmazonPowerStrikeBlindingLightCastSet" />

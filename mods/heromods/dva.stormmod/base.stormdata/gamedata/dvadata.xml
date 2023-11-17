@@ -865,6 +865,7 @@
   <CActorSquib id="DVaMechAttackImpactSoundSquib">
     <On Terms="Effect.DVaMechWeaponImpactSet.Start; At Target" Send="Create" />
     <On Terms="Effect.DVaMechWeaponBonusImpactSet.Start; At Target" Send="Create" />
+    <On Terms="Effect.DVaMechWeaponSgtHammerSpiderMineImpactSet.Start; At Target" Send="Create" />
     <Host Subject="_Unit" />
     <Map index="None" Model="" Sound="DVaMech_AttackImpact_Unit" />
     <Map index="Rock" Sound="DVaMech_AttackImpact_Stone" />
@@ -1451,6 +1452,8 @@
     <On Terms="TimerExpired; TimerName PeriodicTimer" Send="Destroy" />
     <On Terms="Effect.DVaMechWeaponBonusImpactSet.Start; At Target" Send="Create" />
     <On Terms="Effect.DVaMechWeaponBonusImpactSet.Start" Send="TimerSet 0.250000 PeriodicTimer" />
+    <On Terms="Effect.DVaMechWeaponSgtHammerSpiderMineImpactSet.Start; At Target" Send="Create" />
+    <On Terms="Effect.DVaMechWeaponSgtHammerSpiderMineImpactSet.Start" Send="TimerSet 0.250000 PeriodicTimer" />
     <HostSiteOps Ops="SOpAttachCenter" />
     <Model value="DVaMechWeaponImpact" />
   </CActorModel>
@@ -1624,7 +1627,7 @@
       <VitalRegenMultiplier index="Life" value="-0.35" />
     </Modification>
     <RemoveValidatorArray value="DVaMechDefenseMatrixHasDebuff" />
-    <FloaterHealingPreventedDisplayType value="DisplayNothing" />
+    <FloaterHealingPreventedDisplayType value="DisplayAtCasterAggregate" />
   </CBehaviorBuff>
   <CBehaviorBuff id="DVaDefenseMatrixDivertingPowerTalentHealingBuff">
     <MaxStackCount value="100" />
@@ -1900,6 +1903,15 @@
       <VitalRegenMultiplier index="Life" value="-1" />
       <BehaviorCategoriesDisable index="TemporaryCloak" value="1" />
     </Modification>
+    <DamageResponse>
+      <Chance value="1" />
+      <Priority value="12" />
+      <Fatal value="1" />
+      <RecordBehaviorShieldDamage value="1" />
+      <RestoreLifeAfterFatal value="1" />
+      <ModifyFraction value="0" />
+      <ModifyMinimumDamage value="1" />
+    </DamageResponse>
     <BehaviorCategories index="SpecialDeathState" value="1" />
   </CBehaviorBuff>
   <CBehaviorBuff id="DVaPilotEscapingSpeedController">
@@ -2637,6 +2649,7 @@
     <CaseDefault value="DVaBunnyHopApplicationSet" />
   </CEffectSwitch>
   <CEffectApplyBehavior id="DVaDefenseMatrixAggressionMatrixTalentApplyHealingReductionDebuff">
+    <ValidatorArray value="DVaTargetDoesNotHaveAggressionMatrixHealingReductionBuff" />
     <Chance value="0" />
     <Behavior value="DVaDefenseMatrixAggressionMatrixTalentHealingReductionDebuff" />
   </CEffectApplyBehavior>
@@ -2709,7 +2722,7 @@
     <Behavior value="HearthstonePermanentDisableAbilityBuff" />
   </CEffectTransferBehavior>
   <CEffectEnumArea id="DVaMechWeaponBonusTargetSearch">
-    <SearchFilters value="-;Player,Ally,Neutral,Missile,Item,Dead,Hidden,Invulnerable" />
+    <SearchFilters value="-;Self,Player,Ally,Neutral,ImmuneToAOE,Missile,Item,Stasis,Dead,Hidden,Invulnerable" />
     <AreaArray Effect="DVaMechWeaponBonusImpactSet">
       <RectangleWidth value="2" />
       <RectangleHeight value="3" />
@@ -2717,7 +2730,6 @@
   </CEffectEnumArea>
   <CEffectSet id="DVaMechWeaponBonusImpactSet">
     <ValidatorArray value="noMarkers" />
-    <ValidatorArray value="DVaIsTargetNotImmuneToAoEOrIsSpiderMine" />
     <EffectArray value="DVaMechWeaponBonusDamage" />
     <EffectArray value="DVaMechDefenseMatrixAggressionMatrixCooldownReduction" />
     <EffectArray value="DVaSelfDestructNuclearOptionTalentModifyTokenCounter" />
@@ -2938,6 +2950,7 @@
   <CEffectModifyTokenCount id="DVaSelfDestructNuclearOptionTalentModifyTokenCounter">
     <ValidatorArray value="TargetIsHero" />
     <ValidatorArray value="DVaSelfDestructNuclearOptionHasTalent" />
+    <ValidatorArray value="CasterNotBlindedAndTargetNotEvading" />
     <TokenId value="DVaMechWeaponChargeEnabler" />
     <Value value="1" />
   </CEffectModifyTokenCount>
@@ -3336,6 +3349,9 @@
   </CEffectRemoveBehavior>
   <CEffectSet id="DVaMechPilotUnloadSetHeroGenericEffects">
     <EffectArray value="DecloakTargetSet" />
+    <EffectArray value="ApplyGenericDecloakTarget" />
+    <EffectArray value="DecloakTemporaryCloakTarget" />
+    <EffectArray value="HeroGenericUnrevealableImpactDummy" />
     <EffectArray value="HeroGenericRemoveInCargo" />
     <EffectArray value="HeroGenericUnloadTransportRedirectBehaviorsDummy" />
   </CEffectSet>
@@ -3626,11 +3642,15 @@
     <AreaArray Effect="DVaMechSelfDestructDetonationSearchImpactSet">
       <Radius value="10" />
     </AreaArray>
+    <RevealerParams Duration="0.75" ShapeExpansion="1">
+      <RevealFlags index="Unfog" value="1" />
+    </RevealerParams>
   </CEffectEnumArea>
   <CEffectSet id="DVaMechSelfDestructDetonationSearchImpactSet">
     <EffectArray value="DVaMechSelfDestructDetonationSearchDamage" />
     <EffectArray value="HeroRemovePushPullDebuffs" />
     <EffectArray value="DVaMechSelfDestructDetonationApplyKnockback" />
+    <EffectArray value="ApplyAbilityImpactReveal" />
     <EffectArray value="CameraShakeMediumTauntingTotemSet" />
   </CEffectSet>
   <CEffectApplyBehavior id="DVaMechSelfDestructDetonationApplyKnockback">
@@ -3724,6 +3744,7 @@
     <EffectArray value="DVaPilotBigShotModifyCallMechCooldown" />
     <EffectArray value="DVaPilotBigShotDamage" />
     <EffectArray value="DVaBigShotApplySlow" />
+    <EffectArray value="ApplyAbilityImpactReveal" />
   </CEffectSet>
   <CEffectSwitch id="DVaPilotBigShotDamageSwitch">
     <CaseArray Validator="DVaBigShotPewPewPewHasTalent" Effect="DVaBigShotPewPewPewTalentDamage" />
@@ -4016,6 +4037,7 @@
     <EffectArray value="DVaBoostersHitTheNitrousTalentApplyStun" />
     <EffectArray value="DVaBoostersInForTheKillTalentApplyBuff" />
     <EffectArray value="DVaBoostersRushDownTalentApplyImpactBuff" />
+    <EffectArray value="ApplyAbilityImpactReveal" />
     <ValidatorArray value="noMarkers" />
   </CEffectSet>
   <CEffectApplyBehavior id="DVaBoostersApplyBoosterBehavior">
@@ -4044,7 +4066,7 @@
   <CEffectDamage id="DVaBoostersImpactDamage" parent="StormSpell">
     <Amount value="135" />
     <SourceButtonFace value="DVaMechBoosters" />
-    <MultiplicativeModifierArray index="RushDown" Validator="DVaRushDownNonHeroicDamageCombine" Modifier="0.5" Crit="1" />
+    <MultiplicativeModifierArray index="RushDown" Validator="DVaRushDownNonHeroicDamageCombine" Modifier="0.5" />
   </CEffectDamage>
   <CEffectCreatePersistent id="DVaMechWeaponInitialOffset">
     <Marker Duration="0.0625">
@@ -4085,9 +4107,19 @@
     <EffectArray value="DVaMechWeaponSelfDestructIncrementChargeEnablerTokenCounter" />
     <EffectArray value="DVaMechWeaponApplyTargetingBehavior" />
     <EffectArray value="DVaMechWeaponInitialOffset" />
+    <EffectArray value="DVaMechWeaponSgtHammerSpiderMineImpactSet" />
     <EffectArray value="DVaMechApplyArtWeaponCasterSoundDummyLoop" />
     <ValidatorArray value="DVaMechHeroWeaponValidatorCombine" />
   </CEffectSet>
+  <CEffectSet id="DVaMechWeaponSgtHammerSpiderMineImpactSet">
+    <ValidatorArray value="SgtHammerSpiderMinesTargetIsSpiderMine" />
+    <ValidatorArray value="CasterNotBlindedAndTargetNotEvading" />
+    <EffectArray value="DVaMechWeaponSpiderMineWeaponSwitch" />
+  </CEffectSet>
+  <CEffectSwitch id="DVaMechWeaponSpiderMineWeaponSwitch">
+    <CaseArray Validator="TargetWithin2RangeOfCasterLessThanOrEqualTo" Effect="DVaMechWeaponBonusDamage" />
+    <CaseDefault value="DVaMechWeaponDamage" />
+  </CEffectSwitch>
   <CEffectSet id="DVaMechWeaponChargeEnabledSet">
     <EffectArray value="DVaMechSelfDestructAddCharge" />
     <EffectArray value="DVaMechWeaponSelfDestructResetChargeEnablerTokenCounter" />
@@ -4102,15 +4134,17 @@
     <Operation value="Set" />
   </CEffectModifyTokenCount>
   <CEffectEnumArea id="DVaMechWeaponTargetSearch">
-    <SearchFilters value="-;Player,Ally,Neutral,Missile,Item,Dead,Hidden,Invulnerable" />
+    <SearchFilters value="-;Self,Player,Ally,Neutral,ImmuneToAOE,Missile,Item,Stasis,Dead,Hidden,Invulnerable" />
     <AreaArray Effect="DVaMechWeaponImpactSet">
       <RectangleWidth value="2" />
       <RectangleHeight value="3.5625" />
     </AreaArray>
+    <RevealerParams Duration="0.75" ShapeExpansion="1">
+      <RevealFlags index="Unfog" value="1" />
+    </RevealerParams>
   </CEffectEnumArea>
   <CEffectSet id="DVaMechWeaponImpactSet">
     <ValidatorArray value="noMarkers" />
-    <ValidatorArray value="DVaIsTargetNotImmuneToAoEOrIsSpiderMine" />
     <EffectArray value="DVaMechWeaponDamage" />
     <EffectArray value="DVaMechDefenseMatrixAggressionMatrixCooldownReduction" />
   </CEffectSet>
@@ -4435,6 +4469,9 @@
     <AreaArray Arc="59.9963" Effect="DVaPilotConcussivePulseImpactSet">
       <Radius value="6" />
     </AreaArray>
+    <RevealerParams Duration="0.75" ShapeExpansion="1">
+      <RevealFlags index="Unfog" value="1" />
+    </RevealerParams>
     <SearchFlags index="CenterAtLaunch" value="1" />
     <SearchFlags index="OffsetAreaByAngle" value="0" />
     <SearchFlags index="DoActorSearch" value="1" />
@@ -7879,6 +7916,10 @@
     <Find value="1" />
     <Value value="DVaMechEmergencyShielding" />
   </CValidatorPlayerTalent>
+  <CValidatorUnitHasBehavior id="DVaTargetDoesNotHaveAggressionMatrixHealingReductionBuff">
+    <Behavior value="DVaDefenseMatrixAggressionMatrixTalentHealingReductionDebuff" />
+    <Negate value="1" />
+  </CValidatorUnitHasBehavior>
   <CValidatorPlayerTalent id="DVaDefenseMatrixAggressionMatrixHasTalent">
     <Find value="1" />
     <Value value="DVaDefenseMatrixAggressionMatrix" />

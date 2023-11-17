@@ -1683,7 +1683,6 @@
     <PeriodCount value="1" />
     <FinalEffect value="AlexstraszaDragonqueenBehaviorFinalEffectSet" />
     <Modification>
-      <VitalMaxArray index="Life" value="500" />
       <AbilLinkDisableArray value="Mount" />
       <AbilLinkDisableArray value="Dismount" />
       <AbilLinkDisableArray value="MountCabooseSmartCommandUnitInteraction" />
@@ -1691,6 +1690,12 @@
     <InitialEffect value="AlexstraszaDragonqueenBehaviorInitialEffectSet" />
     <BuffFlags index="Extend" value="1" />
     <DisableValidatorArray value="AlexstraszaCleansingFlameDoesNotHaveCasterBehavior" />
+  </CBehaviorBuff>
+  <CBehaviorBuff id="AlexstraszaDragonqueenHealthIncrease">
+    <RemoveValidatorArray value="AlexstraszaDragonqueenHasDragonqueenBehavior" />
+    <Modification>
+      <VitalMaxArray index="Life" value="500" />
+    </Modification>
   </CBehaviorBuff>
   <CBehaviorBuff id="AlexstraszaFlameBuffetDoT" parent="StormDot">
     <Duration value="5.5" />
@@ -1964,9 +1969,13 @@
   </CEffectSet>
   <CEffectSet id="AlexstraszaAbundanceImpactSet">
     <EffectArray value="AlexstraszaAbundanceCreateHealer" />
+    <EffectArray value="AlexstraszaAbundanceRemovePreview" />
     <EffectArray value="AlexstraszaSurgeOfVitalityAbundanceApplyBehavior" />
     <EffectArray value="AlexstraszaPacifyLifeUnboundModifyCooldownHealSet" />
   </CEffectSet>
+  <CEffectRemoveBehavior id="AlexstraszaAbundanceRemovePreview">
+    <BehaviorLink value="AlexstraszaAbundanceHoTPreview" />
+  </CEffectRemoveBehavior>
   <CEffectModifyUnit id="AlexstraszaBreathOfLifeModifyWeaponCooldown">
     <ImpactUnit Value="Caster" />
     <Weapon Weapon="AlexstraszaDragonConeWeapon" CooldownOperation="Max" CooldownAmount="0.5" />
@@ -1999,12 +2008,22 @@
   </CEffectModifyPlayer>
   <CEffectSet id="AlexstraszaDragonqueenBehaviorInitialEffectSet">
     <EffectArray value="AlexstraszaDragonqueenLifebinderRangeIncrease" />
+    <EffectArray value="AlexstraszaDragonqueenApplyHealthBuff" />
     <EffectArray value="AlexstraszaGiftOfLifeLifeblossomModifyPlayer" />
   </CEffectSet>
+  <CEffectApplyBehavior id="AlexstraszaDragonqueenApplyHealthBuff">
+    <WhichUnit Value="Caster" />
+    <Behavior value="AlexstraszaDragonqueenHealthIncrease" />
+  </CEffectApplyBehavior>
   <CEffectSet id="AlexstraszaDragonqueenBehaviorFinalEffectSet">
     <EffectArray value="AlexstraszaDragonqueenExpirationStasisSwitch" />
+    <EffectArray value="AlexstraszaDragonqueenRemoveHealthBuff" />
     <EffectArray value="AlexstraszaGiftOfLifeLifeblossomModifyPlayer" />
   </CEffectSet>
+  <CEffectRemoveBehavior id="AlexstraszaDragonqueenRemoveHealthBuff">
+    <WhichUnit Value="Caster" />
+    <BehaviorLink value="AlexstraszaDragonqueenHealthIncrease" />
+  </CEffectRemoveBehavior>
   <CEffectEnumArea id="AlexstraszaDragonqueenDoodadSearchDummy">
     <AreaArray>
       <Radius value="4" />
@@ -2152,7 +2171,7 @@
   <CEffectSet id="AlexstraszaDragonConeWeaponHealImpactSet">
     <EffectArray value="AlexstraszaDragonConeWeaponCreateHealer" />
     <EffectArray value="AlexstraszaDragonConeWeaponApplyMarkerDummy" />
-    <EffectArray value="AlexstraszaPacifyLifeUnboundModifyCooldownHealSet" />
+    <EffectArray value="AlexstraszaPacifyLifeUnboundModifyCooldownHealSetDragonCone" />
   </CEffectSet>
   <CEffectSwitch id="AlexstraszaDragonConeWeaponImpactSwitch">
     <CaseArray Validator="TargetIsEnemy" Effect="AlexstraszaDragonConeWeaponDamageImpactSet" />
@@ -2171,6 +2190,9 @@
     <AreaArray Arc="49.9987" Effect="AlexstraszaDragonConeWeaponImpactSwitch">
       <Radius value="9" />
     </AreaArray>
+    <RevealerParams Duration="0.75" ShapeExpansion="1">
+      <RevealFlags index="Unfog" value="1" />
+    </RevealerParams>
     <SearchFlags index="DoActorSearch" value="1" />
     <SearchFilters value="-;Self,Player,Neutral,ImmuneToAOE,Missile,Item,Stasis,Dead,Hidden" />
   </CEffectEnumArea>
@@ -2712,8 +2734,12 @@
   </CEffectEnumArea>
   <CEffectSet id="AlexstraszaPreservationImpactSet">
     <EffectArray value="AlexstraszaPreservationCreateHealer" />
+    <EffectArray value="AlexstraszaPreservationRemovePreview" />
     <EffectArray value="AlexstraszaPacifyLifeUnboundModifyCooldownHealSet" />
   </CEffectSet>
+  <CEffectRemoveBehavior id="AlexstraszaPreservationRemovePreview">
+    <BehaviorLink value="AlexstraszaPreservationHoTPreview" />
+  </CEffectRemoveBehavior>
   <CEffectModifyTokenCount id="AlexstraszaCircleOfLifeAbundanceAddToken" parent="BaseEffectModifyTokenCount">
     <ValidatorArray value="AlexstraszaCircleOfLifeAbundanceLTMaxQuestTokens" />
     <EffectCategory index="Quest" value="1" />
@@ -2869,11 +2895,14 @@
     <SearchFlags index="OffsetAreaByAngle" value="0" />
   </CEffectEnumArea>
   <CEffectEnumArea id="AlexstraszaDragonConeWeaponSearchInside">
-    <SearchFilters value="-;Self,Player,Neutral,ImmuneToAOE,Missile,Item,Stasis,Dead,Hidden,Invulnerable" />
+    <SearchFilters value="-;Self,Player,Neutral,ImmuneToAOE,Missile,Item,Stasis,Dead,Hidden" />
     <AreaArray Effect="AlexstraszaDragonConeWeaponImpactSwitch">
       <RectangleWidth value="1.2" />
       <RectangleHeight value="3.6" />
     </AreaArray>
+    <RevealerParams Duration="0.75" ShapeExpansion="1">
+      <RevealFlags index="Unfog" value="1" />
+    </RevealerParams>
     <SearchFlags index="DoActorSearch" value="1" />
   </CEffectEnumArea>
   <CEffectSet id="AlexstraszaWingBuffetSearchSet">
@@ -2899,6 +2928,13 @@
     <EffectArray value="AlexstraszaPacifyModifyCooldownHealed" />
     <EffectArray value="AlexstraszaLifeUnboundModifyCooldownHealed" />
     <EffectArray value="AlexstraszaFlameWardModifyCooldownSet" />
+  </CEffectSet>
+  <CEffectSet id="AlexstraszaPacifyLifeUnboundModifyCooldownHealSetDragonCone">
+    <ValidatorArray value="TargetIsRootedOrSilencedOrStunned" />
+    <ValidatorArray value="CasterNotBlinded" />
+    <Chance value="0" />
+    <EffectArray value="AlexstraszaPacifyModifyCooldownHealed" />
+    <EffectArray value="AlexstraszaLifeUnboundModifyCooldownHealed" />
   </CEffectSet>
   <CEffectSet id="RegenGlobeImpactSet">
     <EffectArray value="AlexstraszaCircleOfLifeAbundanceRegenGlobeImpactSet" />
@@ -3009,7 +3045,7 @@
       </Modifications>
       <Modifications>
         <Catalog value="Behavior" />
-        <Entry value="AlexstraszaDragonqueen" />
+        <Entry value="AlexstraszaDragonqueenHealthIncrease" />
         <Field value="Modification.VitalMaxArray[0]" />
         <Value value="0.040000" />
         <AffectedByOverdrive value="1" />
@@ -4579,6 +4615,13 @@
       <Modifications>
         <Type value="FlatModification" />
         <Catalog value="Effect" />
+        <Entry value="AlexstraszaPacifyLifeUnboundModifyCooldownHealSetDragonCone" />
+        <Field value="Chance" />
+        <Value value="1.000000" />
+      </Modifications>
+      <Modifications>
+        <Type value="FlatModification" />
+        <Catalog value="Effect" />
         <Entry value="AlexstraszaPacifyModifyCooldownHealed" />
         <Field value="Chance" />
         <Value value="1.000000" />
@@ -4597,6 +4640,13 @@
         <Type value="FlatModification" />
         <Catalog value="Effect" />
         <Entry value="AlexstraszaPacifyLifeUnboundModifyCooldownHealSet" />
+        <Field value="Chance" />
+        <Value value="1.000000" />
+      </Modifications>
+      <Modifications>
+        <Type value="FlatModification" />
+        <Catalog value="Effect" />
+        <Entry value="AlexstraszaPacifyLifeUnboundModifyCooldownHealSetDragonCone" />
         <Field value="Chance" />
         <Value value="1.000000" />
       </Modifications>
@@ -4792,6 +4842,7 @@
     <AbilArray Link="AlexstraszaWingBuffet" />
     <AbilArray Link="AlexstraszaLifebinder" />
     <AbilArray Link="AlexstraszaCleansingFlameDragonqueen" />
+    <AbilArray Link="AlexstraszaCleansingFlame" />
     <CardLayouts index="0">
       <LayoutButtons Face="AlexstraszaBreathOfLife" Type="AbilCmd" AbilCmd="AlexstraszaBreathOfLife,Execute" Slot="Ability1" />
       <LayoutButtons Face="AlexstraszaPreservation" Type="AbilCmd" AbilCmd="AlexstraszaPreservation,Execute" Slot="Ability2" />

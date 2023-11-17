@@ -1243,6 +1243,7 @@
     <PeriodicEffect value="TassadarForceWallElectricFenceTalentDamage" />
   </CBehaviorBuff>
   <CBehaviorBuff id="TassadarResonanceBeamFeedbackTalentArmorDebuff" parent="StormArmor">
+    <BehaviorCategories index="DebuffVulnerable" value="1" />
     <Duration value="0.5" />
     <ArmorModification>
       <ArmorSet index="Hero">
@@ -1483,6 +1484,7 @@
     <AtMaxEvents EventId="ResonanceBeamMax" Effect="TassadarResonanceBeamTokenCounterMaxSoundDummy" ValidRange="100,100" />
   </CBehaviorTokenCounter>
   <CBehaviorBuff id="TassadarArchonSpellArmorDebuff" parent="StormArmor">
+    <BehaviorCategories index="DebuffVulnerable" value="1" />
     <Duration value="2" />
     <ArmorModification>
       <ArmorSet index="Hero">
@@ -1520,6 +1522,8 @@
     <Period value="0.25" />
     <PeriodicEffect value="TassadarExecutorsWillActiveModifyUnit" />
     <Modification>
+      <HealDealtAdditiveMultiplier index="Life" value="0.2" />
+      <HealDealtAdditiveMultiplier index="Shields" value="0.2" />
       <DamageDealtFraction index="Ability" value="0.2" />
     </Modification>
     <Face value="TassadarExecutorsWillTalentBuffBar" />
@@ -2011,8 +2015,8 @@
     <BehaviorLink value="TassadarShockRayInductionTalentMoveSpeedBuff" />
   </CEffectRemoveBehavior>
   <CEffectCreateHealer id="TassadarOracleCreateHealer" parent="StormSelfOnlyHealingSpell">
-    <ImpactUnit Value="Caster" History="Unknown" />
     <RechargeVitalRate value="6" />
+    <SourceButtonFace value="TassadarOracleTargeted" />
   </CEffectCreateHealer>
   <CEffectEnumArea id="TassadarBlackHoleDummyOuterSearch">
     <SearchFilters value="Heroic;Self,Player,Ally,Neutral,Minion,Merc,ImmuneToAOE,Structure,User1,Missile,Item,Stasis,Dead,MapBoss" />
@@ -2633,6 +2637,7 @@
   <CEffectApplyBehavior id="TassadarArchonSpellArmorDebuffApply" parent="ApplyVulnerableBehaviorParent">
     <Behavior value="TassadarArchonSpellArmorDebuff" />
     <ValidatorArray value="TargetIsHero" />
+    <ValidatorArray value="CasterNotBlindedAndTargetNotEvading" />
   </CEffectApplyBehavior>
   <CEffectModifyUnit id="TassadarResonanceBeamArchonModifyEnergy">
     <ValidatorArray value="CasterNotBlindedAndTargetNotEvading" />
@@ -3005,6 +3010,7 @@
     <EffectArray value="TassadarResonanceBeamSlowSet" />
     <EffectArray value="TassadarResonanceBeamApplyKhaydarinAmuletTalentTarget1Marker" />
     <EffectArray value="TassadarResonanceBeamKhaydarinAmuletTalentInitialDelayPersistent2" />
+    <EffectArray value="TassadarResonanceBeamKhaydarinAmuletRevealTarget" />
   </CEffectSet>
   <CEffectEnumArea id="TassadarResonanceBeamKhaydarinAmuletTalentSearch2">
     <ValidatorArray value="TassadarCasterHasKhaydarinAmuletTarget1Marker" />
@@ -3014,7 +3020,7 @@
     <ValidatorArray value="TassadarKhaydarinCrystalBounceTarget1NotDead" />
     <ExcludeArray Effect="TassadarResonanceBeamCreatePersistentSet" Value="Target" />
     <ExcludeArray Effect="TassadarResonanceBeamKhaydarinAmuletTalentSearch1CreatePersistent" Value="Target" />
-    <SearchFilters value="-;Player,Ally,Neutral,ImmuneToAOE,Missile,Item,Stasis,Dead,Hidden" />
+    <SearchFilters value="Visible;Self,Player,Ally,Neutral,Missile,Item,Stasis,Dead,Hidden,Invulnerable,Benign" />
     <TargetSorts RequestCount="1" RequestPercentage="1">
       <SortArray value="TSHeroic" />
       <SortArray value="TSNoBounce" />
@@ -3036,8 +3042,14 @@
     <EffectArray value="TassadarResonanceBeamKhaydarinAmuletDamage2" />
     <EffectArray value="TassadarResonanceBeamSlowSet" />
     <EffectArray value="TassadarResonanceBeamApplyKhaydarinAmuletTalentTarget2Marker" />
-    <EffectArray value="ApplyAbilityImpactReveal" />
+    <EffectArray value="TassadarResonanceBeamKhaydarinAmuletRevealTarget" />
   </CEffectSet>
+  <CEffectApplyBehavior id="TassadarResonanceBeamKhaydarinAmuletRevealTarget">
+    <ValidatorArray value="TargetNotUnrevealable" />
+    <Behavior value="AbilityImpactReveal" />
+    <Flags index="UseDuration" value="1" />
+    <Duration value="0.3125" />
+  </CEffectApplyBehavior>
   <CEffectCreatePersistent id="TassadarResonanceBeamKhaydarinAmuletTalentInitialDelayPersistent2">
     <WhichLocation Value="TargetUnit" />
     <InitialDelay value="0.0625" />
@@ -3093,7 +3105,7 @@
     <EffectArray value="TassadarResonanceBeamSlowSet" />
     <EffectArray value="TassadarResonanceBeamApplyKhaydarinAmuletTalentTarget1Marker" />
     <EffectArray value="TassadarResonanceBeamKhaydarinAmuletTalentSearch2" />
-    <EffectArray value="ApplyAbilityImpactReveal" />
+    <EffectArray value="TassadarResonanceBeamKhaydarinAmuletRevealTarget" />
   </CEffectSet>
   <CEffectCreatePersistent id="TassadarResonanceBeamKhaydarinAmuletTalentSearch1CreatePersistent">
     <WhichLocation Value="TargetUnit" />
@@ -3112,7 +3124,7 @@
     <ValidatorArray value="TassadarCasterDoesNotHaveKhaydarinAmuletTarget1Marker" />
     <ValidatorArray value="TassadarHasGTE80KhaydarinResonanceTokens" />
     <ExcludeArray Effect="TassadarResonanceBeamCreatePersistentSet" Value="Target" />
-    <SearchFilters value="-;Player,Ally,Neutral,ImmuneToAOE,Missile,Item,Stasis,Dead,Hidden" />
+    <SearchFilters value="Visible;Self,Player,Ally,Neutral,Missile,Item,Stasis,Dead,Hidden,Invulnerable,Benign" />
     <TargetSorts RequestCount="1" RequestPercentage="1">
       <SortArray value="TSHeroic" />
       <SortArray value="TSNoBounce" />
@@ -3205,7 +3217,6 @@
     <TokenId value="TassadarPsionicStormPsiInfusionTokenCounter" />
   </CEffectModifyTokenCount>
   <CEffectSet id="TassadarArchonTwilightArchonTalentSplashImpactSet">
-    <EffectArray value="ApplyAbilityImpactReveal" />
     <EffectArray value="TassadarArchonSpellArmorDebuffApply" />
     <EffectArray value="TassadarArchonTwilightArchonTalentSplashDamage" />
     <EffectArray value="TassadarResonanceBeamSlowSet" />
@@ -3314,10 +3325,13 @@
   </CEffectApplyBehavior>
   <CEffectEnumArea id="TassadarArchonTwilightArchonTalentSplashSearchArea">
     <ExcludeArray Effect="TassadarArchonTwilightArchonTalentAttackImpactSet" Value="Target" />
-    <SearchFilters value="-;Player,Ally,Neutral,ImmuneToAOE,Missile,Item,Stasis,Dead,Hidden,Invulnerable" />
+    <SearchFilters value="-;Self,Player,Ally,Neutral,ImmuneToAOE,Missile,Item,Stasis,Dead,Hidden,Invulnerable" />
     <AreaArray Effect="TassadarArchonTwilightArchonTalentSplashImpactSet">
       <Radius value="2.5" />
     </AreaArray>
+    <RevealerParams Duration="0.75" ShapeExpansion="1">
+      <RevealFlags index="Unfog" value="1" />
+    </RevealerParams>
   </CEffectEnumArea>
   <CEffectDamage id="TassadarArchonTwilightArchonTalentSplashDamage" parent="StormSpell">
     <Kind value="Basic" />
@@ -3351,10 +3365,13 @@
   </CEffectDamage>
   <CEffectEnumArea id="TassadarArchonSplashDamageSearchArea">
     <ExcludeArray Effect="TassadarArchonWeaponImpactSet" Value="Target" />
-    <SearchFilters value="-;Player,Ally,Neutral,ImmuneToAOE,Missile,Item,Stasis,Dead,Hidden,Invulnerable" />
+    <SearchFilters value="-;Self,Player,Ally,Neutral,ImmuneToAOE,Missile,Item,Stasis,Dead,Hidden,Invulnerable" />
     <AreaArray Effect="TassadarArchonSplashImpactSet">
       <Radius value="2.5" />
     </AreaArray>
+    <RevealerParams Duration="0.75" ShapeExpansion="1">
+      <RevealFlags index="Unfog" value="1" />
+    </RevealerParams>
   </CEffectEnumArea>
   <CEffectApplyBehavior id="TassadarArchonApplyShieldBehavior">
     <Behavior value="TassadarArchonShield" />
@@ -3432,7 +3449,6 @@
     <Amount value="14" />
   </CEffectDamage>
   <CEffectSet id="TassadarArchonSplashImpactSet">
-    <EffectArray value="ApplyAbilityImpactReveal" />
     <EffectArray value="TassadarArchonSpellArmorDebuffApply" />
     <EffectArray value="TassadarArchonSplashDamage" />
     <EffectArray value="TassadarResonanceBeamSlowSet" />
@@ -3579,7 +3595,7 @@
   <CEffectSet id="ForceWallCancelDummy" />
   <CHero id="Tassadar" parent="LegacyVOHero">
     <AIComplexityTier value="Mid" />
-    <Difficulty value="Medium" />
+    <Difficulty value="Hard" />
     <AttributeId value="Tass" />
     <ProductId value="10121" />
     <Role value="Damage" />

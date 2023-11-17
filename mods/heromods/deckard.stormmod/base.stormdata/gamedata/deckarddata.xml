@@ -1373,7 +1373,9 @@
   </CBehaviorBuff>
   <CBehaviorBuff id="DeckardSuperHealingPotionActive" />
   <CBehaviorBuff id="DeckardPotionOfShieldingShield" parent="StormShield">
-    <DamageResponse Priority="45" ModifyLimit="140" />
+    <DamageResponse Priority="45" ModifyLimit="140">
+      <ModifyScoreArray index="0" Value="Healing" />
+    </DamageResponse>
     <Duration value="6" />
   </CBehaviorBuff>
   <CBehaviorBuff id="DeckardBottomlessFlask">
@@ -1458,15 +1460,6 @@
     <InfoIcon value="Assets\Textures\storm_ui_icon_deckard_horadric_staff.dds" />
     <SortIndex value="100" />
     <FinalEffect value="DeckardHoradricStaffApplyCooldown" />
-    <DamageResponse>
-      <Chance value="1" />
-      <Handled value="DeckardHoradricStaffStunImpactSet" />
-      <TargetFilters value="Heroic;-" />
-      <Location value="Attacker" />
-      <ValidatorArray value="CasterNotBlinded" />
-      <Kind index="Splash" value="0" />
-      <Kind index="Ability" value="0" />
-    </DamageResponse>
   </CBehaviorBuff>
   <CBehaviorBuff id="DeckardFortitudeOfTheFaithfulSafetyInNumbersManaRegeneration" parent="CarryBehaviorParent">
     <Alignment value="Positive" />
@@ -1560,6 +1553,7 @@
     <PeriodicEffect value="DeckardRejuvenationPotionHeal" />
     <PeriodicDisplayEffect value="DeckardRejuvenationPotionHeal" />
     <BuffFlags index="RefreshStack" value="1" />
+    <RemoveValidatorArray value="TargetNotSpecialDeathState" />
   </CBehaviorBuff>
   <CBehaviorBuff id="DeckardMorenadosCooldown">
     <Duration value="0.5" />
@@ -1691,10 +1685,13 @@
     <RequireCaster Value="Caster" />
   </CEffectDestroyPersistent>
   <CEffectApplyBehavior id="DeckardHoradricStaffStunApply">
+    <ValidatorArray value="CasterNotBlindedAndTargetNotEvading" />
+    <ValidatorArray value="DeckardHasHoradricStaffActive" />
     <Behavior value="DeckardHoradricStaffStun" />
-    <ValidatorArray value="TargetNotEvading" />
   </CEffectApplyBehavior>
   <CEffectSet id="DeckardHoradricStaffStunImpactSet">
+    <ValidatorArray value="TargetIsHero" />
+    <ValidatorArray value="DeckardHasHoradricStaffTalent" />
     <EffectArray value="DeckardHoradricStaffStunApply" />
     <EffectArray value="DeckardHoradricStaffActiveRemove" />
   </CEffectSet>
@@ -2041,6 +2038,7 @@
   <CEffectSet id="DeckardWeaponAttackSet">
     <EffectArray value="UniversalWeaponLaunchSet" />
     <EffectArray value="DeckardWeaponDamage" />
+    <EffectArray value="DeckardHoradricStaffStunImpactSet" />
     <EffectArray value="UniversalWeaponImpact" />
   </CEffectSet>
   <CEffectDamage id="DeckardWeaponDamage" parent="StormWeapon">
@@ -2292,6 +2290,7 @@
     <EffectArray value="DeckardKanaisCubeDamageReductionApply" />
     <EffectArray value="DeckardCubeMasteryModifyCooldown" />
     <EffectArray value="DeckardHoradricCubeActiveMissileSuicide" />
+    <EffectArray value="ApplyAbilityImpactReveal" />
     <TargetLocationType value="Point" />
   </CEffectSet>
   <CEffectApplyBehavior id="DeckardHoradricCubeActiveSlowApply">
@@ -2313,11 +2312,11 @@
   </CEffectDamage>
   <CEffectEnumArea id="DeckardAncientBlessingsAoESearch">
     <ImpactLocation Value="TargetPoint" />
-    <SearchFilters value="-;Player,Ally,Neutral,ImmuneToAOE,Missile,Item,Stasis,Dead,Hidden,Invulnerable" />
+    <SearchFilters value="-;Self,Player,Ally,Neutral,ImmuneToAOE,Missile,Item,Stasis,Dead,Hidden,Invulnerable" />
     <AreaArray Effect="DeckardAncientBlessingsAoEImpactSet">
       <Radius value="2.5" />
     </AreaArray>
-    <RevealerParams Duration="1">
+    <RevealerParams Duration="0.75" ShapeExpansion="1">
       <RevealFlags index="Unfog" value="1" />
     </RevealerParams>
     <SearchFlags index="DoActorSearch" value="1" />
@@ -2723,7 +2722,7 @@
     <Behavior value="DeckardLesserHealingPotionTimedLife" />
   </CEffectApplyBehavior>
   <CEffectApplyBehavior id="DeckardScrollOfIdentifyApplyBehavior">
-    <Chance value="0" />
+    <ValidatorArray value="DeckardCasterHasGTE15ScrollOfIdentifyTokens" />
     <Behavior value="DeckardScrollOfSealingScrollOfIdentifyTalentReveal" />
   </CEffectApplyBehavior>
   <CEffectApplyBehavior id="DeckardHoradricStaffActiveApply">
@@ -3714,15 +3713,6 @@
   <CTalent id="DeckardScrollOfIdentify">
     <Face value="DeckardScrollOfIdentify" />
     <Abil value="DeckardScrollOfSealing" />
-    <AbilityModificationArray>
-      <Modifications>
-        <Type value="FlatModification" />
-        <Catalog value="Effect" />
-        <Entry value="DeckardScrollOfIdentifyApplyBehavior" />
-        <Field value="Chance" />
-        <Value value="1.000000" />
-      </Modifications>
-    </AbilityModificationArray>
     <QuestData StackBehavior="DeckardScrollOfIdentifyToken" />
     <RankArray>
       <BehaviorArray value="DeckardScrollOfIdentifyToken" />

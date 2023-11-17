@@ -1209,6 +1209,7 @@
     </DamageResponse>
   </CBehaviorBuff>
   <CBehaviorBuff id="TracerMeleeHeavyHandedTalentArmorDebuff" parent="StormArmor">
+    <BehaviorCategories index="DebuffVulnerable" value="1" />
     <Duration value="4" />
     <ArmorModification>
       <AllArmorBonus value="-15" />
@@ -1365,7 +1366,6 @@
     <ExpireEffect value="TracerReloadRemoveLockedandLoadedMasteryActive" />
   </CBehaviorBuff>
   <CBehaviorBuff id="TracerLockedandLoadedActive">
-    <Aliases value="RangedDamageCrit" />
     <Modification>
       <DamageDealtFraction index="Basic" value="0.4" />
     </Modification>
@@ -1385,7 +1385,7 @@
     <Period value="0.0625" />
     <PeriodCount value="1" />
     <PeriodicEffect value="TracerReloadModifyCooldown" />
-    <FinalEffect value="TracerReloadModifyCharges" />
+    <FinalEffect value="TracerReloadManaRestore" />
   </CBehaviorBuff>
   <CBehaviorBuff id="TracerMeleeBulletSprayPulseBombChargeLimiter">
     <Duration value="0.25" />
@@ -1512,7 +1512,7 @@
   <CBehaviorBuff id="TracerReload">
     <BehaviorFlags index="EnabledWhileDead" value="1" />
     <Duration value="0.75" />
-    <FinalEffect value="TracerReloadModifyCharges" />
+    <FinalEffect value="TracerReloadManaRestore" />
     <Period value="0.0625" />
     <PeriodCount value="1" />
     <PeriodicEffect value="TracerReloadModifyCooldown" />
@@ -1609,7 +1609,7 @@
   </CButton>
   <CButton id="TracerJumper" parent="StormButtonParentTrait">
     <TooltipVitalName index="Energy" value="" />
-    <Icon value="Assets\Textures\storm_ui_icon_tracer_blink_d.dds" />
+    <Icon value="Assets\Textures\storm_ui_icon_tracer_blink.dds" />
     <HotkeyAlias value="TracerReload" />
   </CButton>
   <CButton id="TracerIsthataHealthPack" parent="StormButtonParentTrait">
@@ -1726,7 +1726,7 @@
     <Icon value="Assets\Textures\storm_ui_icon_tracer_blink_empty.dds" />
   </CButton>
   <CButton id="TracerUntouchableQuestToken" parent="StormButtonParent">
-    <Icon value="Assets\Textures\storm_ui_icon_tracer_blink_d.dds" />
+    <Icon value="Assets\Textures\storm_ui_icon_tracer_combo_q_trait.dds" />
   </CButton>
   <CEffectLaunchMissile id="HallOfStormsKnockbackLaunchMissile">
     <ValidatorArray value="TracerCasterIsNotTracerRecallUnitCombine" />
@@ -1763,6 +1763,7 @@
   </CEffectCreatePersistent>
   <CEffectModifyUnit id="TracerHeroWeaponTelefragTalentModifyUnit">
     <ValidatorArray value="TargetIsHero" />
+    <ValidatorArray value="CasterNotBlindedAndTargetNotEvading" />
     <Chance value="0" />
     <ImpactUnit Value="Caster" />
     <Cost Abil="TracerRecall,Execute" CooldownOperation="Add" CooldownTimeUse="-0.1875" />
@@ -1893,6 +1894,8 @@
   </CEffectModifyBehaviorBuffDuration>
   <CEffectCreateHealer id="TracerIsThataHealthPackRegenGlobeHealer" parent="StormHealingSpellPercent">
     <ValidatorArray value="TracerTargetHasIsThataHealthPackTalent" />
+    <ValidatorArray value="TracerTargetIsTracer" />
+    <ValidatorArray value="TracerCasterIsTracer" />
     <RechargeVitalFraction value="0.1" />
     <SourceButtonFace value="TracerIsthataHealthPack" />
   </CEffectCreateHealer>
@@ -1915,6 +1918,7 @@
     <EffectArray value="HeroGenericImmuneToConveyersRemove" />
     <EffectArray value="TracerRecallTelefragTalentSearch" />
     <EffectArray value="TracerRecallTelefragTalentApplyUnkillable" />
+    <EffectArray value="TracerRecallTotalRecallHeal" />
   </CEffectSet>
   <CEffectApplyBehavior id="TracerRecallPartingGiftTalentApplySlow" parent="StormSlowApply">
     <ValidatorArray value="TargetIsHero" />
@@ -1951,6 +1955,7 @@
     <ExpireEffect value="TracerMeleeBulletSprayImpactSet" />
   </CEffectCreatePersistent>
   <CEffectDamage id="TracerPulseBombCompositionBQuantumSpikePercentDamage" parent="StormSpellPercentDamage">
+    <ValidatorArray value="TargetIsHero" />
     <Marker Link="Effect/TracerPulseBombCompositionBQuantumSpikeDamage" />
     <VitalFractionMax index="Life" value="0.03" />
   </CEffectDamage>
@@ -2242,7 +2247,6 @@
   </CEffectSwitch>
   <CEffectSet id="TracerHeroWeaponRicochetLockedAndLoadedTalentImpactSet">
     <EffectArray value="TracerHeroWeaponHeroDamageSwitch" />
-    <EffectArray value="ApplyAbilityImpactReveal" />
     <EffectArray value="TracerHeroWeaponApplyTracerRoundsMasteryReveal" />
     <EffectArray value="TracerHeroWeaponTelefragTalentModifyUnit" />
   </CEffectSet>
@@ -2252,7 +2256,6 @@
   </CEffectCreatePersistent>
   <CEffectSet id="TracerHeroWeaponRicochetTalentImpactSet">
     <EffectArray value="TracerHeroWeaponHeroDamageSwitch" />
-    <EffectArray value="ApplyAbilityImpactReveal" />
     <EffectArray value="TracerHeroWeaponApplyTracerRoundsMasteryReveal" />
     <EffectArray value="TracerHeroWeaponTelefragTalentModifyUnit" />
   </CEffectSet>
@@ -2275,7 +2278,7 @@
   </CEffectLaunchMissile>
   <CEffectEnumArea id="TracerHeroWeaponRicochetTargetSearch">
     <ImpactLocation Value="TargetUnit" />
-    <SearchFilters value="-;Player,Ally,Neutral,ImmuneToAOE,Item,Stasis,Dead,Invulnerable" />
+    <SearchFilters value="Visible;Self,Player,Ally,Neutral,Missile,Item,Stasis,Dead,Hidden,Invulnerable,Benign" />
     <TargetSorts RequestCount="1" RequestPercentage="1">
       <SortArray value="TSHeroic" />
       <SortArray value="TSRandom" />
@@ -2322,6 +2325,7 @@
     <EffectArray value="TracerMeleeBulletSprayApplyPulseBombChargeLimiter" />
     <EffectArray value="TracerMeleeCreateRevealPersistent" />
     <EffectArray value="TracerPulseBombGetStuffedInitialSet" />
+    <EffectArray value="ApplyAbilityImpactReveal" />
   </CEffectSet>
   <CEffectEnumArea id="TracerMeleeBulletSpraySearch">
     <ImpactLocation Value="CasterUnit" />
@@ -2636,8 +2640,8 @@
     <WhichLocation Value="TargetUnit" />
     <ExpireDelay value="0.25" />
     <PeriodCount value="1" />
-    <PeriodicPeriodArray value="1.5" />
-    <RevealRadius value="5" />
+    <PeriodicPeriodArray value="1.1875" />
+    <RevealRadius value="3.5" />
     <RevealFlags index="Unfog" value="1" />
     <Marker Duration="1.5">
       <MatchFlags index="Id" value="1" />
@@ -2733,7 +2737,7 @@
     <PeriodicEffect value="TracerRecallPartingGiftClusterCreateMissileScanPersistent" />
   </CEffectLaunchMissile>
   <CEffectEnumArea id="TracerRecallPartingGiftClusterMissileScan">
-    <SearchFilters value="-;Self,Player,Ally,Neutral,ImmuneToSkillshots,Missile,Item,Stasis,Dead,Hidden" />
+    <SearchFilters value="-;Self,Player,Ally,Neutral,ImmuneToSkillshots,Missile,Item,Stasis,Dead,Hidden,Invulnerable" />
     <AreaArray MaxCount="1" Effect="TracerRecallPartingGiftClusterImpactSet">
       <Radius value="0.5" />
     </AreaArray>
@@ -3059,7 +3063,7 @@
     <EffectArray value="CasterInvalidforEffectApplyBehavior" />
     <EffectArray value="TracerRecallTeleportDelayPersistent" />
     <EffectArray value="TracerRecallApplyActiveBehavior" />
-    <EffectArray value="TracerReloadModifyCharges" />
+    <EffectArray value="TracerReloadManaRestore" />
     <EffectArray value="TracerReloadModifyCooldown" />
     <EffectArray value="HeroGenericCleanseRemoveCCBehaviorCategoriesExpandedCaster" />
     <TargetLocationType value="Point" />
@@ -3090,6 +3094,13 @@
       <ChangeFraction value="1" />
     </VitalArray>
   </CEffectModifyUnit>
+  <CEffectCreateHealer id="TracerReloadManaRestore" parent="StormManaRestore">
+    <ImpactUnit Value="Caster" />
+    <RechargeVitalFraction value="1" />
+    <Flags index="IgnoreBehaviorDealtMultipliers" value="1" />
+    <Flags index="IgnoreBehaviorTakenMultipliers" value="1" />
+    <MultiplicativeModifierArray index="Crit" Validator="TracerReloadCritCombine" Crit="1" />
+  </CEffectCreateHealer>
   <CEffectModifyTokenCount id="TracerUntouchableQuestIncrementToken" parent="BaseEffectModifyTokenCount">
     <TokenId value="TracerUntouchableQuestToken" />
     <EffectCategory index="Quest" value="1" />
@@ -3126,6 +3137,11 @@
     <BehaviorLink value="TracerRecallUnitAITrackingBehavior" />
     <TrackedUnit Value="Target" />
   </CEffectAddTrackedUnit>
+  <CEffectCreateHealer id="TracerRecallTotalRecallHeal" parent="StormSelfOnlyHealingSpell">
+    <ValidatorArray value="TracerHasTotalRecallTalentRecall" />
+    <SourceButtonFace value="TracerTotalRecallRecall" />
+    <Flags index="IgnoreBehaviorDealtMultipliers" value="1" />
+  </CEffectCreateHealer>
   <CHero id="Tracer">
     <AttributeId value="Tra0" />
     <Role value="Damage" />
@@ -4194,6 +4210,9 @@
     <WhichUnit Value="Caster" />
     <Value value="HeroTracer" />
   </CValidatorUnitType>
+  <CValidatorUnitType id="TracerTargetIsTracer">
+    <Value value="HeroTracer" />
+  </CValidatorUnitType>
   <CValidatorUnitType id="TracerCasterIsNotTracerRecallUnitAITracking">
     <WhichUnit Value="Caster" />
     <Value value="TracerRecallUnitAITracking" />
@@ -4446,6 +4465,27 @@
   <CValidatorUnitCompareBehaviorCount id="DoesNotHaveMountedHeroWeaponCasterTargerFinderDisabler">
     <WhichUnit Value="Caster" />
     <Behavior value="HeroWeaponCasterTargetFinderDisablerMounted" />
+  </CValidatorUnitCompareBehaviorCount>
+  <CValidatorCombine id="TracerReloadCritCombine">
+    <Type value="And" />
+    <CombineArray value="TracerHasLockedAndLoadedActive" />
+    <CombineArray value="TracerDoesNotHaveLockedAndLoadedPrimed" />
+    <CombineArray value="TracerDoesNotHaveLockedandLoadedFailBehavior" />
+  </CValidatorCombine>
+  <CValidatorCombine id="TracerEnergyBarFlashCombine">
+    <Type value="And" />
+    <CombineArray value="TracerCasterIsTracer" />
+    <CombineArray value="TracerReloadCritCombine" />
+    <CombineArray value="TracerIsNotReloadingCaster" />
+    <CombineArray value="TracerIsNotLockedandLoadedReloadingCaster" />
+    <CombineArray value="CasterHasEnergy" />
+  </CValidatorCombine>
+  <CValidatorCombine id="AbilButtonActiveDDamage">
+    <CombineArray value="TracerEnergyBarFlashCombine" />
+  </CValidatorCombine>
+  <CValidatorUnitCompareBehaviorCount id="TracerDoesNotHaveLockedAndLoadedPrimed">
+    <WhichUnit Value="Caster" />
+    <Behavior value="TracerLockedandLoadedPrimed" />
   </CValidatorUnitCompareBehaviorCount>
   <CValidatorUnitCompareBehaviorCount id="TracerHasLockedAndLoadedActive">
     <WhichUnit Value="Caster" />

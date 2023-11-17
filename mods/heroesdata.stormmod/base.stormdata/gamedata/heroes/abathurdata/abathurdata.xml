@@ -1411,6 +1411,7 @@
   <CActorPortrait id="AbathurSkinUltimatePortrait" parent="StormCompositePortrait" />
   <CActorModel id="AbathurSkinUltimatePortraitAddition" parent="StormCompositePortraitAddition" />
   <CBehaviorBuff id="AbathurToxicNestEnvenomedNestArmorDebuff" parent="StormArmor">
+    <BehaviorCategories index="DebuffVulnerable" value="1" />
     <Alignment value="Negative" />
     <Duration value="4" />
     <ArmorModification>
@@ -1485,6 +1486,7 @@
     </DamageResponse>
   </CBehaviorBuff>
   <CBehaviorBuff id="AbathurAdrenalOverload">
+    <BehaviorCategories index="BuffAutoattackDPS" value="1" />
     <Alignment value="Positive" />
     <InfoIcon value="Assets\Textures\storm_ui_icon_abathur_symbiote.dds" />
     <RemoveValidatorArray value="TargetHasAbathurSymbioteHost" />
@@ -1877,11 +1879,18 @@
   <CBehaviorBuff id="ToxicNestArmingBehavior">
     <InfoIcon value="Assets\Textures\storm_ui_icon_abathur_toxicNest.dds" />
     <Duration value="5" />
+    <InitialEffect value="AbathurToxicNestApplyAttackRevealerDisabler" />
+    <FinalEffect value="AbathurToxicNestRemoveAttackRevealerDisabler" />
     <ExpireEffect value="ToxicNestApplySearchBehavior" />
     <DisplayDuration index="Self" value="1" />
     <DisplayDuration index="Ally" value="1" />
     <DisplayDuration index="Enemy" value="1" />
     <DamageResponse Chance="1" Handled="AbathurToxicNestApplySelfRevealer" />
+  </CBehaviorBuff>
+  <CBehaviorBuff id="AbathurToxicNestDisableAttackerReveal">
+    <Modification>
+      <StateFlags index="SuppressDamageVisibilityDefender" value="1" />
+    </Modification>
   </CBehaviorBuff>
   <CBehaviorBuff id="ToxicNestSlow" parent="StormSlowParent">
     <Duration value="2.5" />
@@ -1983,7 +1992,7 @@
     <HotkeyAlias value="AbathurLocustStrainBombardStrainTalent" />
   </CButton>
   <CButton id="AbathurLocustStrainBombardStrainTalent" parent="StormButtonParent">
-    <Icon value="Assets\Textures\storm_ui_icon_abathur_spawnlocust_var1.dds" />
+    <Icon value="Assets\Textures\storm_ui_icon_abathur_spawnlocust.dds" />
   </CButton>
   <CButton id="AbathurLocustStrainAssaultStrainTalent" parent="StormButtonParent">
     <Icon value="Assets\Textures\storm_ui_icon_abathur_spawnlocust.dds" />
@@ -2301,7 +2310,7 @@
   </CEffectEnumArea>
   <CEffectDamage id="AbathurLocustAssaultWeaponCleaveDamage" parent="StormSummonedUnitWeapon">
     <Amount value="17" />
-    <MultiplicativeModifierArray index="StructureDamage" Validator="IsStructureTarget" Modifier="0.25" Crit="1" />
+    <MultiplicativeModifierArray index="StructureDamage" Validator="IsStructureTarget" Modifier="0.25" />
   </CEffectDamage>
   <CEffectApplyBehavior id="AbathurSurvivalInstinctsApplyBehavior">
     <Chance value="0" />
@@ -2332,6 +2341,7 @@
   <CEffectDamage id="AbathurLocustBombardWeaponCloseRangeDamage" parent="StormSummonedUnitWeapon">
     <Amount value="46" />
     <MultiplicativeModifierArray index="HasSurvivalInstincts" Validator="HasAbathurCombatStyleSurvivalInstincts" Modifier="0.6" />
+    <MultiplicativeModifierArray index="StructureDamage" Validator="IsStructureTarget" Modifier="0.25" />
   </CEffectDamage>
   <CEffectSet id="DeepTunnelFinalSet">
     <EffectArray value="DeepTunnelRemoveDisablerBehavior" />
@@ -2353,7 +2363,7 @@
     <ResponseFlags index="Acquire" value="0" />
     <Amount value="46" />
     <MultiplicativeModifierArray index="HasSurvivalInstincts" Validator="HasAbathurCombatStyleSurvivalInstincts" Modifier="0.6" />
-    <MultiplicativeModifierArray index="StructureDamage" Validator="IsStructureTarget" Modifier="0.25" Crit="1" />
+    <MultiplicativeModifierArray index="StructureDamage" Validator="IsStructureTarget" Modifier="0.25" />
   </CEffectDamage>
   <CEffectDamage id="AbathurLocustAssaultWeaponDamage" parent="StormSummonedUnitWeapon">
     <Amount value="34" />
@@ -2619,7 +2629,7 @@
   <CEffectDamage id="AbathurLocustWeaponDamage" parent="StormSummonedUnitWeapon">
     <Amount value="46" />
     <MultiplicativeModifierArray index="SurvivalInstincts" Validator="HasAbathurCombatStyleSurvivalInstincts" Modifier="0.6" />
-    <MultiplicativeModifierArray index="StructureDamage" Validator="IsStructureTarget" Modifier="0.25" Crit="1" />
+    <MultiplicativeModifierArray index="StructureDamage" Validator="IsStructureTarget" Modifier="0.25" />
   </CEffectDamage>
   <CEffectSet id="AssumingDirectControlBehaviorFinalSet">
     <EffectArray value="AssumingDirectControlUltimateEvolutionSearch" />
@@ -2686,7 +2696,7 @@
   <CEffectSet id="AbathurSymbioteStabImpactSet">
     <EffectArray value="StabRemoveBehavior" />
     <EffectArray value="AbathurSymbioteStabDamageSwitch" />
-    <EffectArray value="StabRevealCreatePersistent" />
+    <EffectArray value="ApplyAbilityImpactReveal" />
     <EffectArray value="SuicideRemove" />
   </CEffectSet>
   <CEffectSet id="UltimateEvolutionControlSet">
@@ -2736,6 +2746,9 @@
     <AreaArray Effect="AbathurSymbioteSpikeBurstImpactSet">
       <Radius value="4" />
     </AreaArray>
+    <RevealerParams Duration="0.75" ShapeExpansion="1">
+      <RevealFlags index="Unfog" value="1" />
+    </RevealerParams>
     <SearchFlags index="ExtendByUnitRadius" value="1" />
     <ValidatorArray value="TargetHasAbathurSymbioteHost" />
   </CEffectEnumArea>
@@ -3049,6 +3062,15 @@
     <WhichUnit Value="Source" />
     <Behavior value="ToxicNestSearchBehaviorTimedLife" />
   </CEffectApplyBehavior>
+  <CEffectApplyBehavior id="AbathurToxicNestApplyAttackRevealerDisabler">
+    <WhichUnit Value="Source" />
+    <Behavior value="AbathurToxicNestDisableAttackerReveal" />
+  </CEffectApplyBehavior>
+  <CEffectRemoveBehavior id="AbathurToxicNestRemoveAttackRevealerDisabler">
+    <WhichUnit Value="Source" />
+    <BehaviorLink value="AbathurToxicNestDisableAttackerReveal" />
+    <Count value="1" />
+  </CEffectRemoveBehavior>
   <CEffectDamage id="ToxicNestDamage" parent="StormSpell">
     <Amount value="153" />
     <Visibility value="Hidden" />
@@ -3232,9 +3254,7 @@
     <CaseDefault value="AbathurEvolveMonstrosityWeaponDamage" />
   </CEffectSwitch>
   <CEffectDamage id="AbathurEvolveMonstrosityWeaponDamage" parent="StormSummonedUnitWeapon">
-    <Amount value="85">
-      <AccumulatorArray value="AbathurEvolveMonstrosityMinionAbsorbedAccumulator" />
-    </Amount>
+    <Amount value="85" />
     <MultiplicativeModifierArray index="EvolutionCompleteDamage" Validator="AbathurHasMonstrosityEvolutionComplete" Modifier="1" />
     <MultiplicativeModifierArray index="MonstrosityDamageAccumulator" Accumulator="AbathurEvolveMonstrosityMinionAbsorbedAccumulator" />
   </CEffectDamage>
@@ -3319,6 +3339,10 @@
     <ProductId value="10222" />
     <Flags index="UsesMount" value="0" />
     <Flags index="ExcludeFromMapIntro" value="1" />
+    <Flags index="IsBaseHeroOfPair" value="1" />
+    <PairedHero value="AbathurSymbiote" />
+    <PortraitPaired value="Assets\Textures\ui_targetportrait_hero_abathur.dds" />
+    <PortraitPairedText value="Hero/Name/Abathur" />
     <Melee value="1" />
     <Difficulty value="VeryHard" />
     <Role value="Specialist" />

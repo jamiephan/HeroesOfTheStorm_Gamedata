@@ -1146,6 +1146,13 @@
     <Duration value="300" />
     <MaxStackCountPerCaster value="2" />
   </CBehaviorBuff>
+  <CBehaviorUnitTracker id="DemonHunterManticoreTargetTracker">
+    <MaxTrackedUnits value="1" />
+    <UnitAddedAtMaxRule value="ReplaceOldest" />
+    <BehaviorFlags index="Permanent" value="1" />
+    <BehaviorFlags index="EnabledWhileDead" value="1" />
+    <TrackingValidatorArray value="TargetNotDeadAndNoSpecialDeathState" />
+  </CBehaviorUnitTracker>
   <CBehaviorBuff id="RainofVengeanceDamageLimiter">
     <Duration value="0.75" />
   </CBehaviorBuff>
@@ -1217,7 +1224,7 @@
     <Icon value="Assets\Textures\storm_ui_icon_valla_multishot.dds" />
   </CButton>
   <CButton id="DemonHunterManticore" parent="StormButtonParent">
-    <Icon value="Assets\Textures\storm_ui_icon_talent_autoattack_damage.dds" />
+    <Icon value="Assets\Textures\storm_ui_icon_talent_autoattack_searing.dds" />
     <HotkeyAlias value="DemonHunterHatredHotPursuitTalent" />
   </CButton>
   <CButton id="DemonHunterSeethingHatred" parent="StormButtonParent">
@@ -1580,15 +1587,53 @@
     <Amount value="80" />
     <MultiplicativeModifierArray index="FrostShot" Validator="DemonHunterFrostShotHasTalentAndIsSlowed" Modifier="0.25" Crit="1" />
   </CEffectDamage>
-  <CEffectModifyUnit id="DemonHunterHeroWeaponManticoreTalentDummyModifyUnit">
+  <CEffectSet id="DemonHunterManticoreApplicationSet">
     <ValidatorArray value="DemonHunterHasManticore" />
     <ValidatorArray value="TargetIsHero" />
-    <ValidatorArray value="TargetNotDead" />
+    <ValidatorArray value="TargetNotDeadAndNoSpecialDeathState" />
     <ValidatorArray value="CasterNotBlindedAndTargetNotEvading" />
-  </CEffectModifyUnit>
+    <EffectArray value="DemonHunterManticoreSwitch" />
+    <EffectArray value="DemonHunterManticoreTargetNotTrackedSet" />
+  </CEffectSet>
+  <CEffectSwitch id="DemonHunterManticoreSwitch">
+    <CaseArray Validator="DemonHunterManticoreTargetHas2Stacks" Effect="DemonHunterManticoreProcSet" />
+    <CaseDefault value="DemonHunterManticoreApplyStackApplyBehavior" />
+  </CEffectSwitch>
+  <CEffectSet id="DemonHunterManticoreProcSet">
+    <EffectArray value="DemonHunterHeroWeaponManticoreTalentProcDamage" />
+    <EffectArray value="DemonHunterHeroWeaponManticoreCleanseStacks" />
+  </CEffectSet>
+  <CEffectRemoveBehavior id="DemonHunterHeroWeaponManticoreCleanseStacks">
+    <BehaviorLink value="ManticoreStack" />
+    <Count value="3" />
+    <RequireCasterUnit Value="Caster" />
+  </CEffectRemoveBehavior>
+  <CEffectApplyBehavior id="DemonHunterManticoreApplyStackApplyBehavior">
+    <Behavior value="ManticoreStack" />
+  </CEffectApplyBehavior>
+  <CEffectRemoveBehavior id="DemonHunterManticoreRemoveStacks">
+    <BehaviorLink value="ManticoreStack" />
+    <Count value="3" />
+    <RequireCasterUnit Value="Caster" />
+  </CEffectRemoveBehavior>
+  <CEffectSet id="DemonHunterManticoreTargetNotTrackedSet">
+    <ValidatorArray value="DemonHunerManticoreTargetIsNotTracked" />
+    <EffectArray value="DemonHunterManticoreCleanseStacksEnum" />
+    <EffectArray value="DemonHunterManticoreClearTrackedUnits" />
+    <EffectArray value="DemonHunterManticoreTrackTarget" />
+  </CEffectSet>
+  <CEffectEnumTrackedUnits id="DemonHunterManticoreCleanseStacksEnum">
+    <BehaviorLink value="DemonHunterManticoreTargetTracker" />
+    <Effect value="DemonHunterManticoreRemoveStacks" />
+  </CEffectEnumTrackedUnits>
+  <CEffectClearTrackedUnits id="DemonHunterManticoreClearTrackedUnits">
+    <BehaviorLink value="DemonHunterManticoreTargetTracker" />
+  </CEffectClearTrackedUnits>
+  <CEffectAddTrackedUnit id="DemonHunterManticoreTrackTarget">
+    <BehaviorLink value="DemonHunterManticoreTargetTracker" />
+    <TrackedUnit Value="Target" />
+  </CEffectAddTrackedUnit>
   <CEffectDamage id="DemonHunterHeroWeaponManticoreTalentProcDamage" parent="StormSpellPercentDamage">
-    <ValidatorArray value="CasterNotBlindedAndTargetNotEvading" />
-    <Visibility value="Hidden" />
     <Flags index="Crit" value="1" />
     <VitalFractionMax index="Life" value="0.05" />
   </CEffectDamage>
@@ -2487,7 +2532,7 @@
     <EffectArray value="DemonHunterHeroWeaponCreedoftheHunterTalentModifyTokenCount" />
     <EffectArray value="DemonHunterFarflightQuiverModifyCooldown" />
     <EffectArray value="DemonHunterStormOfVengeanceModifyHeroicCooldown" />
-    <EffectArray value="DemonHunterHeroWeaponManticoreTalentDummyModifyUnit" />
+    <EffectArray value="DemonHunterManticoreApplicationSet" />
   </CEffectSet>
   <CEffectModifyUnit id="DemonHunterVaultMasteryModifyCooldown">
     <ImpactUnit Value="Source" />
@@ -2509,7 +2554,6 @@
   </CEffectDamage>
   <CEffectLaunchMissile id="DemonHunterHeroWeaponLaunchMissile">
     <ValidatorArray index="0" value="TargetNotDead" />
-    <LaunchEffect value="DemonHunterHeroWeaponManticoreTalentApplyPersistent" />
     <ImpactEffect value="DemonHunterHeroWeaponImpactSet" />
     <SharedFlags index="TravelValidation" value="1" />
     <SharedFlags index="ValidateWeapon" value="0" />
@@ -2542,7 +2586,6 @@
     <SharedFlags index="TravelValidation" value="1" />
     <SharedFlags index="ValidateWeapon" value="0" />
     <AmmoUnit value="DemonHunterMissile" />
-    <LaunchEffect value="DemonHunterHeroWeaponManticoreTalentApplyPersistent" />
   </CEffectLaunchMissile>
   <CEffectSet id="DemonHunterHungeringArrowImpactSet1Secondary">
     <EffectArray value="HungeringArrowCreatePersistentImpactReveal1" />
@@ -2959,6 +3002,7 @@
     <AllowedMountCategoryArray value="Ridesurf" />
     <Flags index="GoodForModeA" value="1" />
     <Flags index="GoodForModeB" value="1" />
+    <Difficulty value="Medium" />
     <Ratings Damage="9" Survivability="4" Complexity="3" />
     <HeroSpecificUIArray Location="Status" DescName="Valla/VallaFrame" />
     <HeroSpecificUIArray Location="HeroSpecificStackingBuffsStatus" DescName="Valla/VallaStacksFrameContainer" />
@@ -3178,6 +3222,9 @@
   </CTalent>
   <CTalent id="DemonHunterManticore">
     <Face value="DemonHunterManticore" />
+    <RankArray>
+      <BehaviorArray value="DemonHunterManticoreTargetTracker" />
+    </RankArray>
   </CTalent>
   <CTalent id="DemonHunterSeethingHatred">
     <Face value="DemonHunterSeethingHatred" />
@@ -3747,6 +3794,15 @@
     <Find value="1" />
     <Value value="DemonHunterManticore" />
   </CValidatorPlayerTalent>
+  <CValidatorUnitCompareBehaviorCount id="DemonHunterManticoreTargetHas2Stacks">
+    <Value value="2" />
+    <Behavior value="ManticoreStack" />
+    <RequireCasterUnit Value="Caster" />
+  </CValidatorUnitCompareBehaviorCount>
+  <CValidatorIsUnitTracked id="DemonHunerManticoreTargetIsNotTracked">
+    <BehaviorLink value="DemonHunterManticoreTargetTracker" />
+    <TrackedUnit Value="Target" />
+  </CValidatorIsUnitTracked>
   <CValidatorUnitCompareBehaviorCount id="DemonHunterDoesNotHaveTemperedByDisciplineBuff">
     <Behavior value="DemonHunterHatredTemperedByDisciplineTalentBuff" />
   </CValidatorUnitCompareBehaviorCount>
