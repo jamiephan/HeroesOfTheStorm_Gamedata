@@ -592,8 +592,8 @@
   </CActorAction>
   <CActorModel id="AmazonRockstopperArmor" parent="StormModelAnimationStyleContinuousUnit">
     <On Terms="Behavior.AmazonAvoidanceRockstopperBonusArmor.On" Send="Create" />
-    <On Terms="Behavior.AmazonAvoidanceRockstopperBonusArmor.Off" Send="Destroy" />
-    <HostSiteOps Ops="SOpAttachCenter" />
+    <On Terms="Behavior.AmazonAvoidanceRockstopperBonusArmor.Off" Send="AnimBracketStop BSD" />
+    <HostSiteOps Ops="SOpAttachCenter" HoldRotation="1" />
     <Model value="HardenedShieldBuff" />
   </CActorModel>
   <CActorScene id="SYSTEM_Scene">
@@ -1635,6 +1635,9 @@
   <CEffectApplyBehavior id="AmazonBlindingLightApplyBlindDebuff" parent="StormBlindApply">
     <Behavior value="AmazonBlindingLightBlindDebuff" />
   </CEffectApplyBehavior>
+  <CEffectApplyBehavior id="AmazonBlindingLightApplyNonHeroesBlindDebuff" parent="StormBlindApply">
+    <Behavior value="AmazonBlindingLightBlindDebuffNonHeroes" />
+  </CEffectApplyBehavior>
   <CEffectDamage id="AmazonBlindingLightDamage" parent="StormSpell">
     <Amount value="50" />
     <MultiplicativeModifierArray index="BlindingLight" Validator="TargetIsBlinded" Modifier="0.15" Crit="1" />
@@ -1650,6 +1653,7 @@
   <CEffectSet id="AmazonBlindingLightImpactSet">
     <EffectArray value="AmazonBlindingLightDamage" />
     <EffectArray value="AmazonBlindingLightApplyBlindDebuff" />
+    <EffectArray value="AmazonBlindingLightApplyNonHeroesBlindDebuff" />
   </CEffectSet>
   <CEffectSet id="AmazonBlindingLightInitialSet">
     <EffectArray value="AmazonBlindingLightDelayPersistent" />
@@ -1946,9 +1950,14 @@
     <Behavior value="AmazonValkyrieImprisoningLightSilence" />
     <ValidatorArray index="0" value="TargetNotDead" />
   </CEffectApplyBehavior>
-  <CEffectApplyBehavior id="AmazonValkyrieImprisoningLightApplyBlind">
+  <CEffectApplyBehavior id="AmazonValkyrieImprisoningLightApplyBlind" parent="StormBlindApply">
     <Behavior value="AmazonValkyrieImprisoningLightBlind" />
-    <ValidatorArray index="0" value="TargetNotDead" />
+    <ValidatorArray value="TargetNotDead" />
+    <ValidatorArray value="AmazonValkyrieImprisoningLightHasTalent" />
+  </CEffectApplyBehavior>
+  <CEffectApplyBehavior id="AmazonValkyrieImprisoningLightApplyNonHeroesBlind" parent="StormBlindApply">
+    <Behavior value="AmazonValkyrieImprisoningLightBlindNonHeroes" />
+    <ValidatorArray value="TargetNotDead" />
     <ValidatorArray value="AmazonValkyrieImprisoningLightHasTalent" />
   </CEffectApplyBehavior>
   <CEffectCreatePersistent id="AmazonValkyrieImprisoningLightCreatePersistent">
@@ -2310,6 +2319,7 @@
     <EffectArray value="AmazonValkyrieImpaleApplyFinalStunBehavior" />
     <EffectArray value="AmazonValkyrieRemoveCollisionProbes" />
     <EffectArray value="AmazonValkyrieImprisoningLightApplyBlind" />
+    <EffectArray value="AmazonValkyrieImprisoningLightApplyNonHeroesBlind" />
   </CEffectSet>
   <CEffectApplyForce id="AmazonValkyrieImpaleApplyForce">
     <Amount value="-1" />
@@ -3680,6 +3690,10 @@
   <CValidatorUnitCompareBehaviorCount id="AmazonValkyrieKnockbackTargetHasPushPull">
     <Compare value="GT" />
     <Behavior value="AmazonValkyrieKnockbackMoveSpeed" />
+  </CValidatorUnitCompareBehaviorCount>
+  <CValidatorUnitCompareBehaviorCount id="AmazonTargetHasImprisoningLightBlind">
+    <Compare value="GT" />
+    <Behavior value="AmazonValkyrieImprisoningLightBlind" />
   </CValidatorUnitCompareBehaviorCount>
   <CWeaponLegacy id="AmazonHeroWeaponRanged" parent="StormHeroFastWeapon">
     <DisplayEffect value="AmazonHeroWeaponDamage" />

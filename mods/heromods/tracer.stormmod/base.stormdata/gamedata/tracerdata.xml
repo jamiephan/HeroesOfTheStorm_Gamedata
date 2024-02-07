@@ -555,6 +555,30 @@
     <DeathArray index="Normal" SoundLink="TracerBase_Death" />
     <WalkAnimMoveSpeed value="4.7968" />
   </CActorUnit>
+  <CActorModel id="ConfirmationLocalGroundAttack">
+    <On Terms="Confirmation.*.Start; Game Local; AbilCmd TracerTargetingAttackClick" Send="Create" />
+  </CActorModel>
+  <CActorModel id="ConfirmationSyncGroundAttack">
+    <On Terms="Confirmation.*.Start; Game Sync; AbilCmd TracerTargetingAttackClick" Send="Create" />
+  </CActorModel>
+  <CActorModel id="ConfirmationLocalGroundTracer" parent="Confirmation">
+    <On Terms="Confirmation.*.Start; Game Local; !AbilCmd TracerTargetingAttackClick; ValidateUnit TracerIsCaster" Send="Create" />
+    <On Terms="ActorCreation" Send="SetTintColor 0,255,0" />
+    <ModelFlags index="AllowHitTest" value="0" />
+    <Model value="ConfirmationLocalGround" />
+    <ModelAspectSets>
+      <Aspects Person="Observer" RegardsAs="NotSelf" Model="Invisible" />
+    </ModelAspectSets>
+  </CActorModel>
+  <CActorModel id="ConfirmationSyncGroundTracer" parent="Confirmation">
+    <On Terms="Confirmation.*.Start; Game Sync; !AbilCmd TracerTargetingAttackClick; ValidateUnit TracerIsCaster" Send="Create" />
+    <On Terms="ActorCreation" Send="SetTintColor 0,255,0" />
+    <ModelFlags index="AllowHitTest" value="0" />
+    <Model value="ConfirmationLocalGround" />
+    <ModelAspectSets>
+      <Aspects Person="Observer" RegardsAs="NotSelf" Model="Invisible" />
+    </ModelAspectSets>
+  </CActorModel>
   <CActorModel id="TracerRecallPoseUnit" parent="StormModelAnimationStyleOneShot">
     <Model value="HeroTracer" />
     <ModelFlags index="AutomateGlobalLoops" value="0" />
@@ -1366,6 +1390,7 @@
     <ExpireEffect value="TracerReloadRemoveLockedandLoadedMasteryActive" />
   </CBehaviorBuff>
   <CBehaviorBuff id="TracerLockedandLoadedActive">
+    <Aliases value="RangedDamageCrit" />
     <Modification>
       <DamageDealtFraction index="Basic" value="0.4" />
     </Modification>
@@ -2264,7 +2289,7 @@
   </CEffectCreatePersistent>
   <CEffectSet id="TracerHeroWeaponRicochetInitialSet">
     <Chance value="0" />
-    <EffectArray value="TracerHeroWeaponRicochetTargetSearch" />
+    <EffectArray value="TracerHeroWeaponRicochetSwitch" />
     <ValidatorArray value="CasterNotBlindedAndTargetNotEvading" />
   </CEffectSet>
   <CEffectLaunchMissile id="TracerHeroWeaponRicochetLaunchMissile">
@@ -2276,6 +2301,10 @@
     <ValidatorArray value="NotCloakedOrIsRevealed" />
     <SharedFlags index="ValidateWeapon" value="0" />
   </CEffectLaunchMissile>
+  <CEffectSwitch id="TracerHeroWeaponRicochetSwitch">
+    <CaseArray Validator="TargetIsBenign" Effect="TracerHeroWeaponRicochetTargetSearchIncludeBenign" />
+    <CaseDefault value="TracerHeroWeaponRicochetTargetSearch" />
+  </CEffectSwitch>
   <CEffectEnumArea id="TracerHeroWeaponRicochetTargetSearch">
     <ImpactLocation Value="TargetUnit" />
     <SearchFilters value="Visible;Self,Player,Ally,Neutral,Missile,Item,Stasis,Dead,Hidden,Invulnerable,Benign" />
@@ -2287,6 +2316,9 @@
       <Radius value="5" />
     </AreaArray>
     <ExcludeArray Effect="TracerHeroWeaponRicochetInitialSet" Value="Target" />
+  </CEffectEnumArea>
+  <CEffectEnumArea id="TracerHeroWeaponRicochetTargetSearchIncludeBenign" parent="TracerHeroWeaponRicochetTargetSearch">
+    <SearchFilters value="Visible;Self,Player,Ally,Neutral,Missile,Item,Stasis,Dead,Hidden,Invulnerable" />
   </CEffectEnumArea>
   <CEffectSet id="TracerHeroWeaponTargetingBehaviorFinalSet">
     <EffectArray value="TracerHeroWeaponDestroyTargetingPersistent" />
@@ -2409,6 +2441,11 @@
     <Behavior value="TracerPulseBombDummyBehavior" />
     <Chance value="0" />
   </CEffectApplyBehavior>
+  <CEffectRemoveBehavior id="TracerPulseBombRemoveDummyBehavior">
+    <BehaviorLink value="TracerPulseBombDummyBehavior" />
+    <RequireCasterUnit Value="Caster" />
+    <Count value="1" />
+  </CEffectRemoveBehavior>
   <CEffectApplyBehavior id="TracerPulseBombGetStuffedApplyKnockbackBehavior">
     <Behavior value="TracerPulseBombGetStuffedKnockback" />
   </CEffectApplyBehavior>
@@ -2528,6 +2565,7 @@
     <EffectArray value="TracerPulseBombGetStuffedDestroyPulseBombUnitPersistent" />
     <EffectArray value="TracerPulseBombGetStuffedDestroyQuantumSpikeUnitPersistent" />
     <EffectArray value="TracerPulseBombGetStuffedInitialPersistentSwitch" />
+    <EffectArray value="TracerPulseBombRemoveDummyBehavior" />
     <ValidatorArray value="TracerTargetHasPulseBombDummyBehavior" />
   </CEffectSet>
   <CEffectApplyForce id="TracerPulseBombGetStuffedKnockback">
@@ -4743,6 +4781,7 @@
     <Value value="1" />
     <Behavior value="TracerPulseBombDummyBehavior" />
     <Compare value="GE" />
+    <RequireCasterUnit Value="Caster" />
   </CValidatorUnitCompareBehaviorCount>
   <CValidatorCombine id="TracerTargetHasTargetBehaviorAndTracerHasAmmoAndNotReloading">
     <Type value="And" />

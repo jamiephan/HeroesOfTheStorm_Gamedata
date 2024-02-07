@@ -72,6 +72,11 @@
     <ProducedUnitArray value="SgtHammerBluntForceGunInvisibleOrbitalDummy" />
     <AbilityCategories index="TargetAcrossMapPlane" value="1" />
   </CAbilEffectTarget>
+  <CAbilEffectTarget id="SgtHammerOrbitalBFGBluntForceGun">
+    <ParentAbil value="SgtHammerBluntForceGun" />
+    <Effect value="SgtHammerOrbitalBFGDummy" />
+    <CmdButtonArray index="Execute" DefaultButtonFace="SgtHammerBluntForceGunOrbitalBFGTalent" />
+  </CAbilEffectTarget>
   <CAbilEffectInstant id="ConcussiveBlastScrapCancel">
     <Effect value="ConcussiveBlastScrapCancelDummySet" />
     <Flags index="Transient" value="1" />
@@ -991,6 +996,7 @@
     <DisableValidatorArray value="CasterHasSiegeMode" />
   </CBehaviorBuff>
   <CBehaviorBuff id="SgtHammerSpiderMinesPulseDetonationCore">
+    <Face value="SgtHammerSpiderMinesPulseDetonationCoreTalent" />
     <Duration value="3" />
     <Period value="1.5" />
     <InitialEffect value="SgtHammerSpiderMinesImpactSearchArea" />
@@ -1185,6 +1191,7 @@
     <Duration value="0.375" />
   </CBehaviorBuff>
   <CBehaviorBuff id="SgtHammerSpiderMinesDisableScanBehavior">
+    <Face value="SgtHammerSpiderMines" />
     <Alignment value="Negative" />
     <BehaviorFlags index="EnabledWhileDead" value="1" />
     <InfoIcon value="Assets\Textures\storm_temp_btn-ability-protoss-permanentlycloaked-darktemplar.dds" />
@@ -1192,12 +1199,15 @@
     <DisplayDuration index="Ally" value="1" />
     <DisplayDuration index="Enemy" value="1" />
     <Duration value="3.125" />
+    <FinalEffect value="SgtHammerSpiderMinesClearTrackedTarget" />
     <AINotifySettings AreaEffect="SgtHammeSpiderMinesExpireSet">
       <Flags index="Disabled" value="1" />
     </AINotifySettings>
     <Modification>
       <BehaviorLinkDisableArray value="SgtHammerSpiderMinesScan" />
     </Modification>
+    <Period value="0.25" />
+    <PeriodicEffect value="SgtHammerSpiderMinesTargetSearchArea" />
   </CBehaviorBuff>
   <CBehaviorBuff id="NapalmStrike">
     <Alignment value="Negative" />
@@ -1252,7 +1262,14 @@
       <Kind index="Basic" value="0" />
     </DamageResponse>
   </CBehaviorBuff>
+  <CBehaviorUnitTracker id="SgtHammerSpiderMineTargetTracker">
+    <MaxTrackedUnits value="1" />
+    <TrackingValidatorArray value="TargetNotDeadAndNoSpecialDeathState" />
+    <TrackingValidatorArray value="SgtHammerSpiderMineTargetLT5" />
+    <UnitAddedAtMaxRule value="ReplaceOldest" />
+  </CBehaviorUnitTracker>
   <CBehaviorBuff id="SgtHammerSpiderMinesScan">
+    <BuffFlags index="UpdateDurationWhileDisabled" value="1" />
     <DisplayDuration index="Self" value="1" />
     <DisplayDuration index="Ally" value="1" />
     <Duration value="35" />
@@ -1483,9 +1500,11 @@
     <Behavior value="SgtHammerSpiderMinesPulseDetonationCore" />
   </CEffectApplyBehavior>
   <CEffectSwitch id="SgtHammerSpiderMinesImpactSwitch">
+    <ValidatorArray value="SgtHammerSpiderMinesTargetIsTrackedSource" />
     <CaseArray Validator="HasSgtHammerPulseDetonationCore" Effect="SgtHammerSpiderMinesPulseDetonationCoreSet" />
     <CaseDefault value="SgtHammerSpiderMinesImpactSet" />
   </CEffectSwitch>
+  <CEffectModifyUnit id="SgtHammerSpiderMinesWeaponDummyImpact" />
   <CEffectApplyBehavior id="SgtHammerSiegeModeUltraCapacitorsApplyBehavior">
     <ValidatorArray index="0" value="TargetIsHero" />
     <ValidatorArray value="CasterNotBlindedAndTargetNotEvading" />
@@ -1583,20 +1602,41 @@
   <CEffectModifyPlayer id="SgtHammerConcussiveBlastEnterSiegeModeModifyPlayer">
     <EffectArray Operation="Set" Reference="Effect,ConcussiveBlastSearch,AreaArray[0].Radius" Value="9" />
   </CEffectModifyPlayer>
-  <CEffectIssueOrder id="SgtHammerSpiderMinesIssueAttackOrder">
-    <WhichUnit Value="Source" />
-    <Abil value="attack" />
-    <Player Value="Source" />
-    <Target Value="TargetUnit" />
-  </CEffectIssueOrder>
-  <CEffectCreatePersistent id="SgtHammerSpiderMinesAttackPersistent">
+  <CEffectClearTrackedUnits id="SgtHammerSpiderMinesClearTrackedTarget">
+    <BehaviorLink value="SgtHammerSpiderMineTargetTracker" />
+    <TrackerUnit Value="Source" />
+  </CEffectClearTrackedUnits>
+  <CEffectAddTrackedUnit id="SgtHammerSpiderMineTrackerAdd">
+    <BehaviorLink value="SgtHammerSpiderMineTargetTracker" />
+    <TrackerUnit Value="Source" />
+    <TrackedUnit Value="Target" />
+  </CEffectAddTrackedUnit>
+  <CEffectCreatePersistent id="SgtHammerSpiderMinesMovePersistent">
     <ValidatorArray value="NoJunglePassiveTarget" />
     <WhichLocation Value="TargetUnit" />
     <Flags index="PersistUntilDestroyed" value="1" />
-    <PeriodicValidator value="SgtHammerSipderMineAttackPersistentPeriodicValidator" />
-    <PeriodicEffectArray value="SgtHammerSpiderMinesIssueAttackOrder" />
-    <PeriodicPeriodArray value="1" />
+    <PeriodicValidator value="SgtHammerSpiderMineMovePersistentPeriodicValidator" />
+    <PeriodicEffectArray value="SgtHammerSpiderMineEnumTrackedUnit" />
+    <PeriodicPeriodArray value="0.25" />
   </CEffectCreatePersistent>
+  <CEffectEnumTrackedUnits id="SgtHammerSpiderMineEnumTrackedUnit">
+    <BehaviorLink value="SgtHammerSpiderMineTargetTracker" />
+    <TrackerUnit Value="Source" />
+    <Effect value="SgtHammerSpiderMinesIssueMoveOrder" />
+  </CEffectEnumTrackedUnits>
+  <CEffectIssueOrder id="SgtHammerSpiderMinesIssueMoveOrder">
+    <WhichUnit Value="Source" />
+    <Abil value="move" />
+    <Player Value="Source" />
+    <Target Value="TargetPoint" />
+  </CEffectIssueOrder>
+  <CEffectEnumArea id="SgtHammerSpiderMinesTargetSearchArea">
+    <ValidatorArray value="SgtHammerSpiderMinesDoesntHavePulseDetonationCoreActive" />
+    <AreaArray MaxCount="1" Effect="SgtHammerSpiderMinesImpactSwitch">
+      <Radius value="0.25" />
+    </AreaArray>
+    <SearchFlags index="ExtendByUnitRadius" value="1" />
+  </CEffectEnumArea>
   <CEffectCreateUnit id="SgtHammerSpiderMinesMineFieldCreateTacticalMineDeploymentTalentUnit">
     <WhichLocation Value="CasterPoint" />
     <SpawnEffect value="SgtHammerSpiderMinesApplyArmingBehavior" />
@@ -1704,6 +1744,7 @@
     <WhichUnit Value="Caster" />
     <Behavior value="SgtHammerThrusters" />
   </CEffectApplyBehavior>
+  <CEffectModifyUnit id="SgtHammerOrbitalBFGDummy" />
   <CEffectSet id="SgtHammerBluntForceGunInitialSet">
     <EffectArray value="SgtHammerAmbushHoldFireRemoveSet" />
     <EffectArray value="BluntForceGunOffsetPersistent" />
@@ -1959,7 +2000,6 @@
   <CEffectDamage id="SgtHammerSpiderMinesDamage" parent="StormSpell">
     <Visibility value="Hidden" />
     <Amount value="96" />
-    <DamageModifierSource Value="Creator" />
   </CEffectDamage>
   <CEffectCreatePersistent id="SgtHammerSpiderMinesInitialPersistent">
     <InitialEffect value="SgtHammerAmbushHoldFireRemoveSet" />
@@ -2023,7 +2063,14 @@
     <PeriodicPeriodArray value="0.0625" />
   </CEffectCreatePersistent>
   <CEffectApplyBehavior id="BluntForceGunApplyMissileScan">
+    <ValidatorArray value="CasterisSgtHammer" />
     <WhichUnit Value="Source" />
+    <Behavior value="BluntForceGunMissileScan" />
+    <Marker Duration="3">
+      <MatchFlags index="Id" value="1" />
+    </Marker>
+  </CEffectApplyBehavior>
+  <CEffectApplyBehavior id="BluntForceGunApplyMissileScanOrbital">
     <Behavior value="BluntForceGunMissileScan" />
     <Marker Duration="3">
       <MatchFlags index="Id" value="1" />
@@ -2132,7 +2179,8 @@
   </CEffectSet>
   <CEffectSet id="SgtHammerSpiderMinesScanImpactSet">
     <EffectArray value="SgtHammerSpiderMinesApplyDisableScanBehavior" />
-    <EffectArray value="SgtHammerSpiderMinesAttackPersistent" />
+    <EffectArray value="SgtHammerSpiderMineTrackerAdd" />
+    <EffectArray value="SgtHammerSpiderMinesMovePersistent" />
   </CEffectSet>
   <CEffectEnumArea id="SgtHammerSpiderMinesScanSearchArea">
     <SearchFilters value="Visible;Player,Ally,Neutral,ImmuneToAOE,NoMinionAggro,Missile,Item,Stasis,Dead,Hidden,Benign" />
@@ -3156,6 +3204,7 @@
     <AbilArray Link="move" />
     <BehaviorArray Link="HallOfStormsKnockbackKillable" />
     <BehaviorArray Link="GenericNoBounceEffects" />
+    <BehaviorArray Link="SgtHammerSpiderMineTargetTracker" />
     <WeaponArray Link="SgtHammerSpiderMinesWeapon" />
     <CardLayouts>
       <LayoutButtons Face="Attack" Type="AbilCmd" AbilCmd="attack,Execute" Slot="Attack" />
@@ -3270,6 +3319,12 @@
     <Find value="1" />
     <Value value="SgtHammerSpiderMinesPulseDetonationCore" />
   </CValidatorPlayerTalent>
+  <CValidatorIsUnitTracked id="SgtHammerSpiderMinesTargetIsTrackedSource">
+    <BehaviorLink value="SgtHammerSpiderMineTargetTracker" />
+    <TrackerUnit Value="Source" />
+    <TrackedUnit Value="Target" />
+    <Find value="1" />
+  </CValidatorIsUnitTracked>
   <CValidatorUnitCompareBehaviorCount id="SgtHammerHasMechanicalKnowhowDamageCarryBehavior">
     <WhichUnit Value="Caster" />
     <Value value="1" />
@@ -3336,9 +3391,10 @@
     <Value value="1" />
     <Behavior value="ConcussiveBlastKnockback" />
   </CValidatorUnitCompareBehaviorCount>
-  <CValidatorCombine id="SgtHammerSipderMineAttackPersistentPeriodicValidator">
+  <CValidatorCombine id="SgtHammerSpiderMineMovePersistentPeriodicValidator">
     <Type value="And" />
     <CombineArray value="NoJunglePassiveTarget" />
+    <CombineArray value="SgtHammerSpiderMineHasTrackedUnit" />
     <CombineArray value="SourceHasSgtHammerSpiderMinesDisableScanBehavior" />
   </CValidatorCombine>
   <CValidatorUnitCompareBehaviorCount id="SourceHasSgtHammerSpiderMinesDisableScanBehavior">
@@ -3346,6 +3402,17 @@
     <Value value="1" />
     <Behavior value="SgtHammerSpiderMinesDisableScanBehavior" />
   </CValidatorUnitCompareBehaviorCount>
+  <CValidatorLocationCompareRange id="SgtHammerSpiderMineTargetLT5">
+    <WhichLocation Value="TargetUnit" />
+    <Compare value="LT" />
+    <Range value="5" />
+    <Value Value="SourceUnit" />
+  </CValidatorLocationCompareRange>
+  <CValidatorCompareTrackedUnitsCount id="SgtHammerSpiderMineHasTrackedUnit">
+    <Compare value="GT" />
+    <BehaviorLink value="SgtHammerSpiderMineTargetTracker" />
+    <TrackerUnit Value="Source" />
+  </CValidatorCompareTrackedUnitsCount>
   <CValidatorUnitCompareBehaviorCount id="SgtHammerBluntForceGunSgtHammerHasNotBeenCCd">
     <WhichUnit Value="Caster" />
     <Value value="1" />
@@ -3357,6 +3424,10 @@
   </CValidatorUnitType>
   <CValidatorUnitType id="TargetIsBFG">
     <Value value="SgtHammerBluntForceGunMissile" />
+  </CValidatorUnitType>
+  <CValidatorUnitType id="CasterisSgtHammer">
+    <WhichUnit Value="Caster" />
+    <Value value="HeroSgtHammer" />
   </CValidatorUnitType>
   <CValidatorUnitCompareBehaviorCount id="TargetNotSgtHammerFortified">
     <Behavior value="SgtHammerFortifiedPosition" />
@@ -3507,14 +3578,14 @@
     <Value value="SgtHammerGraduatingRange" />
   </CValidatorPlayerTalent>
   <CWeaponLegacy id="SgtHammerSpiderMinesWeapon">
+    <Options index="Disabled" value="1" />
     <Options index="Melee" value="1" />
     <Range value="0.25" />
-    <Effect value="SgtHammerSpiderMinesImpactSwitch" />
+    <Period value="0.25" />
+    <Effect value="SgtHammerSpiderMinesWeaponDummyImpact" />
+    <DisplayEffect value="SgtHammerSpiderMinesDamage" />
     <Arc value="360" />
-    <DamagePoint value="0" />
-    <Backswing value="0" />
-    <MinScanRange value="0" />
-    <TargetFilters value="Visible;Player,Ally,Neutral,ImmuneToAOE,Missile,Item,Stasis,Dead,Hidden" />
+    <TargetFilters value="-;Player,Ally,Neutral,Enemy,ImmuneToAOE,Missile,Item,Visible,Stasis,Dead,Hidden" />
   </CWeaponLegacy>
   <CWeaponLegacy id="HeroSgtHammer" parent="StormHeroFastWeapon">
     <Icon value="Assets\Textures\storm_temp_btn-upgrade-terran-infantryweaponslevel2.dds" />

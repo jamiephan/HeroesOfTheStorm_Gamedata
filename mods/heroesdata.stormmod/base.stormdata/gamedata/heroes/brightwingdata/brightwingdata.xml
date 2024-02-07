@@ -1490,6 +1490,7 @@
   </CButton>
   <CButton id="BrightwingSoothingMistCalmingMist" parent="StormButtonParentTrait">
     <Icon value="Assets\Textures\storm_ui_icon_brightwing_soothingmist.dds" />
+    <TooltipAppender Validator="BrightwingHasMagicSpit" Face="BrightwingMagicSpit" />
     <TooltipAppender Validator="BrightwingHasCriticalMist" Face="BrightwingCalmingMistCriticalMist" />
   </CButton>
   <CButton id="FaerieDragonPixieCharm" parent="StormButtonParent">
@@ -1887,7 +1888,7 @@
   <CEffectEnumArea id="BrightwingPhaseShiftPrepFindTargetSearch">
     <SearchFilters value="Heroic;Player,Neutral,Enemy,ImmuneToFriendlyAbilities,Stasis,Dead" />
     <AreaArray MaxCount="1" Effect="BrightwingPhaseShiftPrepPersistent">
-      <Radius value="5" />
+      <Radius value="6" />
     </AreaArray>
     <TargetSorts>
       <SortArray value="TSDistanceToTarget" />
@@ -1896,6 +1897,7 @@
   <CEffectSet id="BrightwingPhaseShiftPrepSet">
     <EffectArray value="DismountDecloakCasterSet" />
     <EffectArray value="BrightwingPhaseShiftPrepSwitch" />
+    <EffectArray value="BrightwingPhaseShiftPrepRefundPersistent" />
   </CEffectSet>
   <CEffectSwitch id="BrightwingPhaseShiftPrepSwitch">
     <CaseArray Validator="TargetIsHeroAndNotStasis" Effect="BrightwingPhaseShiftPrepPersistent" />
@@ -1907,7 +1909,34 @@
     <PeriodicValidator value="BrightwingPhaseShiftIsCastingPhaseShift" />
     <Flags index="PersistUntilDestroyed" value="1" />
     <InitialEffect value="BrightwingPhaseShiftTrackCurrentTarget" />
+    <PeriodicEffectArray value="BrightwingPhaseShiftSetFacing" />
+    <FinalEffect value="BrightwingPhaseShiftPrepPersistentCleanup" />
   </CEffectCreatePersistent>
+  <CEffectCreatePersistent id="BrightwingPhaseShiftPrepPersistentCleanup">
+    <WhichLocation Value="CasterUnit" />
+    <ExpireDelay value="0.25" />
+    <FinalEffect value="BrightwingPhaseShiftClearTrackedUnit" />
+  </CEffectCreatePersistent>
+  <CEffectClearTrackedUnits id="BrightwingPhaseShiftClearTrackedUnit">
+    <BehaviorLink value="BrightwingPhaseShiftTargetTracker" />
+  </CEffectClearTrackedUnits>
+  <CEffectModifyUnit id="BrightwingPhaseShiftSetFacing">
+    <ImpactUnit Value="Caster" />
+    <ModifyFlags index="InterpolateFacing" value="1" />
+    <FacingLocation Value="TargetUnit" />
+    <FacingType value="LookAt" />
+  </CEffectModifyUnit>
+  <CEffectCreatePersistent id="BrightwingPhaseShiftPrepRefundPersistent">
+    <ValidatorArray value="BrightwingPhaseShiftDoesNotHaveTargetsTracked" />
+    <WhichLocation Value="CasterUnit" />
+    <ExpireDelay value="0.0625" />
+    <FinalEffect value="BrightwingPhaseShiftRefundCooldown" />
+  </CEffectCreatePersistent>
+  <CEffectModifyUnit id="BrightwingPhaseShiftRefundCooldown">
+    <ValidatorArray value="BrightwingPhaseShiftDoesNotHaveTargetsTracked" />
+    <ImpactUnit Value="Caster" />
+    <Cost Abil="BrightwingPhaseShift,Execute" CooldownOperation="Add" CooldownTimeUse="-40" />
+  </CEffectModifyUnit>
   <CEffectSet id="BrightwingPhaseShiftInitialSet">
     <ValidatorArray value="CasterNotRooted" />
     <ValidatorArray value="BrightingPhaseShiftTargetsNearCursorOrAlreadyCasting" />
@@ -4144,6 +4173,9 @@
   </CValidatorCombine>
   <CValidatorCompareTrackedUnitsCount id="BrightwingPhaseShiftHasTrackedTarget">
     <Compare value="GT" />
+    <BehaviorLink value="BrightwingPhaseShiftTargetTracker" />
+  </CValidatorCompareTrackedUnitsCount>
+  <CValidatorCompareTrackedUnitsCount id="BrightwingPhaseShiftDoesNotHaveTargetsTracked">
     <BehaviorLink value="BrightwingPhaseShiftTargetTracker" />
   </CValidatorCompareTrackedUnitsCount>
   <CValidatorCombine id="BrightwingSoothingMistCombine">

@@ -287,6 +287,18 @@
     <MaxAccumulation value="2" />
     <ApplicationRule value="Add" />
   </CAccumulatorToken>
+  <CAccumulatorToken id="AbathurEvolveMonstrosityAccumulator" parent="BaseTokenAccumulator">
+    <MinAccumulation value="0" />
+    <MaxAccumulation value="40" />
+    <ApplicationRule value="Add" />
+    <TokenId value="AbathurEvolveMonstrosityMinionAbsorbedToken" />
+  </CAccumulatorToken>
+  <CAccumulatorToken id="AbathurEvolveMonstrosityQuestAccumulator" parent="BaseTokenAccumulator">
+    <MinAccumulation value="0" />
+    <MaxAccumulation value="40" />
+    <ApplicationRule value="Add" />
+    <TokenId value="AbathurEvolveMonstrosityMinionAbsorbedToken" />
+  </CAccumulatorToken>
   <CActorModel id="AbathurMonstrosityDeepTunnelVisualWarning" parent="StormModelAnimationStyleContinuous">
     <Inherits index="TeamColor" value="1" />
     <On Terms="Effect.AbathurMonstrosityDeepTunnelTargetPersistent.Start; At Effect" Send="Create" />
@@ -1587,7 +1599,18 @@
     </Modification>
   </CBehaviorBuff>
   <CBehaviorTokenCounter id="AbathurEvolveMonstrosityMinionAbsorbedToken" parent="StormGenericToken">
+    <Face value="AbathurEvolveMonstrosityHotbar" />
+    <AtMaxEvents EventId="QuestComplete" />
     <Max value="40" />
+    <DeltaEvents Delta="1" OnlyIncrease="1" FireForEachDelta="1">
+      <Event Effect="AbathurEvolveMonstrosityUpdateQuestDisplay" />
+    </DeltaEvents>
+    <AtMinEvents Effect="AbathurEvolveMonstrosityUpdateQuestDisplay" />
+    <TerminateEvents Effect="AbathurEvolveMonstrosityUpdateQuestDisplay" />
+  </CBehaviorTokenCounter>
+  <CBehaviorTokenCounter id="AbathurEvolveMonstrosityQuestStack" parent="StormGenericToken">
+    <Max value="40" />
+    <StackCountAccumulator value="AbathurEvolveMonstrosityQuestAccumulator" />
   </CBehaviorTokenCounter>
   <CBehaviorBuff id="AbathurEvolveMonstrosity">
     <Alignment value="Positive" />
@@ -2074,6 +2097,7 @@
   <CButton id="AbathurSymbiote" parent="StormButtonParent">
     <Icon value="Assets\Textures\storm_ui_icon_abathur_symbiote.dds" />
     <TooltipAppender Validator="HasAbathurMasteryPressurizedGlands" Face="AbathurSymbiotePressurizedGlandsTalent" />
+    <TooltipAppender Validator="AbathurHasReinforcedCarapace" Face="AbathurReinforcedCarapaceTalent" />
     <TooltipAppender Validator="HasAbathurMasteryRegenerativeMicrobes" Face="AbathurSymbioteRegenerativeMicrobesTalent" />
     <TooltipAppender Validator="AbathurHasSymbioteCarapaceSustainedCarapace" Face="AbathurSymbioteCarapaceSustainedCarapaceTalent" />
     <TooltipAppender Validator="AbathurHasSymbioteAdrenalOverload" Face="AbathurSymbioteAdrenalOverloadTalent" />
@@ -2209,6 +2233,13 @@
     <BehaviorLink value="AbathurEvolveMonstrosityTrackingBehavior" />
     <Effect value="AbathurMonstrositySymbioteLinkSet" />
   </CEffectEnumTrackedUnits>
+  <CEffectModifyCatalogNumeric id="AbathurEvolveMonstrosityUpdateQuestDisplay">
+    <CatalogModifications Operation="Set" Reference="Accumulator,AbathurEvolveMonstrosityQuestAccumulator,Offset">
+      <Value value="0">
+        <AccumulatorArray value="AbathurEvolveMonstrosityAccumulator" />
+      </Value>
+    </CatalogModifications>
+  </CEffectModifyCatalogNumeric>
   <CEffectApplyBehavior id="AbathurSymbioteApplyCarapaceNetworkedCarapaceTalentShield">
     <Behavior value="AbathurSymbioteCarapaceNetworkedCarapaceTalent" />
   </CEffectApplyBehavior>
@@ -3027,7 +3058,7 @@
   <CEffectSet id="AssumingDirectControlDeathDummy" />
   <CEffectEnumArea id="ToxicNestSearchAreaTrigger">
     <ImpactLocation Value="SourceUnit" />
-    <SearchFilters value="-;Self,Player,Ally,Neutral,ImmuneToAOE,Structure,Missile,Destructible,Item,Stasis,Dead,Hidden,Benign" />
+    <SearchFilters value="-;Self,Player,Ally,Neutral,ImmuneToAOE,Structure,Missile,Destructible,Item,Stasis,Dead,Hidden,Invulnerable,Benign" />
     <AreaArray MaxCount="1" Effect="ToxicNestTriggerSet">
       <Radius value="1.5" />
     </AreaArray>
@@ -4607,7 +4638,9 @@
     <RankArray>
       <BehaviorArray value="Ultimate2Unlocked" />
       <BehaviorArray value="AbathurEvolveMonstrosityTrackingBehavior" />
+      <BehaviorArray value="AbathurEvolveMonstrosityQuestStack" />
     </RankArray>
+    <QuestData StackBehavior="AbathurEvolveMonstrosityQuestStack" />
     <Active value="1" />
     <Abil value="AbathurEvolveMonstrosity" />
   </CTalent>

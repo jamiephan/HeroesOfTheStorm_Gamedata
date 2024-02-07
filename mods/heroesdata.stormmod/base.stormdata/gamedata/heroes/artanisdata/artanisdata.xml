@@ -140,6 +140,17 @@
   <CActorSound id="HeroArtanisTauntUEVO" parent="SoundOneShot">
     <Sound value="ArtanisBase_Taunt_Evo" />
   </CActorSound>
+  <CActorModel id="ArtanisShieldOverloadPhaseBulwarkActiveBuff" parent="StormModelAnimationStyleContinuousUnit">
+    <Remove Terms="ActorCreation" Send="AnimBracketStart BSD Birth Stand Death" />
+    <On Terms="Behavior.ArtanisShieldOverloadActiveSpellArmorPhaseBulwark.On" Send="Create" />
+    <On Terms="Behavior.ArtanisShieldOverloadTemporarySpellArmorPhaseBulwark.Off" Send="AnimBracketStop BSD" />
+    <On Terms="Behavior.Dead.On" Send="Destroy" />
+    <On Terms="ActorCreation" Send="AnimBracketStart BSD {} Stand,Work Death" />
+    <HostSiteOps Ops="SOpAttachCenterSoft" HoldRotation="1" />
+    <Model value="SpellShieldActiveBuff" />
+    <Scale value="1.150000" />
+    <AutoScaleFactor value="1.000000" />
+  </CActorModel>
   <CActorModel id="ArtanisShieldOverloadPlasmaBurnTalentBuffModel" parent="StormModelAddition">
     <Inherits index="BaseModelScale" value="0" />
     <Inherits index="Scale" value="0" />
@@ -1083,10 +1094,16 @@
     <BehaviorFlags index="EnabledWhileDead" value="1" />
     <Duration value="2" />
   </CBehaviorBuff>
+  <CBehaviorBuff id="ArtanisSpearOfAdunPurifierBeamTargetPurifiedRecastMarker">
+    <Duration value="0.0625" />
+    <TimeScaleSource Value="Global" />
+  </CBehaviorBuff>
   <CBehaviorBuff id="ArtanisSpearofAdunSuppressionPulseBlind" parent="StormBlind">
     <Duration value="4" />
-    <Period value="0.1875" />
-    <PeriodicEffect value="ArtanisSpearofAdunSuppressionPulseGroundThumpRemoveSlowStack" />
+  </CBehaviorBuff>
+  <CBehaviorBuff id="ArtanisSpearofAdunSuppressionPulseBlindNonHeroes" parent="StormBlindNonHeroes">
+    <RemoveValidatorArray value="ArtanisTargetHasSuppressionPulseBlind" />
+    <Duration value="4" />
   </CBehaviorBuff>
   <CBehaviorBuff id="ArtanisBladeDashFirstCaster">
     <Alignment value="Positive" />
@@ -1189,9 +1206,8 @@
     <TooltipAppender Validator="HasTalentArtanisTwinBladesAmateurOpponent" Face="ArtanisTwinBladesAmateurOpponentTalent" />
     <TooltipAppender Validator="HasTalentArtanisTwinBladesReactiveParry" Face="ArtanisTwinBladesReactiveParryTalent" />
     <TooltipAppender Validator="HasTalentArtanisTwinBladesTripleStrike" Face="ArtanisTwinBladesTripleStrikeTalent" />
-    <TooltipAppender Validator="HasTalentArtanisTwinBladesZealotCharge" Face="ArtanisTwinBladesZealotChargeTalent" />
     <TooltipAppender Validator="HasTalentArtanisTwinBladesTitanKiller" Face="ArtanisTwinBladesTitanKillerTalent" />
-    <TooltipAppender Validator="HasTalentArtanisTwinBladesPsionicWound" Face="ArtanisTwinBladesPsionicWoundTalent" />
+    <TooltipAppender Validator="HasTalentArtanisTwinBladesZealotCharge" Face="ArtanisTwinBladesZealotChargeTalent" />
     <TooltipCooldownOverrideText value="Button/CooldownOverride/ArtanisTwinBlades" />
     <Tooltip value="Button/Tooltip/ArtanisTwinBlades" />
     <AlertTooltip value="Button/Tooltip/ArtanisTwinBlades" />
@@ -1213,6 +1229,7 @@
   </CButton>
   <CButton id="ArtanisBladeDash" parent="StormButtonParent">
     <Icon value="Assets\Textures\storm_ui_icon_artanis_powerstrikes.dds" />
+    <TooltipAppender Validator="HasTalentArtanisTwinBladesReactiveParry" Face="ArtanisTwinBladesReactiveParryTalent" />
     <TooltipAppender Validator="HasTalentArtanisBladeDashSolariteReaper" Face="ArtanisBladeDashSolariteReaperTalent" />
     <TooltipAppender Validator="HasTalentArtanisBladeDashTemplarsZeal" Face="ArtanisBladeDashTemplarsZealTalent" />
   </CButton>
@@ -1356,6 +1373,7 @@
     <ValidatorArray value="CasterNotBlindedAndTargetNotEvading" />
     <ValidatorArray value="HasTalentArtanisTwinBladesTitanKiller" />
     <VitalFractionMax index="Life" value="0.005" />
+    <SourceButtonFace value="ArtanisTwinBladesTitanKillerTalent" />
   </CEffectDamage>
   <CEffectApplyBehavior id="ArtanisPhasePrismApplyArmorBehaviorPsionicSynergy">
     <ValidatorArray index="0" value="HasTalentArtanisPhasePrismPsionicSynergy" />
@@ -1547,6 +1565,7 @@
   <CEffectSet id="ArtanisTwinBladesDamageSetFirst">
     <EffectArray value="UniversalWeaponLaunchSet" />
     <EffectArray value="ArtanisTwinBladesDamageSwitch" />
+    <EffectArray value="ArtanisTwinBladesTitanKillerTwinBladesDamage" />
     <EffectArray value="UniversalWeaponImpact" />
     <EffectArray value="ArtanisShieldOverloadSubtractCooldown" />
     <EffectArray value="CameraShakeLightTauntingTotemSet" />
@@ -1563,6 +1582,7 @@
   <CEffectSet id="ArtanisTwinBladesDamageSetSecond">
     <EffectArray value="UniversalWeaponLaunchSet" />
     <EffectArray value="ArtanisTwinBladesDamageSwitch" />
+    <EffectArray value="ArtanisTwinBladesTitanKillerTwinBladesDamage" />
     <EffectArray value="UniversalWeaponImpact" />
     <EffectArray value="ArtanisShieldOverloadSubtractCooldown" />
     <EffectArray value="CameraShakeLightTauntingTotemSet" />
@@ -1583,8 +1603,10 @@
   </CEffectSwitch>
   <CEffectDamage id="ArtanisTwinBladesTitanKillerTwinBladesDamage" parent="StormSpellPercentDamage">
     <ValidatorArray value="TargetIsHero" />
-    <ValidatorArray value="TargetNotEvading" />
+    <ValidatorArray value="CasterNotBlindedAndTargetNotEvading" />
+    <ValidatorArray value="HasTalentArtanisTwinBladesTitanKiller" />
     <VitalFractionMax index="Life" value="0.015" />
+    <SourceButtonFace value="ArtanisTwinBladesTitanKillerTalent" />
   </CEffectDamage>
   <CEffectSet id="ArtanisTwinBladesTripleStrikeDamageSetThird">
     <ValidatorArray value="CasterNotDead" />
@@ -1594,6 +1616,7 @@
     <ValidatorArray value="CasterNotPolymorphed" />
     <EffectArray value="UniversalWeaponLaunchSet" />
     <EffectArray value="ArtanisTwinBladesDamageSwitch" />
+    <EffectArray value="ArtanisTwinBladesTitanKillerTwinBladesDamage" />
     <EffectArray value="UniversalWeaponImpact" />
     <EffectArray value="ArtanisShieldOverloadSubtractCooldown" />
     <EffectArray value="CameraShakeLightTauntingTotemSet" />
@@ -2192,12 +2215,16 @@
   <CEffectApplyBehavior id="ArtanisSpearofAdunSuppressionPulseApplyTargetBehavior" parent="StormBlindApply">
     <Behavior value="ArtanisSpearofAdunSuppressionPulseBlind" />
   </CEffectApplyBehavior>
+  <CEffectApplyBehavior id="ArtanisSpearofAdunSuppressionPulseApplyNonHeroesTargetBehavior" parent="StormBlindApply">
+    <Behavior value="ArtanisSpearofAdunSuppressionPulseBlindNonHeroes" />
+  </CEffectApplyBehavior>
   <CEffectDamage id="ArtanisSpearofAdunSuppressionPulseDamage" parent="StormSpell">
     <Amount value="114" />
     <Visibility value="Hidden" />
   </CEffectDamage>
   <CEffectSet id="ArtanisSpearofAdunSuppressionPulseImpactSet">
     <EffectArray value="ArtanisSpearofAdunSuppressionPulseApplyTargetBehavior" />
+    <EffectArray value="ArtanisSpearofAdunSuppressionPulseApplyNonHeroesTargetBehavior" />
     <EffectArray value="ArtanisSpearofAdunSuppressionPulseDamage" />
     <EffectArray value="ApplyAbilityImpactReveal" />
     <EffectArray value="CameraShakeMediumTauntingTotemSet" />
@@ -2385,10 +2412,16 @@
   </CEffectRemoveBehavior>
   <CEffectSet id="ArtanisSpearOfAdunPurifierBeamTargetPurifiedDelayPersistentSet">
     <ValidatorArray value="PurifierBeamTargetPurifiedProcCombine" />
+    <ValidatorArray value="ArtanisSpearofAdunPurifierBeamCasterDoesNotHaveTargetPurifiedRecastMarker" />
     <EffectArray value="ArtanisSpearofAdunPurifierBeamTargetPurifiedDelayPersistent" />
+    <EffectArray value="ArtanisSpearofAdunPurifierBeamApplyRecastMarker" />
     <EffectArray value="ArtanisSpearofAdunPurifierBeamRemoveTargetingBehavior" />
     <EffectArray value="ArtanisSpearofAdunPurifierBeamDestroyVisualPersistent" />
   </CEffectSet>
+  <CEffectApplyBehavior id="ArtanisSpearofAdunPurifierBeamApplyRecastMarker">
+    <WhichUnit Value="Caster" />
+    <Behavior value="ArtanisSpearOfAdunPurifierBeamTargetPurifiedRecastMarker" />
+  </CEffectApplyBehavior>
   <CEffectCreatePersistent id="ArtanisSpearofAdunPurifierBeamCreateVisualPersistent">
     <WhichLocation Value="TargetUnit" />
     <PeriodCount value="80" />
@@ -2901,9 +2934,6 @@
   <CTalent id="ArtanisTwinBladesTitanKiller">
     <Face value="ArtanisTwinBladesTitanKillerTalent" />
     <Abil value="ArtanisTwinBlades" />
-    <RankArray>
-      <BehaviorArray value="ArtanisTwinBladesTitanKillerCarry" />
-    </RankArray>
     <AbilityModificationArray ModifyAbil="ArtanisTwinBlades" />
   </CTalent>
   <CTalent id="ArtanisTwinBladesPsionicWound">
@@ -3473,6 +3503,11 @@
     <CombineArray value="SourceLifeLT75Percent" />
     <CombineArray value="ArtanisShieldOverloadNotOnCooldown" />
   </CValidatorCombine>
+  <CValidatorUnitHasBehavior id="ArtanisSpearofAdunPurifierBeamCasterDoesNotHaveTargetPurifiedRecastMarker">
+    <WhichUnit Value="Caster" />
+    <Behavior value="ArtanisSpearOfAdunPurifierBeamTargetPurifiedRecastMarker" />
+    <Negate value="1" />
+  </CValidatorUnitHasBehavior>
   <CValidatorUnitCompareBehaviorCount id="ArtanisSpearofAdunPurifierBeamHasTargetingBehavior">
     <Value value="1" />
     <Behavior value="ArtanisSpearofAdunPurifierBeamTargeting" />
@@ -3490,6 +3525,10 @@
   </CValidatorUnitCompareBehaviorCount>
   <CValidatorUnitCompareBehaviorCount id="ArtanisTargetDoesNothaveTwinBladesChargeTargetBehavior">
     <Behavior value="ArtanisTwinBladesChargeTarget" />
+  </CValidatorUnitCompareBehaviorCount>
+  <CValidatorUnitCompareBehaviorCount id="ArtanisTargetHasSuppressionPulseBlind">
+    <Value value="1" />
+    <Behavior value="ArtanisSpearofAdunSuppressionPulseBlind" />
   </CValidatorUnitCompareBehaviorCount>
   <CValidatorUnitType id="ArtanisTargetIsSpearofAdunPurifierBeam">
     <Value value="ArtanisSpearofAdunPurifierBeamInvisibleTrackingUnit" />

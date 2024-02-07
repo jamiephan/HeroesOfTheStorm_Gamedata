@@ -117,6 +117,23 @@
     </Cost>
     <CmdButtonArray index="Execute" DefaultButtonFace="DVaMechSelfDestruct" Requirements="DVaMechAbilityUseRequirement" />
   </CAbilEffectInstant>
+  <CAbilEffectInstant id="DVaMechPilotSelfDestruct">
+    <Flags index="ValidateButtonState" value="0" />
+    <Effect value="DVaPilotSelfDestructInitialSet" />
+    <Cost>
+      <Charge>
+        <CountMax value="100" />
+        <CountUse value="100" />
+        <HideCount value="1" />
+        <Link value="Abil/DVaMechSelfDestruct" />
+        <Location value="Player" />
+      </Charge>
+      <Cooldown Link="Abil/DVaMechSelfDestruct" Location="Player" />
+    </Cost>
+    <CmdButtonArray index="Execute" DefaultButtonFace="DVaMechSelfDestruct">
+      <Flags index="IgnoreUser" value="1" />
+    </CmdButtonArray>
+  </CAbilEffectInstant>
   <CAbilTransport id="DVaMechTransport">
     <CmdButtonArray index="Load" DefaultButtonFace="DVaMechLoadPilot">
       <Flags index="IgnoreUser" value="1" />
@@ -1051,6 +1068,30 @@
     <HostSiteOps Ops="SOpAttachHardPoint04" />
     <Model value="DVaMechHearthCast" />
   </CActorModel>
+  <CActorModel id="ConfirmationLocalGroundAttack">
+    <On Terms="Confirmation.*.Start; Game Local; AbilCmd DVaAttack" Send="Create" />
+  </CActorModel>
+  <CActorModel id="ConfirmationSyncGroundAttack">
+    <On Terms="Confirmation.*.Start; Game Sync; AbilCmd DVaAttack" Send="Create" />
+  </CActorModel>
+  <CActorModel id="ConfirmationLocalGroundDVa" parent="Confirmation">
+    <On Terms="Confirmation.*.Start; Game Local; !AbilCmd DVaAttack; ValidateUnit DVaMechIsCaster" Send="Create" />
+    <On Terms="ActorCreation" Send="SetTintColor 0,255,0" />
+    <ModelFlags index="AllowHitTest" value="0" />
+    <Model value="ConfirmationLocalGround" />
+    <ModelAspectSets>
+      <Aspects Person="Observer" RegardsAs="NotSelf" Model="Invisible" />
+    </ModelAspectSets>
+  </CActorModel>
+  <CActorModel id="ConfirmationSyncGroundDVa" parent="Confirmation">
+    <On Terms="Confirmation.*.Start; Game Local; !AbilCmd DVaAttack; ValidateUnit DVaMechIsCaster" Send="Create" />
+    <On Terms="ActorCreation" Send="SetTintColor 0,255,0" />
+    <ModelFlags index="AllowHitTest" value="0" />
+    <Model value="ConfirmationLocalGround" />
+    <ModelAspectSets>
+      <Aspects Person="Observer" RegardsAs="NotSelf" Model="Invisible" />
+    </ModelAspectSets>
+  </CActorModel>
   <CActorUnit id="HeroDVaPilot" parent="StormHeroStandard" unitName="HeroDVaPilot">
     <EventDataFootprint index="0" removed="1" />
     <On Terms="WeaponStart.*.AttackStart" Send="Signal AttackStartSignal" />
@@ -1748,6 +1789,12 @@
     <Buttons Face="DVaSelfDestructNuclearOptionToggleOff" Type="AbilCmd" AbilCmd="DVaNuclearOption,Off" />
     <Buttons Face="DVaSelfDestructNuclearOptionToggleOn" Type="AbilCmd" AbilCmd="DVaNuclearOption,On" />
   </CBehaviorAbility>
+  <CBehaviorAbility id="DVaPilotSelfDestructTracker">
+    <Buttons Face="DVaMechSelfDestruct" Type="AbilCmd" AbilCmd="DVaMechPilotSelfDestruct,Execute" />
+    <ButtonOverrideDataFrame value="DVa/DVaSelfDestructPilotFrameTemplate" />
+    <Flags index="UseFirstDynamicSlot" value="0" />
+    <Slot value="Dynamic6" />
+  </CBehaviorAbility>
   <CBehaviorBuff id="DVaPilotTorpedoDashAllowed" parent="CarryBehaviorParent">
     <DisableValidatorArray value="DVaPilotTorpedoDashHasTalent" />
   </CBehaviorBuff>
@@ -2333,7 +2380,6 @@
     <Icon value="Assets\Textures\storm_ui_icon_dva_mechmode_b.dds" />
   </CButton>
   <CButton id="DVaHeadshot" parent="StormButtonParent">
-    <TooltipAppender Validator="DVaBigShotPewPewPewHasTalent" Face="DVaBigShotPewPewPew" />
     <Icon value="Assets\Textures\storm_ui_icon_dva_bigshot.dds" />
     <HotkeyAlias value="DVaPilotBigShot" />
   </CButton>
@@ -2438,6 +2484,10 @@
   <CButton id="DVaRetargetDefenseMatrix" parent="StormButtonParent">
     <Icon value="Assets\Textures\storm_ui_icon_dva_defensematrix_a.dds" />
     <SimpleDisplayText value="Button/Tooltip/DVaRetargetDefenseMatrix" />
+    <TooltipAppender Validator="DVaDefenseMatrixAggressionMatrixHasTalent" Face="DVaDefenseMatrixAggressionMatrix" />
+    <TooltipAppender Validator="DVaDefenseMatrixFusionGeneratorHasTalent" Face="DVaDefenseMatrixFusionGenerator" />
+    <TooltipAppender Validator="DVaHasTargetLockedTalent" Face="DVaTargetLocked" />
+    <TooltipAppender Validator="DVaDefenseMatrixDivertingPowerHasTalent" Face="DVaDefenseMatrixDivertingPower" />
   </CButton>
   <CButton id="DVaMechUnloadPilot">
     <Icon value="Assets\Textures\storm_temp_war3_btnunload.dds" />
@@ -2448,12 +2498,10 @@
   <CButton id="DVaPilotCallMech" parent="StormButtonParent">
     <Icon value="Assets\Textures\storm_ui_icon_dva_callmech.dds" />
     <TooltipAppender Validator="DVaMechProMovesHasTalent" Face="DVaMechProMoves" />
-    <TooltipAppender Validator="DVaHasFullMetalTalent" Face="DVaFullMetal" />
   </CButton>
   <CButton id="DVaMechSelfDestruct" parent="StormButtonParent">
     <Icon value="Assets\Textures\storm_ui_icon_dva_selfdestruct.dds" />
     <TooltipAppender Validator="DVaSelfDestructNuclearOptionHasTalent" Face="DVaSelfDestructNuclearOption" />
-    <TooltipAppender Validator="DVaHasTimingAttackTalent" Face="DVaTimingAttack" />
   </CButton>
   <CButton id="DVaMechMechMode" parent="StormButtonParent">
     <Icon value="Assets\Textures\storm_ui_icon_dva_mechmode.dds" />
@@ -2472,8 +2520,6 @@
   </CButton>
   <CButton id="DVaPilotPilotMode" parent="StormButtonParent">
     <Icon value="Assets\Textures\storm_ui_icon_dva_pilotmode.dds" />
-    <TooltipAppender Validator="DVaMechProMovesHasTalent" Face="DVaMechProMoves" />
-    <TooltipAppender Validator="DVaHasGoodToGoTalent" Face="DVaGoodToGo" />
   </CButton>
   <CButton id="DVaPilotConcussivePulseAbility" parent="StormButtonParent">
     <Icon value="Assets\Textures\storm_ui_icon_dva_concussivecharge.dds" />
@@ -2550,7 +2596,7 @@
   </CEffectSet>
   <CEffectEnumArea id="DVaBigShotNuclearOptionTalentSearch">
     <Chance value="0" />
-    <SearchFilters value="Heroic;Self,Ally,Neutral,Enemy,Missile,Item,Stasis,Hidden" />
+    <SearchFilters value="Heroic;Self,Ally,Neutral,Enemy,Missile,Item,Stasis,Dead,Hidden" />
     <AreaArray Effect="DVaBigShotNuclearOptionTalentImpactSet">
       <RectangleWidth value="1.25" />
       <RectangleHeight value="15" />
@@ -2665,7 +2711,7 @@
     <ImpactUnit Value="Caster" />
     <RechargeVitalRate value="35" />
     <ValidatorArray value="TargetIsHero" />
-    <SourceButtonFace id="DVaDefenseMatrixDivertingPower" />
+    <SourceButtonFace value="DVaDefenseMatrixDivertingPower" />
   </CEffectCreateHealer>
   <CEffectSet id="DVaDefenseMatrixDamageResponseSet">
     <EffectArray value="DVaMechDefenseMatrixDamageReducedNotification" />
@@ -2703,10 +2749,12 @@
     </Cost>
   </CEffectModifyPlayer>
   <CEffectModifyPlayer id="DVaLiquidCoolingModifyPlayer">
+    <ValidatorArray value="DVaHasLiquidCoolingTalent" />
     <EffectArray Operation="Set" Reference="Behavior,HealingFountainCooldown,Duration" Value="50.000000" />
     <EffectArray Operation="Set" Reference="Behavior,HealingFountainRestoreL2,Duration" Value="27.000000" />
   </CEffectModifyPlayer>
   <CEffectModifyPlayer id="DVaLiquidCoolingResetPlayer">
+    <ValidatorArray value="DVaHasLiquidCoolingTalent" />
     <EffectArray Operation="Set" Reference="Behavior,HealingFountainCooldown,Duration" Value="120.000000" />
     <EffectArray Operation="Set" Reference="Behavior,HealingFountainRestoreL2,Duration" Value="20.000000" />
   </CEffectModifyPlayer>
@@ -2897,7 +2945,7 @@
   </CEffectSwitch>
   <CEffectEnumArea id="DVaMicroMissilesMissileSearch">
     <ImpactLocation Value="SourcePoint" />
-    <SearchFilters value="-;Player,Ally,ImmuneToAOE,ImmuneToSkillshots,Missile,Item,Buried,Stasis,Dead,Hidden" />
+    <SearchFilters value="-;Player,Ally,ImmuneToAOE,ImmuneToSkillshots,Missile,Item,Buried,Stasis,Dead,Hidden,Invulnerable" />
     <AreaArray MaxCount="1" Effect="DVaMicroMissilesMissileImpactSet">
       <RectangleWidth value="1" />
       <RectangleHeight value="1" />
@@ -3720,6 +3768,9 @@
   <CEffectSet id="DVaMechSelfDestructInitialAbilityCancelSet">
     <EffectArray value="DvaMechBunnyHopRemoveBehavior" />
     <EffectArray value="DVaMechDefenseMatrixRemoveChannel" />
+  </CEffectSet>
+  <CEffectSet id="DVaPilotSelfDestructInitialSet">
+    <ValidatorArray value="AlwaysReturnsFalse" />
   </CEffectSet>
   <CEffectApplyBehavior id="DVaPilotApplyRemoteBoostEnabler">
     <ValidatorArray index="0" value="DVaMechSelfDestructMechBoosting" />
@@ -7425,6 +7476,7 @@
     <BehaviorArray Link="NotManaUserDummy" />
     <BehaviorArray Link="HalfValueHero" />
     <BehaviorArray Link="DVaPilotTorpedoDashAllowed" />
+    <BehaviorArray Link="DVaPilotSelfDestructTracker" />
     <InitializerFunction value="libHDVA_gf_HeroDVaIncrementHeroCountFunction" />
     <DestructionFunction value="libHDVA_gf_HeroDVaDecrementHeroCountFunction" />
     <HeroPlaystyleFlags index="RoleAutoAttacker" value="1" />

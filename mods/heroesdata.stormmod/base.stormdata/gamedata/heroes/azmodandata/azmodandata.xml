@@ -263,6 +263,7 @@
   <CActorModel id="AzmodanTideOfSinHandFXLeft" parent="ModelAddition">
     <On Terms="Behavior.AzmodanTideOfSinGlobeOfAnnihilationMarker.On" Send="Create" />
     <On Terms="Behavior.AzmodanTideOfSinGlobeOfAnnihilationMarker.Off" Send="Destroy" />
+    <Host Subject="_Unit" />
     <HostSiteOps Ops="SOpAttachHandLeft" />
     <Model value="AzmodanBlackPoolHandFX" />
   </CActorModel>
@@ -276,6 +277,7 @@
   <CActorModel id="AzmodanTideOfSinHandFXRight" parent="ModelAddition">
     <On Terms="Behavior.AzmodanTideOfSinGlobeOfAnnihilationMarker.On" Send="Create" />
     <On Terms="Behavior.AzmodanTideOfSinGlobeOfAnnihilationMarker.Off" Send="Destroy" />
+    <Host Subject="_Unit" />
     <HostSiteOps Ops="SOpAttachHandRight" />
     <Model value="AzmodanBlackPoolHandFX" />
   </CActorModel>
@@ -655,7 +657,7 @@
     <On Terms="UnitBirth.AzmodanDemonWarrior" Send="Create AzmodanSummonDemonWarriorBirthSound" />
     <On Terms="ActorCreation" Send="SetShowStatusBar 0 Custom" />
     <On Terms="ActorCreation" Send="TimerSet 1.500000 Summoning" />
-    <On Terms="TimerExpired; TimerName Summoning" Send="Create BurningDemonsBuff" />
+    <On Terms="TimerExpired; TimerName Summoning; !ValidateUnit IsDead" Send="Create BurningDemonsBuff" />
     <On Terms="Behavior.AzmodanSummonDemonWarriorPeriodicDamageController.Off" Target="BurningDemonsBuff" Send="Destroy" />
     <On Terms="Behavior.AzmodanSummonDemonWarriorDemonSpawn.Off" Send="SetShowStatusBar 1 Custom" />
     <Model value="AzmodanDemon" />
@@ -1125,6 +1127,7 @@
   <CBehaviorBuff id="AzmodanTideOfSinGlobeOfAnnihilationMarker" parent="CarryBehaviorParent">
     <InitialEffect value="AzmodanTideOfSinModifyGlobeCost" />
     <FinalEffect value="AzmodanTideOfSinMarkerFinalSet" />
+    <DisableValidatorArray value="CasterNotDead" />
   </CBehaviorBuff>
   <CBehaviorBuff id="AzmodanTideOfSinGlobeOfAnnihilationMissileMarker">
     <InfoIcon value="Assets\Textures\storm_ui_markers_alexstrasza_flame_buffet.dds" />
@@ -1866,15 +1869,22 @@
     <CaseArray Validator="AzmodanTargetHasWrathTalentMarker" Effect="AzmodanHeroWeaponWrathTalentLaunchMissile" />
     <CaseDefault value="AzmodanHeroWeaponLaunchMissile" />
   </CEffectSwitch>
-  <CEffectEnumArea id="AzmodanHeroWeaponBombardmentTalentSearch">
+  <CEffectSwitch id="AzmodanHeroWeaponBombardmentTalentSwitch">
     <ValidatorArray value="AzmodanHasBombardmentTalentBuff" />
+    <CaseArray Validator="TargetIsBenign" Effect="AzmodanHeroWeaponBombardmentTalentSearchIncludeBenign" />
+    <CaseDefault value="AzmodanHeroWeaponBombardmentTalentSearch" />
+  </CEffectSwitch>
+  <CEffectEnumArea id="AzmodanHeroWeaponBombardmentTalentSearch">
     <ExcludeArray Effect="AzmodanHeroWeaponLaunchMissileSet" Value="Target" />
-    <SearchFilters value="Visible;Self,Player,Ally,Neutral,Missile,Item,Stasis,Dead,Hidden,Invulnerable" />
+    <SearchFilters value="Visible;Self,Player,Ally,Neutral,Missile,Item,Stasis,Dead,Hidden,Invulnerable,Benign" />
     <AreaArray Effect="AzmodanHeroWeaponBombardmentTalentLaunchMissile">
       <Radius value="3" />
     </AreaArray>
     <MaxCount value="3" />
     <SearchFlags index="ExtendByUnitRadius" value="1" />
+  </CEffectEnumArea>
+  <CEffectEnumArea id="AzmodanHeroWeaponBombardmentTalentSearchIncludeBenign" parent="AzmodanHeroWeaponBombardmentTalentSearch">
+    <SearchFilters value="Visible;Self,Player,Ally,Neutral,Missile,Item,Stasis,Dead,Hidden,Invulnerable" />
   </CEffectEnumArea>
   <CEffectApplyBehavior id="AzmodanGlobeOfAnnihilationBombardmentTalentApplyBuff">
     <ValidatorArray index="0" value="AzmodanHasBombardmentTalent" />
@@ -2490,6 +2500,7 @@
     <TeleportValidator value="GenericTeleportRangeValidator" />
   </CEffectCreatePersistent>
   <CEffectSet id="AzmodanTideOfSinCastSet">
+    <ValidatorArray value="AzmodanCasterDoesNotHaveTideOfSinGlobeOfAnnihilationMarker" />
     <EffectArray value="AzmodanTideOfSinApplyGlobeOfAnnihilationMarker" />
   </CEffectSet>
   <CEffectSet id="AzmodanAllShallBurnInitialSet">
@@ -2769,7 +2780,7 @@
   </CEffectLaunchMissile>
   <CEffectSet id="AzmodanHeroWeaponLaunchMissileSet">
     <EffectArray value="AzmodanHeroWeaponLaunchMissileSwitch" />
-    <EffectArray value="AzmodanHeroWeaponBombardmentTalentSearch" />
+    <EffectArray value="AzmodanHeroWeaponBombardmentTalentSwitch" />
     <EffectArray value="UniversalWeaponLaunchSet" />
   </CEffectSet>
   <CEffectCreatePersistent id="AzmodanSummonDemonWarriorCreatePersistentOffset">
@@ -2788,6 +2799,7 @@
   <CEffectApplyBehavior id="AzmodanGlobeOfAnnihilationApplyDebuffBehavior">
     <ValidatorArray index="0" value="TargetIsMinionAndNotMercLaner" />
     <ValidatorArray value="TargetNotMercDefender" />
+    <ValidatorArray value="SylvanasTargetUnPossessed" />
     <Behavior value="AzmodanGlobeOfAnnihilationDebuff" />
   </CEffectApplyBehavior>
   <CEffectDamage id="AzmodanSummonDemonWarriorPeriodicDamage" parent="StormSummonedUnitWeapon">
@@ -4118,6 +4130,10 @@
   <CValidatorUnitCompareBehaviorCount id="AzmodanCasterHasTideOfSinGlobeOfAnnihilationMarker">
     <WhichUnit Value="Caster" />
     <Compare value="GT" />
+    <Behavior value="AzmodanTideOfSinGlobeOfAnnihilationMarker" />
+  </CValidatorUnitCompareBehaviorCount>
+  <CValidatorUnitCompareBehaviorCount id="AzmodanCasterDoesNotHaveTideOfSinGlobeOfAnnihilationMarker">
+    <WhichUnit Value="Caster" />
     <Behavior value="AzmodanTideOfSinGlobeOfAnnihilationMarker" />
   </CValidatorUnitCompareBehaviorCount>
   <CValidatorUnitCompareBehaviorCount id="AzmodanHasHellRiftTalentMarker">

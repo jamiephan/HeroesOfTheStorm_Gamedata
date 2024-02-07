@@ -1395,6 +1395,7 @@
   <CButton id="FalstadTailwind" parent="StormButtonParentTrait">
     <UseHotkeyLabel value="0" />
     <Icon value="Assets\Textures\storm_ui_icon_falstad_tailwind.dds" />
+    <TooltipAppender Validator="FalstadHasHammerGains" Face="FalstadHammerGainsTalent" />
     <TooltipAppender Validator="HasFalstadMasteryBarrelRollFlowRider" Face="FalstadFlowRiderTalent" />
     <TooltipAppender Validator="FalstadHasTailwindSustainedWindsTalent" Face="FalstadTailwindSustainedWinds" />
     <TooltipAppender Validator="HasFalstadAerieGusts" Face="FalstadTailwindAerieGustsTalent" />
@@ -1580,12 +1581,17 @@
   <CEffectDamage id="FalstadTailwindSustainedWindsDamage" parent="StormSpellPercentDamage">
     <Visibility value="Hidden" />
     <VitalFractionMax index="Life" value="0.015" />
+    <SourceButtonFace value="FalstadTailwindSustainedWinds" />
   </CEffectDamage>
   <CEffectDamage id="FalstadTailwindSustainedWindsImprovedDamage" parent="StormSpellPercentDamage">
     <Visibility value="Hidden" />
     <VitalFractionMax index="Life" value="0.02" />
+    <SourceButtonFace value="FalstadTailwindSustainedWinds" />
   </CEffectDamage>
   <CEffectSwitch id="FalstadTailwindSustainedWindsSwitch">
+    <ValidatorArray value="FalstadHasTailwindSustainedWindsTalent" />
+    <ValidatorArray value="CasterNotBlindedAndTargetNotEvading" />
+    <ValidatorArray value="TargetIsHero" />
     <CaseArray Validator="FalstadTailwindNotOnCooldown" Effect="FalstadTailwindSustainedWindsImprovedDamage" />
     <CaseDefault value="FalstadTailwindSustainedWindsDamage" />
   </CEffectSwitch>
@@ -1712,7 +1718,7 @@
   </CEffectRemoveBehavior>
   <CEffectCreatePersistent id="FlightWarningEnemyVisualCreatePersistent">
     <ValidatorArray value="CasterIsNotCloaked" />
-    <WhichLocation Effect="FalstadFlightLaunchMissile" />
+    <WhichLocation Effect="FalstadFlightSet" />
     <PeriodCount value="500" />
     <PeriodicValidator value="FlightEnemyVisualPeriodicCombine" />
     <PeriodicPeriodArray value="0.125" />
@@ -1746,7 +1752,7 @@
     <PeriodCount value="500" />
     <PeriodicValidator value="HasFlightBehavior" />
     <PeriodicPeriodArray value="0.125" />
-    <WhichLocation Effect="FalstadFlightLaunchMissile" />
+    <WhichLocation Effect="FalstadFlightSet" />
   </CEffectCreatePersistent>
   <CEffectSet id="FalstadBarrelRollFinalSet">
     <EffectArray value="BarrelRollRelicApplyBehavior" />
@@ -2230,7 +2236,7 @@
     <LaunchLocation Value="CasterUnit" />
     <ImpactLocation Effect="FalstadFlightPersistent" Value="TargetPoint" />
     <ImpactOffset Z="2" />
-    <LaunchEffect value="FlightWarningVisualCreatePersistent" />
+    <LaunchEffect value="FlightLaunchSet" />
     <Movers Link="FalstadFlightEpicMountMissile" />
     <DeathType value="Unknown" />
     <ImpactEffect value="FalstadFlightFinalSet" />
@@ -2389,6 +2395,7 @@
   <CEffectSet id="FalstadAttackImpactSet">
     <EffectArray value="UniversalWeaponImpact" />
     <EffectArray value="FalstadWeaponDamage" />
+    <EffectArray value="FalstadTailwindSustainedWindsSwitch" />
   </CEffectSet>
   <CEffectCreatePersistent id="HinterlandBlastPersistent">
     <Marker>
@@ -2430,6 +2437,8 @@
   <CEffectDamage id="FalstadWeaponDamage" parent="StormWeapon">
     <Amount value="104" />
     <FlatModifierArray index="FrequentFlyer" Accumulator="FalstadFrequentFlyerAccumulator" />
+    <LeechValidator index="Life" value="FalstadHasHammerGains" />
+    <LeechFraction index="Life" value="0.2" />
   </CEffectDamage>
   <CEffectSet id="FalstadWeaponLaunchMissileSet">
     <EffectArray value="UniversalWeaponLaunchSet" />
@@ -3036,9 +3045,6 @@
   </CShapeQuad>
   <CTalent id="FalstadTailwindSustainedWinds">
     <Face value="FalstadTailwindSustainedWinds" />
-    <RankArray>
-      <BehaviorArray value="FalstadTailwindSustainedWindsBuff" />
-    </RankArray>
     <Trait value="1" />
   </CTalent>
   <CTalent id="FalstadTailwindFrequentFlyer">
@@ -3088,9 +3094,6 @@
   </CTalent>
   <CTalent id="FalstadTalentHammerGains">
     <Face value="FalstadHammerGainsTalent" />
-    <RankArray>
-      <BehaviorArray value="FalstadHammerGains" />
-    </RankArray>
   </CTalent>
   <CTalent id="FalstadHammerangGatheringStorm">
     <Face value="FalstadGatheringStormTalent" />
@@ -3842,6 +3845,11 @@
     <WhichPlayer Value="Caster" />
     <Find value="1" />
     <Value value="FalstadHammerangGatheringStorm" />
+  </CValidatorPlayerTalent>
+  <CValidatorPlayerTalent id="FalstadHasHammerGains">
+    <WhichPlayer Value="Caster" />
+    <Find value="1" />
+    <Value value="FalstadTalentHammerGains" />
   </CValidatorPlayerTalent>
   <CValidatorPlayerTalent id="HasFalstadAerieGusts">
     <WhichPlayer Value="Caster" />

@@ -46,6 +46,7 @@ void libHDEA_gf_HeroDeathwingIncrementHeroCountFunction () {
         TriggerEnable(libHDEA_gt_HeroDeathwingConflagrationRemoveTrackedDamage, true);
         TriggerEnable(libHDEA_gt_HeroDeathwingConflagrationUnitTakesDamage, true);
         TriggerEnable(libHDEA_gt_HeroDeathwingFirestormDeathwingLanded, true);
+        TriggerEnable(libHDEA_gt_HeroDeathwingBellowingRoarCameraLock, true);
     }
 
 }
@@ -71,6 +72,7 @@ void libHDEA_gf_HeroDeathwingDecrementHeroCountFunction () {
         TriggerEnable(libHDEA_gt_HeroDeathwingConflagrationRemoveTrackedDamage, false);
         TriggerEnable(libHDEA_gt_HeroDeathwingConflagrationUnitTakesDamage, false);
         TriggerEnable(libHDEA_gt_HeroDeathwingFirestormDeathwingLanded, false);
+        TriggerEnable(libHDEA_gt_HeroDeathwingBellowingRoarCameraLock, false);
     }
 
 }
@@ -151,6 +153,52 @@ void libHDEA_gf_HeroDeathwingFirestormGenerateFirestormatLocation (point lp_poin
 }
 
 // Triggers
+//--------------------------------------------------------------------------------------------------
+// Trigger: Hero - Deathwing - Bellowing Roar - Camera Lock
+//--------------------------------------------------------------------------------------------------
+bool libHDEA_gt_HeroDeathwingBellowingRoarCameraLock_Func (bool testConds, bool runActions) {
+    // Variable Declarations
+    int lv_targetPlayer;
+    int lv_itPlayer;
+    fixed lv_vertOffset;
+    fixed lv_horizOffset;
+
+    // Automatic Variable Declarations
+    const int autoA6B68362_ae = libCore_gv_bALMaxPlayers;
+    const int autoA6B68362_ai = 1;
+
+    // Variable Initialization
+    lv_targetPlayer = UnitGetOwner(EventUnit());
+
+    // Conditions
+    if (testConds) {
+        if (!(((UnitGetOwner(EventUnit()) >= 1) && (UnitGetOwner(EventUnit()) <= 10) && (EventUnit() == libGame_gv_players[lv_targetPlayer].lv_heroUnit) && (UnitIsAlive(EventUnit()) == true)))) {
+            return false;
+        }
+    }
+
+    // Actions
+    if (!runActions) {
+        return true;
+    }
+
+    libGame_gf_PlayerHeroDisplacementCameraLock(EventUnit(), EventUnitBehavior());
+    lv_itPlayer = 1;
+    for ( ; ( (autoA6B68362_ai >= 0 && lv_itPlayer <= autoA6B68362_ae) || (autoA6B68362_ai < 0 && lv_itPlayer >= autoA6B68362_ae) ) ; lv_itPlayer += autoA6B68362_ai ) {
+        lv_vertOffset = 1.5;
+        lv_horizOffset = RandomFixed(-0.4, -0.6);
+        libUIUI_gf_UIFloatingCombatTextCreateTextTag(lv_itPlayer, 2.0, StringExternal("Param/Value/lib_HDEA_57B60470"), EventUnit(), 0.0, 0.0, libCore_ge_FloatingTextType_InsaneDamage, true);
+    }
+    return true;
+}
+
+//--------------------------------------------------------------------------------------------------
+void libHDEA_gt_HeroDeathwingBellowingRoarCameraLock_Init () {
+    libHDEA_gt_HeroDeathwingBellowingRoarCameraLock = TriggerCreate("libHDEA_gt_HeroDeathwingBellowingRoarCameraLock_Func");
+    TriggerEnable(libHDEA_gt_HeroDeathwingBellowingRoarCameraLock, false);
+    TriggerAddEventUnitBehaviorChange(libHDEA_gt_HeroDeathwingBellowingRoarCameraLock, null, "DeathwingBellowingRoarFear", c_unitBehaviorChangeActivate);
+}
+
 //--------------------------------------------------------------------------------------------------
 // Trigger: Hero - Deathwing - Respawn
 //--------------------------------------------------------------------------------------------------
@@ -626,6 +674,7 @@ void libHDEA_gt_HeroDeathwingFirestormDeathwingLanded_Init () {
 }
 
 void libHDEA_InitTriggers () {
+    libHDEA_gt_HeroDeathwingBellowingRoarCameraLock_Init();
     libHDEA_gt_HeroDeathwingRespawn_Init();
     libHDEA_gt_HeroDeathwingDragonflightPeriodicRoar_Init();
     libHDEA_gt_HeroDeathwingDragonflightModifyFacing_Init();

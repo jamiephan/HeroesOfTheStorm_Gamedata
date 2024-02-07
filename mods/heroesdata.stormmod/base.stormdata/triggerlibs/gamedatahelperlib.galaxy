@@ -2965,6 +2965,7 @@ void libGDHL_gf_HeroRaynorIncrementHeroCountFunction () {
         TriggerEnable(libGDHL_gt_HeroRaynorBansheeTeleport, true);
         TriggerEnable(libGDHL_gt_HeroRaynorRemoveBansheeOnEnterVehicle, true);
         TriggerEnable(libGDHL_gt_HeroRaynorExecuteOrderDeathTimerMod, true);
+        TriggerEnable(libGDHL_gt_HeroRaynorExecuteOrderHyperionActivate, true);
     }
 
 }
@@ -2986,6 +2987,7 @@ void libGDHL_gf_HeroRaynorDecrementHeroCountFunction () {
         TriggerEnable(libGDHL_gt_HeroRaynorBansheeTeleport, false);
         TriggerEnable(libGDHL_gt_HeroRaynorRemoveBansheeOnEnterVehicle, false);
         TriggerEnable(libGDHL_gt_HeroRaynorExecuteOrderDeathTimerMod, false);
+        TriggerEnable(libGDHL_gt_HeroRaynorExecuteOrderHyperionActivate, false);
     }
 
 }
@@ -3657,6 +3659,7 @@ void libGDHL_gf_HeroSgtHammerIncrementHeroCountFunction () {
         TriggerEnable(libGDHL_gt_HeroSgtHammerBluntForceGunPrepStart, true);
         TriggerEnable(libGDHL_gt_HeroSgtHammerBluntForceGunTargetCalculation, true);
         TriggerEnable(libGDHL_gt_HeroSgtHammerBluntForceGunTargetCalculationViaEffect, true);
+        TriggerEnable(libGDHL_gt_HeroSgtHammerBluntForceGunApplyOrbitalScan, true);
         TriggerEnable(libGDHL_gt_HeroSgtHammerBluntForceGunCheckForLocation, true);
         TriggerEnable(libGDHL_gt_HeroSgtHammerConcussiveBlastCancel, true);
         TriggerEnable(libGDHL_gt_HeroSgtHammerConcussiveBlastForcedDestruction, true);
@@ -3680,6 +3683,7 @@ void libGDHL_gf_HeroSgtHammerDecrementHeroCountFunction () {
         TriggerEnable(libGDHL_gt_HeroSgtHammerBluntForceGunPrepStart, false);
         TriggerEnable(libGDHL_gt_HeroSgtHammerBluntForceGunTargetCalculation, false);
         TriggerEnable(libGDHL_gt_HeroSgtHammerBluntForceGunTargetCalculationViaEffect, false);
+        TriggerEnable(libGDHL_gt_HeroSgtHammerBluntForceGunApplyOrbitalScan, false);
         TriggerEnable(libGDHL_gt_HeroSgtHammerBluntForceGunCheckForLocation, false);
         TriggerEnable(libGDHL_gt_HeroSgtHammerConcussiveBlastCancel, false);
         TriggerEnable(libGDHL_gt_HeroSgtHammerConcussiveBlastForcedDestruction, false);
@@ -13657,6 +13661,7 @@ bool libGDHL_gt_HeroLostVikingsVikingDies_Func (bool testConds, bool runActions)
         UnitBehaviorSetDuration(lv_deadUnit, "Dead", TimerGetRemaining(lv_vikingDeathTimer));
     }
     else {
+        UnitSetPropertyFixed(lv_deadUnit, c_unitPropLifePercent, 100.0);
         UnitBehaviorSetDuration(lv_deadUnit, "Dead", 0.0);
     }
     auto973DB6EB_g = libGame_gv_players[lv_lVPlayer].lv_heroUnitGroup;
@@ -18999,6 +19004,35 @@ void libGDHL_gt_HeroRaynorExecuteOrderDeathTimerMod_Init () {
 }
 
 //--------------------------------------------------------------------------------------------------
+// Trigger: Hero - Raynor - Execute Order - Hyperion Activate
+//--------------------------------------------------------------------------------------------------
+bool libGDHL_gt_HeroRaynorExecuteOrderHyperionActivate_Func (bool testConds, bool runActions) {
+    // Variable Declarations
+    unit lv_raynor;
+    point lv_targetPoint;
+
+    // Automatic Variable Declarations
+    // Variable Initialization
+    lv_raynor = EventPlayerEffectUsedUnit(c_effectUnitCaster);
+    lv_targetPoint = EventPlayerEffectUsedPoint(c_effectLocationTargetPoint);
+
+    // Actions
+    if (!runActions) {
+        return true;
+    }
+
+    UnitCreateEffectPointWithSource(lv_raynor, "HyperionInitialCreatePersistent", lv_targetPoint, c_gameCatalogAbil, "RaynorHyperionExecuteOrders");
+    return true;
+}
+
+//--------------------------------------------------------------------------------------------------
+void libGDHL_gt_HeroRaynorExecuteOrderHyperionActivate_Init () {
+    libGDHL_gt_HeroRaynorExecuteOrderHyperionActivate = TriggerCreate("libGDHL_gt_HeroRaynorExecuteOrderHyperionActivate_Func");
+    TriggerEnable(libGDHL_gt_HeroRaynorExecuteOrderHyperionActivate, false);
+    TriggerAddEventPlayerEffectUsed(libGDHL_gt_HeroRaynorExecuteOrderHyperionActivate, c_playerAny, "RaynorExecuteOrdersDummyEffect");
+}
+
+//--------------------------------------------------------------------------------------------------
 // Trigger: Hero - Rehgar - Tidal Waves Modify Cooldown
 //--------------------------------------------------------------------------------------------------
 bool libGDHL_gt_HeroRehgarTidalWavesModifyCooldown_Func (bool testConds, bool runActions) {
@@ -21908,6 +21942,40 @@ void libGDHL_gt_HeroSgtHammerBluntForceGunCheckForLocation_Init () {
 }
 
 //--------------------------------------------------------------------------------------------------
+// Trigger: Hero - SgtHammer - Blunt Force Gun Apply Orbital Scan
+//--------------------------------------------------------------------------------------------------
+bool libGDHL_gt_HeroSgtHammerBluntForceGunApplyOrbitalScan_Func (bool testConds, bool runActions) {
+    // Variable Declarations
+    unit lv_sourceUnit;
+
+    // Automatic Variable Declarations
+    // Variable Initialization
+    lv_sourceUnit = EventPlayerEffectUsedUnit(c_effectUnitSource);
+
+    // Conditions
+    if (testConds) {
+        if (!((UnitGetType(lv_sourceUnit) == "SgtHammerBluntForceGunMissileOrbital"))) {
+            return false;
+        }
+    }
+
+    // Actions
+    if (!runActions) {
+        return true;
+    }
+
+    UnitCreateEffectUnitWithSource(libGame_gv_players[UnitGetOwner(lv_sourceUnit)].lv_heroUnit, "BluntForceGunApplyMissileScanOrbital", lv_sourceUnit, c_gameCatalogAbil, "SgtHammerOrbitalBFGBluntForceGun");
+    return true;
+}
+
+//--------------------------------------------------------------------------------------------------
+void libGDHL_gt_HeroSgtHammerBluntForceGunApplyOrbitalScan_Init () {
+    libGDHL_gt_HeroSgtHammerBluntForceGunApplyOrbitalScan = TriggerCreate("libGDHL_gt_HeroSgtHammerBluntForceGunApplyOrbitalScan_Func");
+    TriggerEnable(libGDHL_gt_HeroSgtHammerBluntForceGunApplyOrbitalScan, false);
+    TriggerAddEventPlayerEffectUsed(libGDHL_gt_HeroSgtHammerBluntForceGunApplyOrbitalScan, c_playerAny, "BluntForceGunApplyMissileScanDelay");
+}
+
+//--------------------------------------------------------------------------------------------------
 // Trigger: Hero - SgtHammer - Concussive Blast - Cancel
 //--------------------------------------------------------------------------------------------------
 bool libGDHL_gt_HeroSgtHammerConcussiveBlastCancel_Func (bool testConds, bool runActions) {
@@ -24547,6 +24615,10 @@ bool libGDHL_gt_HeroWitchDoctorPassiveTarget_Func (bool testConds, bool runActio
         if (!(((UnitBehaviorCount(lv_killedUnit, "WitchDoctorVoodooRitualDoT") == 1) || (UnitBehaviorCount(lv_killedUnit, "WitchDoctorVoodooRitualDeathRitualTalentDoT") == 1)))) {
             return false;
         }
+
+        if (!((UnitBehaviorCount(lv_killedUnit, "SylvanasPossessionTarget") == 0))) {
+            return false;
+        }
     }
 
     // Actions
@@ -26817,6 +26889,7 @@ void libGDHL_InitTriggers () {
     libGDHL_gt_HeroRaynorACardToPlayTalentGained_Init();
     libGDHL_gt_HeroRaynorACardToPlayHeroTakedown_Init();
     libGDHL_gt_HeroRaynorExecuteOrderDeathTimerMod_Init();
+    libGDHL_gt_HeroRaynorExecuteOrderHyperionActivate_Init();
     libGDHL_gt_HeroRehgarTidalWavesModifyCooldown_Init();
     libGDHL_gt_HeroRehgarEarthlivingEnchantHotApply_Init();
     libGDHL_gt_HeroRehgarTotemicProjectionTalentSaveTotem_Init();
@@ -26874,6 +26947,7 @@ void libGDHL_InitTriggers () {
     libGDHL_gt_HeroSgtHammerBluntForceGunTargetCalculation_Init();
     libGDHL_gt_HeroSgtHammerBluntForceGunTargetCalculationViaEffect_Init();
     libGDHL_gt_HeroSgtHammerBluntForceGunCheckForLocation_Init();
+    libGDHL_gt_HeroSgtHammerBluntForceGunApplyOrbitalScan_Init();
     libGDHL_gt_HeroSgtHammerConcussiveBlastCancel_Init();
     libGDHL_gt_HeroSgtHammerConcussiveBlastForcedDestruction_Init();
     libGDHL_gt_HeroSgtHammerMaelstromRoundsAddCharge_Init();
