@@ -3,8 +3,10 @@
   <const id="$JunkratRIPTireMaximumDamage" value="720" />
   <const id="$JunkratRIPTireMinimumDamage" value="445" />
   <const id="$JunkratRIPTireSearchRadius" value="6" />
+  <const id="$JunkratRIPTireInnerRadius" value="1.5" />
+  <const id="$JunkratRIPTireOuterRadius" value="-($JunkratRIPTireSearchRadius $JunkratRIPTireInnerRadius)" evaluateAsExpression="1" />
   <const id="$JunkratRIPTireMinimumAccumulation" value="-($JunkratRIPTireMinimumDamage $JunkratRIPTireMaximumDamage)" evaluateAsExpression="1" />
-  <const id="$JunkratRIPTireDistanceScaler" value="/($JunkratRIPTireMinimumAccumulation $JunkratRIPTireSearchRadius)" evaluateAsExpression="1" />
+  <const id="$JunkratRIPTireDistanceScaler" value="/($JunkratRIPTireMinimumAccumulation $JunkratRIPTireOuterRadius)" evaluateAsExpression="1" />
   <CAbilEffectTarget id="JunkratFragLauncher">
     <PrepEffect value="DismountDecloakCasterSet" />
     <Effect value="JunkratFragLauncherBurstFireSwitch" />
@@ -39,6 +41,7 @@
       <Cooldown TimeUse="2" />
     </Cost>
     <CmdButtonArray index="Execute" DefaultButtonFace="JunkratRIPTireJump" Requirements="JunkratHasRIPTire" />
+    <SharedFlags index="AllowQuickCastCustomization" value="0" />
     <SharedFlags index="ExecutableWhileDead" value="1" />
   </CAbilEffectInstant>
   <CAbilEffectInstant id="JunkratRIPTireJumpUnitAbility">
@@ -71,6 +74,7 @@
     <CmdButtonArray index="Execute" DefaultButtonFace="JunkratRocketRide" Requirements="Ultimate2Unlocked" />
     <Flags index="RequireTargetVision" value="0" />
     <Range value="10" />
+    <RangeSlop value="5" />
     <CursorEffect value="JunkratRocketRideExplosionSearch" />
     <Activity value="Button/Name/JunkratRocketRide" />
     <CursorRangeFlags index="ClampMin" value="1" />
@@ -157,7 +161,7 @@
     <Effect value="JunkratTotalMayhemDirtyTricksterDummySet" />
     <Flags index="ValidateButtonState" value="0" />
     <Cost>
-      <Cooldown Location="Player" Operation="Set" TimeUse="12" />
+      <Cooldown Location="Player" Operation="Set" TimeUse="20" />
     </Cost>
     <CmdButtonArray index="Execute" DefaultButtonFace="JunkratDirtyTrickster" />
   </CAbilEffectInstant>
@@ -167,11 +171,13 @@
     <Cost>
       <Cooldown TimeUse="0.0625" />
     </Cost>
+    <ParentAbil value="JunkratConcussionMine" />
   </CAbilEffectInstant>
   <CAbilEffectInstant id="JunkratDetonateRIPTire">
     <Effect value="JunkratRIPTireDetonateInitialSet" />
     <CmdButtonArray index="Execute" DefaultButtonFace="JunkratDetonateRIPTire" Requirements="JunkratHasRIPTire" />
     <SharedFlags index="ExecutableWhileDead" value="1" />
+    <ParentAbil value="JunkratRIPTire" />
   </CAbilEffectInstant>
   <CAbilEffectTarget id="JunkratRIPTire">
     <PrepEffect value="JunkratRIPTirePrecastSet" />
@@ -184,6 +190,7 @@
     </InterruptCost>
     <MinimumRange value="1" />
     <Range value="1" />
+    <RangeSlop value="5" />
     <Arc value="360" />
     <CastIntroTime value="1" />
     <ShowProgressArray index="Cast" value="1" />
@@ -212,7 +219,7 @@
   <CAbilEffectTarget id="JunkratSteelTrap">
     <Effect value="JunkratSteelTrapInitialSet" />
     <Cost>
-      <Cooldown TimeUse="12" />
+      <Cooldown TimeUse="15" />
     </Cost>
     <Range value="6" />
     <Arc value="360" />
@@ -233,11 +240,11 @@
   <CAccumulatorDistance id="JunkratRIPTireDistanceAccumulator" parent="BaseAccumulator">
     <MaxAccumulation value="0" />
     <StartLocation>
-      <Effect value="JunkratRIPTireDamage" />
-      <Value value="SourceUnitOrPoint" />
-      <ProjectionSourceEffect value="JunkratRIPTireDamage" />
-      <ProjectionSourceValue value="SourceUnitOrPoint" />
-      <ProjectionTargetValue value="SourceUnitOrPoint" />
+      <Effect value="JunkratRIPTireOffsetDamageSet" />
+      <Value value="TargetPoint" />
+      <ProjectionSourceEffect value="JunkratRIPTireOffsetDamageSet" />
+      <ProjectionSourceValue value="TargetPoint" />
+      <ProjectionTargetValue value="TargetPoint" />
     </StartLocation>
     <EndLocation>
       <Effect value="JunkratRIPTireDamage" />
@@ -752,6 +759,7 @@
     <On Terms="Effect.JunkratFragLauncherSpreadVolleyLaunchMissileSet.Start" Send="AnimPlay Spell Spell,B PlayForever" />
     <On Terms="Effect.JunkratFragLauncherSpreadVolleyLaunchMissileSet.Start; ValidatePlayer JunkratHasTalentFragLauncherExtraWoundTimers" Send="AnimPlay Spell Spell,C PlayForever" />
     <On Terms="Effect.JunkratFragLauncherSpreadVolleyLaunchMissileSet.Start; ValidatePlayer JunkratHasTalentFragLauncherPutSomeEnglishOnIt" Send="AnimPlay Spell Spell,D PlayForever" />
+    <On Terms="Behavior.JunkratFragLauncherExtraWoundTimersMissileMarker.On" Send="SetTintColorBlendPair 110,110,215 250,160,160 0.312500 Bounce ExtraWound" />
     <MissileFlags index="DefaultToGameSyncPos" value="1" />
     <HostSiteOps Ops="SOp2DRotation" />
   </CActorMissile>
@@ -1039,6 +1047,18 @@
     <On Terms="UnitDeath.JunkratRIPTire" Send="AnimBracketStop BSD" />
     <HostSiteOps Ops="SOpAttachOrigin SOpShadow" HoldRotation="1" />
   </CActorModel>
+  <CActorRange id="JunkratRIPTireInnerRange">
+    <Filter index="Ally" value="1" />
+    <Filter index="Neutral" value="1" />
+    <Filter index="Enemy" value="1" />
+    <Inherits index="CloakEffect" value="1" />
+    <Inherits index="TeamColor" value="1" />
+    <On Terms="UnitDeath.JunkratRIPTire" Send="Destroy" />
+    <On Terms="UnitBirth.JunkratRIPTire" Send="Create" />
+    <Range value="0.650000" />
+    <Icon value="Assets\Textures\Storm_TankRadius_Passive.dds" />
+    <IconArcLength value="1.000000" />
+  </CActorRange>
   <CActorModel id="JunkratSteelTrapImpact" parent="StormModelAnimationStyleContinuousUnit">
     <On Terms="Effect.JunkratSteelTrapApplyRootBehavior.Start; At Target" Send="Create" />
     <On Terms="ActorCreation" Send="RefSetFromRequest ::actor.SteelTrapCaster _Unit Caster Find" />
@@ -1486,7 +1506,7 @@
     <Duration value="2" />
   </CBehaviorBuff>
   <CBehaviorBuff id="JunkratTotalMayhemDirtyTricksterCooldownBehavior">
-    <Duration value="12" />
+    <Duration value="20" />
   </CBehaviorBuff>
   <CBehaviorAbility id="JunkratTotalMayhemDirtyTricksterItem">
     <Buttons Face="JunkratDirtyTrickster" Type="AbilCmd" AbilCmd="JunkratTotalMayhemDirtyTrickster,Execute" />
@@ -2993,7 +3013,7 @@
     <Behavior value="JunkratFragLauncherTimedLife" />
   </CEffectApplyBehavior>
   <CEffectDamage id="JunkratFragLauncherExplosionDamage" parent="StormSpell">
-    <MultiplicativeModifierArray index="ExtraWoundTimersBonusDamage" Validator="JunkratFragLauncherSourceHasExtraWoundTimersMissileMarker" Modifier="1.2" Crit="1" />
+    <MultiplicativeModifierArray index="ExtraWoundTimersBonusDamage" Validator="JunkratFragLauncherSourceHasExtraWoundTimersMissileMarker" Modifier="1" Crit="1" />
     <MultiplicativeModifierArray index="BlowEmUp" Validator="JunkratCasterHasConcussionMineBlowEmUpBonusDamageTakenBehavior" Modifier="0.25" Crit="1" />
     <MultiplicativeModifierArray index="BombsAwayBonusDamage" Validator="JunkratFragLauncherSourceHasBombsAwayMissileMarkerBehavior" Modifier="0.3" Crit="1" />
     <MultiplicativeModifierArray index="TasteForExplosions" Validator="JunkratHasTalentFragLauncherTasteForExplosions" Accumulator="JunkatFragLauncherTasteForExplosions" />
@@ -3153,14 +3173,37 @@
     <PeriodicPeriodArray value="0.0625" />
     <ValidatorArray value="TargetNotUnstoppable" />
   </CEffectCreatePersistent>
+  <CEffectSwitch id="JunkratRIPTireDamageSwitch">
+    <CaseArray Validator="JunkratRIPTireTargetWithinFalloffRadius" Effect="JunkratRIPTireDamageNear" />
+    <CaseDefault value="JunkratRIPTireFalloffPersistent" />
+  </CEffectSwitch>
+  <CEffectCreatePersistent id="JunkratRIPTireFalloffPersistent">
+    <WhichLocation Value="SourceUnit" />
+    <InitialOffset Y="$JunkratRIPTireInnerRadius" />
+    <InitialEffect value="JunkratRIPTireOffsetDamageSet" />
+    <OffsetVectorStartLocation Effect="JunkratRIPTireImpactSet" Value="TargetUnit" />
+    <OffsetVectorEndLocation Effect="JunkratRIPTireSearchAreaImpact" Value="SourceUnit" />
+  </CEffectCreatePersistent>
+  <CEffectSet id="JunkratRIPTireOffsetDamageSet">
+    <EffectArray value="JunkratRIPTireFalloffDamagePersistent" />
+    <TargetLocationType value="Point" />
+  </CEffectSet>
+  <CEffectCreatePersistent id="JunkratRIPTireFalloffDamagePersistent">
+    <WhichLocation Effect="JunkratRIPTireImpactSet" Value="TargetUnit" />
+    <InitialEffect value="JunkratRIPTireDamage" />
+  </CEffectCreatePersistent>
   <CEffectDamage id="JunkratRIPTireDamage" parent="StormSpell">
     <Amount value="$JunkratRIPTireMaximumDamage">
       <AccumulatorArray value="JunkratRIPTireDistanceAccumulator" />
     </Amount>
   </CEffectDamage>
+  <CEffectDamage id="JunkratRIPTireDamageNear" parent="StormSpell">
+    <Amount value="$JunkratRIPTireMaximumDamage" />
+    <Flags index="Crit" value="1" />
+  </CEffectDamage>
   <CEffectSet id="JunkratRIPTireImpactSet">
     <ValidatorArray value="noMarkers" />
-    <EffectArray value="JunkratRIPTireDamage" />
+    <EffectArray value="JunkratRIPTireDamageSwitch" />
     <EffectArray value="JunkratRIPTireApplyKnockbackBehavior" />
     <EffectArray value="JunkratRIPTireCreateKnockbackPersistent" />
     <EffectArray value="JunkratRIPTireExtraOomphReduceCooldown" />
@@ -3426,7 +3469,7 @@
   <CEffectModifyPlayer id="JunkratTotalMayhemDirtyTricksterModifyCooldown">
     <WhichPlayer Value="Caster" />
     <Cost>
-      <Cooldown Link="Abil/JunkratTotalMayhemDirtyTrickster" Location="Player" TimeUse="12" />
+      <Cooldown Link="Abil/JunkratTotalMayhemDirtyTrickster" Location="Player" TimeUse="20" />
     </Cost>
   </CEffectModifyPlayer>
   <CEffectSet id="JunkratTotalMayhemDirtyTricksterCastSet">
@@ -3826,6 +3869,14 @@
       </Modifications>
     </LevelScalingArray>
     <LevelScalingArray Ability="JunkratRIPTire">
+      <Modifications>
+        <Catalog value="Effect" />
+        <Entry value="JunkratRIPTireDamageNear" />
+        <Field value="Amount" />
+        <Value value="0.040000" />
+        <AffectedByAbilityPower value="1" />
+        <AffectedByOverdrive value="1" />
+      </Modifications>
       <Modifications>
         <Catalog value="Effect" />
         <Entry value="JunkratRIPTireDamage" />
@@ -6474,6 +6525,12 @@
     <Find value="1" />
     <Value value="JunkratHasRIPTire" />
   </CValidatorPlayerRequirement>
+  <CValidatorLocationCompareRange id="JunkratRIPTireTargetWithinFalloffRadius">
+    <WhichLocation Effect="JunkratRIPTireSearchAreaImpact" />
+    <Compare value="LT" />
+    <Range value="$JunkratRIPTireInnerRadius" />
+    <Value Value="TargetPoint" />
+  </CValidatorLocationCompareRange>
   <CValidatorIsUnitTracked id="JunkratSteelTrapIsTracked">
     <BehaviorLink value="JunkratSteelTrapUnitTracker" />
     <TrackedUnit Value="Target" />

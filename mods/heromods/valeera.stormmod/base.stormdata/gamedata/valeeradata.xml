@@ -56,6 +56,7 @@
       <Cooldown TimeUse="1" />
     </Cost>
     <CmdButtonArray index="Execute" DefaultButtonFace="ValeeraCancelStealth" Requirements="ValeeraHasVanishStealth" />
+    <ParentAbil value="ValeeraStealth" />
   </CAbilEffectInstant>
   <CAbilEffectTarget id="ValeeraSinisterStrike" parent="StormSkillshotDashParent">
     <Effect value="ValeeraSinisterStrikePersistent" />
@@ -1239,11 +1240,12 @@
     <FinalEffect value="ValeeraStealthReduceStealthRangesModifyPlayer" />
   </CBehaviorBuff>
   <CBehaviorBuff id="ValeeraEnteringDeepShadowsTimer">
+    <BuffFlags index="Countdown" value="0" />
+    <BuffFlags index="UpdateDurationWhileDisabled" value="1" />
     <InfoFlags index="Hidden" value="0" />
     <InfoIcon value="Assets\Textures\storm_ui_temp_icon_stealthmastery_2.dds" />
     <BehaviorCategories index="Restorable" value="1" />
     <RemoveValidatorArray value="ValeeraIsStealthedCombine" />
-    <BuffFlags index="UpdateDurationWhileDisabled" value="1" />
     <Duration value="3" />
     <ExpireEffect value="ValeeraDeepStealthBonusApply" />
   </CBehaviorBuff>
@@ -1287,6 +1289,10 @@
     <ArmorModification>
       <AllArmorBonus value="60" />
     </ArmorModification>
+  </CBehaviorBuff>
+  <CBehaviorBuff id="ValeeraSmokeBombTimer">
+    <Duration value="5" />
+    <TimeScaleSource Value="Global" />
   </CBehaviorBuff>
   <CButton id="ValeeraAmbush" parent="StormButtonParent">
     <Icon value="Assets\Textures\storm_ui_icon_valeera_ambush.dds" />
@@ -1987,9 +1993,20 @@
   <CEffectApplyBehavior id="ValeeraCripplingPoisonApply" parent="StormSlowApply">
     <Behavior value="ValeeraCripplingPoison" />
   </CEffectApplyBehavior>
+  <CEffectSwitch id="ValeeraWoundPoisonApplySwitch">
+    <ValidatorArray value="TargetIsHero" />
+    <CaseArray Validator="ValeeraTargetHasWoundPoison" Effect="ValeeraWoundPoisonRefreshDuration" />
+    <CaseDefault value="ValeeraWoundPoisonApply" />
+  </CEffectSwitch>
   <CEffectApplyBehavior id="ValeeraWoundPoisonApply">
     <Behavior value="ValeeraWoundPoison" />
   </CEffectApplyBehavior>
+  <CEffectModifyBehaviorBuffDuration id="ValeeraWoundPoisonRefreshDuration">
+    <WhichUnit Value="Target" />
+    <Behavior value="ValeeraWoundPoison" />
+    <Operation value="Set" />
+    <Value value="4" />
+  </CEffectModifyBehaviorBuffDuration>
   <CEffectSet id="ValeeraBlindImpactSet">
     <EffectArray value="ValeeraBlindApply" />
     <EffectArray value="ValeeraBlindApplyNonHeroes" />
@@ -2213,6 +2230,7 @@
   <CEffectSet id="ValeeraSmokeBombInitialSet">
     <EffectArray value="ValeeraSmokeBombCreatePersistent" />
     <EffectArray value="ValeeraSmokeBombApplyResistant" />
+    <EffectArray value="ValeeraSmokeBombApplyTimer" />
     <TargetLocationType value="Point" />
   </CEffectSet>
   <CEffectCreatePersistent id="ValeeraSmokeBombCreatePersistent">
@@ -2240,6 +2258,10 @@
   <CEffectApplyBehavior id="ValeeraSmokeBombApplyResistant">
     <WhichUnit Value="Caster" />
     <Behavior value="ValeeraSmokeBombArmorIncrease" />
+  </CEffectApplyBehavior>
+  <CEffectApplyBehavior id="ValeeraSmokeBombApplyTimer">
+    <WhichUnit Value="Caster" />
+    <Behavior value="ValeeraSmokeBombTimer" />
   </CEffectApplyBehavior>
   <CEffectApplyBehavior id="ValeeraSmokeBombApplyUnrevealable">
     <WhichUnit Value="Caster" />
@@ -2277,7 +2299,7 @@
   </CEffectApplyBehavior>
   <CEffectSet id="ValeeraWoundPoisonImpactSet">
     <EffectArray value="ValeeraWoundPoisonModifyCooldown" />
-    <EffectArray value="ValeeraWoundPoisonApply" />
+    <EffectArray value="ValeeraWoundPoisonApplySwitch" />
     <EffectArray value="ValeeraWoundPoisonApplyActiveBehavior" />
   </CEffectSet>
   <CEffectApplyBehavior id="ValeeraWoundPoisonApplyRemoveWeapon">
@@ -2559,6 +2581,7 @@
     <HeroSpecificUIArray Location="BackgroundStatus" DescName="Valeera/ValeeraBackplateFrame" />
     <HeroSpecificUIArray Location="FullscreenStatus" DescName="Valeera/ValeeraSmokeFrame" />
     <HeroSpecificUIArray Location="HeroSpecificStackingBuffsStatus" DescName="Valeera/ValeeraStacksFrameContainer" />
+    <HeroSpecificUIArray Location="CommandButton03Status" DescName="Valeera/ValeeraSmokeBombButtonOverride" />
     <Gender value="Female" />
     <ReleaseDate Day="24" Year="2017" />
     <HeroTierAchievementId value="5216701565557929694" />
@@ -3167,6 +3190,9 @@
     <WhichUnit Value="Source" />
     <Behavior value="ValeeraWoundPoisonActive" />
   </CValidatorUnitCompareBehaviorCount>
+  <CValidatorUnitHasBehavior id="ValeeraTargetHasWoundPoison">
+    <Behavior value="ValeeraWoundPoison" />
+  </CValidatorUnitHasBehavior>
   <CValidatorUnitCompareBehaviorCount id="ValeeraHasNotInCombat">
     <WhichUnit Value="Caster" />
     <Behavior value="ValeeraInCombatComboPoints" />

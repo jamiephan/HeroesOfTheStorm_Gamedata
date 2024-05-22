@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="us-ascii"?>
 <Catalog>
+  <const id="$GallOgreRageBonus" value="0.25" />
+  <const id="$GallOgreRampageBonus" value="0.05" />
   <CAbilEffectInstant id="GallTwilightFrenzy">
     <Effect value="GallTwilightFrenzyApplyBehavior" />
     <Cost>
@@ -180,6 +182,7 @@
     <Cost>
       <Cooldown TimeUse="60" />
     </Cost>
+    <SharedFlags index="AllowQuickCastCustomization" value="0" />
   </CAbilEffectInstant>
   <CAbilEffectTarget id="GallShadowflame">
     <Effect value="GallShadowflameInitialSet" />
@@ -278,6 +281,7 @@
     <Flags index="RequireTargetVision" value="0" />
     <CastIntroTime value="0.125" />
     <CmdButtonArray index="Execute" DefaultButtonFace="GallTwistingNetherActivated" Requirements="GallTwistingNetherChannelingActive" />
+    <SharedFlags index="AllowQuickCastCustomization" value="0" />
   </CAbilEffectInstant>
   <CAbilEffectTarget id="GallTalentEyeOfKilrogg">
     <OrderArray index="0" Model="Assets\UI\Feedback\WayPointConfirm\WayPointConfirm.m3" LineTexture="Assets\Textures\Storm_WayPointLine.dds" />
@@ -1898,8 +1902,8 @@
     <Buttons Face="GallTwilightFrenzy" Type="AbilCmd" AbilCmd="GallTwilightFrenzy,Execute" Behavior="GallTwilightFrenzyBehaviorAbility" />
   </CBehaviorAbility>
   <CBehaviorBuff id="GallTwilightFrenzyBuff">
-    <InitialEffect value="GallTwilightFrenzyBuffApplyBonus" />
-    <FinalEffect value="GallTwilightFrenzyBuffResetSwitch" />
+    <InitialEffect value="GallTwilightFrenzyBuffApplyBonusSet" />
+    <FinalEffect value="GallTwilightFrenzyBuffResetSet" />
     <Duration value="6" />
     <Face value="GallTwilightFrenzyBuff" />
     <Alignment value="Positive" />
@@ -2015,6 +2019,11 @@
   <CBehaviorTokenCounter id="GallOgreRageOgreRampageTalentTokenCounter" parent="StormGenericToken">
     <TokenId value="GallOgreRampageToken" />
     <Max value="10" />
+    <DisplayDurationProxyBehavior value="GallOgreRageOgreRampageDurationBuff" />
+    <Face value="GallOgreRampage" />
+    <Alignment value="Positive" />
+    <MinStackCountDisplayed value="0" />
+    <SortIndex value="50" />
   </CBehaviorTokenCounter>
   <CBehaviorBuff id="ChoSurgingFirstPowerSurgePostCastMoveSpeedBuff" parent="StormSprint">
     <Duration value="2.5" />
@@ -2201,6 +2210,7 @@
     <TokenId value="GallTheWillofGallTokenCounter" />
     <Max value="65000" />
     <MinStackCountDisplayed value="0" />
+    <SortIndex value="150" />
   </CBehaviorTokenCounter>
   <CBehaviorBuff id="GallShoveDisablerDummyBehavior">
     <BehaviorFlags index="Permanent" value="1" />
@@ -2896,6 +2906,14 @@
     <Voice value="NaturalSoft Peter" />
     <Variations Model="ChoGallPortrait" Actor="ChoGallPortrait" />
   </CCharacter>
+  <CEffectSet id="GallTwilightFrenzyBuffApplyBonusSet">
+    <EffectArray value="GallTwilightFrenzyBuffApplyBonus" />
+    <EffectArray value="GallTwilightFrenzyDoubleTroubleTalentCompletionModifyPlayer" />
+  </CEffectSet>
+  <CEffectSet id="GallTwilightFrenzyBuffResetSet">
+    <EffectArray value="GallTwilightFrenzyBuffResetSwitch" />
+    <EffectArray value="GallTwilightFrenzyDoubleTroubleTalentCompletionModifyPlayer" />
+  </CEffectSet>
   <CEffectSwitch id="GallTwilightFrenzyBuffResetSwitch">
     <CaseArray Validator="GallTalentHasTwilightNova" Effect="GallTwilightFrenzyBuffResetTwilightNova" />
     <CaseDefault value="GallTwilightFrenzyBuffReset" />
@@ -2915,6 +2933,10 @@
   <CEffectModifyPlayer id="GallTwilightFrenzyBuffResetTwilightNova">
     <EffectArray Operation="Set" Reference="Abil,GallShadowflame,Cost[0].Cooldown.TimeUse" Value="3.000000" />
     <EffectArray Operation="Set" Reference="Abil,GallDreadOrb,Cost[0].Cooldown.TimeUse" Value="6.000000" />
+  </CEffectModifyPlayer>
+  <CEffectModifyPlayer id="GallTwilightFrenzyDoubleTroubleTalentCompletionModifyPlayer" parent="GallShadowflameDoubleTroubleTalentCompletionModifyPlayer">
+    <ValidatorArray value="GallHasDoubleTroubleTalent" />
+    <ValidatorArray value="GallCastHasDoubleTroubleCompleted" />
   </CEffectModifyPlayer>
   <CEffectSet id="ChoConsumingBlazeBasicAttackSet">
     <ValidatorArray value="CasterNotBlindedAndTargetNotEvading" />
@@ -3165,6 +3187,8 @@
     <ValidatorArray value="TargetIsHero" />
     <ValidatorArray value="GallHasSearingShadowsTalent" />
     <VitalFractionMax index="Life" value="0.02" />
+    <LeechRecipientArray index="0" Value="Creator" />
+    <DamageModifierSource Value="Creator" />
   </CEffectDamage>
   <CEffectCreatePersistent id="GallShoveOffsetPersistent">
     <InitialEffect value="GallShoveFindChoAndApplyForce" />
@@ -3290,6 +3314,10 @@
   <CEffectDamage id="GallRunicBlastRunicPersistenceTalentDamage" parent="StormSpell">
     <Amount value="30" />
     <MultiplicativeModifierArray index="PsychoticBreak" Validator="GallPsychoticBreakHeroDamageCombine" Modifier="0.1" />
+    <MultiplicativeModifierArray index="OgreRage" Validator="GallCasterHasOgreRageSpellDamageBuff" Accumulator="GallTheWillofGallDamageAccumulator" Modifier="$GallOgreRageBonus" />
+    <MultiplicativeModifierArray index="OgreRampage" Validator="GallOgreRampageCombine" Accumulator="GallOgreRampageSpellPowerAccumulator" Modifier="$GallOgreRampageBonus" />
+    <LeechRecipientArray index="0" Value="Creator" />
+    <DamageModifierSource Value="Creator" />
   </CEffectDamage>
   <CEffectEnumArea id="GallRunicBlastRunicPersistenceTalentSearch">
     <SearchFilters value="-;Player,Ally,Neutral,ImmuneToAOE,Missile,Item,Stasis,Dead,Hidden,Invulnerable" />
@@ -4665,15 +4693,27 @@
   <CEffectDamage id="GallShadowflameTalentEdgeOfMadnessCloseDamage" parent="StormSpell">
     <Amount value="176" />
     <MultiplicativeModifierArray index="PsychoticBreak" Validator="GallPsychoticBreakHeroDamageCombine" Modifier="0.1" />
+    <MultiplicativeModifierArray index="OgreRage" Validator="GallCasterHasOgreRageSpellDamageBuff" Accumulator="GallTheWillofGallDamageAccumulator" Modifier="$GallOgreRageBonus" />
+    <MultiplicativeModifierArray index="OgreRampage" Validator="GallOgreRampageCombine" Accumulator="GallOgreRampageSpellPowerAccumulator" Modifier="$GallOgreRampageBonus" />
+    <LeechRecipientArray index="0" Value="Creator" />
+    <DamageModifierSource Value="Creator" />
   </CEffectDamage>
   <CEffectDamage id="GallShadowflameTalentEdgeOfMadnessMidDamage" parent="StormSpell">
     <Amount value="162" />
     <MultiplicativeModifierArray index="PsychoticBreak" Validator="GallPsychoticBreakHeroDamageCombine" Modifier="0.1" />
+    <MultiplicativeModifierArray index="OgreRage" Validator="GallCasterHasOgreRageSpellDamageBuff" Accumulator="GallTheWillofGallDamageAccumulator" Modifier="$GallOgreRageBonus" />
+    <MultiplicativeModifierArray index="OgreRampage" Validator="GallOgreRampageCombine" Accumulator="GallOgreRampageSpellPowerAccumulator" Modifier="$GallOgreRampageBonus" />
+    <LeechRecipientArray index="0" Value="Creator" />
+    <DamageModifierSource Value="Creator" />
   </CEffectDamage>
   <CEffectDamage id="GallShadowflameDamage" parent="StormSpell">
     <Amount value="135" />
     <MultiplicativeModifierArray index="0" Validator="GallTargetHasEdgeofMadnessTokenCounter" Accumulator="GallShadowflameEdgeofMadnessTalentDamageAccumulator" Crit="1" />
     <MultiplicativeModifierArray index="PsychoticBreak" Validator="GallPsychoticBreakHeroDamageCombine" Modifier="0.1" />
+    <MultiplicativeModifierArray index="OgreRage" Validator="GallCasterHasOgreRageSpellDamageBuff" Accumulator="GallTheWillofGallDamageAccumulator" Modifier="$GallOgreRageBonus" />
+    <MultiplicativeModifierArray index="OgreRampage" Validator="GallOgreRampageCombine" Accumulator="GallOgreRampageSpellPowerAccumulator" Modifier="$GallOgreRampageBonus" />
+    <LeechRecipientArray index="0" Value="Creator" />
+    <DamageModifierSource Value="Creator" />
   </CEffectDamage>
   <CEffectModifyUnit id="GallTalentBoilingBloodTriggerDummy">
     <ValidatorArray value="ChoTargetHasConsumingBlazeDoT" />
@@ -4734,6 +4774,10 @@
   <CEffectDamage id="GallDreadOrbImpactDamage01" parent="StormSpell">
     <Amount value="126" />
     <MultiplicativeModifierArray index="PsychoticBreak" Validator="GallPsychoticBreakHeroDamageCombine" Modifier="0.1" />
+    <MultiplicativeModifierArray index="OgreRage" Validator="GallCasterHasOgreRageSpellDamageBuff" Accumulator="GallTheWillofGallDamageAccumulator" Modifier="$GallOgreRageBonus" />
+    <MultiplicativeModifierArray index="OgreRampage" Validator="GallOgreRampageCombine" Accumulator="GallOgreRampageSpellPowerAccumulator" Modifier="$GallOgreRampageBonus" />
+    <LeechRecipientArray index="0" Value="Creator" />
+    <DamageModifierSource Value="Creator" />
   </CEffectDamage>
   <CEffectCreatePersistent id="GallDreadOrbImpactRevealer">
     <ExpireDelay value="0.75" />
@@ -4795,6 +4839,10 @@
     <Amount value="126" />
     <MultiplicativeModifierArray index="RisingDread" Validator="GallTalentHasRisingDread" Modifier="0.15" />
     <MultiplicativeModifierArray index="PsychoticBreak" Validator="GallPsychoticBreakHeroDamageCombine" Modifier="0.1" />
+    <MultiplicativeModifierArray index="OgreRage" Validator="GallCasterHasOgreRageSpellDamageBuff" Accumulator="GallTheWillofGallDamageAccumulator" Modifier="$GallOgreRageBonus" />
+    <MultiplicativeModifierArray index="OgreRampage" Validator="GallOgreRampageCombine" Accumulator="GallOgreRampageSpellPowerAccumulator" Modifier="$GallOgreRampageBonus" />
+    <LeechRecipientArray index="0" Value="Creator" />
+    <DamageModifierSource Value="Creator" />
   </CEffectDamage>
   <CEffectCreatePersistent id="GallDreadOrbMissile3CreatePersistent">
     <PeriodCount value="1" />
@@ -4864,8 +4912,12 @@
   </CEffectSet>
   <CEffectDamage id="GallDreadOrbImpactDamage03" parent="StormSpell">
     <Amount value="126" />
-    <MultiplicativeModifierArray index="RisingDread" Validator="GallTalentHasRisingDread" Modifier="0.3" Crit="1" />
+    <MultiplicativeModifierArray index="RisingDread" Validator="GallTalentHasRisingDread" Modifier="0.3" />
     <MultiplicativeModifierArray index="PsychoticBreak" Validator="GallPsychoticBreakHeroDamageCombine" Modifier="0.1" />
+    <MultiplicativeModifierArray index="OgreRage" Validator="GallCasterHasOgreRageSpellDamageBuff" Accumulator="GallTheWillofGallDamageAccumulator" Modifier="$GallOgreRageBonus" />
+    <MultiplicativeModifierArray index="OgreRampage" Validator="GallOgreRampageCombine" Accumulator="GallOgreRampageSpellPowerAccumulator" Modifier="$GallOgreRampageBonus" />
+    <LeechRecipientArray index="0" Value="Creator" />
+    <DamageModifierSource Value="Creator" />
   </CEffectDamage>
   <CEffectSet id="GallTalentSpeedOfTwilightHeroValidationSet">
     <ValidatorArray value="TargetIsHero" />
@@ -5012,6 +5064,10 @@
     <Amount value="210" />
     <FlatModifierArray index="0" Validator="GallHasBombsAwayTalent" Accumulator="GallBombsAwayTalentDamageAccumulator" />
     <MultiplicativeModifierArray index="PsychoticBreak" Validator="GallPsychoticBreakHeroDamageCombine" Modifier="0.1" />
+    <MultiplicativeModifierArray index="OgreRage" Validator="GallCasterHasOgreRageSpellDamageBuff" Accumulator="GallTheWillofGallDamageAccumulator" Modifier="$GallOgreRageBonus" />
+    <MultiplicativeModifierArray index="OgreRampage" Validator="GallOgreRampageCombine" Accumulator="GallOgreRampageSpellPowerAccumulator" Modifier="$GallOgreRampageBonus" />
+    <LeechRecipientArray index="0" Value="Creator" />
+    <DamageModifierSource Value="Creator" />
   </CEffectDamage>
   <CEffectSet id="GallTwistingNetherInitialSet">
     <EffectArray value="GallTwistingNetherApplyChannelingBehavior" />
@@ -5052,6 +5108,10 @@
   <CEffectDamage id="GallTwistingNetherDamage" parent="StormSpell">
     <Amount value="353" />
     <MultiplicativeModifierArray index="PsychoticBreak" Validator="GallPsychoticBreakHeroDamageCombine" Modifier="0.1" />
+    <MultiplicativeModifierArray index="OgreRage" Validator="GallCasterHasOgreRageSpellDamageBuff" Accumulator="GallTheWillofGallDamageAccumulator" Modifier="$GallOgreRageBonus" />
+    <MultiplicativeModifierArray index="OgreRampage" Validator="GallOgreRampageCombine" Accumulator="GallOgreRampageSpellPowerAccumulator" Modifier="$GallOgreRampageBonus" />
+    <LeechRecipientArray index="0" Value="Creator" />
+    <DamageModifierSource Value="Creator" />
   </CEffectDamage>
   <CEffectEnumArea id="GallTwistingNetherChannelingSearch">
     <SearchFilters value="Ground;Self,Player,Ally,Neutral,Missile,Item,Stasis,Dead,Hidden,Invulnerable" />
@@ -5145,6 +5205,10 @@
   <CEffectDamage id="GallShadowboltVolleyDamage" parent="StormSpell">
     <Amount value="87" />
     <MultiplicativeModifierArray index="PsychoticBreak" Validator="GallPsychoticBreakHeroDamageCombine" Modifier="0.1" />
+    <MultiplicativeModifierArray index="OgreRage" Validator="GallCasterHasOgreRageSpellDamageBuff" Accumulator="GallTheWillofGallDamageAccumulator" Modifier="$GallOgreRageBonus" />
+    <MultiplicativeModifierArray index="OgreRampage" Validator="GallOgreRampageCombine" Accumulator="GallOgreRampageSpellPowerAccumulator" Modifier="$GallOgreRampageBonus" />
+    <LeechRecipientArray index="0" Value="Creator" />
+    <DamageModifierSource Value="Creator" />
   </CEffectDamage>
   <CEffectRemoveBehavior id="GallShadowboltVolleyRemoveMissileScanBehavior">
     <WhichUnit Value="Source" />
@@ -5274,6 +5338,8 @@
     <ValidatorArray value="TargetIsHero" />
     <Visibility value="Hidden" />
     <VitalFractionMax index="Life" value="0.035" />
+    <LeechRecipientArray index="0" Value="Creator" />
+    <DamageModifierSource Value="Creator" />
   </CEffectDamage>
   <CEffectCreatePersistent id="GallShoveInitialPersistent">
     <ValidatorArray value="GallDoesNotHaveGallShoveDisablerDummyBehavior" />
@@ -7418,6 +7484,10 @@
     <Value value="20" />
     <TokenId value="GallShadowflameDoubleTroubleTalentTokenCounter" />
   </CValidatorUnitCompareTokenCount>
+  <CValidatorUnitHasBehavior id="GallCastHasDoubleTroubleCompleted">
+    <WhichUnit Value="Caster" />
+    <Behavior value="GallShadowflameDoubleTroubleTalentCompletionGallCarry" />
+  </CValidatorUnitHasBehavior>
   <CValidatorCombine id="GallDoubleBackTalentCombineNonHeroic">
     <Type value="And" />
     <CombineArray value="TargetIsNotHeroic" />
@@ -7474,6 +7544,11 @@
   <CValidatorUnitCompareBehaviorCount id="ChoHasOgreHideArmorBuff">
     <Compare value="GT" />
     <Behavior value="ChoOgreHide" />
+  </CValidatorUnitCompareBehaviorCount>
+  <CValidatorUnitCompareBehaviorCount id="GallCasterHasOgreRageSpellDamageBuff">
+    <WhichUnit Value="Caster" />
+    <Compare value="GT" />
+    <Behavior value="ChoOgreRage" />
   </CValidatorUnitCompareBehaviorCount>
   <CValidatorUnitCompareBehaviorCount id="GallHasOgreRageSpellDamageBuff">
     <Compare value="GT" />
@@ -7613,6 +7688,16 @@
     <Find value="1" />
     <Value value="GallOgreRampage" />
   </CValidatorPlayerTalent>
+  <CValidatorPlayerTalent id="GallCasterHasOgreRampageTalent">
+    <Find value="1" />
+    <Value value="GallOgreRampage" />
+    <WhichPlayer Value="Caster" />
+  </CValidatorPlayerTalent>
+  <CValidatorCombine id="GallOgreRampageCombine">
+    <Type value="And" />
+    <CombineArray value="GallCasterHasOgreRageSpellDamageBuff" />
+    <CombineArray value="GallCasterHasOgreRampageTalent" />
+  </CValidatorCombine>
   <CValidatorUnitCompareBehaviorCount id="GallTargetDoesNotHaveDetonatedBehavior">
     <Behavior value="ChoRuneBombDetonated" />
   </CValidatorUnitCompareBehaviorCount>

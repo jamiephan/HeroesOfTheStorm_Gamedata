@@ -73,6 +73,7 @@
       <Cooldown TimeUse="14" />
     </Cost>
     <Range value="12" />
+    <RangeSlop value="5" />
     <Arc value="360" />
     <UninterruptibleArray index="Cast" value="1" />
     <UninterruptibleArray index="Channel" value="1" />
@@ -114,6 +115,7 @@
       <Cooldown TimeUse="50" />
     </Cost>
     <Range value="14" />
+    <RangeSlop value="5" />
     <Arc value="360" />
     <CastIntroTime value="0.125" />
     <UninterruptibleArray index="Cast" value="1" />
@@ -132,6 +134,7 @@
       <Cooldown TimeUse="70" />
     </Cost>
     <Range value="9" />
+    <RangeSlop value="5" />
     <Arc value="360" />
     <UninterruptibleArray index="Cast" value="1" />
     <UninterruptibleArray index="Channel" value="1" />
@@ -548,6 +551,7 @@
     <On Terms="Behavior.OrpheaFinalToccata.Off" Send="AnimBracketStop BSD" />
     <On Terms="Behavior.OrpheaEldritchConduitEmpowered.On" Send="Create" />
     <On Terms="Behavior.OrpheaEldritchConduitEmpowered.Off" Send="AnimBracketStop BSD" />
+    <On Terms="Behavior.Dead.On" Send="Destroy" />
     <HostSiteOps Ops="SOpAttachCenter SOpPointSouthWorld" HoldRotation="1" />
   </CActorModel>
   <CActorSound id="Orphea_ShadowWaltz_Launch" parent="SoundOneShot">
@@ -1316,6 +1320,7 @@
     <InfoFlags index="Hidden" value="1" />
     <TokenId value="OrpheaOverflowingChaosChaoticAssaultToken" />
     <Max value="1" />
+    <InitEvents Effect="OrpheaChaoticAssaultTalentModifyTokenInitial" />
   </CBehaviorTokenCounter>
   <CBehaviorBuff id="OrpheaShadowWaltzDashAttackSuppress">
     <Alignment value="Positive" />
@@ -1611,6 +1616,7 @@
   <CBehaviorAbility id="OrpheaLurkingTerrorAbility">
     <Buttons Face="OrpheaLurkingTerror" Type="AbilCmd" AbilCmd="OrpheaLurkingTerror,Execute" />
     <DisableValidatorArray value="OrpheaNotCurrentlyCastingChomp" />
+    <ButtonOverrideDataFrame value="Orphea/OrpheaLurkingTerrorButtonOverlayFrame" />
   </CBehaviorAbility>
   <CBehaviorAbility id="OrpheaFinalToccataAbility">
     <Buttons Face="OrpheaFinalToccata" Type="AbilCmd" AbilCmd="OrpheaFinalToccata,Execute" />
@@ -1902,6 +1908,10 @@
     <TokenId value="OrpheaOverflowingChaosChaoticAssaultToken" />
     <Operation value="Set" />
     <Value value="0" />
+  </CEffectModifyTokenCount>
+  <CEffectModifyTokenCount id="OrpheaChaoticAssaultTalentModifyTokenInitial" parent="BaseEffectModifyTokenCount">
+    <ValidatorArray value="OrpheaHas3OverflowingChaos" />
+    <TokenId value="OrpheaOverflowingChaosChaoticAssaultToken" />
   </CEffectModifyTokenCount>
   <CEffectSet id="OrpheaShadowWaltzExpireSet">
     <EffectArray value="OrpheaShadowWaltzCancelMoveOrder" />
@@ -2354,6 +2364,7 @@
     <Behavior value="OrpheaDreadStun" />
   </CEffectApplyBehavior>
   <CEffectModifyUnit id="OrpheaWeaponAddShortCooldown">
+    <ValidatorArray value="OrpheaWeaponNotInSwing" />
     <ImpactUnit Value="Caster" />
     <Weapon Weapon="OrpheaWeapon" CooldownOperation="Max" CooldownAmount="0.25" />
   </CEffectModifyUnit>
@@ -2466,12 +2477,19 @@
     <EffectArray value="OrpheaEternalFeastDamage" />
     <EffectArray value="OrpheaEternalFeastImpactApply" />
     <EffectArray value="OrpheaMonsterWithinModifyToken" />
+    <EffectArray value="OrpheaMonsterWithinChaoticAssaultTalentModifyToken" />
     <EffectArray value="ApplyAbilityImpactReveal" />
   </CEffectSet>
   <CEffectModifyTokenCount id="OrpheaMonsterWithinModifyToken" parent="BaseEffectModifyTokenCount">
     <ValidatorArray value="TargetIsHero" />
     <ValidatorArray value="OrpheaHasMonsterWithinTalent" />
     <TokenId value="OrpheaOverflowingChaosToken" />
+  </CEffectModifyTokenCount>
+  <CEffectModifyTokenCount id="OrpheaMonsterWithinChaoticAssaultTalentModifyToken" parent="BaseEffectModifyTokenCount">
+    <ValidatorArray value="TargetIsHero" />
+    <ValidatorArray value="OrpheaHasChaoticAssaultTalentAnd3OverflowingChaos" />
+    <ValidatorArray value="OrpheaHasMonsterWithinTalent" />
+    <TokenId value="OrpheaOverflowingChaosChaoticAssaultToken" />
   </CEffectModifyTokenCount>
   <CEffectDamage id="OrpheaEternalFeastDamage" parent="StormSpell">
     <Amount value="210" />
@@ -2789,7 +2807,7 @@
     <EffectArray value="OrpheaInvasiveMiasmaApply" />
   </CEffectSet>
   <CEffectEnumArea id="OrpheaInvasiveMiasmaSearch">
-    <SearchFilters value="-;Player,Ally,ImmuneToAOE,Missile,Item,Stasis,Hidden,Invulnerable" />
+    <SearchFilters value="-;Player,Ally,ImmuneToAOE,Missile,Item,Stasis,Dead,Hidden,Invulnerable" />
     <AreaArray Effect="OrpheaInvasiveMiasmaImpactSet">
       <Radius value="4.5" />
     </AreaArray>
@@ -3897,6 +3915,11 @@
     <Behavior value="OrpheaChompKnockback" />
     <WhichUnit Value="Caster" />
   </CValidatorUnitCompareBehaviorCount>
+  <CValidatorUnitCompareWeaponLegacyState id="OrpheaWeaponNotInSwing">
+    <Compare value="NE" />
+    <Value value="Swing" />
+    <Weapon value="OrpheaWeapon" />
+  </CValidatorUnitCompareWeaponLegacyState>
   <CValidatorCombine id="OrpheaWeaponNormalAttackValidator">
     <CombineArray value="OrpheaHas0OverflowingChaos" />
     <CombineArray value="TargetNotHero" />

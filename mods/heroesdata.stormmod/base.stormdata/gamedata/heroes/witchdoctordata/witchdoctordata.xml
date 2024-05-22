@@ -46,6 +46,7 @@
       <Cooldown TimeUse="70" />
     </Cost>
     <Range value="8" />
+    <RangeSlop value="5" />
     <CmdButtonArray index="Execute" DefaultButtonFace="WitchDoctorGargantuan" Requirements="WitchDoctorGargantuanUltimateRequirement" />
     <Arc value="360" />
     <CastIntroTime value="0.15" />
@@ -65,6 +66,7 @@
       <Cooldown TimeUse="8" />
     </Cost>
     <Range value="8" />
+    <RangeSlop value="5" />
     <CmdButtonArray index="Execute" DefaultButtonFace="WitchDoctorCorpseSpiders" />
     <CastIntroTime value="0.15" />
     <UninterruptibleArray index="Cast" value="1" />
@@ -176,6 +178,7 @@
       <Cooldown TimeUse="14" />
     </Cost>
     <Range value="7" />
+    <RangeSlop value="5" />
     <Arc value="360" />
     <CastIntroTime value="0.15" />
     <UninterruptibleArray index="Cast" value="1" />
@@ -789,7 +792,7 @@
     <On Terms="ActorCreation" Send="SetOpacity 0.500000" />
     <On Terms="Effect.WitchDoctorZombieWallDelayPersistent.Start" Send="Create" />
     <On Terms="Effect.WitchDoctorZombieWallDelayPersistent.Stop" Send="Destroy" />
-    <HostSiteOps Ops="SOpRotationRandomDisc SOpWading" />
+    <HostSiteOps Ops="SOpTargetPointStationary SOpForwardVectorPoint SOpWading" />
     <Model value="WitchDoctorZombieWallUnit" />
   </CActorModel>
   <CActorUnit id="WitchDoctorZombieWallUnit" parent="StormMinionStandard" unitName="WitchDoctorZombieWallUnit">
@@ -1727,11 +1730,21 @@
     <EffectArray value="WitchDoctorBadMedicineApplySpeed" />
     <EffectArray value="WitchDoctorBadMedicineApplyUnstoppable" />
   </CEffectSet>
+  <CEffectSwitch id="WitchDoctorRavenousSpiritAnnihilatingSpiritTalentApplyHealingReductionSwitch">
+    <ValidatorArray value="TargetIsHero" />
+    <ValidatorArray value="WitchDoctorHasAnnihilatingSpirits" />
+    <CaseArray Validator="WitchDoctorTargetHasAnnihilatingSpiritHealingDebuff" Effect="WitchDoctorAnnihilatingSpiritExtendHealingDebuffDuration" />
+    <CaseDefault value="WitchDoctorRavenousSpiritAnnihilatingSpiritTalentApplyHealingReduction" />
+  </CEffectSwitch>
   <CEffectApplyBehavior id="WitchDoctorRavenousSpiritAnnihilatingSpiritTalentApplyHealingReduction">
-    <ValidatorArray index="0" value="TargetIsHero" />
-    <Chance value="0" />
     <Behavior value="WitchDoctorRavenousSpiritAnnihilatingSpiritTalentHealingReduction" />
   </CEffectApplyBehavior>
+  <CEffectModifyBehaviorBuffDuration id="WitchDoctorAnnihilatingSpiritExtendHealingDebuffDuration">
+    <WhichUnit Value="Target" />
+    <Behavior value="WitchDoctorRavenousSpiritAnnihilatingSpiritTalentHealingReduction" />
+    <Operation value="Set" />
+    <Value value="1" />
+  </CEffectModifyBehaviorBuffDuration>
   <CEffectModifyUnit id="WitchDoctorRavenousSpiritAnnihilatingSpiritTalentModifyCooldown">
     <ValidatorArray value="TargetIsHero" />
     <Chance value="0" />
@@ -2040,7 +2053,7 @@
     <EffectArray value="WitchDoctorVoodooRitualApplyDoTSwitch" />
     <EffectArray value="WitchDoctorRavenousSpiritDamage" />
     <EffectArray value="WitchDoctorReavnousSpiritAnnihilatingSpiritAddTokenCount" />
-    <EffectArray value="WitchDoctorRavenousSpiritAnnihilatingSpiritTalentApplyHealingReduction" />
+    <EffectArray value="WitchDoctorRavenousSpiritAnnihilatingSpiritTalentApplyHealingReductionSwitch" />
   </CEffectSet>
   <CEffectSet id="WitchDoctorCorpseSpidersJarImpactSet">
     <EffectArray value="WitchDoctorVoodooRitualApplyDoTSwitch" />
@@ -3148,12 +3161,17 @@
     <EffectArray value="WitchDoctorZombieWallDeadRushApplyBuffBehavior" />
     <EffectArray value="WitchDoctorSoulHarvestApplyCarry" />
     <EffectArray value="WitchDoctorVoodooRitualApplyDeathRitualTalentSummonCarry" />
+    <EffectArray value="WitchDoctorZombieWallSetFacing" />
   </CEffectSet>
   <CEffectSet id="WitchDoctorZombieWallMasterySpawnSet">
     <EffectArray value="WitchDoctorZombieWallDeadRushApplyTimedLifeBehavior" />
     <EffectArray value="MinionKillerApplySummonedUnitBehavior" />
     <EffectArray value="WitchDoctorZombieWallDeadRushApplyBuffBehavior" />
   </CEffectSet>
+  <CEffectModifyUnit id="WitchDoctorZombieWallSetFacing">
+    <FacingLocation Effect="WitchDoctorZombieWallPersistent" Value="TargetPoint" />
+    <FacingType value="LookAt" />
+  </CEffectModifyUnit>
   <CEffectApplyBehavior id="WitchDoctorZombieWallApplyTimedLifeBehavior">
     <Behavior value="WitchDoctorZombieWallTimedLife" />
   </CEffectApplyBehavior>
@@ -3621,7 +3639,7 @@
       <TalentsArray value="WitchDoctorHeroicAbilityRavenousSpirits" />
       <TalentsArray value="WitchDoctorGuardianToads" />
       <TalentsArray value="WitchDoctorRingOfPoison" />
-      <TalentsArray value="GenericTalentFuryoftheStorm" />
+      <TalentsArray value="WitchDoctorAnnihilatingSpirits" />
     </TalentAIBuildsArray>
     <HeroSpecificUIArray Location="Status" DescName="Nazeebo/NazeeboFrame" />
     <Rarity value="Epic" />
@@ -4329,13 +4347,6 @@
         <Field value="Chance" />
         <Value value="1.000000" />
       </Modifications>
-      <Modifications>
-        <Type value="FlatModification" />
-        <Catalog value="Effect" />
-        <Entry value="WitchDoctorRavenousSpiritAnnihilatingSpiritTalentApplyHealingReduction" />
-        <Field value="Chance" />
-        <Value value="1.000000" />
-      </Modifications>
     </AbilityModificationArray>
     <RankArray>
       <BehaviorArray value="WitchDoctorRavenousSpiritAnnihilatingSpiritTokenCounter" />
@@ -4949,6 +4960,9 @@
     <Find value="1" />
     <Value value="WitchDoctorAnnihilatingSpirits" />
   </CValidatorPlayerTalent>
+  <CValidatorUnitHasBehavior id="WitchDoctorTargetHasAnnihilatingSpiritHealingDebuff">
+    <Behavior value="WitchDoctorRavenousSpiritAnnihilatingSpiritTalentHealingReduction" />
+  </CValidatorUnitHasBehavior>
   <CValidatorUnitCompareBehaviorCount id="WitchDoctorHasDurationIncreaseWeapon">
     <WhichUnit Value="Caster" />
     <Value value="1" />

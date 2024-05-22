@@ -7,6 +7,7 @@
       <Charge CountMax="65535" />
     </Cost>
     <CmdButtonArray index="Execute" DefaultButtonFace="ButcherFreshMeat" />
+    <SharedFlags index="AllowQuickCastCustomization" value="0" />
   </CAbilEffectInstant>
   <CAbilEffectInstant id="ButcherEnraged">
     <Effect value="ButcherEnragedAbilityDummyEffect" />
@@ -47,6 +48,7 @@
     </Cost>
     <TargetFilters value="-;Player,Ally,Structure,Missile,Item,Stasis,Dead,Hidden,Invulnerable" />
     <Range value="1.5" />
+    <RangeSlop value="5" />
     <Arc value="360" />
     <CastIntroTime value="0.125" />
     <UninterruptibleArray index="Cast" value="1" />
@@ -811,6 +813,9 @@
     <Duration value="4.5" />
     <BehaviorCategories index="Reveal" value="0" />
   </CBehaviorBuff>
+  <CBehaviorBuff id="ButcherRuthlessOnslaughtChargeSlop">
+    <Duration value="0.125" />
+  </CBehaviorBuff>
   <CBehaviorBuff id="ButcherHamstringBrutalStrikeTalentStack">
     <MaxStackCount value="3" />
     <Duration value="5" />
@@ -878,8 +883,6 @@
     <Duration value="5" />
     <DamageResponse Chance="1" Handled="ButcherHamstringBrutalStrikeImpactSet" Location="Attacker">
       <RequireEffectArray value="ButcherHeroWeaponDamage" />
-      <RequireEffectArray value="ButcherHeroWeaponButchersBrandDamage" />
-      <RequireEffectArray value="ButcherHeroWeaponButchersBrandHeroicDamage" />
       <ValidatorArray value="TargetNotEvading" />
     </DamageResponse>
     <RemoveValidatorArray value="ButcherHasBrutalStrikeStacks" />
@@ -908,6 +911,7 @@
   <CBehaviorBuff id="ButcherFurnaceBlastFiresofHell">
     <Alignment value="Positive" />
     <InfoIcon value="Assets\Textures\storm_temp_war3_btnwalloffire.dds" />
+    <Face value="ButcherFurnaceBlastFiresofHellTalent" />
     <BehaviorCategories index="Restorable" value="1" />
     <Duration value="3" />
     <ExpireEffect value="ButcherFurnaceBlastCastSearchArea" />
@@ -1066,13 +1070,19 @@
     <RemoveValidatorArray value="TargetNotSpecialDeathState" />
     <Period value="0.25" />
     <PeriodicEffect value="ButcherButchersBrandInsatiableBladeTalentPersistent" />
-    <FinalEffect value="ButchersBrandCraveFleshRemoveBehavior" />
+    <FinalEffect value="ButcherButchersBrandFinalSet" />
     <Modification>
       <ModifyFlags index="Reveal" value="1" />
     </Modification>
-    <InitialEffect value="ButcherButchersBrandApplyActiveBehavior" />
+    <InitialEffect value="ButcherButchersBrandInitialSet" />
     <Duration value="4" />
   </CBehaviorBuff>
+  <CBehaviorUnitTracker id="TheButcherButchersBrandTracker">
+    <MaxTrackedUnits value="1" />
+    <TrackingValidatorArray value="TargetNotDeadAndNoSpecialDeathState" />
+    <TrackingValidatorArray value="TargetHasButchersBrandTargetBehavior" />
+    <UnitAddedAtMaxRule value="ReplaceOldest" />
+  </CBehaviorUnitTracker>
   <CBehaviorBuff id="RuthlessOnslaughtKnockupBehavior">
     <RemoveValidatorArray value="TargetNotUnstoppable" />
     <Duration value="0.125" />
@@ -1389,39 +1399,20 @@
     <Behavior value="ButcherHamstringBrutalStrikeTalentStack" />
     <Count value="3" />
   </CEffectApplyBehavior>
-  <CEffectDamage id="ButcherHeroWeaponButchersBrandDamage" parent="StormWeapon">
-    <Amount value="130" />
-    <LeechFraction index="Life" value="0.75" />
-  </CEffectDamage>
-  <CEffectDamage id="ButcherHeroWeaponButchersBrandHeroicDamage" parent="StormWeapon">
-    <Marker Link="Effect/ButcherHeroWeaponButchersBrandDamage" />
-    <Amount value="130" />
-    <LeechFraction index="Life" value="1.5" />
-  </CEffectDamage>
-  <CEffectSwitch id="ButcherHeroWeaponDamageSwitch">
-    <CaseArray Validator="ButcherHasButchersBrandTargetAndIsHeroic" Effect="ButcherHeroWeaponButchersBrandHeroicDamage" />
-    <CaseArray Validator="TargetHasButchersBrandTargetBehavior" Effect="ButcherHeroWeaponButchersBrandDamage" />
-    <CaseDefault value="ButcherHeroWeaponDamage" />
-  </CEffectSwitch>
   <CEffectSet id="ButcherHeroWeaponCleaverImpactSet">
     <EffectArray value="UniversalWeaponImpact" />
     <EffectArray value="ButcherHeroWeaponCleaverTalentDamage" />
   </CEffectSet>
   <CEffectDamage id="ButcherHeroWeaponCleaverTalentDamage" parent="StormWeapon">
-    <AttributeFactor index="Creep" value="-0.65" />
-    <AttributeFactor index="Tower" value="-0.65" />
-    <AttributeFactor index="Minion" value="-0.65" />
-    <AttributeFactor index="Merc" value="-0.65" />
-    <AttributeFactor index="Structure" value="-0.65" />
-    <AttributeFactor index="Heroic" value="-0.65" />
-    <AttributeFactor index="Summoned" value="-0.65" />
-    <AttributeFactor index="MapBoss" value="-0.65" />
-    <AttributeFactor index="MapCreature" value="-0.65" />
+    <MultiplicativeModifierArray index="Cleaver" Modifier="-0.65" />
     <Amount value="130" />
+    <LeechFraction index="Life" value="0.75" />
+    <LeechValidator index="Life" value="TargetHasButchersBrandTargetBehavior" />
+    <LeechFlatModifierArray index="BrandedHero" Validator="ButcherHasButchersBrandTargetAndIsHeroic" Modifier="0.75" />
   </CEffectDamage>
   <CEffectEnumArea id="ButcherHeroWeaponCleaverTalentSearch">
     <ValidatorArray value="ButcherHasCleaverTalent" />
-    <ValidatorArray value="CasterNotBlindedAndTargetNotEvading" />
+    <ValidatorArray value="TargetNotEvading" />
     <LaunchLocation Value="TargetUnit" />
     <ExcludeArray Effect="ButcherHeroWeaponSet" Value="Target" />
     <SearchFilters value="-;Self,Player,Ally,Neutral,ImmuneToAOE,Missile,Item,Stasis,Dead,Hidden,Invulnerable" />
@@ -1474,11 +1465,14 @@
   <CEffectApplyBehavior id="ButcherFreshMeatApplyQuestComplete">
     <Behavior value="ButcherFreshMeatQuestCompletionCarry" />
   </CEffectApplyBehavior>
-  <CEffectModifyUnit id="ButcherButchersBrandDurationIncreaseDummy">
+  <CEffectModifyBehaviorBuffDuration id="TheButcherButchersBrandExtendDuration">
     <ValidatorArray value="ButcherButchersBrandDurationIncreaseValidator" />
     <ValidatorArray value="TargetIsHero" />
     <ValidatorArray value="CasterNotBlindedAndTargetNotEvading" />
-  </CEffectModifyUnit>
+    <WhichUnit Value="Target" />
+    <Behavior value="ButchersBrand" />
+    <Value value="0.5" />
+  </CEffectModifyBehaviorBuffDuration>
   <CEffectModifyTokenCount id="ButcherFreshMeatDeathRemoveStacks" parent="BaseEffectModifyTokenCount">
     <TokenId value="ButcherFreshMeatTokenCounter" />
     <Value value="-15" />
@@ -1576,10 +1570,18 @@
     <EffectArray value="RuthlessOnslaughtCancelModifyCooldown" />
     <EffectArray value="ButcherRuthlessOnslaughtTargetApplyRevealer" />
   </CEffectSet>
+  <CEffectSet id="ButcherButchersBrandInitialSet">
+    <EffectArray value="ButcherButchersBrandApplyActiveBehavior" />
+    <EffectArray value="TheButcherButchersBrandAddTracked" />
+  </CEffectSet>
   <CEffectApplyBehavior id="ButcherButchersBrandApplyActiveBehavior">
     <WhichUnit Value="Caster" />
     <Behavior value="ButcherButchersBrandActive" />
   </CEffectApplyBehavior>
+  <CEffectAddTrackedUnit id="TheButcherButchersBrandAddTracked">
+    <BehaviorLink value="TheButcherButchersBrandTracker" />
+    <TrackedUnit Value="Target" />
+  </CEffectAddTrackedUnit>
   <CEffectSet id="ButcherButchersBrandDamageSet">
     <EffectArray value="ButchersBrandDamage" />
     <EffectArray value="ButchersBrandApplyBehavior" />
@@ -1602,7 +1604,7 @@
     <EffectArray value="ButchersBrandAttackSet" />
     <EffectArray value="ButcherHeroWeaponCleaverTalentSearch" />
     <EffectArray value="ButcherHeroWeaponDamage" />
-    <EffectArray value="ButcherButchersBrandDurationIncreaseDummy" />
+    <EffectArray value="TheButcherButchersBrandExtendDuration" />
     <EffectArray value="UniversalWeaponLaunchSet" />
   </CEffectSet>
   <CEffectSwitch id="ButcherHeroWeaponSwitch">
@@ -1617,7 +1619,13 @@
     <EffectArray value="RuthlessOnslaughtChargeClearOrder" />
     <EffectArray value="RuthlessOnslaughtFinalIssueAttackOrder" />
   </CEffectSet>
-  <CEffectSet id="RuthlessOnslaughtDummyAbilitySet" />
+  <CEffectSet id="RuthlessOnslaughtDummyAbilitySet">
+    <EffectArray value="ButcherRuthlessOnslaughtApplyChargeSlop" />
+  </CEffectSet>
+  <CEffectApplyBehavior id="ButcherRuthlessOnslaughtApplyChargeSlop">
+    <WhichUnit Value="Caster" />
+    <Behavior value="ButcherRuthlessOnslaughtChargeSlop" />
+  </CEffectApplyBehavior>
   <CEffectCancelOrder id="RuthlessOnslaughtChannelClearOrder">
     <WhichUnit Value="Caster" />
     <AbilCmd value="ButcherRuthlessOnslaught,Execute" />
@@ -1875,10 +1883,18 @@
     <WhichUnit Value="Caster" />
     <Behavior value="ButcherButchersBrandCraveFlesh" />
   </CEffectApplyBehavior>
+  <CEffectSet id="ButcherButchersBrandFinalSet">
+    <EffectArray value="ButchersBrandCraveFleshRemoveBehavior" />
+    <EffectArray value="TheButcherButchersBrandRemoveTracked" />
+  </CEffectSet>
   <CEffectRemoveBehavior id="ButchersBrandCraveFleshRemoveBehavior">
     <WhichUnit Value="Caster" />
     <BehaviorLink value="ButcherButchersBrandCraveFlesh" />
   </CEffectRemoveBehavior>
+  <CEffectRemoveTrackedUnit id="TheButcherButchersBrandRemoveTracked">
+    <BehaviorLink value="TheButcherButchersBrandTracker" />
+    <TrackedUnit Value="Target" />
+  </CEffectRemoveTrackedUnit>
   <CEffectSet id="ButchersBrandInitialSet">
     <EffectArray value="ButcherButchersBrandDamageSet" />
     <EffectArray value="ButchersBrandCraveFleshApplyBehavior" />
@@ -1957,13 +1973,16 @@
   <CEffectSet id="ButcherHeroWeaponSet">
     <EffectArray value="UniversalWeaponImpact" />
     <EffectArray value="ButcherHeroWeaponCleaverTalentSearch" />
-    <EffectArray value="ButcherButchersBrandDurationIncreaseDummy" />
-    <EffectArray value="ButcherHeroWeaponDamageSwitch" />
+    <EffectArray value="TheButcherButchersBrandExtendDuration" />
+    <EffectArray value="ButcherHeroWeaponDamage" />
     <EffectArray value="ButcherHeroWeaponApplyBloodFrenzyTalentBuff" />
     <EffectArray value="UniversalWeaponLaunchSet" />
   </CEffectSet>
   <CEffectDamage id="ButcherHeroWeaponDamage" parent="StormWeapon">
     <Amount value="130" />
+    <LeechFraction index="Life" value="0.75" />
+    <LeechValidator index="Life" value="TargetHasButchersBrandTargetBehavior" />
+    <LeechFlatModifierArray index="BrandedHero" Validator="ButcherHasButchersBrandTargetAndIsHeroic" Modifier="0.75" />
   </CEffectDamage>
   <CEffectLaunchMissile id="ButcherFreshMeat1StackLaunchMissile">
     <ImpactEffect value="ButcherFreshMeat1StackInitialSwitch" />
@@ -2354,20 +2373,6 @@
         <Value value="0.040000" />
         <AffectedByOverdrive value="1" />
       </Modifications>
-      <Modifications>
-        <Catalog value="Effect" />
-        <Entry value="ButcherHeroWeaponButchersBrandDamage" />
-        <Field value="Amount" />
-        <Value value="0.040000" />
-        <AffectedByOverdrive value="1" />
-      </Modifications>
-      <Modifications>
-        <Catalog value="Effect" />
-        <Entry value="ButcherHeroWeaponButchersBrandHeroicDamage" />
-        <Field value="Amount" />
-        <Value value="0.040000" />
-        <AffectedByOverdrive value="1" />
-      </Modifications>
     </LevelScalingArray>
     <TalentTreeArray Talent="ButcherMasteryHamstringInvigoration" Tier="1" Column="1" />
     <TalentTreeArray Talent="GenericTalentBlock" Tier="1" Column="2" />
@@ -2465,6 +2470,7 @@
       <TalentsArray value="ButcherMasteryFiresofHell" />
     </TalentAIBuildsArray>
     <HeroSpecificUIArray Location="Status" DescName="Butcher/ButcherFrame" />
+    <HeroSpecificUIArray Location="CommandButton01Status" DescName="Butcher/ButchersBrandButtonOverrideFrame" />
     <VoiceLineArray value="ButcherBase_VoiceLine01" />
     <VoiceLineArray value="ButcherBase_VoiceLine02" />
     <VoiceLineArray value="ButcherBase_VoiceLine03" />
@@ -2986,6 +2992,7 @@
     <BehaviorArray Link="ExcellentMana" />
     <BehaviorArray Link="ButcherFreshMeatTokenCounter" />
     <BehaviorArray Link="ButcherFreshMeatCarry" />
+    <BehaviorArray Link="TheButcherButchersBrandTracker" />
     <WeaponArray Link="ButcherHeroWeapon" />
     <EffectArray index="Death" value="ButcherFreshMeatDeathRemove15StackSet" />
     <AIThinkTree value="AI/Butcher.aitree" />
@@ -3111,6 +3118,16 @@
     <WhichUnit Value="Caster" />
     <Behavior value="EnragedCooldownBehavior" />
   </CValidatorUnitCompareBehaviorCount>
+  <CValidatorPlayerTalent id="ButcherHasEnragedTalent">
+    <WhichPlayer Value="Caster" />
+    <Find value="1" />
+    <Value value="ButcherTalentEnraged" />
+  </CValidatorPlayerTalent>
+  <CValidatorCombine id="ButcherEnragedUICombine">
+    <Type value="And" />
+    <CombineArray value="ButcherDoesNotHaveEnragedCooldownBuff" />
+    <CombineArray value="CasterLifeLT50Percent" />
+  </CValidatorCombine>
   <CValidatorCombine id="ButcherHasCheapShotAndChopMeatAndTargetIsCCdAndNotHero">
     <Type value="And" />
     <CombineArray value="ButcherHasCheapShotAndChopMeatTalents" />
@@ -3357,7 +3374,13 @@
   <CValidatorCombine id="ButcherIsCastingRuthlessOnslaughtCombine">
     <CombineArray value="ButcherIsCastingRuthlessOnslaught" />
     <CombineArray value="ButcherIsCastingRuthlessOnslaughtCharge" />
+    <CombineArray value="ButcherRuthlessOnslaughtHasChargeSlop" />
   </CValidatorCombine>
+  <CValidatorUnitCompareBehaviorCount id="ButcherRuthlessOnslaughtHasChargeSlop">
+    <WhichUnit Value="Caster" />
+    <Compare value="GT" />
+    <Behavior value="ButcherRuthlessOnslaughtChargeSlop" />
+  </CValidatorUnitCompareBehaviorCount>
   <CWeaponLegacy id="ButcherFreshMeatWeapon5Stack">
     <Options index="ContinuousScan" value="1" />
     <TargetFilters value="Heroic;Ally,Neutral,Enemy,Structure,Missile,Item,Stasis,Dead" />

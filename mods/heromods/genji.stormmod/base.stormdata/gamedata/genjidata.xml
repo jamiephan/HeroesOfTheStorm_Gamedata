@@ -383,9 +383,9 @@
     <On Terms="ActorCreation" Send="ModelMaterialApply GenjiSwiftStrikeFinalCutMaterial" />
     <On Terms="ActorCreation" Send="AnimPlay Spell Spell,S,Start" />
     <On Terms="AnimDone; AnimPlaying Spell Spell,S,Start" Send="AnimPlay Spell Spell,S" />
-    <On Terms="Effect.GenjiSwiftStrikeFinalCutLaunchShadow.Start; !ValidateUnit GenjiHasDragonbladeShadow" Send="AnimPlay Spell Spell,C,B" />
-    <On Terms="Effect.GenjiSwiftStrikeFinalCutLaunchShadow.Start; ValidateUnit GenjiHasDragonbladeShadow" Send="AnimPlay Spell Spell,C,Cover,B" />
-    <On Terms="Effect.GenjiSwiftStrikeFinalCutLaunchShadow.Start" Send="Create Genji_SwiftStrike_FinalCut_ReturnMissile" />
+    <On Terms="Behavior.GenjiFinalCutLaunchDelay.Off; !ValidateUnit GenjiHasDragonbladeShadow" Send="AnimPlay Spell Spell,C,B" />
+    <On Terms="Behavior.GenjiFinalCutLaunchDelay.Off; ValidateUnit GenjiHasDragonbladeShadow" Send="AnimPlay Spell Spell,C,Cover,B" />
+    <On Terms="Behavior.GenjiFinalCutLaunchDelay.Off" Send="Create Genji_SwiftStrike_FinalCut_ReturnMissile" />
     <On Terms="UnitBirth.GenjiSwiftStrikeFinalCutShadow" Send="Create" />
     <On Terms="UnitConstruction.GenjiSwiftStrikeFinalCutShadow.Start" Send="Create" />
     <On Terms="ActorOrphan" Send="Destroy" />
@@ -1146,7 +1146,7 @@
     <On Terms="Abil.GenjiDeflectInstant.SourceCastStart" Send="Create" />
   </CActorSound>
   <CActorSound id="GenjiBase_SwiftStrikeSuccess" parent="SoundOneShot">
-    <On Terms="Effect.GenjiSwiftStrikeCooldownAndManaRefund.Start" Send="Create" />
+    <On Terms="Effect.GenjiSwiftStrikeManaRefund.Start" Send="Create" />
   </CActorSound>
   <CActorSound id="GenjiBase_SwiftStrikeActivate" parent="SoundOneShot">
     <On Terms="Abil.GenjiSwiftStrike.SourceCastStart" Send="Create" />
@@ -1405,6 +1405,10 @@
     <FinalEffect value="SuicideRemove" />
   </CBehaviorBuff>
   <CBehaviorBuff id="GenjiSwiftStrikeFinalCutDragonbladeShadow" />
+  <CBehaviorBuff id="GenjiFinalCutLaunchDelay">
+    <Duration value="0.9375" />
+    <ExpireEffect value="GenjiSwiftStrikeFinalCutLaunchPersistent" />
+  </CBehaviorBuff>
   <CBehaviorBuff id="GenjiSwiftStrikeHasNotHitHeroMarker">
     <Duration value="0.5" />
   </CBehaviorBuff>
@@ -2146,18 +2150,14 @@
     <WhichUnit Value="Caster" />
     <Behavior value="GenjiSwiftStrike" />
   </CEffectApplyBehavior>
-  <CEffectModifyUnit id="GenjiSwiftStrikeCooldownAndManaRefund">
-    <ImpactUnit Value="Caster" />
-    <Cost Abil="GenjiSwiftStrike,Execute" CooldownOperation="Set" CooldownTimeUse="0.125" />
-    <VitalArray index="Energy">
-      <Change value="75" />
-    </VitalArray>
-    <FloaterCreation value="Force" />
-  </CEffectModifyUnit>
   <CEffectModifyUnit id="GenjiSwiftStrikeCooldownRefund">
     <ImpactUnit Value="Caster" />
     <Cost Abil="GenjiSwiftStrike,Execute" CooldownOperation="Set" CooldownTimeUse="0.125" />
   </CEffectModifyUnit>
+  <CEffectCreateHealer id="GenjiSwiftStrikeManaRefund" parent="StormManaRestore">
+    <ImpactUnit Value="Caster" />
+    <RechargeVitalRate value="75" />
+  </CEffectCreateHealer>
   <CEffectRemoveBehavior id="GenjiSwiftStrikeCooldownResetAlertRemoveBehavior">
     <WhichUnit Value="Caster" />
     <BehaviorLink value="GenjiSwiftStrikeCooldownResetAlert" />
@@ -2182,6 +2182,7 @@
   <CEffectDamage id="GenjiSwiftStrikeFinalCutDamage" parent="StormSpell">
     <Amount value="125" />
     <SourceButtonFace value="GenjiSwiftStrikeFinalCut" />
+    <Visibility value="Hidden" />
   </CEffectDamage>
   <CEffectApplyBehavior id="GenjiSwiftStrikeFinalCutDeathDelayApplyBehavior">
     <Behavior value="GenjiSwiftStrikeFinalCutDeathDelay" />
@@ -2190,15 +2191,18 @@
   <CEffectModifyUnit id="GenjiSwiftStrikeFinalCutLaunchImpact">
     <ImpactUnit Value="Source" />
   </CEffectModifyUnit>
-  <CEffectLaunchMissile id="GenjiSwiftStrikeFinalCutLaunchShadow">
+  <CEffectLaunchMissileAdvanced id="GenjiSwiftStrikeFinalCutLaunch">
     <ImpactEffect value="GenjiSwiftStrikeFinalCutDeathDelayApplyBehavior" />
+    <Marker>
+      <MatchFlags index="Id" value="1" />
+    </Marker>
     <ImpactLocation Value="TargetPoint" />
+    <SharedFlags index="DynamicSearchArea" value="1" />
+    <SearchEffect value="GenjiSwiftStrikeFinalCutDamageSearch" />
     <Movers Link="GenjiSwiftStrikeFinalCutMissileMover" />
     <DeathType value="Unknown" />
-  </CEffectLaunchMissile>
-  <CEffectEnumArea id="GenjiSwiftStrikeFinalCutSearch">
-    <LaunchLocation Value="OriginPoint" />
-    <ImpactLocation Value="TargetPoint" />
+  </CEffectLaunchMissileAdvanced>
+  <CEffectEnumArea id="GenjiSwiftStrikeFinalCutDamageSearch">
     <SearchFilters value="-;Player,Ally,Neutral,ImmuneToAOE,Missile,Item,Stasis,Dead,Hidden,Invulnerable" />
     <AreaArray Effect="GenjiSwiftStrikeFinalCutDamage">
       <RectangleWidth value="1" />
@@ -2208,20 +2212,19 @@
       <RevealFlags index="Unfog" value="1" />
     </RevealerParams>
   </CEffectEnumArea>
-  <CEffectCreatePersistent id="GenjiSwiftStrikeFinalCutSearchPersistent">
-    <WhichLocation Value="SourceUnit" />
-    <OffsetVectorStartLocation Value="OriginPoint" />
-    <PeriodCount value="2" />
+  <CEffectCreatePersistent id="GenjiSwiftStrikeFinalCutLaunchPersistent">
+    <WhichLocation Value="SourcePoint" />
+    <OffsetVectorStartLocation Effect="GenjiSwiftStrikeInitialSet" Value="OriginPoint" />
+    <OffsetVectorEndLocation Effect="GenjiSwiftStrikeInitialSet" />
+    <PeriodCount value="1" />
     <PeriodicOffsetArray Y="-12" />
-    <PeriodicOffsetArray Y="-6" />
-    <PeriodicPeriodArray value="0.9375" />
-    <PeriodicPeriodArray value="0.0625" />
-    <PeriodicEffectArray value="GenjiSwiftStrikeFinalCutLaunchShadow" />
-    <PeriodicEffectArray value="GenjiSwiftStrikeFinalCutSearch" />
+    <PeriodicPeriodArray value="0" />
+    <PeriodicEffectArray value="GenjiSwiftStrikeFinalCutLaunch" />
   </CEffectCreatePersistent>
   <CEffectSet id="GenjiSwiftStrikeFinalCutSpawnSet">
     <EffectArray value="GenjiSwiftStrikeFinalCutUnitFacing" />
     <EffectArray value="SwiftStrikeFinalCutDragonbladeShadowApplyBehavior" />
+    <EffectArray value="GenjiFinalCutApplyLaunchDelayBehavior" />
   </CEffectSet>
   <CEffectSet id="GenjiSwiftStrikeFinalSet">
     <EffectArray value="GenjiSwiftStrikeSteadyBladeTokenClear" />
@@ -2282,7 +2285,8 @@
     <Behavior value="GenjiSwiftStrikeCooldownResetAlert" />
   </CEffectApplyBehavior>
   <CEffectSet id="GenjiSwiftStrikeCooldownAndManaResetSet">
-    <EffectArray value="GenjiSwiftStrikeCooldownAndManaRefund" />
+    <EffectArray value="GenjiSwiftStrikeCooldownRefund" />
+    <EffectArray value="GenjiSwiftStrikeManaRefund" />
     <EffectArray value="GenjiSwiftStrikeCooldownResetAlertApplyBehavior" />
     <EffectArray value="GenjiSwiftStrikeCooldownRefundRemoveUIBehavior" />
     <EffectArray value="GenjiShurikenSharpenedStarsAddShurikenCharges" />
@@ -2553,7 +2557,7 @@
     <Amount value="44" />
     <CritValidatorArray index="0" value="GenjiWeaponCritCombine" />
     <MultiplicativeModifierArray index="0" Validator="GenjiTargetHasShinganDamageBonusBehavior" Modifier="1" />
-    <MultiplicativeModifierArray index="WayOfTheShimada" Validator="GenjiHasWayOfTheShimadaTimedBehavior" Accumulator="GenjiWayOfTheShimadaDamageAccumulator" Crit="1" />
+    <MultiplicativeModifierArray index="WayOfTheShimada" Validator="GenjiHasWayOfTheShimadaTimedBehavior" Accumulator="GenjiWayOfTheShimadaDamageAccumulator" />
   </CEffectDamage>
   <CEffectSet id="GenjiWeaponTargetedThrowImpactSet">
     <EffectArray value="UniversalWeaponImpact" />
@@ -2867,6 +2871,9 @@
   <CEffectApplyBehavior id="SwiftStrikeFinalCutDragonbladeShadowApplyBehavior">
     <ValidatorArray value="GenjiCasterHasDragonbladeActive" />
     <Behavior value="GenjiSwiftStrikeFinalCutDragonbladeShadow" />
+  </CEffectApplyBehavior>
+  <CEffectApplyBehavior id="GenjiFinalCutApplyLaunchDelayBehavior">
+    <Behavior value="GenjiFinalCutLaunchDelay" />
   </CEffectApplyBehavior>
   <CGame id="Dflt">
     <TriggerLibs Id="HGen" />
@@ -4514,7 +4521,6 @@
     <FlagArray index="Untargetable" value="1" />
     <FlagArray index="Undetectable" value="1" />
     <Mover value="Fly" />
-    <EffectArray index="Create" value="GenjiSwiftStrikeFinalCutSearchPersistent" />
   </CUnit>
   <CUnit id="GenjiXStrikeLegUnitLeft" parent="StormSummonFigment">
     <FlagArray index="Movable" value="0" />
@@ -4587,7 +4593,14 @@
   <CValidatorCombine id="GenjiWeaponCritCombine">
     <CombineArray value="CritAliasRangedDamage" />
     <CombineArray value="GenjiTargetHasShinganDamageBonusBehavior" />
+    <CombineArray value="GenjiWayOfTheShimadaCasterHasMaxStacks" />
   </CValidatorCombine>
+  <CValidatorUnitCompareTokenCount id="GenjiWayOfTheShimadaCasterHasGT10Stacks">
+    <WhichUnit Value="Caster" />
+    <Compare value="GE" />
+    <Value value="10" />
+    <TokenId value="GenjiWayOfTheShimadaTokenCount" />
+  </CValidatorUnitCompareTokenCount>
   <CValidatorUnitCompareBehaviorCount id="GenjiCasterHasCyberAgility">
     <WhichUnit Value="Caster" />
     <Compare value="GT" />

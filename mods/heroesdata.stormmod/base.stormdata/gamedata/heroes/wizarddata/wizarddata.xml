@@ -1404,9 +1404,7 @@
     <Inherits index="TimeScale" value="1" />
     <Inherits index="WarpGroup" value="1" />
     <On index="0" Send="AnimBracketStart BSD Birth IGNORE IGNORE ContentPlayOnce" />
-    <On Terms="Effect.WizardForceArmorFirstCastApplyArmorAB.Start; At Caster" Send="Create" />
-    <On Terms="Effect.WizardForceArmorSecondCastApplyArmorAB.Start; At Caster" Send="Create" />
-    <On Terms="Effect.WizardForceArmorThirdCastApplyArmorAB.Start; At Caster" Send="Create" />
+    <On Terms="Effect.WizardForceArmorBlockApplyBehavior.Start; At Caster" Send="Create" />
     <HostSiteOps Ops="SOpAttachCenter" HoldRotation="1" />
   </CActorModel>
   <CActorModel id="WizardForceArmorImpactKickerCaster" parent="StormModelAnimationStyleOneShot">
@@ -1439,9 +1437,7 @@
   </CActorSound>
   <CActorSound id="WizardForceArmorRechargeSound" parent="SoundOneShot">
     <Inherits index="Visibility" value="0" />
-    <On Terms="Effect.WizardForceArmorFirstCastApplyArmorAB.Start" Send="Create" />
-    <On Terms="Effect.WizardForceArmorSecondCastApplyArmorAB.Start" Send="Create" />
-    <On Terms="Effect.WizardForceArmorThirdCastApplyArmorAB.Start" Send="Create" />
+    <On Terms="Effect.WizardForceArmorBlockApplyBehavior.Start" Send="Create" />
     <Host Subject="_Unit" />
     <Sound value="Talent_DampenMagic_Recharge" />
   </CActorSound>
@@ -1645,12 +1641,6 @@
     <Duration value="0.3125" />
     <BuffFlags index="RefreshStack" value="1" />
   </CBehaviorBuff>
-  <CBehaviorBuff id="WizardMagicMissilesSeekerCastCheck">
-    <BehaviorFlags index="Permanent" value="1" />
-    <BehaviorFlags index="EnabledWhileDead" value="1" />
-    <Duration value="0.0625" />
-    <InitialEffect value="WizardSeekerApplyFirstCast" />
-  </CBehaviorBuff>
   <CBehaviorBuff id="WizardMagicMissilesFirstCast">
     <BehaviorFlags index="Permanent" value="1" />
     <BehaviorFlags index="EnabledWhileDead" value="1" />
@@ -1741,7 +1731,6 @@
       <AbilClassDisableArray index="CAbilAttack" value="1" />
       <AbilClassDisableArray index="CAbilEffectInstant" value="1" />
       <AbilClassDisableArray index="CAbilEffectTarget" value="1" />
-      <AbilClassDisableArray index="CAbilStop" value="1" />
       <AbilLinkEnableArray value="WizardMagicMissiles" />
       <AbilLinkEnableArray value="WizardArcaneOrb" />
       <AbilLinkEnableArray value="WizardTeleport" />
@@ -1758,6 +1747,7 @@
     <RemoveValidatorArray value="CasterNotDeadOrSilencedOrStasisOrStunnedExceptTimeStop" />
     <RemoveValidatorArray value="CasterNotDazed" />
     <RemoveValidatorArray value="CasterIsCastingArchonPurePowerDisintegrate" />
+    <RemoveValidatorArray value="CasterNotHoldingFireQueuedCombine" />
     <Duration value="-1" />
     <InitialEffect value="WizardArchonPurePowerDisintegrateActiveApplyBehavior" />
     <FinalEffect value="WizardArchonPurePowerDisintegrateFinalSet" />
@@ -1769,6 +1759,7 @@
     <FinalEffect value="WizardDisintegrateFinalSet" />
     <ExpireEffect value="WizardDisintegrateFinalSet" />
     <RemoveValidatorArray value="CasterNotDazedOrDeadOrSilencedOrStasisOrStunnedExceptTimeStop" />
+    <RemoveValidatorArray value="CasterNotHoldingFireQueuedCombine" />
     <BuffFlags index="Channeled" value="1" />
   </CBehaviorBuff>
   <CBehaviorBuff id="WizardArchonPurePowerDisintegrateActive">
@@ -1854,19 +1845,6 @@
     <RemoveValidatorArray value="CasterNotDead" />
     <RemoveValidatorArray value="WizardHasAetherWalker" />
     <FinalEffect value="WizardAetherWalkerExpirationModifyPlayer" />
-  </CBehaviorBuff>
-  <CBehaviorBuff id="WizardForceArmorHeroAlreadyHit" />
-  <CBehaviorBuff id="WizardForceArmorHitMarkerFirstCast">
-    <Duration value="0.875" />
-    <TimeScaleSource Value="Global" />
-  </CBehaviorBuff>
-  <CBehaviorBuff id="WizardForceArmorHitMarkerSecondCast">
-    <Duration value="0.875" />
-    <TimeScaleSource Value="Global" />
-  </CBehaviorBuff>
-  <CBehaviorBuff id="WizardForceArmorHitMarkerThirdCast">
-    <Duration value="0.875" />
-    <TimeScaleSource Value="Global" />
   </CBehaviorBuff>
   <CBehaviorBuff id="WizardForceArmorBlock" parent="StormArmor">
     <Alignment value="Positive" />
@@ -2227,10 +2205,12 @@
   <CEffectSet id="WizardDisintegrateCancelSet">
     <EffectArray value="WizardDisintegrateControllerRemoveBehavior" />
     <EffectArray value="WizardDisintegrateCasterRemoveBehavior" />
+    <EffectArray value="WizardDisintegrateCasterRemoveBlockersBehavior" />
   </CEffectSet>
   <CEffectSet id="WizardDisintegrateFinalSet">
     <EffectArray value="WizardDisintegrateActiveRemoveBehavior" />
     <EffectArray value="WizardDisintegrateCasterRemoveBehavior" />
+    <EffectArray value="WizardDisintegrateCasterRemoveBlockersBehavior" />
     <EffectArray value="DismountDecloakCasterSet" />
   </CEffectSet>
   <CEffectSet id="WizardArchonPurePowerBuffInitialSet">
@@ -2288,6 +2268,11 @@
   <CEffectRemoveBehavior id="WizardDisintegrateCasterRemoveBehavior">
     <WhichUnit Value="Caster" />
     <BehaviorLink value="WizardDisintegrateCasterBehavior" />
+    <Count value="1" />
+  </CEffectRemoveBehavior>
+  <CEffectRemoveBehavior id="WizardDisintegrateCasterRemoveBlockersBehavior">
+    <WhichUnit Value="Caster" />
+    <BehaviorLink value="WizardDisintegrateAbilityCooldownCasterBehavior" />
     <Count value="1" />
   </CEffectRemoveBehavior>
   <CEffectCreatePersistent id="WizardDisintegrateOffsetCreatePersistent">
@@ -2517,11 +2502,6 @@
     <Flags index="Crit" value="1" />
     <SourceButtonFace value="WizardCannoneerTalent" />
   </CEffectDamage>
-  <CEffectApplyBehavior id="WizardSeekerApplyFirstCast">
-    <ValidatorArray value="WizardDoesNotHaveForceArmor" />
-    <WhichUnit Value="Caster" />
-    <Behavior value="WizardMagicMissilesFirstCast" />
-  </CEffectApplyBehavior>
   <CEffectSwitch id="WizardMagicMissilesSeekerBuffSwitch">
     <Chance value="0" />
     <CaseArray Validator="SourceHasWizardMagicMissilesFirstCast" Effect="WizardMagicMissilesSeekerBuffAB" />
@@ -2860,15 +2840,13 @@
     <InitialDelay value="0.1875" />
   </CEffectCreatePersistent>
   <CEffectSet id="WizardMagicMissilesImpactSet">
-    <EffectArray value="WizardForceArmorBlockApplySwitch" />
-    <EffectArray value="WizardForceArmorApplyHeroHitMarkerSwitch" />
+    <EffectArray value="WizardForceArmorBlockApplyBehavior" />
     <EffectArray value="WizardMagicMissilesDamageImpactSet" />
     <EffectArray value="WizardMagicMissilesChargedBlastDebuffAB" />
     <EffectArray value="WizardMagicMissilesSuicide" />
   </CEffectSet>
   <CEffectSet id="WizardMagicMissilesMirrorBallImpactSet">
-    <EffectArray value="WizardForceArmorBlockApplySwitch" />
-    <EffectArray value="WizardForceArmorApplyHeroHitMarkerSwitch" />
+    <EffectArray value="WizardForceArmorBlockApplyBehavior" />
     <EffectArray value="WizardMagicMissilesMirrorBallDamageImpactSet" />
     <EffectArray value="WizardMagicMissilesChargedBlastDebuffAB" />
     <EffectArray value="WizardMagicMissilesSuicide" />
@@ -2945,6 +2923,9 @@
     <EffectArray value="WizardWaveOfForceTalrashasElementsRB" />
   </CEffectSet>
   <CEffectSwitch id="WizardMagicMissilesTalrashasElementsSwitch">
+    <Marker>
+      <MatchFlags index="Id" value="1" />
+    </Marker>
     <Chance value="0" />
     <CaseArray Validator="DoesNotHaveAlreadyCastMagicMissiles" Effect="WizardMagicMissilesTalrashasElementsSuccessSet" />
     <CaseDefault value="WizardMagicMissilesTalrashasElementsFailSet" />
@@ -3231,76 +3212,14 @@
     <BehaviorLink value="WizardForceArmorBlock" />
     <Count value="1" />
   </CEffectRemoveBehavior>
-  <CEffectSwitch id="WizardForceArmorBlockApplySwitch">
-    <ValidatorArray value="TargetisHeroorActiveVehicle" />
-    <ValidatorArray value="WizardHasForceArmor" />
-    <ValidatorArray value="WizardForceArmorApplyCombine" />
-    <ValidatorArray value="ForceArmorValidator" />
-    <CaseArray Validator="WizardForceArmorApplyFirstCastCombine" Effect="WizardForceArmorFirstCastApplyArmorAB" />
-    <CaseArray Validator="WizardForceArmorApplySecondCastCombine" Effect="WizardForceArmorSecondCastApplyArmorAB" />
-    <CaseArray Validator="WizardForceArmorApplyThirdCastCombine" Effect="WizardForceArmorThirdCastApplyArmorAB" />
-  </CEffectSwitch>
-  <CEffectApplyBehavior id="WizardForceArmorFirstCastApplyArmorAB">
-    <ValidatorArray value="TargetisHeroorActiveVehicle" />
-    <ValidatorArray value="ForceArmorValidator" />
-    <ValidatorArray value="WizardDoesNotHaveHeroAlreadyHitFirstCast" />
-    <WhichUnit Value="Caster" />
-    <Behavior value="WizardForceArmorBlock" />
-  </CEffectApplyBehavior>
-  <CEffectApplyBehavior id="WizardForceArmorSecondCastApplyArmorAB">
-    <ValidatorArray value="TargetisHeroorActiveVehicle" />
-    <ValidatorArray value="ForceArmorValidator" />
-    <ValidatorArray value="WizardDoesNotHaveHeroAlreadyHitSecondCast" />
-    <WhichUnit Value="Caster" />
-    <Behavior value="WizardForceArmorBlock" />
-  </CEffectApplyBehavior>
-  <CEffectApplyBehavior id="WizardForceArmorThirdCastApplyArmorAB">
-    <ValidatorArray value="TargetisHeroorActiveVehicle" />
-    <ValidatorArray value="ForceArmorValidator" />
-    <ValidatorArray value="WizardDoesNotHaveHeroAlreadyHitThirdCast" />
-    <WhichUnit Value="Caster" />
-    <Behavior value="WizardForceArmorBlock" />
-  </CEffectApplyBehavior>
   <CEffectApplyBehavior id="WizardForceArmorBlockApplyBehavior">
     <ValidatorArray index="0" value="TargetisHeroorActiveVehicle" />
     <ValidatorArray value="ForceArmorValidator" />
-    <ValidatorArray value="WizardDoesNotHaveHeroAlreadyHit" />
+    <ValidatorArray value="noMarkersCaster" />
     <Chance value="0" />
     <WhichUnit Value="Caster" />
     <Behavior value="WizardForceArmorBlock" />
   </CEffectApplyBehavior>
-  <CEffectApplyBehavior id="WizardForceArmorApplyHeroAlreadyHit">
-    <ValidatorArray value="TargetIsHero" />
-    <ValidatorArray value="WizardHasForceArmor" />
-    <WhichUnit Value="Caster" />
-    <Behavior value="WizardForceArmorHeroAlreadyHit" />
-  </CEffectApplyBehavior>
-  <CEffectSwitch id="WizardForceArmorApplyHeroHitMarkerSwitch">
-    <ValidatorArray value="TargetisHeroorActiveVehicle" />
-    <ValidatorArray value="WizardHasForceArmor" />
-    <CaseArray Validator="SourceHasWizardMagicMissilesFirstCast" Effect="WizardForceArmorFirstCastAB" />
-    <CaseArray Validator="SourceHasWizardMagicMissilesSecondCast" Effect="WizardForceArmorSecondCastAB" />
-    <CaseArray Validator="SourceHasWizardMagicMissilesThirdCast" Effect="WizardForceArmorThirdCastAB" />
-  </CEffectSwitch>
-  <CEffectApplyBehavior id="WizardForceArmorFirstCastAB">
-    <ValidatorArray value="WizardDoesNotHaveHeroAlreadyHitFirstCast" />
-    <Behavior value="WizardForceArmorHitMarkerFirstCast" />
-    <WhichUnit Value="Caster" />
-  </CEffectApplyBehavior>
-  <CEffectApplyBehavior id="WizardForceArmorSecondCastAB">
-    <ValidatorArray value="WizardDoesNotHaveHeroAlreadyHitSecondCast" />
-    <Behavior value="WizardForceArmorHitMarkerSecondCast" />
-    <WhichUnit Value="Caster" />
-  </CEffectApplyBehavior>
-  <CEffectApplyBehavior id="WizardForceArmorThirdCastAB">
-    <ValidatorArray value="WizardDoesNotHaveHeroAlreadyHitThirdCast" />
-    <Behavior value="WizardForceArmorHitMarkerThirdCast" />
-    <WhichUnit Value="Caster" />
-  </CEffectApplyBehavior>
-  <CEffectRemoveBehavior id="WizardForceArmorRemoveHeroAlreadyHit">
-    <WhichUnit Value="Caster" />
-    <BehaviorLink value="WizardForceArmorHeroAlreadyHit" />
-  </CEffectRemoveBehavior>
   <CEffectApplyBehavior id="WizardCannoneerTrackerAB">
     <Chance value="0" />
     <WhichUnit Value="Caster" />
@@ -3406,7 +3325,7 @@
     <EffectArray value="WizardMagicMissilesThirdCastApplyBehaviorCaster" />
   </CEffectSet>
   <CEffectSwitch id="WizardMagicMissilesCasterTrackerSwitch">
-    <ValidatorArray value="WizardCasterHasSeekerOrForceArmorTalent" />
+    <ValidatorArray value="WizardHasSeeker" />
     <CaseArray Validator="CasterHasWizardMagicMissilesFirstCast" Effect="WizardMagicMissilesSecondCastApplyBehaviorSet" />
     <CaseArray Validator="CasterHasWizardMagicMissilesSecondCast" Effect="WizardMagicMissilesThirdCastApplyBehaviorSet" />
     <CaseArray Validator="CasterHasWizardMagicMissilesThirdCast" Effect="WizardMagicMissilesFirstCastApplyBehaviorSet" />
@@ -4007,7 +3926,6 @@
     </AbilityModificationArray>
     <RankArray>
       <BehaviorArray value="WizardForceArmorManaRegen" />
-      <BehaviorArray value="WizardMagicMissilesFirstCast" />
     </RankArray>
   </CTalent>
   <CTalent id="WizardAstralPresence">
@@ -4261,7 +4179,7 @@
     <Face value="WizardMagicMissilesSeekerTalent" />
     <Abil value="WizardMagicMissiles" />
     <RankArray>
-      <BehaviorArray value="WizardMagicMissilesSeekerCastCheck" />
+      <BehaviorArray value="WizardMagicMissilesFirstCast" />
     </RankArray>
   </CTalent>
   <CTalent id="WizardMagicMissilesChargedBlast">
@@ -4616,46 +4534,6 @@
     <Value value="4" />
     <Behavior value="WizardForceArmorBlock" />
   </CValidatorUnitCompareBehaviorCount>
-  <CValidatorCombine id="WizardForceArmorApplyCombine">
-    <CombineArray value="WizardForceArmorApplyFirstCastCombine" />
-    <CombineArray value="WizardForceArmorApplySecondCastCombine" />
-    <CombineArray value="WizardForceArmorApplyThirdCastCombine" />
-  </CValidatorCombine>
-  <CValidatorCombine id="WizardForceArmorApplyFirstCastCombine">
-    <Type value="And" />
-    <CombineArray value="SourceHasWizardMagicMissilesFirstCast" />
-    <CombineArray value="WizardDoesNotHaveHeroAlreadyHitFirstCast" />
-  </CValidatorCombine>
-  <CValidatorCombine id="WizardForceArmorApplySecondCastCombine">
-    <Type value="And" />
-    <CombineArray value="SourceHasWizardMagicMissilesSecondCast" />
-    <CombineArray value="WizardDoesNotHaveHeroAlreadyHitSecondCast" />
-  </CValidatorCombine>
-  <CValidatorCombine id="WizardForceArmorApplyThirdCastCombine">
-    <Type value="And" />
-    <CombineArray value="SourceHasWizardMagicMissilesThirdCast" />
-    <CombineArray value="WizardDoesNotHaveHeroAlreadyHitThirdCast" />
-  </CValidatorCombine>
-  <CValidatorUnitHasBehavior id="WizardDoesNotHaveHeroAlreadyHitFirstCast">
-    <WhichUnit Value="Caster" />
-    <Behavior value="WizardForceArmorHitMarkerFirstCast" />
-    <Negate value="1" />
-  </CValidatorUnitHasBehavior>
-  <CValidatorUnitHasBehavior id="WizardDoesNotHaveHeroAlreadyHitSecondCast">
-    <WhichUnit Value="Caster" />
-    <Behavior value="WizardForceArmorHitMarkerSecondCast" />
-    <Negate value="1" />
-  </CValidatorUnitHasBehavior>
-  <CValidatorUnitHasBehavior id="WizardDoesNotHaveHeroAlreadyHitThirdCast">
-    <WhichUnit Value="Caster" />
-    <Behavior value="WizardForceArmorHitMarkerThirdCast" />
-    <Negate value="1" />
-  </CValidatorUnitHasBehavior>
-  <CValidatorUnitHasBehavior id="WizardDoesNotHaveHeroAlreadyHit">
-    <WhichUnit Value="Caster" />
-    <Behavior value="WizardForceArmorHeroAlreadyHit" />
-    <Negate value="1" />
-  </CValidatorUnitHasBehavior>
   <CValidatorUnitCompareBehaviorCount id="WizardHasWizardTalRashasElementsMissile4Tokens">
     <WhichUnit Value="Caster" />
     <Value value="4" />
@@ -4690,10 +4568,6 @@
     <CombineArray value="CasterNotDead" />
     <CombineArray value="CasterNotSilenced" />
     <CombineArray value="CasterNotStasis" />
-  </CValidatorCombine>
-  <CValidatorCombine id="WizardCasterHasSeekerOrForceArmorTalent">
-    <CombineArray value="WizardHasSeeker" />
-    <CombineArray value="WizardHasForceArmor" />
   </CValidatorCombine>
   <CValidatorPlayerTalent id="WizardHasAstralPresence">
     <WhichPlayer Value="Caster" />

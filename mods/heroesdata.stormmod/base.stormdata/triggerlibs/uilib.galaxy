@@ -100,6 +100,7 @@ void libUIUI_InitVariables () {
     libUIUI_gv_deathRecap_Panel.lv_tabScreenButton = c_invalidDialogControlId;
     libUIUI_gv_deathRecap_Panel.lv_openDeathRecapButton = c_invalidDialogControlId;
     libUIUI_gv_deathRecap_Panel.lv_mainGraphLabel = c_invalidDialogControlId;
+    libUIUI_gv_deathRecap_Panel.lv_xpValueLabel = c_invalidDialogControlId;
     libUIUI_gv_deathRecap_Panel.lv_highestDamagersPanel = c_invalidDialogControlId;
     for (init_i1 = 0; init_i1 <= libGame_gv_deathRecap_MaxMaxDamagersSort_C; init_i1 += 1) {
         libUIUI_gv_deathRecap_Panel.lv_highestDamagersImages[init_i1] = c_invalidDialogControlId;
@@ -1552,6 +1553,7 @@ void libUIUI_gf_DeathRecapPopulateEffectInstancesForAbilitiesPanel (int lp_deadP
     TextExpressionSetToken("Param/Expression/lib_UIUI_C622E95B", "A", IntToText(lv_totalDamage));
     TextExpressionSetToken("Param/Expression/lib_UIUI_C622E95B", "B", FixedToText(libGame_gv_deathRecap_DeathData[lp_deadPlayer].lv_effectBars[libGame_gv_deathRecap_DeathData[lp_deadPlayer].lv_effectBarCount].lv_time, 1));
     libNtve_gf_SetDialogItemText(libUIUI_gv_deathRecap_Panel.lv_mainGraphLabel, TextExpressionAssemble("Param/Expression/lib_UIUI_C622E95B"), libCore_gv_playerGroupFromPlayer[lp_deadPlayer]);
+    libNtve_gf_SetDialogItemText(libUIUI_gv_deathRecap_Panel.lv_xpValueLabel, StringToText(""), libCore_gv_playerGroupFromPlayer[lp_deadPlayer]);
     lv_itEffect = (libGame_gv_deathRecap_DeathData[lp_deadPlayer].lv_effectBarCount + 1);
     for ( ; ( (auto1087E968_ai >= 0 && lv_itEffect <= auto1087E968_ae) || (auto1087E968_ai < 0 && lv_itEffect >= auto1087E968_ae) ) ; lv_itEffect += auto1087E968_ai ) {
         DialogControlSetAnimationState(libUIUI_gv_deathRecap_Panel.lv_abilitiesPanelTimeZone[lv_itEffect], libCore_gv_playerGroupFromPlayer[lp_deadPlayer], "DamageHealState", "NoData");
@@ -1706,6 +1708,22 @@ void libUIUI_gf_DeathRecapPopulateHighestDamagersAbilities (int lp_deadPlayer, i
     DialogControlSetSize(libUIUI_gv_deathRecap_Panel.lv_highestDamagersAbilityBarProgressBars[lp_highestDamager][lp_highestDamagerAbilities], libCore_gv_playerGroupFromPlayer[lp_deadPlayer], FixedToInt((IntToFixed(libGame_gv_deathRecap_DeathData[lp_deadPlayer].lv_highestDamagers[lp_highestDamager].lv_maxDamageAbils[lp_highestDamagerAbilities].lv_amount) / IntToFixed(libGame_gv_deathRecap_DeathData[lp_deadPlayer].lv_highestDamagers[lp_highestDamager].lv_amount) * 248)), 24);
     libNtve_gf_SetDialogItemTooltip(libUIUI_gv_deathRecap_Panel.lv_highestDamagersAbilityBarTooltips[lp_highestDamager][lp_highestDamagerAbilities], lv_simpleTooltip, libCore_gv_playerGroupFromPlayer[lp_deadPlayer]);
     DialogControlSetVisible(libUIUI_gv_deathRecap_Panel.lv_highestDamagersAbilityFrame[lp_highestDamager][lp_highestDamagerAbilities], libCore_gv_playerGroupFromPlayer[lp_deadPlayer], true);
+}
+
+void libUIUI_gf_DeathRecapPopulateXPValue (int lp_deadPlayer, int lp_xpValue, unit lp_deadHero) {
+    // Variable Declarations
+    text lv_text;
+
+    // Automatic Variable Declarations
+    // Variable Initialization
+
+    // Implementation
+    TextExpressionSetToken("UI/HeroLeaderPanel/DeathRecap/XPValue", "A", FormatNumber(lp_xpValue));
+    lv_text = TextExpressionAssemble("UI/HeroLeaderPanel/DeathRecap/XPValue");
+    if ((UnitGetType(lp_deadHero) != "RexxarMisha")) {
+        libNtve_gf_SetDialogItemText(libUIUI_gv_deathRecap_Panel.lv_xpValueLabel, lv_text, libCore_gv_playerGroupFromPlayer[lp_deadPlayer]);
+    }
+
 }
 
 void libUIUI_gf_DeathTimerPanelShowHideTeamsPanelForPlayer (bool lp_showHide, int lp_team, int lp_player) {
@@ -4244,7 +4262,7 @@ void libUIUI_gf_HeroConsoleUnitStatusBarsUpdateStunDeathBar (string lp_newBehavi
         return ;
     }
 
-    if ((lp_newBehavior == ("OverwatchBossBeingImprisonedBehavior"))) {
+    if (((lp_newBehavior == ("OverwatchBossBeingImprisonedBehavior")) || (lp_newBehavior == ("MaievContainmentDiscStoppedSilence")))) {
         return ;
     }
 
@@ -7267,7 +7285,7 @@ void libUIUI_gf_PartyFrameEnemyPing (int lp_pingingPlayer, unit lp_targetUnit, i
             lv_foundVisibleUnit = true;
         }
 
-        if ((lv_activeVehicleUnit == null) && ((UnitFilterMatch(lv_targetUnit, lp_pingingPlayer, UnitFilter(0, (1 << (c_targetFilterAITargetableStructure - 32)), 0, 0)) == true) || ((libNtve_gf_UnitIsVisibleToPlayer(lv_targetUnit, lp_pingingPlayer) == true) && (UnitHasBehavior2(lv_targetUnit, "ZagaraInsideNydusWorm") == false)))) {
+        if ((lv_activeVehicleUnit == null) && ((UnitFilterMatch(lv_targetUnit, lp_pingingPlayer, UnitFilter(0, (1 << (c_targetFilterAITargetableStructure - 32)), 0, 0)) == true) || ((libNtve_gf_UnitIsVisibleToPlayer(lv_targetUnit, lp_pingingPlayer) == true) && (UnitHasBehavior2(lv_targetUnit, "ZagaraInsideNydusWorm") == false) && (UnitHasBehavior2(lv_targetUnit, "DeathwingDragonflightBuff") == false)))) {
             UnitCreateEffectUnit(libGame_gv_players[lp_pingingPlayer].lv_heroUnit, "AttackPing", lv_targetUnit);
             libNtve_gf_CreatePingFacingAngleWithType(lv_pingPlayerGroup, "StormGeneralPing", UnitGetPosition(lv_targetUnit), Color(100.00, 100.00, 100.00), 3.0, 270.0, -1, lp_pingingPlayer);
             lv_foundVisibleUnit = true;
@@ -9386,6 +9404,8 @@ bool libUIUI_gt_DeathRecapPanelInitialize_Func (bool testConds, bool runActions)
     }
     DialogControlHookup(lv_panels[lv_currentPanelLayer], c_triggerControlTypeLabel, "GraphTopLabel");
     libUIUI_gv_deathRecap_Panel.lv_abilitiesPanelStartingHealthLabels = DialogControlLastCreated();
+    DialogControlHookup(lv_panels[lv_currentPanelLayer], c_triggerControlTypeLabel, "XPValueLabel");
+    libUIUI_gv_deathRecap_Panel.lv_xpValueLabel = DialogControlLastCreated();
     lv_currentPanelLayer -= 1;
     return true;
 }
@@ -12059,12 +12079,21 @@ bool libUIUI_gt_UIFloatingCombatTextQuestProgressViaTokens_Func (bool testConds,
         return true;
     }
 
+    if ((UnitHasBehavior2(EventUnit(), "AbathurUltimateEvolutionControlBehavior") == true)) {
+        return true;
+    }
+
     lv_impactUnit = EventUnitTokenContextUnit();
     lv_launchUnit = EventUnit();
     lv_launchPlayer = UnitGetOwner(lv_launchUnit);
     lv_questIdentifier = EventUnitTokenBehavior();
     if ((lv_launchPlayer <= libCore_gv_bALMaxPlayers) && (lv_launchPlayer > 0)) {
-        FloatingCombatElementCreateTextAtPointWithId(libCore_gv_playerGroupFromPlayer[lv_launchPlayer], "FloatingCombatElements/FloatingCombatQuestProgress", "", UnitGetPosition(lv_impactUnit), null, libNtve_gv_FloatingCombatTextAutoRandomSeed, (lv_questIdentifier));
+        if ((libNtve_gf_UnitIsVisibleToPlayer(lv_impactUnit, lv_launchPlayer) == true)) {
+            FloatingCombatElementCreateTextAtPointWithId(libCore_gv_playerGroupFromPlayer[lv_launchPlayer], "FloatingCombatElements/FloatingCombatQuestProgress", "", UnitGetPosition(lv_impactUnit), null, libNtve_gv_FloatingCombatTextAutoRandomSeed, (lv_questIdentifier));
+        }
+        else {
+            FloatingCombatElementCreateTextAtPointWithId(libCore_gv_playerGroupFromPlayer[lv_launchPlayer], "FloatingCombatElements/FloatingCombatQuestProgress", "", UnitGetPosition(lv_launchUnit), null, libNtve_gv_FloatingCombatTextAutoRandomSeed, (lv_questIdentifier));
+        }
     }
 
     return true;
@@ -12098,7 +12127,12 @@ bool libUIUI_gt_UIFloatingCombatTextQuestProgressViaEffect_Func (bool testConds,
     lv_launchUnit = EventPlayerEffectUsedUnit(c_effectUnitCaster);
     lv_launchPlayer = UnitGetOwner(lv_launchUnit);
     if ((lv_launchPlayer <= libCore_gv_bALMaxPlayers) && (lv_launchPlayer > 0)) {
-        FloatingCombatElementCreateTextAtPointWithId(libCore_gv_playerGroupFromPlayer[lv_launchPlayer], "FloatingCombatElements/FloatingCombatQuestProgress", "", UnitGetPosition(lv_impactUnit), null, libNtve_gv_FloatingCombatTextAutoRandomSeed, "");
+        if ((libNtve_gf_UnitIsVisibleToPlayer(lv_impactUnit, lv_launchPlayer) == true)) {
+            FloatingCombatElementCreateTextAtPointWithId(libCore_gv_playerGroupFromPlayer[lv_launchPlayer], "FloatingCombatElements/FloatingCombatQuestProgress", "", UnitGetPosition(lv_impactUnit), null, libNtve_gv_FloatingCombatTextAutoRandomSeed, "");
+        }
+        else {
+            FloatingCombatElementCreateTextAtPointWithId(libCore_gv_playerGroupFromPlayer[lv_launchPlayer], "FloatingCombatElements/FloatingCombatQuestProgress", "", UnitGetPosition(lv_launchUnit), null, libNtve_gv_FloatingCombatTextAutoRandomSeed, "");
+        }
     }
 
     return true;

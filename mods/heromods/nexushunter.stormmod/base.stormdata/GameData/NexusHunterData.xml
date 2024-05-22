@@ -260,9 +260,9 @@
     <Texture value="Assets\Textures\Storm_Collision_Edges.dds" />
     <AnimDuration value="1" />
     <Width value="0.400000" />
-    <Radius value="20.000000" />
-    <FadeBegin value="15.000000" />
-    <FadeEnd value="20.000000" />
+    <Radius value="16.000000" />
+    <FadeBegin value="11.000000" />
+    <FadeEnd value="16.000000" />
     <Color value="60,150,150,255" />
     <HDRMultiplier value="0.175000" />
     <BlendMode value="Add" />
@@ -847,7 +847,7 @@
     <Model value="Invisible" />
   </CActorMissile>
   <CActorReflectionQuad id="NexusHunterGrapplingHookGuide" parent="StormGuideVisualQuadDownClosestSciFi" abil="NexusHunterGrapplingHook">
-    <Height value="11.000000" />
+    <Height value="11.450000" />
     <Width value="1.250000" />
     <CollisionActor value="NexusHunterGrapplingHookGuideCollisionSite" />
     <CollisionHeight value="0.010000" />
@@ -1146,6 +1146,9 @@
     <AtMaxEvents Effect="NexusHunterBloodRageDamageMaxStack" />
     <IncreaseEvents Effect="NexusHunterBloodRageHealTokenAdd" ValidRange="0,99" />
   </CBehaviorTokenCounter>
+  <CBehaviorBuff id="NexusHunterBloodRageUIHealMarker">
+    <Duration value="0.0625" />
+  </CBehaviorBuff>
   <CBehaviorBuff id="NexusHunterCarnageMaximumEffortSlowBehavior" parent="StormSlowParent">
     <Duration value="2.5" />
     <Modification>
@@ -1501,17 +1504,26 @@
     <ExpireEffect value="NexusHunterTheHuntedExpireSet" />
   </CBehaviorBuff>
   <CBehaviorTokenCounter id="NexusHunterTheHuntedToken" parent="StormGenericToken">
+    <SortIndex value="50" />
+    <MinStackCountDisplayed value="1" />
+    <Alignment value="Positive" />
+    <DisplayDurationProxyBehavior value="NexusHunterTheHuntedCaster" />
+    <Face value="NexusHunterTheHunted" />
     <Max value="4" />
   </CBehaviorTokenCounter>
   <CBehaviorBuff id="NexusHunterChainsawCDR">
     <BehaviorFlags index="Permanent" value="1" />
     <BehaviorFlags index="EnabledWhileDead" value="1" />
+    <SortIndex value="50" />
+    <InfoFlags index="Hidden" value="0" />
+    <Face value="NexusHunterChainsaw" />
     <Alignment value="Positive" />
     <Period value="0.0625" />
     <PeriodicEffect value="NexusHunterChainsawCDR" />
     <DisableValidatorArray value="NexusHunterChainsawCDRValidator" />
   </CBehaviorBuff>
   <CBehaviorBuff id="NexusHunterUpstageEvade" parent="StormEvasion">
+    <SortIndex value="20" />
     <InfoFlags index="Hidden" value="0" />
     <InfoFlags index="AlwaysUseGameText" value="1" />
     <InfoIcon value="Assets\Textures\storm_ui_icon_nexushunter_w.dds" />
@@ -1532,6 +1544,7 @@
     <InfoFlags index="Hidden" value="1" />
   </CBehaviorTokenCounter>
   <CBehaviorBuff id="NexusHunterTheThirstCasterBehavior">
+    <SortIndex value="30" />
     <Alignment value="Positive" />
     <InfoFlags index="Hidden" value="0" />
     <InfoFlags index="AlwaysUseGameText" value="1" />
@@ -1559,6 +1572,7 @@
     <Max value="4" />
   </CBehaviorTokenCounter>
   <CBehaviorBuff id="NexusHunterFinishingTouchAttackSpeed">
+    <SortIndex value="10" />
     <Alignment value="Positive" />
     <InfoFlags index="Hidden" value="0" />
     <InfoIcon value="Assets\Textures\storm_ui_icon_nexushunter_passive.dds" />
@@ -1771,6 +1785,7 @@
     <WhichUnit Value="Caster" />
     <ValidatorArray value="NexusHunterHasTheHuntedTalent" />
     <ValidatorArray value="CasterNotBlindedAndTargetNotEvading" />
+    <ValidatorArray value="TargetIsHero" />
   </CEffectApplyBehavior>
   <CEffectCreateHealer id="NexusHunterBloodRageCreateHealer" parent="StormSelfOnlyHealingSpell">
     <ImpactUnit Value="Caster" />
@@ -1778,7 +1793,12 @@
       <AccumulatorArray value="NexusHunterBloodRageHealAccumulatorTrackedHeroCount" />
       <AccumulatorArray value="NexusHunterBloodRageHealAccumulatorCasterTokenCount" />
     </RechargeVitalRate>
+    <FinalEffect value="NexusHunterBloodRageApplyHealUIMarker" />
   </CEffectCreateHealer>
+  <CEffectApplyBehavior id="NexusHunterBloodRageApplyHealUIMarker">
+    <WhichUnit Value="Caster" />
+    <Behavior value="NexusHunterBloodRageUIHealMarker" />
+  </CEffectApplyBehavior>
   <CEffectCreateHealer id="NexusHunterBloodRageHealmongerCreateHealer" parent="StormSelfOnlyHealingSpell">
     <ImpactUnit Value="Caster" />
     <RechargeVitalRate value="190" />
@@ -2264,7 +2284,7 @@
     <EffectArray value="NexusHunterBloodRageWeaponImpactSet" />
   </CEffectSet>
   <CEffectDamage id="NexusHunterWeaponDamage" parent="StormWeapon">
-    <MultiplicativeModifierArray index="TheHuntedAccumulator" Validator="NexusHunterHas1OrMoreTheHuntedTokens" Accumulator="NexusHunterTheHuntedDamageAccumulator" Crit="1" />
+    <MultiplicativeModifierArray index="TheHuntedAccumulator" Validator="NexusHunterTheHuntedDamageCombine" Accumulator="NexusHunterTheHuntedDamageAccumulator" Crit="1" />
     <MultiplicativeModifierArray index="TheThirst" Validator="NexusHunterTheThirstLeechValidator" Accumulator="NexusHunterTheThirstDamageAccumulator" />
     <MultiplicativeModifierArray index="HuntersVengeance" Validator="NexusHunterHuntersVengeanceBonusDamageCombine" Modifier="0.2" />
     <MultiplicativeModifierArray index="FinishingTouchLowLife" Validator="NexusHunterFinishingTouchCombine" Modifier="0.2" Crit="1" />
@@ -3071,6 +3091,7 @@
     <ValidatorArray value="NexusHunterTheHuntedTargetIsNotTracked" />
     <ValidatorArray value="NexusHunterHasTheHuntedTalent" />
     <ValidatorArray value="CasterNotBlindedAndTargetNotEvading" />
+    <ValidatorArray value="TargetIsHero" />
     <Operation value="Set" />
   </CEffectModifyTokenCount>
   <CEffectModifyTokenCount id="NexusHunterTheHuntedRemoveAllTokens">
@@ -3082,6 +3103,7 @@
     <EffectArray value="NexusHunterTheHuntedModifyToken" />
     <ValidatorArray value="CasterNotBlindedAndTargetNotEvading" />
     <ValidatorArray value="NexusHunterHasTheHuntedTalent" />
+    <ValidatorArray value="TargetIsHero" />
   </CEffectSet>
   <CEffectAddTrackedUnit id="NexusHunterTheHuntedTrackTarget">
     <BehaviorLink value="NexusHunterTheHuntedTarget" />
@@ -3490,6 +3512,7 @@
     <AllowedMountCategoryArray value="Ridebike" />
     <AllowedMountCategoryArray value="Ridesurf" />
     <HeroSpecificUIArray Location="HeroSpecificStackingBuffsStatus" DescName="NexusHunter/NexusHunterStacksFrameContainer" />
+    <HeroSpecificUIArray Location="Status" DescName="NexusHunter/BloodRageHealValueFrame" />
     <Rarity value="Legendary" />
     <Ratings>
       <Damage value="8" />
@@ -4180,11 +4203,21 @@
     <CombineArray value="NexusHunterTargetLifeLT50Percent" />
     <CombineArray value="NexusHunterHasFinalStrikeUnleashedPotentialTalent" />
   </CValidatorCombine>
+  <CValidatorCombine id="NexusHunterTheHuntedDamageCombine">
+    <Type value="And" />
+    <CombineArray value="TargetIsHero" />
+    <CombineArray value="NexusHunterHas1OrMoreTheHuntedTokens" />
+  </CValidatorCombine>
   <CValidatorUnitCompareTokenCount id="NexusHunterHas1OrMoreTheHuntedTokens">
     <Compare value="GE" />
     <Value value="1" />
     <TokenId value="NexusHunterTheHuntedToken" />
   </CValidatorUnitCompareTokenCount>
+  <CValidatorCombine id="NexusHunterTheHuntedCritValidatorCombine">
+    <Type value="And" />
+    <CombineArray value="TargetIsHero" />
+    <CombineArray value="NexusHunterHasMaxTheHuntedTokens" />
+  </CValidatorCombine>
   <CValidatorUnitCompareTokenCount id="NexusHunterHasMaxTheHuntedTokens">
     <WhichUnit Value="Caster" />
     <Value value="4" />
@@ -4519,7 +4552,7 @@
     <CombineArray value="NexusHunterBloodRageTargetHasMaxTokenStacks" />
   </CValidatorCombine>
   <CValidatorCombine id="NexusHunterWeaponCritValidator">
-    <CombineArray value="NexusHunterHasMaxTheHuntedTokens" />
+    <CombineArray value="NexusHunterTheHuntedCritValidatorCombine" />
     <CombineArray value="NexusHunterTheThirstCritValidatorCombine" />
     <CombineArray value="CritAliasRangedDamage" />
   </CValidatorCombine>
@@ -4636,6 +4669,13 @@
     <CombineArray value="NexusHunterBloodRageTargetHasMaxTokenStacks" />
     <CombineArray value="CritAliasSpellPower" />
   </CValidatorCombine>
+  <CValidatorUnitCompareCooldown id="NexusHunterBloodRageOnCooldown">
+    <Compare value="GT" />
+    <WhichUnit Value="Caster" />
+    <Location value="Unit" />
+    <CooldownLink value="Abil/NexusHunterBloodRage" />
+    <Ability value="NexusHunterBloodRage" />
+  </CValidatorUnitCompareCooldown>
   <CValidatorUnitFilters id="NexusHunterRevolvingSweepTargetNotUnstoppable" parent="TargetIsParentFilter">
     <Filters value="-;Unstoppable" />
     <WhichUnit Effect="NexusHunterRevolvingSweepImpactSet" />

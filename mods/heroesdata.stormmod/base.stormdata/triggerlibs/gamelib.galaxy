@@ -6517,6 +6517,7 @@ bool auto_libGame_gf_HeroDeathAwardXP_TriggerFunc (bool testConds, bool runActio
         libUIUI_gf_UIFloatingCombatTextH16MidXP(lv_itPlayer, lp_deadHero, libCore_ge_FloatingTextType_XPLarge, FixedToInt(lv_xPGranted));
     }
     libUIUI_gf_UIFloatingCombatTextH16MidXP(lv_deadPlayer, lp_deadHero, libCore_ge_FloatingTextType_XPSelf, FixedToInt(lv_xPGranted));
+    libUIUI_gf_DeathRecapPopulateXPValue(lv_deadPlayer, FixedToInt(lv_xPGranted), lp_deadHero);
     return true;
 }
 
@@ -16550,7 +16551,7 @@ bool libGame_gt_ConfineOtherUnitsToBaseUntilCountdownEnds_Func (bool testConds, 
         return true;
     }
 
-    if (((UnitTypeTestAttribute(UnitGetType(EventUnit()), c_unitAttributeHeroic) == false) || (UnitTestState(EventUnit(), c_unitStateHallucination) == true) || (UnitHasBehavior2(EventUnit(), "Precursor") == true)) && (UnitFilterMatch(EventUnit(), 0, UnitFilter((1 << c_targetFilterItem), 0, 0, 0)) == false) && (UnitGetType(EventUnit()) != "StitchesHookMissile") && (UnitGetType(EventUnit()) != "StitchesHookMissedReturnMissile") && (UnitGetType(EventUnit()) != "AbathurSymbiote") && (UnitGetType(EventUnit()) != "MurkyPufferfishMissile") && (UnitGetType(EventUnit()) != "MurkyPufferfishNoBounceMissile") && (UnitGetType(EventUnit()) != "AnduinDivineStarMissile") && (UnitGetType(EventUnit()) != "AnduinDivineStarReturnMissile")) {
+    if (((UnitTypeTestAttribute(UnitGetType(EventUnit()), c_unitAttributeHeroic) == false) || (UnitTestState(EventUnit(), c_unitStateHallucination) == true) || (UnitHasBehavior2(EventUnit(), "Precursor") == true)) && (UnitFilterMatch(EventUnit(), 0, UnitFilter((1 << c_targetFilterItem), 0, 0, 0)) == false) && (UnitGetType(EventUnit()) != "StitchesHookMissile") && (UnitGetType(EventUnit()) != "StitchesHookMissedReturnMissile") && (UnitGetType(EventUnit()) != "AbathurSymbiote") && (UnitGetType(EventUnit()) != "MurkyPufferfishMissile") && (UnitGetType(EventUnit()) != "MurkyPufferfishNoBounceMissile")) {
         UnitKill(EventUnit());
     }
 
@@ -16601,7 +16602,7 @@ bool libGame_gt_ConfineCreatedUnitsToBaseUntilCountdownEnds_Func (bool testConds
         return true;
     }
 
-    if (((UnitTypeTestAttribute(UnitGetType(lv_createdUnit), c_unitAttributeHeroic) == false) || (UnitTestState(lv_createdUnit, c_unitStateHallucination) == true) || (UnitHasBehavior2(lv_createdUnit, "Precursor") == true)) && (UnitFilterMatch(lv_createdUnit, 0, UnitFilter((1 << c_targetFilterItem), 0, 0, 0)) == false) && (UnitGetType(lv_createdUnit) != "StitchesHookMissile") && (UnitGetType(lv_createdUnit) != "StitchesHookMissedReturnMissile") && (UnitGetType(lv_createdUnit) != "AbathurSymbiote") && (UnitGetType(lv_createdUnit) != "MurkyPufferfishMissile") && (UnitGetType(lv_createdUnit) != "MurkyPufferfishNoBounceMissile") && (UnitGetType(lv_createdUnit) != "AnduinDivineStarMissile") && (UnitGetType(lv_createdUnit) != "AnduinDivineStarReturnMissile")) {
+    if (((UnitTypeTestAttribute(UnitGetType(lv_createdUnit), c_unitAttributeHeroic) == false) || (UnitTestState(lv_createdUnit, c_unitStateHallucination) == true) || (UnitHasBehavior2(lv_createdUnit, "Precursor") == true)) && (UnitFilterMatch(lv_createdUnit, 0, UnitFilter((1 << c_targetFilterItem), 0, 0, 0)) == false) && (UnitGetType(lv_createdUnit) != "StitchesHookMissile") && (UnitGetType(lv_createdUnit) != "StitchesHookMissedReturnMissile") && (UnitGetType(lv_createdUnit) != "AbathurSymbiote") && (UnitGetType(lv_createdUnit) != "MurkyPufferfishMissile") && (UnitGetType(lv_createdUnit) != "MurkyPufferfishNoBounceMissile")) {
         UnitKill(lv_createdUnit);
     }
 
@@ -16672,14 +16673,6 @@ bool libGame_gt_RemoveUnitsCreatedOutsideOfBaseUntilCountdownEnds_Func (bool tes
         }
 
         if (!((UnitGetType(EventUnitCreatedUnit()) != "MurkyPufferfishNoBounceMissile"))) {
-            return false;
-        }
-
-        if (!((UnitGetType(EventUnitCreatedUnit()) != "AnduinDivineStarMissile"))) {
-            return false;
-        }
-
-        if (!((UnitGetType(EventUnitCreatedUnit()) != "AnduinDivineStarReturnMissile"))) {
             return false;
         }
     }
@@ -19356,6 +19349,10 @@ bool libGame_gt_MountCaboose_Func (bool testConds, bool runActions) {
         ActorSend(lv_heroActor, (("AnimGroupApply " + lv_poseAnimGroup + " {} {} Instant")));
         ActorSend(lv_heroActor, libNtve_gf_RefSet("::Host", lv_actorNameForMount));
         ActorSend(lv_heroActor, libNtve_gf_HostSiteOpsSet("::Host", "SOpAttachMount", 0, 0));
+        if ((libGame_gv_players[lv_mountingPlayer].lv_mountData.lv_mountID == "MechaTassadarMorphForm")) {
+            ActorSend(lv_mountActor, libNtve_gf_HostSiteOpsSet("::Host", "SOpBasicScopeFollow", 0, 0));
+        }
+
         ActorSend(lv_heroActor, libNtve_gf_RefSet("::HostForProps", "PropsHost"));
         ActorSend(lv_mountActor, libNtve_gf_RefSet("::HostForProps", (lv_mountingUnitType)));
     }
