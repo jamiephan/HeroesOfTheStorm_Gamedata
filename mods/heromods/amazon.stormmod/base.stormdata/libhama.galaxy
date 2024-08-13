@@ -1,7 +1,6 @@
 include "TriggerLibs/NativeLib"
 include "TriggerLibs/HeroesLib"
 include "TriggerLibs/GameLib"
-include "TriggerLibs/UILib"
 
 include "LibHAMA_h"
 
@@ -13,7 +12,6 @@ void libHAMA_InitLibraries () {
     libNtve_InitVariables();
     libCore_InitVariables();
     libGame_InitVariables();
-    libUIUI_InitVariables();
 }
 
 // Variable Initialization
@@ -26,10 +24,6 @@ void libHAMA_InitVariables () {
 
     libHAMA_InitVariables_completed = true;
 
-    libHAMA_gv_amazonUI.lv_mainPanel = c_invalidDialogControlId;
-    libHAMA_gv_amazonUI.lv_SurgeOfLightProgressBar = c_invalidDialogControlId;
-    libHAMA_gv_amazon_HeroSpecificCommandCardPanel = c_invalidDialogControlId;
-    libHAMA_gv_amazon_Button05OverridePanel = c_invalidDialogControlId;
 }
 
 // Functions
@@ -40,6 +34,7 @@ void libHAMA_gf_HeroAmazonIncrementHeroCountFunction () {
     if ((libHAMA_gv_heroAmazonTriggerRegistrationVariable == 1)) {
         TriggerEnable(libHAMA_gt_HeroAmazonSurgeofLightDamageTaken, true);
         TriggerEnable(libHAMA_gt_HeroAmazonSurgeofLightResetCharge, true);
+        TriggerEnable(libHAMA_gt_HeroAmazonTalentResetClearSurgeofLight, true);
     }
 
 }
@@ -55,75 +50,12 @@ void libHAMA_gf_HeroAmazonDecrementHeroCountFunction () {
     if ((libHAMA_gv_heroAmazonTriggerRegistrationVariable == 0)) {
         TriggerEnable(libHAMA_gt_HeroAmazonSurgeofLightDamageTaken, false);
         TriggerEnable(libHAMA_gt_HeroAmazonSurgeofLightResetCharge, false);
+        TriggerEnable(libHAMA_gt_HeroAmazonTalentResetClearSurgeofLight, false);
     }
 
 }
 
 // Triggers
-//--------------------------------------------------------------------------------------------------
-// Trigger: Amazon - Hero Specific Command Card Panel Initialize
-//--------------------------------------------------------------------------------------------------
-bool libHAMA_gt_AmazonHeroSpecificCommandCardPanelInitialize_Func (bool testConds, bool runActions) {
-    // Automatic Variable Declarations
-    // Actions
-    if (!runActions) {
-        return true;
-    }
-
-    DialogControlHookupStandard(c_triggerControlTypePanel, "UIContainer/ConsoleUIContainer/HeroSpecificCommandCardPanel");
-    libUIUI_gf_UISetDialogItemToSelectedOrObserved(DialogControlLastCreated());
-    libHAMA_gv_amazon_HeroSpecificCommandCardPanel = DialogControlLastCreated();
-    DialogControlHookupStandard(c_triggerControlTypePanel, "UIContainer/ConsoleUIContainer/CommandPanel/CommandButton05/HeroSpecificCommandCardPanel");
-    libUIUI_gf_UISetDialogItemToSelectedOrObserved(DialogControlLastCreated());
-    libHAMA_gv_amazon_Button05OverridePanel = DialogControlLastCreated();
-    return true;
-}
-
-//--------------------------------------------------------------------------------------------------
-void libHAMA_gt_AmazonHeroSpecificCommandCardPanelInitialize_Init () {
-    libHAMA_gt_AmazonHeroSpecificCommandCardPanelInitialize = TriggerCreate("libHAMA_gt_AmazonHeroSpecificCommandCardPanelInitialize_Func");
-    libCore_gf_IncludeModInitialization(libHAMA_gt_AmazonHeroSpecificCommandCardPanelInitialize);
-}
-
-//--------------------------------------------------------------------------------------------------
-// Trigger: Amazon - UI Initialize
-//--------------------------------------------------------------------------------------------------
-bool libHAMA_gt_AmazonUIInitialize_Func (bool testConds, bool runActions) {
-    int init_i;
-
-    // Variable Declarations
-    int[6] lv_panels;
-    int lv_currentPanelLayer;
-
-    // Automatic Variable Declarations
-    // Variable Initialization
-    for (init_i = 0; init_i <= 5; init_i += 1) {
-        lv_panels[init_i] = c_invalidDialogControlId;
-    }
-
-    // Actions
-    if (!runActions) {
-        return true;
-    }
-
-    DialogControlHookup(libHAMA_gv_amazon_HeroSpecificCommandCardPanel, c_triggerControlTypePanel, "AmazonCommandCardFrame");
-    libHAMA_gv_amazonUI.lv_mainPanel = DialogControlLastCreated();
-    lv_currentPanelLayer += 1;
-    lv_panels[lv_currentPanelLayer] = DialogControlLastCreated();
-    DialogControlHookup(libHAMA_gv_amazon_Button05OverridePanel, c_triggerControlTypePanel, "AmazonSurgeOfLightButtonOverrideFrame");
-    lv_currentPanelLayer += 1;
-    lv_panels[lv_currentPanelLayer] = DialogControlLastCreated();
-    DialogControlHookup(lv_panels[lv_currentPanelLayer], c_triggerControlTypeProgressBar, "UnitStatusFrame0/SurgeOfLightProgressBar");
-    libHAMA_gv_amazonUI.lv_SurgeOfLightProgressBar = DialogControlLastCreated();
-    return true;
-}
-
-//--------------------------------------------------------------------------------------------------
-void libHAMA_gt_AmazonUIInitialize_Init () {
-    libHAMA_gt_AmazonUIInitialize = TriggerCreate("libHAMA_gt_AmazonUIInitialize_Func");
-    libCore_gf_IncludeModInitialization(libHAMA_gt_AmazonUIInitialize);
-}
-
 //--------------------------------------------------------------------------------------------------
 // Trigger: Hero - Amazon - Surge of Light - Damage Taken
 //--------------------------------------------------------------------------------------------------
@@ -132,18 +64,18 @@ bool libHAMA_gt_HeroAmazonSurgeofLightDamageTaken_Func (bool testConds, bool run
     unit lv_amazonUnit;
     int lv_amazonPlayer;
     string lv_maximumChargeReference;
-    string lv_currentChargeReference;
     fixed lv_maximumCharge;
-    fixed lv_currentCharge;
+    fixed lv_damageTaken;
+    fixed lv_damageThreshold;
 
     // Automatic Variable Declarations
     // Variable Initialization
     lv_amazonUnit = EventUnit();
     lv_amazonPlayer = EventPlayer();
     lv_maximumChargeReference = "AmazonAvoidanceSurgeOfLightDummyMaximumCharge";
-    lv_currentChargeReference = "AmazonAvoidanceSurgeOfLightDummyCurrentCharge";
     lv_maximumCharge = CatalogFieldValueGetAsFixed(c_gameCatalogEffect, lv_maximumChargeReference, "Amount", lv_amazonPlayer);
-    lv_currentCharge = CatalogFieldValueGetAsFixed(c_gameCatalogEffect, lv_currentChargeReference, "Amount", lv_amazonPlayer);
+    lv_damageTaken = (EventUnitDamageAmount() + EventUnitDamageBehaviorShield());
+    lv_damageThreshold = (lv_maximumCharge / CatalogFieldValueGetAsFixed(c_gameCatalogAbil, "AmazonSurgeOfLight", "Cost.Charge.CountMax", lv_amazonPlayer));
 
     // Conditions
     if (testConds) {
@@ -154,6 +86,10 @@ bool libHAMA_gt_HeroAmazonSurgeofLightDamageTaken_Func (bool testConds, bool run
         if (!((PlayerHasTalent(lv_amazonPlayer, "AmazonSurgeOfLight") == true))) {
             return false;
         }
+
+        if (!((PlayerGetChargeUsed(lv_amazonPlayer, "Abil/AmazonSurgeOfLight") > 0.0))) {
+            return false;
+        }
     }
 
     // Actions
@@ -161,14 +97,15 @@ bool libHAMA_gt_HeroAmazonSurgeofLightDamageTaken_Func (bool testConds, bool run
         return true;
     }
 
-    if ((lv_currentCharge < lv_maximumCharge)) {
-        CatalogFieldValueModifyFixed(c_gameCatalogEffect, lv_currentChargeReference, "Amount", lv_amazonPlayer, EventUnitDamageAmount(), c_upgradeOperationAdd);
-        lv_currentCharge = CatalogFieldValueGetAsFixed(c_gameCatalogEffect, lv_currentChargeReference, "Amount", lv_amazonPlayer);
-        libNtve_gf_SetDialogItemCurrentValue(libHAMA_gv_amazonUI.lv_SurgeOfLightProgressBar, FixedToInt((100.0 * (lv_currentCharge / lv_maximumCharge))), libCore_gv_playerGroupFromPlayer[lv_amazonPlayer]);
+    lv_damageTaken = (lv_damageTaken + libHAMA_gv_amazonSurgeOfLightChargeProgress[lv_amazonPlayer]);
+    while ((lv_damageTaken > lv_damageThreshold) && (PlayerGetChargeUsed(lv_amazonPlayer, "Abil/AmazonSurgeOfLight") > 0.0)) {
+        PlayerAddChargeUsed(lv_amazonPlayer, "Abil/AmazonSurgeOfLight", -1.0);
+        lv_damageTaken = (lv_damageTaken - lv_damageThreshold);
     }
-
-    if ((lv_currentCharge >= lv_maximumCharge)) {
+    libHAMA_gv_amazonSurgeOfLightChargeProgress[lv_amazonPlayer] = lv_damageTaken;
+    if ((PlayerGetChargeUsed(lv_amazonPlayer, "Abil/AmazonSurgeOfLight") == 0.0)) {
         UnitBehaviorAdd(lv_amazonUnit, "AmazonAvoidanceSurgeOfLightAbilityReady", lv_amazonUnit, 1);
+        libHAMA_gv_amazonSurgeOfLightChargeProgress[lv_amazonPlayer] = 0.0;
     }
 
     return true;
@@ -197,7 +134,7 @@ bool libHAMA_gt_HeroAmazonSurgeofLightResetCharge_Func (bool testConds, bool run
         return true;
     }
 
-    libNtve_gf_SetDialogItemCurrentValue(libHAMA_gv_amazonUI.lv_SurgeOfLightProgressBar, FixedToInt(0.0), libCore_gv_playerGroupFromPlayer[UnitGetOwner(EventUnit())]);
+    libHAMA_gv_amazonSurgeOfLightChargeProgress[UnitGetOwner(EventUnit())] = 0.0;
     return true;
 }
 
@@ -208,11 +145,38 @@ void libHAMA_gt_HeroAmazonSurgeofLightResetCharge_Init () {
     TriggerAddEventUnitBehaviorChange(libHAMA_gt_HeroAmazonSurgeofLightResetCharge, null, "AmazonAvoidanceSurgeOfLightAbilityReady", c_unitBehaviorChangeDestroy);
 }
 
+//--------------------------------------------------------------------------------------------------
+// Trigger: Hero - Amazon - Surge of Light - Reset Clear
+//--------------------------------------------------------------------------------------------------
+bool libHAMA_gt_HeroAmazonTalentResetClearSurgeofLight_Func (bool testConds, bool runActions) {
+    // Variable Declarations
+    int lv_player;
+
+    // Automatic Variable Declarations
+    // Variable Initialization
+    lv_player = libGame_gf_HeroRespecsTalentsPlayer();
+
+    // Actions
+    if (!runActions) {
+        return true;
+    }
+
+    libHAMA_gv_amazonSurgeOfLightChargeProgress[lv_player] = 0.0;
+    PlayerAddChargeUsed(lv_player, "Abil/AmazonSurgeOfLight", (CatalogFieldValueGetAsFixed(c_gameCatalogAbil, "AmazonSurgeOfLight", "Cost.Charge.CountMax", lv_player) - PlayerGetChargeUsed(lv_player, "Abil/AmazonSurgeOfLight")));
+    return true;
+}
+
+//--------------------------------------------------------------------------------------------------
+void libHAMA_gt_HeroAmazonTalentResetClearSurgeofLight_Init () {
+    libHAMA_gt_HeroAmazonTalentResetClearSurgeofLight = TriggerCreate("libHAMA_gt_HeroAmazonTalentResetClearSurgeofLight_Func");
+    TriggerEnable(libHAMA_gt_HeroAmazonTalentResetClearSurgeofLight, false);
+    libGame_gf_HeroRespecsTalents(libHAMA_gt_HeroAmazonTalentResetClearSurgeofLight);
+}
+
 void libHAMA_InitTriggers () {
-    libHAMA_gt_AmazonHeroSpecificCommandCardPanelInitialize_Init();
-    libHAMA_gt_AmazonUIInitialize_Init();
     libHAMA_gt_HeroAmazonSurgeofLightDamageTaken_Init();
     libHAMA_gt_HeroAmazonSurgeofLightResetCharge_Init();
+    libHAMA_gt_HeroAmazonTalentResetClearSurgeofLight_Init();
 }
 
 //--------------------------------------------------------------------------------------------------

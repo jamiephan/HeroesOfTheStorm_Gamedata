@@ -71,6 +71,7 @@ void libHDEH_gf_HeroDehakaIncrementHeroCountFunction () {
         TriggerEnable(libHDEH_gt_HeroDehakaApplyAllyVisionSuppression, true);
         TriggerEnable(libHDEH_gt_HeroDehakaRemoveAllyVisionSuppression, true);
         TriggerEnable(libHDEH_gt_HeroDehakaApplyDragCameraLock, true);
+        TriggerEnable(libHDEH_gt_HeroDehakaDragMovespeedUpdate, true);
         TriggerEnable(libHDEH_gt_HeroDehakaTalentEssenceDevourer, true);
         TriggerEnable(libHDEH_gt_HeroDehakaHeroStalkerTalentDarkSwarmProc, true);
     }
@@ -104,6 +105,7 @@ void libHDEH_gf_HeroDehakaDecrementHeroCountFunction () {
         TriggerEnable(libHDEH_gt_HeroDehakaApplyAllyVisionSuppression, false);
         TriggerEnable(libHDEH_gt_HeroDehakaRemoveAllyVisionSuppression, false);
         TriggerEnable(libHDEH_gt_HeroDehakaApplyDragCameraLock, false);
+        TriggerEnable(libHDEH_gt_HeroDehakaDragMovespeedUpdate, false);
         TriggerEnable(libHDEH_gt_HeroDehakaTalentEssenceDevourer, false);
         TriggerEnable(libHDEH_gt_HeroDehakaHeroStalkerTalentDarkSwarmProc, false);
     }
@@ -1023,6 +1025,43 @@ void libHDEH_gt_HeroDehakaApplyDragCameraLock_Init () {
 }
 
 //--------------------------------------------------------------------------------------------------
+// Trigger: Hero - Dehaka - Drag - Movespeed Update
+//--------------------------------------------------------------------------------------------------
+bool libHDEH_gt_HeroDehakaDragMovespeedUpdate_Func (bool testConds, bool runActions) {
+    // Variable Declarations
+    unit lv_draggedUnit;
+    unit lv_dehakaUnit;
+    int lv_dehakaPlayer;
+
+    // Automatic Variable Declarations
+    // Variable Initialization
+    lv_draggedUnit = EventUnit();
+    lv_dehakaUnit = UnitBehaviorEffectUnit(lv_draggedUnit, EventUnitBehavior(), c_effectUnitCaster, 0);
+    lv_dehakaPlayer = UnitGetOwner(lv_dehakaUnit);
+
+    // Actions
+    if (!runActions) {
+        return true;
+    }
+
+    while ((UnitHasBehavior2(lv_draggedUnit, EventUnitBehavior()) == true)) {
+        CatalogFieldValueSetFixed(c_gameCatalogBehavior, "DehakaDragStun", "Modification.MoveSpeedMinimum", lv_dehakaPlayer, UnitGetPropertyFixed(lv_dehakaUnit, c_unitPropMovementSpeed, c_unitPropCurrent));
+        CatalogFieldValueSetFixed(c_gameCatalogBehavior, "DehakaDragStun", "Modification.MoveSpeedMaximum", lv_dehakaPlayer, UnitGetPropertyFixed(lv_dehakaUnit, c_unitPropMovementSpeed, c_unitPropCurrent));
+        Wait(0.0625, c_timeGame);
+    }
+    CatalogFieldValueSetFixed(c_gameCatalogBehavior, "DehakaDragStun", "Modification.MoveSpeedMinimum", lv_dehakaPlayer, CatalogFieldValueGetAsFixed(c_gameCatalogUnit, "HeroDehaka", "Speed", c_playerAny));
+    CatalogFieldValueSetFixed(c_gameCatalogBehavior, "DehakaDragStun", "Modification.MoveSpeedMaximum", lv_dehakaPlayer, CatalogFieldValueGetAsFixed(c_gameCatalogUnit, "HeroDehaka", "Speed", c_playerAny));
+    return true;
+}
+
+//--------------------------------------------------------------------------------------------------
+void libHDEH_gt_HeroDehakaDragMovespeedUpdate_Init () {
+    libHDEH_gt_HeroDehakaDragMovespeedUpdate = TriggerCreate("libHDEH_gt_HeroDehakaDragMovespeedUpdate_Func");
+    TriggerEnable(libHDEH_gt_HeroDehakaDragMovespeedUpdate, false);
+    TriggerAddEventUnitBehaviorChange(libHDEH_gt_HeroDehakaDragMovespeedUpdate, null, "DehakaDragStun", c_unitBehaviorChangeActivate);
+}
+
+//--------------------------------------------------------------------------------------------------
 // Trigger: Hero - Dehaka - Talent Reset Clear Stacks
 //--------------------------------------------------------------------------------------------------
 bool libHDEH_gt_HeroDehakaTalentResetClearStacks_Func (bool testConds, bool runActions) {
@@ -1168,6 +1207,7 @@ void libHDEH_InitTriggers () {
     libHDEH_gt_HeroDehakaApplyAllyVisionSuppression_Init();
     libHDEH_gt_HeroDehakaRemoveAllyVisionSuppression_Init();
     libHDEH_gt_HeroDehakaApplyDragCameraLock_Init();
+    libHDEH_gt_HeroDehakaDragMovespeedUpdate_Init();
     libHDEH_gt_HeroDehakaTalentResetClearStacks_Init();
     libHDEH_gt_HeroDehakaTalentEssenceDevourer_Init();
     libHDEH_gt_HeroDehakaHeroStalkerTalentDarkSwarmProc_Init();

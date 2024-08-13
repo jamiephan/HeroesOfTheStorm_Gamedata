@@ -501,9 +501,6 @@
     <On Terms="WeaponStop.*.AttackStop; !ValidateUnit Mounted" Send="AnimClear Ready" />
     <On Terms="WeaponStop.*.AttackStop; !ValidateUnit Mounted" Send="TimerKill StandReadyOutroDuration" />
     <On Terms="WeaponStop.*.AttackStop; !ValidateUnit Mounted" Send="TimerSet 5.000000 StandReadyOutroDuration" />
-    <On Terms="AnimPlay; AnimName Spell" Send="AnimClear Dance" />
-    <On Terms="AnimPlay; AnimName Attack" Send="AnimClear Dance" />
-    <On Terms="UnitMovementUpdate.*.Walk" Send="AnimClear Dance" />
     <On Terms="Signal.*.GameWon" Send="Signal TracerGameWon" />
     <On Terms="Signal.*.GameLost" Send="Signal TracerGameLost" />
     <On Terms="Signal.*.TracerGameWon" Target="TracerWeaponLaunchFXRight" Send="AnimBracketStop BSD" />
@@ -1242,6 +1239,7 @@
     </ArmorModification>
   </CBehaviorBuff>
   <CBehaviorBuff id="TracerPulseBombPulseGeneratorTalentBuff">
+    <Face value="TracerPulseGenerator" />
     <Duration value="1.5" />
     <Period value="0.25" />
     <PeriodCount value="6" />
@@ -1412,7 +1410,7 @@
     <Period value="0.0625" />
     <PeriodCount value="1" />
     <PeriodicEffect value="TracerReloadModifyCooldown" />
-    <FinalEffect value="TracerReloadManaRestore" />
+    <FinalEffect value="TracerReloadFinalSet" />
   </CBehaviorBuff>
   <CBehaviorBuff id="TracerMeleeBulletSprayPulseBombChargeLimiter">
     <Duration value="0.25" />
@@ -1539,7 +1537,7 @@
   <CBehaviorBuff id="TracerReload">
     <BehaviorFlags index="EnabledWhileDead" value="1" />
     <Duration value="0.75" />
-    <FinalEffect value="TracerReloadManaRestore" />
+    <FinalEffect value="TracerReloadFinalSet" />
     <Period value="0.0625" />
     <PeriodCount value="1" />
     <PeriodicEffect value="TracerReloadModifyCooldown" />
@@ -1884,6 +1882,7 @@
     <EffectArray value="TracerHeroWeaponCreatePersistent" />
     <EffectArray value="TracerHeroWeaponImpactSet" />
     <EffectArray value="TracerHeroWeaponNewTargetImpactSet" />
+    <EffectArray value="UniversalWeaponPostImpactSet" />
   </CEffectSet>
   <CEffectModifyPlayer id="TracerBlinkJumperApplyUpgrade">
     <WhichPlayer Value="Caster" />
@@ -2066,6 +2065,7 @@
     <Behavior value="TracerRecallTelefragTalentUnkillable" />
   </CEffectApplyBehavior>
   <CEffectDamage id="TracerRecallTelefragTalentDamage" parent="StormSpell">
+    <SourceButtonFace value="TracerTelefrag" />
     <Amount value="175" />
   </CEffectDamage>
   <CEffectSet id="TracerRecallTelefragTalentImpactSet">
@@ -2209,6 +2209,10 @@
     <WhichUnit Value="Caster" />
     <Behavior value="TracerFocusFireIncrementCooldown" />
   </CEffectApplyBehavior>
+  <CEffectSet id="TracerFocusFireNonHeroImpactSet">
+    <EffectArray value="TracerHeroWeaponFocusFireMasteryDamage" />
+    <EffectArray value="UniversalWeaponPostImpactSet" />
+  </CEffectSet>
   <CEffectDamage id="TracerHeroWeaponFocusFireMasteryDamage" parent="StormWeapon">
     <Amount value="80" />
     <Flags index="Crit" value="1" />
@@ -2216,6 +2220,10 @@
       <AccumulatorArray value="TracerLeechingRoundsTalentHealingAccumulatorV2" />
     </LeechFraction>
   </CEffectDamage>
+  <CEffectSet id="TracerFocusFireHeroImpactSet">
+    <EffectArray value="TracerHeroWeaponFocusFireMasteryDamageHero" />
+    <EffectArray value="UniversalWeaponPostImpactSet" />
+  </CEffectSet>
   <CEffectDamage id="TracerHeroWeaponFocusFireMasteryDamageHero" parent="StormWeapon">
     <Amount value="80" />
     <Flags index="Crit" value="1" />
@@ -2276,6 +2284,7 @@
     <EffectArray value="TracerHeroWeaponHeroDamageSwitch" />
     <EffectArray value="TracerHeroWeaponApplyTracerRoundsMasteryReveal" />
     <EffectArray value="TracerHeroWeaponTelefragTalentModifyUnit" />
+    <EffectArray value="UniversalWeaponPostImpactSet" />
   </CEffectSet>
   <CEffectCreatePersistent id="TracerHeroWeaponCreateTargetingPersistent">
     <WhichLocation Value="TargetUnit" />
@@ -2285,6 +2294,7 @@
     <EffectArray value="TracerHeroWeaponHeroDamageSwitch" />
     <EffectArray value="TracerHeroWeaponApplyTracerRoundsMasteryReveal" />
     <EffectArray value="TracerHeroWeaponTelefragTalentModifyUnit" />
+    <EffectArray value="UniversalWeaponPostImpactSet" />
   </CEffectSet>
   <CEffectCreatePersistent id="TracerBlinkOffsetPersistent">
     <InitialEffect value="TracerBlinkOffsetSet" />
@@ -2831,7 +2841,11 @@
   </CEffectSet>
   <CEffectModifyUnit id="TracerReloadModifyWeaponCooldown">
     <ImpactUnit Value="Caster" />
-    <Weapon Weapon="TracerHeroWeapon" CooldownOperation="Max" CooldownAmount="0.8125" />
+    <Weapon Weapon="TracerHeroWeapon" CooldownOperation="Max" CooldownAmount="0.875" />
+  </CEffectModifyUnit>
+  <CEffectModifyUnit id="TracerWeaponReloadResetCooldown">
+    <ImpactUnit Value="Caster" />
+    <Weapon Weapon="TracerHeroWeapon" CooldownOperation="Set" />
   </CEffectModifyUnit>
   <CEffectRemoveBehavior id="TracerReloadRemoveLockedandLoadedFailBehavior">
     <Chance value="0" />
@@ -3128,6 +3142,10 @@
     <ValidatorArray value="EnergyNotFull" />
     <ValidatorArray value="TracerIsNotReloadingCaster" />
     <ValidatorArray value="TracerIsNotLockedandLoadedReloadingCaster" />
+  </CEffectSet>
+  <CEffectSet id="TracerReloadFinalSet">
+    <EffectArray value="TracerReloadManaRestore" />
+    <EffectArray value="TracerWeaponReloadResetCooldown" />
   </CEffectSet>
   <CEffectModifyUnit id="TracerReloadModifyCharges">
     <ImpactUnit Value="Caster" />

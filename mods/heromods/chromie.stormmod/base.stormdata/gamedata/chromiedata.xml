@@ -50,7 +50,7 @@
     <CmdButtonArray index="Execute" DefaultButtonFace="ChromieSandBlast">
       <Flags index="AllowSelfCast" value="0" />
     </CmdButtonArray>
-    <InterruptEffect index="Cast" value="ChromieSandBlastPastAndFutureMeControllerCreateUnit" />
+    <InterruptEffect index="Cast" value="ChromieSandBlastSandEchoEnumerateInterruptCast" />
   </CAbilEffectTarget>
   <CAbilEffectTarget id="ChromiePastAndFutureMeSandBlast" parent="ChromieSandBlast">
     <Name value="Abil/Name/ChromiePastAndFutureMeSandBlast" />
@@ -2497,6 +2497,7 @@
     <EffectArray value="ChromieSandEchoWeaponDamage" />
     <EffectArray value="ChromieSandEchoWeaponApplyRevealerBehavior" />
     <EffectArray value="ChromieAProperGreetingDamageIncreaseApplyBehaviorBasicAttack" />
+    <EffectArray value="UniversalWeaponPostImpactSet" />
   </CEffectSet>
   <CEffectSet id="ChromieHeroWeaponInitialSet">
     <EffectArray value="ChromieHeroWeaponLaunchMissileSet" />
@@ -2558,9 +2559,24 @@
     <EffectArray value="ChromiePastAndFutureMeIssueOrder" />
     <EffectArray value="ChromieSandEchoSandBlastCounterIncrementToken" />
   </CEffectSet>
+  <CEffectEnumTrackedUnits id="ChromieSandBlastSandEchoEnumerateInterruptCast">
+    <BehaviorLink value="ChromiePastAndFutureMeTracker" />
+    <Effect value="ChromieSandBlastSandEchoCancelOrder" />
+  </CEffectEnumTrackedUnits>
+  <CEffectCancelOrder id="ChromieSandBlastSandEchoCancelOrder">
+    <Flags index="Uninterruptible" value="1" />
+  </CEffectCancelOrder>
   <CEffectSet id="ChromieSandEchoSandBlastInitialSet">
-    <EffectArray value="ChromieSandBlastPastAndFutureMeLaunchMissile" />
+    <EffectArray value="ChromieSandEchoSandBlastFireDummy" />
     <TargetLocationType value="Point" />
+  </CEffectSet>
+  <CEffectModifyUnit id="ChromieSandEchoSandBlastFireDummy" />
+  <CEffectEnumTrackedUnits id="ChromieSandBlastSandEchoEnumerateLaunchMissile">
+    <BehaviorLink value="ChromiePastAndFutureMeTracker" />
+    <Effect value="ChromieSandBlastSandEchoEnumerateTrackedUnitsSet" />
+  </CEffectEnumTrackedUnits>
+  <CEffectSet id="ChromieSandBlastSandEchoEnumerateTrackedUnitsSet">
+    <EffectArray value="ChromieSandBlastPastAndFutureMeLaunchMissile" />
   </CEffectSet>
   <CEffectDamage id="ChromieSandEchoSuicide" parent="StormSuicide" />
   <CEffectModifyUnit id="ChromieSandEchoModifyCooldown">
@@ -2815,6 +2831,7 @@
     <ValidatorArray value="HasGhostWolf" />
   </CEffectCancelOrder>
   <CEffectApplyBehavior id="ChromieDragonsBreathTargetDummy">
+    <ValidatorArray value="TargetNotVisionRemoval" />
     <Behavior value="ChromieDragonsBreathSelfRevealer" />
   </CEffectApplyBehavior>
   <CEffectModifyUnit id="ChromieTemporalLoopTeleportTargetCameraSnapDummy">
@@ -2954,6 +2971,7 @@
   </CEffectEnumArea>
   <CEffectSet id="ChromieSandBlastInitialSet">
     <EffectArray value="ChromieSandBlastLaunchMissile" />
+    <EffectArray value="ChromieSandBlastSandEchoEnumerateLaunchMissile" />
     <EffectArray value="ChromieSandBlastPastAndFutureMeControllerCreateUnit" />
     <EffectArray value="ChromieSandBlastGnomeSpeedAheadSet" />
     <TargetLocationType value="Point" />
@@ -3057,6 +3075,7 @@
     <EffectArray value="UniversalWeaponImpact" />
     <EffectArray value="ChromieHeroWeaponDamage" />
     <EffectArray value="ChromieAProperGreetingDamageIncreaseApplyBehaviorBasicAttack" />
+    <EffectArray value="UniversalWeaponPostImpactSet" />
   </CEffectSet>
   <CEffectDamage id="ChromieHeroWeaponDamage" parent="StormWeapon">
     <MultiplicativeModifierArray index="BronzeTalons" Validator="ChromieCreatorHasBronzeTalonsBehavior" Modifier="0.5" Crit="1" />
@@ -3356,10 +3375,15 @@
     <MaxCount value="1" />
   </CEffectEnumArea>
   <CEffectLaunchMissile id="ChromieSandBlastPastAndFutureMeLaunchMissile">
+    <LaunchLocation Effect="ChromieSandBlastSandEchoEnumerateTrackedUnitsSet" Value="TargetUnit" />
     <ImpactLocation>
-      <Value value="TargetPoint" />
-      <ProjectionSourceValue value="OriginPoint" />
-      <ProjectionTargetValue value="TargetPoint" />
+      <Effect value="ChromieSandBlastInitialSet" />
+      <Value value="FocusPoint" />
+      <ProjectionMultiplier value="1" />
+      <ProjectionSourceEffect value="ChromieSandBlastSandEchoEnumerateTrackedUnitsSet" />
+      <ProjectionSourceValue value="TargetUnitOrPoint" />
+      <ProjectionTargetEffect value="ChromieSandBlastInitialSet" />
+      <ProjectionTargetValue value="FocusPoint" />
       <UsesLineDash value="1" />
       <LineDashType value="AllowedInUnpathable" />
       <ProjectionDistanceScale value="15" />
@@ -3387,9 +3411,9 @@
     <EffectArray value="ChromieSandBlastBlessingOfTheBronzeCooldownReduction" />
   </CEffectSet>
   <CEffectDamage id="ChromieSandBlastPastAndFutureMeDamage" parent="ChromieSandBlastDamage">
-    <DamageModifierSource Value="Creator" />
     <MultiplicativeModifierArray index="PastandFutureMe" Validator="ChromieCreatorDoesNotHaveSandBlastOnceAgainTheFirstTimeQuestCompleteBehavior" Modifier="$ChromiePastAndFutureMeDamageModifier" />
     <MultiplicativeModifierArray index="OnceAgainTheFirstTime" Validator="ChromieCreatorDoesHaveSandBlastOnceAgainTheFirstTimeQuestCompleteBehavior" Modifier="-0.55" />
+    <Visibility value="Hidden" />
   </CEffectDamage>
   <CEffectEnumTrackedUnits id="ChromieBlessingOfTheBronzeEnumerateAllHeroicUnitsApplyBehavior">
     <BehaviorLink value="AllHeroicUnitsTrackingBehavior" />
@@ -3946,6 +3970,40 @@
   <CTalent id="ChromieSandBlastPiercingSands">
     <Face value="ChromieSandBlastPiercingSands" />
     <Abil value="ChromieSandBlast" />
+    <AbilityModificationArray>
+      <Modifications>
+        <Type value="FlatModification" />
+        <Catalog value="Effect" />
+        <Entry value="ChromieSandBlastMissileScan" />
+        <Field value="AreaArray[0].MaxCount" />
+        <FieldIsInteger value="1" />
+        <Value value="4294967294.000000" />
+      </Modifications>
+      <Modifications>
+        <Type value="FlatModification" />
+        <Catalog value="Effect" />
+        <Entry value="ChromieSandBlastMissileScan" />
+        <Field value="MaxCount" />
+        <FieldIsInteger value="1" />
+        <Value value="-2.000000" />
+      </Modifications>
+      <Modifications>
+        <Type value="FlatModification" />
+        <Catalog value="Effect" />
+        <Entry value="ChromieSandBlastPastAndFutureMeMissileScan" />
+        <Field value="AreaArray[0].MaxCount" />
+        <FieldIsInteger value="1" />
+        <Value value="4294967294.000000" />
+      </Modifications>
+      <Modifications>
+        <Type value="FlatModification" />
+        <Catalog value="Effect" />
+        <Entry value="ChromieSandBlastPastAndFutureMeMissileScan" />
+        <Field value="MaxCount" />
+        <FieldIsInteger value="1" />
+        <Value value="-2.000000" />
+      </Modifications>
+    </AbilityModificationArray>
   </CTalent>
   <CTalent id="ChromieSandBlastFastForward">
     <Face value="ChromieSandBlastFastForward" />

@@ -20,7 +20,7 @@
     </CmdButtonArray>
   </CAbilEffectTarget>
   <CAbilEffectTarget id="AlarakLightningSurgeLightningBarrage">
-    <PrepEffect value="DismountDecloakCasterSet" />
+    <PrepEffect value="AlarakLightningSurgePrepSet" />
     <Effect value="AlarakLightningSurgeCastSet" />
     <Flags index="BestUnit" value="0" />
     <Flags index="ClearLastMoveTarget" value="1" />
@@ -167,7 +167,7 @@
     <CmdButtonArray index="Execute" DefaultButtonFace="AlarakLightningSurge">
       <Flags index="AllowSelfCast" value="0" />
     </CmdButtonArray>
-    <PrepEffect value="DismountDecloakCasterSet" />
+    <PrepEffect value="AlarakLightningSurgePrepSet" />
     <Effect value="AlarakLightningSurgeCastSet" />
     <UninterruptibleArray index="Cast" value="1" />
     <UninterruptibleArray index="Channel" value="1" />
@@ -207,6 +207,12 @@
     <MaxAccumulation value="4" />
     <TokenId value="AlarakSadismPureMaliceQuestToken" />
     <Scale value="0.1" />
+  </CAccumulatorToken>
+  <CAccumulatorToken id="AlarakLightningSurgeHitAccumulator" parent="BaseAccumulator">
+    <MaxAccumulation value="15" />
+    <TokenId value="AlarakLightningSurgeHitCounter" />
+    <Scale value="1" />
+    <Offset value="-1" />
   </CAccumulatorToken>
   <CActorModel id="AlarakLightningSurgeReticule" parent="StormModelAnimationStyleOneShot">
     <Host Subject="_Unit" />
@@ -1434,6 +1440,9 @@
     <Init value="100" />
     <InfoFlags index="Hidden" value="1" />
   </CBehaviorTokenCounter>
+  <CBehaviorTokenCounter id="AlarakLightningSurgeHitCounter" parent="StormGenericToken">
+    <Max value="15" />
+  </CBehaviorTokenCounter>
   <CBehaviorTokenCounter id="AlarakDiscordStrikeChaosReignsTalentDisplayTokenCounter" parent="StormQuestToken">
     <Face value="AlarakDiscordStrikeChaosReignsQuestToken" />
     <AtMaxEvents index="0" EventId="" Effect="AlarakDiscordStrikeChaosReignsTalentAdd60DamageToken" />
@@ -1918,11 +1927,18 @@
     <EffectArray value="AlarakLightningSurgeExtendedLightningTalentModifyToken" />
     <EffectArray value="AlarakLightningSurgeExtendedLightningTalentHeroTargetMarkerSwitch" />
   </CEffectSet>
+  <CEffectModifyTokenCount id="AlarakLightningSurgeHitCounterIncrementTokenCount" parent="BaseEffectModifyTokenCount">
+    <ValidatorArray value="TargetIsHero" />
+    <TokenId value="AlarakLightningSurgeHitCounter" />
+  </CEffectModifyTokenCount>
   <CEffectCreateHealer id="AlarakLightningSurgeHeroDamageCreateHealer" parent="StormSelfOnlyHealingSpell">
     <MultiplicativeModifierArray index="AlarakSadismTargetIsHero" Validator="TargetIsHero" Accumulator="AlarakSadismAccumulator" />
     <MultiplicativeModifierArray index="AlarakPureMaliceTargetIsHero" Validator="TargetIsHero" Accumulator="AlarakSadismPureMaliceAccumulator" />
+    <ValidatorArray value="AlarakHasGE1LightningSurgeHeroHit" />
     <ImpactUnit Value="Caster" />
-    <RechargeVitalRate value="70" />
+    <RechargeVitalRate value="70">
+      <AccumulatorArray value="AlarakLightningSurgeHitAccumulator" />
+    </RechargeVitalRate>
   </CEffectCreateHealer>
   <CEffectApplyBehavior id="AlarakLightningSurgeExtendedLightningTalentHeroTargetApplyCompletionCarry">
     <WhichUnit Value="Caster" />
@@ -1969,18 +1985,11 @@
   <CEffectModifyTokenCount id="AlarakLightningSurgeExtendedLightningIncrementMasterQuestToken" parent="BaseEffectModifyTokenCount">
     <TokenId value="AlarakLightningSurgeExtendedLightningMasterQuestToken" />
   </CEffectModifyTokenCount>
-  <CEffectCreateHealer id="AlarakLightningSurgeHeroTargetCreateHealer" parent="StormSelfOnlyHealingSpell">
-    <MultiplicativeModifierArray index="AlarakSadismTargetIsHero" Validator="TargetIsHero" Accumulator="AlarakSadismAccumulator" />
-    <MultiplicativeModifierArray index="AlarakPureMaliceTargetIsHero" Validator="TargetIsHero" Accumulator="AlarakSadismPureMaliceAccumulator" />
-    <ImpactUnit Value="Caster" />
-    <RechargeVitalRate value="70" />
-  </CEffectCreateHealer>
   <CEffectSet id="AlarakLightningSurgeHeroTargetImpactSet">
     <EffectArray value="AlarakLightningSurgeHeroTargetDamage" />
-    <EffectArray value="AlarakLightningSurgeHeroTargetCreateHealer" />
+    <EffectArray value="AlarakLightningSurgeHitCounterIncrementTokenCount" />
     <EffectArray value="AlarakSadismShowofForceTalentSwitch" />
     <EffectArray value="AlarakLastLaughRemoveCasterMarkerStack" />
-    <EffectArray value="ApplyAbilityImpactReveal" />
   </CEffectSet>
   <CEffectModifyTokenCount id="AlarakLightningSurgeNegativelyChargedTalentModifyToken" parent="BaseEffectModifyTokenCount">
     <ValidatorArray value="TargetIsHero" />
@@ -2451,7 +2460,7 @@
   <CEffectSet id="AlarakTelekinesisImpactSet125">
     <ValidatorArray value="noMarkers" />
     <EffectArray value="AlarakTelekinesisNoMarkersImpactSet" />
-    <EffectArray value="DismountDecloakTargetSet" />
+    <EffectArray value="DismountDecloakTargetSetNoReveal" />
     <EffectArray value="HeroRemovePushPullDebuffs" />
     <EffectArray value="AlarakTelekinesisApplyKnockbackBehaviorSwitch125" />
     <EffectArray value="AlarakTelekinesisForcePersistent" />
@@ -2461,7 +2470,7 @@
   <CEffectSet id="AlarakTelekinesisImpactSet0625">
     <ValidatorArray value="noMarkers" />
     <EffectArray value="AlarakTelekinesisNoMarkersImpactSet" />
-    <EffectArray value="DismountDecloakTargetSet" />
+    <EffectArray value="DismountDecloakTargetSetNoReveal" />
     <EffectArray value="HeroRemovePushPullDebuffs" />
     <EffectArray value="AlarakTelekinesisApplyKnockbackBehaviorSwitch0625" />
     <EffectArray value="AlarakTelekinesisForcePersistent" />
@@ -2471,7 +2480,7 @@
   <CEffectSet id="AlarakTelekinesisImpactSet25">
     <ValidatorArray value="noMarkers" />
     <EffectArray value="AlarakTelekinesisNoMarkersImpactSet" />
-    <EffectArray value="DismountDecloakTargetSet" />
+    <EffectArray value="DismountDecloakTargetSetNoReveal" />
     <EffectArray value="HeroRemovePushPullDebuffs" />
     <EffectArray value="AlarakTelekinesisApplyKnockbackBehaviorSwitch25" />
     <EffectArray value="AlarakTelekinesisForcePersistent" />
@@ -2481,7 +2490,7 @@
   <CEffectSet id="AlarakTelekinesisImpactSetFinal">
     <ValidatorArray value="noMarkers" />
     <EffectArray value="AlarakTelekinesisNoMarkersImpactSet" />
-    <EffectArray value="DismountDecloakTargetSet" />
+    <EffectArray value="DismountDecloakTargetSetNoReveal" />
     <EffectArray value="HeroRemovePushPullDebuffs" />
     <EffectArray value="AlarakTelekinesisForcePersistentExpirationSet" />
     <EffectArray value="ApplyAbilityImpactRevealEnemyOnly" />
@@ -2490,7 +2499,7 @@
   <CEffectSet id="AlarakTelekinesisImpactSetAppliedForceTalent">
     <ValidatorArray value="noMarkers" />
     <EffectArray value="AlarakTelekinesisNoMarkersImpactSet" />
-    <EffectArray value="DismountDecloakTargetSet" />
+    <EffectArray value="DismountDecloakTargetSetNoReveal" />
     <EffectArray value="HeroRemovePushPullDebuffs" />
     <EffectArray value="AlarakTelekinesisApplyKnockbackBehaviorSwitchAppliedForceTalent" />
     <EffectArray value="AlarakTelekinesisForcePersistent" />
@@ -2512,7 +2521,7 @@
   <CEffectSet id="AlarakTelekinesisImpactSet1875">
     <ValidatorArray value="noMarkers" />
     <EffectArray value="AlarakTelekinesisNoMarkersImpactSet" />
-    <EffectArray value="DismountDecloakTargetSet" />
+    <EffectArray value="DismountDecloakTargetSetNoReveal" />
     <EffectArray value="HeroRemovePushPullDebuffs" />
     <EffectArray value="AlarakTelekinesisApplyKnockbackBehaviorSwitch1875" />
     <EffectArray value="AlarakTelekinesisForcePersistent" />
@@ -2596,7 +2605,7 @@
     <ValidatorArray value="noMarkers" />
     <EffectArray value="AlarakTelekinesisDamage" />
     <EffectArray value="AlarakLastLaughRemoveCasterMarkerStack" />
-    <EffectArray value="DismountDecloakTargetSet" />
+    <EffectArray value="DismountDecloakTargetSetNoReveal" />
     <EffectArray value="AlarakTelekinesisApplySelfBuff" />
     <EffectArray value="AlarakSadismShowofForceTalentSwitch" />
   </CEffectSet>
@@ -2629,7 +2638,6 @@
     <AmountScoreArray index="7" removed="1" />
     <AmountScoreArray index="8" removed="1" />
     <CritValidatorArray index="0" removed="1" />
-    <CasterHistory value="Damage" />
     <ResponseFlags index="Acquire" value="0" />
   </CEffectDamage>
   <CEffectModifyUnit id="AlarakLightningSurgeModifyCooldown">
@@ -2847,7 +2855,7 @@
     <Target Effect="AlarakTelekinesisCastSet" Value="VectorPoint" />
   </CEffectIssueOrder>
   <CEffectSet id="AlarakLightningSurgeHeroImpactSet">
-    <EffectArray value="AlarakLightningSurgeHeroDamageCreateHealer" />
+    <EffectArray value="AlarakLightningSurgeHitCounterIncrementTokenCount" />
     <EffectArray value="AlarakLightningSurgeExtendedLightningModifyTokenSet" />
     <EffectArray value="AlarakLightningSurgeNegativelyChargedTalentModifyTokenDelayPersistent" />
     <EffectArray value="AlarakSadismShowofForceTalentSwitch" />
@@ -2946,6 +2954,7 @@
     <EffectArray value="AlarakCounterStrikeDamage" />
     <EffectArray value="CameraShakeLightTauntingTotemSet" />
     <EffectArray value="AlarakSadismShowofForceTalentSwitch" />
+    <EffectArray value="ApplyAbilityImpactReveal" />
     <ValidatorArray value="noMarkers" />
   </CEffectSet>
   <CEffectRemoveBehavior id="AlarakCounterStrikeRemovePrimedBuff">
@@ -2956,7 +2965,7 @@
   <CEffectSet id="AlarakTelekinesisImpactSet3125">
     <ValidatorArray value="noMarkers" />
     <EffectArray value="AlarakTelekinesisNoMarkersImpactSet" />
-    <EffectArray value="DismountDecloakTargetSet" />
+    <EffectArray value="DismountDecloakTargetSetNoReveal" />
     <EffectArray value="HeroRemovePushPullDebuffs" />
     <EffectArray value="AlarakTelekinesisApplyKnockbackBehaviorSwitch3125" />
     <EffectArray value="AlarakTelekinesisForcePersistent" />
@@ -3243,6 +3252,7 @@
     <EffectArray value="AlarakHeroWeaponMockingStrikesNonCCHeroTargetTalentModifyUnit" />
     <EffectArray value="AlarakHeroWeaponLethalOnslaughtTalentModifyBehaviorDuration" />
     <EffectArray value="UniversalWeaponImpact" />
+    <EffectArray value="UniversalWeaponPostImpactSet" />
   </CEffectSet>
   <CEffectSwitch id="AlarakLightningSurgeDamageSwitch">
     <CaseArray Validator="TargetIsHero" Effect="AlarakLightningSurgeHeroDamage" />
@@ -3257,6 +3267,15 @@
     <FacingLocation Effect="AlarakLightningSurgeCastSet" Value="TargetUnit" />
     <FacingType value="LookAt" />
   </CEffectModifyUnit>
+  <CEffectSet id="AlarakLightningSurgePrepSet">
+    <EffectArray value="DismountDecloakCasterSet" />
+    <EffectArray value="AlarakLightningSurgeHitCounterResetTokens" />
+  </CEffectSet>
+  <CEffectModifyTokenCount id="AlarakLightningSurgeHitCounterResetTokens">
+    <TokenId value="AlarakLightningSurgeHitCounter" />
+    <ContextUnit Value="Caster" />
+    <Operation value="Set" />
+  </CEffectModifyTokenCount>
   <CEffectSet id="AlarakLightningSurgeCastSet">
     <EffectArray value="AlarakLightningSurgeTargetImpactSwitch" />
     <EffectArray value="AlarakLightningSurgeSearchSwitch" />
@@ -3264,6 +3283,8 @@
     <EffectArray value="CameraShakeLightCasterDummySet" />
     <EffectArray value="AlarakLightningSurgeModifyWeaponCooldown" />
     <EffectArray value="AlarakLightningSurgeLightningBarrageTalentSwitch" />
+    <EffectArray value="AlarakLightningSurgeHeroDamageCreateHealer" />
+    <EffectArray value="ApplyAbilityImpactReveal" />
     <ValidatorArray value="AlarakLightningBarrageTalentTargetFiltersCombine" />
   </CEffectSet>
   <CEffectSet id="AlarakLightningSurgeMeleeRangeSet" />
@@ -4127,6 +4148,20 @@
         <Field value="Modification.MoveSpeedMinimum" />
         <Value value="4.000000" />
       </Modifications>
+      <Modifications>
+        <Type value="FlatModification" />
+        <Catalog value="Behavior" />
+        <Entry value="AlarakTelekinesisKnockbackSelf" />
+        <Field value="Modification.MoveSpeedMaximum" />
+        <Value value="4.000000" />
+      </Modifications>
+      <Modifications>
+        <Type value="FlatModification" />
+        <Catalog value="Behavior" />
+        <Entry value="AlarakTelekinesisKnockbackSelf" />
+        <Field value="Modification.MoveSpeedMinimum" />
+        <Value value="4.000000" />
+      </Modifications>
     </AbilityModificationArray>
     <AbilityModificationArray>
       <Modifications>
@@ -4330,6 +4365,7 @@
     <Radius value="0.8125" />
     <BehaviorArray Link="ExcellentMana" />
     <BehaviorArray Link="AlarakSadismToken" />
+    <BehaviorArray Link="AlarakLightningSurgeHitCounter" />
     <BehaviorArray Link="AlarakSadismTakedownIncreaseTokenCounter" />
     <LifeRegenRate value="4.0585" />
     <InitializerFunction value="libHALA_gf_HeroAlarakIncrementHeroCountFunction" />
@@ -4660,6 +4696,12 @@
     <CombineArray value="CasterNotDeadOrSilencedOrStasisOrStunnedExceptTimeStop" />
     <CombineArray value="CasterNotPolymorphed" />
   </CValidatorCombine>
+  <CValidatorUnitCompareTokenCount id="AlarakHasGE1LightningSurgeHeroHit">
+    <WhichUnit Value="Caster" />
+    <Compare value="GE" />
+    <Value value="1" />
+    <TokenId value="AlarakLightningSurgeHitCounter" />
+  </CValidatorUnitCompareTokenCount>
   <CValidatorLocationCompareRange id="AlarakLightningSurgeTarget13Range">
     <WhichLocation Value="CasterUnit" />
     <Compare value="LE" />

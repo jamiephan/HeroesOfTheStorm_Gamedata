@@ -223,6 +223,12 @@
     <TokenId value="OrpheaEnPointeToken" />
     <Scale value="0.5" />
   </CAccumulatorToken>
+  <CAccumulatorToken id="OrpheaInvasiveMiasmaHealAccumulator" parent="BaseAccumulator">
+    <MaxAccumulation value="15" />
+    <TokenId value="OrpheaInvasiveMiasmaHitCounter" />
+    <Scale value="1" />
+    <Offset value="-1" />
+  </CAccumulatorToken>
   <CActorUnit id="HeroOrphea" parent="StormHeroStandard" unitName="HeroOrphea">
     <GroupIcon>
       <Image value="Assets\Textures\storm_ui_ingame_partyframe_Orphea.dds" />
@@ -1460,7 +1466,7 @@
     <BuffFlags index="Countdown" value="0" />
     <BuffFlags index="UpdateDurationWhileDisabled" value="1" />
     <Duration value="2" />
-    <ExpireEffect value="OrpheaInvasiveMiasmaSearch" />
+    <ExpireEffect value="OrpheaInvasiveMiasmaExpireSet" />
     <DisplayDuration index="Self" value="1" />
     <RemoveValidatorArray value="CasterNotDead" />
     <RemoveValidatorArray value="TargetNotSpecialDeathState" />
@@ -1569,6 +1575,9 @@
     <SortIndex value="100" />
   </CBehaviorBuff>
   <CBehaviorBuff id="OrpheaInvasiveMiasmaCarry" parent="CarryBehaviorParent" />
+  <CBehaviorTokenCounter id="OrpheaInvasiveMiasmaHitCounter" parent="StormGenericToken">
+    <Max value="15" />
+  </CBehaviorTokenCounter>
   <CBehaviorBuff id="OrpheaInvasiveMiasmaAbilityReady">
     <BehaviorFlags index="Permanent" value="1" />
     <BehaviorFlags index="EnabledWhileDead" value="1" />
@@ -2207,6 +2216,7 @@
   </CEffectLaunchMissile>
   <CEffectSet id="OrpheaWeaponImpactSet">
     <EffectArray value="OrpheaWeaponDamage" />
+    <EffectArray value="UniversalWeaponPostImpactSet" />
   </CEffectSet>
   <CEffectApplyBehavior id="OrpheaOverflowingChaosArmorApply">
     <Behavior value="OrpheaOverflowingChaosArmor" />
@@ -2526,6 +2536,7 @@
     <EffectArray value="OrpheaOverflowingChaosResetToken" />
     <EffectArray value="OrpheaOverflowingChaosChaoticAssaultTalentResetToken" />
     <EffectArray value="UniversalWeaponLaunchSet" />
+    <EffectArray value="UniversalWeaponPostImpactSet" />
     <ValidatorArray value="OrpheaOverflowingChaosAttackCombine" />
   </CEffectSet>
   <CEffectSet id="OrpheaCrushingJawsInitialSet">
@@ -2806,6 +2817,11 @@
   <CEffectSet id="OrpheaInvasiveMiasmaInitialSet">
     <EffectArray value="OrpheaInvasiveMiasmaApply" />
   </CEffectSet>
+  <CEffectSet id="OrpheaInvasiveMiasmaExpireSet">
+    <EffectArray value="OrpheaInvasiveMiasmaSearch" />
+    <EffectArray value="OrpheaInvasiveMiasmaHeal" />
+    <EffectArray value="OrpheaInvasiveMiasmaHealResetTokens" />
+  </CEffectSet>
   <CEffectEnumArea id="OrpheaInvasiveMiasmaSearch">
     <SearchFilters value="-;Player,Ally,ImmuneToAOE,Missile,Item,Stasis,Dead,Hidden,Invulnerable" />
     <AreaArray Effect="OrpheaInvasiveMiasmaImpactSet">
@@ -2818,19 +2834,30 @@
   </CEffectEnumArea>
   <CEffectSet id="OrpheaInvasiveMiasmaImpactSet">
     <EffectArray value="OrpheaInvasiveMiasmaDamage" />
-    <EffectArray value="OrpheaInvasiveMiasmaHeal" />
+    <EffectArray value="OrpheaInvasiveMiasmaIncrementTokenCount" />
     <EffectArray value="ApplyAbilityImpactReveal" />
   </CEffectSet>
   <CEffectDamage id="OrpheaInvasiveMiasmaDamage" parent="StormSpell">
     <Amount value="150" />
     <MultiplicativeModifierArray index="0" Validator="OrpheaAncestralStrengthDamageValidator" Modifier="0.15" Crit="1" />
   </CEffectDamage>
+  <CEffectModifyTokenCount id="OrpheaInvasiveMiasmaIncrementTokenCount" parent="BaseEffectModifyTokenCount">
+    <ValidatorArray value="TargetIsHero" />
+    <TokenId value="OrpheaInvasiveMiasmaHitCounter" />
+  </CEffectModifyTokenCount>
   <CEffectCreateHealer id="OrpheaInvasiveMiasmaHeal" parent="StormSelfOnlyHealingSpell">
-    <RechargeVitalRate value="182" />
+    <RechargeVitalRate value="182">
+      <AccumulatorArray value="OrpheaInvasiveMiasmaHealAccumulator" />
+    </RechargeVitalRate>
     <SourceButtonFace value="OrpheaInvasiveMiasma" />
     <ImpactUnit Value="Caster" />
-    <ValidatorArray value="TargetIsHero" />
+    <ValidatorArray value="OrpheaInvasiveMiasmaHasGE1HitToken" />
   </CEffectCreateHealer>
+  <CEffectModifyTokenCount id="OrpheaInvasiveMiasmaHealResetTokens">
+    <TokenId value="OrpheaInvasiveMiasmaHitCounter" />
+    <ContextUnit Value="Caster" />
+    <Operation value="Set" />
+  </CEffectModifyTokenCount>
   <CEffectDamage id="OrpheaInvasiveMiasmaDummyCurrentCharge" />
   <CEffectDamage id="OrpheaInvasiveMiasmaDummyMaximumCharge">
     <Amount value="9" />
@@ -3659,6 +3686,7 @@
     <Trait value="1" />
     <RankArray>
       <BehaviorArray value="OrpheaInvasiveMiasmaCarry" />
+      <BehaviorArray value="OrpheaInvasiveMiasmaHitCounter" />
     </RankArray>
     <Active value="1" />
   </CTalent>
@@ -4112,6 +4140,12 @@
     <WhichUnit Value="Caster" />
     <Behavior value="OrpheaInvasiveMiasmaCarry" />
   </CValidatorUnitCompareBehaviorCount>
+  <CValidatorUnitCompareTokenCount id="OrpheaInvasiveMiasmaHasGE1HitToken">
+    <WhichUnit Value="Caster" />
+    <Compare value="GE" />
+    <Value value="1" />
+    <TokenId value="OrpheaInvasiveMiasmaHitCounter" />
+  </CValidatorUnitCompareTokenCount>
   <CValidatorUnitCompareBehaviorCount id="OrpheaDoesNotHaveInvasiveMiasmaAbilityReady">
     <WhichUnit Value="Caster" />
     <Behavior value="OrpheaInvasiveMiasmaAbilityReady" />

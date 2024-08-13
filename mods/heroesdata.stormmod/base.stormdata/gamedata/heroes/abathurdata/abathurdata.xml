@@ -132,7 +132,7 @@
     <Cost>
       <Cooldown TimeStart="0.5" TimeUse="6" />
     </Cost>
-    <PrepEffect value="AbathurSymbioteApplySuppressSuperStealthController" />
+    <PrepEffect value="AbathurSymbioteSpikeBurstPrepSet" />
   </CAbilEffectInstant>
   <CAbilEffectTarget id="AbathurSymbioteStab">
     <CmdButtonArray index="Execute" DefaultButtonFace="AbathurSymbioteStab">
@@ -298,6 +298,11 @@
     <MaxAccumulation value="40" />
     <ApplicationRule value="Add" />
     <TokenId value="AbathurEvolveMonstrosityMinionAbsorbedToken" />
+  </CAccumulatorToken>
+  <CAccumulatorToken id="AbathurSpikeBurstSomaTranferenceAccumulator" parent="BaseTokenAccumulator">
+    <ApplicationRule value="Add" />
+    <MinAccumulation value="64" />
+    <MaxAccumulation value="64" />
   </CAccumulatorToken>
   <CActorModel id="AbathurMonstrosityDeepTunnelVisualWarning" parent="StormModelAnimationStyleContinuous">
     <Inherits index="TeamColor" value="1" />
@@ -1090,6 +1095,7 @@
   <CActorModel id="AbathurSymbioteSpikeBurstSomaTransference" parent="StormModelAnimationStyleOneShotUnit">
     <Terms value="Cap 1" />
     <On Terms="Effect.AbathurSymbioteSpikeBurstSomaTransferenceCreateHealer.Start; At Target" Send="Create" />
+    <On Terms="Effect.AbathurHivemindSpikeBurstSomaTransferenceCreateHealer.Start; At Target" Send="Create" />
     <HostSiteOps Ops="SOpAttachCenter SOp2DRotation" />
     <Model value="Storm_Effect_GenericHeal_Impact" />
   </CActorModel>
@@ -2219,6 +2225,16 @@
   <CEffectApplyBehavior id="AbathurSymbioteApplySuperStealthController">
     <Behavior value="AbathurSymbioteVisibilityController" />
   </CEffectApplyBehavior>
+  <CEffectSet id="AbathurSymbioteSpikeBurstPrepSet">
+    <EffectArray value="AbathurSymbioteApplySuppressSuperStealthController" />
+    <EffectArray value="AbathurSomaTransferenceResetCatalog" />
+  </CEffectSet>
+  <CEffectModifyCatalogNumeric id="AbathurSomaTransferenceResetCatalog">
+    <CatalogModifications Operation="Set" Reference="Effect,AbathurSymbioteSpikeBurstSomaTransferenceCreateHealer,RechargeVitalRate" />
+    <CatalogModifications Operation="Set" Reference="Effect,AbathurSymbioteSpikeBurstSomaTransferenceCreateHealer,Chance" />
+    <CatalogModifications Operation="Set" Reference="Effect,AbathurHivemindSpikeBurstSomaTransferenceCreateHealer,RechargeVitalRate" />
+    <CatalogModifications Operation="Set" Reference="Effect,AbathurHivemindSpikeBurstSomaTransferenceCreateHealer,Chance" />
+  </CEffectModifyCatalogNumeric>
   <CEffectApplyBehavior id="AbathurSymbioteApplySuppressSuperStealthController">
     <WhichUnit Value="Caster" />
     <Behavior value="AbathurSymbioteSuppressVisibilityController" />
@@ -2334,12 +2350,19 @@
   </CEffectSet>
   <CEffectEnumArea id="AbathurLocustAssaultCleaveSearchArea">
     <SearchFilters value="-;Self,Player,Ally,Neutral,ImmuneToAOE,Missile,Item,Stasis,Dead,Hidden,Invulnerable" />
-    <AreaArray Arc="180" Effect="AbathurLocustAssaultWeaponCleaveDamage">
+    <AreaArray Arc="180" Effect="AbathurLocustAssaultWeaponCleaveDamageSwitch">
       <Radius value="1.25" />
     </AreaArray>
     <ImpactLocation Value="SourceUnit" />
     <ExcludeArray Effect="AbathurLocustAssaultAttackSet" Value="Target" />
   </CEffectEnumArea>
+  <CEffectSwitch id="AbathurLocustAssaultWeaponCleaveDamageSwitch" parent="SummonedBasicAttackAbilityDamageMissCheck">
+    <CaseDefault value="AbathurLocustAssaultWeaponCleaveDamageSet" />
+  </CEffectSwitch>
+  <CEffectSet id="AbathurLocustAssaultWeaponCleaveDamageSet">
+    <EffectArray value="StormSummonedWeaponPhysicalDamageDummy" />
+    <EffectArray value="AbathurLocustAssaultWeaponCleaveDamage" />
+  </CEffectSet>
   <CEffectDamage id="AbathurLocustAssaultWeaponCleaveDamage" parent="StormSummonedUnitWeapon">
     <Amount value="17" />
     <MultiplicativeModifierArray index="StructureDamage" Validator="IsStructureTarget" Modifier="0.25" />
@@ -2368,8 +2391,12 @@
     <SharedFlags index="ValidateWeapon" value="0" />
   </CEffectLaunchMissile>
   <CEffectSwitch id="AbathurLocustBombardWeaponCloseRangeDamageSwitch" parent="SummonedBasicAttackAbilityDamageMissCheck">
-    <CaseDefault value="AbathurLocustBombardWeaponCloseRangeDamage" />
+    <CaseDefault value="AbathurLocustBombardWeaponCloseRangeDamageSet" />
   </CEffectSwitch>
+  <CEffectSet id="AbathurLocustBombardWeaponCloseRangeDamageSet">
+    <EffectArray value="StormSummonedWeaponPhysicalDamageDummy" />
+    <EffectArray value="AbathurLocustBombardWeaponCloseRangeDamage" />
+  </CEffectSet>
   <CEffectDamage id="AbathurLocustBombardWeaponCloseRangeDamage" parent="StormSummonedUnitWeapon">
     <Amount value="46" />
     <MultiplicativeModifierArray index="HasSurvivalInstincts" Validator="HasAbathurCombatStyleSurvivalInstincts" Modifier="0.6" />
@@ -2409,8 +2436,12 @@
     <CaseDefault value="AbathurLocustBombardWeaponImpactSet" />
   </CEffectSwitch>
   <CEffectSet id="AbathurLocustBombardWeaponImpactSet">
-    <EffectArray value="AbathurLocustBombardWeaponDamage" />
+    <EffectArray value="AbathurLocustWeaponDamageSet" />
     <TargetLocationType value="UnitOrPoint" />
+  </CEffectSet>
+  <CEffectSet id="AbathurLocustWeaponDamageSet">
+    <EffectArray value="StormSummonedWeaponPhysicalDamageDummy" />
+    <EffectArray value="AbathurLocustWeaponDamage" />
   </CEffectSet>
   <CEffectEnumArea id="AbathurLocustBombardWeaponImpactSearch">
     <SearchFilters value="-;Player,Ally,Neutral,ImmuneToAOE,Missile,Stasis,Dead,Hidden,Invulnerable" />
@@ -2787,6 +2818,7 @@
   <CEffectSet id="AbathurSymbioteSpikeBurstImpactSet">
     <EffectArray value="AbathurSymbioteSpikeBurstDamageSwitch" />
     <EffectArray value="EnvenomedSpikesApplySlowBehavior" />
+    <EffectArray value="AbathurSymbioteSpikeBurstSomaTransferenceImpactSwitch" />
     <EffectArray value="ApplyAbilityImpactReveal" />
   </CEffectSet>
   <CEffectSwitch id="AbathurSymbioteSpikeBurstDamageSwitch">
@@ -2809,7 +2841,7 @@
     <WhichLocation Value="TargetUnit" />
     <PeriodCount value="2" />
     <PeriodicEffectArray value="AbathurSymbioteSpikeBurstDamageSearch" />
-    <PeriodicEffectArray value="AbathurSpikeBurstSomaTransferenceSearch" />
+    <PeriodicEffectArray value="AbathurSymbioteSpikeBurstSomaTransferenceHealSwitch" />
     <ValidatorArray value="TargetHasAbathurSymbioteHost" />
   </CEffectCreatePersistent>
   <CEffectEnumArea id="AbathurSymbioteCarapaceNetworkedCarapaceApplySearch">
@@ -3002,25 +3034,43 @@
     <PeriodicValidator value="AbathurTargetNotDeadAndHasSymbioteHost" />
     <WhichLocation Value="TargetUnit" />
   </CEffectCreatePersistent>
-  <CEffectEnumArea id="AbathurSpikeBurstSomaTransferenceSearch">
-    <Chance value="0" />
-    <LaunchLocation Effect="AbathurSpikeBurstHostPersistent" Value="TargetUnit" />
-    <ImpactLocation Effect="AbathurSpikeBurstHostPersistent" Value="TargetUnit" />
-    <SearchFilters value="Heroic;Player,Ally,Neutral,ImmuneToAOE,Missile,Item,Stasis,Dead,Hidden,Invulnerable,Summoned" />
-    <AreaArray Effect="AbathurSpikeBurstSomaTransferenceTargetingPersistant">
-      <Radius value="4" />
-    </AreaArray>
-    <SearchFlags index="ExtendByUnitRadius" value="1" />
-  </CEffectEnumArea>
-  <CEffectCreatePersistent id="AbathurSpikeBurstSomaTransferenceTargetingPersistant">
-    <WhichLocation Effect="AbathurSpikeBurstHostPersistent" Value="TargetUnit" />
-    <PeriodCount value="1" />
-    <PeriodicEffectArray value="AbathurSymbioteSpikeBurstSomaTransferenceCreateHealer" />
-  </CEffectCreatePersistent>
-  <CEffectCreateHealer id="AbathurSymbioteSpikeBurstSomaTransferenceCreateHealer" parent="StormHealingSpell">
+  <CEffectSwitch id="AbathurSymbioteSpikeBurstSomaTransferenceHealSwitch">
     <ValidatorArray value="NotStructureTarget" />
-    <RechargeVitalRate value="64" />
+    <ValidatorArray value="AbathurHasSymbioteSpikeBurstSomaTransference" />
+    <CaseArray Validator="AbathurSymbioteSpikeBurstHivemindTarget" Effect="AbathurHivemindSpikeBurstSomaTransferenceCreateHealer" />
+    <CaseDefault value="AbathurSymbioteSpikeBurstSomaTransferenceCreateHealer" />
+  </CEffectSwitch>
+  <CEffectCreateHealer id="AbathurSymbioteSpikeBurstSomaTransferenceCreateHealer" parent="StormHealingSpell">
+    <SourceButtonFace value="AbathurSymbioteSpikeBurstSomaTransferenceTalent" />
   </CEffectCreateHealer>
+  <CEffectCreateHealer id="AbathurHivemindSpikeBurstSomaTransferenceCreateHealer" parent="StormHealingSpell">
+    <SourceButtonFace value="AbathurSymbioteSpikeBurstSomaTransferenceTalent" />
+  </CEffectCreateHealer>
+  <CEffectSwitch id="AbathurSymbioteSpikeBurstSomaTransferenceImpactSwitch">
+    <ValidatorArray value="TargetIsHero" />
+    <CaseArray Validator="AbathurSymbioteSpikeBurstHivemindTarget" Effect="AbathurSomaTransferenceModifyHivemindHealer" />
+    <CaseDefault value="AbathurSomaTransferenceModifyHealer" />
+  </CEffectSwitch>
+  <CEffectModifyCatalogNumeric id="AbathurSomaTransferenceModifyHealer">
+    <CatalogModifications Reference="Effect,AbathurSymbioteSpikeBurstSomaTransferenceCreateHealer,RechargeVitalRate">
+      <Value value="0">
+        <AccumulatorArray value="AbathurSpikeBurstSomaTranferenceAccumulator" />
+      </Value>
+    </CatalogModifications>
+    <CatalogModifications Operation="Set" Reference="Effect,AbathurSymbioteSpikeBurstSomaTransferenceCreateHealer,Chance">
+      <Value value="1" />
+    </CatalogModifications>
+  </CEffectModifyCatalogNumeric>
+  <CEffectModifyCatalogNumeric id="AbathurSomaTransferenceModifyHivemindHealer">
+    <CatalogModifications Reference="Effect,AbathurHivemindSpikeBurstSomaTransferenceCreateHealer,RechargeVitalRate">
+      <Value value="0">
+        <AccumulatorArray value="AbathurSpikeBurstSomaTranferenceAccumulator" />
+      </Value>
+    </CatalogModifications>
+    <CatalogModifications Operation="Set" Reference="Effect,AbathurHivemindSpikeBurstSomaTransferenceCreateHealer,Chance">
+      <Value value="1" />
+    </CatalogModifications>
+  </CEffectModifyCatalogNumeric>
   <CEffectApplyBehavior id="SymbioteApplyHostBehavior">
     <Behavior value="AbathurSymbioteHostBehavior" />
   </CEffectApplyBehavior>
@@ -3271,6 +3321,7 @@
     <EffectArray value="UniversalWeaponImpact" />
     <EffectArray value="AbathurWeaponDamage" />
     <EffectArray value="UniversalWeaponLaunchSet" />
+    <EffectArray value="UniversalWeaponPostImpactSet" />
   </CEffectSet>
   <CEffectDamage id="AbathurWeaponDamage" parent="StormWeapon">
     <Marker Link="Effect/MuradinWeaponDamage" />
@@ -3280,11 +3331,16 @@
     <CaseDefault value="AbathurEvolveMonstrosityAttackSet" />
   </CEffectSwitch>
   <CEffectSet id="AbathurEvolveMonstrosityAttackSet">
+    <EffectArray value="StormSummonedWeaponPhysicalDamageDummy" />
     <EffectArray value="AbathurEvolveMonstrosityWeaponDamage" />
   </CEffectSet>
   <CEffectSwitch id="AbathurEvolveMonstrosityAttackSetSwitch" parent="SummonedBasicAttackAbilityDamageMissCheck">
-    <CaseDefault value="AbathurEvolveMonstrosityWeaponDamage" />
+    <CaseDefault value="AbathurEvolveMonstrosityWeaponDamageSet" />
   </CEffectSwitch>
+  <CEffectSet id="AbathurEvolveMonstrosityWeaponDamageSet">
+    <EffectArray value="StormSummonedWeaponPhysicalDamageDummy" />
+    <EffectArray value="AbathurEvolveMonstrosityWeaponDamage" />
+  </CEffectSet>
   <CEffectDamage id="AbathurEvolveMonstrosityWeaponDamage" parent="StormSummonedUnitWeapon">
     <Amount value="85" />
     <MultiplicativeModifierArray index="EvolutionCompleteDamage" Validator="AbathurHasMonstrosityEvolutionComplete" Modifier="1" />
@@ -3719,9 +3775,16 @@
         <AffectedByOverdrive value="1" />
       </Modifications>
       <Modifications>
-        <Catalog value="Effect" />
-        <Entry value="AbathurSymbioteSpikeBurstSomaTransferenceCreateHealer" />
-        <Field value="RechargeVitalRate" />
+        <Catalog value="Accumulator" />
+        <Entry value="AbathurSpikeBurstSomaTranferenceAccumulator" />
+        <Field value="MinAccumulation" />
+        <Value value="0.040000" />
+        <AffectedByOverdrive value="1" />
+      </Modifications>
+      <Modifications>
+        <Catalog value="Accumulator" />
+        <Entry value="AbathurSpikeBurstSomaTranferenceAccumulator" />
+        <Field value="MaxAccumulation" />
         <Value value="0.040000" />
         <AffectedByOverdrive value="1" />
       </Modifications>

@@ -124,7 +124,7 @@
     <Flags index="Transient" value="1" />
   </CAbilEffectInstant>
   <CAbilEffectInstant id="MalthaelSoulRip">
-    <PrepEffect value="DismountDecloakCasterSet" />
+    <PrepEffect value="MalthaelSoulRipPrepSet" />
     <Effect value="MalthaelSoulRipInitialSet" />
     <Cost>
       <Vital index="Energy" value="25" />
@@ -179,6 +179,21 @@
     <ModificationType value="PerUnitMaxVital" />
     <ClampToMaxVitalForFractionalDamage value="1" />
   </CAccumulatorVitals>
+  <CAccumulatorVitals id="MalthaelSoulRipSoulSiphonPercentageHealAccumulator" parent="BaseVitalAccumulator">
+    <MaxAccumulation value="452607" />
+    <ApplicationRule value="Add" />
+    <Ratio value="0.0075" />
+    <VitalType value="Life" />
+    <UnitSource Effect="MalthaelSoulRipImpactSet" Value="Target" />
+    <ModificationType value="PerUnitMaxVital" />
+    <ClampToMaxVitalForFractionalDamage value="1" />
+  </CAccumulatorVitals>
+  <CAccumulatorToken id="MalthaelSoulRipHitCounterAccumulator" parent="BaseAccumulator">
+    <MaxAccumulation value="100" />
+    <TokenId value="MalthaelSoulRipHitCounter" />
+    <Scale value="1" />
+    <Offset value="-1" />
+  </CAccumulatorToken>
   <CActorScene id="SYSTEM_Scene">
     <On Terms="SceneEffectSearchNotifyResults.MalthaelSoulRipSearch" Send="SceneEffectSearchResponse DoodadImpactable" />
     <On Terms="SceneEffectSearchNotifyResults.MalthaelDeathShroudSearch" Send="SceneEffectSearchResponse DoodadImpactable" />
@@ -907,6 +922,10 @@
     <ImpactMap index="None" Sound="None" />
     <ImpactSound value="" />
   </CActorAction>
+  <CActorAction id="MalthaelCleaveWeaponAttackAction" parent="MeleeHeroAttack" effectAttack="MalthaelCleaveWeaponImpactSet">
+    <ImpactMap index="None" Sound="None" />
+    <ImpactSound value="" />
+  </CActorAction>
   <CActorModel id="MalthaelWeaponAttackCommonFX" parent="StormModelAnimationStyleContinuousUnit">
     <On Terms="AnimDone; AnimName Attack" Send="Destroy" />
     <On Terms="ActorOrphan" Send="Destroy" />
@@ -1125,6 +1144,9 @@
     <TrackingValidatorArray value="MalthaelReapersMarkTargetHasDebuff" />
     <UseSharedList value="1" />
   </CBehaviorUnitTracker>
+  <CBehaviorTokenCounter id="MalthaelSoulRipHitCounter" parent="StormGenericToken">
+    <Max value="100" />
+  </CBehaviorTokenCounter>
   <CBehaviorBuff id="MalthaelReapersMarkTouchOfDeathDebuff" parent="StormHealReduction">
     <Duration value="4" />
     <Modification>
@@ -1627,21 +1649,14 @@
     <TrackedUnit Value="Target" />
   </CEffectRemoveTrackedUnit>
   <CEffectCreateHealer id="MalthaelSoulRipHeroPercentageCreateHealer" parent="StormSelfOnlyHealingSpellPercent">
-    <ValidatorArray value="TargetIsHero" />
     <ImpactUnit Value="Caster" />
     <SourceButtonFace value="MalthaelSoulRip" />
-    <RechargeVitalRate value="0">
-      <AccumulatorArray value="MalthaelSoulRipHeroPercentageHealAccumulator" />
-    </RechargeVitalRate>
+    <RechargeVitalRate value="0" />
   </CEffectCreateHealer>
   <CEffectCreateHealer id="MalthaelSoulRipSoulSiphonHeroPercentageCreateHealer" parent="StormSelfOnlyHealingSpellPercent">
-    <ValidatorArray value="TargetIsHero" />
-    <Chance value="0" />
     <ImpactUnit Value="Caster" />
-    <RechargeVitalRate value="0">
-      <AccumulatorArray value="MalthaelSoulRipHeroPercentageHealAccumulator" />
-    </RechargeVitalRate>
-    <SourceButtonFace value="MalthaelSoulRip" />
+    <SourceButtonFace value="MalthaelSoulSiphon" />
+    <RechargeVitalRate value="0" />
   </CEffectCreateHealer>
   <CEffectSet id="MalthaelReapersMarkTouchOfDeathInitialSet">
     <ValidatorArray value="MalthaelReapersMarkSourceHasTrackedHeroes" />
@@ -1835,8 +1850,35 @@
   <CEffectSet id="MalthaelShroudOfWisdomInitialSet">
     <EffectArray value="MalthaelShroudOfWisdomApplyWarningBehavior" />
   </CEffectSet>
+  <CEffectSet id="MalthaelSoulRipPrepSet">
+    <EffectArray value="DismountDecloakCasterSet" />
+    <EffectArray value="MalthaelSoulRipHitResetTokens" />
+    <EffectArray value="MalthaelSoulRipResetHealers" />
+  </CEffectSet>
+  <CEffectModifyTokenCount id="MalthaelSoulRipHitResetTokens">
+    <TokenId value="MalthaelSoulRipHitCounter" />
+    <ContextUnit Value="Caster" />
+    <Operation value="Set" />
+  </CEffectModifyTokenCount>
+  <CEffectModifyCatalogNumeric id="MalthaelSoulRipResetHealers">
+    <CatalogModifications Operation="Set" Reference="Effect,MalthaelSoulRipHeroPercentageCreateHealer,RechargeVitalRate">
+      <Value value="0" />
+    </CatalogModifications>
+    <CatalogModifications Operation="Set" Reference="Effect,MalthaelSoulRipHeroPercentageCreateHealer,Chance">
+      <Value value="0" />
+    </CatalogModifications>
+    <CatalogModifications Operation="Set" Reference="Effect,MalthaelSoulRipSoulSiphonHeroPercentageCreateHealer,RechargeVitalRate">
+      <Value value="0" />
+    </CatalogModifications>
+    <CatalogModifications Operation="Set" Reference="Effect,MalthaelSoulRipSoulSiphonHeroPercentageCreateHealer,Chance">
+      <Value value="0" />
+    </CatalogModifications>
+  </CEffectModifyCatalogNumeric>
   <CEffectSet id="MalthaelSoulRipInitialSet">
     <EffectArray value="MalthaelSoulRipSearch" />
+    <EffectArray value="MalthaelSoulRipCreateHealer" />
+    <EffectArray value="MalthaelSoulRipHeroPercentageCreateHealer" />
+    <EffectArray value="MalthaelSoulRipSoulSiphonHeroPercentageCreateHealer" />
     <ValidatorArray value="MalthaelSoulRipEnemyWithinProximity" />
   </CEffectSet>
   <CEffectEnumArea id="MalthaelSoulRipSearch">
@@ -1848,16 +1890,19 @@
   </CEffectEnumArea>
   <CEffectSet id="MalthaelSoulRipImpactSet">
     <EffectArray value="ApplyAbilityImpactReveal" />
-    <EffectArray value="MalthaelSoulRipCreateHealer" />
-    <EffectArray value="MalthaelSoulRipHeroPercentageCreateHealer" />
-    <EffectArray value="MalthaelSoulRipSoulSiphonHeroPercentageCreateHealer" />
+    <EffectArray value="MalthaelSoulRipHitIncrementTokenCount" />
+    <EffectArray value="MalthaelSoulRipModifyHealerHero" />
+    <EffectArray value="MalthaelSoulRipModifyHealerSoulSiphon" />
     <EffectArray value="MalthaelSoulRipColdHandApplyBehavior" />
     <EffectArray value="MalthaelSoulRipDamage" />
     <ValidatorArray value="MalthaelReapersMarkTargetHasDebuff" />
   </CEffectSet>
   <CEffectCreateHealer id="MalthaelSoulRipCreateHealer" parent="StormSelfOnlyHealingSpell">
+    <ValidatorArray value="MalthaelCasterHasGE1SoulRipTargetHit" />
     <ImpactUnit Value="Caster" />
-    <RechargeVitalRate value="25" />
+    <RechargeVitalRate value="25">
+      <AccumulatorArray value="MalthaelSoulRipHitCounterAccumulator" />
+    </RechargeVitalRate>
   </CEffectCreateHealer>
   <CEffectDamage id="MalthaelSoulRipDamage" parent="StormSpell">
     <Amount value="100" />
@@ -1865,6 +1910,32 @@
     <MultiplicativeModifierArray index="MalthaelSoulRipDieAloneDamageBonus" Validator="MalthaelSoulRipDieAloneHasDieAloneTalentAndOneEnemyHeroWithinProximity" Modifier="0.5" />
     <CritValidatorArray index="0" value="MalthaelSoulRipCritAliasOrHasDieAloneAndEnemyWithinProximity" />
   </CEffectDamage>
+  <CEffectModifyTokenCount id="MalthaelSoulRipHitIncrementTokenCount" parent="BaseEffectModifyTokenCount">
+    <TokenId value="MalthaelSoulRipHitCounter" />
+  </CEffectModifyTokenCount>
+  <CEffectModifyCatalogNumeric id="MalthaelSoulRipModifyHealerHero">
+    <ValidatorArray value="TargetIsHero" />
+    <CatalogModifications Reference="Effect,MalthaelSoulRipHeroPercentageCreateHealer,RechargeVitalRate">
+      <Value value="0">
+        <AccumulatorArray value="MalthaelSoulRipHeroPercentageHealAccumulator" />
+      </Value>
+    </CatalogModifications>
+    <CatalogModifications Operation="Set" Reference="Effect,MalthaelSoulRipHeroPercentageCreateHealer,Chance">
+      <Value value="1" />
+    </CatalogModifications>
+  </CEffectModifyCatalogNumeric>
+  <CEffectModifyCatalogNumeric id="MalthaelSoulRipModifyHealerSoulSiphon">
+    <ValidatorArray value="MalthaelSoulRipSoulSiphonHasTalent" />
+    <ValidatorArray value="TargetIsHero" />
+    <CatalogModifications Reference="Effect,MalthaelSoulRipSoulSiphonHeroPercentageCreateHealer,RechargeVitalRate">
+      <Value value="0">
+        <AccumulatorArray value="MalthaelSoulRipSoulSiphonPercentageHealAccumulator" />
+      </Value>
+    </CatalogModifications>
+    <CatalogModifications Operation="Set" Reference="Effect,MalthaelSoulRipSoulSiphonHeroPercentageCreateHealer,Chance">
+      <Value value="1" />
+    </CatalogModifications>
+  </CEffectModifyCatalogNumeric>
   <CEffectApplyBehavior id="MalthaelSoulRipColdHandApplyBehavior">
     <Chance value="0" />
     <Behavior value="MalthaelSoulRipColdHandSlow" />
@@ -1905,16 +1976,22 @@
     <EffectArray value="UniversalWeaponLaunchSet" />
     <EffectArray value="MalthaelWeaponImpactSet" />
     <EffectArray value="MalthaelWeaponCleaveSearchArea" />
+    <EffectArray value="UniversalWeaponPostImpactSet" />
   </CEffectSet>
   <CEffectSet id="MalthaelWeaponImpactSet">
     <EffectArray value="MalthaelReapersMarkWeaponApplySet" />
     <EffectArray value="MalthaelWeaponDamage" />
   </CEffectSet>
+  <CEffectSet id="MalthaelCleaveWeaponImpactSet">
+    <EffectArray value="MalthaelReapersMarkWeaponApplySet" />
+    <EffectArray value="MalthaelWeaponDamage" />
+    <EffectArray value="UniversalWeaponPostImpactSet" />
+  </CEffectSet>
   <CEffectEnumArea id="MalthaelWeaponCleaveSearchArea">
     <ImpactLocation Value="SourceUnit" />
     <ExcludeArray Value="Target" />
     <SearchFilters value="-;Self,Player,Ally,ImmuneToAOE,Missile,Item,Stasis,Dead,Hidden,Invulnerable" />
-    <AreaArray Arc="169.9914" Effect="MalthaelWeaponImpactSet">
+    <AreaArray Arc="169.9914" Effect="MalthaelCleaveWeaponImpactSet">
       <Radius value="3.25" />
     </AreaArray>
     <AreaRelativeOffset Y="-0.25" />
@@ -3195,29 +3272,6 @@
   <CTalent id="MalthaelSoulSiphon">
     <Face value="MalthaelSoulSiphon" />
     <Abil value="MalthaelSoulRip" />
-    <AbilityModificationArray>
-      <Modifications>
-        <Type value="FlatModification" />
-        <Catalog value="Accumulator" />
-        <Entry value="MalthaelSoulRipHeroPercentageHealAccumulator" />
-        <Field value="Ratio" />
-        <Value value="0.007500" />
-      </Modifications>
-      <Modifications>
-        <Type value="FlatModification" />
-        <Catalog value="Effect" />
-        <Entry value="MalthaelSoulRipSoulSiphonHeroPercentageCreateHealer" />
-        <Field value="Chance" />
-        <Value value="1.000000" />
-      </Modifications>
-      <Modifications>
-        <Type value="FlatModification" />
-        <Catalog value="Effect" />
-        <Entry value="MalthaelSoulRipHeroPercentageCreateHealer" />
-        <Field value="Chance" />
-        <Value value="-1.000000" />
-      </Modifications>
-    </AbilityModificationArray>
   </CTalent>
   <CTalent id="MalthaelTormentedSouls">
     <Face value="MalthaelTormentedSouls" />
@@ -3281,6 +3335,7 @@
     <BehaviorArray Link="MalthaelReapersMarkEtherealExistenceTier2Buff" />
     <BehaviorArray Link="MalthaelReapersMarkEtherealExistenceTier3Buff" />
     <BehaviorArray Link="MalthaelReapersMarkEtherealExistenceTier4Buff" />
+    <BehaviorArray Link="MalthaelSoulRipHitCounter" />
     <WeaponArray Link="MalthaelHeroWeapon" />
     <CardLayouts index="0">
       <LayoutButtons Face="MalthaelTormentedSouls" Type="AbilCmd" AbilCmd="MalthaelTormentedSouls,Execute" Slot="Heroic" />
@@ -3576,6 +3631,12 @@
     <Compare value="LE" />
     <Range value="5" />
   </CValidatorLocationCompareRange>
+  <CValidatorUnitCompareTokenCount id="MalthaelCasterHasGE1SoulRipTargetHit">
+    <WhichUnit Value="Caster" />
+    <Compare value="GE" />
+    <Value value="1" />
+    <TokenId value="MalthaelSoulRipHitCounter" />
+  </CValidatorUnitCompareTokenCount>
   <CValidatorCompareTrackedUnitsCount id="MalthaelSoulRipEnemyWithinProximity">
     <Compare value="GT" />
     <BehaviorLink value="MalthaelReapersMarkUnitTracker" />

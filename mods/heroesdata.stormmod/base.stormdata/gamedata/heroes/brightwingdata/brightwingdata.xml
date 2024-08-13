@@ -1089,12 +1089,6 @@
     <Duration value="0.5" />
     <FinalEffect value="BrightwingBlinkHealInvisibleFriendsApplyCloakBehavior" />
   </CBehaviorBuff>
-  <CBehaviorBuff id="BrightwingCalmingMistMagicSpitCarryBehavior" parent="CarryBehaviorParent">
-    <DamageResponse Chance="1" Handled="BrightwingCalmingMistMagicSpitModifyCooldown" Location="Attacker">
-      <ValidatorArray value="UserCategoryTargetNotEvading" />
-      <Kind index="Ability" value="0" />
-    </DamageResponse>
-  </CBehaviorBuff>
   <CBehaviorTokenCounter id="BrightwingArcaneFlareSoothingPrecisionToken" parent="StormQuestToken">
     <Face value="BrightwingArcaneFlareSoothingPrecisionTalentToken" />
     <ConditionalEvents Compare="GE" CompareValue="20">
@@ -1392,12 +1386,18 @@
     <Duration value="1.5" />
     <ExpireEffect value="BrightwingPolymorphUnstableAnomalySearchArea" />
     <Modification>
-      <UnifiedMoveSpeedFactor value="-0.3" />
       <DeathResponse Chance="1" Effect="BrightwingPolymorphUnstableAnomalySearchArea" />
     </Modification>
     <AINotifySettings AreaEffect="BrightwingPolymorphUnstableAnomalySearchArea">
       <Flags index="Disabled" value="1" />
     </AINotifySettings>
+  </CBehaviorBuff>
+  <CBehaviorBuff id="BrightwingPolymorphSlow" parent="StormSlowParent">
+    <RemoveValidatorArray value="BrightwingTargetHasBrightwingPolymorphBehavior" />
+    <Duration value="1.5" />
+    <Modification>
+      <UnifiedMoveSpeedFactor value="-0.3" />
+    </Modification>
   </CBehaviorBuff>
   <CBehaviorBuff id="EmeraldWindKnockback" parent="PushPullParent">
     <Duration value="0.1875" />
@@ -1712,7 +1712,7 @@
   <CEffectModifyUnit id="BrightwingPhaseShiftHyperShiftModifyUnit">
     <ValidatorArray value="UserCategoryTargetNotEvading" />
     <ImpactUnit Value="Caster" />
-    <Cost Abil="BrightwingPhaseShift,Execute" CooldownOperation="Add" CooldownTimeUse="-1" />
+    <Cost Abil="BrightwingPhaseShift,Execute" CooldownOperation="Add" CooldownTimeUse="-.5" />
   </CEffectModifyUnit>
   <CEffectModifyTokenCount id="BrightwingPixieCharmAddMinionTokenCount" parent="BaseEffectModifyTokenCount">
     <Chance value="0" />
@@ -1798,8 +1798,8 @@
     <Cost Abil="FaerieDragonPolymorph,Execute" CooldownOperation="Add" CooldownTimeUse="-7" />
   </CEffectModifyUnit>
   <CEffectModifyUnit id="BrightwingCalmingMistMagicSpitModifyCooldown">
-    <ValidatorArray value="UserCategoryTargetNotEvading" />
-    <ValidatorArray value="TargetIsHero" />
+    <ValidatorArray value="BrightwingMagicSpitCombine" />
+    <ValidatorArray value="CasterNotBlindedAndTargetNotEvading" />
     <ImpactUnit Value="Caster" />
     <Cost Abil="BrightwingCalmingMist,Execute" CooldownOperation="Add" CooldownTimeUse="-4" />
   </CEffectModifyUnit>
@@ -2193,6 +2193,8 @@
   <CEffectSet id="FaerieDragonWeaponImpactSet">
     <EffectArray value="UniversalWeaponImpact" />
     <EffectArray value="FaerieDragonWeaponDamage" />
+    <EffectArray value="BrightwingCalmingMistMagicSpitModifyCooldown" />
+    <EffectArray value="UniversalWeaponPostImpactSet" />
   </CEffectSet>
   <CEffectModifyUnit id="FaerieDragonHardenedFocusModifyCooldowns">
     <Cost Abil="FaerieDragonArcaneFlare,Execute" CooldownOperation="Add" CooldownTimeUse="-0.125" />
@@ -2696,8 +2698,12 @@
   <CEffectApplyBehavior id="PolymorphApplyBehavior">
     <Behavior value="BrightwingPolymorph" />
   </CEffectApplyBehavior>
+  <CEffectApplyBehavior id="PolymorphApplySlowBehavior" parent="StormSlowApply">
+    <Behavior value="BrightwingPolymorphSlow" />
+  </CEffectApplyBehavior>
   <CEffectSet id="PolymorphSet">
     <EffectArray value="PolymorphApplyBehavior" />
+    <EffectArray value="PolymorphApplySlowBehavior" />
     <EffectArray value="PolymorphModifyWeaponCooldown" />
     <EffectArray value="FaerieDragonPolymorphApplyCritterizeTalentVulnerable" />
     <EffectArray value="SiegeModeRemoveSet" />
@@ -3423,9 +3429,6 @@
   </CTalent>
   <CTalent id="BrightwingMagicSpit">
     <Face value="BrightwingMagicSpit" />
-    <RankArray>
-      <BehaviorArray value="BrightwingCalmingMistMagicSpitCarryBehavior" />
-    </RankArray>
     <AbilityModificationArray>
       <Modifications>
         <Type value="FlatModification" />
@@ -3629,7 +3632,7 @@
         <Catalog value="Effect" />
         <Entry value="BrightwingPhaseShiftCreateHealer" />
         <Field value="RechargeVitalFraction" />
-        <Value value="0.060000" />
+        <Value value="0.040000" />
       </Modifications>
     </AbilityModificationArray>
   </CTalent>
@@ -3807,7 +3810,7 @@
       <Modifications>
         <Type value="FlatModification" />
         <Catalog value="Behavior" />
-        <Entry value="BrightwingPolymorph" />
+        <Entry value="BrightwingPolymorphSlow" />
         <Field value="Modification.UnifiedMoveSpeedFactor" />
         <Value value="-0.150000" />
       </Modifications>

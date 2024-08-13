@@ -911,7 +911,7 @@
     <Layers Sound="Genji_SwiftStrike_FinalCut_EchoLaunch" PlayDelay="200,200" PlayDelaySource="Actor" />
   </CActorSound>
   <CActorSound id="Genji_Dodge_Impact" parent="SoundOneShot">
-    <On Terms="Effect.GenjiDodgeBuffRemoveBehavior.Start; At Caster" Send="Create" />
+    <On Terms="Effect.GenjiDodgeCountdownApplyBehaviorFromBuff.Start; At Caster" Send="Create" />
   </CActorSound>
   <CActorSound id="Genji_SwiftStrike_Reset" parent="SoundOneShot">
     <VisibleTo index="Self" value="1" />
@@ -1172,7 +1172,7 @@
   <CBehaviorBuff id="GenjiCyberAgilityAgileDismountSlow" parent="StormSlowParent">
     <Duration value="2" />
     <Modification>
-      <UnifiedMoveSpeedFactor value="-0.3" />
+      <UnifiedMoveSpeedFactor value="-0.25" />
     </Modification>
   </CBehaviorBuff>
   <CBehaviorBuff id="GenjiCyberAgilityAgileDismountSlowProcDelay">
@@ -1208,26 +1208,27 @@
     <Modification>
       <ModifyFlags index="Reveal" value="1" />
     </Modification>
+    <RemoveValidatorArray value="CasterNotVisionRemoval" />
   </CBehaviorBuff>
   <CBehaviorBuff id="GenjiCyberAgilityCyberShield">
     <ArmorModification StackCount="1">
       <ArmorSet index="Hero">
-        <ArmorMitigationTable index="Ability" value="50" />
+        <ArmorMitigationTable index="Ability" value="40" />
       </ArmorSet>
       <ArmorSet index="Merc">
-        <ArmorMitigationTable index="Ability" value="50" />
+        <ArmorMitigationTable index="Ability" value="40" />
       </ArmorSet>
       <ArmorSet index="Monster">
-        <ArmorMitigationTable index="Ability" value="50" />
+        <ArmorMitigationTable index="Ability" value="40" />
       </ArmorSet>
       <ArmorSet index="Summon">
-        <ArmorMitigationTable index="Ability" value="50" />
+        <ArmorMitigationTable index="Ability" value="40" />
       </ArmorSet>
       <ArmorSet index="Structure">
-        <ArmorMitigationTable index="Ability" value="50" />
+        <ArmorMitigationTable index="Ability" value="40" />
       </ArmorSet>
       <ArmorSet index="Minion">
-        <ArmorMitigationTable index="Ability" value="50" />
+        <ArmorMitigationTable index="Ability" value="40" />
       </ArmorSet>
     </ArmorModification>
     <Duration value="4" />
@@ -1239,9 +1240,9 @@
     <RemoveValidatorArray value="GenjiCasterHasCyberAgility" />
     <FinalEffect value="GenjiCyberAgilityPathfinderApplicationSet" />
   </CBehaviorBuff>
-  <CBehaviorBuff id="GenjiCyberAgilityPathfinderSpeedIncrease40" parent="StormSprint">
+  <CBehaviorBuff id="GenjiCyberAgilityPathfinderSpeedBonus" parent="StormSprint">
     <Modification>
-      <UnifiedMoveSpeedFactor value="0.25" />
+      <UnifiedMoveSpeedFactor value="0.3" />
     </Modification>
     <Duration value="4" />
   </CBehaviorBuff>
@@ -1318,50 +1319,29 @@
     <IncreaseEvents Effect="GenjiDeflectPerfectDefenseCooldownReduction" />
     <Max value="5" />
   </CBehaviorTokenCounter>
-  <CBehaviorBuff id="GenjiDodge">
+  <CBehaviorBuff id="GenjiDodgeBuff" parent="StormEvasion">
+    <Face value="GenjiDodge" />
+    <DamageResponse Handled="BlindMissedDummyCaster" TargetFilters="Heroic;-">
+      <Kind index="Splash" value="0" />
+    </DamageResponse>
+    <BehaviorFlags index="Permanent" value="1" />
+    <BehaviorFlags index="EnabledWhileDead" value="1" />
+    <InfoFlags index="Hidden" value="0" />
+    <InfoIcon value="Assets\Textures\storm_ui_icon_talent_block.dds" />
+    <MinStackCountDisplayed value="0" />
+    <SortIndex value="100" />
+    <CancelEffect value="GenjiDodgeCountdownApplyBehaviorFromBuff" />
+  </CBehaviorBuff>
+  <CBehaviorBuff id="GenjiDodgeCountdown">
+    <BehaviorFlags index="Permanent" value="1" />
+    <BehaviorFlags index="EnabledWhileDead" value="1" />
     <Alignment value="Positive" />
     <InfoFlags index="Hidden" value="0" />
     <InfoIcon value="Assets\Textures\storm_ui_icon_talent_block.dds" />
-    <BuffFlags index="RemoveDamageResponseExhausted" value="0" />
-    <DamageResponse>
-      <Chance value="1" />
-      <Handled value="BlindMissedDummyCaster" />
-      <TargetFilters value="Heroic;-" />
-      <Priority value="86" />
-      <ModifyFraction value="0.9997" />
-      <Cost>
-        <Charge>
-          <CountMax value="1" />
-          <CountUse value="1" />
-          <TimeStart value="5" />
-          <TimeUse value="5" />
-        </Charge>
-      </Cost>
-      <Kind index="Splash" value="0" />
-      <Kind index="Ability" value="0" />
-      <ProvideCategories index="Proc" value="1" />
-    </DamageResponse>
-    <BehaviorFlags index="Permanent" value="1" />
-    <BehaviorFlags index="EnabledWhileDead" value="1" />
-    <Period value="0.0625" />
-    <InitialEffect value="GenjiDodgeCountdownApplyBehavior" />
-    <PeriodicEffect value="GenjiDodgeCountdownApplyBehavior" />
     <Face value="GenjiDodge" />
-    <MinStackCountDisplayed value="0" />
     <SortIndex value="100" />
-  </CBehaviorBuff>
-  <CBehaviorBuff id="GenjiDodgeBuff" parent="StormEvasion">
-    <DamageResponse Handled="GenjiDodgeBuffRemoveBehavior" TargetFilters="Heroic;-">
-      <Kind index="Splash" value="0" />
-    </DamageResponse>
-    <BehaviorFlags index="Permanent" value="1" />
-    <BehaviorFlags index="EnabledWhileDead" value="1" />
-  </CBehaviorBuff>
-  <CBehaviorBuff id="GenjiDodgeCountdown">
-    <Duration value="4.9375" />
-    <BehaviorFlags index="Permanent" value="1" />
-    <BehaviorFlags index="EnabledWhileDead" value="1" />
-    <FinalEffect value="GenjiDodgeBuffApplyBehavior" />
+    <Duration value="5" />
+    <FinalEffect value="GenjiDodgeCountdownExpireSet" />
   </CBehaviorBuff>
   <CBehaviorBuff id="GenjiDragonbladeSwiftStrikeCooldownRefundBehavior">
     <Duration value="1.5" />
@@ -1465,6 +1445,7 @@
       <Chance value="1" />
       <Handled value="GenjiDeflectTriggerWorkaround" />
       <Priority value="97" />
+      <RecordBehaviorShieldDamage value="1" />
       <ModifyFraction value="0.67" />
       <ModifyScoreArray Value="SelfHealing" />
     </DamageResponse>
@@ -1780,7 +1761,7 @@
     <BehaviorLink value="GenjiSwiftStrikeCooldownRefundUIBehavior" />
   </CEffectRemoveBehavior>
   <CEffectDamage id="GenjiShurikenShinganBonusDamage" parent="StormSpell">
-    <Amount value="115" />
+    <Amount value="100" />
     <ValidatorArray value="GenjiTargetHas3ShinganCounterBehavior" />
     <CritValidatorArray index="0" value="GenjiTargetHas3ShinganCounterBehavior" />
   </CEffectDamage>
@@ -1840,7 +1821,7 @@
   </CEffectApplyBehavior>
   <CEffectApplyBehavior id="GenjiCyberAgilityPathfinderMoveSpeedIncrease40ApplyBehavior">
     <WhichUnit Value="Caster" />
-    <Behavior value="GenjiCyberAgilityPathfinderSpeedIncrease40" />
+    <Behavior value="GenjiCyberAgilityPathfinderSpeedBonus" />
   </CEffectApplyBehavior>
   <CEffectApplyBehavior id="GenjiCyberAgilityPathfinderMoveSpeedIncrease30ApplyBehavior">
     <WhichUnit Value="Caster" />
@@ -1870,6 +1851,10 @@
     <WhichUnit Value="Caster" />
     <BehaviorLink value="GenjiDeflectDragonClawActive" />
   </CEffectRemoveBehavior>
+  <CEffectSet id="GenjiDeflectDragonClawImpactSet">
+    <EffectArray value="GenjiDeflectDragonClawDamage" />
+    <EffectArray value="ApplyAbilityImpactReveal" />
+  </CEffectSet>
   <CEffectDamage id="GenjiDeflectDragonClawDamage" parent="StormSpell">
     <Amount value="190" />
     <ValidatorArray value="noMarkers" />
@@ -1880,7 +1865,7 @@
   </CEffectSet>
   <CEffectEnumArea id="GenjiDeflectDragonClawSearch">
     <SearchFilters value="-;Player,Ally,Neutral,ImmuneToAOE,Missile,Item,Stasis,Dead,Hidden,Invulnerable" />
-    <AreaArray Effect="GenjiDeflectDragonClawDamage">
+    <AreaArray Effect="GenjiDeflectDragonClawImpactSet">
       <Radius value="4" />
     </AreaArray>
     <RevealerParams Duration="1" ShapeExpansion="0.5">
@@ -2002,11 +1987,20 @@
     <WhichUnit Value="Caster" />
     <Behavior value="GenjiDodgeBuff" />
   </CEffectApplyBehavior>
-  <CEffectRemoveBehavior id="GenjiDodgeBuffRemoveBehavior">
+  <CEffectRemoveBehavior id="GenjiDodgeBuffRemoveBehaviorFromTarget">
+    <ValidatorArray value="GenjiTargetHasDodgeBuffBehavior" />
     <BehaviorLink value="GenjiDodgeBuff" />
     <Count value="1" />
-    <WhichUnit Value="Caster" />
+    <CancelBehavior value="1" />
   </CEffectRemoveBehavior>
+  <CEffectApplyBehavior id="GenjiDodgeCountdownApplyBehaviorFromBuff">
+    <WhichUnit Value="Caster" />
+    <Behavior value="GenjiDodgeCountdown" />
+  </CEffectApplyBehavior>
+  <CEffectSet id="GenjiDodgeCountdownExpireSet">
+    <OrphanFromEffectChain value="1" />
+    <EffectArray value="GenjiDodgeBuffApplyBehavior" />
+  </CEffectSet>
   <CEffectApplyBehavior id="GenjiDodgeCountdownApplyBehavior">
     <WhichUnit Value="Caster" />
     <Behavior value="GenjiDodgeCountdown" />
@@ -2565,6 +2559,7 @@
     <EffectArray value="GenjiShurikenShinganBonusRemoverApplyBehavior" />
     <EffectArray value="GenjiWeaponTargetedThrowDamage" />
     <EffectArray value="GenjiWayOfTheShimadaAddToken" />
+    <EffectArray value="UniversalWeaponPostImpactSet" />
   </CEffectSet>
   <CEffectSet id="GenjiWeaponTargetedThrowLaunchSet">
     <EffectArray value="GenjiWeaponTargetedThrowFacingBehaviorApply" />
@@ -2673,11 +2668,12 @@
     <FacingType value="LookAt" />
   </CEffectModifyUnit>
   <CEffectDamage id="GenjiXStrikeFinalDamage" parent="StormSpell">
-    <Amount value="290" />
+    <Amount value="275" />
   </CEffectDamage>
   <CEffectSet id="GenjiXStrikeFinalImpactSet">
     <EffectArray value="GenjiXStrikeLivingWeaponCooldownRefund" />
     <EffectArray value="GenjiXStrikeFinalDamage" />
+    <EffectArray value="ApplyAbilityImpactReveal" />
     <ValidatorArray value="noMarkers" />
   </CEffectSet>
   <CEffectEnumArea id="GenjiXStrikeFinalSearchCenter">
@@ -2715,7 +2711,7 @@
     </RevealerParams>
   </CEffectEnumArea>
   <CEffectDamage id="GenjiXStrikeLegDamage" parent="StormSpell">
-    <Amount value="145" />
+    <Amount value="135" />
   </CEffectDamage>
   <CEffectSet id="GenjiXStrikeLegSearchSetRight">
     <EffectArray value="GenjiXStrikeLegSearchPersistent" />
@@ -2789,6 +2785,7 @@
   <CEffectSet id="GenjiXStrikeLegImpactSet">
     <EffectArray value="GenjiXStrikeLivingWeaponCooldownRefund" />
     <EffectArray value="GenjiXStrikeLegDamage" />
+    <EffectArray value="ApplyAbilityImpactReveal" />
     <ValidatorArray value="noMarkers" />
   </CEffectSet>
   <CEffectCreateUnit id="GenjiXStrikeLegCreateUnitRight">
@@ -2867,6 +2864,7 @@
     <EffectArray value="GenjiShurikenShinganBonusRemoverApplyBehavior" />
     <EffectArray value="GenjiWeaponTargetedThrowDamage" />
     <EffectArray value="GenjiWayOfTheShimadaAddToken" />
+    <EffectArray value="UniversalWeaponPostImpactSet" />
   </CEffectSet>
   <CEffectApplyBehavior id="SwiftStrikeFinalCutDragonbladeShadowApplyBehavior">
     <ValidatorArray value="GenjiCasterHasDragonbladeActive" />
@@ -4213,7 +4211,7 @@
       </Modifications>
     </AbilityModificationArray>
     <RankArray>
-      <BehaviorArray value="GenjiDodge" />
+      <BehaviorArray value="GenjiDodgeCountdown" />
     </RankArray>
   </CTalent>
   <CTalent id="GenjiCyberAgilityPathfinder">

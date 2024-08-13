@@ -165,15 +165,18 @@
     <CastIntroTime value="0.15" />
     <Arc value="360" />
     <PrepEffect value="DismountDecloakCasterSet" />
-    <PostEffectBehavior Behavior="UtherTyrsDeliveranceRadianceResetTokenBehavior" Count="1" Duration="0.75">
-      <Flags index="UseDuration" value="1" />
-    </PostEffectBehavior>
   </CAbilEffectTarget>
   <CAccumulatorToken id="UtherTyrsDeliveranceAccumulator" parent="BaseAccumulator">
     <MaxAccumulation value="0.8" />
     <ApplicationRule value="Add" />
     <TokenId value="UtherTyrsDeliveranceTokenCounter" />
+    <UnitSource Value="Source" />
     <Scale value="0.1" />
+    <Offset value="0.1" />
+  </CAccumulatorToken>
+  <CAccumulatorToken id="UtherTyrsDeliveranceTokenCountAccumulator" parent="BaseTokenAccumulator">
+    <ApplicationRule value="Add" />
+    <TokenId value="UtherTyrsDeliveranceTokenCounter" />
   </CAccumulatorToken>
   <CAccumulatorToken id="UtherHolyFireAccumulator" parent="BaseAccumulator">
     <MaxAccumulation value="0.6" />
@@ -660,6 +663,10 @@
     <On Terms="Effect.HolyRadianceEnemySearch.Start" Send="Create" />
     <ForceFlags index="FallOff" value="0" />
   </CActorForceConeRoundedEnd>
+  <CActorSplat id="UtherDivineShieldBulwarkOfLightSplat" parent="StormGuideVisualCircle" abil="UtherDivineIntervention">
+    <On index="0" Terms="Abil.UtherDivineIntervention.Guide; ValidatePlayer HasUtherBulwarkOfLight" Send="Create" />
+    <Model value="UtherDivineShieldBulwarkOfLightSplat" />
+  </CActorSplat>
   <CActorRange id="UtherDivineInterventionRange" parent="StormRangeAbilPlusSplat" abil="UtherDivineIntervention" />
   <CActorModel id="UtherDivineInterventionBuff" parent="StormModelAddition">
     <Host Subject="_Unit" />
@@ -720,18 +727,12 @@
       <AllArmorBonus value="15" />
     </ArmorModification>
   </CBehaviorBuff>
-  <CBehaviorBuff id="UtherTyrsDeliveranceRadianceResetTokenBehavior">
-    <Duration value="0.75" />
-    <FinalEffect value="UtherTyrsDeliveranceResetTokens" />
-  </CBehaviorBuff>
   <CBehaviorTokenCounter id="UtherTyrsDeliveranceTokenCounter" parent="StormGenericToken">
-    <Max value="8" />
+    <Max value="7" />
     <Face value="UtherHolyRadianceTyrsDeliveranceToken" />
     <Alignment value="Positive" />
     <SortIndex value="60" />
-    <MinStackCountDisplayed value="1" />
-    <Min value="1" />
-    <Init value="1" />
+    <MinStackCountDisplayed value="0" />
   </CBehaviorTokenCounter>
   <CBehaviorBuff id="UtherDivineInterventionMovementSpeed" parent="StormSprint">
     <Modification>
@@ -754,15 +755,6 @@
     <Face value="UtherHandOfProtection" />
     <Buttons Face="UtherHandOfProtection" Type="AbilCmd" AbilCmd="UtherHandOfProtection,Execute" />
   </CBehaviorAbility>
-  <CBehaviorBuff id="UtherEternalDevotionDivineProtectionArmor" parent="StormArmor">
-    <Alignment value="Positive" />
-    <BehaviorCategories index="BuffResistant" value="1" />
-    <Duration value="2" />
-    <DamageResponse Handled="UtherHolyLightSilverTouchModifyArmorToken" TargetFilters="Heroic;-" Priority="65" />
-    <ArmorModification>
-      <AllArmorBonus value="50" />
-    </ArmorModification>
-  </CBehaviorBuff>
   <CBehaviorTokenCounter id="UtherHolyRadianceWaveofLightQuestTokenBehavior" parent="StormQuestToken">
     <Face value="UtherHolyRadianceWaveOfLightQuestToken" />
     <TokenId value="WaveOfLightQuestToken" />
@@ -970,8 +962,10 @@
       <Priority value="12" />
       <Fatal value="1" />
       <RecordBehaviorShieldDamage value="1" />
+      <RestoreLifeAfterFatal value="1" />
       <ModifyFraction value="0" />
       <ModifyMinimumDamage value="1" />
+      <ModifyScoreArray Value="DeadHeroDamagePreventedByAbsorb" />
     </DamageResponse>
   </CBehaviorBuff>
   <CBehaviorBuff id="UtherEternalVanguardRezDelay" parent="StormStasisIceBlock">
@@ -1164,8 +1158,8 @@
     <Unit value="HeroUther" />
   </CCharacter>
   <CEffectSwitch id="UtherEternalDevotionApplyArmorSwitch">
-    <CaseArray Validator="IsNotSelf" Effect="EternalDevotionApplyTargetArmorSet" />
-    <CaseDefault value="EternalDevotionApplySelfArmorSet" />
+    <CaseArray Validator="IsNotSelf" Effect="UtherDevotionApplyToAllySwitch" />
+    <CaseDefault value="UtherDevotionApplyToSelfSwitch" />
   </CEffectSwitch>
   <CEffectModifyTokenCount id="UtherTyrsDeliveranceAddToken" parent="BaseEffectModifyTokenCount">
     <ValidatorArray value="TargetIsHero" />
@@ -1177,6 +1171,7 @@
     <WhichUnit Value="Source" />
     <TokenId value="UtherTyrsDeliveranceTokenCounter" />
     <Operation value="Set" />
+    <Value value="0" />
   </CEffectModifyTokenCount>
   <CEffectApplyBehavior id="DivineInterventionApplyBehaviorMovementSpeed">
     <ValidatorArray index="0" value="TargetNotDead" />
@@ -1222,39 +1217,6 @@
     <EffectArray value="UtherHolyLightSilverTouchModifyCost" />
     <EffectArray value="UtherHolyLightSilverTouchModifyRange" />
   </CEffectSet>
-  <CEffectSwitch id="EternalDevotionApplySelfArmorSwitch">
-    <CaseArray Validator="UtherHasTalentGuardianOfAncientKingsANDCasterIsStunnedOrRootedOrSilenced" Effect="UtherEternalDevotionApplySelfArmorBuffGuardianOfAncientKings" />
-    <CaseDefault value="UtherEternalDevotionApplySelfArmorBuff" />
-  </CEffectSwitch>
-  <CEffectSet id="EternalDevotionApplySelfArmorSet">
-    <ValidatorArray value="CasterIsSelf" />
-    <EffectArray value="UtherEternalDevotionApplySelfArmorBuffDivineProtection" />
-    <EffectArray value="EternalDevotionApplySelfArmorSwitch" />
-  </CEffectSet>
-  <CEffectApplyBehavior id="UtherEternalDevotionApplySelfArmorBuff">
-    <WhichUnit Value="Caster" />
-    <Behavior value="UtherEternalDevotionSelfArmor" />
-  </CEffectApplyBehavior>
-  <CEffectApplyBehavior id="UtherEternalDevotionApplySelfArmorBuffGuardianOfAncientKings">
-    <WhichUnit Value="Caster" />
-    <Behavior value="UtherEternalDevotionGuardianOfAncientKingsArmor" />
-  </CEffectApplyBehavior>
-  <CEffectApplyBehavior id="UtherEternalDevotionApplyTargetArmorBuffDivineProtection">
-    <ValidatorArray index="0" value="TargetHasUtherEternalDevotionORGuardianOfAncientKingsArmorBehaviorsANDUtherHasTalentDivineProtection" />
-    <Behavior value="UtherEternalDevotionDivineProtectionArmor" />
-  </CEffectApplyBehavior>
-  <CEffectSet id="EternalDevotionApplyTargetArmorSet">
-    <ValidatorArray value="TargetIsNotEnemy" />
-    <ValidatorArray value="TargetIsHero" />
-    <ValidatorArray value="IsNotSelf" />
-    <EffectArray value="EternalDevotionApplyTargetArmorSwitch" />
-  </CEffectSet>
-  <CEffectApplyBehavior id="UtherEternalDevotionApplySelfArmorBuffDivineProtection">
-    <ValidatorArray index="0" value="CasterHasUtherEternalDevotionORGuardianOfAncientKingsArmorBehaviorsANDUtherHasTalentDivineProtection" />
-    <ValidatorArray value="UtherHasTalentDivineProtection" />
-    <WhichUnit Value="Caster" />
-    <Behavior value="UtherEternalDevotionDivineProtectionArmor" />
-  </CEffectApplyBehavior>
   <CEffectModifyTokenCount id="UtherHolyRadianceWaveofLightModifyToken" parent="BaseEffectModifyTokenCount">
     <ValidatorArray value="TargetIsHero" />
     <ValidatorArray value="UtherCasterHasLTMaxWaveOfLightTokens" />
@@ -1298,16 +1260,43 @@
     <Cost Abil="UtherHolyLight,Execute" CooldownOperation="Add" CooldownTimeUse="-0.25" />
   </CEffectModifyUnit>
   <CEffectModifyCatalogNumeric id="UtherHolyRadianceSilverTouchArmorDurationIncreaseModifyCatalog">
-    <CatalogModifications Operation="Set" Reference="Behavior,UtherEternalDevotionArmor,Duration">
-      <Value value="2.5" />
+    <CatalogModifications Reference="Effect,UtherDevotionApplySelfArmorBuff,Duration">
+      <Value value="0.5" />
     </CatalogModifications>
-    <CatalogModifications Operation="Set" Reference="Behavior,UtherEternalDevotionDivineProtectionArmor,Duration">
-      <Value value="2.5" />
-    </CatalogModifications>
-    <CatalogModifications Operation="Set" Reference="Behavior,UtherEternalDevotionSelfArmor,Duration">
-      <Value value="2.5" />
+    <CatalogModifications Reference="Effect,UtherDevotionApplyTargetArmorBuff,Duration">
+      <Value value="0.5" />
     </CatalogModifications>
   </CEffectModifyCatalogNumeric>
+  <CEffectSwitch id="UtherDevotionApplyToAllySwitch">
+    <CaseArray Validator="UtherHasGuardianOfAncientKingsAndTargetIsStunnedOrRootedOrSilenced" Effect="UtherEternalDevotionApplyTargetArmorBuffGuardianOfAncientKings" />
+    <CaseDefault value="UtherDevotionApplyTargetArmorBuff" />
+    <ValidatorArray value="TargetIsHero" />
+    <ValidatorArray value="TargetIsNotEnemy" />
+    <ValidatorArray value="IsNotSelf" />
+  </CEffectSwitch>
+  <CEffectSwitch id="UtherDevotionApplyToSelfSwitch">
+    <CaseArray Validator="UtherHasTalentGuardianOfAncientKingsANDCasterIsStunnedOrRootedOrSilenced" Effect="UtherEternalDevotionApplySelfArmorBuffGuardianOfAncientKings" />
+    <CaseDefault value="UtherDevotionApplySelfArmorBuff" />
+    <ValidatorArray value="CasterIsSelf" />
+  </CEffectSwitch>
+  <CEffectApplyBehavior id="UtherDevotionApplySelfArmorBuff">
+    <WhichUnit Value="Caster" />
+    <Behavior value="UtherEternalDevotionSelfArmor" />
+    <Flags index="UseDuration" value="1" />
+    <Duration value="2" />
+  </CEffectApplyBehavior>
+  <CEffectApplyBehavior id="UtherDevotionApplyTargetArmorBuff">
+    <Flags index="UseDuration" value="1" />
+    <Duration value="2" />
+    <Behavior value="UtherEternalDevotionArmor" />
+  </CEffectApplyBehavior>
+  <CEffectApplyBehavior id="UtherEternalDevotionApplyTargetArmorBuffGuardianOfAncientKings">
+    <Behavior value="UtherEternalDevotionGuardianOfAncientKingsArmor" />
+  </CEffectApplyBehavior>
+  <CEffectApplyBehavior id="UtherEternalDevotionApplySelfArmorBuffGuardianOfAncientKings">
+    <WhichUnit Value="Caster" />
+    <Behavior value="UtherEternalDevotionGuardianOfAncientKingsArmor" />
+  </CEffectApplyBehavior>
   <CEffectModifyPlayer id="UtherHandOfProtectionModifyPlayer">
     <ValidatorArray value="HasUtherHandOfProtection" />
     <ValidatorArray value="CasterNotBlindedAndTargetNotEvading" />
@@ -1367,11 +1356,6 @@
     <CaseArray Validator="TargetIsSelf" Effect="UtherHolyLightBlessedChampionTalentSelfHealDummy" />
     <CaseDefault value="HolyLightCreateSelfHealer" />
   </CEffectSwitch>
-  <CEffectSwitch id="EternalDevotionApplyTargetArmorSwitch">
-    <CaseArray Validator="UtherHasGuardianOfAncientKingsAndTargetIsStunnedOrRootedOrSilenced" Effect="UtherEternalDevotionApplyTargetArmorBuffGuardianOfAncientKings" />
-    <CaseDefault value="UtherEternalDevotionApplyTargetArmorBuff" />
-    <ValidatorArray value="TargetIsHero" />
-  </CEffectSwitch>
   <CEffectCreatePersistent id="HolyShockManaRetrunPersistent">
     <WhichLocation Value="CasterUnit" />
     <InitialDelay value="0.0625" />
@@ -1381,9 +1365,6 @@
     <ImpactUnit Value="Caster" />
     <RechargeVitalRate value="45" />
   </CEffectCreateHealer>
-  <CEffectApplyBehavior id="UtherEternalDevotionApplyTargetArmorBuffGuardianOfAncientKings">
-    <Behavior value="UtherEternalDevotionGuardianOfAncientKingsArmor" />
-  </CEffectApplyBehavior>
   <CEffectCreateHealer id="HolyLightCreateSelfHealer" parent="StormSelfOnlyHealingSpell">
     <ValidatorArray value="IsNotSelf" />
     <ImpactUnit Value="Caster" />
@@ -1416,6 +1397,8 @@
     <EffectArray value="ApplyAbilityImpactReveal" />
   </CEffectSet>
   <CEffectSet id="UtherHolyRadianceLaunchSet">
+    <EffectArray value="UtherTyrsDeliveranceApplyToken" />
+    <EffectArray value="UtherTyrsDeliveranceForwardTokenPersistent" />
     <EffectArray value="HolyRadianceApplySearchBehavior" />
   </CEffectSet>
   <CEffectModifyUnit id="UtherHolyRadianceAllyDummyHeal">
@@ -1549,7 +1532,7 @@
   </CEffectCreateHealer>
   <CEffectSet id="FlashofLightSet">
     <EffectArray value="FlashofLightCreateHealer" />
-    <EffectArray value="EternalDevotionApplyTargetArmorSet" />
+    <EffectArray value="UtherDevotionApplyToAllySwitch" />
   </CEffectSet>
   <CEffectDamage id="HolyFireDamage" parent="StormSpellNoTowerAggro">
     <LaunchLocation Value="CasterUnit" />
@@ -1747,8 +1730,8 @@
   </CEffectSet>
   <CEffectSet id="UtherHolyLightSet">
     <EffectArray value="UtherHolyLightHealSet" />
-    <EffectArray value="EternalDevotionApplyTargetArmorSet" />
-    <EffectArray value="EternalDevotionApplySelfArmorSet" />
+    <EffectArray value="UtherDevotionApplyToAllySwitch" />
+    <EffectArray value="UtherDevotionApplyToSelfSwitch" />
     <EffectArray value="UtherHolyLightModifyWeaponCooldown" />
     <EffectArray value="HolyLightApplyBlessedChampionMastery" />
     <EffectArray value="BenedictionRemoveBehavior" />
@@ -1764,8 +1747,8 @@
   </CEffectModifyUnit>
   <CEffectSet id="UtherHolyShockSet">
     <EffectArray value="HolyShockSwitch" />
-    <EffectArray value="EternalDevotionApplyTargetArmorSet" />
-    <EffectArray value="EternalDevotionApplySelfArmorSet" />
+    <EffectArray value="UtherDevotionApplyToAllySwitch" />
+    <EffectArray value="UtherDevotionApplyToSelfSwitch" />
     <EffectArray value="UtherHolyLightModifyWeaponCooldown" />
     <EffectArray value="HolyLightApplyBlessedChampionMastery" />
     <EffectArray value="BenedictionRemoveBehavior" />
@@ -1936,6 +1919,7 @@
     <EffectArray value="UtherHolyFireApplyStack" />
     <EffectArray value="UtherHandOfProtectionModifyPlayer" />
     <EffectArray value="UtherTyrsDeliveranceAddToken" />
+    <EffectArray value="UniversalWeaponPostImpactSet" />
   </CEffectSet>
   <CEffectModifyUnit id="UtherSpiritofRedemptionModifyUnit">
     <ImpactUnit Value="Caster" />
@@ -1999,6 +1983,7 @@
       <MatchFlags index="Id" value="1" />
     </Marker>
     <InitialEffect value="BenedictionRemoveBehavior" />
+    <FinalEffect value="UtherTyrsDeliveranceResetTokens" />
   </CEffectCreatePersistent>
   <CEffectLaunchMissile id="HolyRadianceLaunchMissile">
     <ImpactEffect value="HolyRadianceDummy" />
@@ -2010,6 +1995,22 @@
   <CEffectSet id="HolyRadianceDummy">
     <TargetLocationType value="Point" />
   </CEffectSet>
+  <CEffectApplyBehavior id="UtherTyrsDeliveranceApplyToken">
+    <ValidatorArray value="UtherHasTalentTyrsDeliverance" />
+    <WhichUnit Value="Source" />
+    <Behavior value="UtherTyrsDeliveranceTokenCounter" />
+  </CEffectApplyBehavior>
+  <CEffectCreatePersistent id="UtherTyrsDeliveranceForwardTokenPersistent">
+    <ValidatorArray value="UtherHasTalentTyrsDeliverance" />
+    <PeriodCount value="0">
+      <AccumulatorArray value="UtherTyrsDeliveranceTokenCountAccumulator" />
+    </PeriodCount>
+    <PeriodicEffectArray value="UthersTyrsDeliveranceAddTokenToSource" />
+  </CEffectCreatePersistent>
+  <CEffectModifyTokenCount id="UthersTyrsDeliveranceAddTokenToSource" parent="BaseEffectModifyTokenCount">
+    <TokenId value="UtherTyrsDeliveranceTokenCounter" />
+    <WhichUnit Value="Source" />
+  </CEffectModifyTokenCount>
   <CEffectApplyBehavior id="HolyRadianceApplySearchBehavior">
     <WhichUnit Value="Source" />
     <Behavior value="HolyRadianceMissileScan" />
@@ -2230,9 +2231,6 @@
         <Value value="0.040000" />
         <AffectedByOverdrive value="1" />
       </Modifications>
-      <Modifications Catalog="Behavior" Entry="UtherEternalDevotionArmor" Field="Duration" />
-      <Modifications Catalog="Behavior" Entry="UtherEternalDevotionGuardianOfAncientKingsArmor" Field="Duration" />
-      <Modifications Catalog="Behavior" Entry="UtherEternalDevotionDivineProtectionArmor" Field="Duration" />
     </LevelScalingArray>
     <LevelScalingArray Ability="UtherHolyLight">
       <Modifications>
@@ -2553,8 +2551,8 @@
     <AbilityModificationArray>
       <Modifications>
         <Type value="FlatModification" />
-        <Catalog value="Behavior" />
-        <Entry value="UtherEternalDevotionArmor" />
+        <Catalog value="Effect" />
+        <Entry value="UtherDevotionApplyTargetArmorBuff" />
         <Field value="Duration" />
         <Value value="0.500000" />
       </Modifications>
@@ -2564,6 +2562,20 @@
         <Entry value="UtherEternalDevotionArmor" />
         <Field value="ArmorModification.AllArmorBonus" />
         <Value value="25.000000" />
+      </Modifications>
+      <Modifications>
+        <Type value="FlatModification" />
+        <Catalog value="Effect" />
+        <Entry value="UtherDevotionApplySelfArmorBuff" />
+        <Field value="Duration" />
+        <Value value="0.500000" />
+      </Modifications>
+      <Modifications>
+        <Type value="FlatModification" />
+        <Catalog value="Behavior" />
+        <Entry value="UtherEternalDevotionSelfArmor" />
+        <Field value="ArmorModification.AllArmorBonus" />
+        <Value value="35.000000" />
       </Modifications>
     </AbilityModificationArray>
   </CTalent>
@@ -2604,13 +2616,6 @@
         <Type value="FlatModification" />
         <Catalog value="Behavior" />
         <Entry value="UtherEternalDevotionGuardianOfAncientKingsArmor" />
-        <Field value="DamageResponse.Chance" />
-        <Value value="1.000000" />
-      </Modifications>
-      <Modifications>
-        <Type value="FlatModification" />
-        <Catalog value="Behavior" />
-        <Entry value="UtherEternalDevotionDivineProtectionArmor" />
         <Field value="DamageResponse.Chance" />
         <Value value="1.000000" />
       </Modifications>
@@ -2785,20 +2790,14 @@
       </Modifications>
       <Modifications>
         <Type value="FlatModification" />
-        <Catalog value="Behavior" />
-        <Entry value="UtherEternalDevotionArmor" />
+        <Catalog value="Effect" />
+        <Entry value="UtherDevotionApplySelfArmorBuff" />
         <Field value="Duration" />
       </Modifications>
       <Modifications>
         <Type value="FlatModification" />
-        <Catalog value="Behavior" />
-        <Entry value="UtherEternalDevotionGuardianOfAncientKingsArmor" />
-        <Field value="Duration" />
-      </Modifications>
-      <Modifications>
-        <Type value="FlatModification" />
-        <Catalog value="Behavior" />
-        <Entry value="UtherEternalDevotionDivineProtectionArmor" />
+        <Catalog value="Effect" />
+        <Entry value="UtherDevotionApplyTargetArmorBuff" />
         <Field value="Duration" />
       </Modifications>
     </AbilityModificationArray>
@@ -2940,7 +2939,7 @@
     <CombineArray value="UtherHas3OrMoreTyrsDeliverenceTokens" />
   </CValidatorCombine>
   <CValidatorUnitCompareTokenCount id="UtherHas3OrMoreTyrsDeliverenceTokens">
-    <WhichUnit Value="Caster" />
+    <WhichUnit Value="Source" />
     <Compare value="GE" />
     <Value value="3" />
     <TokenId value="UtherTyrsDeliveranceTokenCounter" />

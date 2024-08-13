@@ -152,6 +152,7 @@
     <UninterruptibleArray index="Cast" value="1" />
     <UninterruptibleArray index="Channel" value="1" />
     <UninterruptibleArray index="Finish" value="1" />
+    <InterruptEffect index="Cast" value="KelThuzadTheDamnedReturnDeathAndDecayEnumerateInterruptCast" />
     <CursorEffect value="KelThuzadDeathAndDecaySearch" />
     <CmdButtonArray index="Execute" DefaultButtonFace="KelThuzadDeathAndDecay">
       <Flags index="AllowSelfCast" value="0" />
@@ -545,7 +546,6 @@
     <On Terms="UnitTaunt.*.Stop; UnitWalking" Target="KelThuzadDanceAttachment" Send="Destroy" />
     <On Terms="UnitTaunt.*.Cancel; UnitWalking" Target="KelThuzadDanceAttachment" Send="Destroy" />
     <On Terms="UnitMovementUpdate.*.Walk" Target="KelThuzadDanceAttachment" Send="Destroy" />
-    <On Terms="UnitMovementUpdate.*.Walk" Send="AnimClear Dance" />
     <On Terms="Behavior.KelThuzadMasterOfTheColdDarkSpellPower.On" Send="Create KelThuzadColdDarkBuffA" />
     <On Terms="Behavior.KelThuzadMasterOfTheColdDarkSpellPower.On" Send="Create KelThuzadColdDarkBuffB" />
     <On Terms="Behavior.KelThuzadMasterOfTheColdDarkSpellPower.On" Send="Create KelThuzadColdDarkBuffC" />
@@ -1382,13 +1382,15 @@
     <HostSiteOps Ops="SOpTargetUnit SOpAttachOrigin" />
     <Model value="Invisible" />
   </CActorModel>
-  <CActorSite id="KelThuzadShadeHardPointSite">
-    <HostSiteOps Ops="SOpAttachHardPoint" />
+  <CActorSite id="KelThuzadTheDamnedReturnSite" parent="SiteCenter">
+    <On Terms="Effect.KelThuzadTheDamnedReturnDeathAndDecayEnumerateTrackedUnitPersistent.Start; At Effect" Send="Create" />
+    <On Terms="Effect.KelThuzadTheDamnedReturnDeathAndDecayEnumerateTrackedUnitPersistent.Stop" Send="Destroy" />
+    <Host Subject="SOpTargetUnit" />
   </CActorSite>
   <CActorAction id="KelThuzadDeathAndDecayShadeAttack" parent="GenericAttack" effectImpact="KelThuzadDeathAndDecayInitialLaunchMissileImpactDummy" effectLaunch="KelThuzadDeathAndDecayShadeLaunchMissile">
-    <ImpactPointSiteOps Ops="SOpTargetPointStationary SOpShadow SOpMoveUpBy3" />
+    <LaunchSite value="KelThuzadTheDamnedReturnSite" />
     <LaunchAttachQuery Methods="Hardpoint 0" />
-    <LaunchSite value="KelThuzadShadeHardPointSite" />
+    <ImpactPointSiteOps Ops="SOpTargetPointStationary SOpShadow SOpMoveUpBy3" />
   </CActorAction>
   <CActorSound id="PulledSoundHeroKelThuzad" parent="SoundOneShot">
     <Sound value="KelthuzadBase_VOX_Pulled" />
@@ -1557,8 +1559,18 @@
     <Driver value="KelThuzadWeaponLaunchSwitch" />
     <Keyword value="Weapon" />
   </CAttachMethodPattern>
-  <CBehaviorUnitTracker id="KelThuzadCasterTracker">
+  <CBehaviorUnitTracker id="KelThuzadShadeDamagedUnitTracker">
+    <MaxTrackedUnits value="15" />
+  </CBehaviorUnitTracker>
+  <CBehaviorBuff id="KelThuzadShadeVisibilityController">
+    <DisableValidatorArray value="KelThuzadShadeHasDamagedUnitsTracked" />
+    <EnableEffect value="KelThuzadShadeDamagedUnitsEnableEffectSet" />
+  </CBehaviorBuff>
+  <CBehaviorUnitTracker id="KelThuzadTheDamnedReturnShadeTracker">
+    <BehaviorFlags index="Permanent" value="1" />
+    <BehaviorFlags index="EnabledWhileDead" value="1" />
     <MaxTrackedUnits value="1" />
+    <UnitAddedAtMaxRule value="ReplaceOldest" />
   </CBehaviorUnitTracker>
   <CBehaviorAbility id="KelThuzadSpawnShadeBehaviorAbility">
     <Buttons Face="KelThuzadTheDamnedReturn" Type="AbilCmd" AbilCmd="KelThuzadSpawnShade,Execute" />
@@ -1589,6 +1601,7 @@
     <Duration value="5" />
     <BehaviorFlags index="Permanent" value="1" />
     <BehaviorFlags index="EnabledWhileDead" value="1" />
+    <Face value="KelThuzadDeathchill" />
     <RemoveValidatorArray value="TargetNotUnstoppable" />
   </CBehaviorBuff>
   <CBehaviorBuff id="KelThuzadDeathchillSlow" parent="StormSlowParent">
@@ -1906,14 +1919,6 @@
     <RemoveValidatorArray value="KelThuzadHasTheDamnedReturn" />
     <FinalEffect value="StormSuicide" />
   </CBehaviorBuff>
-  <CBehaviorBuff id="KelThuzadShadePhylacterySpellVamp">
-    <Modification>
-      <VitalDamageLeechArray index="Life">
-        <KindArray index="Ability" value="0.1" />
-      </VitalDamageLeechArray>
-    </Modification>
-    <RemoveValidatorArray value="KelThuzadHasPhylacteryOfKelThuzad" />
-  </CBehaviorBuff>
   <CBehaviorUnitTracker id="KelThuzadChainsHostTracker">
     <BehaviorFlags index="Permanent" value="1" />
     <BehaviorFlags index="EnabledWhileDead" value="1" />
@@ -2094,9 +2099,9 @@
     <ImpactLocation Value="TargetPoint" />
     <LaunchLocation Value="TargetPoint" />
   </CEffectEnumArea>
-  <CEffectAddTrackedUnit id="KelThuzadAddCasterToTrackedUnits">
-    <BehaviorLink value="KelThuzadCasterTracker" />
-    <TrackerUnit Value="Target" />
+  <CEffectAddTrackedUnit id="KelThuzadTheDamnedReturnAddUnitToTracker">
+    <BehaviorLink value="KelThuzadTheDamnedReturnShadeTracker" />
+    <TrackedUnit Value="Target" />
   </CEffectAddTrackedUnit>
   <CEffectCreatePersistent id="KelThuzadFrozenTombAINotificationDummyPersistent">
     <AINotifySettings AreaEffect="KelThuzadFrozenTombSearch">
@@ -2173,6 +2178,7 @@
     <EffectArray value="KelThuzadWeaponDamage" />
     <EffectArray value="KelThuzadHungeringColdImpactSetBasicAttack" />
     <EffectArray value="KelThuzadIcyGraspModifyCooldownBasicAttack" />
+    <EffectArray value="UniversalWeaponPostImpactSet" />
   </CEffectSet>
   <CEffectDamage id="KelThuzadWeaponDamage" parent="StormWeapon">
     <Amount value="72" />
@@ -2646,6 +2652,7 @@
   <CEffectSet id="KelThuzadDeathAndDecayInitialSet">
     <EffectArray value="KelThuzadModifyWeaponCooldown" />
     <EffectArray value="KelThuzadDeathAndDecayLaunchMissile" />
+    <EffectArray value="KelThuzadTheDamnedReturnDeathAndDecayEnumShade" />
     <TargetLocationType value="Point" />
   </CEffectSet>
   <CEffectLaunchMissileAdvanced id="KelThuzadDeathAndDecayLaunchMissile">
@@ -2814,11 +2821,9 @@
   </CEffectApplyBehavior>
   <CEffectDamage id="KelThuzadFrozenTombDamage" parent="StormSpell">
     <Amount value="115" />
-    <SourceButtonFace value="KelThuzadFrozenTomb" />
   </CEffectDamage>
   <CEffectDamage id="KelThuzadFrozenTombExplosionDamage" parent="StormSpell">
     <Amount value="275" />
-    <SourceButtonFace value="KelThuzadFrozenTomb" />
   </CEffectDamage>
   <CEffectCreatePersistent id="KelThuzadDeathAndDecayRotCreatePersistent">
     <PeriodicEffectArray value="KelThuzadDeathAndDecayRotSearch" />
@@ -3063,6 +3068,7 @@
     <EffectArray value="KelThuzadHungeringColdImpactSetBasicAttack" />
     <EffectArray value="CameraShakeLightTauntingTotemSet" />
     <EffectArray value="KelThuzadIcyGraspModifyCooldownBasicAttack" />
+    <EffectArray value="UniversalWeaponPostImpactSet" />
   </CEffectSet>
   <CEffectDamage id="KelThuzadChillingTouchDamage" parent="StormSpell">
     <Amount value="72" />
@@ -3132,17 +3138,12 @@
     <Chance value="0" />
   </CEffectDamage>
   <CEffectSet id="KelThuzadShadeControllerSpawnSet">
-    <EffectArray value="KelThuzadAddCasterToTrackedUnits" />
+    <EffectArray value="KelThuzadTheDamnedReturnAddUnitToTracker" />
     <EffectArray value="KelThuzadShadeCloneActiveApplyBehavior" />
     <EffectArray value="KelThuzadShadeControllerLinkCreatePersistent" />
     <EffectArray value="KelThuzadShadeControllerUnitTalentRespecListenerApplyBehavior" />
-    <EffectArray value="KelThuzadShadePhylacterySpellVampApply" />
     <EffectArray value="TargetSetFacing" />
   </CEffectSet>
-  <CEffectApplyBehavior id="KelThuzadShadePhylacterySpellVampApply">
-    <ValidatorArray index="0" value="KelThuzadPhylacteryQuestComplete" />
-    <Behavior value="KelThuzadShadePhylacterySpellVamp" />
-  </CEffectApplyBehavior>
   <CEffectApplyBehavior id="KelThuzadShadeCloneActiveApplyBehavior">
     <WhichUnit Value="Caster" />
     <Behavior value="KelThuzadShadeCloneActive" />
@@ -3155,11 +3156,23 @@
   <CEffectApplyBehavior id="KelThuzadShadeControllerUnitTalentRespecListenerApplyBehavior">
     <Behavior value="KelThuzadShadeControllerUnitTalentRespecListener" />
   </CEffectApplyBehavior>
+  <CEffectCreatePersistent id="KelThuzadTheDamnedReturnDeathAndDecayEnumerateTrackedUnitPersistent">
+    <WhichLocation Value="TargetUnit" />
+    <PeriodCount value="1" />
+    <PeriodicEffectArray value="KelThuzadDeathAndDecayShadeLaunchMissile" />
+    <ExpireDelay value="0.5" />
+  </CEffectCreatePersistent>
   <CEffectLaunchMissileAdvanced id="KelThuzadDeathAndDecayShadeLaunchMissile">
     <AmmoUnit value="KelThuzadDeathAndDecayShadeWeapon" />
+    <LaunchLocation Effect="KelThuzadTheDamnedReturnDeathAndDecayEnumerateTrackedUnitPersistent" Value="TargetUnit" />
     <ImpactLocation>
-      <Effect value="KelThuzadDeathAndDecayShadeInitialSet" />
-      <Value value="TargetPoint" />
+      <Effect value="KelThuzadDeathAndDecayInitialSet" />
+      <Value value="FocusPoint" />
+      <ProjectionMultiplier value="1" />
+      <ProjectionSourceEffect value="KelThuzadTheDamnedReturnDeathAndDecayEnumerateTrackedUnitPersistent" />
+      <ProjectionSourceValue value="TargetUnitOrPoint" />
+      <ProjectionTargetEffect value="KelThuzadDeathAndDecayInitialSet" />
+      <ProjectionTargetValue value="FocusPoint" />
       <UsesLineDash value="1" />
       <LineDashType value="AllowedInUnpathable" />
       <ProjectionDistanceScale value="11" />
@@ -3170,11 +3183,38 @@
     <SharedFlags index="DynamicSearchArea" value="1" />
     <SharedFlags index="DisableArriveOnLaunch" value="1" />
     <SearchEffect value="KelThuzadDeathAndDecayShadeSearch" />
+    <Marker>
+      <MatchFlags index="Id" value="1" />
+    </Marker>
   </CEffectLaunchMissileAdvanced>
   <CEffectDamage id="KelThuzadDeathAndDecayShadeMissileSuicide">
     <ImpactLocation Value="SourceUnit" />
     <Flags index="Kill" value="1" />
     <FloaterCreation value="Suppress" />
+  </CEffectDamage>
+  <CEffectAddTrackedUnit id="KelThuzadDeathAndDecayShadeDamagedUnitTrackerAdd">
+    <BehaviorLink value="KelThuzadShadeDamagedUnitTracker" />
+    <TrackerUnit Effect="KelThuzadTheDamnedReturnDeathAndDecayEnumerateTrackedUnitPersistent" Value="Target" />
+    <TrackedUnit Value="Target" />
+  </CEffectAddTrackedUnit>
+  <CEffectSet id="KelThuzadShadeDamagedUnitsEnableEffectSet">
+    <EffectArray value="KelThuzadShadeEnumDamagedUnits" />
+    <EffectArray value="KelThuzadShadeClearDamagedUnit" />
+  </CEffectSet>
+  <CEffectEnumTrackedUnits id="KelThuzadShadeEnumDamagedUnits">
+    <BehaviorLink value="KelThuzadShadeDamagedUnitTracker" />
+    <TrackerUnit Value="Source" />
+    <Effect value="KelThuzadDeathAndDecayShadeRevealDummy" />
+  </CEffectEnumTrackedUnits>
+  <CEffectClearTrackedUnits id="KelThuzadShadeClearDamagedUnit">
+    <BehaviorLink value="KelThuzadShadeDamagedUnitTracker" />
+    <TrackerUnit Value="Source" />
+  </CEffectClearTrackedUnits>
+  <CEffectDamage id="KelThuzadDeathAndDecayShadeRevealDummy" parent="StormSpell">
+    <Flags index="NoFractionDealtBonus" value="1" />
+    <Flags index="NoBehaviorResponse" value="1" />
+    <FloaterCreation value="Suppress" />
+    <Amount value="0.001" />
   </CEffectDamage>
   <CEffectEnumArea id="KelThuzadDeathAndDecayShadeSearch">
     <ImpactLocation Value="SourceUnit" />
@@ -3197,7 +3237,7 @@
   </CEffectSet>
   <CEffectEnumArea id="KelThuzadDeathAndDecayShadeDamageSearch">
     <ImpactLocation Value="SourcePoint" />
-    <AreaArray Effect="KelThuzadDeathAndDecayShadeDamage">
+    <AreaArray Effect="KelThuzadDeathAndDecayShadeDamageSet">
       <Radius value="2.5" />
     </AreaArray>
     <SearchFilters value="-;Player,Ally,Neutral,ImmuneToAOE,Missile,Item,Stasis,Dead,Hidden,Invulnerable" />
@@ -3205,11 +3245,15 @@
       <RevealFlags index="Unfog" value="1" />
     </RevealerParams>
   </CEffectEnumArea>
+  <CEffectSet id="KelThuzadDeathAndDecayShadeDamageSet">
+    <EffectArray value="KelThuzadDeathAndDecayShadeDamagedUnitTrackerAdd" />
+    <EffectArray value="KelThuzadDeathAndDecayShadeDamage" />
+  </CEffectSet>
   <CEffectDamage id="KelThuzadDeathAndDecayShadeDamage" parent="StormSpell">
     <Amount value="150" />
     <ValidatorArray value="noMarkers" />
     <SourceButtonFace value="KelThuzadDeathAndDecay" />
-    <DamageModifierSource Effect="KelThuzadDeathAndDecayShadePostCastSet" Value="Target" />
+    <Visibility value="Hidden" />
   </CEffectDamage>
   <CEffectCreatePersistent id="KelThuzadDeathAndDecayShadeRotCreatePersistent">
     <PeriodicEffectArray value="KelThuzadDeathAndDecayShadeRotSearch" />
@@ -3231,24 +3275,29 @@
     <MultiplicativeModifierArray index="AcceleratedDecay" Validator="KelThuzadHasAcceleratedDecay" Accumulator="KelThuzadAcceleratedDecayPercentDamageAccumulator" />
     <CritValidatorArray index="0" value="KelThuzadAcceleratedDecayCritValidator" />
     <SourceButtonFace value="KelThuzadDeathAndDecay" />
-    <DamageModifierSource Effect="KelThuzadDeathAndDecayShadePostCastSet" Value="Target" />
+    <Visibility value="Hidden" />
   </CEffectDamage>
   <CEffectSet id="KelThuzadDeathAndDecayShadeRotImpactSet">
+    <EffectArray value="KelThuzadDeathAndDecayShadeDamagedUnitTrackerAdd" />
     <EffectArray value="KelThuzadDeathAndDecayShadeRotDamage" />
     <EffectArray value="KelThuzadAcceleratedDecayApply" />
     <EffectArray value="KelThuzadAcceleratedDecayModifyToken" />
   </CEffectSet>
+  <CEffectEnumTrackedUnits id="KelThuzadTheDamnedReturnDeathAndDecayEnumerateInterruptCast">
+    <BehaviorLink value="KelThuzadTheDamnedReturnShadeTracker" />
+    <Effect value="KelThuzadTheDamnedReturnDeathAndDecayCancelOrder" />
+  </CEffectEnumTrackedUnits>
+  <CEffectCancelOrder id="KelThuzadTheDamnedReturnDeathAndDecayCancelOrder">
+    <Flags index="Uninterruptible" value="1" />
+  </CEffectCancelOrder>
   <CEffectSet id="KelThuzadDeathAndDecayShadeInitialSet">
-    <EffectArray value="KelThuzadCasterTracker" />
+    <EffectArray value="KelThuzadDeathAndDecayShadeFireDummy" />
     <TargetLocationType value="Point" />
   </CEffectSet>
-  <CEffectSet id="KelThuzadDeathAndDecayShadePostCastSet">
-    <EffectArray value="KelThuzadDeathAndDecayShadeLaunchMissile" />
-    <TargetLocationType value="Point" />
-  </CEffectSet>
-  <CEffectEnumTrackedUnits id="KelThuzadCasterTracker">
-    <Effect value="KelThuzadDeathAndDecayShadePostCastSet" />
-    <BehaviorLink value="KelThuzadCasterTracker" />
+  <CEffectModifyUnit id="KelThuzadDeathAndDecayShadeFireDummy" />
+  <CEffectEnumTrackedUnits id="KelThuzadTheDamnedReturnDeathAndDecayEnumShade">
+    <BehaviorLink value="KelThuzadTheDamnedReturnShadeTracker" />
+    <Effect value="KelThuzadTheDamnedReturnDeathAndDecayEnumerateTrackedUnitPersistent" />
   </CEffectEnumTrackedUnits>
   <CEffectApplyBehavior id="KelThuzadComboVOApply">
     <WhichUnit Value="Caster" />
@@ -4629,6 +4678,7 @@
     <Abil value="KelThuzadSpawnShade" />
     <RankArray>
       <BehaviorArray value="KelThuzadSpawnShadeBehaviorAbility" />
+      <BehaviorArray value="KelThuzadTheDamnedReturnShadeTracker" />
     </RankArray>
     <Active value="1" />
   </CTalent>
@@ -4720,7 +4770,8 @@
       <LayoutButtons Face="KelThuzadDeathAndDecay" Type="AbilCmd" AbilCmd="KelThuzadDeathAndDecayShade,Execute" Slot="Ability1" />
     </CardLayouts>
     <BehaviorArray Link="KelThuzadShadeTimedLife" />
-    <BehaviorArray Link="KelThuzadCasterTracker" />
+    <BehaviorArray Link="KelThuzadShadeDamagedUnitTracker" />
+    <BehaviorArray Link="KelThuzadShadeVisibilityController" />
     <Sight value="5.5" />
     <EnergyStart value="1000" />
     <EnergyMax value="1000" />
@@ -5022,6 +5073,11 @@
     <Value value="1" />
     <Behavior value="KelThuzadShadeCloneActive" />
   </CValidatorUnitCompareBehaviorCount>
+  <CValidatorCompareTrackedUnitsCount id="KelThuzadShadeHasDamagedUnitsTracked">
+    <Compare value="GE" />
+    <Value value="1" />
+    <BehaviorLink value="KelThuzadShadeDamagedUnitTracker" />
+  </CValidatorCompareTrackedUnitsCount>
   <CValidatorUnitCompareBehaviorCount id="KelThuzadHas3KelThuzadComboVO">
     <Behavior value="KelThuzadComboVO" />
     <Value value="3" />

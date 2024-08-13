@@ -1225,6 +1225,7 @@
     </HealResponse>
   </CBehaviorBuff>
   <CBehaviorBuff id="TassadarShockRayInductionTalentCarry" parent="CarryBehaviorParent">
+    <BehaviorCategories index="Fast" value="1" />
     <Modification>
       <UnifiedMoveSpeedFactor value="0.1" />
     </Modification>
@@ -1239,6 +1240,7 @@
   <CBehaviorBuff id="TassadarForceWallElectricFenceTalentDamageDebuff">
     <BuffFlags index="RefreshStack" value="1" />
     <BuffFlags index="UpdateDurationWhileDisabled" value="1" />
+    <Face value="TassadarElectricFence" />
     <Duration value="0.5" />
     <Period value="0.5" />
     <InitialEffect value="TassadarForceWallElectricFenceTalentDamage" />
@@ -1384,12 +1386,9 @@
   <CBehaviorUnitTracker id="TassadarForceWallUnitTracker">
     <MaxTrackedUnits value="10" />
   </CBehaviorUnitTracker>
-  <CBehaviorBuff id="TassadarBlackHoleImpactMarker">
-    <RemoveValidatorArray value="SourceNotDead" />
-    <MaxStackCount value="5" />
-    <MaxStackCountPerCaster value="1" />
-    <Duration value="6" />
-  </CBehaviorBuff>
+  <CBehaviorUnitTracker id="TassadarBlackHoleSourceTracker">
+    <MaxTrackedUnits value="15" />
+  </CBehaviorUnitTracker>
   <CBehaviorBuff id="TassadarBlackHoleKineticNE" parent="TassadarBlackHoleKinetic">
     <Name value="Behavior/Name/TassadarBlackHoleKineticNE" />
     <Tooltip value="Behavior/Tooltip/TassadarBlackHoleKineticNE" />
@@ -2206,9 +2205,11 @@
   <CEffectSet id="TassadarPsionicStormSearchSet">
     <EffectArray value="TassadarPsionicStormSearchArea" />
   </CEffectSet>
-  <CEffectApplyBehavior id="TassadarBlackHoleImpactMarkerApply">
-    <Behavior value="TassadarBlackHoleImpactMarker" />
-  </CEffectApplyBehavior>
+  <CEffectAddTrackedUnit id="TassadarBlackHoleAddTargetToSourceTracker">
+    <BehaviorLink value="TassadarBlackHoleSourceTracker" />
+    <TrackerUnit Value="Source" />
+    <TrackedUnit Value="Target" />
+  </CEffectAddTrackedUnit>
   <CEffectApplyKinetic id="TassadarBlackHoleApplyKineticEN">
     <Kinetic value="TassadarBlackHoleKineticEN" />
   </CEffectApplyKinetic>
@@ -2434,9 +2435,9 @@
     <EffectArray value="ApplyAbilityImpactReveal" />
     <EffectArray value="TassadarBlackHoleStunApply" />
     <EffectArray value="TassadarBlackHoleDamage" />
-    <EffectArray value="TassadarBlackHoleImpactMarkerApply" />
+    <EffectArray value="TassadarBlackHoleAddTargetToSourceTracker" />
     <EffectArray value="TassadarBlackHoleKugelblitzTalentProcSet" />
-    <ValidatorArray value="TassadarTargetDoesNotHaveBlackHoleImpactMarker" />
+    <ValidatorArray value="TassadarBlackHoleTargetIsNotTrackedBySource" />
   </CEffectSet>
   <CEffectSet id="TassadarBlackHolePeriodicSet">
     <EffectArray value="TassadarBlackHolePeriodicOuterSearchPersistent" />
@@ -3014,6 +3015,7 @@
     <EffectArray value="TassadarResonanceBeamApplyKhaydarinAmuletTalentTarget1Marker" />
     <EffectArray value="TassadarResonanceBeamKhaydarinAmuletTalentInitialDelayPersistent2" />
     <EffectArray value="TassadarResonanceBeamKhaydarinAmuletRevealTarget" />
+    <EffectArray value="UniversalWeaponPostImpactSet" />
   </CEffectSet>
   <CEffectEnumArea id="TassadarResonanceBeamKhaydarinAmuletTalentSearch2">
     <ValidatorArray value="TassadarCasterHasKhaydarinAmuletTarget1Marker" />
@@ -3046,9 +3048,11 @@
     <EffectArray value="TassadarResonanceBeamSlowSet" />
     <EffectArray value="TassadarResonanceBeamApplyKhaydarinAmuletTalentTarget2Marker" />
     <EffectArray value="TassadarResonanceBeamKhaydarinAmuletRevealTarget" />
+    <EffectArray value="UniversalWeaponPostImpactSet" />
   </CEffectSet>
   <CEffectApplyBehavior id="TassadarResonanceBeamKhaydarinAmuletRevealTarget">
     <ValidatorArray value="TargetNotUnrevealable" />
+    <ValidatorArray value="CasterNotVisionRemoval" />
     <Behavior value="AbilityImpactReveal" />
     <Flags index="UseDuration" value="1" />
     <Duration value="0.3125" />
@@ -3109,6 +3113,7 @@
     <EffectArray value="TassadarResonanceBeamApplyKhaydarinAmuletTalentTarget1Marker" />
     <EffectArray value="TassadarResonanceBeamKhaydarinAmuletTalentSearch2" />
     <EffectArray value="TassadarResonanceBeamKhaydarinAmuletRevealTarget" />
+    <EffectArray value="UniversalWeaponPostImpactSet" />
   </CEffectSet>
   <CEffectCreatePersistent id="TassadarResonanceBeamKhaydarinAmuletTalentSearch1CreatePersistent">
     <WhichLocation Value="TargetUnit" />
@@ -3154,6 +3159,7 @@
     <EffectArray value="TassadarResonanceBeamKhaydarinAmuletTalentInitialDelayPersistent" />
     <EffectArray value="TassadarPsionicStormArcDischargeTalentProcSet" />
     <EffectArray value="UniversalWeaponImpact" />
+    <EffectArray value="UniversalWeaponPostImpactSet" />
   </CEffectSet>
   <CEffectApplyBehavior id="TasasadarArchonApplySlow" parent="StormSlowApply">
     <Behavior value="TassadarArchonSlow" />
@@ -3223,6 +3229,7 @@
     <EffectArray value="TassadarArchonSpellArmorDebuffApply" />
     <EffectArray value="TassadarArchonTwilightArchonTalentSplashDamage" />
     <EffectArray value="TassadarResonanceBeamSlowSet" />
+    <EffectArray value="UniversalWeaponPostImpactSet" />
   </CEffectSet>
   <CEffectSet id="TassadarArchonInitialSet">
     <EffectArray value="ArchonSwitch" />
@@ -3294,6 +3301,7 @@
     <EffectArray value="TassadarPsionicStormArcDischargeTalentProcSet" />
     <EffectArray value="TassadarResonanceBeamSlowSet" />
     <EffectArray value="UniversalWeaponImpact" />
+    <EffectArray value="UniversalWeaponPostImpactSet" />
   </CEffectSet>
   <CEffectDamage id="TassadarArchonTwilightArchonTalentDamage" parent="StormWeapon">
     <Amount value="140" />
@@ -3361,6 +3369,7 @@
     <EffectArray value="TassadarArchonWeaponDamage" />
     <EffectArray value="TassadarResonanceBeamSlowSet" />
     <EffectArray value="UniversalWeaponImpact" />
+    <EffectArray value="UniversalWeaponPostImpactSet" />
   </CEffectSet>
   <CEffectDamage id="TassadarArchonWeaponDamage" parent="StormWeapon">
     <Amount value="140" />
@@ -3446,6 +3455,7 @@
     <EffectArray value="TassadarResonanceBeamKhaydarinAmuletTalentSearch1" />
     <EffectArray value="TassadarPsionicStormArcDischargeTalentProcSet" />
     <EffectArray value="UniversalWeaponImpact" />
+    <EffectArray value="UniversalWeaponPostImpactSet" />
   </CEffectSet>
   <CEffectDamage id="TassadarResonanceBeamDamage" parent="StormWeapon">
     <MultiplicativeModifierArray index="0" Accumulator="TassadarResonanceBeamDamageAccumulator" />
@@ -3455,6 +3465,7 @@
     <EffectArray value="TassadarArchonSpellArmorDebuffApply" />
     <EffectArray value="TassadarArchonSplashDamage" />
     <EffectArray value="TassadarResonanceBeamSlowSet" />
+    <EffectArray value="UniversalWeaponPostImpactSet" />
   </CEffectSet>
   <CEffectDamage id="TassadarArchonSplashDamage" parent="StormSpell">
     <Kind value="Basic" />
@@ -4693,6 +4704,7 @@
   <CUnit id="TassadarBlackHoleMissile" parent="MISSILE_INVULNERABLE">
     <EditorFlags index="NoPlacement" value="0" />
     <Facing value="21.9946" />
+    <BehaviorArray Link="TassadarBlackHoleSourceTracker" />
   </CUnit>
   <CUnit id="TassadarBlackHole" parent="StormSummonFigment">
     <Race value="Zerg" />
@@ -4865,10 +4877,11 @@
     <Find value="1" />
     <Value value="TassadarInduction" />
   </CValidatorPlayerTalent>
-  <CValidatorUnitCompareBehaviorCount id="TassadarTargetDoesNotHaveBlackHoleImpactMarker">
-    <Behavior value="TassadarBlackHoleImpactMarker" />
-    <RequireCasterUnit Value="Caster" />
-  </CValidatorUnitCompareBehaviorCount>
+  <CValidatorIsUnitTracked id="TassadarBlackHoleTargetIsNotTrackedBySource">
+    <BehaviorLink value="TassadarBlackHoleSourceTracker" />
+    <TrackerUnit Value="Source" />
+    <TrackedUnit Value="Target" />
+  </CValidatorIsUnitTracked>
   <CValidatorUnitCompareTokenCount id="TassadarTargetHasGTE4PsionicStormTargetTokens">
     <WhichUnit Value="Target" />
     <Compare value="GE" />

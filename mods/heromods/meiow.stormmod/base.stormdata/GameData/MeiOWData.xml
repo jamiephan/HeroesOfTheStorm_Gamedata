@@ -208,13 +208,17 @@
     <TrackingBehavior value="MeiOWAvalancheUnitTracker" />
     <TrackedUnitFilters value="Heroic;-" />
   </CAccumulatorTrackedUnitCount>
-  <CActorForceCylinder id="MeiOWBlizzardForceCylinder">
-    <On Terms="Effect.MeiOWBlizzardSearchArea.Start; At Effect" Send="Create" />
+  <CActorForceSphere id="MeiOWBlizzardSphereForce">
+    <Magnitude value="-0.100000" />
+    <Radius value="3.950000" />
+    <Duration value="-1.000000" />
+    <On Terms="Effect.MeiOWBlizzardSearchPersistent.Start; At Effect" Send="Create" />
+    <On Terms="Effect.MeiOWBlizzardSearchPersistent.Stop; FromEffectTreeDescendant" Send="Destroy" />
+    <ForceFlags index="FallOff" value="0" />
+    <ForceFlags index="ApplyAtCenter" value="1" />
     <Field value="Vortex" />
-    <Magnitude value="15.000000" />
-    <Radius value="3.750000" />
-    <Length value="1.000000" />
-  </CActorForceCylinder>
+    <IsHemisphere value="1" />
+  </CActorForceSphere>
   <CActorModel id="MeiOWCryoFreezeBuffDeathFX" parent="StormModelAnimationStyleOneShotUnit">
     <Macros value="EffectVisibilityMacro" />
     <Macros value="PolymorphMacroEffects" />
@@ -295,10 +299,10 @@
   <CActorForceSphere id="MeiOWBlizzardFinalForceSphere">
     <On Terms="Effect.MeiOWBlizzardFinalSearch.Start; At Effect" Send="Create" />
     <Duration value="0.062500" />
-    <Magnitude value="65.000000" />
+    <Magnitude value="35.000000" />
     <ForceFlags index="FallOff" value="0" />
     <ForceFlags index="ApplyAtCenter" value="1" />
-    <Radius value="3.750000" />
+    <Radius value="3.950000" />
     <IsHemisphere value="1" />
   </CActorForceSphere>
   <CActorForceSphere id="MeiOWIceWallForceSphere">
@@ -438,7 +442,7 @@
     <On Terms="ActorCreation" Send="SetTintColor 225,160,25 0.000000 OneShot BaseTint" />
     <On Terms="ActorDestruction" Target="_MeiOWIcingGuideRegion" Send="Destroy" />
     <On Terms="ActorOrphan" Send="Destroy" />
-    <On Terms="ActorCreation" Send="Create MeiOWIcingBlackIceTalentRegionCircle" />
+    <On Terms="ActorCreation; IsActorLocalPlayer" Send="Create MeiOWIcingBlackIceTalentRegionCircle" />
     <On Terms="ActorDestruction" Target="MeiOWIcingBlackIceTalentRegionCircle" Send="Destroy Immediate" />
     <On Terms="ActorCreation" Send="SetOpacity 0.000000 0.000000 FadeIn" />
     <On Terms="ActorCreation" Send="ClearOpacity 0.250000 FadeIn" />
@@ -540,7 +544,7 @@
     <FogVisibility value="Visible" />
     <On Terms="Behavior.MeiOWIcingDashBuff.On" Send="Create" />
     <On Terms="Behavior.MeiOWIcingDashBuff.Off" Send="Destroy Immediate" />
-    <On Terms="ActorCreation" Send="Create MeiOWIcingRegionCircle" />
+    <On Terms="ActorCreation; IsActorLocalPlayer" Send="Create MeiOWIcingRegionCircle" />
     <On Terms="ActorCreation" Send="SetTintColor 225,160,25 0.000000 OneShot BaseTint" />
     <On Terms="ActorDestruction" Target="_MeiOWIcingGuideRegion" Send="Destroy" />
     <On Terms="ActorOrphan" Send="Destroy" />
@@ -876,8 +880,7 @@
   <CActorModelMaterial id="MeiOWIceWallGlaze" parent="StormModelAnimationStyleContinuous">
     <Inherits index="CloakEffect" value="1" />
     <Inherits index="Visibility" value="1" />
-    <On Terms="Behavior.MeiOWIceWallTimeStopPrep.On" Send="Create" />
-    <On Terms="Effect.MeiOWIceWallTimeStopDebuffApplyBehavior.Stop; !ValidateUnit MeiOWIceWallTargetHasTimeStopDebuff" Send="AnimBracketStop BSD" />
+    <On Terms="Behavior.MeiOWIceWallTimeStopDebuff.On" Send="Create" />
     <On Terms="ActorCreation" Send="ModelMaterialApplyTo ::Main" />
     <On Terms="Behavior.MeiOWIceWallTimeStopDebuff.Off" Send="AnimBracketStop BSD" />
   </CActorModelMaterial>
@@ -960,6 +963,7 @@
   <CBehaviorBuff id="MeiOWAvalancheSnowballMissileMarker" />
   <CBehaviorBuff id="MeiOWCryoFreezeFlashFreezeTalentMarker">
     <Duration value="3.125" />
+    <FinalEffect value="MeiOWCryoFreezeFlashFreezeRedirectMissile" />
   </CBehaviorBuff>
   <CBehaviorBuff id="MeiOWPolarVortexAttackSpeedSlow" parent="StormDamageReductionAttackSpeedSlow">
     <Alignment value="Negative" />
@@ -1033,6 +1037,7 @@
       <Priority value="16" />
       <Fatal value="1" />
       <RestoreLifeAfterFatal value="1" />
+      <RecordBehaviorShieldDamage value="1" />
       <ModifyFraction value="0" />
       <ValidatorArray value="MeiOWFlashFreezeNotOnCooldown" />
       <ProvideCategories index="Shield" value="1" />
@@ -1040,6 +1045,7 @@
     </DamageResponse>
   </CBehaviorBuff>
   <CBehaviorBuff id="MeiOWIceWallShatterTalentArmorDebuff" parent="StormArmor">
+    <BehaviorCategories index="DebuffVulnerable" value="1" />
     <Duration value="5" />
     <ArmorModification>
       <AllArmorBonus value="-25" />
@@ -1274,14 +1280,6 @@
     <RefreshEffect value="MeiOWCCApplicationSet" />
   </CBehaviorBuff>
   <CBehaviorBuff id="MeiOWIceWallController" parent="CarryBehaviorParent" />
-  <CBehaviorBuff id="MeiOWIceWallTimeStopPrep" parent="StormTimeStopParent">
-    <RemoveValidatorArray value="MeiOWCasterHasIceWallController" />
-    <FinalEffect value="MeiOWIceWallTimeStopDebuffApplyBehavior" />
-    <Modification>
-      <ModifyFlags index="SuppressMoving" value="1" />
-      <CollideDisableFlags index="HeroWalkable" value="1" />
-    </Modification>
-  </CBehaviorBuff>
   <CBehaviorBuff id="MeiOWIceWallTimeStopDebuff" parent="StormTimeStopParent">
     <InfoFlags index="AlwaysUseGameText" value="1" />
     <BehaviorCategories index="Restorable" value="1" />
@@ -1890,6 +1888,11 @@
     <EffectArray value="MeiOWCryoFreezeFlashFreezeTalentModifyCooldown" />
     <EffectArray value="MeiOWCryoFreezeFlashFreezeTalentMarkerApply" />
   </CEffectSet>
+  <CEffectRedirectMissile id="MeiOWCryoFreezeFlashFreezeRedirectMissile">
+    <ValidatorArray value="CasterIsNotGroundMover" />
+    <WhichUnit Value="Caster" />
+    <ImpactLocation Value="CasterUnit" />
+  </CEffectRedirectMissile>
   <CEffectSet id="MeiOWCryoFreezeFlashFreezeTalentDummySet">
     <ValidatorArray value="AlwaysReturnsFalse" />
   </CEffectSet>
@@ -2520,10 +2523,20 @@
   </CEffectEnumArea>
   <CEffectSet id="MeiOWIceWallImpactSet">
     <EffectArray value="MeiOWIceWallControllerApplyBehavior" />
-    <EffectArray value="MeiOWIceWallTimeStopPrepApplyBehavior" />
+    <EffectArray value="MeiOWIceWallTimeStopPrepPersistentHandler" />
+    <EffectArray value="MeiOWIceWallTimeStopDebuffApplyUntimedBehavior" />
   </CEffectSet>
-  <CEffectApplyBehavior id="MeiOWIceWallTimeStopPrepApplyBehavior">
-    <Behavior value="MeiOWIceWallTimeStopPrep" />
+  <CEffectCreatePersistent id="MeiOWIceWallTimeStopPrepPersistentHandler">
+    <WhichLocation Value="TargetUnit" />
+    <TimeScaleSource Value="Global" />
+    <FinalEffect value="MeiOWIceWallTimeStopDebuffApplyBehavior" />
+    <ExpireDelay value="1.0625" />
+    <PeriodicValidator value="MeiOWCasterHasIceWallController" />
+  </CEffectCreatePersistent>
+  <CEffectApplyBehavior id="MeiOWIceWallTimeStopDebuffApplyUntimedBehavior">
+    <Behavior value="MeiOWIceWallTimeStopDebuff" />
+    <Flags index="UseDuration" value="1" />
+    <Duration value="-1" />
   </CEffectApplyBehavior>
   <CEffectApplyBehavior id="MeiOWIceWallTimeStopDebuffApplyBehavior">
     <Behavior value="MeiOWIceWallTimeStopDebuff" />
@@ -2601,6 +2614,7 @@
   <CEffectSet id="MeiOWHeroWeaponImpactSet">
     <EffectArray value="MeiOWHeroWeaponDamage" />
     <EffectArray value="MeiOWHeroWeaponCoolingServosTalentApplySlow" />
+    <EffectArray value="UniversalWeaponPostImpactSet" />
   </CEffectSet>
   <CEffectDamage id="MeiOWHeroWeaponDamage" parent="StormWeapon">
     <MultiplicativeModifierArray index="HeatTransfer" Validator="MeiOWHeatTransferTalentProcCombine" Modifier="0.33" Crit="1" />
