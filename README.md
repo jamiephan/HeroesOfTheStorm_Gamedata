@@ -4,11 +4,12 @@ A Repo to host all the Game Data files from Heroes of the Storm.
 
 This can also take advantage of git's diff tool to check what have been changed.
 
-*Heroes of the Storm - Current version in Battle.net (us region):*
-
-![Endpoint Badge](https://img.shields.io/endpoint?url=https%3A%2F%2Fbnet-version.jamiephan.workers.dev%2Fhero%2Fus%2FVersionsName%2Fbadge)
-
 >If you have GitHub logged-in, you can press <kbd>.</kbd> to open a web version of VSCode to easily view the files without cloning. ([Github doc](https://docs.github.com/en/codespaces/the-githubdev-web-based-editor))
+
+Current latest Heroes of the Storm version in Battle.net (US region): 
+
+[<img src="https://img.shields.io/endpoint?url=https%3A%2F%2Fbnet-version.jamiephan.workers.dev%2Fhero%2Fus%2FVersionsName%2Fbadge">](https://github.com/jamiephan/cf-bnet-version)
+
 
 # CI
 
