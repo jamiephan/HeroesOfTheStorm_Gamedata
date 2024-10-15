@@ -124,7 +124,7 @@
     <Cost>
       <Cooldown TimeStart="0.5" TimeUse="6" />
     </Cost>
-    <PrepEffect value="AbathurSymbioteApplySuppressSuperStealthController" />
+    <PrepEffect value="AbathurSymbioteCarapacePrepSet" />
   </CAbilEffectInstant>
   <CAbilEffectInstant id="AbathurSymbioteSpikeBurst">
     <CmdButtonArray index="Execute" DefaultButtonFace="AbathurSymbioteSpikeBurst" />
@@ -303,6 +303,11 @@
     <ApplicationRule value="Add" />
     <MinAccumulation value="64" />
     <MaxAccumulation value="64" />
+  </CAccumulatorToken>
+  <CAccumulatorToken id="AbathurSymbioteCarapaceHivemindNetworkedCarapaceAddition" parent="BaseAccumulator">
+    <MaxAccumulation value="10000" />
+    <ApplicationRule value="Add" />
+    <Offset value="75" />
   </CAccumulatorToken>
   <CActorModel id="AbathurMonstrosityDeepTunnelVisualWarning" parent="StormModelAnimationStyleContinuous">
     <Inherits index="TeamColor" value="1" />
@@ -1067,6 +1072,8 @@
     <On Terms="Behavior.CarapaceEvolutionShieldHivemind.Off" Send="AnimBracketStop BSD" />
     <On Terms="Behavior.AbathurSymbioteCarapaceNetworkedCarapaceTalent.On; ValidateUnit TargetIsHero" Send="Create" />
     <On Terms="Behavior.AbathurSymbioteCarapaceNetworkedCarapaceTalent.Off" Send="AnimBracketStop BSD" />
+    <On Terms="Behavior.AbathurSymbioteCarapaceNetworkedCarapaceHivemindTalent.On; ValidateUnit TargetIsHero" Send="Create" />
+    <On Terms="Behavior.AbathurSymbioteCarapaceNetworkedCarapaceHivemindTalent.Off" Send="AnimBracketStop BSD" />
     <On Terms="ActorCreation; ValidateUnit TargetIsFat" Send="SetScale 1.300000" />
     <HostSiteOps Ops="SOpAttachCenterSoft" />
   </CActorModel>
@@ -1077,6 +1084,7 @@
     <On Terms="Behavior.CarapaceEvolutionShield.On; ValidateUnit NotHeroorStructure" Send="Create" />
     <On Terms="Behavior.CarapaceEvolutionShieldHivemind.On; ValidateUnit NotHeroorStructure" Send="Create" />
     <On Terms="Behavior.AbathurSymbioteCarapaceNetworkedCarapaceTalent.On; ValidateUnit NotHeroorStructure" Send="Create" />
+    <On Terms="Behavior.AbathurSymbioteCarapaceNetworkedCarapaceHivemindTalent.On; ValidateUnit NotHeroorStructure" Send="Create" />
     <HostSiteOps Ops="SOpAttachCenterSoft" />
     <AutoScaleFactor value="1.000000" />
     <Scale value="1.350000" />
@@ -1502,6 +1510,9 @@
     <DamageResponse ModifyLimit="150">
       <ModifyScoreArray index="0" Value="Healing" />
     </DamageResponse>
+  </CBehaviorBuff>
+  <CBehaviorBuff id="AbathurSymbioteCarapaceNetworkedCarapaceHivemindTalent" parent="AbathurSymbioteCarapaceNetworkedCarapaceTalent">
+    <DamageResponse ModifyLimit="75" />
   </CBehaviorBuff>
   <CBehaviorBuff id="AbathurAdrenalOverload">
     <BehaviorCategories index="BuffAutoattackDPS" value="1" />
@@ -2273,6 +2284,13 @@
   <CEffectSet id="AbathurSymbioteCarapaceNetworkedCarapaceApplySet">
     <EffectArray value="AbathurSymbioteCarapaceApplyNetworkedCarapaceTalentMarker" />
     <EffectArray value="AbathurSymbioteApplyCarapaceNetworkedCarapaceTalentShield" />
+    <EffectArray value="AbathurSymbioteCarapaceModifyUnitDummy" />
+  </CEffectSet>
+  <CEffectApplyBehavior id="AbathurSymbioteApplyCarapaceNetworkedCarapaceHivemindTalentShield">
+    <Behavior value="AbathurSymbioteCarapaceNetworkedCarapaceHivemindTalent" />
+  </CEffectApplyBehavior>
+  <CEffectSet id="AbathurSymbioteCarapaceNetworkedCarapaceHivemindApplySet" parent="AbathurSymbioteCarapaceNetworkedCarapaceApplySet">
+    <EffectArray index="1" value="AbathurSymbioteApplyCarapaceNetworkedCarapaceHivemindTalentShield" />
   </CEffectSet>
   <CEffectRemoveBehavior id="AbathurCarapaceEvolutionRemoveNetworkedCarapaceTalentMarker">
     <BehaviorLink value="AbathurNetworkedCarapaceTalentMarkerBehavior" />
@@ -2556,11 +2574,31 @@
     <PeriodicOffsetArray X="-1" Y="-1" />
     <PeriodicPeriodArray value="0" />
   </CEffectCreatePersistent>
+  <CEffectSet id="AbathurSymbioteCarapacePrepSet">
+    <EffectArray value="AbathurSymbioteApplySuppressSuperStealthController" />
+    <EffectArray value="AbathurSymbioteHivemindResetCarapaceFlatBonus" />
+  </CEffectSet>
+  <CEffectModifyCatalogNumeric id="AbathurSymbioteHivemindResetCarapaceFlatBonus">
+    <CatalogModifications Operation="Set" Reference="Behavior,CarapaceEvolutionShieldHivemind,FlatShieldBonus" />
+  </CEffectModifyCatalogNumeric>
+  <CEffectModifyCatalogNumeric id="AbathurSymbioteNetworkedCarapaceBuffHivemindShield">
+    <CatalogModifications Operation="Set" Reference="Behavior,CarapaceEvolutionShieldHivemind,FlatShieldBonus">
+      <Value value="0">
+        <AccumulatorArray value="AbathurSymbioteCarapaceHivemindNetworkedCarapaceAddition" />
+      </Value>
+    </CatalogModifications>
+  </CEffectModifyCatalogNumeric>
   <CEffectSet id="CarapaceEvolutionApplySet">
     <ValidatorArray value="TargetHasAbathurSymbioteHost" />
-    <EffectArray value="AbathurSymbioteCarapaceApplyShieldSwitch" />
+    <EffectArray value="AbathurSymbioteCarapaceApplyShieldSet" />
     <EffectArray value="AbathurSymbioteCarapaceNetworkedCarapaceApplySearch" />
   </CEffectSet>
+  <CEffectSet id="AbathurSymbioteCarapaceApplyShieldSet">
+    <ValidatorArray value="noMarkers" />
+    <EffectArray value="AbathurSymbioteCarapaceApplyShieldSwitch" />
+    <EffectArray value="AbathurSymbioteCarapaceModifyUnitDummy" />
+  </CEffectSet>
+  <CEffectModifyUnit id="AbathurSymbioteCarapaceModifyUnitDummy" />
   <CEffectSwitch id="AbathurSymbioteCarapaceApplyShieldSwitch">
     <CaseArray Validator="AbathurSymbioteCarapaceHivemindTarget" Effect="CarapaceEvolutionApplyShieldHivemind" />
     <CaseDefault value="CarapaceEvolutionApplyShield" />
@@ -2784,9 +2822,19 @@
   <CEffectDamage id="UnstableMutationDamage" parent="StormSpell">
     <Amount value="80" />
   </CEffectDamage>
-  <CEffectSwitch id="CarapaceEvolutionApplyShieldMonstrositySwitch">
+  <CEffectSwitch id="AbathurSymbioteCarapaceNetworkedCarapaceApplyShieldInitialSwitch">
+    <ValidatorArray value="noMarkers" />
+    <CaseArray Validator="AbathurSymbioteCarapaceHivemindTarget" Effect="AbathurSymbioteNetworkedCarapaceHivemindApplyShieldSwitch" />
+    <CaseDefault value="AbathurSymbioteNetworkedCarapaceApplyShieldSwitch" />
+  </CEffectSwitch>
+  <CEffectSwitch id="AbathurSymbioteNetworkedCarapaceApplyShieldSwitch">
+    <CaseArray Validator="AbathurSymbioteTargetHasHivemind" Effect="AbathurSymbioteNetworkedCarapaceBuffHivemindShield" />
     <CaseArray Validator="TargetMinionOrMerc" Effect="AbathurSymbioteCarapaceNetworkedCarapaceApplySet" />
     <CaseArray Validator="TargetIsHero" Effect="AbathurSymbioteCarapaceNetworkedCarapaceApplySet" />
+  </CEffectSwitch>
+  <CEffectSwitch id="AbathurSymbioteNetworkedCarapaceHivemindApplyShieldSwitch">
+    <CaseArray Validator="TargetMinionOrMerc" Effect="AbathurSymbioteCarapaceNetworkedCarapaceHivemindApplySet" />
+    <CaseArray Validator="TargetIsHero" Effect="AbathurSymbioteCarapaceNetworkedCarapaceHivemindApplySet" />
   </CEffectSwitch>
   <CEffectApplyBehavior id="CarapaceEvolutionApplyShield">
     <Behavior value="CarapaceEvolutionShield" />
@@ -2846,7 +2894,7 @@
   </CEffectCreatePersistent>
   <CEffectEnumArea id="AbathurSymbioteCarapaceNetworkedCarapaceApplySearch">
     <SearchFilters value="Visible;Neutral,Enemy,Structure,ImmuneToFriendlyAbilities,Missile,Item,Dead,Hidden" />
-    <AreaArray Effect="CarapaceEvolutionApplyShieldMonstrositySwitch">
+    <AreaArray Effect="AbathurSymbioteCarapaceNetworkedCarapaceApplyShieldInitialSwitch">
       <Radius value="3" />
     </AreaArray>
     <Chance value="0" />
@@ -3175,6 +3223,9 @@
   </CEffectEnumArea>
   <CEffectSet id="UltimateEvolutionCastDummy" />
   <CEffectEnumArea id="CarapaceEvolutionSearchArea">
+    <Marker>
+      <MatchFlags index="Id" value="1" />
+    </Marker>
     <SearchFilters value="-;Neutral,Enemy" />
     <AreaArray Effect="CarapaceEvolutionApplySet">
       <Radius value="30" />
@@ -3762,6 +3813,22 @@
         <Catalog value="Behavior" />
         <Entry value="AbathurSymbioteCarapaceNetworkedCarapaceTalent" />
         <Field value="DamageResponse.ModifyLimit" />
+        <Value value="0.040000" />
+        <AffectedByAbilityPower value="1" />
+        <AffectedByOverdrive value="1" />
+      </Modifications>
+      <Modifications>
+        <Catalog value="Behavior" />
+        <Entry value="AbathurSymbioteCarapaceNetworkedCarapaceHivemindTalent" />
+        <Field value="DamageResponse.ModifyLimit" />
+        <Value value="0.040000" />
+        <AffectedByAbilityPower value="1" />
+        <AffectedByOverdrive value="1" />
+      </Modifications>
+      <Modifications>
+        <Catalog value="Accumulator" />
+        <Entry value="AbathurSymbioteCarapaceHivemindNetworkedCarapaceAddition" />
+        <Field value="Offset" />
         <Value value="0.040000" />
         <AffectedByAbilityPower value="1" />
         <AffectedByOverdrive value="1" />
@@ -4621,6 +4688,12 @@
         <Field value="Chance" />
         <Value value="1.000000" />
       </Modifications>
+      <Modifications>
+        <Type value="FlatModification" />
+        <Catalog value="Behavior" />
+        <Entry value="CarapaceEvolutionShieldHivemind" />
+        <Field value="FlatShieldBonus" />
+      </Modifications>
     </AbilityModificationArray>
     <Abil value="AbathurSymbioteCarapace" />
   </CTalent>
@@ -4991,6 +5064,10 @@
   </CValidatorUnitCompareBehaviorCount>
   <CValidatorUnitCompareBehaviorCount id="AbathurSymbioteHivemindSource">
     <WhichUnit Value="Caster" />
+    <Value value="1" />
+    <Behavior value="AbathurSymbioteHivemind" />
+  </CValidatorUnitCompareBehaviorCount>
+  <CValidatorUnitCompareBehaviorCount id="AbathurSymbioteTargetHasHivemind">
     <Value value="1" />
     <Behavior value="AbathurSymbioteHivemind" />
   </CValidatorUnitCompareBehaviorCount>

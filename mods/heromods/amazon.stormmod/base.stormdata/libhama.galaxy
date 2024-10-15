@@ -35,6 +35,7 @@ void libHAMA_gf_HeroAmazonIncrementHeroCountFunction () {
         TriggerEnable(libHAMA_gt_HeroAmazonSurgeofLightDamageTaken, true);
         TriggerEnable(libHAMA_gt_HeroAmazonSurgeofLightResetCharge, true);
         TriggerEnable(libHAMA_gt_HeroAmazonTalentResetClearSurgeofLight, true);
+        TriggerEnable(libHAMA_gt_HeroAmazonWarMatronFloatingText, true);
     }
 
 }
@@ -51,6 +52,7 @@ void libHAMA_gf_HeroAmazonDecrementHeroCountFunction () {
         TriggerEnable(libHAMA_gt_HeroAmazonSurgeofLightDamageTaken, false);
         TriggerEnable(libHAMA_gt_HeroAmazonSurgeofLightResetCharge, false);
         TriggerEnable(libHAMA_gt_HeroAmazonTalentResetClearSurgeofLight, false);
+        TriggerEnable(libHAMA_gt_HeroAmazonWarMatronFloatingText, false);
     }
 
 }
@@ -173,10 +175,61 @@ void libHAMA_gt_HeroAmazonTalentResetClearSurgeofLight_Init () {
     libGame_gf_HeroRespecsTalents(libHAMA_gt_HeroAmazonTalentResetClearSurgeofLight);
 }
 
+//--------------------------------------------------------------------------------------------------
+// Trigger: Hero - Amazon - War Matron Floating Text
+//--------------------------------------------------------------------------------------------------
+bool libHAMA_gt_HeroAmazonWarMatronFloatingText_Func (bool testConds, bool runActions) {
+    // Variable Declarations
+    int lv_triggeringUnitOwner;
+
+    // Automatic Variable Declarations
+    // Variable Initialization
+    lv_triggeringUnitOwner = UnitGetOwner(EventUnit());
+
+    // Conditions
+    if (testConds) {
+        if (!((lv_triggeringUnitOwner >= 1))) {
+            return false;
+        }
+
+        if (!((lv_triggeringUnitOwner <= libCore_gv_bALMaxPlayers))) {
+            return false;
+        }
+
+        if (!(((EventUnitBehaviorCumulativeDamageModification() > 0.0) || (libHAMA_gv_heroAmazonWarMatronDamagePrevented[lv_triggeringUnitOwner] > 0.0)))) {
+            return false;
+        }
+    }
+
+    // Actions
+    if (!runActions) {
+        return true;
+    }
+
+    libHAMA_gv_heroAmazonWarMatronDamagePrevented[lv_triggeringUnitOwner] = (libHAMA_gv_heroAmazonWarMatronDamagePrevented[lv_triggeringUnitOwner] + EventUnitBehaviorCumulativeDamageModification());
+    if ((UnitHasBehavior2(EventUnit(), "AmazonFendWarMatronBonusProtectedBehavior") == false)) {
+        FloatingCombatElementCreateNumberTextAtUnit(PlayerGroupSingle(lv_triggeringUnitOwner), "FloatingCombatElements/FloatingCombatAmountReadable", "", EventUnit(), FixedToInt(libHAMA_gv_heroAmazonWarMatronDamagePrevented[lv_triggeringUnitOwner]), StringExternal("Param/Value/lib_HVAR_D90A4267"), libNtve_gv_FloatingCombatTextAutoRandomSeed);
+        libHAMA_gv_heroAmazonWarMatronDamagePrevented[lv_triggeringUnitOwner] = 0.0;
+    }
+
+    return true;
+}
+
+//--------------------------------------------------------------------------------------------------
+void libHAMA_gt_HeroAmazonWarMatronFloatingText_Init () {
+    libHAMA_gt_HeroAmazonWarMatronFloatingText = TriggerCreate("libHAMA_gt_HeroAmazonWarMatronFloatingText_Func");
+    TriggerEnable(libHAMA_gt_HeroAmazonWarMatronFloatingText, false);
+    TriggerAddEventUnitBehaviorChange(libHAMA_gt_HeroAmazonWarMatronFloatingText, null, "AmazonFendWarMatronChannelProtectedBehavior", c_unitBehaviorChangeRefresh);
+    TriggerAddEventUnitBehaviorChange(libHAMA_gt_HeroAmazonWarMatronFloatingText, null, "AmazonFendWarMatronChannelProtectedBehavior", c_unitBehaviorChangeDecrease);
+    TriggerAddEventUnitBehaviorChange(libHAMA_gt_HeroAmazonWarMatronFloatingText, null, "AmazonFendWarMatronBonusProtectedBehavior", c_unitBehaviorChangeRefresh);
+    TriggerAddEventUnitBehaviorChange(libHAMA_gt_HeroAmazonWarMatronFloatingText, null, "AmazonFendWarMatronBonusProtectedBehavior", c_unitBehaviorChangeDecrease);
+}
+
 void libHAMA_InitTriggers () {
     libHAMA_gt_HeroAmazonSurgeofLightDamageTaken_Init();
     libHAMA_gt_HeroAmazonSurgeofLightResetCharge_Init();
     libHAMA_gt_HeroAmazonTalentResetClearSurgeofLight_Init();
+    libHAMA_gt_HeroAmazonWarMatronFloatingText_Init();
 }
 
 //--------------------------------------------------------------------------------------------------

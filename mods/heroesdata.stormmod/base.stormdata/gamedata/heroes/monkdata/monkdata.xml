@@ -141,6 +141,14 @@
     <SetLastTarget value="Attack" />
     <TargetFilters value="-;Self,Structure,Missile,Item,Stasis,Dead,Hidden" />
   </CAbilEffectTarget>
+  <CAccumulatorTimed id="MonkEarthAllyTimedLifeAccumulator">
+    <TimestampBehavior value="MonkEarthAllyTimescale" />
+    <MinAccumulation value="-9.9375" />
+    <MaxAccumulation value="0" />
+    <ApplicationRule value="Add" />
+    <MultiplierPerStep value="-0.0625" />
+    <UnitSource Effect="MonkEarthAllySearchArea" Value="Source" />
+  </CAccumulatorTimed>
   <CActorModel id="MonkSpiritAllyHealImpact" parent="StormModelAnimationStyleOneShot">
     <Macros value="GlobalLoopMacro" />
     <Preload index="0" value="HealingWardHealImpact" />
@@ -1037,6 +1045,7 @@
     <RevealUnit Value="Source" />
   </CBehaviorBuff>
   <CBehaviorBuff id="MonkEarthAllyBlockBuff" parent="StormArmor">
+    <Duration value="10" />
     <DamageResponse>
       <Chance value="1" />
       <Handled value="MonkEarthAllyDummyBlockSet" />
@@ -1061,6 +1070,9 @@
       <StateFlags index="Passive" value="1" />
     </Modification>
   </CBehaviorBuff>
+  <CBehaviorTimestamp id="MonkEarthAllyTimescale">
+    <Flags index="UseTimeScale" value="1" />
+  </CBehaviorTimestamp>
   <CBehaviorBuff id="MonkSpiritAllyHealingBuff">
     <Duration value="0.5625" />
     <Period value="1" />
@@ -1444,8 +1456,11 @@
     <TokenId value="MonkInsightQuestToken" />
   </CEffectModifyTokenCount>
   <CEffectSet id="MonkEarthAllyImpactSet">
+    <ValidatorArray value="MonkEarthAllyTargetDoesNotHaveBlockBehavior" />
     <EffectArray value="MonkEarthAllyApplyBehavior" />
     <EffectArray value="MonkEarthAllyApplyDummyBehavior" />
+    <EffectArray value="MonkEarthAllyUpdateBlockSetBehaviorDuration" />
+    <EffectArray value="MonkEarthAllySetBehaviorDuration" />
   </CEffectSet>
   <CEffectApplyBehavior id="MonkIronFistApplyMoveSpeedBuff">
     <ValidatorArray index="0" value="CasterNotBlindedAndTargetNotEvading" />
@@ -1512,15 +1527,35 @@
   <CEffectApplyBehavior id="MonkEarthAllyApplyBehavior">
     <Behavior value="MonkEarthAllyBlockBuff" />
   </CEffectApplyBehavior>
+  <CEffectModifyCatalogNumeric id="MonkEarthAllyUpdateBlockSetBehaviorDuration">
+    <CatalogModifications Operation="Set" Reference="Effect,MonkEarthAllySetBehaviorDuration,Value">
+      <Value value="10">
+        <AccumulatorArray value="MonkEarthAllyTimedLifeAccumulator" />
+      </Value>
+    </CatalogModifications>
+  </CEffectModifyCatalogNumeric>
+  <CEffectModifyBehaviorBuffDuration id="MonkEarthAllySetBehaviorDuration">
+    <WhichUnit Value="Target" />
+    <Behavior value="MonkEarthAllyBlockBuff" />
+    <Operation value="Set" />
+    <Value value="10" />
+  </CEffectModifyBehaviorBuffDuration>
   <CEffectApplyBehavior id="MonkEarthAllyApplyTimedLife">
     <Behavior value="MonkEarthAllyTimedLife" />
   </CEffectApplyBehavior>
   <CEffectCreateUnit id="MonkEarthAllyCreateUnit">
     <WhichLocation Value="TargetPoint" />
-    <SpawnEffect value="MonkEarthAllyApplyTimedLife" />
+    <SpawnEffect value="MonkEarthAllySpawnSet" />
     <SpawnUnit value="MonkEarthAlly" />
     <ValidatorArray value="TargetPointWalkable" />
   </CEffectCreateUnit>
+  <CEffectSet id="MonkEarthAllySpawnSet">
+    <EffectArray value="MonkEarthAllyApplyTimescale" />
+    <EffectArray value="MonkEarthAllyApplyTimedLife" />
+  </CEffectSet>
+  <CEffectApplyBehavior id="MonkEarthAllyApplyTimescale">
+    <Behavior value="MonkEarthAllyTimescale" />
+  </CEffectApplyBehavior>
   <CEffectEnumArea id="MonkEarthAllySearchArea">
     <SearchFilters value="Heroic;Neutral,Enemy,Structure,ImmuneToFriendlyAbilities,Missile,Item,Stasis,Dead,Hidden" />
     <AreaArray Effect="MonkEarthAllyImpactSet">
@@ -1888,6 +1923,7 @@
     <Chance value="0" />
   </CEffectEnumArea>
   <CEffectSet id="MonkDivinePalmNoProcSet">
+    <ValidatorArray value="SourceDoesNotHaveDivinePalmProcBehavior" />
     <EffectArray value="MonkDivinePalmNoProcArtHook" />
     <EffectArray value="MonkDivinePalmNoProcSearch" />
   </CEffectSet>
@@ -3066,7 +3102,7 @@
   </CValidatorUnitCompareBehaviorCount>
   <CValidatorUnitCompareBehaviorCount id="SourceDoesNotHaveDivinePalmProcBehavior">
     <WhichUnit Value="Source" />
-    <Behavior value="MonkDivinePalmProcSet" />
+    <Behavior value="MonkDivinePalmProcBehavior" />
   </CValidatorUnitCompareBehaviorCount>
   <CValidatorUnitCompareChargeUsed id="MonkUsed2DashCharges">
     <WhichUnit Value="Source" />
@@ -3144,6 +3180,9 @@
     <Range value="8" />
     <Value Value="SourceUnit" />
   </CValidatorLocationCompareRange>
+  <CValidatorUnitCompareBehaviorCount id="MonkEarthAllyTargetDoesNotHaveBlockBehavior">
+    <Behavior value="MonkEarthAllyBlockBuff" />
+  </CValidatorUnitCompareBehaviorCount>
   <CValidatorUnitCompareBehaviorCount id="MonkHasInsightMaxStacks">
     <WhichUnit Value="Caster" />
     <Value value="100" />

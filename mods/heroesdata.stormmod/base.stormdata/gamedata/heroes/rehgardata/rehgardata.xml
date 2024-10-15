@@ -837,7 +837,7 @@
     <Flags index="VisionTestCenterOnly" value="1" />
     <On Terms="Effect.RehgarAncestralHealingFarseersBlessingSearch.Start; At Effect" Send="Create" />
   </CActorModel>
-  <CActorModel id="RehgarGhostWolfLungeFX" parent="ModelAnimationStyleOneShotUNIT">
+  <CActorModel id="RehgarGhostWolfLungeFX" parent="StormModelAnimationStyleOneShotUnit">
     <On Terms="Effect.RehgarGhostWolfLungeLaunchMissile.Start" Send="Create" />
     <HostSiteOps Ops="SOpAttachOrigin" />
   </CActorModel>
@@ -1297,7 +1297,7 @@
     <Duration value="5" />
     <Period value="0.5" />
     <InitialEffect value="RehgarLightningShieldBuffInitialSet" />
-    <PeriodicEffect value="RehgarLightningShieldSearch" />
+    <PeriodicEffect value="RehgarLightningShieldSearchSet" />
     <RemoveValidatorArray value="TargetNotSpecialDeathState" />
     <DisableValidatorArray value="TargetNotStasis" />
     <FinalEffect value="RehgarLightningShieldBuffFinalSet" />
@@ -1306,6 +1306,9 @@
     <AINotifySettings AreaEffect="RehgarLightningShieldSearch">
       <Flags index="Disabled" value="1" />
     </AINotifySettings>
+  </CBehaviorBuff>
+  <CBehaviorBuff id="RehgarLightningShieldElectricChargeHeroHitMarker">
+    <Duration value="0.0625" />
   </CBehaviorBuff>
   <CBehaviorBuff id="RehgarFarsightReveal" parent="StormReveal">
     <Alignment value="Negative" />
@@ -1840,6 +1843,12 @@
     <CaseArray Validator="RehgarLightningShieldElectricChargeRehgarTargetCombine" Effect="RehgarLightningShieldElectricChargeTalentDamage" />
     <CaseDefault value="RehgarLightningShieldDamage" />
   </CEffectSwitch>
+  <CEffectApplyBehavior id="RehgarLightningShieldElectricChargeApplyTargetHitMarker">
+    <ValidatorArray value="TargetIsHero" />
+    <ValidatorArray value="RehgarCasterHasElectricChargeTalent" />
+    <WhichUnit Value="Source" />
+    <Behavior value="RehgarLightningShieldElectricChargeHeroHitMarker" />
+  </CEffectApplyBehavior>
   <CEffectSet id="RehgarAncestralHealingFarseersBlessingApplyBehaviorSet">
     <ValidatorArray value="RehgarTargetDoesNotHaveFarseersBlessingDummyBehavior" />
     <ValidatorArray value="TargetNotDeadAndNoSpecialDeathState" />
@@ -1898,6 +1907,7 @@
   <CEffectSet id="RehgarLightningShieldBuffInitialSet">
     <EffectArray value="RehgarLightningShieldRisingStormTokenCounterApplyBehavior" />
     <EffectArray value="RehgarLightningShieldSearch" />
+    <EffectArray value="RehgarLightningShieldLeechProcDummy" />
   </CEffectSet>
   <CEffectSet id="RehgarLightningShieldBuffFinalSet">
     <EffectArray value="RehgarLightningShieldStormcallerRefundStackRemoveAll" />
@@ -2180,6 +2190,7 @@
   <CEffectSet id="RehgarLightningShieldImpactSet">
     <EffectArray value="RehgarLightningShieldStormcallerTalentAddToken" />
     <EffectArray value="RehgarLightningShieldDamageSwitch" />
+    <EffectArray value="RehgarLightningShieldElectricChargeApplyTargetHitMarker" />
     <EffectArray value="ApplyAbilityImpactReveal" />
     <EffectArray value="RehgarLightningShieldRisingStormTokenCounterIncrease" />
     <EffectArray value="RehgarLightningShieldManaRestore" />
@@ -2383,15 +2394,34 @@
     <Amount value="32" />
     <MultiplicativeModifierArray index="0" Validator="RehgarLightningShieldRisingStormHasTalent" Accumulator="RehgarLightningShieldLightningStormDamageAccumulator" />
     <CritValidatorArray index="0" value="RehgarLightningShieldCritValidatorCombine" />
-    <LeechValidator index="Life" value="RehgarLightningShieldElectricChargeExternalTargetCombine" />
+    <LeechValidator index="Life" value="AlwaysReturnsFalse" />
     <LeechFraction index="Life" value="0.2" />
-    <LeechRecipientArray index="0" Value="Source" />
   </CEffectDamage>
   <CEffectDamage id="RehgarLightningShieldElectricChargeTalentDamage" parent="RehgarLightningShieldDamage">
-    <LeechValidator index="Life" value="RehgarLightningShieldElectricChargeRehgarTargetCombine" />
+    <LeechValidator index="Life" value="AlwaysReturnsFalse" />
     <LeechFraction index="Life" value="0.4" />
-    <LeechRecipientArray index="0" Value="Caster" />
   </CEffectDamage>
+  <CEffectModifyUnit id="RehgarLightningShieldLeechProcDummy">
+    <ValidatorArray value="RehgarHasSourceHasElectricChargeHeroHitMarker" />
+    <ImpactUnit Value="Source" />
+  </CEffectModifyUnit>
+  <CEffectSet id="RehgarElectricChargeCreateHealerSet">
+    <EffectArray value="RehgarElectricChargeCreateHealer" />
+    <EffectArray value="RehgarElectricChargeResetCreateHealer" />
+  </CEffectSet>
+  <CEffectCreateHealer id="RehgarElectricChargeCreateHealer" parent="StormHealingSpell">
+    <SourceButtonFace value="RehgarLightningShieldElectricCharge" />
+    <Flags index="IgnoreBehaviorDealtMultipliers" value="1" />
+  </CEffectCreateHealer>
+  <CEffectModifyCatalogNumeric id="RehgarElectricChargeResetCreateHealer">
+    <CatalogModifications Operation="Set" Reference="Effect,RehgarElectricChargeCreateHealer,RechargeVitalRate">
+      <Value value="0" />
+    </CatalogModifications>
+  </CEffectModifyCatalogNumeric>
+  <CEffectSet id="RehgarLightningShieldSearchSet">
+    <EffectArray value="RehgarLightningShieldSearch" />
+    <EffectArray value="RehgarLightningShieldLeechProcDummy" />
+  </CEffectSet>
   <CEffectEnumArea id="RehgarLightningShieldSearch">
     <SearchFilters value="-;Player,Ally,Neutral,ImmuneToAOE,Missile,Destructible,Item,Stasis,Dead,Hidden,Invulnerable" />
     <AreaArray Effect="RehgarLightningShieldImpactSet">
@@ -3522,6 +3552,10 @@
   <CValidatorUnitCompareBehaviorCount id="RehgarLightningShieldTargetDoesNotHaveBuff">
     <Behavior value="RehgarLightningShieldBuff" />
   </CValidatorUnitCompareBehaviorCount>
+  <CValidatorUnitHasBehavior id="RehgarHasSourceHasElectricChargeHeroHitMarker">
+    <Behavior value="RehgarLightningShieldElectricChargeHeroHitMarker" />
+    <WhichUnit Value="Source" />
+  </CValidatorUnitHasBehavior>
   <CValidatorUnitFilters id="RehgarEarthbindTotemIsAlive">
     <WhichUnit Effect="RehgarEarthbindTotemSpawnSet" />
     <Filters value="-;Dead" />

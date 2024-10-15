@@ -330,7 +330,7 @@
     <ApplicationRule value="Add" />
     <TokenId value="GallTheWillofGallTokenCounter" />
     <Scale value="0.01" />
-    <UnitSource Value="Target" />
+    <UnitSource Value="Caster" />
   </CAccumulatorToken>
   <CAccumulatorToken id="GallShadowflameEdgeofMadnessTalentDamageAccumulator" parent="BaseTokenAccumulator">
     <MinAccumulation value="0" />
@@ -462,6 +462,8 @@
   <CActorModel id="GallShoveMoveSpeedRibbon" parent="StormMoveSpeedRibbon">
     <On Terms="Behavior.GallShoveMoveSpeedBuff.On" Send="Create" />
     <On Terms="Behavior.GallShoveMoveSpeedBuff.Off" Send="Destroy" />
+    <On Terms="Behavior.GallShoveMoveSpeedBuffKeepMoving.On" Send="Create" />
+    <On Terms="Behavior.GallShoveMoveSpeedBuffKeepMoving.Off" Send="Destroy" />
   </CActorModel>
   <CActorForceSphere id="GallTwistingNetherDetonationForceSphere">
     <On Terms="Effect.GallTwistingNetherDetonationSearch.Start" Send="Create" />
@@ -730,13 +732,10 @@
     <On Terms="Effect.GallShoveForcePersistent.Start; At Target" Send="Create GallShoveChoAudioAlert" />
     <On Terms="Effect.GallHurryUpOafApplySet.Start; At Target" Send="Create GallHurryUpOafChoGallOnlyAlert" />
     <On Terms="Signal.*.TwistingNetherOff" Target="GallTwistingNetherGlaze" Send="AnimBracketStop BSD" />
-    <On Terms="Behavior.GallHurryUpOafController.On" Send="AnimGroupApply Superior" />
-    <On Terms="Behavior.GallHurryUpOafController.On" Send="TimerSet 1.000000 HurryUpOafFalloff01" />
-    <On Terms="TimerExpired; TimerName HurryUpOafFalloff01" Send="SetWalkAnimMoveSpeed 5" />
-    <On Terms="TimerExpired; TimerName HurryUpOafFalloff01" Send="TimerSet 1.000000 HurryUpOafFalloff02" />
-    <On Terms="TimerExpired; TimerName HurryUpOafFalloff02" Send="SetWalkAnimMoveSpeed 6.25" />
-    <On Terms="Behavior.GallHurryUpOafController.Off" Send="AnimGroupRemove Superior" />
-    <On Terms="Behavior.GallHurryUpOafController.Off" Send="SetWalkAnimMoveSpeed 4.7968" />
+    <On Terms="Behavior.GallShoveMoveSpeedBuffKeepMoving.On" Send="AnimGroupApply Superior" />
+    <On Terms="Behavior.GallShoveMoveSpeedBuffKeepMoving.On" Send="SetWalkAnimMoveSpeed 5.95" />
+    <On Terms="Behavior.GallShoveMoveSpeedBuffKeepMoving.Off" Send="AnimGroupRemove Superior" />
+    <On Terms="Behavior.GallShoveMoveSpeedBuffKeepMoving.Off" Send="SetWalkAnimMoveSpeed 4.7968" />
     <On Terms="Behavior.Mounted.On" Send="AnimGroupRemove Superior Instant" />
     <On Terms="Behavior.ChoTalentMoltenBlock.On" Send="AnimPlay Spell Spell,E" />
     <On Terms="Behavior.ChoTalentMoltenBlock.On" Send="SetTintColor 120,0,0 0.125000 OneShot MoltenBlock" />
@@ -2198,6 +2197,12 @@
       <UnifiedMoveSpeedFactor value="0.25" />
     </Modification>
   </CBehaviorBuff>
+  <CBehaviorBuff id="GallShoveMoveSpeedBuffKeepMoving" parent="StormSprint">
+    <Duration value="4" />
+    <Modification>
+      <UnifiedMoveSpeedFactor value="0.35" />
+    </Modification>
+  </CBehaviorBuff>
   <CBehaviorBuff id="GallOgreRageEnableGallAbility" parent="CarryBehaviorParent">
     <InitialEffect value="ChoOgreHideModifyGallOgreRageCooldown" />
     <FinalEffect value="GallOgreRageEnableGallAbilityFinalSet" />
@@ -3481,8 +3486,15 @@
   <CEffectSet id="ChoOgreHideCastSet">
     <EffectArray value="ChoOgreHideRemoveEnableChoAbilityBuff" />
   </CEffectSet>
+  <CEffectSwitch id="GallShoveApplyMoveSpeedSwitch">
+    <CaseArray Validator="GallHasKeepMovingTalent" Effect="GallShoveApplyMoveSpeedKeepMovingBuff" />
+    <CaseDefault value="GallShoveApplyMoveSpeedBuff" />
+  </CEffectSwitch>
   <CEffectApplyBehavior id="GallShoveApplyMoveSpeedBuff">
     <Behavior value="GallShoveMoveSpeedBuff" />
+  </CEffectApplyBehavior>
+  <CEffectApplyBehavior id="GallShoveApplyMoveSpeedKeepMovingBuff">
+    <Behavior value="GallShoveMoveSpeedBuffKeepMoving" />
   </CEffectApplyBehavior>
   <CEffectEnumArea id="GallNotHereThereChoSearch">
     <ValidatorArray value="GallHasNotHereTherePrimed" />
@@ -3510,7 +3522,7 @@
     </AreaArray>
   </CEffectEnumArea>
   <CEffectSet id="GallShoveForceFinalSet">
-    <EffectArray value="GallShoveApplyMoveSpeedBuff" />
+    <EffectArray value="GallShoveApplyMoveSpeedSwitch" />
   </CEffectSet>
   <CEffectSet id="GallShiftingNetherNetherShiftTalentCastSet">
     <EffectArray value="GallShiftingNetherNetherShiftTalentChoSearch" />

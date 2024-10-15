@@ -648,7 +648,7 @@
     <On Terms="TimerExpired; TimerName TeleportCheck" Send="AnimBracketStop BSD" />
   </CActorModelMaterial>
   <CActorModel id="MedivhPortalEntranceImpact" parent="StormModelAnimationStyleOneShot">
-    <On Terms="Effect.MedivhPortalSmartCommandDummy.Start; At Caster" Send="Create" />
+    <On Terms="Effect.MedivhPortalTeleportEnumOtherPortal.Start; At Caster" Send="Create" />
     <Host Subject="_Unit" />
     <HostSiteOps Ops="SOpAttachCenter" HoldPosition="1" />
   </CActorModel>
@@ -909,7 +909,7 @@
     <HostSiteOps Ops="SOpAttachHandRight" />
   </CActorModel>
   <CActorModel id="MedivhPortalMageArmor" parent="StormModelAnimationStyleOneShotUnit">
-    <On Terms="Effect.MedivhPortalMageArmorApply.Start; At Target" Send="Create" />
+    <On Terms="Effect.MedivhPortalMageArmorApplyValidatePortalAsTarget.Start; At Target" Send="Create" />
     <HostSiteOps Ops="SOpAttachCenter" />
     <Model value="BlockBuff" />
   </CActorModel>
@@ -1352,6 +1352,12 @@
   <CBehaviorUnitTracker id="MedivhPortalUnitTracker">
     <MaxTrackedUnits value="1" />
   </CBehaviorUnitTracker>
+  <CBehaviorUnitTracker id="MedivhPortalPortalUnitUnitTracker">
+    <BehaviorFlags index="Permanent" value="1" />
+    <BehaviorFlags index="EnabledWhileDead" value="1" />
+    <MaxTrackedUnits value="1" />
+    <UnitAddedAtMaxRule value="ReplaceOldest" />
+  </CBehaviorUnitTracker>
   <CBehaviorBuff id="MedivhPortalCasterDuration">
     <TimeScaleSource Value="Global" />
     <Duration value="6" />
@@ -1575,6 +1581,7 @@
     <PeriodicEffect value="MedivhPortalPingSoundDummy" />
     <InitialEffect value="MedivhPortalPortalMasteryTalentResetPlayerCooldown" />
   </CBehaviorBuff>
+  <CBehaviorBuff id="MedivhPortalNotInHallOfStorms" />
   <CBehaviorBuff id="MedivhPortalAIUseLink">
     <Duration value="5.9375" />
   </CBehaviorBuff>
@@ -1591,7 +1598,8 @@
   <CBehaviorBuff id="MedivhPortalEnter">
     <Alignment value="Positive" />
     <BehaviorCategories index="Restorable" value="1" />
-    <RemoveValidatorArray value="MedivhEnterPortalValidatorCombine" />
+    <RemoveValidatorArray value="MedivhEnterPortalFinalValidatorCombine" />
+    <ExpireEffect value="MedivhPortalTeleportEnumOtherPortal" />
     <Duration value="0.25" />
     <InfoFlags index="AlwaysUseGameText" value="1" />
   </CBehaviorBuff>
@@ -1659,7 +1667,11 @@
     </ArmorModification>
   </CBehaviorBuff>
   <CBehaviorBuff id="MedivhPortalMageArmorMarker">
-    <RemoveValidatorArray value="CasterNotDead" />
+    <RemoveValidatorArray value="MedivhSourcePortalNotDead" />
+    <FinalEffect value="MedivhPortalMageArmorMarkerSlopApplyPortalAsTarget" />
+  </CBehaviorBuff>
+  <CBehaviorBuff id="MedivhPortalMageArmorMarkerSlop">
+    <Duration value="0.0625" />
   </CBehaviorBuff>
   <CBehaviorBuff id="MedivhArcaneRiftArcaneChargeMarker">
     <RemoveValidatorArray value="MedivhHasArcaneRiftArcaneChargeTalent" />
@@ -2017,7 +2029,7 @@
   </CEffectRemoveBehavior>
   <CEffectApplyBehavior id="MedivhPortalApplyRavenFamiliarTalentSlow" parent="StormSlowApply">
     <ValidatorArray index="0" value="TargetNotUnstoppable" />
-    <ValidatorArray index="1" removed="1" />
+    <ValidatorArray index="1" value="TargetNotDeadAndNoSpecialDeathState" />
     <Behavior value="MedivhPortalRavenFamiliarTalentSlow" />
   </CEffectApplyBehavior>
   <CEffectEnumTrackedUnits id="MedivhPortalEnumerateTrackedUnits">
@@ -2321,10 +2333,23 @@
     <Flags index="Channeled" value="1" />
     <InitialEffect value="MedivhPortalEnterApply" />
     <ExpireDelay value="0.25" />
-    <ExpireEffect value="MedivhPortalSmartTargetPersistent" />
     <FinalEffect value="MedivhPortalEnterRemove" />
     <PeriodicValidator value="MedivhEnterPortalValidatorCombine" />
   </CEffectCreatePersistent>
+  <CEffectEnumTrackedUnits id="MedivhPortalTeleportEnumOtherPortal">
+    <ValidatorArray value="MedivhEnterPortalFinalValidatorCombine" />
+    <BehaviorLink value="MedivhPortalPortalUnitUnitTracker" />
+    <TrackerUnit Effect="SmartCommandUnitInteractionSwitch" Value="Target" />
+    <Effect value="MedivhPortalTeleportToPortal" />
+  </CEffectEnumTrackedUnits>
+  <CEffectTeleport id="MedivhPortalTeleportToPortal">
+    <WhichUnit Effect="SmartCommandUnitInteractionSwitch" Value="Caster" />
+    <PlacementRange value="350" />
+    <PlacementAround Value="TargetUnitOrPoint" />
+    <Range value="350" />
+    <TargetLocation Value="TargetUnit" />
+    <TeleportEffect value="MedivhPortalTeleportSet" />
+  </CEffectTeleport>
   <CEffectCreatePersistent id="MedivhPortalSmartTargetPersistent">
     <WhichLocation Effect="SmartCommandUnitInteractionSwitch" Value="TargetUnit" />
     <InitialEffect value="MedivhPortalSmartCommandDummy" />
@@ -2344,25 +2369,19 @@
   <CEffectApplyBehavior id="MedivhForceOfWillApplyTargetBuff">
     <Behavior value="MedivhForceOfWillTarget" />
   </CEffectApplyBehavior>
-  <CEffectApplyBehavior id="MedivhPortalRavenFamiliarMarkerApply">
-    <Chance value="0" />
-    <Behavior value="MedivhPortalRavenFamiliarMarker" />
-    <ValidatorArray index="0" value="MedivhTargetHasNoPortalRavenFamiliarMarkerBehavior" />
-  </CEffectApplyBehavior>
   <CEffectApplyBehavior id="MedivhPortalRavenFamiliarOwnerApply">
     <Behavior value="MedivhPortalRavenFamiliarOwner" />
     <WhichUnit Effect="MedivhPortalTeleportSet" />
   </CEffectApplyBehavior>
-  <CEffectCreateUnit id="MedivhPortalRavenFamiliarCreateUnit">
-    <Chance value="0" />
+  <CEffectCreateUnit id="MedivhPortalRavenFamiliarCreateUnitPortalAsTarget">
+    <ValidatorArray value="MedivhCasterDoesNotHavePortalRavenFamiliarOwnerBehavior" />
+    <ValidatorArray value="MedivhTargetSmartSwitchHasPortalRavenFamiliarTalent" />
     <WhichLocation Value="TargetPoint" />
     <CreateFlags index="NormalizeSpawnOffset" value="0" />
-    <SpawnOwner Value="Target" />
     <SpawnEffect value="MedivhPortalRavenFamiliarSpawnSet" />
     <SpawnUnit value="MedivhPortalRavenFamiliar" />
     <SpawnRange value="2" />
     <SpawnOffset X="-2" Y="1" />
-    <ValidatorArray value="MedivhTargetDoesNotHavePortalRavenFamiliarOwnerBehavior" />
   </CEffectCreateUnit>
   <CEffectSet id="MedivhPortalRavenFamiliarSpawnSet">
     <EffectArray value="MedivhPortalRavenFamiliarTimedLifeApply" />
@@ -2399,8 +2418,8 @@
   </CEffectRemoveBehavior>
   <CEffectSet id="MedivhPortalRavenFamiliarLaunchSet">
     <EffectArray value="MedivhPortalRavenFamiliarOwnerRemove" />
-    <EffectArray value="MedivhPortalRavenFamiliarTimedLifeRemove" />
     <EffectArray value="MedivhPortalRavenFamiliarLaunchMissile" />
+    <EffectArray value="MedivhPortalRavenFamiliarTimedLifeRemove" />
     <ValidatorArray value="TargetIsHero" />
   </CEffectSet>
   <CEffectEnumArea id="MedivhForceOfWillCircleOfProtectionSearch">
@@ -2414,22 +2433,19 @@
   </CEffectEnumArea>
   <CEffectSet id="MedivhPortalRavenFamiliarImpactSet">
     <EffectArray value="MedivhPortalRavenFamiliarImpactDamage" />
+    <EffectArray value="MedivhPortalApplyRavenFamiliarTalentSlow" />
   </CEffectSet>
   <CEffectDamage id="MedivhPortalRavenFamiliarImpactDamage" parent="StormSummonedUnitWeapon">
-    <ImpactLocation Effect="MedivhPortalRavenFamiliarLaunchMissile" Value="TargetUnit" />
     <Amount value="114" />
-    <ValidatorArray index="0" value="MedivhPortalRavenFamiliarTargetNotInvulnerable" />
     <Flags index="Crit" value="1" />
     <SourceButtonFace value="MedivhPortalRavenFamiliar" />
   </CEffectDamage>
-  <CEffectLaunchMissileAdvanced id="MedivhPortalRavenFamiliarLaunchMissile">
+  <CEffectLaunchMissile id="MedivhPortalRavenFamiliarLaunchMissile">
     <LaunchLocation Effect="MedivhPortalRavenFamiliarSpawnSet" Value="TargetUnit" />
     <LaunchEffect value="MedivhPortalRavenFamiliarDecloakLaunchSet" />
     <ImpactEffect value="MedivhPortalRavenFamiliarImpactSet" />
-    <ImpactRange value="0.5" />
     <Movers Link="MedivhPortalRavenFamiliarMissile" />
-    <ImpactOffset Z="1" />
-  </CEffectLaunchMissileAdvanced>
+  </CEffectLaunchMissile>
   <CEffectCreateHealer id="MedivhForceOfWillReabsorptionHeal" parent="StormHealingSpellPercent">
     <SourceButtonFace value="MedivhForceOfWillReabsorption" />
     <RechargeVitalRate value="0.1">
@@ -2498,6 +2514,7 @@
     <ValidatorArray value="MedivhTargetIsMedivhPortal" />
     <EffectArray value="MedivhPortalBeamPreventionDummyApply" />
     <EffectArray value="MedivhPortalDirectionDummy" />
+    <EffectArray value="MedivhPortalCreatePairingSet" />
   </CEffectSet>
   <CEffectSet id="MedivhPortalCreationInitialSet">
     <EffectArray value="MedivhPortalDisableCancelApplyBehavior" />
@@ -2593,6 +2610,20 @@
     <InitialDelay value="0.0625" />
     <InitialEffect value="MedivhPortalDirectionSearch" />
   </CEffectCreatePersistent>
+  <CEffectSet id="MedivhPortalCreatePairingSet">
+    <EffectArray value="MedivhPortalAddPortalToPortalUnitTrackerForTargetPortal" />
+    <EffectArray value="MedivhPortalAddPortalToPortalUnitTrackerForHomePortal" />
+  </CEffectSet>
+  <CEffectAddTrackedUnit id="MedivhPortalAddPortalToPortalUnitTrackerForTargetPortal">
+    <BehaviorLink value="MedivhPortalPortalUnitUnitTracker" />
+    <TrackerUnit Effect="MedivhPortalDirectionSearch" Value="Target" />
+    <TrackedUnit Effect="MedivhPortalCreatePairingSet" Value="Target" />
+  </CEffectAddTrackedUnit>
+  <CEffectAddTrackedUnit id="MedivhPortalAddPortalToPortalUnitTrackerForHomePortal">
+    <BehaviorLink value="MedivhPortalPortalUnitUnitTracker" />
+    <TrackerUnit Effect="MedivhPortalCreatePairingSet" Value="Target" />
+    <TrackedUnit Effect="MedivhPortalDirectionSearch" Value="Target" />
+  </CEffectAddTrackedUnit>
   <CEffectCreatePersistent id="MedivhPortalMarkerSpawnPersistent">
     <WhichLocation Value="TargetUnit" />
     <InitialEffect value="MedivhPortalMarkerCarryApply" />
@@ -2609,18 +2640,18 @@
     <Abil value="stop" />
   </CEffectIssueOrder>
   <CEffectSet id="MedivhPortalTeleportSet">
-    <EffectArray value="MedivhPortalIssueStopOrder" />
-    <EffectArray value="MedivhPortalMageArmorApply" />
-    <EffectArray value="MedivhPortalRavenFamiliarCreateUnit" />
+    <EffectArray value="MedivhPortalMageArmorApplyValidatePortalAsTarget" />
+    <EffectArray value="MedivhPortalMageArmorMarkerApplyPortalAsTarget" />
+    <EffectArray value="MedivhPortalRavenFamiliarCreateUnitPortalAsTarget" />
     <EffectArray value="MedivhPortalTeleportCooldownApply" />
     <EffectArray value="HeroGenericRecentlyTeleportedApplyBehavior" />
-    <ValidatorArray value="TargetNotDeadOrPolymorphedOrRootedOrStasisOrStunned" />
+    <EffectArray value="MedivhPortalHallOfStormsRemoveProtectionBuff" />
   </CEffectSet>
-  <CEffectSet id="MedivhPortalTeleportSetFromPortal">
-    <ValidatorArray value="TargetNotDeadOrPolymorphedOrRootedOrStasisOrStunned" />
-    <EffectArray value="MedivhPortalMageArmorMarkerApply" />
-    <EffectArray value="MedivhPortalRavenFamiliarMarkerApply" />
-  </CEffectSet>
+  <CEffectRemoveBehavior id="MedivhPortalHallOfStormsRemoveProtectionBuff">
+    <WhichUnit Value="Caster" />
+    <BehaviorLink value="HallOfStormsProtectionBuff" />
+    <ValidatorArray index="0" value="MedivhPortalTargetPortalNotInHallOfStorms" />
+  </CEffectRemoveBehavior>
   <CEffectEnumArea id="MedivhDustOfAppearanceSearch">
     <SearchFilters value="-;Self,Player,Ally,Neutral,Missile,Dead" />
     <AreaArray Effect="MedivhDustOfAppearanceImpactSet">
@@ -2670,16 +2701,19 @@
     </AreaArray>
     <ExcludeArray Value="Target" />
   </CEffectEnumArea>
-  <CEffectApplyBehavior id="MedivhPortalMageArmorApply">
-    <ValidatorArray index="0" value="MedivhTargetHasNoPortalMageArmorMarker" />
-    <Chance value="0" />
-    <Behavior value="MedivhPortalMageArmor" />
-    <Count value="3" />
-  </CEffectApplyBehavior>
-  <CEffectApplyBehavior id="MedivhPortalMageArmorMarkerApply">
-    <ValidatorArray index="0" value="MedivhTargetHasNoPortalMageArmorMarker" />
-    <Chance value="0" />
+  <CEffectApplyBehavior id="MedivhPortalMageArmorMarkerApplyPortalAsTarget">
+    <ValidatorArray value="MedivhPortalMageArmorMarkerCasterCombine" />
+    <ValidatorArray value="MedivhTargetSmartSwitchHasPortalMageArmorTalent" />
     <Behavior value="MedivhPortalMageArmorMarker" />
+  </CEffectApplyBehavior>
+  <CEffectApplyBehavior id="MedivhPortalMageArmorMarkerSlopApplyPortalAsTarget">
+    <WhichUnit Value="Caster" />
+    <Behavior value="MedivhPortalMageArmorMarkerSlop" />
+  </CEffectApplyBehavior>
+  <CEffectApplyBehavior id="MedivhPortalMageArmorApplyValidatePortalAsTarget">
+    <ValidatorArray value="MedivhPortalMageArmorMarkerCasterCombine" />
+    <ValidatorArray value="MedivhTargetSmartSwitchHasPortalMageArmorTalent" />
+    <Behavior value="MedivhPortalMageArmor" />
   </CEffectApplyBehavior>
   <CEffectSet id="MedivhLeyLineSealInitialSet">
     <EffectArray value="MedivhLeyLineSealLaunchPersistent" />
@@ -3199,14 +3233,6 @@
       </Modifications>
       <Modifications>
         <Catalog value="Effect" />
-        <Entry value="MedivhPortalRavenFamiliarImpactDamage" />
-        <Field value="Amount" />
-        <Value value="0.040000" />
-        <AffectedByAbilityPower value="1" />
-        <AffectedByOverdrive value="1" />
-      </Modifications>
-      <Modifications>
-        <Catalog value="Effect" />
         <Entry value="MedivhForceOfWillArcaneExplosionDamage" />
         <Field value="Amount" />
         <Value value="0.040000" />
@@ -3530,6 +3556,7 @@
   </CRequirement>
   <CRequirement id="MedivhTransformRavenAtFountain">
     <NodeArray index="Show" Link="AndCountBehaviorHallOfStormsProtectionBuffCompleteOnlyAtUnit1" />
+    <NodeArray index="Use" Link="AndCountBehaviorHallOfStormsProtectionBuffCompleteOnlyAtUnit1" />
   </CRequirement>
   <CRequirement id="MedivhTransformRavenBirdsEyeView">
     <NodeArray index="Use" Link="AndCountBehaviorMedivhTransformRavenCompleteOnlyAtUnit1" />
@@ -3836,24 +3863,6 @@
   <CTalent id="MedivhPortalMageArmor">
     <Face value="MedivhPortalMageArmor" />
     <Abil value="MedivhPortalInstant" />
-    <AbilityModificationArray>
-      <Modifications>
-        <Type value="FlatModification" />
-        <Catalog value="Effect" />
-        <Entry value="MedivhPortalMageArmorApply" />
-        <Field value="Chance" />
-        <FieldIsInteger value="1" />
-        <Value value="1.000000" />
-      </Modifications>
-      <Modifications>
-        <Type value="FlatModification" />
-        <Catalog value="Effect" />
-        <Entry value="MedivhPortalMageArmorMarkerApply" />
-        <Field value="Chance" />
-        <FieldIsInteger value="1" />
-        <Value value="1.000000" />
-      </Modifications>
-    </AbilityModificationArray>
   </CTalent>
   <CTalent id="MedivhPortalStablePortal">
     <Face value="MedivhPortalStablePortal" />
@@ -3941,24 +3950,6 @@
   <CTalent id="MedivhPortalRavenFamiliar">
     <Face value="MedivhPortalRavenFamiliar" />
     <Abil value="MedivhPortalInstant" />
-    <AbilityModificationArray>
-      <Modifications>
-        <Type value="FlatModification" />
-        <Catalog value="Effect" />
-        <Entry value="MedivhPortalRavenFamiliarMarkerApply" />
-        <Field value="Chance" />
-        <FieldIsInteger value="1" />
-        <Value value="1.000000" />
-      </Modifications>
-      <Modifications>
-        <Type value="FlatModification" />
-        <Catalog value="Effect" />
-        <Entry value="MedivhPortalRavenFamiliarCreateUnit" />
-        <Field value="Chance" />
-        <FieldIsInteger value="1" />
-        <Value value="1.000000" />
-      </Modifications>
-    </AbilityModificationArray>
   </CTalent>
   <CTalent id="MedivhForceOfWillEnduringWill">
     <Face value="MedivhForceOfWillEnduringWill" />
@@ -4218,6 +4209,7 @@
     <BehaviorArray Link="UnitCanBeSmartCommandInteracted" />
     <BehaviorArray Link="MedivhPortalAIUseLink" />
     <BehaviorArray Link="UntargetableByFriendlyAbilities" />
+    <BehaviorArray Link="MedivhPortalPortalUnitUnitTracker" />
     <SeparationRadius value="0" />
     <InnerRadius value="0.5" />
     <MinimapRadius value="0.75" />
@@ -4236,6 +4228,7 @@
     <BehaviorArray index="1" Link="MedivhPortalUnitTracker" />
     <BehaviorArray index="2" removed="1" />
     <BehaviorArray index="3" removed="1" />
+    <BehaviorArray index="4" removed="1" />
     <CardLayouts>
       <LayoutButtons Face="Stop" Type="AbilCmd" AbilCmd="stop,Stop" Slot="Stop" />
       <LayoutButtons Face="MedivhPortal" Type="AbilCmd" AbilCmd="MedivhPortal2,Execute" Slot="Ability3" />
@@ -4255,6 +4248,7 @@
     <BehaviorArray index="1" removed="1" />
     <BehaviorArray index="2" removed="1" />
     <BehaviorArray index="3" removed="1" />
+    <BehaviorArray index="4" removed="1" />
     <CardLayouts>
       <LayoutButtons Face="Stop" Type="AbilCmd" AbilCmd="stop,Stop" Slot="Stop" />
     </CardLayouts>
@@ -4390,6 +4384,11 @@
     <Find value="1" />
     <Value value="MedivhPolyBombGlyphOfPolyBomb" />
   </CValidatorPlayerTalent>
+  <CValidatorPlayerTalent id="MedivhTargetSmartSwitchHasPortalMageArmorTalent">
+    <WhichPlayer Effect="SmartCommandUnitInteractionSwitch" Value="Target" />
+    <Find value="1" />
+    <Value value="MedivhPortalMageArmor" />
+  </CValidatorPlayerTalent>
   <CValidatorPlayerTalent id="MedivhHasPortalMageArmorTalent">
     <WhichPlayer Value="Caster" />
     <Find value="1" />
@@ -4439,6 +4438,11 @@
     <Behavior value="MedivhPortalBeamPreventionDummy" />
   </CValidatorUnitCompareBehaviorCount>
   <CValidatorPlayerTalent id="MedivhHasPortalRavenFamiliarTalent">
+    <Find value="1" />
+    <Value value="MedivhPortalRavenFamiliar" />
+  </CValidatorPlayerTalent>
+  <CValidatorPlayerTalent id="MedivhTargetSmartSwitchHasPortalRavenFamiliarTalent">
+    <WhichPlayer Effect="SmartCommandUnitInteractionSwitch" Value="Target" />
     <Find value="1" />
     <Value value="MedivhPortalRavenFamiliar" />
   </CValidatorPlayerTalent>
@@ -4498,6 +4502,10 @@
     <Behavior value="MedivhTransformRavenSpotted" />
   </CValidatorUnitCompareBehaviorCount>
   <CValidatorUnitCompareBehaviorCount id="MedivhTargetDoesNotHavePortalRavenFamiliarOwnerBehavior">
+    <Behavior value="MedivhPortalRavenFamiliarOwner" />
+  </CValidatorUnitCompareBehaviorCount>
+  <CValidatorUnitCompareBehaviorCount id="MedivhCasterDoesNotHavePortalRavenFamiliarOwnerBehavior">
+    <WhichUnit Value="Caster" />
     <Behavior value="MedivhPortalRavenFamiliarOwner" />
   </CValidatorUnitCompareBehaviorCount>
   <CValidatorUnitCompareBehaviorCount id="MedivhTargetHasTransformRavenSpottedBehavior">
@@ -4676,6 +4684,20 @@
     <CombineArray value="CasterNotSpecialDeathState" />
     <Type value="And" />
   </CValidatorCombine>
+  <CValidatorCombine id="MedivhEnterPortalFinalValidatorCombine">
+    <CombineArray value="CasterNotDead" />
+    <CombineArray value="CasterNotStunned" />
+    <CombineArray value="CasterNotStasis" />
+    <CombineArray value="CasterNotSleeping" />
+    <CombineArray value="CasterNotPushPull" />
+    <CombineArray value="CasterNotRooted" />
+    <CombineArray value="CasterNotSpecialDeathState" />
+    <Type value="And" />
+  </CValidatorCombine>
+  <CValidatorUnitCompareBehaviorCount id="MedivhPortalTargetPortalNotInHallOfStorms">
+    <WhichUnit Effect="MedivhPortalTeleportToPortal" />
+    <Behavior value="MedivhPortalNotInHallOfStorms" />
+  </CValidatorUnitCompareBehaviorCount>
   <CValidatorCombine id="MedivhPortalNotWithinMinAndWithinMaxOrHasPortalAstralProjectionAndNotWithinMinAndWithinMax">
     <CombineArray value="MedivhPortalNotWithinMinAndWithinMax" />
     <CombineArray value="MedivhHasPortalAstralProjectionAndNotWithinMinAndWithinPortalAstralProjectionMax" />
@@ -4733,6 +4755,23 @@
   </CValidatorUnitCompareBehaviorCount>
   <CValidatorUnitCompareBehaviorCount id="MedivhTargetHasNoPortalMageArmorMarker">
     <Behavior value="MedivhPortalMageArmorMarker" />
+  </CValidatorUnitCompareBehaviorCount>
+  <CValidatorCombine id="MedivhPortalMageArmorMarkerCasterCombine">
+    <Type value="And" />
+    <CombineArray value="MedivhCasterHasNoPortalMageArmorMarker" />
+    <CombineArray value="MedivhCasterHasNoPortalMageArmorMarkerSlop" />
+  </CValidatorCombine>
+  <CValidatorUnitCompareBehaviorCount id="MedivhCasterHasNoPortalMageArmorMarker">
+    <WhichUnit Value="Caster" />
+    <Behavior value="MedivhPortalMageArmorMarker" />
+  </CValidatorUnitCompareBehaviorCount>
+  <CValidatorUnitFilters id="MedivhSourcePortalNotDead">
+    <WhichUnit Effect="SmartCommandUnitInteractionSwitch" />
+    <Filters value="-;Dead" />
+  </CValidatorUnitFilters>
+  <CValidatorUnitCompareBehaviorCount id="MedivhCasterHasNoPortalMageArmorMarkerSlop">
+    <WhichUnit Value="Caster" />
+    <Behavior value="MedivhPortalMageArmorMarkerSlop" />
   </CValidatorUnitCompareBehaviorCount>
   <CValidatorUnitCompareBehaviorCount id="MedivhHasNoArcaneRiftTheMastersTouchQuestComplete">
     <WhichUnit Value="Caster" />
