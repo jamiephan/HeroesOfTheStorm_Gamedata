@@ -671,6 +671,7 @@
   </CActorModel>
   <CActorAction id="ZuljinRecklessnessWeaponAttack" parent="ZuljinBaseWeaponAttack" effectImpact="ZuljinWeaponDamage" effectLaunch="ZuljinWeaponLaunchMissile">
     <On Terms="Effect.ZuljinWeaponLaunchMissile.Start; ValidateEffect ZuljinRecklessnessCasterHasRecklessnessBuff; At Caster" Send="Create" />
+    <On Terms="Effect.ZuljinNoMercyWeaponDamage.Stop; FromEffectTreeDescendant" Send="ActionImpactPhysics" />
     <LaunchSiteOps Ops="SOpOffsetLaunch" />
     <LaunchAssets Sound="" />
     <Missile value="ZuljinWeaponAttackMissile" />
@@ -678,6 +679,7 @@
   </CActorAction>
   <CActorAction id="ZuljinRecklessnessBerserkerWeaponAttack" parent="ZuljinBaseWeaponAttack" effectImpact="ZuljinWeaponDamage" effectLaunch="ZuljinBerserkerWeaponLaunchMissile">
     <On Terms="Effect.ZuljinBerserkerWeaponLaunchMissile.Start; ValidateEffect ZuljinRecklessnessCasterHasRecklessnessBuff; At Caster" Send="Create" />
+    <On Terms="Effect.ZuljinNoMercyWeaponDamage.Stop; FromEffectTreeDescendant" Send="ActionImpactPhysics" />
     <LaunchSiteOps Ops="SOpOffsetLaunch" />
     <LaunchAssets Model="" Sound="" />
     <Missile value="ZuljinBerserkerWeaponMissile" />
@@ -874,6 +876,7 @@
   </CActorSound>
   <CActorAction id="ZuljinBerserkerWeaponAttack" parent="ZuljinBaseWeaponAttack" effectImpact="ZuljinWeaponDamage" effectLaunch="ZuljinBerserkerWeaponLaunchMissile">
     <On Terms="Effect.ZuljinBerserkerWeaponLaunchMissile.Start; !ValidateEffect ZuljinRecklessnessCasterHasRecklessnessBuff; At Caster" Send="Create" />
+    <On Terms="Effect.ZuljinNoMercyWeaponDamage.Stop; FromEffectTreeDescendant" Send="ActionImpactPhysics" />
     <LaunchSiteOps Ops="SOpOffsetLaunch" />
     <LaunchAssets Model="" Sound="" />
     <Missile value="ZuljinBerserkerWeaponMissile" />
@@ -962,6 +965,7 @@
   </CActorModel>
   <CActorAction id="ZuljinWeaponAttack" parent="ZuljinBaseWeaponAttack" effectImpact="ZuljinWeaponImpactSet" effectLaunch="ZuljinWeaponLaunchMissile">
     <On Terms="Effect.ZuljinWeaponLaunchMissile.Start; !ValidateEffect ZuljinRecklessnessCasterHasRecklessnessBuff; At Caster" Send="Create" />
+    <On Terms="Effect.ZuljinNoMercyWeaponDamage.Stop; FromEffectTreeDescendant" Send="ActionImpactPhysics" />
     <LaunchSiteOps Ops="SOpOffsetLaunch" />
     <LaunchAssets Sound="" />
     <ImpactMap index="None" Sound="" />
@@ -1778,16 +1782,6 @@
     <ValidatorArray value="TargetIsHero" />
     <TokenId value="ZuljinYouWantAxeQuestMainToken" />
   </CEffectModifyTokenCount>
-  <CEffectDamage id="ZuljinNoMercyWeaponDamage" parent="StormWeapon">
-    <MultiplicativeModifierArray index="LaunchedWithBerserker" Validator="ZuljinSourceHasBerserkerThrownAxe" Modifier="0.25" />
-    <MultiplicativeModifierArray index="GrievousThrowDebuffCheck" Validator="ZuljinGrievousThrowTargetHasAttackStacks" Accumulator="ZuljinGrievousThrowViciousAssaultAccumulator" Modifier="0.5" />
-    <FlatModifierArray index="ZuljinYouWantAxe" Accumulator="ZuljinYouWantAxeWeaponDamage" />
-    <Amount value="94" />
-    <CritValidatorArray index="0" value="ZuljinGrievousThrowTargetHasAttackStacksAndCritAliasSpellPower" />
-    <SourceButtonFace value="Attack" />
-    <ResponseExclusionFlags index="Proc" value="1" />
-    <ArmorMitigationRule value="IgnorePositive" />
-  </CEffectDamage>
   <CEffectApplyBehavior id="ZuljinYouWantAxeApplyQuestCompletionDelay">
     <Behavior value="ZuljinYouWantAxeQuestCompletionDelay" />
   </CEffectApplyBehavior>
@@ -2528,6 +2522,10 @@
     <MultiplicativeModifierArray index="LaunchedWithBerserker" Validator="ZuljinSourceHasBerserkerThrownAxe" Modifier="0.25" />
     <MultiplicativeModifierArray index="GrievousThrowDebuffCheck" Validator="ZuljinGrievousThrowTargetHasAttackStacks" Accumulator="ZuljinGrievousThrowViciousAssaultAccumulator" Modifier="0.5" />
   </CEffectDamage>
+  <CEffectDamage id="ZuljinNoMercyWeaponDamage" parent="ZuljinWeaponDamage">
+    <ArmorMitigationRule value="IgnorePositive" />
+    <Aliases value="IgnorePositiveArmor" />
+  </CEffectDamage>
   <CEffectSet id="ZuljinASurpriseForYaImpactSet">
     <EffectArray value="ZuljinASurpriseForYaWeaponDamage" />
     <EffectArray value="UniversalWeaponPostImpactSet" />
@@ -3014,22 +3012,6 @@
   <CTalent id="ZuljinNoMercyTalent">
     <Face value="ZuljinNoMercyTalent" />
     <AbilityModificationArray>
-      <Modifications>
-        <Type value="StringReplacement" />
-        <Catalog value="Effect" />
-        <Entry value="ZuljinNoMercyWeaponDamage" />
-        <Field value="ArmorMitigationRule" />
-        <StringReplacement value="IgnorePositive" />
-      </Modifications>
-      <Modifications>
-        <Type value="FlatModification" />
-        <Catalog value="Effect" />
-        <Entry value="ZuljinNoMercyWeaponDamage" />
-        <Field value="ResponseExclusionFlags[Proc]" />
-        <FieldIsInteger value="1" />
-        <Value value="1.000000" />
-        <StringReplacement value="None" />
-      </Modifications>
       <Modifications>
         <Type value="FlatModification" />
         <Catalog value="Effect" />

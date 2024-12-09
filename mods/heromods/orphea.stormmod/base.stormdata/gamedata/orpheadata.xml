@@ -629,6 +629,7 @@
   <CActorSound id="Orphea_Attack_Launch" parent="SoundOneShot" />
   <CActorSound id="Orphea_Attack_Chaos_Impact" parent="SoundOneShot">
     <On Terms="Effect.OrpheaWeaponOverflowingChaosDamage.Start; At Target" Send="Create" />
+    <On Terms="Effect.OrpheaWeaponOverflowingChaosDeadMagicDamage.Start; At Target" Send="Create" />
     <Layers Sound="Orphea_Attack_Chaos_Impact_SWT" PlayDelay="200,200" PlayDelaySource="Actor" />
   </CActorSound>
   <CActorSound id="Orphea_Attack_Chaos_Impact_DeadMagic" parent="SoundOneShot">
@@ -890,6 +891,8 @@
     <HostImpactSiteOps HoldPosition="1" HoldRotation="1" />
   </CActorBeamSimple>
   <CActorAction id="OrpheaWeaponOverflowingChaosAttack" parent="RangedHeroAttackMissile" effectAttack="OrpheaWeaponOverflowingChaosDamage">
+    <On Terms="Effect.OrpheaWeaponOverflowingChaosDeadMagicDamage.Stop; FromEffectTreeDescendant" Send="ActionImpactPhysics" />
+    <On Terms="Effect.OrpheaWeaponOverflowingChaosDeadMagicDamage.Start; At Caster" Send="Create" />
     <LaunchSiteOps Ops="SOpAttachCenter" HoldPosition="1" HoldRotation="1" />
     <LaunchAssets Sound="Orphea_Attack_Chaos_Launch" />
     <ImpactMap index="None" Sound="Orphea_Attack_Chaos_Impact" />
@@ -1952,6 +1955,10 @@
     <MultiplicativeModifierArray index="Determination" Validator="OrpheaHasDeterminationDamage" Modifier="0.15" Crit="1" />
     <SourceButtonFace value="Attack" />
   </CEffectDamage>
+  <CEffectSwitch id="OrpheaWeaponOverflowingChaosDamageSwitch">
+    <CaseArray Validator="OrpheaHasDeadMagicTalent" Effect="OrpheaWeaponOverflowingChaosDeadMagicDamage" />
+    <CaseDefault value="OrpheaWeaponOverflowingChaosDamage" />
+  </CEffectSwitch>
   <CEffectDamage id="OrpheaWeaponOverflowingChaosDamage" parent="StormWeapon">
     <Amount value="88">
       <AccumulatorArray value="OrpheaOverflowingChaosDamageAccumulator" />
@@ -1961,7 +1968,10 @@
     <MultiplicativeModifierArray index="Determination" Validator="OrpheaHasDeterminationDamage" Modifier="0.15" Crit="1" />
     <LeechFraction index="Life" value="1" />
     <Flags index="Crit" value="1" />
-    <ArmorMitigationRule value="All" />
+  </CEffectDamage>
+  <CEffectDamage id="OrpheaWeaponOverflowingChaosDeadMagicDamage" parent="OrpheaWeaponOverflowingChaosDamage">
+    <ArmorMitigationRule value="IgnorePositive" />
+    <Aliases value="IgnorePositiveArmor" />
   </CEffectDamage>
   <CEffectSet id="OrpheaShadowWaltzInitialSet">
     <EffectArray value="LockFacingRemoveBehaviors" />
@@ -2525,12 +2535,12 @@
   </CEffectLaunchMissile>
   <CEffectSet id="OrpheaWeaponOverflowingChaosImpactSet">
     <EffectArray value="OrpheaOverflowingChaosAncestralStrengthTalentSlowApply" />
-    <EffectArray value="OrpheaWeaponOverflowingChaosDamage" />
+    <EffectArray value="OrpheaWeaponOverflowingChaosDamageSwitch" />
   </CEffectSet>
   <CEffectSet id="OrpheaWeaponOverflowingChaosLaunchSet">
     <EffectArray value="LockFacingToUnit" />
     <EffectArray value="OrpheaOverflowingChaosAncestralStrengthTalentSlowApply" />
-    <EffectArray value="OrpheaWeaponOverflowingChaosDamage" />
+    <EffectArray value="OrpheaWeaponOverflowingChaosDamageSwitch" />
     <EffectArray value="OrpheaDeadMagicSearchArea" />
     <EffectArray value="OrpheaEldritchConduitSwitch" />
     <EffectArray value="OrpheaOverflowingChaosResetToken" />
@@ -3256,6 +3266,13 @@
       </Modifications>
       <Modifications>
         <Catalog value="Effect" />
+        <Entry value="OrpheaWeaponOverflowingChaosDeadMagicDamage" />
+        <Field value="Amount" />
+        <Value value="0.040000" />
+        <AffectedByOverdrive value="1" />
+      </Modifications>
+      <Modifications>
+        <Catalog value="Effect" />
         <Entry value="OrpheaShadowWaltzDamage" />
         <Field value="Amount" />
         <Value value="0.040000" />
@@ -3712,23 +3729,6 @@
   <CTalent id="OrpheaDeadMagic">
     <Face value="OrpheaDeadMagic" />
     <Trait value="1" />
-    <AbilityModificationArray>
-      <Modifications>
-        <Type value="StringReplacement" />
-        <Catalog value="Effect" />
-        <Entry value="OrpheaWeaponOverflowingChaosDamage" />
-        <Field value="ArmorMitigationRule" />
-        <StringReplacement value="IgnorePositive" />
-      </Modifications>
-      <Modifications>
-        <Type value="FlatModification" />
-        <Catalog value="Effect" />
-        <Entry value="OrpheaWeaponOverflowingChaosDamage" />
-        <Field value="ResponseExclusionFlags[Proc]" />
-        <FieldIsInteger value="1" />
-        <Value value="1.000000" />
-      </Modifications>
-    </AbilityModificationArray>
   </CTalent>
   <CTalent id="OrpheaEnPointe">
     <Face value="OrpheaEnPointe" />

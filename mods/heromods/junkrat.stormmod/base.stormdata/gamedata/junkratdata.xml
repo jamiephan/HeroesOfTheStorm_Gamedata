@@ -161,9 +161,11 @@
     <Effect value="JunkratTotalMayhemDirtyTricksterDummySet" />
     <Flags index="ValidateButtonState" value="0" />
     <Cost>
-      <Cooldown Location="Player" Operation="Set" TimeUse="20" />
+      <Cooldown TimeUse="20" />
     </Cost>
-    <CmdButtonArray index="Execute" DefaultButtonFace="JunkratDirtyTrickster" />
+    <CmdButtonArray index="Execute" DefaultButtonFace="JunkratDirtyTrickster">
+      <Flags index="IgnoreUser" value="1" />
+    </CmdButtonArray>
   </CAbilEffectInstant>
   <CAbilEffectInstant id="JunkratDetonateMine">
     <Effect value="JunkratConcussionMineDetonateMineSet" />
@@ -454,9 +456,8 @@
     <Sound value="Junkrat_SteelTrap_Missile" />
   </CActorSound>
   <CActorModel id="JunkratTotalMayhemDirtyTricksterHeroRingFX" parent="StormModelAddition">
-    <On Terms="Behavior.JunkratTotalMayhemDirtyTricksterCooldownBehavior.Off" Send="Create" />
-    <On Terms="Behavior.JunkratTotalMayhemDirtyTricksterCooldownBehavior.On" Send="AnimBracketStop BSD" />
-    <On Terms="Behavior.JunkratTotalMayhemDirtyTricksterDamageResponseBehavior.Create" Send="Create" />
+    <On Terms="Behavior.JunkratTotalMayhemDirtyTricksterDamageResponseBehavior.On" Send="Create" />
+    <On Terms="Behavior.JunkratTotalMayhemDirtyTricksterDamageResponseBehavior.Off" Send="AnimBracketStop BSD" />
     <On Terms="ActorCreation" Send="SetTintColor {255,128,0 3.000000}" />
     <HostSiteOps Ops="SOpBasicScopeFollow SOpShadow SOpMoveDownByDot502 SOpPointSouthWorld" />
   </CActorModel>
@@ -1506,16 +1507,15 @@
   <CBehaviorBuff id="JunkratSteelTrapStickyWicketSilence" parent="StormSilence">
     <Duration value="2" />
   </CBehaviorBuff>
-  <CBehaviorBuff id="JunkratTotalMayhemDirtyTricksterCooldownBehavior">
-    <Duration value="20" />
-  </CBehaviorBuff>
   <CBehaviorAbility id="JunkratTotalMayhemDirtyTricksterItem">
     <Buttons Face="JunkratDirtyTrickster" Type="AbilCmd" AbilCmd="JunkratTotalMayhemDirtyTrickster,Execute" />
   </CBehaviorAbility>
   <CBehaviorBuff id="JunkratTotalMayhemDirtyTricksterDamageResponseBehavior" parent="CarryBehaviorParent">
     <Alignment value="Positive" />
+    <DisableValidatorArray value="JunkratTotalMayhemNotOnCooldown" />
     <DamageResponse Chance="1" Handled="JunkratTotalMayhemDirtyTricksterCastSet">
       <ValidatorArray value="CasterLifeLT50Percent" />
+      <ValidatorArray value="JunkratTotalMayhemNotOnCooldown" />
       <UnitDamageType index="Merc" value="0" />
       <UnitDamageType index="Monster" value="0" />
       <UnitDamageType index="Summon" value="0" />
@@ -3462,25 +3462,20 @@
   <CEffectApplyBehavior id="JunkratTotalMayhemAnchorTimedLifeApplyBehavior">
     <Behavior value="JunkratTotalMayhemAnchorUnitTimedLife" />
   </CEffectApplyBehavior>
-  <CEffectApplyBehavior id="JunkratTotalMayhemDirtyTricksterCooldownApplyBehavior">
-    <WhichUnit Value="Caster" />
-    <Behavior value="JunkratTotalMayhemDirtyTricksterCooldownBehavior" />
-  </CEffectApplyBehavior>
   <CEffectSet id="JunkratTotalMayhemDirtyTricksterDummySet">
     <ValidatorArray value="AlwaysReturnsFalse" />
   </CEffectSet>
-  <CEffectModifyPlayer id="JunkratTotalMayhemDirtyTricksterModifyCooldown">
-    <WhichPlayer Value="Caster" />
-    <Cost>
-      <Cooldown Link="Abil/JunkratTotalMayhemDirtyTrickster" Location="Player" TimeUse="20" />
-    </Cost>
-  </CEffectModifyPlayer>
   <CEffectSet id="JunkratTotalMayhemDirtyTricksterCastSet">
-    <ValidatorArray value="JunkratTotalMayhemDoesNotHaveDirtyTricksterCooldownBehavior" />
+    <ValidatorArray value="JunkratTotalMayhemNotOnCooldown" />
     <EffectArray value="JunkratTotalMayhemInitialSet" />
-    <EffectArray value="JunkratTotalMayhemDirtyTricksterCooldownApplyBehavior" />
-    <EffectArray value="JunkratTotalMayhemDirtyTricksterModifyCooldown" />
+    <EffectArray value="JunkratTotalMayhemSetCooldown" />
   </CEffectSet>
+  <CEffectModifyUnit id="JunkratTotalMayhemSetCooldown">
+    <ImpactUnit Value="Caster" />
+    <Cost Abil="JunkratTotalMayhemDirtyTrickster,Execute" CooldownOperation="Set">
+      <Fraction Cooldown="1" />
+    </Cost>
+  </CEffectModifyUnit>
   <CEffectSet id="JunkratTotalMayhemInitialSet">
     <EffectArray value="JunkratTotalMayhemAnchorCreateUnit" />
     <TargetLocationType value="Point" />
@@ -6461,10 +6456,14 @@
     <CombineArray value="JunkratTargetIsSteelTrap" />
     <CombineArray value="JunkratHasTalentSteelTrapGottaTrapEmAll" />
   </CValidatorCombine>
-  <CValidatorUnitCompareBehaviorCount id="JunkratTotalMayhemDoesNotHaveDirtyTricksterCooldownBehavior">
-    <WhichUnit Value="Caster" />
-    <Behavior value="JunkratTotalMayhemDirtyTricksterCooldownBehavior" />
-  </CValidatorUnitCompareBehaviorCount>
+  <CValidatorUnitCompareCooldown id="JunkratTotalMayhemNotOnCooldown">
+    <WhichUnit Value="Source" />
+    <Compare value="LE" />
+    <CooldownLink value="Abil/JunkratTotalMayhemDirtyTrickster" />
+    <Location value="Unit" />
+    <Ability value="JunkratTotalMayhemDirtyTrickster" />
+    <Value value="0.0625" />
+  </CValidatorUnitCompareCooldown>
   <CValidatorUnitCompareBehaviorCount id="JunkratTotalMayhemSourceDoesNotHaveGrenadeAirBehavior">
     <WhichUnit Effect="JunkratTotalMayhemGrenadeTimedLifeApplyBehavior" />
     <Behavior value="JunkratTotalMayhemGrenadeAir" />

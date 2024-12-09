@@ -1676,6 +1676,8 @@
       <Priority value="55" />
       <Kind index="Ability" value="0" />
       <ProvideCategories index="Proc" value="1" />
+      <ValidateEffectAliasesOp value="ExcludeHasAny" />
+      <ValidateEffectAliases value="IgnorePositiveArmor" />
     </DamageResponse>
     <ArmorModification>
       <ArmorSet index="Hero">
@@ -1805,6 +1807,9 @@
     <BehaviorCategories index="HostileStasisRemoved" value="1" />
     <Duration value="2" />
     <FinalEffect value="ImperiusWrathOfTheAngirisTargetRemovedStasisFinalSet" />
+    <Period value="0.0625" />
+    <PeriodCount value="1" />
+    <PeriodicEffect value="ImperiusWrathOfTheAngirisApplyValorousBrandSet" />
     <Modification>
       <StateFlags index="Silence" value="1" />
       <StateFlags index="SuppressGateEnforcement" value="1" />
@@ -2909,6 +2914,7 @@
     <TrackedUnit Value="Target" />
   </CEffectAddTrackedUnit>
   <CEffectSet id="ImperiusValorousBrandComboPointBehaviorCancelSet">
+    <ValidatorArray value="ImperiusWrathOfTheAngirisTargetDoesNotHaveRemovedStasis" />
     <EffectArray value="ImperiusValorousBrandCreateHealer" />
     <EffectArray value="ImperiusWrathOfTheAngirisUnrelentingDescentCooldownModifyUnit" />
     <EffectArray value="ImperiusMoltenArmorDivineRageCooldownModifyUnit" />
@@ -3095,8 +3101,11 @@
     <EffectArray value="ImperiusWrathOfTheAngirisUnrelentingDescentCreateHealer" />
   </CEffectSet>
   <CEffectDamage id="ImperiusWrathOfTheAngirisDamage" parent="StormSpell">
-    <Amount value="375" />
+    <Amount value="250" />
     <ImpactLocation Effect="ImperiusWrathOfTheAngirisLaunchMissileImpactSet" Value="TargetUnit" />
+    <MultiplicativeModifierArray index="ValorousBrandCelestialCharge" Validator="ImperiusValorousBrandTargetHasCelestialChargeComboPointBehavior" Modifier="$ImperiusValorousBrandBonusDamage" Crit="1" />
+    <MultiplicativeModifierArray index="ValorousBrandSolarionsFire" Validator="ImperiusValorousBrandTargetHasSolarionsFireComboPointBehavior" Modifier="$ImperiusValorousBrandBonusDamage" Crit="1" />
+    <MultiplicativeModifierArray index="ValorousBrandMoltenArmor" Validator="ImperiusValorousBrandTargetHasMoltenArmorComboPointBehavior" Modifier="$ImperiusValorousBrandBonusDamage" Crit="1" />
   </CEffectDamage>
   <CEffectApplyBehavior id="ImperiusWrathOfTheAngirisStunApplyBehavior">
     <Behavior value="ImperiusWrathOfTheAngirisStun" />
@@ -3150,6 +3159,41 @@
     <ImpactUnit Value="Caster" />
     <Cost Abil="ImperiusWrathOfTheAngiris,Execute" CooldownOperation="Add" CooldownTimeUse="-10" />
   </CEffectModifyUnit>
+  <CEffectSet id="ImperiusWrathOfTheAngirisApplyValorousBrandSet">
+    <EffectArray value="ImperiusValorousBrandApplyCelestialChargeWrathOfTheAngirisMarkSet" />
+    <EffectArray value="ImperiusValorousBrandApplyMoltenArmorWrathOfTheAngirisMarkSet" />
+    <EffectArray value="ImperiusValorousBrandApplySolarionsFireWrathOfTheAngirisMarkSet" />
+  </CEffectSet>
+  <CEffectSet id="ImperiusValorousBrandApplyCelestialChargeWrathOfTheAngirisMarkSet">
+    <Chance value="0" />
+    <EffectArray value="ImperiusValorousBrandCelestialChargeComboPointTrackingApplyBehavior" />
+    <EffectArray value="ImperiusValorousBrandComboPointCelestialChargeWrathOfTheAngirisApplyBehavior" />
+  </CEffectSet>
+  <CEffectSet id="ImperiusValorousBrandApplySolarionsFireWrathOfTheAngirisMarkSet">
+    <Chance value="0" />
+    <EffectArray value="ImperiusValorousBrandSolarionsFireComboPointTrackingApplyBehavior" />
+    <EffectArray value="ImperiusValorousBrandComboPointSolarionsFireWrathOfTheAngirisApplyBehavior" />
+  </CEffectSet>
+  <CEffectSet id="ImperiusValorousBrandApplyMoltenArmorWrathOfTheAngirisMarkSet">
+    <Chance value="0" />
+    <EffectArray value="ImperiusValorousBrandMoltenArmorComboPointTrackingApplyBehavior" />
+    <EffectArray value="ImperiusValorousBrandComboPointMoltenArmorWrathOfTheAngirisApplyBehavior" />
+  </CEffectSet>
+  <CEffectApplyBehavior id="ImperiusValorousBrandComboPointCelestialChargeWrathOfTheAngirisApplyBehavior">
+    <Flags index="UseDuration" value="1" />
+    <Behavior value="ImperiusValorousBrandCelestialChargeComboPointBehavior" />
+    <Duration value="10" />
+  </CEffectApplyBehavior>
+  <CEffectApplyBehavior id="ImperiusValorousBrandComboPointSolarionsFireWrathOfTheAngirisApplyBehavior">
+    <Flags index="UseDuration" value="1" />
+    <Behavior value="ImperiusValorousBrandSolarionsFireComboPointBehavior" />
+    <Duration value="10" />
+  </CEffectApplyBehavior>
+  <CEffectApplyBehavior id="ImperiusValorousBrandComboPointMoltenArmorWrathOfTheAngirisApplyBehavior">
+    <Flags index="UseDuration" value="1" />
+    <Behavior value="ImperiusValorousBrandMoltenArmorComboPointBehavior" />
+    <Duration value="10" />
+  </CEffectApplyBehavior>
   <CEffectApplyBehavior id="ImperiusCelestialChargeCelestialSwiftnessAttackSpeedBuffApplyBehavior">
     <WhichUnit Value="Caster" />
     <Behavior value="ImperiusCelestialChargeCelestialSwiftnessAttackSpeedBuff" />
@@ -4244,6 +4288,10 @@
   <CValidatorUnitHasBehavior id="ImperiusWrathOfTheAngirisCasterDoesNotHaveCasterImpactStasis">
     <WhichUnit Value="Caster" />
     <Behavior value="ImperiusWrathOfTheAngirisCasterImpactStasis" />
+    <Negate value="1" />
+  </CValidatorUnitHasBehavior>
+  <CValidatorUnitHasBehavior id="ImperiusWrathOfTheAngirisTargetDoesNotHaveRemovedStasis">
+    <Behavior value="ImperiusWrathOfTheAngirisTargetRemovedStasis" />
     <Negate value="1" />
   </CValidatorUnitHasBehavior>
   <CValidatorPlayerTalent id="ImperiusCelestialChargeCelestialSwiftnessHasTalent">

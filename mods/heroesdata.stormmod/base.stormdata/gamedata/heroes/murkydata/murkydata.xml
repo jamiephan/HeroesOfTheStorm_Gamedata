@@ -181,6 +181,22 @@
     <Scale value="0.01" />
     <UnitSource Value="Source" />
   </CAccumulatorToken>
+  <CAccumulatorVitals id="MurkyEggShellRespawnEggAmountAccumulator" parent="BaseVitalAccumulator">
+    <MaxAccumulation value="452607" />
+    <ApplicationRule value="Add" />
+    <VitalType value="Life" />
+    <ModificationType value="PerUnit" />
+    <Ratio value="0.35" />
+    <ClampToMaxVitalForFractionalDamage value="1" />
+  </CAccumulatorVitals>
+  <CAccumulatorVitals id="MurkyEggShellSpawnAmountAccumulator" parent="BaseVitalAccumulator">
+    <MaxAccumulation value="452607" />
+    <ApplicationRule value="Add" />
+    <VitalType value="Life" />
+    <ModificationType value="PerUnit" />
+    <Ratio value="1" />
+    <ClampToMaxVitalForFractionalDamage value="1" />
+  </CAccumulatorVitals>
   <CActorModel id="MurkySlimeDebuffSlow" parent="StormModelAnimationStyleContinuousUnit">
     <On Terms="Behavior.MurkySlimeSlow.On" Send="Create" />
     <On Terms="Behavior.MurkySlimeSlow.Off" Send="AnimBracketStop BSD" />
@@ -1012,7 +1028,7 @@
     <Duration value="10" />
   </CBehaviorBuff>
   <CBehaviorBuff id="MurkyEggShellShield" parent="StormShield">
-    <DamageResponse>
+    <DamageResponse SuppressModifyLimitOnCreation="1">
       <ModifyLimitVitalMaxFractionArray index="Life" value="1" />
     </DamageResponse>
   </CBehaviorBuff>
@@ -1614,11 +1630,39 @@
   <CEffectApplyBehavior id="MurkyFishEyeApplyMountSpeedBuff">
     <Behavior value="MurkyFishEyeMountSpeed" />
   </CEffectApplyBehavior>
+  <CEffectCreateHealer id="MurkyEggShellCreateShieldSpawnEggHealer" parent="StormSelfOnlyHealingSpellPercent">
+    <ImpactUnit Value="Caster" History="Unknown" />
+    <RechargeVital value="Shields" />
+    <RechargeShieldsTargetBehaviorBuff value="MurkyEggShellShield" />
+    <AmountScoreArray index="0" removed="1" />
+    <RechargeVitalRate value="0">
+      <AccumulatorArray value="MurkyEggShellSpawnAmountAccumulator" />
+    </RechargeVitalRate>
+  </CEffectCreateHealer>
   <CEffectApplyBehavior id="MurkyEggShellApplyShieldBuff">
     <Behavior value="MurkyEggShellShield" />
   </CEffectApplyBehavior>
   <CEffectSet id="MurkyEggShellProcSet">
     <EffectArray value="MurkyEggShellApplyShieldBuff" />
+    <EffectArray value="MurkyEggShellCreateShieldSpawnEggHealer" />
+  </CEffectSet>
+  <CEffectCreateHealer id="MurkyEggShellCreateShieldRespawnEggHealer" parent="StormSelfOnlyHealingSpellPercent">
+    <ImpactUnit Value="Caster" History="Unknown" />
+    <RechargeVital value="Shields" />
+    <RechargeShieldsTargetBehaviorBuff value="MurkyEggShellShield" />
+    <AmountScoreArray index="0" removed="1" />
+    <RechargeVitalRate value="0">
+      <AccumulatorArray value="MurkyEggShellRespawnEggAmountAccumulator" />
+    </RechargeVitalRate>
+  </CEffectCreateHealer>
+  <CEffectApplyBehavior id="MurkyEggShellApplyShieldBuffToCaster">
+    <WhichUnit Value="Caster" />
+    <Behavior value="MurkyEggShellShield" />
+  </CEffectApplyBehavior>
+  <CEffectSet id="MurkyEggShellRespawnEggProcSet">
+    <ValidatorArray value="MurkyHasEggShellTalent" />
+    <EffectArray value="MurkyEggShellApplyShieldBuffToCaster" />
+    <EffectArray value="MurkyEggShellCreateShieldRespawnEggHealer" />
   </CEffectSet>
   <CEffectApplyBehavior id="MurkyToxicBuildupApplyStack">
     <Behavior value="MurkyToxicBuildupStack" />
@@ -1750,6 +1794,10 @@
     <WhichUnit Value="Caster" />
     <Behavior value="SlipperyWhenWetBuff" />
   </CEffectApplyBehavior>
+  <CEffectSet id="MurkyRespawnEggCreateEggSet">
+    <EffectArray value="MurkySpawnEggApplyFishEyeTalentHealthBuff" />
+    <EffectArray value="MurkyEggShellRespawnEggProcSet" />
+  </CEffectSet>
   <CEffectApplyBehavior id="MurkySpawnEggApplyFishEyeTalentHealthBuff">
     <Behavior value="MurkySpawnEggFishEyeTalentBuff" />
     <ValidatorArray index="0" value="MurkyHasFishEyeTalent" />
@@ -2680,7 +2728,7 @@
   <CEffectCreateUnit id="MurkyRespawnEggCreateUnit">
     <ValidatorArray value="TargetPointWalkable" />
     <WhichLocation Value="TargetPoint" />
-    <SpawnEffect value="MurkySpawnEggApplyFishEyeTalentHealthBuff" />
+    <SpawnEffect value="MurkyRespawnEggCreateEggSet" />
     <SpawnUnit value="MurkyRespawnEgg" />
     <SpawnRange value="6" />
   </CEffectCreateUnit>

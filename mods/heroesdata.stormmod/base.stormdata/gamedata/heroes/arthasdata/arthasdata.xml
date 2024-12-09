@@ -804,6 +804,8 @@
       </Cost>
       <Kind index="Ability" value="0" />
       <ProvideCategories index="Proc" value="1" />
+      <ValidateEffectAliasesOp value="ExcludeHasAny" />
+      <ValidateEffectAliases value="IgnorePositiveArmor" />
     </DamageResponse>
   </CBehaviorBuff>
   <CBehaviorBuff id="ArthasRimeChargedArmorBehavior" parent="StormArmor">
@@ -833,6 +835,13 @@
     <MaxStackCount value="2" />
     <FinalEffect value="ArthasFrostmourneHungersSetCooldown" />
     <ExpireEffect value="ArthasFrostmourneHungersSetCooldown" />
+  </CBehaviorBuff>
+  <CBehaviorBuff id="ArthasFrostmourneFeedsFrostmourneHungersFreeCast">
+    <Alignment value="Positive" />
+    <InfoFlags index="AlwaysUseGameText" value="1" />
+    <BehaviorCategories index="Restorable" value="1" />
+    <DisplayPriority value="2" />
+    <Duration value="4" />
   </CBehaviorBuff>
   <CBehaviorBuff id="ArthasSummonSindragosaDummyDelay">
     <Duration value="1" />
@@ -879,6 +888,9 @@
     <Modification>
       <UnifiedMoveSpeedFactor value="-0.5" />
     </Modification>
+  </CBehaviorBuff>
+  <CBehaviorBuff id="ArthasFrostmourneHungersFrostStrikeSilence" parent="StormSilence">
+    <Duration value="1" />
   </CBehaviorBuff>
   <CBehaviorBuff id="ArthasSummonSindragosaStructureDebuff" parent="StormStructureDisable">
     <Duration value="20" />
@@ -1275,6 +1287,7 @@
     <CaseDefault value="ArthasHeroWeaponDamage" />
   </CEffectSwitch>
   <CEffectModifyUnit id="ArthasFrostmourneHungersSetCooldown">
+    <ValidatorArray value="ArthasCasterDoesNotHaveFrostmourneFeedsFreeCast" />
     <ImpactUnit Value="Caster" />
     <Cost Abil="ArthasFrostmourneHungers,Execute" CooldownOperation="Set">
       <Fraction Cooldown="1" />
@@ -1300,6 +1313,7 @@
     <EffectArray value="ArthasFrostmourneHungersEternalHungerIncrementQuestToken" />
     <EffectArray value="ArthasFrostmourneHungersRemoveBehavior" />
     <EffectArray value="ArthasFrostmourneHungersImpactModifyWeaponCooldown" />
+    <EffectArray value="ArthasFrostmourneFeedsApplySwitch" />
   </CEffectSet>
   <CEffectDamage id="ArthasFrostmourneHungersDamage" parent="StormWeapon">
     <Flags index="Crit" value="1" />
@@ -1308,6 +1322,31 @@
     </Amount>
     <FlatModifierArray index="0" Modifier="99" />
   </CEffectDamage>
+  <CEffectSwitch id="ArthasFrostmourneFeedsApplySwitch">
+    <ValidatorArray value="ArthasHasFrostmourneHungersFrostmourneFeeds" />
+    <CaseArray Validator="ArthasCasterHasFrostmourneFeedsFreeCast" Effect="ArthasFrostmourneFeedsRemoveFrostmourneHungersFreeCast" />
+    <CaseDefault value="ArthasFrostmourneFeedsApplySet" />
+  </CEffectSwitch>
+  <CEffectSet id="ArthasFrostmourneFeedsApplySet">
+    <ValidatorArray value="TargetIsHero" />
+    <EffectArray value="ArthasFrostmourneHungersFrostmourneFeedsApplyBehavior" />
+    <EffectArray value="ArthasFrostmourneFeedsApplyFrostmourneHungersFreeCast" />
+  </CEffectSet>
+  <CEffectApplyBehavior id="ArthasFrostmourneHungersFrostmourneFeedsApplyBehavior">
+    <WhichUnit Value="Caster" />
+    <Behavior value="ArthasFrostmourneHungersPrimed" />
+    <Flags index="UseDuration" value="1" />
+    <Duration value="4" />
+  </CEffectApplyBehavior>
+  <CEffectApplyBehavior id="ArthasFrostmourneFeedsApplyFrostmourneHungersFreeCast">
+    <WhichUnit Value="Caster" />
+    <Behavior value="ArthasFrostmourneFeedsFrostmourneHungersFreeCast" />
+  </CEffectApplyBehavior>
+  <CEffectRemoveBehavior id="ArthasFrostmourneFeedsRemoveFrostmourneHungersFreeCast">
+    <WhichUnit Value="Caster" />
+    <BehaviorLink value="ArthasFrostmourneFeedsFrostmourneHungersFreeCast" />
+    <Count value="1" />
+  </CEffectRemoveBehavior>
   <CEffectDamage id="ArthasDeathCoilEmbraceDeathTalentDamage" parent="StormSpell">
     <Amount value="164" />
     <MultiplicativeModifierArray index="0" Validator="ArthasHasDeathCoilEmbraceDeath" Accumulator="ArthasEmbraceDeathVitalAccumulator" />
@@ -1332,6 +1371,7 @@
     <EffectArray value="ArthasDeathCoilDamageSwitch" />
     <EffectArray value="ArthasDeathCoilImmortalCoilLaunchReturnMissile" />
     <EffectArray value="ArthasDeathCoilDeathlordManaRestore" />
+    <EffectArray value="ArthasFrostStrikeApplySilence" />
   </CEffectSet>
   <CEffectLaunchMissile id="ArthasDeathCoilLaunchMissile">
     <ValidatorArray index="0" value="TargetIsNotOwnedbyPlayer" />
@@ -1513,9 +1553,14 @@
   </CEffectSet>
   <CEffectApplyBehavior id="ArthasFrostmourneHungersFrostStrikeApplySlow" parent="StormSlowApply">
     <ValidatorArray index="0" value="TargetNotDead" />
+    <ValidatorArray value="ArthasHasFrostmourneHungersFrostStrike" />
     <ValidatorArray value="CasterNotBlindedAndTargetNotEvading" />
-    <Chance value="0" />
     <Behavior value="ArthasFrostmourneHungersFrostStrikeSlow" />
+  </CEffectApplyBehavior>
+  <CEffectApplyBehavior id="ArthasFrostStrikeApplySilence">
+    <ValidatorArray value="ArthasFrostStrikeTargetHasSlow" />
+    <ValidatorArray value="TargetIsHero" />
+    <Behavior value="ArthasFrostmourneHungersFrostStrikeSilence" />
   </CEffectApplyBehavior>
   <CEffectSet id="ArthasFrozenTempestInitialSet">
     <EffectArray value="ArthasFrozenTempestSearch" />
@@ -2304,7 +2349,7 @@
     <NodeArray index="Show" Link="EqNotCountBehaviorArthasFrozenTempestCasterCompleteOnlyAtUnit1" />
   </CRequirement>
   <CRequirement id="ArthasHasArthasFrostmourneHungersActive">
-    <NodeArray index="Show" Link="GTECountBehaviorArthasFrostmourneHungersPrimedCompleteOnlyAtUnit1" />
+    <NodeArray index="Show" Link="AndGTECountBehaviorArthasFrostmourneHungersPrimedCompleteOnlyAtUnit1LTCountBehaviorArthasFrostmourneFeedsFrostmourneHungersFreeCastCompleteOnlyAtUnit1" />
   </CRequirement>
   <CRequirement id="ArthasHasFrozenTempest">
     <NodeArray index="Show" Link="EqCountBehaviorArthasFrozenTempestCasterCompleteOnlyAtUnit1" />
@@ -2324,6 +2369,10 @@
   <CRequirementCountBehavior id="CountBehaviorArthasFrostmourneHungersPrimedCompleteOnlyAtUnit">
     <Flags index="TechTreeCheat" value="0" />
     <Count Link="ArthasFrostmourneHungersPrimed" State="CompleteOnlyAtUnit" />
+  </CRequirementCountBehavior>
+  <CRequirementCountBehavior id="CountBehaviorArthasFrostmourneFeedsFrostmourneHungersFreeCastCompleteOnlyAtUnit">
+    <Flags index="TechTreeCheat" value="0" />
+    <Count Link="ArthasFrostmourneFeedsFrostmourneHungersFreeCast" State="CompleteOnlyAtUnit" />
   </CRequirementCountBehavior>
   <CRequirementCountBehavior id="CountBehaviorArthasFrozenTempestCasterCompleteOnlyAtUnit">
     <Flags index="TechTreeCheat" value="0" />
@@ -2353,10 +2402,18 @@
     <OperandArray index="0" value="CountUnitArthasArmyOfTheDeadGhoulCompleteOnly" />
     <OperandArray index="1" value="0" />
   </CRequirementGT>
+  <CRequirementAnd id="AndGTECountBehaviorArthasFrostmourneHungersPrimedCompleteOnlyAtUnit1LTCountBehaviorArthasFrostmourneFeedsFrostmourneHungersFreeCastCompleteOnlyAtUnit1">
+    <OperandArray value="GTECountBehaviorArthasFrostmourneHungersPrimedCompleteOnlyAtUnit1" />
+    <OperandArray value="LTCountBehaviorArthasFrostmourneFeedsFrostmourneHungersFreeCastCompleteOnlyAtUnit1" />
+  </CRequirementAnd>
   <CRequirementGTE id="GTECountBehaviorArthasFrostmourneHungersPrimedCompleteOnlyAtUnit1">
     <OperandArray index="0" value="CountBehaviorArthasFrostmourneHungersPrimedCompleteOnlyAtUnit" />
     <OperandArray index="1" value="1" />
   </CRequirementGTE>
+  <CRequirementLT id="LTCountBehaviorArthasFrostmourneFeedsFrostmourneHungersFreeCastCompleteOnlyAtUnit1">
+    <OperandArray index="0" value="CountBehaviorArthasFrostmourneFeedsFrostmourneHungersFreeCastCompleteOnlyAtUnit" />
+    <OperandArray index="1" value="1" />
+  </CRequirementLT>
   <CRequirementNot id="NotCountBehaviorArthasFrozenTempestCasterCompleteOnlyAtUnit">
     <OperandArray index="0" value="CountBehaviorArthasFrozenTempestCasterCompleteOnlyAtUnit" />
   </CRequirementNot>
@@ -2458,22 +2515,6 @@
   <CTalent id="ArthasMasteryFrostStrikeFrostmourneHungers">
     <Face value="ArthasFrostStrikeFrostmourneHungersTalent" />
     <Abil value="ArthasFrostmourneHungers" />
-    <RankArray />
-    <AbilityModificationArray>
-      <Modifications>
-        <Type value="FlatModification" />
-        <Catalog value="Effect" />
-        <Entry value="ArthasFrostmourneHungersFrostStrikeApplySlow" />
-        <Field value="Chance" />
-        <Value value="1.000000" />
-      </Modifications>
-      <Modifications>
-        <Type value="FlatModification" />
-        <Entry value="ArthasFrostmourneHungers" />
-        <Field value="Cost[0].Cooldown.TimeUse" />
-        <Value value="-2.000000" />
-      </Modifications>
-    </AbilityModificationArray>
   </CTalent>
   <CTalent id="ArthasIceboundFortitude">
     <Face value="ArthasIceboundFortitudeTalent" />
@@ -2503,17 +2544,6 @@
   <CTalent id="ArthasMasteryFrostmourneFeedsFrostmourneHungers">
     <Face value="ArthasFrostmourneFeedsFrostmourneHungersTalents" />
     <Abil value="ArthasFrostmourneHungers" />
-    <RankArray />
-    <AbilityModificationArray>
-      <Modifications>
-        <Type value="FlatModification" />
-        <Catalog value="Effect" />
-        <Entry value="ArthasFrostmourneHungersApplyBehavior" />
-        <Field value="Count" />
-        <FieldIsInteger value="1" />
-        <Value value="1.000000" />
-      </Modifications>
-    </AbilityModificationArray>
   </CTalent>
   <CTalent id="ArthasMasteryFrozenWastesFrozenTempest">
     <Face value="ArthasFrozenWastesFrozenTempestTalent" />
@@ -2868,6 +2898,10 @@
     <Find value="1" />
     <Value value="ArthasMasteryFrostmourneFeedsFrostmourneHungers" />
   </CValidatorPlayerTalent>
+  <CValidatorPlayerTalent id="ArthasDoesNotHaveFrostmourneFeeds">
+    <WhichPlayer Value="Caster" />
+    <Value value="ArthasMasteryFrostmourneFeedsFrostmourneHungers" />
+  </CValidatorPlayerTalent>
   <CValidatorPlayerTalent id="ArthasHasFrostmourneHungersFrostStrike">
     <WhichPlayer Value="Caster" />
     <Find value="1" />
@@ -2888,6 +2922,28 @@
     <Find value="1" />
     <Value value="ArthasMasteryEmbraceDeathDeathCoil" />
   </CValidatorPlayerTalent>
+  <CValidatorUnitCompareBehaviorCount id="ArthasCasterDoesNotHaveFrostmourneFeedsFreeCast">
+    <WhichUnit Value="Caster" />
+    <Behavior value="ArthasFrostmourneFeedsFrostmourneHungersFreeCast" />
+  </CValidatorUnitCompareBehaviorCount>
+  <CValidatorUnitCompareBehaviorCount id="ArthasCasterHasFrostmourneFeedsFreeCast">
+    <WhichUnit Value="Caster" />
+    <Value value="1" />
+    <Behavior value="ArthasFrostmourneFeedsFrostmourneHungersFreeCast" />
+  </CValidatorUnitCompareBehaviorCount>
+  <CValidatorUnitHasBehavior id="ArthasFrostStrikeTargetHasSlow">
+    <Behavior value="ArthasFrostmourneHungersFrostStrikeSlow" />
+  </CValidatorUnitHasBehavior>
+  <CValidatorCombine id="ArthasFrostmourneHugnersFirstStrikeCombine">
+    <CombineArray value="ArthasFrostmourneHungersTwoAttacksPrimed" />
+    <CombineArray value="ArthasDoesNotHaveFrostmourneFeeds" />
+  </CValidatorCombine>
+  <CValidatorUnitCompareBehaviorCount id="ArthasFrostmourneHungersTwoAttacksPrimed">
+    <WhichUnit Value="Caster" />
+    <Compare value="GT" />
+    <Value value="1" />
+    <Behavior value="ArthasFrostmourneHungersPrimed" />
+  </CValidatorUnitCompareBehaviorCount>
   <CValidatorUnitCompareBehaviorCount id="ArthasHasFrostmourneHungersPrimed">
     <WhichUnit Value="Caster" />
     <Compare value="GE" />

@@ -36,7 +36,7 @@
     </CmdButtonArray>
   </CAbilEffectTarget>
   <CAbilEffectTarget id="LiLiCloudSerpentAttack">
-    <Effect value="CloudSerpentLaunchMissile" />
+    <Effect value="LiLiCloudSerpentAttackSet" />
     <Cost>
       <Cooldown TimeUse="0.75" />
     </Cost>
@@ -456,7 +456,7 @@
     <UnitIcon value="Assets\Textures\storm_temp_war3_btnwindserpent.dds" />
     <CustomUnitStatusFrame value="UnitStatus/IndestructibleTimedUnitTeamColorIndicatedDurationTemplate" />
     <On Terms="Abil.LiLiCloudSerpentAttack.SourceCastStart" Send="AnimClear Attack" />
-    <On Terms="Effect.CloudSerpentLaunchMissile.Start" Send="AnimPlay Attack Attack" />
+    <On Terms="Effect.LiLiCloudSerpentAttackSet.Start" Send="AnimPlay Attack Attack" />
     <On Terms="Abil.LiLiCloudSerpentAttack.SourceCastStart; AnimPlaying Birth" Send="AnimClear Birth" />
     <On Terms="ActorCreation" Send="AnimPlay Birth Birth 0 0.000000" />
     <On Terms="ActorCreation" Send="Create LiLiCloudSerpentCastImpactSound" />
@@ -473,7 +473,8 @@
   <CActorEventMacro id="LiLiCloudSerpentHostMacro">
     <On Terms="Effect.LiLiCloudSerpentHostLinkDummy.Start" Target="::global.LiLiCloudSerpent" Send="Signal LiLiCloudSerpentLink" />
   </CActorEventMacro>
-  <CActorAction id="LiLiCloudSerpentAttack" parent="GenericAttack" effectImpact="CloudSerpentWeaponDamage" effectLaunch="CloudSerpentLaunchMissile">
+  <CActorAction id="LiLiCloudSerpentAttack" parent="GenericAttack" effectImpact="CloudSerpentWeaponDamage" effectLaunch="LiLiCloudSerpentLaunchMissile">
+    <Missile value="LiLiCloudSerpentAttackMissile" />
     <LaunchAssets Sound="CloudSerpent_AttackLaunch" />
     <ImpactMap index="None" Model="LiLiCloudSerpentWeaponImpact" Sound="CloudSerpent_AttackImpact" />
     <ActionFlags index="ImpactSuppressUnitSound" value="1" />
@@ -640,6 +641,16 @@
     <BehaviorFlags index="Permanent" value="1" />
     <BehaviorFlags index="EnabledWhileDead" value="1" />
     <DisableValidatorArray value="CasterIsRootedOrSilencedOrStunned" />
+    <DisableEffect value="LiLiShakeItOffApplyTimedArmor" />
+    <EnableEffect value="LiLiShakeItOffRemoveTimedArmor" />
+    <ArmorModification>
+      <AllArmorBonus value="35" />
+    </ArmorModification>
+  </CBehaviorBuff>
+  <CBehaviorBuff id="LiLiFastFeetShakeItOffTalentArmorTimed" parent="StormArmor">
+    <BehaviorFlags index="Permanent" value="1" />
+    <BehaviorFlags index="EnabledWhileDead" value="1" />
+    <Duration value="2" />
     <ArmorModification>
       <AllArmorBonus value="35" />
     </ArmorModification>
@@ -791,6 +802,13 @@
     <BuffFlags index="RefreshStack" value="1" />
     <Duration value="8" />
   </CBehaviorBuff>
+  <CBehaviorBuff id="LiLiCloudSerpentAbilityController" parent="CarryBehaviorParent">
+    <EnableEffect value="LiLiCloudSerpentAddAbilityTargetController" />
+    <DisableValidatorArray value="LiLiCloudSerpentDoesNotHaveAbilityTargetController" />
+  </CBehaviorBuff>
+  <CBehaviorBuff id="LiLiCloudSerpentAbilityTargetController" parent="CarryBehaviorParent">
+    <CancelEffect value="LiLiCloudSerpentEnumTargetUnit" />
+  </CBehaviorBuff>
   <CBehaviorBuff id="ElusiveFeetCooldownBehavior" parent="CarryBehaviorParent">
     <Duration value="10" />
     <InitialEffect value="LiLiElusiveFeetApplyHotbarCooldown" />
@@ -880,7 +898,7 @@
     <BuffFlags index="RefreshStack" value="1" />
     <Duration value="10" />
     <Modification>
-      <HealDealtMultiplier index="Life" value="1.1" />
+      <HealDealtAdditiveMultiplier index="Life" value="0.1" />
       <HealDealtAdditiveMultiplier index="Shields" value="0.1" />
       <DamageDealtFraction index="Ability" value="0.1" />
     </Modification>
@@ -1144,21 +1162,23 @@
     <BehaviorLink value="LiLiCloudSerpentUnitTracker" />
     <Effect value="LiLiCloudSerpentMendingSerpentDelay" />
     <TrackedUnitFilters value="Heroic;-" />
+    <TrackerUnit Effect="LiLiCloudSerpentEnumTargetUnit" Value="Target" />
   </CEffectEnumTrackedUnits>
   <CEffectEnumTrackedUnits id="LiLiCloudSerpentLightningSerpentHealingEnumerateTrackedUnit">
-    <ValidatorArray value="LiLiCasterHasLightningSerpentBehavior" />
     <BehaviorLink value="LiLiCloudSerpentUnitTracker" />
     <Effect value="LiLiCloudSerpentLightningSerpentCreateHealer" />
     <TrackedUnitFilters value="Heroic;-" />
+    <TrackerUnit Effect="LiLiCloudSerpentEnumTargetUnit" Value="Target" />
   </CEffectEnumTrackedUnits>
   <CEffectCreatePersistent id="NewLightningSerpentHop1DelayCreatePersistent">
-    <ValidatorArray value="LiLiCasterHasLightningSerpentBehavior" />
+    <ValidatorArray value="HasLiLiMasteryCloudSerpentLightningSerpent" />
     <WhichLocation Value="TargetUnit" />
     <FinalEffect value="NewLightningSerpentHop1Search" />
   </CEffectCreatePersistent>
   <CEffectSet id="NewLightningSerpentHop1ImpactSet">
     <EffectArray value="LiLiCloudSerpentLightningSerpentTalentDamage" />
     <EffectArray value="LiLiCloudSerpentLightningSerpentHealingEnumerateTrackedUnit" />
+    <EffectArray value="LiLiCloudSerpentDamagedUnitTrackerAdd" />
     <EffectArray value="NewLightningSerpentHop2DelayCreatePersistent" />
   </CEffectSet>
   <CEffectLaunchMissile id="NewLightningSerpentHop1LaunchMissile">
@@ -1173,6 +1193,7 @@
   <CEffectSet id="NewLightningSerpentHop2ImpactSet">
     <EffectArray value="LiLiCloudSerpentLightningSerpentTalentDamage" />
     <EffectArray value="LiLiCloudSerpentLightningSerpentHealingEnumerateTrackedUnit" />
+    <EffectArray value="LiLiCloudSerpentDamagedUnitTrackerAdd" />
     <EffectArray value="NewLightningSerpentHop3DelayCreatePersistent" />
   </CEffectSet>
   <CEffectLaunchMissile id="NewLightningSerpentHop2LaunchMissile">
@@ -1187,6 +1208,7 @@
   <CEffectSet id="NewLightningSerpentHop3ImpactSet">
     <EffectArray value="LiLiCloudSerpentLightningSerpentTalentDamage" />
     <EffectArray value="LiLiCloudSerpentLightningSerpentHealingEnumerateTrackedUnit" />
+    <EffectArray value="LiLiCloudSerpentDamagedUnitTrackerAdd" />
   </CEffectSet>
   <CEffectLaunchMissile id="NewLightningSerpentHop3LaunchMissile">
     <ValidatorArray index="0" value="IsNotConjoinedGate" />
@@ -1294,18 +1316,19 @@
     <Chance value="0" />
     <EffectArray value="LiLiHealingBrewCreateHealer" />
   </CEffectSet>
-  <CEffectSet id="CloudSerpentWeaponImpactSet">
+  <CEffectSet id="LiLiCloudSerpentWeaponImpactSet">
     <EffectArray value="CloudSerpentWeaponDamage" />
     <EffectArray value="LiLiCloudSerpentMistweaverTalentModifyPlayerCooldown" />
     <EffectArray value="NewLightningSerpentHop1DelayCreatePersistent" />
+    <EffectArray value="LiLiCloudSerpentHealingEnumerateTrackedUnit" />
+    <EffectArray value="LiLiCloudSerpentDamagedUnitTrackerAdd" />
     <Marker>
       <MatchFlags index="Id" value="1" />
     </Marker>
   </CEffectSet>
-  <CEffectSwitch id="HealingBrewHealTargetSwitch">
-    <CaseArray Validator="LiLiPickMeUpValidCombine" Effect="LiLiHealingBrewPickMeUpTalentCreateHealer" />
-    <CaseDefault value="LiLiHealingBrewCreateHealer" />
-  </CEffectSwitch>
+  <CEffectAddTrackedUnit id="LiLiCloudSerpentDamagedUnitTrackerAdd" parent="StormSummonedUnitDamagedUnitTrackerAdd">
+    <TrackerUnit Effect="LiLiCloudSerpentEnumTargetUnit" Value="Target" />
+  </CEffectAddTrackedUnit>
   <CEffectSwitch id="HealingBrewMasteryHealCasterSwitch">
     <Chance value="0" />
     <CaseArray Validator="HasLiLiHealingBrewTheGoodStuff" Effect="HealingBrewMasteryHealCasterTheGoodStuff" />
@@ -1350,6 +1373,7 @@
     <AmmoUnit value="LiLiHealingBrewInvisibleMissile" />
     <ImpactRange value="0.25" />
     <SharedFlags index="TravelValidation" value="1" />
+    <SharedFlags index="ValidateTeleport" value="0" />
     <Movers Link="LiLiHealingBrewMissile" />
   </CEffectLaunchMissile>
   <CEffectSwitch id="HealingBrewSwitchforLaunchMissile">
@@ -1371,20 +1395,34 @@
     <Behavior value="CloudSerpentOwnerBehavior" />
     <ValidatorArray index="0" value="LiLiCloudSerpentTargetDoesNotHaveSerpentSidekickOwnerBehavior" />
   </CEffectApplyBehavior>
-  <CEffectLaunchMissile id="CloudSerpentLaunchMissile">
-    <ImpactEffect value="CloudSerpentWeaponImpactSet" />
+  <CEffectSet id="LiLiCloudSerpentAttackSet" parent="StormSummonedUnitAddAttackTargetSet" behaviorRemoveEffect="LiLiCloudSerpentRemoveAbilityTargetController">
+    <ValidatorArray value="SourceIsNotCloaked" />
+  </CEffectSet>
+  <CEffectApplyBehavior id="LiLiCloudSerpentAddAbilityTargetController">
+    <Behavior value="LiLiCloudSerpentAbilityTargetController" />
+  </CEffectApplyBehavior>
+  <CEffectRemoveBehavior id="LiLiCloudSerpentRemoveAbilityTargetController">
+    <WhichUnit Value="Caster" />
+    <BehaviorLink value="LiLiCloudSerpentAbilityTargetController" />
+    <CancelBehavior value="1" />
+  </CEffectRemoveBehavior>
+  <CEffectEnumTrackedUnits id="LiLiCloudSerpentEnumTargetUnit" parent="StormSummonedUnitEnumTrackedAttackUnit">
+    <Effect value="LiLiCloudSerpentLaunchMissile" />
+  </CEffectEnumTrackedUnits>
+  <CEffectLaunchMissile id="LiLiCloudSerpentLaunchMissile">
     <AmmoUnit value="LiLiCloudSerpentMissile" />
     <Movers Link="LiLiCloudSerpentAttackMissileShort" IfRangeLTE="0.1" />
     <Movers Link="LiLiCloudSerpentAttackMissile" IfRangeLTE="500" />
-    <ValidatorArray index="0" value="SourceIsNotCloaked" />
-    <LaunchEffect value="LiLiCloudSerpentHealingEnumerateTrackedUnit" />
+    <ImpactEffect value="LiLiCloudSerpentWeaponImpactSet" />
   </CEffectLaunchMissile>
-  <CEffectDamage id="CloudSerpentWeaponDamage" parent="StormSummonedUnitWeapon">
+  <CEffectDamage id="CloudSerpentWeaponDamage" parent="StormSpell">
+    <Visibility value="Hidden" />
     <Amount value="26" />
+    <SourceButtonFace value="LiLiCloudSerpent" />
   </CEffectDamage>
   <CEffectSet id="HealingBrewImpactSet">
     <EffectArray value="LiLiHealingBrewFreeDrinksTalentProcSet" />
-    <EffectArray value="HealingBrewHealTargetSwitch" />
+    <EffectArray value="LiLiHealingBrewCreateHealer" />
     <EffectArray value="HealingBrewHerbalCleanseSet" />
     <EffectArray value="LiLiHealingBrewApplyTheGoodStuff" />
     <TargetLocationType value="UnitOrPoint" />
@@ -1443,10 +1481,11 @@
     <ValidatorArray value="TargetIsNotImmuneToFriendlyAbilities" />
     <LaunchOffset Y="-0.8" />
     <LaunchEffect value="Jugof1000CupsApplyBehaviorMarker" />
-    <FinishEffect value="JugOf1000CupsImpactSet" />
+    <FinishEffect value="JugOf1000CupsHeal" />
     <AmmoUnit value="LiLiJugOf1000CupsInvisibleMissile" />
     <ImpactRange value="0.5" />
     <SharedFlags index="TravelValidation" value="1" />
+    <SharedFlags index="ValidateTeleport" value="0" />
     <Movers Link="LiLiJugOf1000CupsMissileCloseRange" IfRangeLTE="4" />
     <Movers Link="LiLiJugOf1000CupsMissileLongRange" IfRangeLTE="25" />
     <LaunchLocation Value="CasterUnit" />
@@ -1460,9 +1499,10 @@
     <AmmoUnit value="LiLiJugOf1000CupsMissile" />
     <ImpactRange value="0.5" />
     <SharedFlags index="TravelValidation" value="1" />
+    <SharedFlags index="ValidateTeleport" value="0" />
     <Movers Link="LiLiJugOf1000CupsMissileCloseRange" IfRangeLTE="4" />
     <Movers Link="LiLiJugOf1000CupsMissileLongRange" IfRangeLTE="25" />
-    <FinishEffect value="JugOf1000CupsImpactSet" />
+    <FinishEffect value="JugOf1000CupsHeal" />
     <LaunchLocation Value="CasterUnit" />
   </CEffectLaunchMissile>
   <CEffectSet id="JugOf1000CupsImpactSet">
@@ -1479,6 +1519,7 @@
     <ValidatorArray value="TargetIsNotImmuneToFriendlyAbilities" />
     <LaunchOffset Y="-0.8" />
     <SharedFlags index="TravelValidation" value="1" />
+    <SharedFlags index="ValidateTeleport" value="0" />
     <FinishEffect value="HealingBrewImpactSet" />
     <AmmoUnit value="LiLiHealingBrewMissile" />
     <Movers Link="LiLiHealingBrewMissile" />
@@ -1768,6 +1809,7 @@
   </CEffectModifyBehaviorBuffDuration>
   <CEffectCreateHealer id="LiLiCloudSerpentLightningSerpentCreateHealer" parent="StormHealingSpell">
     <RechargeVitalRate value="10" />
+    <SourceButtonFace value="LiLiCloudSerpentLightningSerpentTalent" />
   </CEffectCreateHealer>
   <CEffectCreatePersistent id="LiLiCloudSerpentLightningSerpentHealPersistent">
     <InitialEffect value="LiLiCloudSerpentLightningSerpentCreateHealer" />
@@ -1776,13 +1818,9 @@
     <ValidatorArray index="0" value="LiLiDoesNotHaveHealingBrewPickMeUpTalentMarker" />
     <Behavior value="LiLiHealingBrewPickMeUpTalentMarker" />
   </CEffectApplyBehavior>
-  <CEffectCreateHealer id="LiLiHealingBrewPickMeUpTalentCreateHealer" parent="StormHealingSpell">
-    <Flags index="Crit" value="1" />
-    <RechargeVitalRate value="233.33" />
-  </CEffectCreateHealer>
   <CEffectCreateHealer id="LiLiHealingBrewTheGoodStuffTalentProcCreateHealer" parent="StormHealingSpell">
-    <Flags index="Crit" value="1" />
-    <RechargeVitalRate value="14" />
+    <RechargeVitalRate value="7" />
+    <MultiplicativeModifierArray index="FastFeet" Modifier="1" Crit="1" />
   </CEffectCreateHealer>
   <CEffectSet id="LiLiMistweaverImpactSet">
     <EffectArray value="LiLiMistweaverCreateHealer" />
@@ -1817,9 +1855,9 @@
     <Behavior value="LiLiCloudSerpentSerpentSidekickTalentDuration" />
   </CEffectApplyBehavior>
   <CEffectCreateHealer id="LiLiCloudSerpentBlessingsOfYulonTalentCreateHealer" parent="StormHealingSpellPercent">
-    <ValidatorArray value="LiLiSourceHasBlessingsOfYulonBehavior" />
     <RechargeVitalFraction value="0.005" />
     <RechargeVitalRate value="20" />
+    <SourceButtonFace value="LiLiCloudSerpent" />
   </CEffectCreateHealer>
   <CEffectSet id="LiLiCloudSerpentSerpentSidekickTalentSet">
     <EffectArray value="LiLiCloudSerpentApplySerpentSidekickTalentDuration" />
@@ -1881,7 +1919,6 @@
     <ValidatorArray value="TargetIsHero" />
     <ValidatorArray value="LiLiFreeDrinksTalentVitalThreshold" />
     <ValidatorArray value="LiLiHasFreeDrinksTalent" />
-    <ValidatorArray value="LiLiDoesNotHaveFreeDrinksTalentMarker" />
     <EffectArray value="LiLiHealingBrewFreeDrinksTalentCooldownModifyUnit" />
     <EffectArray value="LiLiHealingBrewFreeDrinksTalentRestoreMana" />
     <EffectArray value="LiLiHealingBrewApplyFreeDrinksTalentMarker" />
@@ -1891,6 +1928,7 @@
     <Cost Abil="LiLiHealingBrew,Execute" CooldownOperation="Add" CooldownTimeUse="-1" />
   </CEffectModifyUnit>
   <CEffectCreateHealer id="LiLiHealingBrewFreeDrinksTalentRestoreMana" parent="StormManaRestore">
+    <ValidatorArray value="LiLiDoesNotHaveFreeDrinksTalentMarker" />
     <ImpactUnit Value="Caster" />
     <Flags index="Crit" value="1" />
     <RechargeVitalRate value="25" />
@@ -1944,6 +1982,14 @@
   <CEffectSet id="LiliShakeItOffApplySet">
     <EffectArray value="LiLiShakeItOffApplyStack" />
   </CEffectSet>
+  <CEffectApplyBehavior id="LiLiShakeItOffApplyTimedArmor">
+    <WhichUnit Value="Caster" />
+    <Behavior value="LiLiFastFeetShakeItOffTalentArmorTimed" />
+  </CEffectApplyBehavior>
+  <CEffectRemoveBehavior id="LiLiShakeItOffRemoveTimedArmor">
+    <WhichUnit Value="Caster" />
+    <BehaviorLink value="LiLiFastFeetShakeItOffTalentArmorTimed" />
+  </CEffectRemoveBehavior>
   <CEffectModifyUnit id="LiLiCloudSerpentWeaponCooldown">
     <ImpactUnit Value="Caster" />
     <Weapon Weapon="HeroLiLi" CooldownOperation="Max" CooldownAmount="0.5" />
@@ -1953,7 +1999,9 @@
     <EffectArray value="UniversalWeaponLaunchSet" />
   </CEffectSet>
   <CEffectDamage id="LiLiCloudSerpentLightningSerpentTalentDamage" parent="StormSpell">
+    <Visibility value="Hidden" />
     <Amount value="13" />
+    <SourceButtonFace value="LiLiCloudSerpentLightningSerpentTalent" />
   </CEffectDamage>
   <CEffectModifyUnit id="LiLiCloudSerpentHostLinkDummy" />
   <CEffectLaunchMissile id="LiLiCloudSerpentCastMissileLaunch">
@@ -1993,9 +2041,10 @@
   </CEffectApplyBehavior>
   <CEffectCreateHealer id="LiLiCloudSerpentCreateHealer" parent="StormHealingSpell">
     <RechargeVitalRate value="20" />
+    <SourceButtonFace value="LiLiCloudSerpent" />
   </CEffectCreateHealer>
   <CEffectSwitch id="LiLiCloudSerpentCreateHealerSwitch">
-    <CaseArray Validator="LiLiSourceHasBlessingsOfYulonBehavior" Effect="LiLiCloudSerpentBlessingsOfYulonTalentCreateHealer" />
+    <CaseArray Validator="LiLiHasBlessingsOfYulonTalent" Effect="LiLiCloudSerpentBlessingsOfYulonTalentCreateHealer" />
     <CaseDefault value="LiLiCloudSerpentCreateHealer" />
   </CEffectSwitch>
   <CEffectCreatePersistent id="LiLiCloudSerpentMendingSerpentDelay">
@@ -2028,6 +2077,7 @@
   </CEffectSet>
   <CEffectCreateHealer id="LiLiHealingBrewCreateHealer" parent="StormHealingSpell">
     <RechargeVitalRate value="175" />
+    <MultiplicativeModifierArray index="PickMeUp" Validator="LiLiPickMeUpValidCombine" Modifier="0.33" Crit="1" />
   </CEffectCreateHealer>
   <CEffectApplyBehavior id="LiLiHealingBrewApplyTheGoodStuff">
     <ValidatorArray index="0" value="HasLiLiHealingBrewTheGoodStuff" />
@@ -2215,14 +2265,6 @@
       <Modifications>
         <Catalog value="Effect" />
         <Entry value="LiLiHealingBrewCreateHealer" />
-        <Field value="RechargeVitalRate" />
-        <Value value="0.040000" />
-        <AffectedByAbilityPower value="1" />
-        <AffectedByOverdrive value="1" />
-      </Modifications>
-      <Modifications>
-        <Catalog value="Effect" />
-        <Entry value="LiLiHealingBrewPickMeUpTalentCreateHealer" />
         <Field value="RechargeVitalRate" />
         <Value value="0.040000" />
         <AffectedByAbilityPower value="1" />
@@ -3030,6 +3072,9 @@
     <InnerRadius value="1" />
     <MinimapRadius value="0.75" />
     <BehaviorArray Link="HallOfStormsKnockbackImmunity" />
+    <BehaviorArray Link="StormSummonedUnitTargetTracker" />
+    <BehaviorArray Link="StormSummonedUnitDamagedUnitTracker" />
+    <BehaviorArray Link="StormSummonedUnitVisibilityController" />
     <DeathRevealDuration value="0" />
     <Collide index="Ground" value="0" />
     <Collide index="ForceField" value="0" />
@@ -3364,6 +3409,10 @@
     <Value value="1" />
     <Behavior value="LiLiCloudSerpentSerpentSidekickOwnerBehavior" />
   </CValidatorUnitCompareBehaviorCount>
+  <CValidatorUnitHasBehavior id="LiLiCloudSerpentDoesNotHaveAbilityTargetController">
+    <Behavior value="LiLiCloudSerpentAbilityTargetController" />
+    <Negate value="1" />
+  </CValidatorUnitHasBehavior>
   <CValidatorPlayerTalent id="LiLiHasMistweaverTalent">
     <WhichPlayer Value="Caster" />
     <Find value="1" />

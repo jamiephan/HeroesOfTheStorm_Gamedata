@@ -66,7 +66,6 @@ void libHSAM_gf_HeroSamuroIncrementHeroCountFunction () {
         TriggerEnable(libHSAM_gt_SamuroSelectionChange, true);
         TriggerEnable(libHSAM_gt_SamuroRespawn, true);
         TriggerEnable(libHSAM_gt_SamuroMirrorImageMountDismountPort, true);
-        TriggerEnable(libHSAM_gt_SamuroPort, true);
         TriggerEnable(libHSAM_gt_SamuroDebugSwap, true);
         TriggerEnable(libHSAM_gt_SamuroSamuroDies, true);
         TriggerEnable(libHSAM_gt_SamuroMirrorImageSwap, true);
@@ -74,11 +73,7 @@ void libHSAM_gf_HeroSamuroIncrementHeroCountFunction () {
         TriggerEnable(libHSAM_gt_SamuroMirrorImageDies, true);
         TriggerEnable(libHSAM_gt_SamuroMirrorImageController, true);
         TriggerEnable(libHSAM_gt_SamuroBladestorm, true);
-        TriggerEnable(libHSAM_gt_SamuroCriticalStrike, true);
         TriggerEnable(libHSAM_gt_SamuroGainsR2Talent, true);
-        TriggerEnable(libHSAM_gt_SamuroGainsThreeBladeStyleTalent, true);
-        TriggerEnable(libHSAM_gt_SamuroGainsCrushingBlowTalent, true);
-        TriggerEnable(libHSAM_gt_SamuroWayofIllusion, true);
         TriggerEnable(libHSAM_gt_SamuroMirage, true);
         TriggerEnable(libHSAM_gt_SamuroMirrorImageSelectedOn, true);
         TriggerEnable(libHSAM_gt_SamuroMirrorImageSelectedOff, true);
@@ -92,7 +87,6 @@ void libHSAM_gf_HeroSamuroIncrementHeroCountFunction () {
         TriggerEnable(libHSAM_gt_SamuroMirrorImageHealthTrackerCreateTalentTaken, true);
         TriggerEnable(libHSAM_gt_SamuroMirrorImageHealthTrackerUpdate, true);
         TriggerEnable(libHSAM_gt_SamuroGainsMapMechanicStack, true);
-        TriggerEnable(libHSAM_gt_SamuroGainsWayofIllusion, true);
         TriggerEnable(libHSAM_gt_SamuroLosesWayofIllusion, true);
         TriggerEnable(libHSAM_gt_SamuroMirrorImageDamageTakenDuplication, true);
     }
@@ -110,7 +104,6 @@ void libHSAM_gf_HeroSamuroDecrementHeroCountFunction () {
     if ((libHSAM_gv_heroSamuroTriggerRegistrationVariable == 0)) {
         TriggerEnable(libHSAM_gt_SamuroSelectionChange, false);
         TriggerEnable(libHSAM_gt_SamuroRespawn, false);
-        TriggerEnable(libHSAM_gt_SamuroPort, false);
         TriggerEnable(libHSAM_gt_SamuroMirrorImageMountDismountPort, false);
         TriggerEnable(libHSAM_gt_SamuroDebugSwap, false);
         TriggerEnable(libHSAM_gt_SamuroSamuroDies, false);
@@ -120,10 +113,6 @@ void libHSAM_gf_HeroSamuroDecrementHeroCountFunction () {
         TriggerEnable(libHSAM_gt_SamuroMirrorImageController, false);
         TriggerEnable(libHSAM_gt_SamuroBladestorm, false);
         TriggerEnable(libHSAM_gt_SamuroGainsR2Talent, false);
-        TriggerEnable(libHSAM_gt_SamuroCriticalStrike, false);
-        TriggerEnable(libHSAM_gt_SamuroGainsThreeBladeStyleTalent, false);
-        TriggerEnable(libHSAM_gt_SamuroGainsCrushingBlowTalent, false);
-        TriggerEnable(libHSAM_gt_SamuroWayofIllusion, false);
         TriggerEnable(libHSAM_gt_SamuroMirage, false);
         TriggerEnable(libHSAM_gt_SamuroMirrorImageSelectedOn, false);
         TriggerEnable(libHSAM_gt_SamuroMirrorImageSelectedOff, false);
@@ -137,7 +126,6 @@ void libHSAM_gf_HeroSamuroDecrementHeroCountFunction () {
         TriggerEnable(libHSAM_gt_SamuroMirrorImageHealthTrackerCreateTalentTaken, false);
         TriggerEnable(libHSAM_gt_SamuroMirrorImageHealthTrackerUpdate, false);
         TriggerEnable(libHSAM_gt_SamuroGainsMapMechanicStack, false);
-        TriggerEnable(libHSAM_gt_SamuroGainsWayofIllusion, false);
         TriggerEnable(libHSAM_gt_SamuroLosesWayofIllusion, false);
         TriggerEnable(libHSAM_gt_SamuroMirrorImageDamageTakenDuplication, false);
     }
@@ -227,6 +215,41 @@ void libHSAM_gf_SamuroUISetup (unit lp_CreatedUnit) {
     UISetFrameVisible(PlayerGroupSingle(lv_samuroPlayer), c_syncFrameTypeControlGroupPanel, true);
 }
 
+void libHSAM_gf_SamuroMirrorImagesTransferDurations (unit lp_samuro, unit lp_mirrorImage) {
+    // Variable Declarations
+    fixed lv_advancingStrikeRemainingDuration;
+    fixed lv_criticalStrikeActivatedRemainingDuration;
+    string lv_behavior;
+
+    // Automatic Variable Declarations
+    // Variable Initialization
+    lv_advancingStrikeRemainingDuration = UnitBehaviorDuration(lp_samuro, "SamuroAdvancingStrikesMoveSpeedBuff");
+    lv_criticalStrikeActivatedRemainingDuration = UnitBehaviorDuration(lp_samuro, "SamuroCriticalStrikeTimed");
+
+    // Implementation
+    lv_behavior = "SamuroAdvancingStrikesMoveSpeedBuff";
+    if ((UnitHasBehavior2(lp_samuro, lv_behavior) == true) && (UnitHasBehavior2(lp_mirrorImage, lv_behavior) == true)) {
+        UnitBehaviorSetDurationRemaining(lp_mirrorImage, lv_behavior, lv_advancingStrikeRemainingDuration);
+    }
+    else {
+        UnitBehaviorRemove(lp_mirrorImage, lv_behavior, 1);
+    }
+    lv_behavior = "SamuroAdvancingStrikesDeflectionBlock";
+    if ((UnitHasBehavior2(lp_samuro, lv_behavior) == true) && (UnitHasBehavior2(lp_mirrorImage, lv_behavior) == true)) {
+        UnitBehaviorSetDurationRemaining(lp_mirrorImage, lv_behavior, lv_advancingStrikeRemainingDuration);
+    }
+    else {
+        UnitBehaviorRemove(lp_mirrorImage, lv_behavior, 1);
+    }
+    lv_behavior = "SamuroCriticalStrikeTimed";
+    if ((UnitHasBehavior2(lp_samuro, lv_behavior) == true) && (UnitHasBehavior2(lp_mirrorImage, lv_behavior) == true)) {
+        UnitBehaviorSetDurationRemaining(lp_mirrorImage, lv_behavior, lv_advancingStrikeRemainingDuration);
+    }
+    else {
+        UnitBehaviorRemove(lp_mirrorImage, lv_behavior, 1);
+    }
+}
+
 trigger auto_libHSAM_gf_SamuroMirrorImageAIActivationRetainOrderDelay_Trigger = null;
 unit auto_libHSAM_gf_SamuroMirrorImageAIActivationRetainOrderDelay_lp_mirrorImageUnit;
 
@@ -281,7 +304,7 @@ void libHSAM_gf_SamuroKawarimi (unit lp_imageUnit) {
     lv_samuro = libGame_gv_players[UnitGetOwner(lp_imageUnit)].lv_heroUnit;
     lv_orderCount = UnitOrderCount(lv_samuro);
     UnitOrderCopy(lv_samuro, lp_imageUnit, lv_orderCount);
-    UnitCreateEffectUnit(EventUnit(), "SamuroWindwalkCancelAttackOrder", lv_samuro);
+    UnitCreateEffectUnit(lp_imageUnit, "SamuroKawarimiCancelHearthstoneOrder", lp_imageUnit);
 }
 
 void libHSAM_gf_SamuroUIUnSetupUIForPlayer (int lp_player) {
@@ -847,18 +870,16 @@ bool libHSAM_gt_SamuroMirrorImageSwap_Func (bool testConds, bool runActions) {
     lv_imageDestination = UnitGetPosition(lv_samuro);
     lv_samuroFacing = UnitGetFacing(lv_samuro);
     lv_imageFacing = UnitGetFacing(lv_image);
-    UnitSetPosition(lv_samuro, UnitGetPosition(lv_image), false);
     UnitSetFacing(lv_samuro, lv_imageFacing, 0.0);
-    UnitSetPosition(lv_image, lv_imageDestination, false);
     UnitSetFacing(lv_image, lv_samuroFacing, 0.0);
     auto7073599F_g = libHSAM_gv_mirrorImageUnitGroup[lv_thisPlayer];
     auto7073599F_u = UnitGroupCount(auto7073599F_g, c_unitCountAll);
     for (;; auto7073599F_u -= 1) {
         auto7073599F_var = UnitGroupUnitFromEnd(auto7073599F_g, auto7073599F_u);
         if (auto7073599F_var == null) { break; }
-        UnitSetPropertyFixed(auto7073599F_var, c_unitPropLifePercent, UnitGetPropertyFixed(lv_samuro, c_unitPropLifePercent, c_unitPropCurrent));
-        UnitSetPropertyFixed(auto7073599F_var, c_unitPropShields, UnitGetPropertyFixed(lv_samuro, c_unitPropShields, c_unitPropCurrent));
         UnitGroupSelect(libGame_gv_players[lv_thisPlayer].lv_heroUnitGroup, lv_thisPlayer, false);
+        libHSAM_gf_SamuroMirrorImagesTransferDurations(lv_samuro, auto7073599F_var);
+        libGame_gf_SendEventHeroUnitSwappedForPlayer(lv_samuro, auto7073599F_var, lv_thisPlayer, true);
     }
     UnitOrderSwap(lv_image, lv_samuro, 32);
     UnitIssueOrder(lv_samuro, Order(AbilityCommand("SamuroIllusionMasterDummy", 0)), c_orderQueueAddToFront);
@@ -890,6 +911,10 @@ bool libHSAM_gt_SamuroMirrorImageMountDismountPort_Func (bool testConds, bool ru
     // Conditions
     if (testConds) {
         if (!((UnitGetType(EventUnit()) == "HeroSamuro"))) {
+            return false;
+        }
+
+        if (!((UnitGroupHasUnit(UnitGroupSelected(EventPlayer()), EventUnit()) == true))) {
             return false;
         }
     }
@@ -929,12 +954,6 @@ bool libHSAM_gt_SamuroMirrorImageCreated_Func (bool testConds, bool runActions) 
     int lv_wayOfIllusionTokenCount;
     int lv_itCount;
     unit lv_mirrorImage;
-    int lv_samuroCriticalStrikeStacks;
-    int lv_samuroCriticalStrikeActivatedStacks;
-    int lv_samuroWanderingBladeStacks;
-    int lv_samuroPressTheAttackStacks;
-    int lv_samuroAdvancingStrikesBehavior;
-    int lv_samuroOverpoweringBlowCarry;
     unit lv_samuro;
     int lv_samuroLevel;
     int lv_samuroPlayer;
@@ -975,12 +994,6 @@ bool libHSAM_gt_SamuroMirrorImageCreated_Func (bool testConds, bool runActions) 
         lv_samuro = libGame_gv_players[lv_samuroPlayer].lv_heroUnit;
     }
     lv_samuroLevel = libGame_gf_GetCustomValueLevelofHeroUnit(lv_samuro);
-    lv_samuroCriticalStrikeStacks = UnitBehaviorCount(lv_samuro, "SamuroCriticalStrikeCounterBehavior");
-    lv_samuroWanderingBladeStacks = UnitBehaviorCount(lv_samuro, "SamuroCriticalStrike");
-    lv_samuroCriticalStrikeActivatedStacks = UnitBehaviorCount(lv_samuro, "SamuroCriticalStrikeActivated");
-    lv_samuroOverpoweringBlowCarry = UnitBehaviorCount(lv_samuro, "SamuroCriticalStrikeCrushingBlowsCarryBehavior");
-    lv_samuroAdvancingStrikesBehavior = UnitBehaviorCount(lv_samuro, "SamuroAdvancingStrikesMoveSpeedBuff");
-    lv_samuroPressTheAttackStacks = UnitBehaviorCount(lv_samuro, "SamuroAdvancingStrikesPressTheAttackAttackSpeedBuff");
     UnitBehaviorAdd(lv_mirrorImage, "Level", libGame_gv_players[UnitGetOwner(lv_samuro)].lv_heroUnit, UnitBehaviorCount(lv_samuro, "Level"));
     UnitBehaviorAdd(lv_mirrorImage, "Ultimate1Unlocked", libGame_gv_players[lv_samuroPlayer].lv_heroUnit, UnitBehaviorCount(lv_samuro, "Ultimate1Unlocked"));
     UnitBehaviorAdd(lv_mirrorImage, "Ultimate2Unlocked", libGame_gv_players[lv_samuroPlayer].lv_heroUnit, UnitBehaviorCount(lv_samuro, "Ultimate2Unlocked"));
@@ -990,27 +1003,9 @@ bool libHSAM_gt_SamuroMirrorImageCreated_Func (bool testConds, bool runActions) 
     }
 
     UnitXPAddXP(lv_mirrorImage, null, libCore_gf_GetTotalXPForLevel(lv_samuroLevel));
-    if ((PlayerHasTalent(lv_samuroPlayer, "SamuroThreeBladeStyle") == true)) {
-        UnitSetPropertyFixed(lv_mirrorImage, c_unitPropLifeMax, UnitGetPropertyFixed(lv_samuro, c_unitPropLifeMax, c_unitPropCurrent));
-    }
-
-    UnitSetPropertyFixed(lv_mirrorImage, c_unitPropLifePercent, UnitGetPropertyFixed(lv_samuro, c_unitPropLifePercent, c_unitPropCurrent));
-    UnitSetPropertyFixed(lv_mirrorImage, c_unitPropShieldsPercent, UnitGetPropertyFixed(lv_samuro, c_unitPropShieldsPercent, c_unitPropCurrent));
-    UnitBehaviorAdd(lv_mirrorImage, "SamuroCriticalStrikeCounterBehavior", lv_mirrorImage, lv_samuroCriticalStrikeStacks);
-    UnitBehaviorAdd(lv_mirrorImage, "SamuroCriticalStrikeMirrorImage", lv_mirrorImage, lv_samuroWanderingBladeStacks);
-    UnitBehaviorAdd(lv_mirrorImage, "SamuroCriticalStrike", lv_mirrorImage, lv_samuroCriticalStrikeActivatedStacks);
-    UnitBehaviorAdd(lv_mirrorImage, "SamuroCriticalStrikeCrushingBlowsCarryBehavior", lv_mirrorImage, lv_samuroOverpoweringBlowCarry);
-    UnitBehaviorAdd(lv_mirrorImage, "SamuroAdvancingStrikesMoveSpeedBuff", lv_mirrorImage, lv_samuroAdvancingStrikesBehavior);
-    UnitBehaviorAdd(lv_mirrorImage, "SamuroAdvancingStrikesPressTheAttackAttackSpeedBuff", lv_mirrorImage, lv_samuroPressTheAttackStacks);
+    libGame_gf_SendEventHeroUnitSwappedForPlayer(lv_samuro, lv_mirrorImage, lv_samuroPlayer, true);
+    libHSAM_gf_SamuroMirrorImagesTransferDurations(lv_samuro, lv_mirrorImage);
     libUIUI_gf_UIUnitStatusFramesUpdateUnitStatusFramesForUnit(lv_samuroPlayer, lv_mirrorImage);
-    if ((PlayerHasTalent(lv_samuroPlayer, "SamuroWayOfIllusion") == true) && (UnitBehaviorCount(lv_samuro, "SamuroMirrorImageWayOfIllusionQuestToken") < 40)) {
-        UnitBehaviorAdd(lv_mirrorImage, "SamuroMirrorImageWayOfIllusionQuestTokenClone", lv_mirrorImage, 1);
-        lv_wayOfIllusionTokenCount = UnitBehaviorCount(lv_samuro, "SamuroMirrorImageWayOfIllusionQuestToken");
-        CatalogFieldValueSetInt(c_gameCatalogEffect, "MirrorImageWayOfIllusionIncrementImageQuestProgress", "Value", lv_samuroPlayer, lv_wayOfIllusionTokenCount);
-        UnitCreateEffectUnit(lv_mirrorImage, "MirrorImageWayOfIllusionIncrementImageQuestProgress", lv_mirrorImage);
-        CatalogFieldValueSet(c_gameCatalogEffect, "MirrorImageWayOfIllusionIncrementImageQuestProgress", "Value", lv_samuroPlayer, "0");
-    }
-
     UnitGroupAdd(libGame_gv_players[lv_samuroPlayer].lv_heroUnitGroup, lv_mirrorImage);
     UnitBehaviorAdd(lv_mirrorImage, "MapMechanicStack", libGame_gv_players[lv_samuroPlayer].lv_heroUnit, UnitBehaviorCount(lv_samuro, "MapMechanicStack"));
     UnitBehaviorAdd(lv_mirrorImage, "HasMapMechanicTargetAbility", libGame_gv_players[lv_samuroPlayer].lv_heroUnit, UnitBehaviorCount(lv_samuro, "HasMapMechanicTargetAbility"));

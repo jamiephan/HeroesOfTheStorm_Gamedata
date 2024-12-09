@@ -33,10 +33,13 @@
   </CAbilEffectTarget>
   <CAbilEffectInstant id="FenixUnconqueredSpirit">
     <Effect value="FenixUnconqueredSpiritAbilityDummySet" />
+    <Flags index="ValidateButtonState" value="0" />
     <Cost>
-      <Cooldown Location="Player" Operation="Set" TimeUse="120" />
+      <Cooldown TimeUse="120" />
     </Cost>
-    <CmdButtonArray index="Execute" DefaultButtonFace="FenixUnconqueredSpiritHotbar" />
+    <CmdButtonArray index="Execute" DefaultButtonFace="FenixUnconqueredSpiritHotbar">
+      <Flags index="IgnoreUser" value="1" />
+    </CmdButtonArray>
   </CAbilEffectInstant>
   <CAbilEffectTarget id="FenixPlanetCracker">
     <PrepEffect value="FenixPlanetCrackerPrepSet" />
@@ -1233,27 +1236,18 @@
     <PeriodCount value="1" />
     <PeriodicEffect value="FenixWarpTeleport" />
   </CBehaviorBuff>
-  <CBehaviorBuff id="FenixUnconqueredSpiritCooldown">
-    <Alignment value="Negative" />
-    <BehaviorFlags index="Permanent" value="1" />
-    <BehaviorFlags index="EnabledWhileDead" value="1" />
-    <InfoIcon value="Assets\Textures\storm_ui_icon_devineshield.dds" />
-    <Duration value="120" />
-    <Modification>
-      <BehaviorLinkDisableArray value="FenixUnconqueredSpiritBehavior" />
-    </Modification>
-    <InitialEffect value="FenixUnconqueredSpiritSetDummyCooldown" />
-  </CBehaviorBuff>
   <CBehaviorBuff id="FenixUnconqueredSpiritBehavior">
     <Alignment value="Positive" />
     <BehaviorFlags index="Permanent" value="1" />
     <BehaviorFlags index="EnabledWhileDead" value="1" />
     <InfoIcon value="Assets\Textures\storm_btn_d3_monk_breathofheaven.dds" />
     <DisplayDuration index="Self" value="1" />
+    <DisableValidatorArray value="FenixUnconqueredSpiritNotOnCooldown" />
     <BuffFlags index="RemoveDamageResponseExhausted" value="0" />
     <DamageResponse>
       <Chance value="1" />
       <Handled value="FenixUnconqueredSpiritSet" />
+      <ValidatorArray value="FenixUnconqueredSpiritNotOnCooldown" />
       <Priority value="18" />
       <Fatal value="1" />
       <RestoreLifeAfterFatal value="1" />
@@ -1949,16 +1943,6 @@
   <CEffectApplyBehavior id="FenixPurificationSalvoScannerTimeStopBuffApplyBehavior">
     <Behavior value="FenixPurificationSalvoScannerTimeStopBuff" />
   </CEffectApplyBehavior>
-  <CEffectModifyPlayer id="FenixUnconqueredSpiritSetDummyCooldown">
-    <Cost Abil="FenixUnconqueredSpirit">
-      <Cooldown>
-        <Link value="Abil/FenixUnconqueredSpirit" />
-        <Location value="Player" />
-        <Operation value="Set" />
-        <TimeUse value="120" />
-      </Cooldown>
-    </Cost>
-  </CEffectModifyPlayer>
   <CEffectDamage id="FenixHeroWeaponDamage" parent="StormWeapon">
     <Amount value="83" />
     <MultiplicativeModifierArray index="0" Validator="FenixHasMobileOffenseDamageBuffAndTargetIsHero" Modifier="0.35" Crit="1" />
@@ -2416,14 +2400,17 @@
     <EffectArray value="FenixOffensiveCadenceApplyDamageBuff" />
   </CEffectSet>
   <CEffectSet id="FenixUnconqueredSpiritSet">
+    <ValidatorArray value="FenixUnconqueredSpiritNotOnCooldown" />
     <EffectArray value="FenixUnconqueredSpiritEmergencyProtocolApplyBehavior" />
     <EffectArray value="FenixUnconqueredSpiritShieldHealer" />
-    <EffectArray value="FenixUnconqueredSpiritCooldownApplyBehavior" />
+    <EffectArray value="FenixUnconqueredSpiritSetCooldown" />
   </CEffectSet>
-  <CEffectApplyBehavior id="FenixUnconqueredSpiritCooldownApplyBehavior">
-    <WhichUnit Value="Source" />
-    <Behavior value="FenixUnconqueredSpiritCooldown" />
-  </CEffectApplyBehavior>
+  <CEffectModifyUnit id="FenixUnconqueredSpiritSetCooldown">
+    <ImpactUnit Value="Caster" />
+    <Cost Abil="FenixUnconqueredSpirit,Execute" CooldownOperation="Set">
+      <Fraction Cooldown="1" />
+    </Cost>
+  </CEffectModifyUnit>
   <CEffectApplyBehavior id="FenixPurificationSalvoApplyControllerBehavior">
     <WhichUnit Value="Caster" />
     <Behavior value="FenixPurificationSalvoController" />
@@ -4457,10 +4444,14 @@
   <CValidatorUnitHasBehavior id="FenixHasUnconqueredSpiritEmergencyProtocolHadShieldBehavior">
     <Behavior value="FenixUnconqueredSpiritEmergencyProtocolHadShield" />
   </CValidatorUnitHasBehavior>
-  <CValidatorUnitCompareBehaviorCount id="FenixDoesNotHaveUnconqueredSpiritCooldownBehavior">
-    <WhichUnit Value="Caster" />
-    <Behavior value="FenixUnconqueredSpiritCooldown" />
-  </CValidatorUnitCompareBehaviorCount>
+  <CValidatorUnitCompareCooldown id="FenixUnconqueredSpiritNotOnCooldown">
+    <WhichUnit Value="Source" />
+    <Compare value="LE" />
+    <CooldownLink value="Abil/FenixUnconqueredSpirit" />
+    <Location value="Unit" />
+    <Ability value="FenixUnconqueredSpirit" />
+    <Value value="0.0625" />
+  </CValidatorUnitCompareCooldown>
   <CValidatorUnitCompareBehaviorCount id="FenixHasOffensiveCadenceDamageBuff">
     <WhichUnit Value="Caster" />
     <Value value="1" />

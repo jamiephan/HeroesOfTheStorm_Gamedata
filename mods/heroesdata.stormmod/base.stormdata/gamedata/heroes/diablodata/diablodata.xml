@@ -1,5 +1,12 @@
 <?xml version="1.0" encoding="us-ascii"?>
 <Catalog>
+  <const id="$DiabloLifeMax" value="2825" />
+  <const id="$DiabloLifeRegen" value="/($DiabloLifeMax 480)" evaluateAsExpression="1" />
+  <const id="$DiabloBlackSoulstoneTokenMax" value="100" />
+  <const id="$DiabloBlackSoulstoneMaxHealthPercentageGain" value="0.3" />
+  <const id="$DiabloBlackSoulstoneMaxHealthIncreaseMax" value="*($DiabloLifeMax $DiabloBlackSoulstoneMaxHealthPercentageGain)" evaluateAsExpression="1" />
+  <const id="$DiabloBlackSoulstoneMaxHealthIncreasePerToken" value="/($DiabloBlackSoulstoneMaxHealthIncreaseMax $DiabloBlackSoulstoneTokenMax)" evaluateAsExpression="1" />
+  <const id="$DiabloBlackSoulstoneMaxHealthPercentageGainPerToken" value="/($DiabloBlackSoulstoneMaxHealthPercentageGain $DiabloBlackSoulstoneTokenMax)" evaluateAsExpression="1" />
   <CAbilEffectInstant id="DiabloBlackSoulstoneSoulShield">
     <PrepEffect value="DismountDecloakCasterSet" />
     <Effect value="DiabloSoulShieldInitialSet" />
@@ -177,9 +184,9 @@
     <Scale value="0.4" />
   </CAccumulatorToken>
   <CAccumulatorToken id="DiabloBlackSoulstoneHealthAccumulator" parent="BaseAccumulator">
-    <MaxAccumulation value="0.3" />
+    <MaxAccumulation value="$DiabloBlackSoulstoneMaxHealthIncreaseMax" />
     <TokenId value="DiabloBlackSoulstoneTokenCounter" />
-    <Scale value="0.003" />
+    <Scale value="$DiabloBlackSoulstoneMaxHealthIncreasePerToken" />
     <ApplicationRule value="Add" />
   </CAccumulatorToken>
   <CActorModel id="DiabloFireStompHellfireDamageModel" parent="StormModelAnimationStyleOneShotUnit">
@@ -1211,7 +1218,7 @@
     <DeltaEvents Delta="5" OnlyIncrease="1">
       <Event EventId="QuestIncrease" />
     </DeltaEvents>
-    <Max value="100" />
+    <Max value="$DiabloBlackSoulstoneTokenMax" />
   </CBehaviorTokenCounter>
   <CBehaviorTokenCounter id="DiabloFireStompHellfireTalentTokenCounter" parent="StormGenericToken">
     <Face value="DiabloHellfireToken" />
@@ -1240,9 +1247,9 @@
   <CBehaviorBuff id="BlackSoulstoneCarryBehavior" parent="CarryBehaviorParent">
     <InfoIcon value="Assets\Textures\storm_temp_war3_btnsoulgem.dds" />
     <Modification>
-      <VitalMaxFractionArray index="Life" value="0">
+      <VitalMaxArray index="Life" value="0">
         <AccumulatorArray value="DiabloBlackSoulstoneHealthAccumulator" />
-      </VitalMaxFractionArray>
+      </VitalMaxArray>
     </Modification>
   </CBehaviorBuff>
   <CBehaviorBuff id="DiabloLightningBreathController" parent="StormUnstoppableParent">
@@ -1591,6 +1598,9 @@
   <CCharacter id="DiabloPrime">
     <Variations Model="DiabloSkinPrimePortrait" Actor="DiabloSkinPrimePortrait" />
   </CCharacter>
+  <CEffectModifyUnit id="DiabloBlackSoulstonePercentageGainPerTokenReference">
+    <XP value="$DiabloBlackSoulstoneMaxHealthPercentageGainPerToken" />
+  </CEffectModifyUnit>
   <CEffectSet id="DiabloBlackSoulstoneAdd25TokenSet">
     <ValidatorArray value="DiabloSourceHasLessThan100BlackSoulstoneTokens" />
     <EffectArray value="DiabloBlackSoulstoneAdd25TokenCount" />
@@ -3035,6 +3045,22 @@
         <AffectedByAbilityPower value="1" />
         <AffectedByOverdrive value="1" />
       </Modifications>
+      <Modifications>
+        <Catalog value="Accumulator" />
+        <Entry value="DiabloBlackSoulstoneHealthAccumulator" />
+        <Field value="Scale" />
+        <Value value="0.040000" />
+        <AffectedByAbilityPower value="1" />
+        <AffectedByOverdrive value="1" />
+      </Modifications>
+      <Modifications>
+        <Catalog value="Accumulator" />
+        <Entry value="DiabloBlackSoulstoneHealthAccumulator" />
+        <Field value="MaxAccumulation" />
+        <Value value="0.040000" />
+        <AffectedByAbilityPower value="1" />
+        <AffectedByOverdrive value="1" />
+      </Modifications>
     </LevelScalingArray>
     <LevelScalingArray Ability="DiabloLightningBreath">
       <Modifications>
@@ -3910,9 +3936,9 @@
     <BehaviorArray Link="DiabloFireStompHellfireTalentMissileTokenCounter" />
   </CUnit>
   <CUnit id="HeroDiablo" parent="StormHeroMounted">
-    <LifeStart value="2825" />
-    <LifeMax value="2825" />
-    <LifeRegenRate value="5.8867" />
+    <LifeStart value="$DiabloLifeMax" />
+    <LifeMax value="$DiabloLifeMax" />
+    <LifeRegenRate value="$DiabloLifeRegen" />
     <AbilArray Link="DiabloLightningBreath" />
     <AbilArray Link="DiabloFireStomp" />
     <AbilArray Link="DiabloApocalypse" />
@@ -4081,7 +4107,7 @@
   <CValidatorUnitCompareTokenCount id="DiabloHasGTE100BlackSoulstoneTokens">
     <WhichUnit Value="Caster" />
     <Compare value="GE" />
-    <Value value="100" />
+    <Value value="$DiabloBlackSoulstoneTokenMax" />
     <TokenId value="DiabloBlackSoulstoneTokenCounter" />
   </CValidatorUnitCompareTokenCount>
   <CValidatorUnitCompareBehaviorCount id="DiabloHasBlackSoulstoneAvailable">
@@ -4100,7 +4126,7 @@
   </CValidatorUnitCompareTokenCount>
   <CValidatorUnitCompareTokenCount id="DiabloSourceHasLessThan100BlackSoulstoneTokens">
     <Compare value="LT" />
-    <Value value="100" />
+    <Value value="$DiabloBlackSoulstoneTokenMax" />
     <TokenId value="DiabloBlackSoulstoneTokenCounter" />
   </CValidatorUnitCompareTokenCount>
   <CValidatorPlayerTalent id="DiabloHasHellfireTalent">

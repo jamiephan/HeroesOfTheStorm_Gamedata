@@ -4,9 +4,11 @@
     <Effect value="MedicTraumaTriggerDummyEffect" />
     <Flags index="ValidateButtonState" value="0" />
     <Cost>
-      <Cooldown Location="Player" Operation="Set" TimeUse="40" />
+      <Cooldown TimeUse="30" />
     </Cost>
-    <CmdButtonArray index="Execute" DefaultButtonFace="MedicTraumaTriggerItemButtonTalent" />
+    <CmdButtonArray index="Execute" DefaultButtonFace="MedicTraumaTriggerItemButtonTalent">
+      <Flags index="IgnoreUser" value="1" />
+    </CmdButtonArray>
   </CAbilEffectInstant>
   <CAbilEffectInstant id="MedicCellularReactor">
     <OrderArray index="0" LineTexture="Assets\Textures\WayPointLine.dds" />
@@ -1373,9 +1375,11 @@
     </Modification>
   </CBehaviorBuff>
   <CBehaviorBuff id="MedicTraumaTriggerController" parent="CarryBehaviorParent">
+    <DisableValidatorArray value="MedicTraumaTriggerNotOnCooldown" />
     <DisableValidatorArray value="CasterLifeLT40Percent" />
-    <DisableValidatorArray value="MedicDoesNotHaveTraumaTriggerCooldown" />
-    <DamageResponse Chance="1" Handled="MedicTraumaTriggerProcSet" />
+    <DamageResponse Chance="1" Handled="MedicTraumaTriggerProcSet">
+      <ValidatorArray value="MedicTraumaTriggerNotOnCooldown" />
+    </DamageResponse>
   </CBehaviorBuff>
   <CBehaviorBuff id="MedicTraumaTriggerCooldown">
     <Alignment value="Positive" />
@@ -2504,11 +2508,10 @@
     <Behavior value="MedicTraumaTriggerCooldown" />
   </CEffectApplyBehavior>
   <CEffectSet id="MedicTraumaTriggerProcSet">
-    <ValidatorArray value="MedicDoesNotHaveTraumaTriggerCooldown" />
-    <ValidatorArray value="CasterLifeLT50Percent" />
+    <ValidatorArray value="MedicTraumaTriggerNotOnCooldown" />
+    <ValidatorArray value="CasterLifeLT40Percent" />
     <EffectArray value="MedicTraumaTriggerApplyBehavior" />
     <EffectArray value="MedicTraumaTriggerDummyModifyCooldown" />
-    <EffectArray value="MedicTraumaTriggerApplyCooldown" />
   </CEffectSet>
   <CEffectDamage id="MedicDisplacementGrenadeEMPGrenadeTalentShieldDamage" parent="StormSpell">
     <ValidatorArray value="MedicHasEMPGrenadeTalent" />
@@ -4324,10 +4327,14 @@
   <CValidatorUnitCompareBehaviorCount id="MedicDoesNotHaveHealingBeamCasterBuff">
     <Behavior value="MedicCastingHealingBeamBuff" />
   </CValidatorUnitCompareBehaviorCount>
-  <CValidatorUnitCompareBehaviorCount id="MedicDoesNotHaveTraumaTriggerCooldown">
-    <Behavior value="MedicTraumaTriggerCooldown" />
-    <WhichUnit Value="Caster" />
-  </CValidatorUnitCompareBehaviorCount>
+  <CValidatorUnitCompareCooldown id="MedicTraumaTriggerNotOnCooldown">
+    <WhichUnit Value="Source" />
+    <Compare value="LE" />
+    <CooldownLink value="Abil/MedicTraumaTriggerAbility" />
+    <Location value="Unit" />
+    <Ability value="MedicTraumaTriggerAbility" />
+    <Value value="0.0625" />
+  </CValidatorUnitCompareCooldown>
   <CValidatorUnitCompareVital id="MedicHealBeamTargetIsNotFullLife">
     <WhichUnit Effect="MedicHealingBeamCreatePersistent" />
     <Compare value="LT" />

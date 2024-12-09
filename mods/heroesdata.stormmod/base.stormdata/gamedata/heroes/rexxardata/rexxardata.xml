@@ -1683,6 +1683,12 @@
     <Period value="0.0625" />
     <PeriodicEffect value="RexxarUnleashTheBoarsForceSearch" />
   </CBehaviorBuff>
+  <CBehaviorUnitTracker id="RexxarUnleashTheBoarsTargetTracker">
+    <MaxTrackedUnits value="1" />
+  </CBehaviorUnitTracker>
+  <CBehaviorBuff id="RexxarUnleashTheBoardsDamageController">
+    <CancelEffect value="RexxarUnleashTheBoarsEnumTrackedUnit" />
+  </CBehaviorBuff>
   <CButton id="RexxarMishaFollow" parent="StormButtonParent">
     <TooltipAppender Validator="RexxarHasGrizzledFortitudeTalent" Face="RexxarSpiritBondGrizzledFortitudeTalent" />
     <TooltipAppender Validator="RexxarHasHunterGatherer" Text="Button/TooltipAppender/RexxarHunterGatherer" Face="RexxarHunterGathererTalent" />
@@ -2455,8 +2461,22 @@
   </CEffectSet>
   <CEffectCreatePersistent id="RexxarUnleashTheBoarsDelayWeaponDamageCreatePersistent">
     <WhichLocation Value="TargetUnit" />
-    <InitialEffect value="RexxarUnleashTheBoarsImpactSet" />
+    <InitialEffect value="RexxarUnleashTheBoarsAbilityImpactSet" />
   </CEffectCreatePersistent>
+  <CEffectSet id="RexxarUnleashTheBoarsAbilityImpactSet">
+    <EffectArray value="RexxarUnleashTheBoarsAddTargetToTracker" />
+    <EffectArray value="RexxarUnleashTheBoarsDamageControllerCancel" />
+    <EffectArray value="StormSuicide" />
+  </CEffectSet>
+  <CEffectAddTrackedUnit id="RexxarUnleashTheBoarsAddTargetToTracker">
+    <BehaviorLink value="RexxarUnleashTheBoarsTargetTracker" />
+    <TrackedUnit Value="Target" />
+  </CEffectAddTrackedUnit>
+  <CEffectRemoveBehavior id="RexxarUnleashTheBoarsDamageControllerCancel">
+    <WhichUnit Value="Caster" />
+    <BehaviorLink value="RexxarUnleashTheBoardsDamageController" />
+    <CancelBehavior value="1" />
+  </CEffectRemoveBehavior>
   <CEffectDestroyPersistent id="RexxarUnleashTheBoarsDestroyLaunchDelayPersistent">
     <WhichLocation Value="CasterPoint" />
     <Effect value="RexxarUnleashTheBoarsLaunchDelayPersistent" />
@@ -2468,6 +2488,14 @@
     <Player Value="Caster" />
     <Target Effect="RexxarUnleashTheBoarsTargetPersistent" Value="TargetUnit" />
   </CEffectIssueOrder>
+  <CEffectApplyBehavior id="RexxarUnleashTheBoarsApplyDamageController">
+    <Behavior value="RexxarUnleashTheBoardsDamageController" />
+  </CEffectApplyBehavior>
+  <CEffectEnumTrackedUnits id="RexxarUnleashTheBoarsEnumTrackedUnit">
+    <BehaviorLink value="RexxarUnleashTheBoarsTargetTracker" />
+    <TrackerUnit Value="Source" />
+    <Effect value="RexxarUnleashTheBoarsImpactSet" />
+  </CEffectEnumTrackedUnits>
   <CEffectCreatePersistent id="RexxarUnleashTheBoarsLaunchDelayPersistent">
     <WhichLocation Effect="RexxarUnleashTheBoarsInitialSet" Value="OriginPoint" />
     <PeriodCount value="15" />
@@ -2497,6 +2525,7 @@
   <CEffectSet id="RexxarUnleashTheBoarsSpawnSet">
     <EffectArray value="RexxarUnleashTheBoarsIssueAttackOrder" />
     <EffectArray value="RexxarUnleashTheBoarsNoTargetApplyDelay" />
+    <EffectArray value="RexxarUnleashTheBoarsApplyDamageController" />
   </CEffectSet>
   <CEffectCreatePersistent id="RexxarUnleashTheBoarsTargetPersistent">
     <WhichLocation Value="TargetUnit" />
@@ -2953,16 +2982,14 @@
   <CEffectLaunchMissile id="RexxarUnleashTheBoarsLaunchMissile">
     <SharedFlags index="ValidateTeleport" value="0" />
     <AmmoUnit value="RexxarUnleashTheBoarsMissile" />
-    <ImpactEffect value="RexxarUnleashTheBoarsImpactSet" />
+    <ImpactEffect value="RexxarUnleashTheBoarsAbilityImpactSet" />
   </CEffectLaunchMissile>
   <CEffectSet id="RexxarUnleashTheBoarsImpactSet">
     <EffectArray value="RexxarUnleashTheBoarsDamage" />
-    <EffectArray value="RexxarUnleashTheBoarsKillCommandDamage" />
     <EffectArray value="RexxarUnleashTheBoarsRevealPersistent" />
     <EffectArray value="RexxarUnleashTheBoarsApplySlowBehavior" />
     <EffectArray value="RexxarUnleashTheBoarsKillCommandApplyRootBehavior" />
     <EffectArray value="RexxarUnleashtheBoarsApplyRevealer" />
-    <EffectArray value="StormSuicide" />
   </CEffectSet>
   <CEffectCreatePersistent id="RexxarUnleashTheBoarsRevealPersistent">
     <WhichLocation Value="TargetUnit" />
@@ -2984,13 +3011,8 @@
   <CEffectDamage id="RexxarUnleashTheBoarsDamage" parent="StormSpell">
     <Amount value="110" />
     <MultiplicativeModifierArray index="KillCommand" Validator="RexxarCasterHasUnleashTheBoarsKillCommand" Modifier="0.5" />
-    <DamageModifierSource Value="Creator" />
-  </CEffectDamage>
-  <CEffectDamage id="RexxarUnleashTheBoarsKillCommandDamage" parent="StormSpell">
-    <Amount value="110" />
-    <MultiplicativeModifierArray index="KillCommand" Validator="RexxarCasterHasUnleashTheBoarsKillCommand" Modifier="0.5" />
-    <DamageModifierSource Value="Creator" />
-    <Chance value="0" />
+    <Visibility value="Hidden" />
+    <SourceButtonFace value="RexxarUnleashTheBoars" />
   </CEffectDamage>
   <CEffectSet id="RexxarBestialWrathCastSet">
     <EffectArray value="RexxarBestialWrathMishaSearch" />
@@ -3277,14 +3299,6 @@
       <Modifications>
         <Catalog value="Effect" />
         <Entry value="RexxarUnleashTheBoarsDamage" />
-        <Field value="Amount" />
-        <Value value="0.040000" />
-        <AffectedByAbilityPower value="1" />
-        <AffectedByOverdrive value="1" />
-      </Modifications>
-      <Modifications>
-        <Catalog value="Effect" />
-        <Entry value="RexxarUnleashTheBoarsKillCommandDamage" />
         <Field value="Amount" />
         <Value value="0.040000" />
         <AffectedByAbilityPower value="1" />
@@ -3824,20 +3838,6 @@
         <Field value="Chance" />
         <Value value="1.000000" />
       </Modifications>
-      <Modifications>
-        <Type value="FlatModification" />
-        <Catalog value="Effect" />
-        <Entry value="RexxarUnleashTheBoarsDamage" />
-        <Field value="Chance" />
-        <Value value="-1.000000" />
-      </Modifications>
-      <Modifications>
-        <Type value="FlatModification" />
-        <Catalog value="Effect" />
-        <Entry value="RexxarUnleashTheBoarsKillCommandDamage" />
-        <Field value="Chance" />
-        <Value value="1.000000" />
-      </Modifications>
     </AbilityModificationArray>
   </CTalent>
   <CTalent id="RexxarHunterGatherer">
@@ -4053,6 +4053,7 @@
     <MinimapRadius value="0.75" />
     <BehaviorArray Link="RexxarUnleashTheBoarsTimedLife" />
     <BehaviorArray Link="RexxarUnleashTheBoarsForceSearch" />
+    <BehaviorArray Link="RexxarUnleashTheBoarsTargetTracker" />
     <Collide index="Ground" value="1" />
     <Collide index="Structure" value="1" />
     <Collide index="ForceField" value="1" />

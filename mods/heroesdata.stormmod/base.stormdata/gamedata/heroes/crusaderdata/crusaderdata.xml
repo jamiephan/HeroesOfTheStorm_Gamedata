@@ -45,10 +45,13 @@
   </CAbilEffectInstant>
   <CAbilEffectInstant id="CrusaderIndestructible">
     <Effect value="CrusaderIndestructibleAbilityDummySet" />
+    <Flags index="ValidateButtonState" value="0" />
     <Cost>
       <Cooldown TimeUse="120" />
     </Cost>
-    <CmdButtonArray index="Execute" DefaultButtonFace="CrusaderIndestructibleHotbar" />
+    <CmdButtonArray index="Execute" DefaultButtonFace="CrusaderIndestructibleHotbar">
+      <Flags index="IgnoreUser" value="1" />
+    </CmdButtonArray>
   </CAbilEffectInstant>
   <CAbilEffectTarget id="CrusaderShieldGlare">
     <Effect value="CrusaderShieldGlareCreatePersistent" />
@@ -1252,10 +1255,12 @@
     <InfoIcon value="Assets\Textures\storm_btn_d3_monk_breathofheaven.dds" />
     <DisplayDuration index="Self" value="1" />
     <RemoveValidatorArray value="TargetDoesNotHaveAbathurUltimateEvolutionControl" />
+    <DisableValidatorArray value="CrusaderIndestructibleNotOnCooldown" />
     <BuffFlags index="RemoveDamageResponseExhausted" value="0" />
     <DamageResponse>
       <Chance value="1" />
       <Handled value="CrusaderIndestructibleProcSet" />
+      <ValidatorArray value="CrusaderIndestructibleNotOnCooldown" />
       <Priority value="18" />
       <Fatal value="1" />
       <RecordBehaviorShieldDamage value="1" />
@@ -1270,17 +1275,6 @@
     <DamageResponse>
       <ModifyLimitVitalMaxFractionArray index="Life" value="1" />
     </DamageResponse>
-  </CBehaviorBuff>
-  <CBehaviorBuff id="CrusaderIndestructibleCooldown">
-    <Alignment value="Negative" />
-    <BehaviorFlags index="Permanent" value="1" />
-    <BehaviorFlags index="EnabledWhileDead" value="1" />
-    <InfoIcon value="Assets\Textures\storm_ui_icon_devineshield.dds" />
-    <Duration value="120" />
-    <Modification>
-      <BehaviorLinkDisableArray value="CrusaderIndestructible" />
-    </Modification>
-    <InitialEffect value="CrusaderIndestructibleModifyDummyCooldown" />
   </CBehaviorBuff>
   <CBehaviorBuff id="CrusaderPunishDash">
     <Alignment value="Positive" />
@@ -1855,23 +1849,6 @@
   <CEffectSet id="CrusaderIndestructibleAbilityDummySet">
     <ValidatorArray value="AlwaysReturnsFalse" />
   </CEffectSet>
-  <CEffectModifyPlayer id="CrusaderIndestructibleModifyDummyCooldown">
-    <Cost Abil="CrusaderIndestructible">
-      <Cooldown>
-        <Link value="Abil/CrusaderIndestructible" />
-        <Location value="Unit" />
-        <Operation value="Set" />
-        <TimeUse value="120" />
-      </Cooldown>
-    </Cost>
-    <WhichPlayer Value="Caster" />
-  </CEffectModifyPlayer>
-  <CEffectEnumArea id="CrusaderIndestructibleSearchForItem">
-    <SearchFilters value="Item;Ally,Neutral,Enemy" />
-    <AreaArray MaxCount="1" Effect="CrusaderIndestructibleModifyDummyCooldown">
-      <Radius value="2" />
-    </AreaArray>
-  </CEffectEnumArea>
   <CEffectApplyBehavior id="CrusaderLawsOfHopeApplyActiveBehavior">
     <Behavior value="CrusaderLawsOfHopeActive" />
     <WhichUnit Value="Caster" />
@@ -2334,14 +2311,17 @@
   <CEffectApplyBehavior id="CrusaderBlessedHammerImmuneApplyBehavior">
     <Behavior value="CrusaderBlessedHammerImmune" />
   </CEffectApplyBehavior>
-  <CEffectApplyBehavior id="CrusaderIndestructibleCooldownApplyBehavior">
-    <WhichUnit Value="Source" />
-    <Behavior value="CrusaderIndestructibleCooldown" />
-  </CEffectApplyBehavior>
   <CEffectSet id="CrusaderIndestructibleProcSet">
+    <ValidatorArray value="CrusaderIndestructibleNotOnCooldown" />
     <EffectArray value="CrusaderIndestructibleShieldApplyBehavior" />
-    <EffectArray value="CrusaderIndestructibleCooldownApplyBehavior" />
+    <EffectArray value="CrusaderIndestructibleSetCooldown" />
   </CEffectSet>
+  <CEffectModifyUnit id="CrusaderIndestructibleSetCooldown">
+    <ImpactUnit Value="Source" />
+    <Cost Abil="CrusaderIndestructible,Execute" CooldownOperation="Set">
+      <Fraction Cooldown="1" />
+    </Cost>
+  </CEffectModifyUnit>
   <CEffectSet id="CrusaderPunishPrepSet">
     <EffectArray value="DismountDecloakCasterSet" />
     <EffectArray value="AbilityPrepareEffectSuppressTurningApplyBehavior" />
@@ -3753,6 +3733,14 @@
     <Location value="Unit" />
     <WhichUnit Value="Caster" />
     <Compare value="GT" />
+  </CValidatorUnitCompareCooldown>
+  <CValidatorUnitCompareCooldown id="CrusaderIndestructibleNotOnCooldown">
+    <WhichUnit Value="Source" />
+    <Compare value="LE" />
+    <CooldownLink value="Abil/CrusaderIndestructible" />
+    <Location value="Unit" />
+    <Ability value="CrusaderIndestructible" />
+    <Value value="0.0625" />
   </CValidatorUnitCompareCooldown>
   <CValidatorUnitOrderQueue id="CasterCastingCrusaderPunish">
     <AbilLink value="CrusaderPunish" />

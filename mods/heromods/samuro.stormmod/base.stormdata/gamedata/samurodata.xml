@@ -64,7 +64,7 @@
       <Charge Link="Abil/SamuroIllusionMaster" />
       <Cooldown Link="Abil/SamuroIllusionMaster" Location="Player" TimeUse="14" />
     </Cost>
-    <CmdButtonArray index="Execute" DefaultButtonFace="SamuroAdvancingStrikes" ShowValidator="SamuroIllusionMasterNoTargetValidatorCombine" UseValidator="SamuroIllusionMasterNoTargetValidatorCombine" />
+    <CmdButtonArray index="Execute" DefaultButtonFace="SamuroAdvancingStrikes" ShowValidator="SamuroIllusionMasterNoTargetValidatorCombine" UseValidator="SamuroIllusionMasterNoTargetValidatorUseCombine" />
     <SharedFlags index="AllowQuickCastCustomization" value="0" />
   </CAbilEffectInstant>
   <CAbilEffectInstant id="SamuroIllusionMasterImageSelfCast">
@@ -85,7 +85,7 @@
     <CmdButtonArray index="Execute" DefaultButtonFace="IllusionMasterImageSelfCast" Requirements="SamuroMirrorImageHasIllusionMasterTrackingBehavior" />
   </CAbilEffectInstant>
   <CAbilEffectTarget id="SamuroMirrorImageTargeted">
-    <PrepEffect value="DismountCasterSet" />
+    <PrepEffect value="SamuroMirrorImageTargetedPrepSet" />
     <Effect value="SamuroMirrorImageInitialSet" />
     <Flags index="ClearLastMoveTarget" value="1" />
     <Flags index="RequireTargetVision" value="0" />
@@ -133,7 +133,7 @@
     <CmdButtonArray index="Execute" DefaultButtonFace="SamuroMirrorImage" />
   </CAbilEffectInstant>
   <CAbilEffectInstant id="SamuroCriticalStrike">
-    <Effect value="SamuroCriticalStrikeInitialSwitch" />
+    <Effect value="SamuroCriticalStrikeCastSet" />
     <Flags index="Transient" value="1" />
     <Cost>
       <Charge>
@@ -191,6 +191,64 @@
     <SharedFlags index="DisableWhileDead" value="1" />
     <CmdButtonArray index="Execute" DefaultButtonFace="SamuroAdvancingStrikes" />
   </CAbilEffectTarget>
+  <CAccumulatorVitals id="SamuroCasterHealthPositiveAccumulator" parent="BaseVitalAccumulator">
+    <UnitSource Value="Caster" />
+    <VitalType value="Life" />
+    <MaxAccumulation value="1" />
+    <ApplicationRule value="Add" />
+  </CAccumulatorVitals>
+  <CAccumulatorVitals id="SamuroMirrorImageHealthPositiveAccumulator" parent="SamuroCasterHealthPositiveAccumulator">
+    <UnitSource Value="Target" />
+    <Missing value="1" />
+  </CAccumulatorVitals>
+  <CAccumulatorVitals id="SamuroCasterHealthNegativeAccumulator" parent="SamuroCasterHealthPositiveAccumulator">
+    <Ratio value="-1" />
+    <Missing value="1" />
+    <MinAccumulation value="-1" />
+    <MaxAccumulation value="0" />
+  </CAccumulatorVitals>
+  <CAccumulatorVitals id="SamuroMirrorImageHealthNegativeAccumulator" parent="SamuroMirrorImageHealthPositiveAccumulator">
+    <Ratio value="-1" />
+    <Missing value="0" />
+    <MinAccumulation value="-1" />
+    <MaxAccumulation value="0" />
+  </CAccumulatorVitals>
+  <CAccumulatorVitals id="SamuroCasterHealthAccumulator" parent="BaseVitalAccumulator">
+    <VitalType value="Life" />
+    <ModificationType value="PerUnit" />
+    <MaxAccumulation value="452607" />
+    <ApplicationRule value="Add" />
+  </CAccumulatorVitals>
+  <CAccumulatorToken id="SamuroMirrorImageCriticalStrikeTokenAccumulator" parent="BaseTokenAccumulator">
+    <ApplicationRule value="Add" />
+    <TokenId value="SamuroCriticalStrikeTokenCounter" />
+    <MinAccumulation value="0" />
+    <MaxAccumulation value="3" />
+  </CAccumulatorToken>
+  <CAccumulatorToken id="SamuroWayOfIllusionTokenAccumulator" parent="BaseTokenAccumulator">
+    <ApplicationRule value="Add" />
+    <TokenId value="SamuroMirrorImageWayOfIllusionQuestToken" />
+    <MinAccumulation value="0" />
+    <MaxAccumulation value="39" />
+  </CAccumulatorToken>
+  <CAccumulatorToken id="SamuroMirrorImagePressTheAttackTokenAccumulator" parent="BaseTokenAccumulator">
+    <ApplicationRule value="Add" />
+    <TokenId value="SamuroPressTheAttackTokenCounter" />
+    <MinAccumulation value="0" />
+    <MaxAccumulation value="4" />
+  </CAccumulatorToken>
+  <CAccumulatorToken id="SamuroCrushingBlowsAccumulator" parent="BaseTokenAccumulator">
+    <TokenId value="SamuroCrushingBlowsTokenCounter" />
+    <Scale value="0.1" />
+    <MaxAccumulation value="0.3" />
+  </CAccumulatorToken>
+  <CAccumulatorToken id="SamuroPressTheAttackAccumulator" parent="BaseAccumulator">
+    <MaxAccumulation value="0.4" />
+    <ApplicationRule value="Add" />
+    <TokenId value="SamuroPressTheAttackTokenCounter" />
+    <Scale value="0.1" />
+    <UnitSource Value="Target" />
+  </CAccumulatorToken>
   <CAccumulatorToken id="SamuroCriticalStrikeBurningBladeWayOfIllusionDamageAccumulator" parent="BaseAccumulator">
     <ApplicationRule value="Add" />
     <TokenId value="SamuroMirrorImageWayOfIllusionQuestToken" />
@@ -229,8 +287,7 @@
     <Filter index="Enemy" value="1" />
   </CActorSound>
   <CActorSound id="SamuroCriticalStrikeProcSound" parent="SoundOneShot">
-    <On Terms="Behavior.SamuroCriticalStrike.On" Send="Create" />
-    <On Terms="Behavior.SamuroCriticalStrikeMirrorImage.On" Send="Create" />
+    <On Terms="Effect.SamuroCriticalStrikeDummyModify.Start" Send="Create" />
     <Sound value="Samuro_CriticalStrike_Proc" />
   </CActorSound>
   <CActorSound id="Samuro_Attack_Launch" parent="SoundOneShot" />
@@ -368,13 +425,13 @@
     <On Terms="StatusOff.*.Selected" Target="Storm_HeroRing_Selected" Send="Destroy" />
     <On Terms="Signal.*.SamuroSelectionCreateClick" Send="Create SamuroMirrorImageIllusionMasterClick" />
     <On Terms="ActorDestruction" Target="Storm_HeroRing_Selected" Send="StatusSet Selected 0" />
-    <On Terms="Behavior.SamuroCriticalStrikeActivated.On" Send="StatusSet Primed 1" />
-    <On Terms="Behavior.SamuroCriticalStrikeActivated.Off" Send="StatusSet Primed 0" />
+    <On Terms="Behavior.SamuroCriticalStrikeTimed.On" Send="StatusSet Primed 1" />
+    <On Terms="Behavior.SamuroCriticalStrikeTimed.Off" Send="StatusSet Primed 0" />
     <On Terms="TimerSet; IsStatus Primed 1" Send="TimerKill StandReadyOutroDuration" />
-    <On Terms="Behavior.SamuroCriticalStrikeActivated.On" Send="AnimClear Ready" />
-    <On Terms="Behavior.SamuroCriticalStrikeActivated.On" Send="TimerKill StandReadyOutroDuration" />
-    <On Terms="Behavior.SamuroCriticalStrikeActivated.On" Send="AnimGroupApply Ready" />
-    <On Terms="Behavior.SamuroCriticalStrikeActivated.Off" Send="TimerSet 0.250000 StandReadyOutroDuration" />
+    <On Terms="Behavior.SamuroCriticalStrikeTimed.On" Send="AnimClear Ready" />
+    <On Terms="Behavior.SamuroCriticalStrikeTimed.On" Send="TimerKill StandReadyOutroDuration" />
+    <On Terms="Behavior.SamuroCriticalStrikeTimed.On" Send="AnimGroupApply Ready" />
+    <On Terms="Behavior.SamuroCriticalStrikeTimed.Off" Send="TimerSet 0.250000 StandReadyOutroDuration" />
     <On Terms="Behavior.SamuroMirrorImageShake.On" Send="StatusSet Primed 1" />
     <On Terms="Behavior.SamuroMirrorImageShake.Off" Send="StatusSet Primed 0" />
     <On Terms="Behavior.SamuroMirrorImageShake.On" Send="AnimClear Ready" />
@@ -391,31 +448,30 @@
     <On Terms="Abil.SamuroIllusionMasterDummy.SourceCastStart" Send="AnimClear Spell 0.000000" />
     <On Terms="Abil.SamuroIllusionMasterDummy.SourceCastStart" Target="SamuroCriticalStrikeTrailFX" Send="Destroy Immediate" />
     <On Terms="Effect.SamuroMirrorImageRandomPersistent.Start; At Caster" Send="Create SamuroMirrorImageProc" />
-    <On Terms="Behavior.SamuroCriticalStrike.On" Send="Create SamuroCriticalStrikeParticleFX" />
-    <On Terms="Behavior.SamuroCriticalStrike.Off" Target="SamuroCriticalStrikeParticleFX" Send="AnimBracketStop BSD" />
-    <On Terms="Behavior.SamuroCriticalStrikeActivated.On" Send="Create SamuroCriticalStrikeParticleFX" />
-    <On Terms="Behavior.SamuroCriticalStrikeActivated.Off" Target="SamuroCriticalStrikeParticleFX" Send="AnimBracketStop BSD" />
-    <On Terms="Behavior.SamuroCriticalStrike.On; IsStatus Polymorph4 1" Target="SamuroCriticalStrikeParticleFX" Send="StatusIncrement Polymorphed" />
-    <On Terms="Behavior.SamuroCriticalStrikeActivated.On; IsStatus Polymorph4 1" Target="SamuroCriticalStrikeParticleFX" Send="StatusIncrement Polymorphed" />
-    <On Terms="WeaponStart.*.AttackStart; ValidateUnit HasSamuroCriticalStrikeBehaviorOrSamuroCriticalStrikeActivatedBehaviorAndDoesNotHaveWindwalkBehavior" Send="AnimPlay Spell Spell,B 0 0.150000 0.150000" />
+    <On Terms="BehaviorTokenCounter.*.SamuroCriticalStrikeMaxToken" Send="Signal CriticalStrikeCreate" />
+    <On Terms="BehaviorTokenCounter.*.SamuroCriticalStrikeMinToken; ValidateUnit SamuroDoesNotHaveCriticalStrikesTimed" Send="Signal CriticalStrikeDestroy" />
+    <On Terms="Behavior.SamuroCriticalStrikeTimed.On; ValidateUnit SamuroDoesNotHave3CriticalStrikeTokens" Send="Signal CriticalStrikeCreate" />
+    <On Terms="Behavior.SamuroCriticalStrikeTimed.Off; ValidateUnit SamuroDoesNotHave3CriticalStrikeTokens" Send="Signal CriticalStrikeDestroy" />
+    <On Terms="Signal.*.CriticalStrikeCreate" Send="Create SamuroCriticalStrikeParticleFX" />
+    <On Terms="Signal.*.CriticalStrikeDestroy" Target="SamuroCriticalStrikeParticleFX" Send="AnimBracketStop BSD" />
+    <On Terms="Signal.*.CriticalStrikeCreate; IsStatus Polymorph4 1" Target="SamuroCriticalStrikeParticleFX" Send="StatusIncrement Polymorphed" />
+    <On Terms="WeaponStart.*.AttackStart; ValidateUnit SamuroCriticalStrikeCasterCombineAndDoesNotHaveWindwalk" Send="AnimPlay Spell Spell,B 0 0.150000 0.150000" />
     <On Terms="AnimPlay; AnimPlaying Spell Spell,B" Send="AnimClear Attack" />
     <On Terms="AnimPlay; AnimPlaying Spell Spell,D" Send="AnimClear Attack" />
     <On Terms="AnimPlay; AnimPlaying Spell Spell,B" Send="Create SamuroCriticalStrikeTrailFX" />
     <On Terms="AnimPlay; AnimPlaying Spell Spell,D; !AnimPlayingProps Spell,D,Start" Send="Create SamuroCriticalStrikeTrailFX" />
     <On Terms="AnimPlay; AnimPlaying Spell Spell,D" Target="SamuroCriticalStrikeTrailFX" Send="AnimPlay Spell Spell,D" />
-    <On Terms="UnitMovementUpdate.*.Walk; ValidateUnit HasSamuroCriticalStrikeBehaviorOrSamuroCriticalStrikeActivatedBehavior" Target="SamuroCriticalStrikeTrailFX" Send="Destroy" />
+    <On Terms="UnitMovementUpdate.*.Walk; ValidateUnit SamuroCriticalStrikeCasterCombine" Target="SamuroCriticalStrikeTrailFX" Send="Destroy" />
     <On Terms="AnimPlay; AnimPlaying Spell Spell,B,00" Target="SamuroCriticalStrikeTrailFX" Send="AnimPlay Spell Spell,B,00" />
     <On Terms="AnimPlay; AnimPlaying Spell Spell,B,01" Target="SamuroCriticalStrikeTrailFX" Send="AnimPlay Spell Spell,B,01" />
     <On Terms="AnimPlay; AnimPlaying Spell Spell,B,02" Target="SamuroCriticalStrikeTrailFX" Send="AnimPlay Spell Spell,B,02" />
-    <On Terms="Effect.SamuroCriticalStrikeApplyDummyTargetBehavior.Start; At Caster" Send="Create SamuroCriticalStrikeImpactFX" />
-    <On Terms="Effect.SamuroCriticalStrikeApplyDummyTargetBehavior.Start; At Caster; AnimPlaying Spell Spell,B,00" Target="SamuroCriticalStrikeImpactFX" Send="AnimPlay Birth Birth" />
-    <On Terms="Effect.SamuroCriticalStrikeApplyDummyTargetBehavior.Start; At Caster; AnimPlaying Spell Spell,B,01" Target="SamuroCriticalStrikeImpactFX" Send="AnimPlay Birth Birth,B" />
-    <On Terms="Effect.SamuroCriticalStrikeApplyDummyTargetBehavior.Start; At Caster; AnimPlaying Spell Spell,B,02" Target="SamuroCriticalStrikeImpactFX" Send="AnimPlay Birth Birth,C" />
-    <On Terms="Effect.SamuroCriticalStrikeApplyDummyTargetBehavior.Start; At Caster; AnimPlaying Spell Spell,D" Target="SamuroCriticalStrikeImpactFX" Send="AnimPlay Birth Birth" />
-    <On Terms="Behavior.SamuroCriticalStrikeActivated.On" Send="AnimBracketStart Work Work,Start Work Work,End" />
-    <On Terms="Behavior.SamuroCriticalStrikeActivated.Off" Send="AnimBracketStop Work" />
-    <On Terms="Behavior.SamuroCriticalStrike.On" Send="AnimBracketStart Work Work,Start Work Work,End" />
-    <On Terms="Behavior.SamuroCriticalStrike.Off" Send="AnimBracketStop Work" />
+    <On Terms="Effect.SamuroCriticalStrikeDummyModify.Start; At Caster" Send="Create SamuroCriticalStrikeImpactFX" />
+    <On Terms="Effect.SamuroCriticalStrikeDummyModify.Start; At Caster; AnimPlaying Spell Spell,B,00" Target="SamuroCriticalStrikeImpactFX" Send="AnimPlay Birth Birth" />
+    <On Terms="Effect.SamuroCriticalStrikeDummyModify.Start; At Caster; AnimPlaying Spell Spell,B,01" Target="SamuroCriticalStrikeImpactFX" Send="AnimPlay Birth Birth,B" />
+    <On Terms="Effect.SamuroCriticalStrikeDummyModify.Start; At Caster; AnimPlaying Spell Spell,B,02" Target="SamuroCriticalStrikeImpactFX" Send="AnimPlay Birth Birth,C" />
+    <On Terms="Effect.SamuroCriticalStrikeDummyModify.Start; At Caster; AnimPlaying Spell Spell,D" Target="SamuroCriticalStrikeImpactFX" Send="AnimPlay Birth Birth" />
+    <On Terms="Signal.*.CriticalStrikeCreate" Send="AnimBracketStart Work Work,Start Work Work,End" />
+    <On Terms="Signal.*.CriticalStrikeDestroy" Send="AnimBracketStop Work" />
     <On Terms="Behavior.SamuroMirrorImageShake.On" Send="Signal InvisibleModel" />
     <On Terms="Behavior.SamuroMirrorImageShake.Off" Send="Signal RestoreModel" />
     <On Terms="Behavior.SamuroWindwalkMoveSpeedBuff.On" Send="AnimGroupApply Alternate" />
@@ -444,17 +500,17 @@
     <On Terms="StatusIncrement; IsStatus AttackOrder 5" Send="StatusSet AttackOrder 0" />
     <On Terms="Behavior.SamuroAdvancingStrikesMoveSpeedBuff.On" Send="AnimGroupApply Alternate" />
     <On Terms="Behavior.SamuroAdvancingStrikesMoveSpeedBuff.Off; ValidateUnit DoesNotHaveSamuroWindwalkOrInitialWindwalkCloak" Send="AnimGroupRemove Alternate" />
-    <On Terms="Weapon.*.PreswingBeforeAttackStart; !HasStatus Preswing; ValidateUnit HasSamuroCriticalStrikeAndWindwalk" Send="AnimClear Spell" />
-    <On Terms="Weapon.*.PreswingBeforeAttackStart; !HasStatus Preswing; ValidateUnit HasSamuroCriticalStrikeAndWindwalk" Send="AnimPlay Spell Spell,D,Start NonLooping" />
-    <On Terms="Weapon.*.PreswingBeforeAttackStart; !HasStatus Preswing; ValidateUnit HasSamuroCriticalStrikeAndWindwalk" Send="StatusSet Preswing 1" />
-    <On Terms="Weapon.*.PreswingBeforeAttackCancel; ValidateUnit HasSamuroCriticalStrikeAndWindwalk" Send="TimerSet 0.062500 SpellDStartExpiration" />
+    <On Terms="Weapon.*.PreswingBeforeAttackStart; !HasStatus Preswing; ValidateUnit SamuroHasCriticalStrikeAndWindwalk" Send="AnimClear Spell" />
+    <On Terms="Weapon.*.PreswingBeforeAttackStart; !HasStatus Preswing; ValidateUnit SamuroHasCriticalStrikeAndWindwalk" Send="AnimPlay Spell Spell,D,Start NonLooping" />
+    <On Terms="Weapon.*.PreswingBeforeAttackStart; !HasStatus Preswing; ValidateUnit SamuroHasCriticalStrikeAndWindwalk" Send="StatusSet Preswing 1" />
+    <On Terms="Weapon.*.PreswingBeforeAttackCancel; ValidateUnit SamuroHasCriticalStrikeAndWindwalk" Send="TimerSet 0.062500 SpellDStartExpiration" />
     <On Terms="TimerExpired; TimerName SpellDStartExpiration" Send="AnimClear Spell" />
     <On Terms="TimerExpired; TimerName SpellDStartExpiration" Send="StatusSet Preswing 0" />
-    <On Terms="WeaponStart.*.AttackStart; !HasStatus Preswing; ValidateUnit HasSamuroCriticalStrikeAndWindwalk" Send="AnimClear Spell" />
-    <On Terms="WeaponStart.*.AttackStart; !HasStatus Preswing; ValidateUnit HasSamuroCriticalStrikeAndWindwalkAndTargetNotWithinWeaponScanRange" Send="AnimPlay Spell Spell,D,Start NonLooping" />
-    <On Terms="WeaponStart.*.AttackStart; HasStatus Preswing; AnimPlaying Attack; ValidateUnit HasSamuroCriticalStrikeAndWindwalk" Send="AnimPlay Spell Spell,D DontResetOnUnhide" />
-    <On Terms="WeaponStart.*.AttackStart; HasStatus Preswing; ValidateUnit HasSamuroCriticalStrikeAndWindwalk" Send="StatusSet Preswing 0" />
-    <On Terms="WeaponStart.*.AttackStart; ValidateUnit HasSamuroCriticalStrikeAndWindwalkAndTargetWithinWeaponScanRange" Send="AnimPlay Spell Spell,D DontResetOnUnhide" />
+    <On Terms="WeaponStart.*.AttackStart; !HasStatus Preswing; ValidateUnit SamuroHasCriticalStrikeAndWindwalk" Send="AnimClear Spell" />
+    <On Terms="WeaponStart.*.AttackStart; !HasStatus Preswing; ValidateUnit SamuroHasCriticalStrikeAndWindwalkAndTargetNotWithinWeaponScanRange" Send="AnimPlay Spell Spell,D,Start NonLooping" />
+    <On Terms="WeaponStart.*.AttackStart; HasStatus Preswing; AnimPlaying Attack; ValidateUnit SamuroHasCriticalStrikeAndWindwalk" Send="AnimPlay Spell Spell,D DontResetOnUnhide" />
+    <On Terms="WeaponStart.*.AttackStart; HasStatus Preswing; ValidateUnit SamuroHasCriticalStrikeAndWindwalk" Send="StatusSet Preswing 0" />
+    <On Terms="WeaponStart.*.AttackStart; ValidateUnit SamuroHasCriticalStrikeAndWindwalkAndTargetWithinWeaponScanRange" Send="AnimPlay Spell Spell,D DontResetOnUnhide" />
     <On Terms="UnitMovementUpdate.*.Walk; AnimPlaying Spell D" Send="AnimGroupRemove Spell" />
     <On Terms="Behavior.SamuroBladestorm.On" Target="SamuroTauntSliceable" Send="Destroy" />
     <On Terms="UnitTaunt.*.Start; Taunt Tease; IsStatus Bladestorm 0" Send="Create SamuroTauntSliceable" />
@@ -542,8 +598,7 @@
     <Sound value="Talent_SpellShield_launch" />
   </CActorSound>
   <CActorSound id="SamuroCriticalStrikeLaunchSound" parent="SoundOneShot">
-    <On Terms="Behavior.SamuroCriticalStrikeActivated.On" Send="Create" />
-    <On Terms="Behavior.SamuroCriticalStrikeActivatedMirrorImage.On" Send="Create" />
+    <On Terms="Behavior.SamuroCriticalStrikeTimed.On" Send="Create" />
     <Sound value="Samuro_CriticalStrike_Launch" />
   </CActorSound>
   <CActorModel id="SamuroMirrorImageBuffFX" parent="StormModelAnimationStyleContinuousUnit">
@@ -577,13 +632,23 @@
     <On Terms="Signal.*.SamuroSelectionCreateClick" Send="Create SamuroMirrorImageIllusionMasterClick" />
     <On Terms="StatusOff.*.Selected" Target="Storm_HeroRing_Selected" Send="Destroy Immediate" />
     <On Terms="ActorCreation; !HasAllianceTypeWith Enemy" Send="AnimPlay Cover Cover PlayForever" />
+    <On Terms="Effect.SamuroMirrorImageRandomPersistent.Start; At Caster" Send="Create SamuroMirrorImageProc" />
+    <On Terms="Behavior.SamuroCriticalStrikeTimed.On" Send="StatusSet Primed 1" />
+    <On Terms="Behavior.SamuroCriticalStrikeTimed.Off" Send="StatusSet Primed 0" />
+    <On Terms="TimerSet; IsStatus Primed 1" Send="TimerKill StandReadyOutroDuration" />
+    <On Terms="Behavior.SamuroCriticalStrikeTimed.On" Send="AnimClear Ready" />
+    <On Terms="Behavior.SamuroCriticalStrikeTimed.On" Send="TimerKill StandReadyOutroDuration" />
+    <On Terms="Behavior.SamuroCriticalStrikeTimed.On" Send="AnimGroupApply Ready" />
+    <On Terms="Behavior.SamuroCriticalStrikeTimed.Off" Send="TimerSet 0.250000 StandReadyOutroDuration" />
+    <On Terms="Behavior.SamuroMirrorImageShake.On" Send="StatusSet Primed 1" />
+    <On Terms="Behavior.SamuroMirrorImageShake.Off" Send="StatusSet Primed 0" />
+    <On Terms="Behavior.SamuroMirrorImageShake.On" Send="AnimClear Ready" />
+    <On Terms="Behavior.SamuroMirrorImageShake.On" Send="TimerKill StandReadyOutroDuration" />
+    <On Terms="Behavior.SamuroMirrorImageShake.On" Send="AnimGroupApply Ready" />
+    <On Terms="Behavior.SamuroMirrorImageShake.Off" Send="TimerSet 5.500000 StandReadyOutroDuration" />
     <On Terms="Abil.SamuroIllusionMasterDummy.SourceCastStart" Send="AnimClear Attack 0.000000" />
     <On Terms="Abil.SamuroIllusionMasterDummy.SourceCastStart" Send="AnimClear Spell 0.000000" />
     <On Terms="Abil.SamuroIllusionMasterDummy.SourceCastStart" Target="SamuroCriticalStrikeTrailFX" Send="Destroy Immediate" />
-    <On Terms="Effect.SamuroMirrorImageRandomPersistent.Start; At Caster" Send="Create SamuroMirrorImageProc" />
-    <On Terms="ActorCreation" Send="AnimGroupApply Ready" />
-    <On Terms="ActorCreation" Send="TimerKill StandReadyOutroDuration" />
-    <On Terms="ActorCreation" Send="TimerSet 5.000000 StandReadyOutroDuration" />
     <On Terms="ActorCreation; ViewerTreatsUnitAs Detected" Send="Signal HallucinationTintOn" />
     <On Terms="UnitDetectedByViewer.*.On" Send="Signal HallucinationTintOn" />
     <On Terms="UnitDetectedByViewer.*.Off" Send="Signal HallucinationTintOff" />
@@ -592,35 +657,29 @@
     <On Terms="UnitDetectedByViewer.*.On" Send="Create SamuroMirrorImageGlazeEnemy" />
     <On Terms="UnitDetectedByViewer.*.Off" Send="ModelMaterialRemove SamuroMirrorImageGlazeEnemy" />
     <On Terms="ActorDestruction" Target="SamuroMirrorImageBuffFX" Send="AnimBracketStop BSD" />
-    <On Terms="WeaponStart.*.AttackStart; ValidateUnit HasSamuroCriticalStrikeBehaviorOrSamuroCriticalStrikeActivatedBehavior" Send="AnimPlay Spell Spell,B 0 0.150000 0.150000" />
-    <On Terms="Behavior.SamuroCriticalStrike.On" Send="Create SamuroCriticalStrikeParticleFX" />
-    <On Terms="Behavior.SamuroCriticalStrike.Off" Target="SamuroCriticalStrikeParticleFX" Send="AnimBracketStop BSD" />
-    <On Terms="Behavior.SamuroCriticalStrikeActivated.On" Send="Create SamuroCriticalStrikeParticleFX" />
-    <On Terms="Behavior.SamuroCriticalStrikeActivated.Off" Target="SamuroCriticalStrikeParticleFX" Send="AnimBracketStop BSD" />
-    <On Terms="Behavior.SamuroCriticalStrike.On; IsStatus Polymorph4 1" Target="SamuroCriticalStrikeParticleFX" Send="StatusIncrement Polymorphed" />
-    <On Terms="Behavior.SamuroCriticalStrikeActivated.On; IsStatus Polymorph4 1" Target="SamuroCriticalStrikeParticleFX" Send="StatusIncrement Polymorphed" />
+    <On Terms="BehaviorTokenCounter.*.SamuroCriticalStrikeMaxToken" Send="Signal CriticalStrikeCreate" />
+    <On Terms="BehaviorTokenCounter.*.SamuroCriticalStrikeMinToken; ValidateUnit SamuroDoesNotHaveCriticalStrikesTimed" Send="Signal CriticalStrikeDestroy" />
+    <On Terms="Behavior.SamuroCriticalStrikeTimed.On; ValidateUnit SamuroDoesNotHave3CriticalStrikeTokens" Send="Signal CriticalStrikeCreate" />
+    <On Terms="Behavior.SamuroCriticalStrikeTimed.Off; ValidateUnit SamuroDoesNotHave3CriticalStrikeTokens" Send="Signal CriticalStrikeDestroy" />
+    <On Terms="Signal.*.CriticalStrikeCreate" Send="Create SamuroCriticalStrikeParticleFX" />
+    <On Terms="Signal.*.CriticalStrikeDestroy" Target="SamuroCriticalStrikeParticleFX" Send="AnimBracketStop BSD" />
+    <On Terms="Signal.*.CriticalStrikeCreate; IsStatus Polymorph4 1" Target="SamuroCriticalStrikeParticleFX" Send="StatusIncrement Polymorphed" />
+    <On Terms="WeaponStart.*.AttackStart; ValidateUnit SamuroCriticalStrikeCasterCombine" Send="AnimPlay Spell Spell,B 0 0.150000 0.150000" />
     <On Terms="AnimPlay; AnimPlaying Spell Spell,B" Send="AnimClear Attack" />
     <On Terms="AnimPlay; AnimPlaying Spell Spell,B" Send="Create SamuroCriticalStrikeTrailFX" />
     <On Terms="AnimPlay; AnimPlaying Spell Spell,B,00" Target="SamuroCriticalStrikeTrailFX" Send="AnimPlay Spell Spell,B,00" />
     <On Terms="AnimPlay; AnimPlaying Spell Spell,B,01" Target="SamuroCriticalStrikeTrailFX" Send="AnimPlay Spell Spell,B,01" />
     <On Terms="AnimPlay; AnimPlaying Spell Spell,B,02" Target="SamuroCriticalStrikeTrailFX" Send="AnimPlay Spell Spell,B,02" />
-    <On Terms="Effect.SamuroCriticalStrikeApplyDummyTargetBehavior.Start; At Caster" Send="Create SamuroCriticalStrikeImpactFX" />
-    <On Terms="Effect.SamuroCriticalStrikeApplyDummyTargetBehavior.Start; At Caster; AnimPlaying Spell Spell,B,00" Target="SamuroCriticalStrikeImpactFX" Send="AnimPlay Birth Birth" />
-    <On Terms="Effect.SamuroCriticalStrikeApplyDummyTargetBehavior.Start; At Caster; AnimPlaying Spell Spell,B,01" Target="SamuroCriticalStrikeImpactFX" Send="AnimPlay Birth Birth,B" />
-    <On Terms="Effect.SamuroCriticalStrikeApplyDummyTargetBehavior.Start; At Caster; AnimPlaying Spell Spell,B,02" Target="SamuroCriticalStrikeImpactFX" Send="AnimPlay Birth Birth,C" />
-    <On Terms="Behavior.SamuroCriticalStrikeActivated.On" Send="AnimBracketStart Work Work,Start Work Work,End" />
-    <On Terms="Behavior.SamuroCriticalStrikeActivated.Off" Send="AnimBracketStop Work" />
-    <On Terms="Behavior.SamuroCriticalStrike.On" Send="AnimBracketStart Work Work,Start Work Work,End" />
-    <On Terms="Behavior.SamuroCriticalStrike.Off" Send="AnimBracketStop Work" />
-    <On Terms="Abil.SamuroCriticalStrike.SourceCastStart" Send="AnimGroupApply Ready" />
-    <On Terms="Abil.SamuroCriticalStrike.SourceCastStart" Send="TimerKill StandReadyOutroDuration" />
-    <On Terms="Abil.SamuroCriticalStrike.SourceCastStart" Send="TimerSet 5.000000 StandReadyOutroDuration" />
+    <On Terms="Effect.SamuroCriticalStrikeDummyModify.Start; At Caster" Send="Create SamuroCriticalStrikeImpactFX" />
+    <On Terms="Effect.SamuroCriticalStrikeDummyModify.Start; At Caster; AnimPlaying Spell Spell,B,00" Target="SamuroCriticalStrikeImpactFX" Send="AnimPlay Birth Birth" />
+    <On Terms="Effect.SamuroCriticalStrikeDummyModify.Start; At Caster; AnimPlaying Spell Spell,B,01" Target="SamuroCriticalStrikeImpactFX" Send="AnimPlay Birth Birth,B" />
+    <On Terms="Effect.SamuroCriticalStrikeDummyModify.Start; At Caster; AnimPlaying Spell Spell,B,02" Target="SamuroCriticalStrikeImpactFX" Send="AnimPlay Birth Birth,C" />
+    <On Terms="Signal.*.CriticalStrikeCreate" Send="AnimBracketStart Work Work,Start Work Work,End" />
+    <On Terms="Signal.*.CriticalStrikeDestroy" Send="AnimBracketStop Work" />
     <On Terms="ActorCreation" Send="Create SamuroMirrorImageGlaze" />
     <On Terms="Behavior.SamuroMirrorImageShake.On" Send="Signal InvisibleModel" />
     <On Terms="Behavior.SamuroMirrorImageShake.Off" Send="Signal RestoreModel" />
     <On Terms="Effect.SamuroMirrorImageInitialSet.Start" Send="Create SamuroMirrorImageCast" />
-    <On Terms="Behavior.SamuroWindwalkInitialCloak.On" Send="SetOpacity 0.300000 0.500000 Windwalk" />
-    <On Terms="Behavior.SamuroWindwalkInitialCloak.Off" Send="ClearOpacity 0.500000 Windwalk" />
     <On Terms="Behavior.SamuroBladestorm.On" Send="HostSiteOpsSet ::Host SOpPointSouthWorld 0 1" />
     <On Terms="Behavior.SamuroBladestorm.Off" Send="HostSiteOpsSet ::Host" />
     <On Terms="Behavior.SamuroBladestorm.On" Send="Create SamuroBladestormBuff" />
@@ -843,10 +902,6 @@
     <Model value="SamuroMirrorImageSplat" />
     <HostSiteOps Ops="SOpBasicScopeFollow SOpLookAtCursor SOpMoveBackBy2 SOpMoveBackByDot5 SOpMoveRightBy3 SOpMoveRightByDot5" HoldRotation="0" />
   </CActorSplat>
-  <CBehaviorBuff id="SamuroAdvancingStrikesDummyBehavior">
-    <Alignment value="Positive" />
-    <Duration value="2" />
-  </CBehaviorBuff>
   <CBehaviorTokenCounter id="SamuroBladestormDanceOfDeathTokenCounter" parent="BribeParent">
     <Tooltip value="Behavior/Tooltip/SamuroDanceOfDeathTokenCountTalent" />
     <TokenId value="SamuroBladestormDanceOfDeathTokenCounter" />
@@ -857,58 +912,26 @@
     <Face value="SamuroDanceOfDeathTokenCountTalent" />
     <SortIndex value="110" />
   </CBehaviorTokenCounter>
-  <CBehaviorBuff id="SamuroCriticalStrikeActivatedMirrorImage">
+  <CBehaviorBuff id="SamuroCriticalStrikeWayOfTheBladeTokenDummy">
+    <Duration value="0.0625" />
+    <EnableEffect value="SamuroCriticalStrikeWayOfTheBladeAddTokenAtZero" />
+  </CBehaviorBuff>
+  <CBehaviorBuff id="SamuroMercilessStrikesCasterMarker">
+    <Duration value="0.0625" />
+  </CBehaviorBuff>
+  <CBehaviorBuff id="SamuroCriticalStrikeTimed">
     <Alignment value="Positive" />
-    <Aliases value="RangedDamageCrit" />
-    <RemoveValidatorArray value="SamuroHasGTE2CritStacks" />
-    <BuffFlags index="UpdateDurationWhileDisabled" value="1" />
+    <InitialEffect value="SamuroCriticalStrikeSetSourceTokenCountToMax" />
+    <FinalEffect value="SamuroCriticalStrikeSetSourceTokenCountTo0" />
     <Duration value="8" />
-    <ExpireEffect value="SamuroCriticalStrikeRemoveCriticalStrikeCountBehavior" />
-    <Modification>
-      <DamageDealtFraction index="Basic" value="0.5" />
-    </Modification>
-    <DamageResponse>
-      <Chance value="1" />
-      <Handled value="SamuroCriticalStrikeActivatedDamageResponseSet" />
-      <Location value="Attacker" />
-      <DamageValue value="Original" />
-      <ExcludeEffectArray value="SamuroBladestormDamage" />
-      <ExcludeEffectArray value="SamuroCriticalStrikeBurningBladeSplashDamage" />
-      <ExcludeEffectArray value="SamuroMirrorImageCriticalStrikeBurningBladeSplashDamage" />
-    </DamageResponse>
   </CBehaviorBuff>
-  <CBehaviorBuff id="SamuroCriticalStrikeCrushingBlowsTalentBuff">
-    <Face value="SamuroOverpoweringBlow" />
-    <Alignment value="Positive" />
-    <InfoFlags index="Hidden" value="0" />
-    <BuffFlags index="RefreshStack" value="1" />
-    <SortIndex value="40" />
-    <MaxStackCount value="3" />
-    <Duration value="4" />
-    <Modification>
-      <DamageDealtFraction index="Basic" value="0.1" />
-    </Modification>
-  </CBehaviorBuff>
-  <CBehaviorBuff id="SamuroCriticalStrikeMirrorImage">
+  <CBehaviorTokenCounter id="SamuroCriticalStrikeTokenCounter" parent="StormGenericToken">
     <Face value="SamuroCriticalStrikeBuffFace" />
-    <Alignment value="Positive" />
-    <Aliases value="RangedDamageCrit" />
-    <RemoveValidatorArray value="SamuroHasGTE2CritStacks" />
-    <BuffFlags index="UpdateDurationWhileDisabled" value="1" />
-    <Modification>
-      <DamageDealtFraction index="Basic" value="0.5" />
-    </Modification>
-    <DamageResponse>
-      <Chance value="1" />
-      <Handled value="SamuroCriticalStrikeClearBehaviorsPersistent" />
-      <Location value="Attacker" />
-      <DamageValue value="Original" />
-      <ExcludeEffectArray value="SamuroBladestormDamage" />
-      <ExcludeEffectArray value="SamuroCriticalStrikeBurningBladeSplashDamage" />
-      <ExcludeEffectArray value="SamuroMirrorImageCriticalStrikeBurningBladeSplashDamage" />
-      <ExcludeEffectArray value="SamuroZanbatouDamage" />
-    </DamageResponse>
-  </CBehaviorBuff>
+    <Max value="3" />
+    <DecreaseEvents EventId="SamuroCriticalStrikeMinToken" ValidRange="0,1" />
+    <AtMaxEvents EventId="SamuroCriticalStrikeMaxToken" />
+  </CBehaviorTokenCounter>
+  <CBehaviorTokenCounter id="SamuroCriticalStrikeTokenCounterMirrorImage" parent="SamuroCriticalStrikeTokenCounter" />
   <CBehaviorBuff id="SamuroMirrorImageIllusionMasterTrackingBehavior">
     <Alignment value="Positive" />
     <DisableValidatorArray value="CasterNotStunned" />
@@ -947,8 +970,15 @@
     <Duration value="2" />
   </CBehaviorBuff>
   <CBehaviorBuff id="MirrorImageAIToggledOff" />
+  <CBehaviorBuff id="SamuroMirrorImageTransferController" parent="CarryBehaviorParent">
+    <CancelEffect value="SamuroMirrorImageTransferControllerActivateSet" />
+  </CBehaviorBuff>
   <CBehaviorUnitTracker id="SamuroMirrorImageUnitTracker">
     <MaxTrackedUnits value="10" />
+    <UnitAddedAtMaxRule value="ReplaceOldest" />
+  </CBehaviorUnitTracker>
+  <CBehaviorUnitTracker id="SamuroMirrorImageCreatorTracker">
+    <MaxTrackedUnits value="1" />
     <UnitAddedAtMaxRule value="ReplaceOldest" />
   </CBehaviorUnitTracker>
   <CBehaviorTokenCounter id="SamuroMirrorImageWayOfIllusionQuestToken" parent="StormQuestToken">
@@ -957,57 +987,60 @@
     <Max value="40" />
     <SortIndex value="10" />
   </CBehaviorTokenCounter>
-  <CBehaviorTokenCounter id="SamuroMirrorImageWayOfIllusionQuestTokenClone" parent="StormQuestToken">
+  <CBehaviorTokenCounter id="SamuroMirrorImageWayOfIllusionQuestTokenMirrorImage" parent="StormQuestToken">
+    <TokenId value="SamuroMirrorImageWayOfIllusionQuestToken" />
     <Face value="SamuroWayOfIllusionQuestToken" />
     <Max value="40" />
-    <TokenId value="SamuroMirrorImageWayOfIllusionQuestToken" />
-    <IncreaseEvents index="0" removed="1" />
     <SortIndex value="10" />
+    <DecreaseEvents index="0" removed="1" />
+    <IncreaseEvents index="0" removed="1" />
+  </CBehaviorTokenCounter>
+  <CBehaviorTokenCounter id="SamuroMirrorImageWayOfIllusionQuestTokenMirrorImageNoComplete" parent="SamuroMirrorImageWayOfIllusionQuestTokenMirrorImage">
+    <Init value="40" />
+    <Min value="40" />
+    <AtMaxEvents index="0" removed="1" />
   </CBehaviorTokenCounter>
   <CBehaviorBuff id="SamuroStopSpecialDisableAggroBehavior">
     <Alignment value="Positive" />
     <InfoFlags index="Hidden" value="0" />
     <InfoIcon value="Assets\Textures\storm_temp_war3_btnheroblademaster.dds" />
   </CBehaviorBuff>
-  <CBehaviorBuff id="SamuroCriticalStrikeActivated">
-    <Alignment value="Positive" />
-    <Aliases value="RangedDamageCrit" />
-    <RemoveValidatorArray value="SamuroHasGTE2CritStacks" />
-    <BuffFlags index="UpdateDurationWhileDisabled" value="1" />
-    <Duration value="8" />
-    <ExpireEffect value="SamuroCriticalStrikeRemoveCriticalStrikeCountBehavior" />
+  <CBehaviorBuff id="SamuroPressTheAttackCarry" parent="CarryBehaviorParent">
+    <InitialEffect value="SamuroPressTheAttackApplyInitialDelayed" />
+    <DisableValidatorArray value="SamuroTargetHasAdvancingStrikesActive" />
     <Modification>
-      <DamageDealtFraction index="Basic" value="0.5" />
+      <AdditiveAttackSpeedFactor value="0">
+        <AccumulatorArray value="SamuroPressTheAttackAccumulator" />
+      </AdditiveAttackSpeedFactor>
     </Modification>
-    <DamageResponse>
-      <Chance value="1" />
-      <Handled value="SamuroCriticalStrikeActivatedDamageResponseSet" />
-      <Location value="Attacker" />
-      <DamageValue value="Original" />
-      <ExcludeEffectArray value="SamuroBladestormDamage" />
-      <ExcludeEffectArray value="SamuroCriticalStrikeBurningBladeSplashDamage" />
-      <ExcludeEffectArray value="SamuroMirrorImageCriticalStrikeBurningBladeSplashDamage" />
-      <ExcludeEffectArray value="SamuroZanbatouDamage" />
-    </DamageResponse>
   </CBehaviorBuff>
-  <CBehaviorBuff id="SamuroAdvancingStrikesPressTheAttackAttackSpeedBuff">
+  <CBehaviorTokenCounter id="SamuroPressTheAttackTokenCounter" parent="StormGenericToken">
+    <Max value="4" />
     <Alignment value="Positive" />
+    <MinStackCountDisplayed value="1" />
+    <DisplayDurationProxyBehavior value="SamuroAdvancingStrikesMoveSpeedBuff" />
     <Face value="SamuroPressTheAttack" />
-    <InfoFlags index="Hidden" value="0" />
     <SortIndex value="75" />
-    <RemoveValidatorArray value="SamuroTargetHasAdvancingStrikesActive" />
-    <MaxStackCount value="4" />
-    <Modification>
-      <AdditiveAttackSpeedFactor value="0.1" />
-    </Modification>
-    <BuffFlags index="RefreshStack" value="1" />
-    <Duration value="2" />
-  </CBehaviorBuff>
+  </CBehaviorTokenCounter>
   <CBehaviorBuff id="SamuroMirrorImageSelectedBehavior" />
-  <CBehaviorBuff id="SamuroCriticalStrikeCrushingBlowsCarryBehavior">
-    <BehaviorFlags index="Permanent" value="1" />
-    <BehaviorFlags index="EnabledWhileDead" value="1" />
+  <CBehaviorBuff id="SamuroCrushingBlowsTimerBuff">
+    <Face value="SamuroOverpoweringBlow" />
+    <Alignment value="Positive" />
+    <InfoFlags index="Hidden" value="1" />
+    <BuffFlags index="RefreshStack" value="1" />
+    <Duration value="4" />
+    <InitialEffect value="SamuroCrushingBlowsIncrementTokenCounter" />
+    <RefreshEffect value="SamuroCrushingBlowsIncrementTokenCounter" />
+    <FinalEffect value="SamuroCrushingBlowsResetTokenCounter" />
   </CBehaviorBuff>
+  <CBehaviorTokenCounter id="SamuroCrushingBlowsTokenCounter" parent="StormGenericToken">
+    <Max value="3" />
+    <Alignment value="Positive" />
+    <MinStackCountDisplayed value="1" />
+    <DisplayDurationProxyBehavior value="SamuroCrushingBlowsTimerBuff" />
+    <Face value="SamuroOverpoweringBlow" />
+    <SortIndex value="30" />
+  </CBehaviorTokenCounter>
   <CBehaviorTokenCounter id="SamuroWindWalkWayOfTheWindQuestToken" parent="StormQuestToken">
     <Face value="SamuroWayOfTheWindQuestToken" />
     <AtMaxEvents index="0" EventId="QuestComplete" Effect="SamuroWindWalkWayOfTheWindQuestCompleteModifyPlayer" />
@@ -1023,10 +1056,6 @@
   <CBehaviorBuff id="SamuroWindwalkHarshWindsVulnerabilityBehavior">
     <Alignment value="Negative" />
     <Duration value="3" />
-    <DamageResponse Chance="1" ModifyFraction="1.3">
-      <ValidatorArray value="SamuroSourceHasHarshWinds" />
-      <ValidatorArray value="TargetisNotSamuroMirrorImage" />
-    </DamageResponse>
     <RemoveValidatorArray value="TargetNotInvulnerable" />
   </CBehaviorBuff>
   <CBehaviorBuff id="SamuroWindwalkHoT">
@@ -1073,6 +1102,7 @@
     <Modification>
       <UnifiedMoveSpeedFactor value="0.25" />
     </Modification>
+    <FinalEffect value="SamuroPressTheAttackResetTokenCount" />
   </CBehaviorBuff>
   <CBehaviorBuff id="SamuroDopplegangerSupressAttackOrderBehavior">
     <Duration value="0.5" />
@@ -1099,8 +1129,6 @@
     <Duration value="0.125" />
     <Modification PushPriority="5000" AlliedPushPriority="5000">
       <StateFlags index="SuppressDetection" value="1" />
-      <AbilLinkDisableArray value="SamuroBladestorm" />
-      <AbilLinkDisableArray value="SamuroBladeStormDummy" />
     </Modification>
     <DisplayPriority value="8" />
     <ExpireEffect value="SamuroMirrorImageShakeBehaviorFinalSet" />
@@ -1139,34 +1167,6 @@
     <MaxStackCount value="4" />
     <RemoveValidatorArray value="SamuroMirrorImageCreateUnitTargetNotDead" />
   </CBehaviorBuff>
-  <CBehaviorBuff id="SamuroCriticalStrike">
-    <Alignment value="Positive" />
-    <BuffFlags index="UpdateDurationWhileDisabled" value="1" />
-    <Modification>
-      <DamageDealtFraction index="Basic" value="0.5" />
-    </Modification>
-    <DamageResponse>
-      <Chance value="1" />
-      <Handled value="SamuroCriticalStrikeClearBehaviorsPersistent" />
-      <Location value="Attacker" />
-      <DamageValue value="Original" />
-      <ExcludeEffectArray value="SamuroBladestormDamage" />
-      <ExcludeEffectArray value="SamuroCriticalStrikeBurningBladeSplashDamage" />
-      <ExcludeEffectArray value="SamuroMirrorImageCriticalStrikeBurningBladeSplashDamage" />
-      <ExcludeEffectArray value="SamuroZanbatouDamage" />
-    </DamageResponse>
-    <RemoveValidatorArray value="SamuroHasGTE2CritStacks" />
-    <Aliases value="RangedDamageCrit" />
-    <Face value="SamuroCriticalStrikeBuffFace" />
-  </CBehaviorBuff>
-  <CBehaviorBuff id="SamuroCriticalStrikeCounterBehavior">
-    <Alignment value="Positive" />
-    <InfoIcon value="Assets\Textures\storm_ui_icon_samuro_criticalstrike.dds" />
-    <MaxStackCount value="3" />
-  </CBehaviorBuff>
-  <CBehaviorBuff id="SamuroCriticalStrikeDummyBehavior">
-    <Duration value="0.0625" />
-  </CBehaviorBuff>
   <CBehaviorBuff id="SamuroWindwalkInitialCloak" parent="StormUnrevealableCloak">
     <Duration value="1" />
     <FinalEffect value="SamuroWindWalkOneWiththeWindExitStealthSetCaster" />
@@ -1181,7 +1181,7 @@
     <DisplayDuration index="Enemy" value="1" />
     <DisableValidatorArray value="TargetDoesNotHaveInCargo" />
     <RemoveValidatorArray value="SamuroHasMirrorImageShakeOrCasterNotInStasisExceptTimeStop" />
-    <RemoveValidatorArray value="CasterNotDeadOrSilencedOrStasisOrStunnedExceptTimeStop" />
+    <RemoveValidatorArray value="SamuroHasMirrorImageShackOrDoesNotHaveDeadSilencedStasisStunnedExceptTimeStop" />
     <BuffFlags index="UpdateDurationWhileDisabled" value="1" />
     <Duration value="3" />
     <Period value="0.2" />
@@ -1225,11 +1225,12 @@
     <PeriodicDisplayEffect value="SamuroWindwalkPeriodicHealer" />
     <FinalEffect value="SamuroWindwalkFinalSet" />
   </CBehaviorBuff>
-  <CBehaviorBuff id="SamuroWindwalkMoveSpeedBuff" parent="CarryBehaviorParent">
+  <CBehaviorBuff id="SamuroWindwalkMoveSpeedBuff">
     <Alignment value="Positive" />
     <InfoIcon value="Assets\Textures\storm_temp_war3_btnwindwalkon.dds" />
     <BehaviorCategories index="Fast" value="1" />
-    <DisableValidatorArray value="HasSamuroWindWalkCloakBehavior" />
+    <Duration value="10" />
+    <RemoveValidatorArray value="HasSamuroWindWalkCloakBehavior" />
     <Modification>
       <StateFlags index="SuppressCollision" value="1" />
       <UnifiedMoveSpeedFactor value="0.2">
@@ -1252,6 +1253,8 @@
       <Priority value="55" />
       <Kind index="Ability" value="0" />
       <ProvideCategories index="Proc" value="1" />
+      <ValidateEffectAliasesOp value="ExcludeHasAny" />
+      <ValidateEffectAliases value="IgnorePositiveArmor" />
     </DamageResponse>
     <ArmorModification>
       <ArmorSet index="Hero">
@@ -1509,10 +1512,6 @@
   <CEffectModifyTokenCount id="MirrorImageWayOfIllusionIncrementImageQuestProgress" parent="BaseEffectModifyTokenCount">
     <TokenId value="SamuroMirrorImageWayOfIllusionQuestToken" />
   </CEffectModifyTokenCount>
-  <CEffectApplyBehavior id="SamuroAdvancingStrikesDummyBehavior">
-    <ValidatorArray index="0" value="TargetIsHero" />
-    <WhichUnit Value="Caster" />
-  </CEffectApplyBehavior>
   <CEffectSwitch id="SamuroBladestormDamageSwitch">
     <CaseArray Validator="CasterisSamuroMirrorImage" Effect="SamuroBladestormMirrorImageDamage" />
     <CaseDefault value="SamuroBladestormDamage" />
@@ -1532,27 +1531,29 @@
     <Marker Link="Effect/SamuroBladestormDamage" />
     <Amount value="16.2" />
   </CEffectDamage>
-  <CEffectApplyBehavior id="SamuroCriticalStrikeActivatedApplyBehaviorMirrorImage">
-    <ValidatorArray index="0" value="DoesNotHaveSamuroCriticalStrike" />
-    <ValidatorArray value="CasterisSamuroMirrorImage" />
+  <CEffectApplyBehavior id="SamuroCrushingBlowsApplyTimerBuff">
     <WhichUnit Value="Caster" />
-    <Behavior value="SamuroCriticalStrikeActivatedMirrorImage" />
+    <Behavior value="SamuroCrushingBlowsTimerBuff" />
+    <ValidatorArray value="SamuroHasCrushingBlowTalent" />
+    <ValidatorArray value="TargetIsHero" />
+    <ValidatorArray value="CasterisNotSamuroMirrorImage" />
   </CEffectApplyBehavior>
-  <CEffectApplyBehavior id="SamuroCriticalStrikeApplyBehaviorCasterMirrorImage">
-    <ValidatorArray index="0" value="CasterisSamuroMirrorImage" />
-    <WhichUnit Value="Caster" />
-    <Behavior value="SamuroCriticalStrikeMirrorImage" />
-  </CEffectApplyBehavior>
-  <CEffectApplyBehavior id="SamuroCriticalStrikeApplyBehaviorRedirectTargetMirrorImage">
-    <ValidatorArray index="0" value="SamuroTargetIsMirrorImage" />
-    <Behavior value="SamuroCriticalStrikeMirrorImage" />
-  </CEffectApplyBehavior>
-  <CEffectCreatePersistent id="SamuroCriticalStrikeBackswingDelayPersistent">
-    <Flags index="PersistUntilDestroyed" value="1" />
-    <FinalEffect value="SamuroCriticalStrikeInitialSet" />
-    <PeriodicValidator value="SamuroWeaponisinSwingorBackswingState" />
-    <PeriodicPeriodArray value="0.0625" />
-  </CEffectCreatePersistent>
+  <CEffectModifyTokenCount id="SamuroCrushingBlowsIncrementTokenCounter" parent="BaseEffectModifyTokenCount">
+    <TokenId value="SamuroCrushingBlowsTokenCounter" />
+  </CEffectModifyTokenCount>
+  <CEffectModifyTokenCount id="SamuroCrushingBlowsResetTokenCounter" parent="BaseEffectModifyTokenCount">
+    <TokenId value="SamuroCrushingBlowsTokenCounter" />
+    <Operation value="Set" />
+    <Value value="0" />
+  </CEffectModifyTokenCount>
+  <CEffectSet id="SamuroCriticalStrikeCrushingBlowTalentProcSet">
+    <ValidatorArray value="TargetIsHero" />
+    <ValidatorArray value="SamuroHasCrushingBlowTalent" />
+    <ValidatorArray value="CasterNotBlindedAndTargetNotEvading" />
+    <ValidatorArray value="CasterisNotSamuroMirrorImage" />
+    <EffectArray value="SamuroCriticalStrikeCrushingBlowTalentModifyCooldown" />
+    <EffectArray value="SamuroCriticalStrikeCrushingBlowTalentEnumerateTrackedUnit" />
+  </CEffectSet>
   <CEffectEnumTrackedUnits id="SamuroCriticalStrikeCrushingBlowTalentEnumerateTrackedUnit">
     <BehaviorLink value="SamuroMirrorImageUnitTracker" />
     <Effect value="SamuroCriticalStrikeCrushingBlowTalentModifyMirrorImageCooldown" />
@@ -1567,45 +1568,14 @@
       <CooldownTimeUse value="-1" />
     </Cost>
   </CEffectModifyUnit>
-  <CEffectApplyBehavior id="SamuroCriticalStrikeCrushingBlowsTalentApplyBuff">
-    <WhichUnit Value="Caster" />
-    <Behavior value="SamuroCriticalStrikeCrushingBlowsTalentBuff" />
-    <ValidatorArray index="0" value="CasterNotBlindedAndTargetNotEvading" />
-    <ValidatorArray value="SamuroHasCrushingBlowTalent" />
-    <ValidatorArray value="HasSamuroCriticalStrikeBehaviorOrSamuroCriticalStrikeActivatedBehavior" />
-    <ValidatorArray value="TargetIsHero" />
-    <ValidatorArray value="CasterisNotSamuroMirrorImage" />
-  </CEffectApplyBehavior>
-  <CEffectModifyPlayer id="SamuroCriticalStrikePhantomPainTalentModifyCooldown">
-    <ValidatorArray value="SamuroHasPhantomPainTalent" />
-    <ValidatorArray value="HasSamuroCriticalStrikeBehaviorOrSamuroCriticalStrikeActivatedBehavior" />
-    <ValidatorArray value="CasterNotBlindedAndTargetNotEvading" />
-    <ValidatorArray value="TargetIsHero" />
-    <ValidatorArray value="CasterisNotSamuroMirrorImage" />
-    <WhichPlayer Value="Caster" />
+  <CEffectModifyUnit id="SamuroCriticalStrikeCrushingBlowTalentModifyMirrorImageCooldown">
     <Cost>
-      <Cooldown>
-        <Link value="Abil/SamuroIllusionMaster" />
-        <Location value="Player" />
-        <Operation value="Add" />
-        <TimeUse value="-1" />
-      </Cooldown>
+      <Abil value="SamuroCriticalStrikeDummy,Execute" />
+      <ChargeTimeUse value="-2" />
+      <CooldownOperation value="Add" />
+      <CooldownTimeUse value="-1" />
     </Cost>
-  </CEffectModifyPlayer>
-  <CEffectApplyBehavior id="SamuroCriticalStrikeWayOfTheBladePhysicalArmorDebuffApplyBehavior">
-    <ValidatorArray value="CasterNotBlindedAndTargetNotEvading" />
-    <ValidatorArray value="SamuroHasWayoftheBlade" />
-    <ValidatorArray value="HasSamuroCriticalStrikeBehaviorOrSamuroCriticalStrikeActivatedBehavior" />
-    <ValidatorArray value="TargetIsHero" />
-    <Behavior value="SamuroCriticalStrikeWayOfTheBladePhysicalArmorDebuff" />
-  </CEffectApplyBehavior>
-  <CEffectEnumTrackedUnits id="SamuroHeroWeaponCriticalStrikePhantomPainTalentEnumerateDecrement">
-    <ValidatorArray value="TargetIsHero" />
-    <ValidatorArray value="CasterisNotSamuroMirrorImage" />
-    <ValidatorArray value="SamuroHasPhantomPainTalent" />
-    <BehaviorLink value="SamuroMirrorImageUnitTracker" />
-    <Effect value="SamuroCriticalStrikePhantomPainSubtractDamageModifyEffect" />
-  </CEffectEnumTrackedUnits>
+  </CEffectModifyUnit>
   <CEffectModifyBehaviorBuffDuration id="SamuroHeroWeaponMirrorImageModifyTimedLifeDuration">
     <WhichUnit Value="Target" />
     <Behavior value="SamuroMirrorImageTimedLife" />
@@ -1617,13 +1587,6 @@
     <ValidatorArray value="CasterisNotSamuroMirrorImage" />
     <BehaviorLink value="SamuroMirrorImageUnitTracker" />
     <Effect value="SamuroHeroWeaponMirrorImageModifyTimedLifeDuration" />
-  </CEffectEnumTrackedUnits>
-  <CEffectEnumTrackedUnits id="SamuroHeroWeaponCriticalStrikePhantomPainTalentEnumerateIncrement">
-    <ValidatorArray value="TargetIsHero" />
-    <ValidatorArray value="CasterisNotSamuroMirrorImage" />
-    <ValidatorArray value="SamuroHasPhantomPainTalent" />
-    <BehaviorLink value="SamuroMirrorImageUnitTracker" />
-    <Effect value="SamuroCriticalStrikePhantomPainAddDamageModifyEffect" />
   </CEffectEnumTrackedUnits>
   <CEffectModifyBehaviorBuffDuration id="SamuroMirrorImageModifyTimedLifeDuration">
     <ValidatorArray value="TargetIsHero" />
@@ -1637,14 +1600,6 @@
     <Behavior value="SamuroMirrorImageTimedLife" />
     <Value value="1" />
   </CEffectModifyBehaviorBuffDuration>
-  <CEffectModifyUnit id="SamuroCriticalStrikeCrushingBlowTalentModifyMirrorImageCooldown">
-    <Cost>
-      <Abil value="SamuroCriticalStrikeDummy,Execute" />
-      <ChargeTimeUse value="-2" />
-      <CooldownOperation value="Add" />
-      <CooldownTimeUse value="-2" />
-    </Cost>
-  </CEffectModifyUnit>
   <CEffectEnumTrackedUnits id="SamuroMirrorImageBasicAttackTimedLifeDurationIncreaseEnumerateTrackedUnit">
     <BehaviorLink value="SamuroMirrorImageUnitTracker" />
     <TrackerUnit Value="Creator" />
@@ -1672,30 +1627,120 @@
   </CEffectCreateHealer>
   <CEffectModifyUnit id="SamuroWindWalkWayOfTheWindModifyCooldown">
     <ValidatorArray value="SamuroHasWayOfTheWind" />
-    <ValidatorArray value="HasSamuroCriticalStrikeBehaviorOrSamuroCriticalStrikeActivatedBehavior" />
+    <ValidatorArray value="SamuroCriticalStrikeCombine" />
     <ValidatorArray value="CasterNotBlindedAndTargetNotEvading" />
     <ImpactUnit Value="Caster" />
     <Cost Abil="SamuroWindwalk,Execute" CooldownOperation="Add" CooldownTimeUse="-1.5" />
     <Chance value="0" />
   </CEffectModifyUnit>
-  <CEffectSet id="SamuroCriticalStrikeCrushingBlowTalentProcSet">
-    <ValidatorArray value="TargetIsHero" />
-    <ValidatorArray value="SamuroHasCrushingBlowTalent" />
-    <ValidatorArray value="CasterNotBlindedAndTargetNotEvading" />
-    <ValidatorArray value="CasterisNotSamuroMirrorImage" />
-    <EffectArray value="SamuroCriticalStrikeCrushingBlowTalentModifyCooldown" />
-    <EffectArray value="SamuroCriticalStrikeCrushingBlowTalentEnumerateTrackedUnit" />
+  <CEffectSet id="SamuroCriticalStrikeCastSet">
+    <EffectArray value="SamuroCriticalStrikeApplyTimedCriticalStrike" />
+    <EffectArray value="SamuroCriticalStrikeEnumMirrorImagesApply" />
+    <EffectArray value="SamuroWeaponModifyWeaponCooldown125" />
   </CEffectSet>
-  <CEffectSwitch id="SamuroCriticalStrikeInitialSwitch">
-    <CaseArray Validator="SamuroHasCriticalStrikeandinSwingState" Effect="SamuroCriticalStrikeBackswingDelayPersistent" />
-    <CaseDefault value="SamuroCriticalStrikeInitialSet" />
+  <CEffectEnumTrackedUnits id="SamuroCriticalStrikeEnumMirrorImagesApply">
+    <BehaviorLink value="SamuroMirrorImageUnitTracker" />
+    <Effect value="SamuroCriticalStrikeEnumMirrorImageSet" />
+    <TrackerUnit Value="Caster" />
+    <TrackedUnitFilters value="Heroic;Ally,Neutral,Enemy" />
+  </CEffectEnumTrackedUnits>
+  <CEffectSet id="SamuroCriticalStrikeEnumMirrorImageSet">
+    <EffectArray value="SamuroCriticalStrikeApplyTimedCriticalStrikeToTarget" />
+    <EffectArray value="SamuroCriticalStrikeModifyWeaponCooldown" />
+  </CEffectSet>
+  <CEffectModifyUnit id="SamuroCriticalStrikeModifyWeaponCooldown">
+    <Weapon Weapon="SamuroWeapon" CooldownOperation="Set" />
+  </CEffectModifyUnit>
+  <CEffectModifyUnit id="SamuroWeaponModifyWeaponCooldown125">
+    <ImpactUnit Value="Source" />
+    <Weapon Weapon="SamuroWeapon" CooldownOperation="Set" />
+  </CEffectModifyUnit>
+  <CEffectApplyBehavior id="SamuroCriticalStrikeApplyTimedCriticalStrike">
+    <WhichUnit Value="Caster" />
+    <Behavior value="SamuroCriticalStrikeTimed" />
+  </CEffectApplyBehavior>
+  <CEffectApplyBehavior id="SamuroCriticalStrikeApplyTimedCriticalStrikeToTarget">
+    <Behavior value="SamuroCriticalStrikeTimed" />
+  </CEffectApplyBehavior>
+  <CEffectApplyBehavior id="SamuroCriticalStrikeApplyTimedCriticalStrikeToTargetValidateCaster">
+    <ValidatorArray value="SamuroHasCriticalStrikeTimed" />
+    <Behavior value="SamuroCriticalStrikeTimed" />
+  </CEffectApplyBehavior>
+  <CEffectRemoveBehavior id="SamuroCriticalStrikeRemoveTimedBehavior">
+    <WhichUnit Value="Source" />
+    <BehaviorLink value="SamuroCriticalStrikeTimed" />
+  </CEffectRemoveBehavior>
+  <CEffectRemoveBehavior id="SamuroCriticalStrikeRemoveTimedBehaviorFromTarget">
+    <BehaviorLink value="SamuroCriticalStrikeTimed" />
+  </CEffectRemoveBehavior>
+  <CEffectModifyTokenCount id="SamuroCriticalStrikeSetSourceTokenCountToMax" parent="BaseEffectModifyTokenCount">
+    <TokenId value="SamuroCriticalStrikeTokenCounter" />
+    <ContextUnit Value="Source" />
+    <WhichUnit Value="Source" />
+    <Operation value="Set" />
+    <Value value="3" />
+  </CEffectModifyTokenCount>
+  <CEffectModifyTokenCount id="SamuroCriticalStrikeSetSourceTokenCountTo0" parent="BaseEffectModifyTokenCount">
+    <TokenId value="SamuroCriticalStrikeTokenCounter" />
+    <ContextUnit Value="Source" />
+    <WhichUnit Value="Source" />
+    <Operation value="Set" />
+    <Value value="0" />
+  </CEffectModifyTokenCount>
+  <CEffectModifyTokenCount id="SamuroCriticalStrikeResetTokenMirrorImage" parent="BaseEffectModifyTokenCount">
+    <TokenId value="SamuroCriticalStrikeTokenCounter" />
+    <ContextUnit Value="Target" />
+    <WhichUnit Value="Target" />
+    <Operation value="Set" />
+    <Value value="0" />
+  </CEffectModifyTokenCount>
+  <CEffectCreatePersistent id="SamuroCriticalStrikeForwardTokenPersistent">
+    <WhichLocation Value="TargetUnit" />
+    <InitialEffect value="SamuroCriticalStrikeResetTokenMirrorImage" />
+    <PeriodCount value="0">
+      <AccumulatorArray value="SamuroMirrorImageCriticalStrikeTokenAccumulator" />
+    </PeriodCount>
+    <PeriodicEffectArray value="SamuroCriticalStrikeIncrementTokenMirrorImage" />
+  </CEffectCreatePersistent>
+  <CEffectModifyUnit id="SamuroCriticalStrikeIncrementDummy" />
+  <CEffectModifyTokenCount id="SamuroCriticalStrikeIncrementTokenMirrorImage" parent="BaseEffectModifyTokenCount">
+    <ValidatorArray value="SamuroCriticalStrikeDoesNotHave0StacksCombine" />
+    <ContextUnit Value="Target" />
+    <WhichUnit Value="Target" />
+    <TokenId value="SamuroCriticalStrikeTokenCounter" />
+  </CEffectModifyTokenCount>
+  <CEffectSet id="SamuroWeaponCriticalStrikeIncrementSet">
+    <EffectArray value="SamuroCriticalStrikeIncrementSwitch" />
+  </CEffectSet>
+  <CEffectSwitch id="SamuroCriticalStrikeIncrementSwitch">
+    <CaseArray Validator="SamuroCriticalStrikeCombine" Effect="SamuroCriticalStrikeRemoveTokens" />
+    <CaseDefault value="SamuroCriticalStrikeIncrementTokenCounter" />
   </CEffectSwitch>
+  <CEffectModifyTokenCount id="SamuroCriticalStrikeIncrementTokenCounter" parent="BaseEffectModifyTokenCount">
+    <TokenId value="SamuroCriticalStrikeTokenCounter" />
+    <ContextUnit Value="Caster" />
+  </CEffectModifyTokenCount>
+  <CEffectModifyTokenCount id="SamuroCriticalStrikeRemoveTokens" parent="BaseEffectModifyTokenCount">
+    <TokenId value="SamuroCriticalStrikeTokenCounter" />
+    <ContextUnit Value="Caster" />
+    <Operation value="Set" />
+    <Value value="0" />
+  </CEffectModifyTokenCount>
+  <CEffectModifyTokenCount id="SamuroCriticalStrikeWayOfTheBladeAddTokenAtZero" parent="BaseEffectModifyTokenCount">
+    <ValidatorArray value="SamuroHas0CriticalStrikeTokens" />
+    <TokenId value="SamuroCriticalStrikeTokenCounter" />
+  </CEffectModifyTokenCount>
+  <CEffectApplyBehavior id="SamuroMercilessStrikesApplyMarker">
+    <ValidatorArray value="SamuroMercilessStrikesCCCombine" />
+    <WhichUnit Value="Caster" />
+    <Behavior value="SamuroMercilessStrikesCasterMarker" />
+  </CEffectApplyBehavior>
+  <CEffectRemoveBehavior id="SamuroMercilessStrikesRemoveCasterMarker">
+    <WhichUnit Value="Caster" />
+    <BehaviorLink value="SamuroMercilessStrikesCasterMarker" />
+  </CEffectRemoveBehavior>
   <CEffectRemoveBehavior id="SamuroCriticalStrikeRemoveCriticalStrikeMirrorImageBehavior">
     <WhichUnit Value="Caster" />
-    <BehaviorLink value="SamuroCriticalStrikeMirrorImage" />
-  </CEffectRemoveBehavior>
-  <CEffectRemoveBehavior id="SamuroCriticalStrikeRemoveCriticalStrikeBehaviorMirrorImage">
-    <WhichUnit Value="Source" />
     <BehaviorLink value="SamuroCriticalStrikeMirrorImage" />
   </CEffectRemoveBehavior>
   <CEffectAddTrackedUnit id="SamuroMirrorImageAddTrackedUnit">
@@ -1713,10 +1758,6 @@
   <CEffectDamage id="SamuroMirrorImageCloneHearthSuicide" parent="StormSuicideParent">
     <ValidatorArray value="CasterisSamuroMirrorImage" />
   </CEffectDamage>
-  <CEffectCreatePersistent id="SamuroCriticalStrikeClearBehaviorsPersistent">
-    <InitialDelay value="0.0625" />
-    <InitialEffect value="SamuroCriticalStrikeClearBehaviorsSet" />
-  </CEffectCreatePersistent>
   <CEffectModifyUnit id="CaptureMacGuffinCastComplete">
     <ValidatorArray value="CasterisNotHallucinationorCasterisHallucinationandTargetisHoleLadderDownorUp" />
   </CEffectModifyUnit>
@@ -1755,10 +1796,11 @@
     <EffectArray value="SamuroMirrorImageCancelMoveOrder" />
     <EffectArray value="SamuroMirrorImageCancelAttackOrder" />
   </CEffectSet>
-  <CEffectSet id="SamuroCriticalStrikeActivatedDamageResponseSet">
-    <EffectArray value="SamuroCriticalStrikeClearBehaviorsSet" />
-    <EffectArray value="SamuroOverpoweringBlowApplyBehavior" />
-  </CEffectSet>
+  <CEffectAddTrackedUnit id="SamuroMirrorImageAddTrackedCreatorUnit">
+    <BehaviorLink value="SamuroMirrorImageCreatorTracker" />
+    <TrackedUnit Value="Caster" />
+    <TrackerUnit Value="Target" />
+  </CEffectAddTrackedUnit>
   <CEffectApplyBehavior id="SamuroMirrorImageApplyRadialController">
     <Behavior value="SamuroMirrorImageRadialIndicator" />
   </CEffectApplyBehavior>
@@ -1798,15 +1840,6 @@
     <PeriodicPeriodArray value="0" />
     <FinalEffect value="DecloakCasterSet" />
   </CEffectCreatePersistent>
-  <CEffectSet id="SamuroMirrorImageWayOfIllusionQuestCompleteSet">
-    <EffectArray value="SamuroMirrorImageWayOfIllusionQuestCompleteModifyPlayer" />
-    <EffectArray value="SamuroMirrorImageWayOfIllusionQuestCompleteDisableModification" />
-  </CEffectSet>
-  <CEffectModifyPlayer id="SamuroMirrorImageWayOfIllusionQuestCompleteModifyPlayer">
-    <EffectArray Operation="Set" Reference="Accumulator,SamuroCriticalStrikeBurningBladeWayOfIllusionDamageAccumulator,Scale" Value="0.5" />
-    <EffectArray Operation="Set" Reference="Accumulator,SamuroMirrorImageWayOfIllusionAttackDamageAccumulator,Scale" Value="1" />
-    <Chance value="0" />
-  </CEffectModifyPlayer>
   <CEffectEnumTrackedUnits id="SamuroWindWalkEnumerateTrackUnitsOneWiththeWindTalent">
     <ValidatorArray value="SamuroHasOneWithTheWind" />
     <BehaviorLink value="SamuroMirrorImageUnitTracker" />
@@ -1845,13 +1878,73 @@
     <PeriodicEffectArray value="SamuroWindwalkKawarimiCreateUnit" />
     <PeriodicPeriodArray value="0.0625" />
   </CEffectCreatePersistent>
+  <CEffectCreatePersistent id="SamuroWayOfIllusionForwardQuestTokenPersistent">
+    <ValidatorArray value="SamuroHasGE1LE39WayOfIllusionStacks" />
+    <WhichLocation Value="TargetUnit" />
+    <InitialEffect value="SamuroWayOfIllusionResetQuestToken" />
+    <PeriodCount value="0">
+      <AccumulatorArray value="SamuroWayOfIllusionTokenAccumulator" />
+    </PeriodCount>
+    <PeriodicEffectArray value="SamuroWayOfIllusionQuestIncrementToken" />
+  </CEffectCreatePersistent>
+  <CEffectModifyTokenCount id="SamuroWayOfIllusionResetQuestToken" parent="BaseEffectModifyTokenCount">
+    <EffectCategory index="Quest" value="1" />
+    <WhichUnit Value="Target" />
+    <TokenId value="SamuroMirrorImageWayOfIllusionQuestToken" />
+  </CEffectModifyTokenCount>
+  <CEffectEnumTrackedUnits id="SamuroWayOfIllusionEnumSamuroHeroUnit">
+    <ValidatorArray value="SamuroHasWayOfIllusion" />
+    <ValidatorArray value="CasterisSamuroMirrorImage" />
+    <BehaviorLink value="SamuroMirrorImageCreatorTracker" />
+    <Effect value="SamuroWayOfIllusionSamuroImpactSet" />
+    <TrackedUnitFilters value="Heroic,Player;-" />
+  </CEffectEnumTrackedUnits>
+  <CEffectSet id="SamuroWayOfIllusionSamuroImpactSet">
+    <ValidatorArray value="TargetIsSamuro" />
+    <EffectArray value="SamuroWayOfIllusionQuestIncrementToken" />
+    <EffectArray value="SamuroWayOfIllusionEnumMirrorImages" />
+  </CEffectSet>
+  <CEffectModifyTokenCount id="SamuroWayOfIllusionQuestIncrementToken" parent="BaseEffectModifyTokenCount">
+    <EffectCategory index="Quest" value="1" />
+    <WhichUnit Value="Target" />
+    <TokenId value="SamuroMirrorImageWayOfIllusionQuestToken" />
+  </CEffectModifyTokenCount>
+  <CEffectEnumTrackedUnits id="SamuroWayOfIllusionEnumMirrorImages">
+    <BehaviorLink value="SamuroMirrorImageUnitTracker" />
+    <Effect value="SamuroWayOfIllusionQuestIncrementToken" />
+    <TrackerUnit Value="Target" />
+    <TrackedUnitFilters value="Heroic;Ally,Neutral,Enemy" />
+  </CEffectEnumTrackedUnits>
+  <CEffectSwitch id="SamuroWayOfIllusionApplyQuestTokenSwitch">
+    <ValidatorArray value="SamuroHasWayOfIllusion" />
+    <CaseArray Validator="SamuroHasMaxWayOfIllusionStacks" Effect="SamuroWayOfIllusionApplyCompleteMirrorImageStacks" />
+    <CaseDefault value="SamuroWayOfIllusionApplyQuestTokenMirrorImage" />
+  </CEffectSwitch>
+  <CEffectApplyBehavior id="SamuroWayOfIllusionApplyQuestTokenMirrorImage">
+    <Behavior value="SamuroMirrorImageWayOfIllusionQuestTokenMirrorImage" />
+  </CEffectApplyBehavior>
+  <CEffectSet id="SamuroWayOfIllusionApplyCompleteMirrorImageStacks">
+    <EffectArray value="SamuroWayOfIllusionRemoveQuestTokenMirrorImage" />
+    <EffectArray value="SamuroWayOfIllusionApplyCompletedQuestTokenMirrorImage" />
+  </CEffectSet>
+  <CEffectRemoveBehavior id="SamuroWayOfIllusionRemoveQuestTokenMirrorImage">
+    <BehaviorLink value="SamuroMirrorImageWayOfIllusionQuestTokenMirrorImage" />
+  </CEffectRemoveBehavior>
+  <CEffectApplyBehavior id="SamuroWayOfIllusionApplyCompletedQuestTokenMirrorImage">
+    <Behavior value="SamuroMirrorImageWayOfIllusionQuestTokenMirrorImageNoComplete" />
+  </CEffectApplyBehavior>
+  <CEffectSet id="SamuroMirrorImageWayOfIllusionQuestCompleteSet">
+    <EffectArray value="SamuroMirrorImageWayOfIllusionQuestCompleteModifyPlayer" />
+    <EffectArray value="SamuroMirrorImageWayOfIllusionQuestCompleteDisableModification" />
+  </CEffectSet>
+  <CEffectModifyPlayer id="SamuroMirrorImageWayOfIllusionQuestCompleteModifyPlayer">
+    <EffectArray Operation="Set" Reference="Accumulator,SamuroCriticalStrikeBurningBladeWayOfIllusionDamageAccumulator,Scale" Value="0.5" />
+    <EffectArray Operation="Set" Reference="Accumulator,SamuroMirrorImageWayOfIllusionAttackDamageAccumulator,Scale" Value="1" />
+    <Chance value="0" />
+  </CEffectModifyPlayer>
   <CEffectModifyPlayer id="SamuroMirrorImageWayOfIllusionQuestCompleteDisableModification">
     <EffectArray Operation="Set" Reference="Effect,SamuroMirrorImageWayOfIllusionQuestCompleteModifyPlayer,Chance" Value="0" />
   </CEffectModifyPlayer>
-  <CEffectModifyTokenCount id="SamuroMirrorImageWayOfIllusionQuestIncrementToken" parent="BaseEffectModifyTokenCount">
-    <EffectCategory index="Quest" value="1" />
-    <TokenId value="SamuroMirrorImageWayOfIllusionQuestToken" />
-  </CEffectModifyTokenCount>
   <CEffectApplyBehavior id="SamuroWindWalkApplyWayOfTheWindTalentBuff">
     <ValidatorArray index="0" value="SamuroHasWayOfTheWind" />
     <Behavior value="SamuroWindWalkWayOfTheWindTalentBuff" />
@@ -1884,6 +1977,7 @@
     <EffectArray value="SamuroWindWalkOneWiththeWindExitStealthSet" />
   </CEffectSet>
   <CEffectEnumArea id="SamuroCriticalStrikeBurningBladeSplashSearch">
+    <ValidatorArray value="CasterNotBlindedAndTargetNotEvading" />
     <Chance value="0" />
     <SearchFilters value="-;Self,Player,Ally,Neutral,ImmuneToAOE,Missile,Item,Stasis,Dead,Hidden,Invulnerable" />
     <AreaArray Effect="SamuroCriticalStrikeBurningBladeImpactSet">
@@ -1901,16 +1995,6 @@
       <Radius value="12" />
     </AreaArray>
   </CEffectEnumArea>
-  <CEffectApplyBehavior id="SamuroCriticalStrikeActivatedApplyBehavior">
-    <WhichUnit Value="Caster" />
-    <Behavior value="SamuroCriticalStrikeActivated" />
-    <ValidatorArray index="0" value="DoesNotHaveSamuroCriticalStrike" />
-    <ValidatorArray value="CasterisNotSamuroMirrorImage" />
-  </CEffectApplyBehavior>
-  <CEffectSwitch id="SamuroCriticalStrikeBehaviorApplySwitch">
-    <CaseArray Validator="SamuroMercilessStrikesCCCombine" Effect="SamuroCriticalStrikeMercilessStrikesSet" />
-    <CaseDefault value="SamuroWeaponCriticalStrikeCountApplyBehavior" />
-  </CEffectSwitch>
   <CEffectSwitch id="SamuroWeaponDamageSwitch">
     <CaseArray Validator="CasterisSamuroMirrorImage" Effect="SamuroMirrorImageWeaponDamage" />
     <CaseDefault value="SamuroWeaponDamage" />
@@ -1919,25 +2003,6 @@
     <CaseArray Validator="CasterisSamuroMirrorImage" Effect="SamuroMirrorImageCriticalStrikeBurningBladeSplashDamage" />
     <CaseDefault value="SamuroCriticalStrikeBurningBladeSplashDamage" />
   </CEffectSwitch>
-  <CEffectModifyPlayer id="SamuroCriticalStrikePhantomPainSubtractDamageModifyEffect">
-    <WhichPlayer Value="Caster" />
-    <EffectArray Operation="Subtract" Reference="Behavior,SamuroCriticalStrike,Modification.DamageDealtFraction[Basic]" Value="0.35" />
-    <EffectArray Operation="Subtract" Reference="Behavior,SamuroCriticalStrikeActivated,Modification.DamageDealtFraction[Basic]" Value="0.35" />
-  </CEffectModifyPlayer>
-  <CEffectApplyBehavior id="SamuroCriticalStrikeMercilessStrikesApplyCriticalStrike">
-    <WhichUnit Value="Caster" />
-    <Behavior value="SamuroCriticalStrikeCounterBehavior" />
-    <Count value="3" />
-  </CEffectApplyBehavior>
-  <CEffectSet id="SamuroCriticalStrikeMercilessStrikesSet">
-    <EffectArray value="SamuroCriticalStrikeActivatedRemoveCriticalStrikeActivated" />
-    <EffectArray value="SamuroCriticalStrikeMercilessStrikesApplyCriticalStrike" />
-    <EffectArray value="SamuroCriticalStrikeApplyBehaviorCaster" />
-  </CEffectSet>
-  <CEffectRemoveBehavior id="SamuroCriticalStrikeActivatedRemoveCriticalStrikeActivated">
-    <WhichUnit Value="Source" />
-    <BehaviorLink value="SamuroCriticalStrikeActivated" />
-  </CEffectRemoveBehavior>
   <CEffectApplyBehavior id="SamuroMirrorImageMirageSpellBlockApplyVisual">
     <Chance value="0" />
     <WhichUnit Value="Caster" />
@@ -1960,16 +2025,19 @@
     <EffectArray value="SamuroMirrorImageAddTrackedUnit" />
     <EffectArray value="SamuroWindwalkApplyBehaviorOnewiththeWind" />
     <EffectArray value="SamuroMirrorImageApplyRadialController" />
+    <EffectArray value="SamuroMirrorImageAddTrackedCreatorUnit" />
+    <EffectArray value="SamuroMirrorImageTransferSetNoShake" />
   </CEffectSet>
+  <CEffectCancelOrder id="SamuroKawarimiCancelHearthstoneOrder">
+    <AbilCmd value="Hearthstone,Execute" />
+    <Flags index="Queued" value="1" />
+    <Flags index="Uninterruptible" value="1" />
+    <Count value="32" />
+  </CEffectCancelOrder>
   <CEffectCreatePersistent id="SamuroWindwalkOneWithTheWindRemoveDelayPersistent">
     <InitialDelay value="0.0625" />
     <InitialEffect value="SamuroWindwalkOneWithTheWindRemoveSpellBlock" />
   </CEffectCreatePersistent>
-  <CEffectModifyPlayer id="SamuroCriticalStrikePhantomPainAddDamageModifyEffect">
-    <WhichPlayer Value="Caster" />
-    <EffectArray Reference="Behavior,SamuroCriticalStrike,Modification.DamageDealtFraction[Basic]" Value="0.35" />
-    <EffectArray Reference="Behavior,SamuroCriticalStrikeActivated,Modification.DamageDealtFraction[Basic]" Value="0.35" />
-  </CEffectModifyPlayer>
   <CEffectCreateHealer id="SamuroWindwalkPeriodicHealer" parent="StormSelfOnlyHealingSpellPercent">
     <RechargeVitalFraction value="0.02" />
   </CEffectCreateHealer>
@@ -1982,6 +2050,7 @@
   </CEffectCreatePersistent>
   <CEffectModifyUnit id="SamuroMirrorImageMirroredSteelWeaponImpactReduceCooldown">
     <ValidatorArray value="TargetIsHero" />
+    <ValidatorArray value="CasterUnitTypeIsSamuro" />
     <Chance value="0" />
     <ImpactUnit Value="Caster" />
     <Cost Abil="SamuroMirrorImageTargeted,Execute" CooldownOperation="Add" CooldownTimeUse="-0.75" />
@@ -2001,12 +2070,62 @@
     <WhichUnit Value="Caster" />
     <Behavior value="SamuroAdvancingStrikesDeflectionBlock" />
   </CEffectApplyBehavior>
-  <CEffectApplyBehavior id="SamuroAdvancingStrikesAddPressTheAttackCasterBehavior">
-    <Chance value="0" />
-    <WhichUnit Value="Caster" />
-    <Behavior value="SamuroAdvancingStrikesPressTheAttackAttackSpeedBuff" />
-    <ValidatorArray index="0" value="TargetIsHeroOrHavePressTheAttack" />
+  <CEffectApplyBehavior id="SamuroApplyDeflectionToTarget">
+    <ValidatorArray value="SamuroDeflectionCasterHasArmor" />
+    <Behavior value="SamuroAdvancingStrikesDeflectionBlock" />
   </CEffectApplyBehavior>
+  <CEffectCreatePersistent id="SamuroPressTheAttackApplyInitialDelayed">
+    <ValidatorArray value="TargetIsSamuro" />
+    <ExpireDelay value="0.0625" />
+    <ExpireEffect value="SamuroPressTheAttackInitialEnumMirrorImage" />
+  </CEffectCreatePersistent>
+  <CEffectEnumTrackedUnits id="SamuroPressTheAttackInitialEnumMirrorImage">
+    <BehaviorLink value="SamuroMirrorImageUnitTracker" />
+    <Effect value="SamuroPressTheAttackApplySet" />
+    <TrackerUnit Value="Caster" />
+    <TrackedUnitFilters value="Heroic;Ally,Neutral,Enemy" />
+  </CEffectEnumTrackedUnits>
+  <CEffectSet id="SamuroPressTheAttackApplySet">
+    <ValidatorArray value="SamuroHasPressTheAttack" />
+    <EffectArray value="SamuroPressTheAttackApplyCarry" />
+    <EffectArray value="SamuroPressTheAttackApplyTokenCounter" />
+    <EffectArray value="SamuroPressTheAttackResetTokenCount" />
+  </CEffectSet>
+  <CEffectSet id="SamuroPressTheAttackApplySetWithIncrement" parent="SamuroPressTheAttackApplySet">
+    <EffectArray value="SamuroMirrorImageForwardPressTheAttackTokenPersistent" />
+  </CEffectSet>
+  <CEffectApplyBehavior id="SamuroPressTheAttackApplyCarry">
+    <Behavior value="SamuroPressTheAttackCarry" />
+  </CEffectApplyBehavior>
+  <CEffectApplyBehavior id="SamuroPressTheAttackApplyTokenCounter">
+    <Behavior value="SamuroPressTheAttackTokenCounter" />
+  </CEffectApplyBehavior>
+  <CEffectCreatePersistent id="SamuroMirrorImageForwardPressTheAttackTokenPersistent">
+    <ValidatorArray value="SamuroDoesNotHave0PressTheAttackTokens" />
+    <WhichLocation Value="TargetUnit" />
+    <PeriodCount value="0">
+      <AccumulatorArray value="SamuroMirrorImagePressTheAttackTokenAccumulator" />
+    </PeriodCount>
+    <PeriodicEffectArray value="SamuroMirrorImageIncrementPressTheAttackToken" />
+  </CEffectCreatePersistent>
+  <CEffectModifyTokenCount id="SamuroMirrorImageIncrementPressTheAttackToken" parent="BaseEffectModifyTokenCount">
+    <WhichUnit Value="Target" />
+    <TokenId value="SamuroPressTheAttackTokenCounter" />
+  </CEffectModifyTokenCount>
+  <CEffectModifyTokenCount id="SamuroPressTheAttackIncrementTokenCounter" parent="BaseEffectModifyTokenCount">
+    <ValidatorArray value="SamuroHasPressTheAttack" />
+    <ValidatorArray value="SamuroCasterHasAdvancingStrikesActive" />
+    <TokenId value="SamuroPressTheAttackTokenCounter" />
+    <ContextUnit Value="Caster" />
+    <WhichUnit Value="Caster" />
+  </CEffectModifyTokenCount>
+  <CEffectModifyTokenCount id="SamuroPressTheAttackResetTokenCount" parent="BaseEffectModifyTokenCount">
+    <ValidatorArray value="SamuroHasPressTheAttack" />
+    <TokenId value="SamuroPressTheAttackTokenCounter" />
+    <Operation value="Set" />
+    <Value value="0" />
+    <WhichUnit Value="Target" />
+  </CEffectModifyTokenCount>
   <CEffectRemoveBehavior id="SamuroIllusionMasterThreeBladeStyleRemovedTimedLifeBehavior">
     <WhichUnit Value="Caster" />
     <BehaviorLink value="SamuroMirrorImageTimedLife" />
@@ -2040,6 +2159,10 @@
     <WhichUnit Value="Caster" />
     <Behavior value="SamuroAdvancingStrikesMoveSpeedBuff" />
   </CEffectApplyBehavior>
+  <CEffectApplyBehavior id="SamuroApplyAdvancingStrikesMovespeedToTarget">
+    <ValidatorArray value="SamuroCasterHasSamuroAdvancingStrikesMoveSpeedBuff" />
+    <Behavior value="SamuroAdvancingStrikesMoveSpeedBuff" />
+  </CEffectApplyBehavior>
   <CEffectDamage id="SamuroAdvancingStrikesDeflectionBlockDummyDamage">
     <ImpactLocation Value="TargetUnit" />
     <Flags index="NoScaledDealtBonus" value="1" />
@@ -2059,14 +2182,6 @@
     <TargetLocation Value="TargetPoint" />
     <ValidatorArray value="CasterNotRooted" />
   </CEffectTeleport>
-  <CEffectSet id="SamuroWeaponImpactCriticalStrikeSet">
-    <EffectArray value="SamuroHeroWeaponCriticalStrikePhantomPainTalentEnumerateIncrement" />
-    <EffectArray value="SamuroCriticalStrikeBehaviorApplySwitch" />
-    <EffectArray value="SamuroCriticalStrikeApplyDummyTargetBehavior" />
-    <EffectArray value="SamuroWindWalkWayOfTheWindModifyCooldown" />
-    <EffectArray value="SamuroCriticalStrikePhantomPainTalentModifyCooldown" />
-    <EffectArray value="SamuroCriticalStrikeCrushingBlowsTalentApplyBuff" />
-  </CEffectSet>
   <CEffectCancelOrder id="SamuroWindwalkCancelAttackOrder">
     <WhichUnit Value="Source" />
     <AbilCmd value="attack,Execute" />
@@ -2110,11 +2225,6 @@
     <BehaviorLink value="SamuroBladestorm" />
     <Count value="1" />
   </CEffectRemoveBehavior>
-  <CEffectSet id="SamuroCriticalStrikeClearBehaviorsSet">
-    <EffectArray value="SamuroCriticalStrikeRemoveCriticalStrikeBehavior" />
-    <EffectArray value="SamuroCriticalStrikeRemoveCriticalStrikeCountBehavior" />
-    <EffectArray value="SamuroCriticalStrikeRemoveCriticalStrikeBehaviorMirrorImage" />
-  </CEffectSet>
   <CEffectModifyUnit id="SamuroMirrorImageResetCooldown">
     <Cost Abil="SamuroMirrorImage,Execute" CooldownOperation="Set" />
   </CEffectModifyUnit>
@@ -2128,27 +2238,15 @@
   </CEffectApplyBehavior>
   <CEffectSet id="SamuroMirrorImageSpawnSet">
     <EffectArray value="SamuroMirrorImageInitialFacingAdjustment" />
-    <EffectArray value="SamuroIllusionMasterApplyTargetShake" />
+    <EffectArray value="SamuroMirrorImageTransferSet" />
     <EffectArray value="SamuroMirrorImageApplyImageCloak" />
     <EffectArray value="SamuroMirrorImageWayOfIllusionAddCountBehaviorStack" />
     <EffectArray value="SamuroMirrorImageIllusionMasterTrackingApplyBehavior" />
     <EffectArray value="SamuroMirrorImageAddTrackedUnit" />
     <EffectArray value="SamuroMirrorImageApplyImageTransmisionController" />
     <EffectArray value="SamuroMirrorImageApplyRadialController" />
+    <EffectArray value="SamuroMirrorImageAddTrackedCreatorUnit" />
   </CEffectSet>
-  <CEffectSet id="SamuroCriticalStrikeSet">
-    <ValidatorArray value="HasWayoftheBladeAnd2StacksOrHas3Stacks" />
-    <EffectArray value="SamuroCriticalStrikeApplyBehaviorCaster" />
-    <EffectArray value="SamuroCriticalStrikeApplyBehaviorCasterMirrorImage" />
-  </CEffectSet>
-  <CEffectRemoveBehavior id="SamuroCriticalStrikeRemoveCriticalStrikeCountBehavior">
-    <WhichUnit Value="Caster" />
-    <BehaviorLink value="SamuroCriticalStrikeCounterBehavior" />
-  </CEffectRemoveBehavior>
-  <CEffectRemoveBehavior id="SamuroCriticalStrikeRemoveCriticalStrikeBehavior">
-    <WhichUnit Value="Source" />
-    <BehaviorLink value="SamuroCriticalStrike" />
-  </CEffectRemoveBehavior>
   <CEffectCreatePersistent id="SamuroMirrorImagePersistent6">
     <WhichLocation Value="OriginPoint" />
     <PeriodCount value="3" />
@@ -2182,44 +2280,36 @@
     <PeriodicOffsetArray X="3.5" Y="-2.5" />
     <PeriodicPeriodArray value="0" />
   </CEffectCreatePersistent>
-  <CEffectApplyBehavior id="SamuroWeaponCriticalStrikeCountApplyBehavior">
-    <WhichUnit Value="Caster" />
-    <Behavior value="SamuroCriticalStrikeCounterBehavior" />
-    <ValidatorArray value="SamuroDoesNotHaveOverpoweringStrikeOrHasCriticalStrikeOnCooldown" />
-  </CEffectApplyBehavior>
-  <CEffectApplyBehavior id="SamuroCriticalStrikeApplyBehavior">
-    <WhichUnit Value="Caster" />
-    <Behavior value="SamuroCriticalStrikeCounterBehavior" />
-    <Count value="3" />
-  </CEffectApplyBehavior>
   <CEffectModifyUnit id="SamuroMirrorImageInitialFacingAdjustment">
     <FacingLocation Value="CasterUnit" />
   </CEffectModifyUnit>
-  <CEffectApplyBehavior id="SamuroCriticalStrikeApplyDummyTargetBehavior">
-    <ValidatorArray index="0" value="HasSamuroCriticalStrikeBehaviorOrSamuroCriticalStrikeActivatedBehavior" />
-    <ValidatorArray value="CasterNotBlindedAndTargetNotEvading" />
-    <Behavior value="SamuroCriticalStrikeDummyBehavior" />
-  </CEffectApplyBehavior>
   <CEffectDamage id="SamuroWindwalkWhispersFromtheWindDamage" parent="StormSpell">
     <ValidatorArray value="HasSamuroWindwalkCloakOrInitialCloak" />
     <Chance value="0" />
     <Amount value="60" />
   </CEffectDamage>
-  <CEffectSet id="SamuroWeaponDamageSet">
+  <CEffectSwitch id="SamuroWeaponImpactSwitch">
+    <CaseArray Validator="CasterNotBlindedAndTargetNotEvading" Effect="SamuroWeaponTargetHitSet" />
+    <CaseDefault value="SamuroWeaponBlindSet" />
+  </CEffectSwitch>
+  <CEffectSet id="SamuroWeaponBlindSet">
+    <EffectArray value="UniversalWeaponImpact" />
+    <EffectArray value="UniversalWeaponLaunchSet" />
     <EffectArray value="SamuroWeaponDamageSwitch" />
-    <EffectArray value="SamuroCriticalStrikeBurningBladeDamagePersistent" />
-    <EffectArray value="SamuroWindwalkWhispersFromtheWindDamage" />
-    <EffectArray value="SamuroHeroWeaponCriticalStrikePhantomPainTalentEnumerateDecrement" />
-    <ValidatorArray value="CasterIsSamuroOrIsNotDead" />
+    <EffectArray value="SamuroWeaponCriticalStrikeIncrementSet" />
+    <EffectArray value="SamuroCriticalStrikeRemoveTimedBehavior" />
+    <EffectArray value="SamuroWindwalkRemoveSet" />
+    <EffectArray value="UniversalWeaponPostImpactSet" />
   </CEffectSet>
-  <CEffectSet id="SamuroWeaponImpactSet">
+  <CEffectSet id="SamuroWeaponTargetHitSet">
     <EffectArray value="SamuroUniversalWeaponSet" />
-    <EffectArray value="SamuroWeaponImpactCriticalStrikeSet" />
     <EffectArray value="SamuroWeaponDamageSet" />
-    <EffectArray value="SamuroCriticalStrikeWayOfTheBladePhysicalArmorDebuffApplyBehavior" />
-    <EffectArray value="SamuroCriticalStrikeSet" />
+    <EffectArray value="SamuroWeaponCriticalStrikeIncrementSet" />
+    <EffectArray value="SamuroCriticalStrikeRemoveTimedBehavior" />
     <EffectArray value="SamuroWeaponBlindAndEvadeCheckSet" />
     <EffectArray value="SamuroWindwalkRemoveSet" />
+    <EffectArray value="SamuroAdvancingStrikesApplyMoveSpeedBuff" />
+    <EffectArray value="SamuroPressTheAttackIncrementTokenCounter" />
     <EffectArray value="SamuroCriticalStrikeCrushingBlowTalentProcSet" />
     <EffectArray value="UniversalWeaponPostImpactSet" />
   </CEffectSet>
@@ -2227,11 +2317,46 @@
     <ValidatorArray value="CasterNotBlindedAndTargetNotEvading" />
     <EffectArray value="SamuroWindWalkWayOfTheWindQuestIncrementToken" />
     <EffectArray value="SamuroAdvancingStrikesApplyMoveSpeedBuff" />
-    <EffectArray value="SamuroAdvancingStrikesDummyBehavior" />
     <EffectArray value="SamuroAdvancingStrikesDeflectionBlockApply" />
-    <EffectArray value="SamuroAdvancingStrikesAddPressTheAttackCasterBehavior" />
     <EffectArray value="SamuroMirrorImageMirroredSteelWeaponImpactReduceCooldown" />
   </CEffectSet>
+  <CEffectSet id="SamuroWeaponDamageSet">
+    <EffectArray value="SamuroMercilessStrikesApplyMarker" />
+    <EffectArray value="SamuroWeaponDamageSwitch" />
+    <EffectArray value="SamuroCriticalStrikeImpactSet" />
+    <ValidatorArray value="CasterIsSamuroOrIsNotDead" />
+  </CEffectSet>
+  <CEffectSet id="SamuroCriticalStrikeImpactSet">
+    <ValidatorArray value="SamuroCriticalStrikeCombine" />
+    <EffectArray value="SamuroCriticalStrikeDummyModify" />
+    <EffectArray value="SamuroCriticalStrikeBurningBladeSplashSearch" />
+    <EffectArray value="SamuroPhantomPainTalentModifyCooldown" />
+    <EffectArray value="SamuroCrushingBlowsApplyTimerBuff" />
+    <EffectArray value="SamuroWayOfTheBladePhysicalArmorDebuffApplyBehavior" />
+    <EffectArray value="SamuroWayOfIllusionEnumSamuroHeroUnit" />
+  </CEffectSet>
+  <CEffectModifyUnit id="SamuroCriticalStrikeDummyModify" />
+  <CEffectApplyBehavior id="SamuroWayOfTheBladePhysicalArmorDebuffApplyBehavior">
+    <ValidatorArray value="SamuroHasWayoftheBlade" />
+    <ValidatorArray value="SamuroCriticalStrikeCombine" />
+    <ValidatorArray value="TargetIsHero" />
+    <Behavior value="SamuroCriticalStrikeWayOfTheBladePhysicalArmorDebuff" />
+  </CEffectApplyBehavior>
+  <CEffectModifyPlayer id="SamuroPhantomPainTalentModifyCooldown">
+    <ValidatorArray value="SamuroHasPhantomPainTalent" />
+    <ValidatorArray value="SamuroCriticalStrikeCombine" />
+    <ValidatorArray value="TargetIsHero" />
+    <ValidatorArray value="CasterisNotSamuroMirrorImage" />
+    <WhichPlayer Value="Caster" />
+    <Cost>
+      <Cooldown>
+        <Link value="Abil/SamuroIllusionMaster" />
+        <Location value="Player" />
+        <Operation value="Add" />
+        <TimeUse value="-1" />
+      </Cooldown>
+    </Cost>
+  </CEffectModifyPlayer>
   <CEffectApplyBehavior id="SamuroWindwalkDummyApplyBehavior">
     <WhichUnit Value="Caster" />
     <Behavior value="SamuroWindwalkMoveSpeedBuff" />
@@ -2239,14 +2364,21 @@
   <CEffectDamage id="SamuroWeaponDamage" parent="StormWeapon">
     <Amount value="102" />
     <FlatModifierArray index="SamuroMirrorImageWayOfIllusion" Accumulator="SamuroMirrorImageWayOfIllusionAttackDamageAccumulator" />
+    <MultiplicativeModifierArray index="HarshWinds" Validator="SamuroTargetHasHarshWindsVulnerabilityBehavior" Modifier="0.3" Crit="1" />
+    <MultiplicativeModifierArray index="CriticalStrike" Validator="SamuroCriticalStrikeCombine" Modifier="0.5" Crit="1" />
+    <MultiplicativeModifierArray index="PhantomPain1" Validator="PhantomPainGE1Combine" Modifier="0.35" />
+    <MultiplicativeModifierArray index="PhantomPain2" Validator="PhantomPainGT1Combine" Modifier="0.35" />
+    <MultiplicativeModifierArray index="CrushingBlows" Validator="SamuroHasCrushingBlowTalent" Accumulator="SamuroCrushingBlowsAccumulator" />
   </CEffectDamage>
   <CEffectDamage id="SamuroMirrorImageWeaponDamage" parent="StormWeapon">
     <Amount value="11" />
     <MultiplicativeModifierArray index="IllusionMaster" Validator="SamuroHasIllusionMasterTalent" Modifier="1" />
+    <MultiplicativeModifierArray index="CriticalStrike" Validator="SamuroCriticalStrikeCombine" Modifier="0.5" Crit="1" />
   </CEffectDamage>
   <CEffectDamage id="SamuroCriticalStrikeBurningBladeSplashDamage" parent="StormSpell">
-    <Amount value="51" />
-    <FlatModifierArray index="SamuroMirrorImageWayOfIllusion" Accumulator="SamuroCriticalStrikeBurningBladeWayOfIllusionDamageAccumulator" />
+    <Amount value="102" />
+    <MultiplicativeModifierArray index="BurningBladeDebuff" Modifier="-0.5" />
+    <FlatModifierArray index="SamuroMirrorImageWayOfIllusion" Accumulator="SamuroMirrorImageWayOfIllusionAttackDamageAccumulator" />
   </CEffectDamage>
   <CEffectDamage id="SamuroMirrorImageCriticalStrikeBurningBladeSplashDamage" parent="StormSpell">
     <MultiplicativeModifierArray index="IllusionMaster" Validator="SamuroHasIllusionMasterTalent" Modifier="1" />
@@ -2259,13 +2391,14 @@
     <TrackedUnitFilters value="Heroic,Hallucination;Ally,Neutral,Enemy,Structure,Missile,Item,Stasis,Dead,Hidden,Invulnerable,OrdersPaused,Silenced" />
   </CEffectEnumTrackedUnits>
   <CEffectSet id="SamuroIllusionMasterInitalSet">
+    <ValidatorArray value="SamuroTargetIsGroundMoverOrCasterIsMirrorImage" />
     <ValidatorArray value="HasSamuroMirrorImageStackGreaterThan0OrIsMirrorImage" />
     <ValidatorArray value="VehicleGenericPlayerNotAlreadyInVehicle" />
     <EffectArray value="DestroyPingUnit" />
     <EffectArray value="SamuroMirrorImageSpecialCaseRemovalBehaviorSet" />
     <EffectArray value="SamuroImageIllusionMasterShakeDummyCaster" />
     <EffectArray value="SamuroIllusionMasterApplyCasterShake" />
-    <EffectArray value="SamuroIllusionMasterImageSearch" />
+    <EffectArray value="SamuroIllusionMasterTeleportCastSwitch" />
     <EffectArray value="HeroGenericCleanseRemoveCCBehaviorCategoriesTarget" />
     <EffectArray value="SamuroWindwalkRemoveSet" />
   </CEffectSet>
@@ -2283,23 +2416,132 @@
     <WhichLocation Value="CasterPoint" />
     <PeriodCount value="1" />
   </CEffectCreatePersistent>
-  <CEffectEnumArea id="SamuroIllusionMasterImageSearch">
-    <ImpactLocation Value="SourceUnit" />
-    <ExcludeArray />
-    <SearchFilters value="-;Ally,Neutral,Enemy,Missile,Item,Stasis,Dead,Hidden,OrdersPaused" />
-    <AreaArray Effect="SamuroIllusionMasterSearchSet">
-      <Radius value="500" />
-    </AreaArray>
-  </CEffectEnumArea>
-  <CEffectSet id="SamuroIllusionMasterSearchSet">
-    <EffectArray value="SamuroImageIllusionMasterShakeDummyTarget" />
-    <EffectArray value="SamuroIllusionMasterApplyTargetShake" />
-    <ValidatorArray value="SamuroTargetIsSamuroOrMirrorImageUnitType" />
+  <CEffectSwitch id="SamuroIllusionMasterTeleportCastSwitch">
+    <CaseArray Validator="CasterisSamuroMirrorImage" Effect="SamuroIllusionMasterSelfCastTeleportEnumCreator" />
+    <CaseDefault value="SamuroIllusionMasterSamuroCasterTeleportSet" />
+  </CEffectSwitch>
+  <CEffectSet id="SamuroIllusionMasterSamuroCasterTeleportSet">
+    <EffectArray value="SamuroImageTransmissionSetSamuroCasterPosition" />
+    <EffectArray value="SamuroImageTransmissionSetMirrorImageTargetPosition" />
+    <EffectArray value="SamuroMirrorImageTransferControllerUpdate" />
   </CEffectSet>
+  <CEffectTeleport id="SamuroImageTransmissionSetSamuroCasterPosition">
+    <WhichUnit Value="Caster" />
+    <PlacementAround Value="TargetUnitOrPoint" />
+    <PlacementRange value="350" />
+    <Range value="350" />
+    <TargetLocation Value="TargetUnit" />
+  </CEffectTeleport>
+  <CEffectTeleport id="SamuroImageTransmissionSetMirrorImageTargetPosition">
+    <PlacementAround Value="OriginPoint" />
+    <PlacementRange value="350" />
+    <Range value="350" />
+    <SourceLocation Value="TargetPoint" />
+    <TargetLocation Value="OriginPoint" />
+  </CEffectTeleport>
+  <CEffectEnumTrackedUnits id="SamuroIllusionMasterSelfCastTeleportEnumCreator">
+    <BehaviorLink value="SamuroMirrorImageCreatorTracker" />
+    <Effect value="SamuroIllusionMasterMirrorImageCasterTeleportSet" />
+    <TrackedUnitFilters value="Heroic,Player;-" />
+  </CEffectEnumTrackedUnits>
+  <CEffectSet id="SamuroIllusionMasterMirrorImageCasterTeleportSet">
+    <EffectArray value="SamuroImageTransmissionSetMirrorImageCasterPosition" />
+    <EffectArray value="SamuroImageTransmissionSetSamuroTargetPosition" />
+    <EffectArray value="SamuroMirrorImageTransferControllerUpdateAtTarget" />
+  </CEffectSet>
+  <CEffectTeleport id="SamuroImageTransmissionSetMirrorImageCasterPosition">
+    <WhichUnit Value="Caster" />
+    <PlacementAround Value="TargetUnitOrPoint" />
+    <PlacementRange value="350" />
+    <Range value="350" />
+    <TargetLocation Value="TargetUnit" />
+  </CEffectTeleport>
+  <CEffectTeleport id="SamuroImageTransmissionSetSamuroTargetPosition">
+    <PlacementAround Value="OriginPoint" />
+    <PlacementRange value="350" />
+    <Range value="350" />
+    <SourceLocation Value="TargetPoint" />
+    <TargetLocation Value="OriginPoint" />
+  </CEffectTeleport>
+  <CEffectRemoveBehavior id="SamuroMirrorImageTransferControllerUpdate">
+    <WhichUnit Value="Caster" />
+    <BehaviorLink value="SamuroMirrorImageTransferController" />
+    <Count value="1" />
+    <CancelBehavior value="1" />
+  </CEffectRemoveBehavior>
+  <CEffectRemoveBehavior id="SamuroMirrorImageTransferControllerUpdateAtTarget" parent="SamuroMirrorImageTransferControllerUpdate">
+    <WhichUnit Value="Target" />
+  </CEffectRemoveBehavior>
+  <CEffectApplyBehavior id="SamuroMirrorImageApplyTransferController">
+    <WhichUnit Value="Caster" />
+    <Behavior value="SamuroMirrorImageTransferController" />
+  </CEffectApplyBehavior>
+  <CEffectSet id="SamuroMirrorImageTransferControllerActivateSet">
+    <EffectArray value="SamuroMirrorImageEnumTransferAttributesToMirrors" />
+    <EffectArray value="SamuroMirrorImageApplyTransferController" />
+    <EffectArray value="SamuroIllusionMasterApplyTargetShake" />
+    <OrphanFromEffectChain value="1" />
+  </CEffectSet>
+  <CEffectEnumTrackedUnits id="SamuroMirrorImageEnumTransferAttributesToMirrors">
+    <BehaviorLink value="SamuroMirrorImageUnitTracker" />
+    <Effect value="SamuroMirrorImageTransferSetWithHealthEqualization" />
+    <TrackerUnit Value="Caster" />
+    <TrackedUnitFilters value="Heroic;Ally,Neutral,Enemy" />
+  </CEffectEnumTrackedUnits>
+  <CEffectSet id="SamuroMirrorImageTransferSet">
+    <EffectArray value="SamuroApplyAdvancingStrikesMovespeedToTarget" />
+    <EffectArray value="SamuroApplyDeflectionToTarget" />
+    <EffectArray value="SamuroCriticalStrikeRemoveTimedBehaviorFromTarget" />
+    <EffectArray value="SamuroCriticalStrikeApplyTimedCriticalStrikeToTargetValidateCaster" />
+    <EffectArray value="SamuroCriticalStrikeForwardTokenPersistent" />
+    <EffectArray value="SamuroPressTheAttackApplySetWithIncrement" />
+    <EffectArray value="SamuroWayOfIllusionApplyQuestTokenSwitch" />
+    <EffectArray value="SamuroWayOfIllusionForwardQuestTokenPersistent" />
+    <EffectArray value="SamuroIllusionMasterApplyTargetShake" />
+  </CEffectSet>
+  <CEffectSet id="SamuroMirrorImageTransferSetNoShake" parent="SamuroMirrorImageTransferSet">
+    <EffectArray index="8" removed="1" />
+  </CEffectSet>
+  <CEffectSet id="SamuroMirrorImageTransferSetWithHealthEqualization" parent="SamuroMirrorImageTransferSet">
+    <EffectArray value="SamuroImageIllusionMasterHealthModifySwitch" />
+  </CEffectSet>
+  <CEffectSwitch id="SamuroImageIllusionMasterHealthModifySwitch">
+    <ValidatorArray value="TargetIsSamuroMirrorImageUnitType" />
+    <CaseArray Validator="SamuroLifePercentLTTargetLifePercent" Effect="SamuroIllusionMasterReduceMirrorImageLife" />
+    <CaseDefault value="SamuroIllusionMasterIncreaseMirrorImageLife" />
+  </CEffectSwitch>
+  <CEffectModifyUnit id="SamuroIllusionMasterReduceMirrorImageLife">
+    <VitalArray index="Life">
+      <ChangeFraction value="0">
+        <AccumulatorArray value="SamuroMirrorImageHealthPositiveAccumulator" />
+        <AccumulatorArray value="SamuroCasterHealthNegativeAccumulator" />
+      </ChangeFraction>
+    </VitalArray>
+  </CEffectModifyUnit>
+  <CEffectModifyUnit id="SamuroIllusionMasterIncreaseMirrorImageLife">
+    <VitalArray index="Life">
+      <ChangeFraction value="0">
+        <AccumulatorArray value="SamuroCasterHealthPositiveAccumulator" />
+        <AccumulatorArray value="SamuroMirrorImageHealthNegativeAccumulator" />
+      </ChangeFraction>
+    </VitalArray>
+  </CEffectModifyUnit>
   <CEffectApplyBehavior id="SamuroMirrorImageWayOfIllusionAddCountBehaviorStack">
     <WhichUnit Value="Caster" />
     <Behavior value="SamuroMirrorImageCountingBehavior" />
   </CEffectApplyBehavior>
+  <CEffectSet id="SamuroMirrorImageTargetedPrepSet">
+    <EffectArray value="DismountCasterSet" />
+    <EffectArray value="SamuroRemoveTrackedClones" />
+    <EffectArray value="SamuroMirrorImageUpdateMirrorImageLifeStart" />
+  </CEffectSet>
+  <CEffectModifyCatalogNumeric id="SamuroMirrorImageUpdateMirrorImageLifeStart">
+    <CatalogModifications Operation="Set" Reference="Unit,SamuroMirrorImage,LifeStart">
+      <Value value="0">
+        <AccumulatorArray value="SamuroCasterHealthAccumulator" />
+      </Value>
+    </CatalogModifications>
+  </CEffectModifyCatalogNumeric>
   <CEffectSet id="SamuroMirrorImageInitialSet">
     <EffectArray value="DestroyPingUnit" />
     <EffectArray value="SamuroMirrorImageSpecialCaseRemovalBehaviorSet" />
@@ -2406,34 +2648,6 @@
       <Radius value="500" />
     </AreaArray>
   </CEffectEnumArea>
-  <CEffectSet id="SamuroCriticalStrikeInitialSet">
-    <EffectArray value="PrimedAbilityHoldfireSet" />
-    <EffectArray value="SamuroCriticalStrikeRemoveCriticalStrikeCountBehavior" />
-    <EffectArray value="SamuroCriticalStrikeRemoveCriticalStrikeMirrorImageBehavior" />
-    <EffectArray value="SamuroCriticalStrikeApplyBehavior" />
-    <EffectArray value="SamuroCriticalStrikeActivatedApplyBehavior" />
-    <EffectArray value="SamuroCriticalStrikeActivatedApplyBehaviorMirrorImage" />
-    <EffectArray value="SamuroWeaponModifyWeaponCooldown125" />
-  </CEffectSet>
-  <CEffectApplyBehavior id="SamuroCriticalStrikeApplyBehaviorCaster">
-    <WhichUnit Value="Caster" />
-    <Behavior value="SamuroCriticalStrike" />
-    <ValidatorArray index="0" value="CasterisNotSamuroMirrorImage" />
-  </CEffectApplyBehavior>
-  <CEffectApplyBehavior id="SamuroCriticalStrikeApplyBehaviorRedirectTarget">
-    <Behavior value="SamuroCriticalStrike" />
-    <ValidatorArray index="0" value="TargetisNotSamuroMirrorImage" />
-  </CEffectApplyBehavior>
-  <CEffectModifyUnit id="SamuroCriticalStrikeAttackResetModifyUnit">
-    <ImpactUnit Value="Caster" />
-    <Cost Abil="SamuroWeaponCooldown,Execute">
-      <Fraction Cooldown="1" />
-    </Cost>
-  </CEffectModifyUnit>
-  <CEffectModifyUnit id="SamuroWeaponModifyWeaponCooldown125">
-    <ImpactUnit Value="Source" />
-    <Weapon Weapon="SamuroWeapon" CooldownOperation="Set" />
-  </CEffectModifyUnit>
   <CEffectSet id="SamuroWindwalkPrepSet">
     <EffectArray value="DismountCasterSet" />
     <EffectArray value="SamuroWindwalkRemoveSetPrep" />
@@ -2450,8 +2664,7 @@
     <EffectArray value="SamuroWindwalkKawarimiCreateDelayPersistent" />
     <EffectArray value="SamuroWindwalkInitialCloakApplyBehavior" />
     <EffectArray value="SamuroWindwalkCloakApplyBehavior" />
-    <EffectArray value="SamuroWindwalkCancelAttackOrder" />
-    <EffectArray value="SamuroWindwalkShukuchiCancelShortDistanceMoveOrder" />
+    <EffectArray value="SamuroWindwalkDummyApplyBehavior" />
     <EffectArray value="SamuroWindwalkPersistent" />
     <EffectArray value="SamuroWindWalkOneWiththeWindEnterStealthSet" />
     <EffectArray value="SamuroWindWalkEnumerateTrackUnitsOneWiththeWindTalent" />
@@ -2534,6 +2747,7 @@
   </CEffectSet>
   <CEffectDamage id="SamuroBladestormDamage" parent="StormSpell">
     <Amount value="36" />
+    <MultiplicativeModifierArray index="HarshWinds" Validator="SamuroTargetHasHarshWindsVulnerabilityBehavior" Modifier="0.3" Crit="1" />
   </CEffectDamage>
   <CEffectSet id="SamuroWindwalkRemoveSet">
     <EffectArray value="SamuroWindwalkInitialCloakRemoveBehavior" />
@@ -2553,6 +2767,7 @@
     <EffectArray value="UniversalWeaponLaunchSet" />
     <EffectArray value="SamuroHeroWeaponMirrorImageModifyTimedLifeDurationEnumerate" />
     <EffectArray value="SamuroMirrorImageModifyTimedLifeDuration" />
+    <EffectArray value="SamuroMercilessStrikesRemoveCasterMarker" />
   </CEffectSet>
   <CEffectDamage id="SamuroMirrorImageMirageSpellBlockDummyDamage">
     <ImpactLocation Value="TargetUnit" />
@@ -2577,13 +2792,6 @@
     <Flags index="Queued" value="1" />
     <Flags index="Uninterruptible" value="1" />
   </CEffectCancelOrder>
-  <CEffectCreatePersistent id="SamuroCriticalStrikeBurningBladeDamagePersistent">
-    <WhichLocation Value="TargetUnit" />
-    <InitialEffect value="SamuroCriticalStrikeBurningBladeSplashSearch" />
-    <PeriodCount value="1" />
-    <ValidatorArray value="HasSamuroCriticalStrikeBehaviorOrSamuroCriticalStrikeActivatedBehavior" />
-    <ValidatorArray value="CasterNotBlindedAndTargetNotEvading" />
-  </CEffectCreatePersistent>
   <CEffectSet id="SamuroWindWalkOneWiththeWindEnterStealthSet">
     <EffectArray value="SamuroWindWalkEnumerateTrackUnitsOneWiththeWindTalent" />
   </CEffectSet>
@@ -2612,11 +2820,8 @@
       <Flags index="ShowInHeroSelect" value="1" />
       <Flags index="AffectedByCooldownReduction" value="1" />
     </HeroAbilArray>
-    <HeroAbilArray Abil="SamuroCriticalStrikeDummy" Button="SamuroCriticalStrike">
-      <Flags index="ShowInHeroSelect" value="1" />
-      <Flags index="AffectedByCooldownReduction" value="1" />
-    </HeroAbilArray>
     <HeroAbilArray Abil="SamuroCriticalStrike" Button="SamuroCriticalStrike">
+      <Flags index="ShowInHeroSelect" value="1" />
       <Flags index="UsesCharges" value="1" />
       <Flags index="AffectedByCooldownReduction" value="1" />
     </HeroAbilArray>
@@ -2848,6 +3053,8 @@
       <TalentsArray value="SamuroDanceOfDeath" />
     </TalentAIBuildsArray>
     <HeroSpecificUIArray Location="Status" DescName="Samuro/SamuroFrame" />
+    <HeroSpecificUIArray Location="CommandButton01Status" DescName="Samuro/SamuroCriticalStrikeButtonOverride" />
+    <HeroSpecificUIArray Location="HeroSpecificStackingBuffsStatus" DescName="Samuro/SamuroStacksFrameContainer" />
     <Rarity value="Legendary" />
     <ExpandedRole value="MeleeAssassin" />
   </CHero>
@@ -2881,9 +3088,6 @@
   <CRequirement id="SamuroMirrorImageHasIllusionMasterTrackingBehavior">
     <NodeArray index="Use" Link="EqCountBehaviorSamuroMirrorImageIllusionMasterTrackingBehaviorCompleteOnlyAtUnit1" />
   </CRequirement>
-  <CRequirement id="SamuroOverpoweringBlowActive">
-    <NodeArray index="Show" Link="EqCountBehaviorSamuroCriticalStrikeCrushingBlowsCarryBehaviorCompleteOnlyAtUnit1" />
-  </CRequirement>
   <CRequirement id="NoSamuroMirrorImageTimedLife">
     <NodeArray index="Use" Link="EqCountBehaviorSamuroMirrorImageTimedLifeCompleteOnlyAtUnit0" />
   </CRequirement>
@@ -2913,10 +3117,6 @@
     <Flags index="TechTreeCheat" value="0" />
     <Count Link="SamuroBladestorm" State="CompleteOnlyAtUnit" />
   </CRequirementCountBehavior>
-  <CRequirementCountBehavior id="CountBehaviorSamuroCriticalStrikeCrushingBlowsCarryBehaviorCompleteOnlyAtUnit">
-    <Flags index="TechTreeCheat" value="0" />
-    <Count Link="SamuroCriticalStrikeCrushingBlowsCarryBehavior" State="CompleteOnlyAtUnit" />
-  </CRequirementCountBehavior>
   <CRequirementCountBehavior id="CountBehaviorSamuroMirrorImageTimedLifeCompleteOnlyAtUnit">
     <Flags index="TechTreeCheat" value="0" />
     <Tooltip value="" />
@@ -2924,10 +3124,6 @@
   </CRequirementCountBehavior>
   <CRequirementEq id="EqCountBehaviorSamuroBladestormCompleteOnlyAtUnit1">
     <OperandArray index="0" value="CountBehaviorSamuroBladestormCompleteOnlyAtUnit" />
-    <OperandArray index="1" value="1" />
-  </CRequirementEq>
-  <CRequirementEq id="EqCountBehaviorSamuroCriticalStrikeCrushingBlowsCarryBehaviorCompleteOnlyAtUnit1">
-    <OperandArray index="0" value="CountBehaviorSamuroCriticalStrikeCrushingBlowsCarryBehaviorCompleteOnlyAtUnit" />
     <OperandArray index="1" value="1" />
   </CRequirementEq>
   <CRequirementEq id="EqCountBehaviorSamuroMirrorImageTimedLifeCompleteOnlyAtUnit0">
@@ -3016,7 +3212,7 @@
     <Face value="SamuroOverpoweringBlow" />
     <Abil value="SamuroCriticalStrike" />
     <RankArray>
-      <BehaviorArray value="SamuroCriticalStrikeCrushingBlowsCarryBehavior" />
+      <BehaviorArray value="SamuroCrushingBlowsTokenCounter" />
     </RankArray>
     <AbilityModificationArray />
   </CTalent>
@@ -3162,20 +3358,6 @@
       <Modifications>
         <Type value="FlatModification" />
         <Catalog value="Behavior" />
-        <Entry value="SamuroAdvancingStrikesDummyBehavior" />
-        <Field value="Duration" />
-        <Value value="2.000000" />
-      </Modifications>
-      <Modifications>
-        <Type value="FlatModification" />
-        <Catalog value="Behavior" />
-        <Entry value="SamuroAdvancingStrikesPressTheAttackAttackSpeedBuff" />
-        <Field value="Duration" />
-        <Value value="2.000000" />
-      </Modifications>
-      <Modifications>
-        <Type value="FlatModification" />
-        <Catalog value="Behavior" />
         <Entry value="SamuroAdvancingStrikesDeflectionBlock" />
         <Field value="Duration" />
         <Value value="2.000000" />
@@ -3204,20 +3386,6 @@
   <CTalent id="SamuroPhantomPain">
     <Face value="SamuroPhantomsStrikeTalent" />
     <Abil value="SamuroCriticalStrike" />
-    <AbilityModificationArray>
-      <Modifications>
-        <Type value="FlatModification" />
-        <Catalog value="Behavior" />
-        <Entry value="SamuroCriticalStrike" />
-        <Field value="Modification.DamageDealtFraction[Basic]" />
-      </Modifications>
-      <Modifications>
-        <Type value="FlatModification" />
-        <Catalog value="Behavior" />
-        <Entry value="SamuroCriticalStrikeActivated" />
-        <Field value="Modification.DamageDealtFraction[Basic]" />
-      </Modifications>
-    </AbilityModificationArray>
   </CTalent>
   <CTalent id="SamuroMirage">
     <Face value="SamuroMirage" />
@@ -3242,21 +3410,53 @@
   <CTalent id="SamuroMirrorImageWayOfTheBlade">
     <Face value="SamuroWayoftheBlade" />
     <RankArray>
-      <BehaviorArray value="SamuroCriticalStrike" />
+      <BehaviorArray value="SamuroCriticalStrikeWayOfTheBladeTokenDummy" />
     </RankArray>
     <Abil value="SamuroCriticalStrike" />
-  </CTalent>
-  <CTalent id="SamuroPressTheAttack">
-    <Face value="SamuroPressTheAttack" />
     <AbilityModificationArray>
       <Modifications>
         <Type value="FlatModification" />
-        <Catalog value="Effect" />
-        <Entry value="SamuroAdvancingStrikesAddPressTheAttackCasterBehavior" />
-        <Field value="Chance" />
+        <Catalog value="Behavior" />
+        <Entry value="SamuroCriticalStrikeTokenCounter" />
+        <Field value="Min" />
         <Value value="1.000000" />
       </Modifications>
+      <Modifications>
+        <Type value="FlatModification" />
+        <Catalog value="Behavior" />
+        <Entry value="SamuroCriticalStrikeTokenCounter" />
+        <Field value="Init" />
+        <Value value="1.000000" />
+      </Modifications>
+      <Modifications>
+        <Type value="FlatModification" />
+        <Catalog value="Behavior" />
+        <Entry value="SamuroCriticalStrikeTokenCounterMirrorImage" />
+        <Field value="Min" />
+        <Value value="1.000000" />
+      </Modifications>
+      <Modifications>
+        <Type value="FlatModification" />
+        <Catalog value="Behavior" />
+        <Entry value="SamuroCriticalStrikeTokenCounterMirrorImage" />
+        <Field value="Init" />
+        <Value value="1.000000" />
+      </Modifications>
+      <Modifications>
+        <Type value="FlatModification" />
+        <Catalog value="Accumulator" />
+        <Entry value="SamuroMirrorImageCriticalStrikeTokenAccumulator" />
+        <Field value="Offset" />
+        <Value value="-1.000000" />
+      </Modifications>
     </AbilityModificationArray>
+  </CTalent>
+  <CTalent id="SamuroPressTheAttack">
+    <Face value="SamuroPressTheAttack" />
+    <RankArray>
+      <BehaviorArray value="SamuroPressTheAttackCarry" />
+      <BehaviorArray value="SamuroPressTheAttackTokenCounter" />
+    </RankArray>
   </CTalent>
   <CTalent id="SamuroWindwalkOneWithTheWind">
     <Face value="SamuroOneWithTheWindTalent" />
@@ -3297,7 +3497,6 @@
     <LifeStart value="1725" />
     <LifeMax value="1725" />
     <LifeRegenRate value="3.5898" />
-    <AbilArray Link="SamuroWeaponCooldown" />
     <AbilArray Link="SamuroIllusionMaster" />
     <AbilArray Link="SamuroMirrorImageTargeted" />
     <AbilArray Link="SamuroIllusionMasterNoTarget" />
@@ -3306,12 +3505,12 @@
     <AbilArray Link="SamuroBladestorm" />
     <AbilArray Link="SamuroBladeStormDummy" />
     <AbilArray Link="SamuroBladestormCancel" />
-    <AbilArray Link="SamuroCriticalStrikeDummy" />
     <AbilArray Link="SamuroIllusionMasterDummy" />
     <AbilArray Link="SamuroIllusionMasterDummyShopAbility" />
     <BehaviorArray Link="NotManaUserDummy" />
-    <BehaviorArray Link="SamuroWindwalkMoveSpeedBuff" />
     <BehaviorArray Link="SamuroMirrorImageUnitTracker" />
+    <BehaviorArray Link="SamuroMirrorImageTransferController" />
+    <BehaviorArray Link="SamuroCriticalStrikeTokenCounter" />
     <WeaponArray Link="SamuroWeapon" />
     <CardLayouts index="0">
       <LayoutButtons index="0" Face="Attack" Type="AbilCmd" AbilCmd="attack,Execute" Requirements="" Slot="Attack" />
@@ -3335,29 +3534,14 @@
       <LayoutButtons index="18" Face="LockedMapMechanicAbility" Type="Passive" AbilCmd="MapMechanicAbilityTarget,Execute" Slot="MapMechanic" />
       <LayoutButtons index="19" Face="LootYellVoiceLine" Type="AbilCmd" AbilCmd="LootYellVoiceLine,Execute" Slot="Voice" />
       <LayoutButtons index="21" Face="HearthstoneNoMana" Type="AbilCmd" AbilCmd="Hearthstone,Execute" Slot="Hearth" />
-      <LayoutButtons Face="SamuroCancelBladestorm" Type="AbilCmd" AbilCmd="SamuroBladestormCancel,Execute" Behavior="SamuroBladestormCancel,Execute" Slot="Heroic" />
+      <LayoutButtons Face="SamuroCancelBladestorm" Type="AbilCmd" AbilCmd="SamuroBladestormCancel,Execute" Slot="Heroic" />
       <LayoutButtons Face="SamuroBladestorm" Type="AbilCmd" AbilCmd="SamuroBladeStormDummy,Execute" Slot="Heroic" />
       <LayoutButtons Face="LockedHeroicAbility" Type="Passive" Requirements="AbathurIsUltimateEvolutionClone" Slot="Heroic" />
       <LayoutButtons Face="SamuroIllusionMaster" Type="AbilCmd" AbilCmd="SamuroIllusionMasterNoTarget,Execute" Slot="Heroic" />
       <LayoutButtons Face="SamuroIllusionMaster" Type="AbilCmd" AbilCmd="SamuroIllusionMaster,Execute" Slot="Heroic" />
-      <LayoutButtons Face="SamuroMirrorImage" Type="AbilCmd" AbilCmd="SamuroMirrorImageTargeted,Execute" Behavior="SamuroMirrorImage,Execute" Slot="Ability1" />
-      <LayoutButtons>
-        <Face value="SamuroCriticalStrike" />
-        <Type value="AbilCmd" />
-        <AbilCmd value="SamuroCriticalStrikeDummy,Execute" />
-        <Behavior value="SamuroCriticalStrikeDummy,Execute" />
-        <SubmenuAbilState value="SamuroCriticalStrikeDummy,Execute" />
-        <Slot value="Ability2" />
-      </LayoutButtons>
-      <LayoutButtons>
-        <Face value="SamuroCriticalStrike" />
-        <Type value="AbilCmd" />
-        <AbilCmd value="SamuroCriticalStrike,Execute" />
-        <Behavior value="SamuroCriticalStrike,Execute" />
-        <SubmenuAbilState value="SamuroCriticalStrike,Execute" />
-        <Slot value="Ability2" />
-      </LayoutButtons>
-      <LayoutButtons Face="SamuroWindwalk" Type="AbilCmd" AbilCmd="SamuroWindwalk,Execute" Behavior="SamuroWindwalk,Execute" Slot="Ability3" />
+      <LayoutButtons Face="SamuroMirrorImage" Type="AbilCmd" AbilCmd="SamuroMirrorImageTargeted,Execute" Slot="Ability1" />
+      <LayoutButtons Face="SamuroCriticalStrike" Type="AbilCmd" AbilCmd="SamuroCriticalStrike,Execute" Slot="Ability2" />
+      <LayoutButtons Face="SamuroWindwalk" Type="AbilCmd" AbilCmd="SamuroWindwalk,Execute" Slot="Ability3" />
       <LayoutButtons Face="SamuroAdvancingStrikes" Type="AbilCmd" AbilCmd="SamuroIllusionMasterNoTarget,Execute" Slot="Trait" />
       <LayoutButtons Face="SamuroAdvancingStrikes" Type="AbilCmd" AbilCmd="SamuroIllusionMaster,Execute" Slot="Trait" />
       <LayoutButtons Face="SamuroImageTransmissionDummyShopAbility" Type="AbilCmd" AbilCmd="SamuroIllusionMasterDummyShopAbility,Execute" Slot="Trait" />
@@ -3403,7 +3587,6 @@
     <AbilArray Link="MapMechanicAbilityInstant" />
     <AbilArray Link="LootSpray" />
     <AbilArray Link="LootYellVoiceLine" />
-    <AbilArray Link="SamuroWeaponCooldown" />
     <AbilArray Link="SamuroIllusionMaster" />
     <AbilArray Link="SamuroMirrorImage" />
     <AbilArray Link="SamuroCriticalStrike" />
@@ -3422,8 +3605,9 @@
     <BehaviorArray Link="SuppressGenericDeath" />
     <BehaviorArray Link="SuppressGenericDeathRagdoll" />
     <BehaviorArray Link="HeroGenericIgnoreFullscreenOverlay" />
+    <BehaviorArray Link="SamuroMirrorImageCreatorTracker" />
+    <BehaviorArray Link="SamuroCriticalStrikeTokenCounterMirrorImage" />
     <WeaponArray Link="SamuroWeapon" />
-    <WeaponArray Link="SamuroMirrorImageBladestormDummyWeapon" />
     <EffectArray index="Death" value="SamuroMirrorImageDeathPersistent" />
     <CardLayouts>
       <LayoutButtons Face="Attack" Type="AbilCmd" AbilCmd="attack,Execute" Slot="Attack" />
@@ -3555,72 +3739,55 @@
     <CombineArray value="CasterNotHallucination" />
     <CombineArray value="CasterisHallucinationAndTargetisHoleLadderDownorUp" />
   </CValidatorCombine>
-  <CValidatorUnitCompareBehaviorCount id="HasSamuroCriticalStrikeBehaviorMirrorImage">
-    <WhichUnit Value="Caster" />
-    <Compare value="GT" />
-    <Behavior value="SamuroCriticalStrikeMirrorImage" />
-  </CValidatorUnitCompareBehaviorCount>
-  <CValidatorUnitCompareBehaviorCount id="HasSamuroCriticalStrikeActivatedBehaviorMirrorImage">
-    <WhichUnit Value="Caster" />
-    <Compare value="GT" />
-    <Behavior value="SamuroCriticalStrikeActivatedMirrorImage" />
-  </CValidatorUnitCompareBehaviorCount>
   <CValidatorUnitType id="SamuroCasterIsSamuroUnitWayOfTheBlade">
     <WhichUnit Value="Caster" />
     <Value value="HeroSamuro" />
   </CValidatorUnitType>
-  <CValidatorCombine id="SamuroHasCriticalStrikeandinSwingState">
-    <Type value="And" />
-    <CombineArray value="HasSamuroCriticalStrikeBehavior" />
-    <CombineArray value="SamuroWeaponisinSwingorBackswingState" />
-  </CValidatorCombine>
-  <CValidatorUnitCompareBehaviorCount id="SamuroHasLTE2CritStacks">
-    <WhichUnit Value="Caster" />
-    <Compare value="LE" />
-    <Value value="2" />
-    <Behavior value="SamuroCriticalStrikeCounterBehavior" />
-  </CValidatorUnitCompareBehaviorCount>
   <CValidatorUnitCompareBehaviorCount id="SamuroHasMirrorImageShake">
     <Value value="1" />
     <Behavior value="SamuroMirrorImageShake" />
   </CValidatorUnitCompareBehaviorCount>
-  <CValidatorCombine id="SamuroHasMirrorImageShakeOrCasterNotInStasisExceptTimeStop">
-    <CombineArray value="CasterNotStasisExceptTimeStop" />
+  <CValidatorCombine id="SamuroHasMirrorImageShackOrDoesNotHaveDeadSilencedStasisStunnedExceptTimeStop">
     <CombineArray value="SamuroHasMirrorImageShake" />
+    <CombineArray value="CasterNotDeadOrSilencedOrStasisOrStunnedExceptTimeStop" />
+  </CValidatorCombine>
+  <CValidatorCombine id="SamuroCriticalStrikeDoesNotHave0StacksCombine">
+    <CombineArray value="SamuroCriticalStrikeGT1StackWithWOTB" />
+    <CombineArray value="SamuroCriticalStrikeGT0StackWithoutWOTB" />
+  </CValidatorCombine>
+  <CValidatorCombine id="SamuroCriticalStrikeGT1StackWithWOTB">
+    <Type value="And" />
+    <CombineArray value="SamuroHasGT1CriticalStrikeTokens" />
+    <CombineArray value="SamuroHasWayoftheBlade" />
+  </CValidatorCombine>
+  <CValidatorCombine id="SamuroCriticalStrikeGT0StackWithoutWOTB">
+    <Type value="And" />
+    <CombineArray value="SamuroDoesNotHave0CriticalStrikeTokens" />
+    <CombineArray value="SamuroDoesNotHaveWayoftheBlade" />
+  </CValidatorCombine>
+  <CValidatorCombine id="SamuroCriticalStrike1StackNoWOTB">
+    <Type value="And" />
+    <CombineArray value="SamuroHas1CriticalStrikeTokens" />
+    <CombineArray value="SamuroDoesNotHaveWayoftheBlade" />
+  </CValidatorCombine>
+  <CValidatorCombine id="SamuroCriticalStrike2StackNoWOTB">
+    <Type value="And" />
+    <CombineArray value="SamuroHas2CriticalStrikeTokens" />
+    <CombineArray value="SamuroDoesNotHaveWayoftheBlade" />
+  </CValidatorCombine>
+  <CValidatorCombine id="SamuroCriticalStrike1StackWithWOTB">
+    <Type value="And" />
+    <CombineArray value="SamuroHas2CriticalStrikeTokens" />
+    <CombineArray value="SamuroHasWayoftheBlade" />
   </CValidatorCombine>
   <CValidatorPlayerTalent id="SamuroDoesNotHaveWayoftheBlade">
     <WhichPlayer Value="Caster" />
     <Value value="SamuroMirrorImageWayOfTheBlade" />
   </CValidatorPlayerTalent>
-  <CValidatorCombine id="SamuroDoesNotHaveWayoftheBladewithOneStack">
-    <Type value="And" />
-    <CombineArray value="SamuroHas1CritStacks" />
-    <CombineArray value="SamuroDoesNotHaveWayoftheBlade" />
-  </CValidatorCombine>
-  <CValidatorCombine id="SamuroDoesNotHaveWayoftheBladewithTwoStacks">
-    <Type value="And" />
-    <CombineArray value="SamuroHas2CritStacks" />
-    <CombineArray value="SamuroDoesNotHaveWayoftheBlade" />
-  </CValidatorCombine>
-  <CValidatorUnitCompareBehaviorCount id="SamuroHas1CritStacks">
-    <WhichUnit Value="Caster" />
-    <Value value="1" />
-    <Behavior value="SamuroCriticalStrikeCounterBehavior" />
-  </CValidatorUnitCompareBehaviorCount>
-  <CValidatorUnitCompareBehaviorCount id="SamuroHas2CritStacks">
-    <WhichUnit Value="Caster" />
-    <Value value="2" />
-    <Behavior value="SamuroCriticalStrikeCounterBehavior" />
-  </CValidatorUnitCompareBehaviorCount>
   <CValidatorUnitCompareBehaviorCount id="SamuroHasOneWithTheWindPostStealthBuff">
     <Value value="1" />
     <Behavior value="SamuroWindwalkOneWithTheWindPostStealthBuff" />
   </CValidatorUnitCompareBehaviorCount>
-  <CValidatorCombine id="SamuroHasWayoftheBladewithOneStack">
-    <Type value="And" />
-    <CombineArray value="SamuroHas1CritStacks" />
-    <CombineArray value="SamuroHasWayoftheBlade" />
-  </CValidatorCombine>
   <CValidatorCombine id="SamuroMirrorImageIsNotSelectedAndAIIsToggledOn">
     <Type value="And" />
     <CombineArray value="SamuroMirrorImageAIIsToggledOn" />
@@ -3629,17 +3796,17 @@
   <CValidatorCombine id="CasterisNotSamuroMirrorImagewithOneStack">
     <Type value="And" />
     <CombineArray value="CasterisNotSamuroMirrorImage" />
-    <CombineArray value="SamuroHas1CritStacks" />
+    <CombineArray value="SamuroHas1CriticalStrikeTokens" />
   </CValidatorCombine>
   <CValidatorCombine id="CasterisNotSamuroMirrorImagewithTwoStacks">
     <Type value="And" />
     <CombineArray value="CasterisNotSamuroMirrorImage" />
-    <CombineArray value="SamuroHas2CritStacks" />
+    <CombineArray value="SamuroHas2CriticalStrikeTokens" />
   </CValidatorCombine>
   <CValidatorCombine id="CasterisNotSamuroMirrorImagewithThreeStacks">
     <Type value="And" />
     <CombineArray value="CasterisNotSamuroMirrorImage" />
-    <CombineArray value="SamuroHas3CritStacks" />
+    <CombineArray value="SamuroCriticalStrikeCasterCombine" />
   </CValidatorCombine>
   <CValidatorUnitCompareBehaviorCount id="DoesNotHaveSamuroStopSpecialDisableAggroBehavior">
     <WhichUnit Value="Caster" />
@@ -3649,24 +3816,24 @@
     <CombineArray value="HasSamuroWindwalkCloakOrInitialCloak" />
     <Negate value="1" />
   </CValidatorCombine>
-  <CValidatorCombine id="HasSamuroCriticalStrikeAndWindwalkAndTargetWithinWeaponScanRange">
+  <CValidatorCombine id="SamuroHasCriticalStrikeAndWindwalk">
+    <CombineArray value="HasSamuroWindwalkCloakOrInitialCloak" />
+    <CombineArray value="SamuroCriticalStrikeCasterCombine" />
     <Type value="And" />
-    <CombineArray value="HasSamuroCriticalStrikeAndWindwalk" />
-    <CombineArray value="SamuroWindwalkCritTargetWithinWeaponScanRange" />
   </CValidatorCombine>
-  <CValidatorCombine id="HasSamuroCriticalStrikeBehaviorOrSamuroCriticalStrikeActivatedBehaviorAndDoesNotHaveWindwalkBehavior">
+  <CValidatorCombine id="SamuroCriticalStrikeCasterCombineAndDoesNotHaveWindwalk">
     <Type value="And" />
-    <CombineArray value="HasSamuroCriticalStrikeBehaviorOrSamuroCriticalStrikeActivatedBehavior" />
+    <CombineArray value="SamuroCriticalStrikeCasterCombine" />
     <CombineArray value="DoesNotHaveSamuroWindwalkOrInitialWindwalkCloak" />
   </CValidatorCombine>
-  <CValidatorCombine id="HasSamuroCriticalStrikeAndWindwalk">
-    <CombineArray value="HasSamuroWindwalkCloakOrInitialCloak" />
-    <CombineArray value="HasSamuroCriticalStrikeBehaviorOrSamuroCriticalStrikeActivatedBehavior" />
+  <CValidatorCombine id="SamuroHasCriticalStrikeAndWindwalkAndTargetWithinWeaponScanRange">
     <Type value="And" />
+    <CombineArray value="SamuroHasCriticalStrikeAndWindwalk" />
+    <CombineArray value="SamuroWindwalkCritTargetWithinWeaponScanRange" />
   </CValidatorCombine>
-  <CValidatorCombine id="HasSamuroCriticalStrikeAndWindwalkAndTargetNotWithinWeaponScanRange">
+  <CValidatorCombine id="SamuroHasCriticalStrikeAndWindwalkAndTargetNotWithinWeaponScanRange">
     <Type value="And" />
-    <CombineArray value="HasSamuroCriticalStrikeAndWindwalk" />
+    <CombineArray value="SamuroHasCriticalStrikeAndWindwalk" />
     <CombineArray value="SamuroWindwalkCritTargetNotWithinWeaponScanRange" />
   </CValidatorCombine>
   <CValidatorUnitCompareBehaviorCount id="NoSamuroWindwalkTarget">
@@ -3689,6 +3856,10 @@
   <CValidatorCombine id="HasSamuroMirrorImageStackGreaterThan0OrIsMirrorImage">
     <CombineArray value="HasSamuroMirrorImageStackGreaterThan0" />
     <CombineArray value="CasterisSamuroMirrorImage" />
+  </CValidatorCombine>
+  <CValidatorCombine id="SamuroTargetIsGroundMoverOrCasterIsMirrorImage">
+    <CombineArray value="CasterisSamuroMirrorImage" />
+    <CombineArray value="TargetIsGroundMover" />
   </CValidatorCombine>
   <CValidatorLocationCompareRange id="SamuroRadialTargetDistanceValidator">
     <WhichLocation Value="TargetUnit" />
@@ -3714,6 +3885,11 @@
     <Filters value="-;Dead" />
     <WhichUnit Effect="SamuroMirrorImageWayOfIllusionAddCountBehaviorStack" />
   </CValidatorUnitFilters>
+  <CValidatorCombine id="SamuroIllusionMasterNoTargetValidatorUseCombine">
+    <Type value="And" />
+    <CombineArray value="SamuroHas1ActiveMirrorImageWithGroundMover" />
+    <CombineArray value="VehicleGenericPlayerNotAlreadyInVehicle" />
+  </CValidatorCombine>
   <CValidatorCombine id="SamuroIllusionMasterNoTargetValidatorCombine">
     <Type value="And" />
     <CombineArray value="SamuroHas1ActiveMirrorImage" />
@@ -3724,6 +3900,13 @@
     <BehaviorLink value="SamuroMirrorImageUnitTracker" />
     <TrackedUnitFilters value="Heroic,Hallucination;Ally,Neutral,Enemy,Structure,Missile,Item,Stasis,Dead,Hidden,Invulnerable,OrdersPaused,Silenced" />
   </CValidatorCompareTrackedUnitsCount>
+  <CValidatorCompareTrackedUnitsCount id="SamuroHas1ActiveMirrorImageWithGroundMover" parent="SamuroHas1ActiveMirrorImage">
+    <TrackedUnitValidatorArray value="TargetIsGroundMover" />
+  </CValidatorCompareTrackedUnitsCount>
+  <CValidatorUnitCompareVital id="SamuroLifePercentLTTargetLifePercent" parent="CasterLifePercent">
+    <OtherUnit Value="Target" />
+    <Compare value="LT" />
+  </CValidatorUnitCompareVital>
   <CValidatorUnitCompareBehaviorCount id="SamuroIsNotCastingBladestorm">
     <WhichUnit Value="Caster" />
     <Behavior value="SamuroBladestorm" />
@@ -3764,11 +3947,14 @@
     <Range value="4" />
     <Value Value="TargetUnit" />
   </CValidatorLocationCompareRange>
-  <CValidatorCombine id="HasSamuroCriticalStrikeBehaviorOrSamuroCriticalStrikeActivatedBehavior">
-    <CombineArray value="HasSamuroCriticalStrikeBehavior" />
-    <CombineArray value="HasSamuroCriticalStrikeActivatedBehavior" />
-    <CombineArray value="HasSamuroCriticalStrikeBehaviorMirrorImage" />
-    <CombineArray value="HasSamuroCriticalStrikeActivatedBehaviorMirrorImage" />
+  <CValidatorCombine id="SamuroCriticalStrikeCasterCombine">
+    <CombineArray value="SamuroHasCriticalStrikeTimed" />
+    <CombineArray value="SamuroHas3CriticalStrikeTokens" />
+  </CValidatorCombine>
+  <CValidatorCombine id="SamuroCriticalStrikeCombine">
+    <CombineArray value="SamuroHasCriticalStrikeTimed" />
+    <CombineArray value="SamuroHas3CriticalStrikeTokens" />
+    <CombineArray value="SamuroMercilessStrikesCasterHasMarker" />
   </CValidatorCombine>
   <CValidatorPlayerTalent id="SamuroHasHarshWindsTalent">
     <WhichPlayer Value="Caster" />
@@ -3804,12 +3990,23 @@
     <CombineArray value="CasterUnitTypeIsSamuro" />
     <CombineArray value="CasterNotDead" />
   </CValidatorCombine>
+  <CValidatorUnitCompareTokenCount id="SamuroHasGE1WayOfIllusionStacks">
+    <WhichUnit Value="Caster" />
+    <Compare value="GE" />
+    <Value value="1" />
+    <TokenId value="SamuroMirrorImageWayOfIllusionQuestToken" />
+  </CValidatorUnitCompareTokenCount>
   <CValidatorUnitCompareTokenCount id="SamuroHasLessThanMaxWayOfIllusionStacks">
     <WhichUnit Value="Caster" />
-    <Compare value="LT" />
+    <Compare value="LE" />
     <Value value="39" />
     <TokenId value="SamuroMirrorImageWayOfIllusionQuestToken" />
   </CValidatorUnitCompareTokenCount>
+  <CValidatorCombine id="SamuroHasGE1LE39WayOfIllusionStacks">
+    <Type value="And" />
+    <CombineArray value="SamuroHasLessThanMaxWayOfIllusionStacks" />
+    <CombineArray value="SamuroHasGE1WayOfIllusionStacks" />
+  </CValidatorCombine>
   <CValidatorUnitCompareTokenCount id="SamuroHasMaxWayOfIllusionStacks">
     <WhichUnit Value="Caster" />
     <Value value="40" />
@@ -3822,13 +4019,13 @@
   </CValidatorPlayerTalent>
   <CValidatorCombine id="HasSamuroCriticalStrikeActivatedandTargetHasLessthan50Life">
     <Type value="And" />
-    <CombineArray value="HasSamuroCriticalStrikeActivatedBehavior" />
+    <CombineArray value="SamuroHasCriticalStrikeTimed" />
     <CombineArray value="TargetLifeLT50Percent" />
   </CValidatorCombine>
-  <CValidatorUnitCompareBehaviorCount id="HasSamuroCriticalStrikeActivatedBehavior">
-    <WhichUnit Value="Caster" />
+  <CValidatorUnitCompareBehaviorCount id="SamuroTargetHasHarshWindsVulnerabilityBehavior">
     <Compare value="GT" />
-    <Behavior value="SamuroCriticalStrikeActivated" />
+    <Behavior value="SamuroWindwalkHarshWindsVulnerabilityBehavior" />
+    <RequireOriginPlayer Value="Caster" />
   </CValidatorUnitCompareBehaviorCount>
   <CValidatorUnitCompareBehaviorCount id="SamuroSourceHasHarshWinds">
     <WhichUnit Value="Source" />
@@ -3861,19 +4058,38 @@
     <Find value="1" />
     <Value value="SamuroBurningBlade" />
   </CValidatorPlayerTalent>
+  <CValidatorUnitHasBehavior id="SamuroDeflectionCasterHasArmor">
+    <Behavior value="SamuroAdvancingStrikesDeflectionBlock" />
+    <WhichUnit Value="Caster" />
+  </CValidatorUnitHasBehavior>
   <CValidatorUnitCompareBehaviorCount id="SamuroCasterDoesNotHaveAdvancingStrikesActive">
     <WhichUnit Value="Caster" />
-    <Behavior value="SamuroAdvancingStrikesDummyBehavior" />
+    <Behavior value="SamuroAdvancingStrikesMoveSpeedBuff" />
   </CValidatorUnitCompareBehaviorCount>
   <CValidatorUnitCompareBehaviorCount id="SamuroCasterHasSamuroAdvancingStrikesMoveSpeedBuff">
     <WhichUnit Value="Caster" />
     <Behavior value="SamuroAdvancingStrikesMoveSpeedBuff" />
     <Compare value="GT" />
   </CValidatorUnitCompareBehaviorCount>
+  <CValidatorUnitCompareBehaviorCount id="SamuroCasterHasAdvancingStrikesActive">
+    <Value value="1" />
+    <WhichUnit Value="Caster" />
+    <Behavior value="SamuroAdvancingStrikesMoveSpeedBuff" />
+  </CValidatorUnitCompareBehaviorCount>
+  <CValidatorUnitCompareBehaviorCount id="SamuroSourceHasAdvancingStrikesActive">
+    <Value value="1" />
+    <WhichUnit Value="Target" />
+    <Behavior value="SamuroAdvancingStrikesMoveSpeedBuff" />
+  </CValidatorUnitCompareBehaviorCount>
   <CValidatorCombine id="TargetIsHeroOrHavePressTheAttack">
     <CombineArray value="SamuroCasterHasSamuroAdvancingStrikesMoveSpeedBuff" />
     <CombineArray value="TargetIsHero" />
   </CValidatorCombine>
+  <CValidatorUnitCompareTokenCount id="SamuroDoesNotHave0PressTheAttackTokens">
+    <WhichUnit Value="Caster" />
+    <Compare value="NE" />
+    <TokenId value="SamuroPressTheAttackTokenCounter" />
+  </CValidatorUnitCompareTokenCount>
   <CValidatorUnitCompareTokenCount id="SamuroHasLessThanMaxWayOfTheWindStacks">
     <WhichUnit Value="Caster" />
     <Compare value="LT" />
@@ -3916,6 +4132,15 @@
     <CombineArray value="CasterisNotSamuroMirrorImage" />
     <CombineArray value="ExecutionerCCCombine" />
   </CValidatorCombine>
+  <CValidatorUnitHasBehavior id="SamuroMercilessStrikesCasterHasMarker">
+    <Behavior value="SamuroMercilessStrikesCasterMarker" />
+    <WhichUnit Value="Caster" />
+  </CValidatorUnitHasBehavior>
+  <CValidatorUnitHasBehavior id="SamuroMercilessStrikesCasterDoesNotHaveMarker">
+    <Behavior value="SamuroMercilessStrikesCasterMarker" />
+    <WhichUnit Value="Caster" />
+    <Negate value="1" />
+  </CValidatorUnitHasBehavior>
   <CValidatorPlayerTalent id="SamuroHasOneWithTheWind">
     <WhichPlayer Value="Caster" />
     <Find value="1" />
@@ -3923,7 +4148,7 @@
   </CValidatorPlayerTalent>
   <CValidatorUnitCompareBehaviorCount id="SamuroTargetHasAdvancingStrikesActive">
     <Value value="1" />
-    <Behavior value="SamuroAdvancingStrikesDummyBehavior" />
+    <Behavior value="SamuroAdvancingStrikesMoveSpeedBuff" />
   </CValidatorUnitCompareBehaviorCount>
   <CValidatorPlayerTalent id="SamuroHasDeflectionTalent">
     <WhichPlayer Value="Caster" />
@@ -3963,34 +4188,91 @@
     <Find value="1" />
     <Value value="SamuroWindwalkWhispersFromTheWind" />
   </CValidatorPlayerTalent>
-  <CValidatorCombine id="HasWayoftheBladeAnd2StacksOrHas3Stacks">
-    <CombineArray value="SamuroHasWayoftheBladeand2CritStacks" />
-    <CombineArray value="SamuroHas3CritStacks" />
-  </CValidatorCombine>
   <CValidatorPlayerTalent id="SamuroHasPhantomPainTalent">
     <WhichPlayer Value="Caster" />
     <Find value="1" />
     <Value value="SamuroPhantomPain" />
   </CValidatorPlayerTalent>
+  <CValidatorCombine id="PhantomPainGE1Combine">
+    <Type value="And" />
+    <CombineArray value="SamuroCriticalStrikeCombine" />
+    <CombineArray value="TargetIsHero" />
+    <CombineArray value="SamuroHasPhantomPainTalent" />
+    <CombineArray value="SamuroPhantomPainGE1MirrorImageTracked" />
+  </CValidatorCombine>
+  <CValidatorCombine id="PhantomPainGT1Combine">
+    <Type value="And" />
+    <CombineArray value="SamuroCriticalStrikeCombine" />
+    <CombineArray value="TargetIsHero" />
+    <CombineArray value="SamuroHasPhantomPainTalent" />
+    <CombineArray value="SamuroPhantomPainGT1MirrorImageTracked" />
+  </CValidatorCombine>
+  <CValidatorCompareTrackedUnitsCount id="SamuroPhantomPainGE1MirrorImageTracked">
+    <Compare value="GE" />
+    <Value value="1" />
+    <BehaviorLink value="SamuroMirrorImageUnitTracker" />
+  </CValidatorCompareTrackedUnitsCount>
+  <CValidatorCompareTrackedUnitsCount id="SamuroPhantomPainGT1MirrorImageTracked">
+    <Compare value="GT" />
+    <Value value="1" />
+    <BehaviorLink value="SamuroMirrorImageUnitTracker" />
+  </CValidatorCompareTrackedUnitsCount>
   <CValidatorPlayerTalent id="SamuroHasWayoftheBlade">
     <WhichPlayer Value="Caster" />
     <Find value="1" />
     <Value value="SamuroMirrorImageWayOfTheBlade" />
   </CValidatorPlayerTalent>
-  <CValidatorUnitCompareBehaviorCount id="HasSamuroCriticalStrikeBehavior">
+  <CValidatorUnitCompareBehaviorCount id="SamuroHasCriticalStrikeTimed">
     <WhichUnit Value="Caster" />
     <Compare value="GT" />
-    <Behavior value="SamuroCriticalStrike" />
+    <Behavior value="SamuroCriticalStrikeTimed" />
   </CValidatorUnitCompareBehaviorCount>
-  <CValidatorUnitCompareBehaviorCount id="DoesNotHaveSamuroCriticalStrike">
+  <CValidatorUnitCompareBehaviorCount id="SamuroDoesNotHaveCriticalStrikesTimed">
     <WhichUnit Value="Caster" />
-    <Behavior value="SamuroCriticalStrike" />
+    <Behavior value="SamuroCriticalStrikeTimed" />
   </CValidatorUnitCompareBehaviorCount>
-  <CValidatorUnitCompareBehaviorCount id="SamuroHas3CritStacks">
+  <CValidatorUnitCompareTokenCount id="SamuroHas3CriticalStrikeTokens">
     <WhichUnit Value="Caster" />
     <Value value="3" />
-    <Behavior value="SamuroCriticalStrikeCounterBehavior" />
-  </CValidatorUnitCompareBehaviorCount>
+    <TokenId value="SamuroCriticalStrikeTokenCounter" />
+  </CValidatorUnitCompareTokenCount>
+  <CValidatorUnitCompareTokenCount id="SamuroHas2CriticalStrikeTokens">
+    <WhichUnit Value="Caster" />
+    <Value value="2" />
+    <TokenId value="SamuroCriticalStrikeTokenCounter" />
+  </CValidatorUnitCompareTokenCount>
+  <CValidatorUnitCompareTokenCount id="SamuroHas1CriticalStrikeTokens">
+    <WhichUnit Value="Caster" />
+    <Value value="1" />
+    <TokenId value="SamuroCriticalStrikeTokenCounter" />
+  </CValidatorUnitCompareTokenCount>
+  <CValidatorUnitCompareTokenCount id="SamuroHasGT1CriticalStrikeTokens">
+    <WhichUnit Value="Caster" />
+    <Value value="1" />
+    <Compare value="GT" />
+    <TokenId value="SamuroCriticalStrikeTokenCounter" />
+  </CValidatorUnitCompareTokenCount>
+  <CValidatorUnitCompareTokenCount id="SamuroHas0CriticalStrikeTokens">
+    <WhichUnit Value="Caster" />
+    <TokenId value="SamuroCriticalStrikeTokenCounter" />
+  </CValidatorUnitCompareTokenCount>
+  <CValidatorUnitCompareTokenCount id="SamuroDoesNotHave0CriticalStrikeTokens">
+    <WhichUnit Value="Caster" />
+    <Compare value="NE" />
+    <TokenId value="SamuroCriticalStrikeTokenCounter" />
+  </CValidatorUnitCompareTokenCount>
+  <CValidatorUnitCompareTokenCount id="SamuroDoesNotHave3CriticalStrikeTokens">
+    <WhichUnit Value="Caster" />
+    <Compare value="NE" />
+    <Value value="3" />
+    <TokenId value="SamuroCriticalStrikeTokenCounter" />
+  </CValidatorUnitCompareTokenCount>
+  <CValidatorUnitCompareTokenCount id="SamuroDoesNotHave2CriticalStrikeTokens">
+    <WhichUnit Value="Caster" />
+    <Compare value="NE" />
+    <Value value="2" />
+    <TokenId value="SamuroCriticalStrikeTokenCounter" />
+  </CValidatorUnitCompareTokenCount>
   <CValidatorUnitCompareBehaviorCount id="CasterisNotSamuroMirrorImage">
     <WhichUnit Value="Caster" />
     <Behavior value="SamuroMirrorImageTimedLife" />
@@ -4006,11 +4288,6 @@
     <Value value="1" />
     <Behavior value="SamuroMirrorImageTimedLife" />
   </CValidatorUnitCompareBehaviorCount>
-  <CValidatorCombine id="SamuroHasWayoftheBladeand2CritStacks">
-    <Type value="And" />
-    <CombineArray value="SamuroHasWayoftheBlade" />
-    <CombineArray value="SamuroHasGTE2CritStacks" />
-  </CValidatorCombine>
   <CValidatorUnitType id="TargetIsSamuro">
     <Value value="HeroSamuro" />
   </CValidatorUnitType>
@@ -4048,12 +4325,6 @@
     <Find value="1" />
     <Value value="SamuroWindWalkMirrorEdge" />
   </CValidatorPlayerTalent>
-  <CValidatorUnitCompareBehaviorCount id="SamuroHasGTE2CritStacks">
-    <WhichUnit Value="Caster" />
-    <Compare value="GE" />
-    <Value value="2" />
-    <Behavior value="SamuroCriticalStrikeCounterBehavior" />
-  </CValidatorUnitCompareBehaviorCount>
   <CValidatorUnitCompareBehaviorCount id="SamuroMirrorImagesDoesNotHaveSupressAttackOrderBehavior">
     <WhichUnit Value="Source" />
     <Behavior value="SamuroDopplegangerSupressAttackOrderBehavior" />
@@ -4064,15 +4335,12 @@
     <DisplayEffect value="SamuroWeaponDamage" />
     <MinScanRange value="4" />
     <Range value="2" />
-    <Cost>
-      <Cooldown Link="Abil/SamuroWeaponCooldown" Location="Unit" TimeUse="0.25" />
-    </Cost>
     <Period value="0.6" />
     <DamagePoint value="0.15" />
     <PreswingBeforeAttack value="0.25" />
     <PreswingBetweenAttacks value="0.25" />
     <Backswing value="0.15" />
-    <Effect value="SamuroWeaponImpactSet" />
+    <Effect value="SamuroWeaponImpactSwitch" />
     <UninterruptibleDuration value="0.15" />
   </CWeaponLegacy>
   <CWeaponLegacy id="SamuroMirrorImageBladestormDummyWeapon" parent="StormHeroFastWeapon">
