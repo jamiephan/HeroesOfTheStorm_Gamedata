@@ -7,6 +7,12 @@
   <const id="$MeiOWCryoFreezeDuration" value="3" />
   <const id="$MeiOWIcicleSearchWidth" value="1" />
   <const id="$MeiOWIcingSearchRadius" value="4" />
+  <const id="$MeiOWIcingSlowDuration" value="1.5" />
+  <const id="$MeiOWIcingSlowAmountPos" value="0.8" />
+  <const id="$MeiOWIcingSlowMultiplierPerStep" value="/($MeiOWIcingSlowAmountPos *($MeiOWIcingSlowDuration 16))" evaluateAsExpression="1" />
+  <const id="$MeiOWIcingSlowMultiplierPerStep50PercentCCReduction" value="/($MeiOWIcingSlowMultiplierPerStep 0.5)" evaluateAsExpression="1" />
+  <const id="$MeiOWIcingSlowMultiplierPerStep75PercentCCReduction" value="/($MeiOWIcingSlowMultiplierPerStep 0.25)" evaluateAsExpression="1" />
+  <const id="$MeiOWIcingSlowAmount" value="negate($MeiOWIcingSlowAmountPos)" evaluateAsExpression="1" />
   <const id="$MeiOWAvalancheSearchWidth" value="2.5" />
   <const id="$MeiOWAvalancheDistance" value="22" />
   <const id="$MeiOWBlizzardRange" value="9" />
@@ -198,6 +204,20 @@
     <TimestampBehavior value="MeiOWIceWallSlowTimestamp" />
     <MultiplierPerStep value="0.0156" />
     <UnitSource Value="Source" />
+  </CAccumulatorTimed>
+  <CAccumulatorTimed id="MeiOWIcingDecayAccumulator">
+    <TimestampBehavior value="MeiOWIcingSlowTimestamp" />
+    <MinAccumulation value="0" />
+    <MaxAccumulation value="$MeiOWIcingSlowAmountPos" />
+    <ApplicationRule value="Add" />
+    <MultiplierPerStep value="$MeiOWIcingSlowMultiplierPerStep" />
+    <UnitSource Value="Target" />
+  </CAccumulatorTimed>
+  <CAccumulatorTimed id="MeiOWIcingDecayAccumulator50PercentCCReduction" parent="MeiOWIcingDecayAccumulator">
+    <MultiplierPerStep value="$MeiOWIcingSlowMultiplierPerStep50PercentCCReduction" />
+  </CAccumulatorTimed>
+  <CAccumulatorTimed id="MeiOWIcingDecayAccumulator75PercentCCReduction" parent="MeiOWIcingDecayAccumulator">
+    <MultiplierPerStep value="$MeiOWIcingSlowMultiplierPerStep75PercentCCReduction" />
   </CAccumulatorTimed>
   <CAccumulatorTrackedUnitCount id="MeiAvalancheStunUnitTrackerAccumulator" parent="BaseAccumulator">
     <MinAccumulation value="0.5" />
@@ -1085,13 +1105,6 @@
       </ArmorSet>
     </ArmorModification>
   </CBehaviorBuff>
-  <CBehaviorBuff id="MeiOWIcingStackController">
-    <Duration value="1.5" />
-    <Period value="0.0625" />
-    <PeriodicEffect value="MeiOWIcingRemoveSlowStack" />
-    <RemoveValidatorArray value="MeiOWTargetHasIcingSlow" />
-    <RefreshEffect value="MeiOWCCApplicationSet" />
-  </CBehaviorBuff>
   <CBehaviorBuff id="MeiOWPolarVortexBuff">
     <Alignment value="Positive" />
     <InfoFlags index="Hidden" value="0" />
@@ -1185,20 +1198,39 @@
     <Period value="0.0625" />
     <InitialEffect value="MeiOWIcingKnockbackForce" />
     <PeriodicEffect value="MeiOWIcingKnockbackForce" />
-    <ExpireEffect value="MeiOWIcingKnockbackDebuffExpireSet" />
+    <ExpireEffect value="MeiOWIcingApplySlowSwitch" />
     <Modification>
       <MoveSpeedMaximum value="12" />
       <MoveSpeedMinimum value="12" />
     </Modification>
   </CBehaviorBuff>
-  <CBehaviorTimestamp id="MeiOWIcingSlowTimestamp" />
+  <CBehaviorTimestamp id="MeiOWIcingSlowTimestamp">
+    <Flags index="UseTimeScale" value="1" />
+    <TimeScaleSource Value="Target" />
+  </CBehaviorTimestamp>
   <CBehaviorBuff id="MeiOWIcingSlowDebuff" parent="StormSlowParent">
-    <MaxStackCount value="24" />
-    <MaxStackCountPerCaster value="24" />
-    <Duration value="1.5" />
-    <InitialEffect value="MeiOWCCApplicationSet" />
+    <Duration value="$MeiOWIcingSlowDuration" />
+    <InitialEffect value="MeiOWIcingSlowInitialSet" />
+    <RefreshEffect value="MeiOWIcingSlowInitialSet" />
+    <FinalEffect value="MeiOWIcingSlowTimestampRemoveBehavior" />
     <Modification>
-      <UnifiedMoveSpeedFactor value="-0.0332" />
+      <UnifiedMoveSpeedFactor value="$MeiOWIcingSlowAmount">
+        <AccumulatorArray value="MeiOWIcingDecayAccumulator" />
+      </UnifiedMoveSpeedFactor>
+    </Modification>
+  </CBehaviorBuff>
+  <CBehaviorBuff id="MeiOWIcingSlowDebuff50PercentCCReduction" parent="MeiOWIcingSlowDebuff">
+    <Modification>
+      <UnifiedMoveSpeedFactor value="$MeiOWIcingSlowAmount">
+        <AccumulatorArray index="0" value="MeiOWIcingDecayAccumulator50PercentCCReduction" />
+      </UnifiedMoveSpeedFactor>
+    </Modification>
+  </CBehaviorBuff>
+  <CBehaviorBuff id="MeiOWIcingSlowDebuff75PercentCCReduction" parent="MeiOWIcingSlowDebuff">
+    <Modification>
+      <UnifiedMoveSpeedFactor value="$MeiOWIcingSlowAmount">
+        <AccumulatorArray index="0" value="MeiOWIcingDecayAccumulator75PercentCCReduction" />
+      </UnifiedMoveSpeedFactor>
     </Modification>
   </CBehaviorBuff>
   <CBehaviorBuff id="MeiOWCryoFreezeShieldBuff" parent="StormShield">
@@ -2032,18 +2064,11 @@
     <WhichUnit Value="Caster" />
     <BehaviorLink value="MeiOWBlizzardColdFrontTalentMarker" />
   </CEffectRemoveBehavior>
-  <CEffectRemoveBehavior id="MeiOWIcingRemoveSlowStack">
-    <BehaviorLink value="MeiOWIcingSlowDebuff" />
-    <Count value="1" />
-  </CEffectRemoveBehavior>
   <CEffectApplyBehavior id="MeiOWIcingSkatingAwayTalentApplySpeedBuff">
     <Behavior value="MeiOWIcingSkatingAwayTalentSpeedBuff" />
   </CEffectApplyBehavior>
   <CEffectApplyBehavior id="MeiOWIcingSkatingAwayTalentApplyArmorBuff">
     <Behavior value="MeiOWIcingSkatingAwayTalentArmorBuff" />
-  </CEffectApplyBehavior>
-  <CEffectApplyBehavior id="MeiOWIcingSlowApplyStackController" parent="StormSlowApply">
-    <Behavior value="MeiOWIcingStackController" />
   </CEffectApplyBehavior>
   <CEffectCreateHealer id="MeiOWReverseEngineeringPeriodicHeal" parent="StormSelfOnlyHealingSpell">
     <RechargeVitalRate value="10" />
@@ -2168,23 +2193,32 @@
     <WhichUnit Effect="MeiOWIcingImpactSet" />
     <Amount value="75" />
   </CEffectApplyForce>
-  <CEffectSet id="MeiOWIcingKnockbackDebuffExpireSet">
+  <CEffectSwitch id="MeiOWIcingApplySlowSwitch">
     <ValidatorArray value="TargetNotUnstoppable" />
-    <EffectArray value="MeiOWIcingSlowTimestampApplyBehavior" />
-    <EffectArray value="MeiOWIcingSlowApplyStacks" />
-    <EffectArray value="MeiOWIcingSlowApplyStackController" />
-    <EffectArray value="MeiOWSlowAppliedTalentSet" />
-  </CEffectSet>
-  <CEffectApplyBehavior id="MeiOWIcingSlowApplyStacks" parent="StormSlowApply">
+    <CaseArray Validator="TargetHas50PercentCCReductionCombine" Effect="MeiOWIcingApplySlow50PercentCCReduction" />
+    <CaseArray Validator="TargetHas75PercentCCReduction" Effect="MeiOWIcingApplySlow75PercentCCReduction" />
+    <CaseDefault value="MeiOWIcingApplySlow" />
+  </CEffectSwitch>
+  <CEffectApplyBehavior id="MeiOWIcingApplySlow" parent="StormSlowApply">
     <Behavior value="MeiOWIcingSlowDebuff" />
-    <Count value="24" />
+  </CEffectApplyBehavior>
+  <CEffectApplyBehavior id="MeiOWIcingApplySlow50PercentCCReduction" parent="StormSlowApply">
+    <Behavior value="MeiOWIcingSlowDebuff50PercentCCReduction" />
+  </CEffectApplyBehavior>
+  <CEffectApplyBehavior id="MeiOWIcingApplySlow75PercentCCReduction" parent="StormSlowApply">
+    <Behavior value="MeiOWIcingSlowDebuff75PercentCCReduction" />
   </CEffectApplyBehavior>
   <CEffectApplyBehavior id="MeiOWIcingSlowTimestampApplyBehavior">
+    <ValidatorArray value="MeiOWDoesNotHaveBlackIceTalent" />
     <Behavior value="MeiOWIcingSlowTimestamp" />
   </CEffectApplyBehavior>
   <CEffectRemoveBehavior id="MeiOWIcingSlowTimestampRemoveBehavior">
     <BehaviorLink value="MeiOWIcingSlowTimestamp" />
   </CEffectRemoveBehavior>
+  <CEffectSet id="MeiOWIcingSlowInitialSet">
+    <EffectArray value="MeiOWCCApplicationSet" />
+    <EffectArray value="MeiOWIcingSlowTimestampApplyBehavior" />
+  </CEffectSet>
   <CEffectSet id="MeiOWIcingCancelInitialSet">
     <EffectArray value="MeiOWIcingCancelMoveOrder" />
     <EffectArray value="MeiOWIcingDashBuffRemoveBehavior" />
@@ -2512,7 +2546,7 @@
     <EffectArray value="MeiOWIceWallUnitCreateUnit" />
   </CEffectSet>
   <CEffectEnumArea id="MeiOWIceWallSearchArea">
-    <SearchFilters value="Heroic;Player,Ally,Neutral,ImmuneToAOE,Structure,Missile,Item,Stasis,Dead,Hidden,Benign,MapBoss,MapCreature" />
+    <SearchFilters value="Heroic;Player,Ally,Neutral,ImmuneToAOE,Structure,Missile,Item,Stasis,Dead,Hidden,MapBoss,MapCreature" />
     <AreaArray Effect="MeiOWIceWallImpactSet">
       <Radius value="$MeiOWIceWallSearchRadius" />
     </AreaArray>
@@ -2522,6 +2556,7 @@
     <SearchFlags index="DoActorSearch" value="1" />
   </CEffectEnumArea>
   <CEffectSet id="MeiOWIceWallImpactSet">
+    <ValidatorArray value="MeiOWIceWallBenignValidator" />
     <EffectArray value="MeiOWIceWallControllerApplyBehavior" />
     <EffectArray value="MeiOWIceWallTimeStopPrepPersistentHandler" />
     <EffectArray value="MeiOWIceWallTimeStopDebuffApplyUntimedBehavior" />
@@ -3630,13 +3665,6 @@
         <Field value="Chance" />
         <Value value="1.000000" />
       </Modifications>
-      <Modifications>
-        <Type value="FlatModification" />
-        <Catalog value="Effect" />
-        <Entry value="MeiOWIcingSlowApplyStackController" />
-        <Field value="Chance" />
-        <Value value="-1.000000" />
-      </Modifications>
     </AbilityModificationArray>
   </CTalent>
   <CTalent id="MeiOWFreshPowder">
@@ -3959,6 +3987,9 @@
     <Find value="1" />
     <Value value="MeiOWBlackIce" />
   </CValidatorPlayerTalent>
+  <CValidatorPlayerTalent id="MeiOWDoesNotHaveBlackIceTalent">
+    <Value value="MeiOWBlackIce" />
+  </CValidatorPlayerTalent>
   <CValidatorPlayerTalent id="MeiOWHasFreshPowderTalent">
     <Find value="1" />
     <Value value="MeiOWFreshPowder" />
@@ -4074,9 +4105,27 @@
   <CValidatorUnitHasBehavior id="MeiOWIceWallTargetHasTimeStopDebuff">
     <Behavior value="MeiOWIceWallTimeStopDebuff" />
   </CValidatorUnitHasBehavior>
+  <CValidatorCombine id="MeiOWIceWallBenignValidator">
+    <CombineArray value="TargetNotBenign" />
+  </CValidatorCombine>
+  <CValidatorCombine id="MeiOWTargetHasIcingSlowCombine">
+    <CombineArray value="MeiOWTargetHasIcingSlow" />
+    <CombineArray value="MeiOWTargetHasIcingSlow50PercentCCReduction" />
+    <CombineArray value="MeiOWTargetHasIcingSlow75PercentCCReduction" />
+  </CValidatorCombine>
   <CValidatorUnitCompareBehaviorCount id="MeiOWTargetHasIcingSlow">
     <Compare value="GT" />
     <Behavior value="MeiOWIcingSlowDebuff" />
+    <RequireCasterUnit Value="Caster" />
+  </CValidatorUnitCompareBehaviorCount>
+  <CValidatorUnitCompareBehaviorCount id="MeiOWTargetHasIcingSlow50PercentCCReduction">
+    <Compare value="GT" />
+    <Behavior value="MeiOWIcingSlowDebuff50PercentCCReduction" />
+    <RequireCasterUnit Value="Caster" />
+  </CValidatorUnitCompareBehaviorCount>
+  <CValidatorUnitCompareBehaviorCount id="MeiOWTargetHasIcingSlow75PercentCCReduction">
+    <Compare value="GT" />
+    <Behavior value="MeiOWIcingSlowDebuff75PercentCCReduction" />
     <RequireCasterUnit Value="Caster" />
   </CValidatorUnitCompareBehaviorCount>
   <CValidatorUnitCompareBehaviorCount id="MeiOWTargetHasSnowBlindBlind">

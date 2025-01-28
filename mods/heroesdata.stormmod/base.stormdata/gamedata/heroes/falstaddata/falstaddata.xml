@@ -1,5 +1,11 @@
 <?xml version="1.0" encoding="us-ascii"?>
 <Catalog>
+  <const id="$FalstadMightyGustSlowDuration" value="4" />
+  <const id="$FalstadMightyGustSlowAmountPos" value="0.4" />
+  <const id="$FalstadMightyGustSlowMultiplierPerStep" value="/($FalstadMightyGustSlowAmountPos *($FalstadMightyGustSlowDuration 16))" evaluateAsExpression="1" />
+  <const id="$FalstadMightyGustSlowMultiplierPerStep50PercentCCReduction" value="/($FalstadMightyGustSlowMultiplierPerStep 0.5)" evaluateAsExpression="1" />
+  <const id="$FalstadMightyGustSlowMultiplierPerStep75PercentCCReduction" value="/($FalstadMightyGustSlowMultiplierPerStep 0.25)" evaluateAsExpression="1" />
+  <const id="$FalstadMightyGustSlowAmount" value="negate($FalstadMightyGustSlowAmountPos)" evaluateAsExpression="1" />
   <CAbilEffectInstant id="FalstadFrequentFlyerActive">
     <Effect value="FalstadTailwindFrequentFlyerApplyBuffBehavior" />
     <Cost>
@@ -211,6 +217,20 @@
     <ApplicationRule value="Add" />
     <TokenId value="FalstadHammerangGatheringStormQuestToken" />
   </CAccumulatorToken>
+  <CAccumulatorTimed id="FalstadMightyGustDecayAccumulator">
+    <TimestampBehavior value="FalstadMightyGustTimestamp" />
+    <MinAccumulation value="0" />
+    <MaxAccumulation value="$FalstadMightyGustSlowAmountPos" />
+    <ApplicationRule value="Add" />
+    <MultiplierPerStep value="$FalstadMightyGustSlowMultiplierPerStep" />
+    <UnitSource Value="Target" />
+  </CAccumulatorTimed>
+  <CAccumulatorTimed id="FalstadMightyGustDecayAccumulator50PercentCCReduction" parent="FalstadMightyGustDecayAccumulator">
+    <MultiplierPerStep value="$FalstadMightyGustSlowMultiplierPerStep50PercentCCReduction" />
+  </CAccumulatorTimed>
+  <CAccumulatorTimed id="FalstadMightyGustDecayAccumulator75PercentCCReduction" parent="FalstadMightyGustDecayAccumulator">
+    <MultiplierPerStep value="$FalstadMightyGustSlowMultiplierPerStep75PercentCCReduction" />
+  </CAccumulatorTimed>
   <CActorSplat id="FalstadWingmanRangeSplat" parent="StormRangeSplat">
     <Scale value="6.000000" />
   </CActorSplat>
@@ -1190,16 +1210,37 @@
   <CBehaviorBuff id="FalstadMightyGustMissileDeathEarly">
     <Duration value="0.4375" />
   </CBehaviorBuff>
-  <CBehaviorBuff id="FalstadMightyGustSlowStacks" parent="StormSlowParent">
-    <MaxStackCount value="16" />
-    <Duration value="4" />
+  <CBehaviorBuff id="FalstadMightyGustSlow" parent="StormSlowParent">
+    <Duration value="$FalstadMightyGustSlowDuration" />
+    <InitialEffect value="FalstadMightyGustApplyTimeStampBehavior" />
+    <FinalEffect value="FalstadMightyGustRemoveTimeStampBehavior" />
     <Modification>
-      <UnifiedMoveSpeedFactor value="-0.025" />
+      <UnifiedMoveSpeedFactor value="$FalstadMightyGustSlowAmount">
+        <AccumulatorArray value="FalstadMightyGustDecayAccumulator" />
+      </UnifiedMoveSpeedFactor>
     </Modification>
   </CBehaviorBuff>
+  <CBehaviorBuff id="FalstadMightyGustSlow50PercentCCReduction" parent="FalstadMightyGustSlow">
+    <Modification>
+      <UnifiedMoveSpeedFactor value="$FalstadMightyGustSlowAmount">
+        <AccumulatorArray index="0" value="FalstadMightyGustDecayAccumulator50PercentCCReduction" />
+      </UnifiedMoveSpeedFactor>
+    </Modification>
+  </CBehaviorBuff>
+  <CBehaviorBuff id="FalstadMightyGustSlow75PercentCCReduction" parent="FalstadMightyGustSlow">
+    <Modification>
+      <UnifiedMoveSpeedFactor value="$FalstadMightyGustSlowAmount">
+        <AccumulatorArray index="0" value="FalstadMightyGustDecayAccumulator75PercentCCReduction" />
+      </UnifiedMoveSpeedFactor>
+    </Modification>
+  </CBehaviorBuff>
+  <CBehaviorTimestamp id="FalstadMightyGustTimestamp">
+    <Flags index="UseTimeScale" value="1" />
+    <TimeScaleSource Value="Target" />
+  </CBehaviorTimestamp>
   <CBehaviorBuff id="FalstadMightyGustKnockbackBehavior" parent="PushPullParent">
     <Duration value="0.875" />
-    <FinalEffect value="FalstadMightyGustApplySlowSet" />
+    <FinalEffect value="FalstadMightyGustApplySlowSwitch" />
     <Modification>
       <MoveSpeedMaximum value="14" />
       <MoveSpeedMinimum value="14" />
@@ -1209,14 +1250,6 @@
     <Period value="0.0625" />
     <PeriodCount value="9" />
     <PeriodicEffect value="FalstadMightyGustMissileScan" />
-  </CBehaviorBuff>
-  <CBehaviorBuff id="FalstadMightyGustSlowStackController">
-    <Alignment value="Negative" />
-    <InfoIcon value="Assets\Textures\storm_temp_war3_btngryphonrider.dds" />
-    <BehaviorCategories index="Slow" value="1" />
-    <Duration value="4" />
-    <Period value="0.25" />
-    <PeriodicEffect value="FalstadMightyGustRemoveSlowStack" />
   </CBehaviorBuff>
   <CBehaviorBuff id="FalstadMightyGustWindTunnelKnockbackBehavior" parent="PushPullParent">
     <Duration value="0.125" />
@@ -1374,6 +1407,13 @@
     <TooltipAppender Validator="HasFalstadMasteryFlightEpicMount" Face="FalstadEpicMountTalent" />
     <TooltipAppender Validator="HasPregameSuppressionBehavior" Text="Button/TooltipAppender/LockedUntilGameStarts" />
     <Icon value="Assets\Textures\storm_ui_icon_falstad_mount.dds" />
+  </CButton>
+  <CButton id="FalstadFlightShop" parent="StormButtonParent">
+    <SimpleDisplayText value="Button/SimpleDisplayText/FalstadFlight" />
+    <Tooltip value="Button/Tooltip/FalstadFlight" />
+    <TooltipAppender Validator="HasFalstadMasteryFlightEpicMount" Face="FalstadEpicMountTalent" />
+    <TooltipAppender Validator="HasPregameSuppressionBehavior" Text="Button/TooltipAppender/LockedUntilGameStarts" />
+    <Icon value="Assets\Textures\storm_ui_icon_falstad_epicmount.dds" />
   </CButton>
   <CButton id="FalstadFreeRollTalent" parent="StormButtonParent">
     <Icon value="Assets\Textures\storm_ui_icon_falstad_barrelroll.dds" />
@@ -2005,30 +2045,33 @@
     <WhichUnit Value="Source" />
     <Behavior value="FalstadMightyGustMissileDeathEarly" />
   </CEffectApplyBehavior>
-  <CEffectSet id="FalstadMightyGustApplySlowSet">
-    <EffectArray value="FalstadMightyGustApplySlowStackController" />
-    <EffectArray value="FalstadMightyGustApplySlowStacks" />
-  </CEffectSet>
-  <CEffectApplyBehavior id="FalstadMightyGustApplySlowStackController">
-    <WhichUnit Value="Source" />
-    <Behavior value="FalstadMightyGustSlowStackController" />
+  <CEffectSwitch id="FalstadMightyGustApplySlowSwitch">
+    <ValidatorArray value="TargetNotUnstoppable" />
+    <CaseArray Validator="TargetHas50PercentCCReductionCombine" Effect="FalstadMightyGustApplySlow50PercentCCReduction" />
+    <CaseArray Validator="TargetHas75PercentCCReduction" Effect="FalstadMightyGustApplySlow75PercentCCReduction" />
+    <CaseDefault value="FalstadMightyGustApplySlow" />
+  </CEffectSwitch>
+  <CEffectApplyBehavior id="FalstadMightyGustApplySlow" parent="StormSlowApply">
+    <Behavior value="FalstadMightyGustSlow" />
   </CEffectApplyBehavior>
-  <CEffectApplyBehavior id="FalstadMightyGustApplySlowStacks" parent="StormSlowApply">
-    <WhichUnit Value="Source" />
-    <Behavior value="FalstadMightyGustSlowStacks" />
-    <Count value="16" />
+  <CEffectApplyBehavior id="FalstadMightyGustApplySlow50PercentCCReduction" parent="StormSlowApply">
+    <Behavior value="DryadCripplingSporesSlow50PercentCCReduction" />
   </CEffectApplyBehavior>
+  <CEffectApplyBehavior id="FalstadMightyGustApplySlow75PercentCCReduction" parent="StormSlowApply">
+    <Behavior value="DryadCripplingSporesSlow75PercentCCReduction" />
+  </CEffectApplyBehavior>
+  <CEffectApplyBehavior id="FalstadMightyGustApplyTimeStampBehavior">
+    <Behavior value="FalstadMightyGustTimestamp" />
+  </CEffectApplyBehavior>
+  <CEffectRemoveBehavior id="FalstadMightyGustRemoveTimeStampBehavior">
+    <BehaviorLink value="FalstadMightyGustTimestamp" />
+  </CEffectRemoveBehavior>
   <CEffectCreatePersistent id="FalstadMightyGustImpactPersistent">
     <WhichLocation Value="CasterUnit" />
     <InitialEffect value="FalstadMightyGustKnockbackPersistent" />
     <InitialOffset Y="-50" />
     <OffsetVectorStartLocation Value="TargetUnit" />
   </CEffectCreatePersistent>
-  <CEffectRemoveBehavior id="FalstadMightyGustRemoveSlowStack">
-    <WhichUnit Value="Source" />
-    <BehaviorLink value="FalstadMightyGustSlowStacks" />
-    <Count value="1" />
-  </CEffectRemoveBehavior>
   <CEffectApplyBehavior id="FalstadMightyGustWindTunnelApplyKnockbackBehavior">
     <Behavior value="FalstadMightyGustWindTunnelKnockbackBehavior" />
   </CEffectApplyBehavior>
@@ -2864,7 +2907,7 @@
       <Flags index="ShowInHeroSelect" value="1" />
       <Flags index="Trait" value="1" />
     </HeroAbilArray>
-    <HeroAbilArray Abil="FalstadFlight" Button="FalstadFlight">
+    <HeroAbilArray Abil="FalstadFlight" Button="FalstadFlightShop">
       <Flags index="ShowInHeroSelect" value="1" />
       <Flags index="AffectedByCooldownReduction" value="1" />
       <Flags index="MountReplacement" value="1" />

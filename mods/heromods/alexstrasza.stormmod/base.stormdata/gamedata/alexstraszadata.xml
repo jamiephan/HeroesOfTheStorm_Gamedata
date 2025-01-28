@@ -1,5 +1,13 @@
 <?xml version="1.0" encoding="us-ascii"?>
 <Catalog>
+  <const id="$AlexstraszaFlameBuffetSlowDuration" value="2" />
+  <const id="$AlexstraszaFlameBuffetSlowAmountPos" value="0.4" />
+  <const id="$AlexstraszaFlameBuffetSlowMultiplierPerStep" value="/($AlexstraszaFlameBuffetSlowAmountPos *($AlexstraszaFlameBuffetSlowDuration 16))" evaluateAsExpression="1" />
+  <const id="$AlexstraszaFlameBuffetSlowMultiplierPerStep50PercentCCReduction" value="/($AlexstraszaFlameBuffetSlowMultiplierPerStep 0.5)" evaluateAsExpression="1" />
+  <const id="$AlexstraszaFlameBuffetSlowMultiplierPerStep75PercentCCReduction" value="/($AlexstraszaFlameBuffetSlowMultiplierPerStep 0.25)" evaluateAsExpression="1" />
+  <const id="$AlexstraszaFlameBuffetSlowAmount" value="negate($AlexstraszaFlameBuffetSlowAmountPos)" evaluateAsExpression="1" />
+  <const id="$AlexstraszaFlameBuffetHeatExhaustionBonusSlowAmount" value="0.1" />
+  <const id="$AlexstraszaFlameBuffetHeatExhaustionSlowAmount" value="negate(+($AlexstraszaFlameBuffetSlowAmountPos $AlexstraszaFlameBuffetHeatExhaustionBonusSlowAmount))" evaluateAsExpression="1" />
   <const id="$AlexstraszaCleansingFlameCastRange" value="20" />
   <CAbilEffectTarget id="AlexstraszaAbundance">
     <CmdButtonArray index="Execute" DefaultButtonFace="AlexstraszaAbundance" />
@@ -292,6 +300,20 @@
     <ModificationType value="PerUnit" />
     <MinAccumulation value="-9999" />
   </CAccumulatorVitals>
+  <CAccumulatorTimed id="AlexstraszaFlameBuffetDecayAccumulator">
+    <TimestampBehavior value="AlexstraszaFlameBuffetTimestamp" />
+    <MinAccumulation value="0" />
+    <MaxAccumulation value="$AlexstraszaFlameBuffetSlowAmountPos" />
+    <ApplicationRule value="Add" />
+    <MultiplierPerStep value="$AlexstraszaFlameBuffetSlowMultiplierPerStep" />
+    <UnitSource Value="Target" />
+  </CAccumulatorTimed>
+  <CAccumulatorTimed id="AlexstraszaFlameBuffetDecayAccumulator50PercentCCReduction" parent="AlexstraszaFlameBuffetDecayAccumulator">
+    <MultiplierPerStep value="$AlexstraszaFlameBuffetSlowMultiplierPerStep50PercentCCReduction" />
+  </CAccumulatorTimed>
+  <CAccumulatorTimed id="AlexstraszaFlameBuffetDecayAccumulator75PercentCCReduction" parent="AlexstraszaFlameBuffetDecayAccumulator">
+    <MultiplierPerStep value="$AlexstraszaFlameBuffetSlowMultiplierPerStep75PercentCCReduction" />
+  </CAccumulatorTimed>
   <CActorModel id="AlexstraszaAbundanceGroundEffectEnemy" parent="StormModelAnimationStyleContinuous">
     <Filter index="Self" value="1" />
     <Filter index="Ally" value="1" />
@@ -1468,9 +1490,9 @@
     </Modification>
   </CBehaviorBuff>
   <CBehaviorBuff id="AlexstraszaFlameBuffetHeatExhaustionSlow" parent="StormSlowParent">
-    <Duration value="2" />
+    <Duration value="$AlexstraszaFlameBuffetSlowDuration" />
     <Modification>
-      <UnifiedMoveSpeedFactor value="-0.5" />
+      <UnifiedMoveSpeedFactor value="$AlexstraszaFlameBuffetHeatExhaustionSlowAmount" />
     </Modification>
   </CBehaviorBuff>
   <CBehaviorTokenCounter id="AlexstraszaGiftOfLifeLifeblossomTokenCounter" parent="StormQuestToken">
@@ -1588,20 +1610,35 @@
     <Duration value="2" />
     <RemoveValidatorArray value="AlexstraszaLifebinderTargetHasBehavior" />
   </CBehaviorBuff>
-  <CBehaviorBuff id="AlexstraszaFlameBuffetSlowStackController">
-    <Alignment value="Negative" />
-    <BehaviorCategories index="Slow" value="1" />
-    <Duration value="2" />
-    <Period value="0.125" />
-    <PeriodicEffect value="AlexstraszaFlameBuffetRemoveSlowStack" />
-  </CBehaviorBuff>
-  <CBehaviorBuff id="AlexstraszaFlameBuffetSlowStacks" parent="StormSlowParent">
-    <MaxStackCount value="16" />
-    <Duration value="2" />
+  <CBehaviorBuff id="AlexstraszaFlameBuffetSlow" parent="StormSlowParent">
+    <Duration value="$AlexstraszaFlameBuffetSlowDuration" />
+    <InitialEffect value="AlexstraszaFlameBuffetApplyTimeStampBehavior" />
+    <RefreshEffect value="AlexstraszaFlameBuffetApplyTimeStampBehavior" />
+    <FinalEffect value="AlexstraszaFlameBuffetRemoveTimeStampBehavior" />
     <Modification>
-      <UnifiedMoveSpeedFactor value="-0.025" />
+      <UnifiedMoveSpeedFactor value="$AlexstraszaFlameBuffetSlowAmount">
+        <AccumulatorArray value="AlexstraszaFlameBuffetDecayAccumulator" />
+      </UnifiedMoveSpeedFactor>
     </Modification>
   </CBehaviorBuff>
+  <CBehaviorBuff id="AlexstraszaFlameBuffetSlow50PercentCCReduction" parent="AlexstraszaFlameBuffetSlow">
+    <Modification>
+      <UnifiedMoveSpeedFactor value="$AlexstraszaFlameBuffetSlowAmount">
+        <AccumulatorArray index="0" value="AlexstraszaFlameBuffetDecayAccumulator50PercentCCReduction" />
+      </UnifiedMoveSpeedFactor>
+    </Modification>
+  </CBehaviorBuff>
+  <CBehaviorBuff id="AlexstraszaFlameBuffetSlow75PercentCCReduction" parent="AlexstraszaFlameBuffetSlow">
+    <Modification>
+      <UnifiedMoveSpeedFactor value="$AlexstraszaFlameBuffetSlowAmount">
+        <AccumulatorArray index="0" value="AlexstraszaFlameBuffetDecayAccumulator75PercentCCReduction" />
+      </UnifiedMoveSpeedFactor>
+    </Modification>
+  </CBehaviorBuff>
+  <CBehaviorTimestamp id="AlexstraszaFlameBuffetTimestamp">
+    <Flags index="UseTimeScale" value="1" />
+    <TimeScaleSource Value="Target" />
+  </CBehaviorTimestamp>
   <CBehaviorBuff id="AlexstraszaLifebinderCasterHealthHigher">
     <DisableValidatorArray value="AlexstraszaLifebinderCasterHealthLTETargetHealth" />
     <RemoveValidatorArray value="AlexstraszaLifebinderCasterHasBehavior" />
@@ -2481,12 +2518,30 @@
     <EffectArray value="AlexstraszaFireWithinFlameBuffetCreateHealer" />
   </CEffectSet>
   <CEffectSet id="AlexstraszaFlameBuffetApplySlowSet">
-    <EffectArray value="AlexstraszaFlameBuffetApplySlowStackController" />
-    <EffectArray value="AlexstraszaFlameBuffetApplySlowStacks" />
+    <EffectArray value="AlexstraszaFlameBuffetRemoveTimeStampBehavior" />
+    <EffectArray value="AlexstraszaFlameBuffetApplySlowSwitch" />
   </CEffectSet>
-  <CEffectApplyBehavior id="AlexstraszaFlameBuffetApplySlowStackController" parent="StormSlowApply">
-    <Behavior value="AlexstraszaFlameBuffetSlowStackController" />
+  <CEffectSwitch id="AlexstraszaFlameBuffetApplySlowSwitch">
+    <ValidatorArray value="TargetNotUnstoppable" />
+    <CaseArray Validator="TargetHas50PercentCCReductionCombine" Effect="AlexstraszaFlameBuffetApplySlow50PercentCCReduction" />
+    <CaseArray Validator="TargetHas75PercentCCReduction" Effect="AlexstraszaFlameBuffetApplySlow75PercentCCReduction" />
+    <CaseDefault value="AlexstraszaFlameBuffetApplySlow" />
+  </CEffectSwitch>
+  <CEffectApplyBehavior id="AlexstraszaFlameBuffetApplySlow" parent="StormSlowApply">
+    <Behavior value="AlexstraszaFlameBuffetSlow" />
   </CEffectApplyBehavior>
+  <CEffectApplyBehavior id="AlexstraszaFlameBuffetApplySlow50PercentCCReduction" parent="StormSlowApply">
+    <Behavior value="AlexstraszaFlameBuffetSlow50PercentCCReduction" />
+  </CEffectApplyBehavior>
+  <CEffectApplyBehavior id="AlexstraszaFlameBuffetApplySlow75PercentCCReduction" parent="StormSlowApply">
+    <Behavior value="AlexstraszaFlameBuffetSlow75PercentCCReduction" />
+  </CEffectApplyBehavior>
+  <CEffectApplyBehavior id="AlexstraszaFlameBuffetApplyTimeStampBehavior">
+    <Behavior value="AlexstraszaFlameBuffetTimestamp" />
+  </CEffectApplyBehavior>
+  <CEffectRemoveBehavior id="AlexstraszaFlameBuffetRemoveTimeStampBehavior">
+    <BehaviorLink value="AlexstraszaFlameBuffetTimestamp" />
+  </CEffectRemoveBehavior>
   <CEffectApplyBehavior id="AlexstraszaFlameBuffetApplyBurningHitTracker">
     <ValidatorArray index="0" value="AlexstraszaFlameBuffetSourceDoesNotHaveBurningHitTracker" />
     <WhichUnit Value="Source" />
@@ -2517,10 +2572,6 @@
     <CaseArray Validator="AlexstraszaFlamesOfFuryFlameBuffetLTMaxQuestTokens" Effect="AlexstraszaFlamesOfFuryFlameBuffetAddToken" />
     <CaseArray Validator="AlexstraszaFlamesOfFuryHasFlameBuffetMaxQuestTokens" Effect="AlexstraszaFlamesOfFuryFlameBuffetModifyDragonqueenCooldown" />
   </CEffectSwitch>
-  <CEffectApplyBehavior id="AlexstraszaFlameBuffetApplySlowStacks" parent="StormSlowApply">
-    <Behavior value="AlexstraszaFlameBuffetSlowStacks" />
-    <Count value="16" />
-  </CEffectApplyBehavior>
   <CEffectSet id="AlexstraszaFlameBuffetImpactBonusSet">
     <ValidatorArray value="AlexstraszaFlameBuffetHasFlameBuffetDoT" />
     <EffectArray value="AlexstraszaFlameBuffetApplySlowSwitch" />

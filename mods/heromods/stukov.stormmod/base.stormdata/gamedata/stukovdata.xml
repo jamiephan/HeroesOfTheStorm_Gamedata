@@ -1,5 +1,14 @@
 <?xml version="1.0" encoding="us-ascii"?>
 <Catalog>
+  <const id="$StukovWeightedPustuleSlowDuration" value="3" />
+  <const id="$StukovWeightedPustuleSlowDurationAtTotalSlow" value="0.3125" />
+  <const id="$StukovWeightedPustuleTotalSlowAmountPos" value="0.5" />
+  <const id="$StukovWeightedPustuleInitialSlowAmountPos" value="0.05" />
+  <const id="$StukovWeightedPustuleSlowMultiplierPerStep" value="negate(/(-($StukovWeightedPustuleTotalSlowAmountPos $StukovWeightedPustuleInitialSlowAmountPos) *(-($StukovWeightedPustuleSlowDuration $StukovWeightedPustuleSlowDurationAtTotalSlow) 16)))" evaluateAsExpression="1" />
+  <const id="$StukovWeightedPustuleSlowMultiplierPerStep50PercentCCReduction" value="/($StukovWeightedPustuleSlowMultiplierPerStep 0.5)" evaluateAsExpression="1" />
+  <const id="$StukovWeightedPustuleSlowMultiplierPerStep75PercentCCReduction" value="/($StukovWeightedPustuleSlowMultiplierPerStep 0.25)" evaluateAsExpression="1" />
+  <const id="$StukovWeightedPustuleInitialSlowAmount" value="negate($StukovWeightedPustuleInitialSlowAmountPos)" evaluateAsExpression="1" />
+  <const id="$StukovWeightedPustuleMinSlowAccumulated" value="negate(-($StukovWeightedPustuleTotalSlowAmountPos $StukovWeightedPustuleInitialSlowAmountPos))" evaluateAsExpression="1" />
   <CAbilEffectTarget id="StukovHealingPathogen">
     <PrepEffect value="DismountDecloakCasterSet" />
     <Effect value="StukovHealingPathogenInitialCastSet" />
@@ -177,6 +186,20 @@
     <TokenId value="StukovLurkingArmGrowingInfestationAccumulatingToken" />
     <Scale value="0.125" />
   </CAccumulatorToken>
+  <CAccumulatorTimed id="StukovWeightedPustuleRampingAccumulator">
+    <TimestampBehavior value="StukovWeightedPustuleTimestamp" />
+    <MinAccumulation value="$StukovWeightedPustuleMinSlowAccumulated" />
+    <MaxAccumulation value="0" />
+    <ApplicationRule value="Add" />
+    <MultiplierPerStep value="$StukovWeightedPustuleSlowMultiplierPerStep" />
+    <UnitSource Value="Target" />
+  </CAccumulatorTimed>
+  <CAccumulatorTimed id="StukovWeightedPustuleRampingAccumulator50PercentCCReduction" parent="StukovWeightedPustuleRampingAccumulator">
+    <MultiplierPerStep value="$StukovWeightedPustuleSlowMultiplierPerStep50PercentCCReduction" />
+  </CAccumulatorTimed>
+  <CAccumulatorTimed id="StukovWeightedPustuleRampingAccumulator75PercentCCReduction" parent="StukovWeightedPustuleRampingAccumulator">
+    <MultiplierPerStep value="$StukovWeightedPustuleSlowMultiplierPerStep75PercentCCReduction" />
+  </CAccumulatorTimed>
   <CActorModel id="StukovHealingPathogenModelBioticArmor" parent="StormModelAnimationStyleOneShotUnit">
     <Preload index="0" value="BarbarianToughAsNailsBlockBuffModel" />
     <On Terms="Behavior.StukovBioKillSwitchBioticArmorPhysicalArmorBehavior.On" Send="Create" />
@@ -1007,9 +1030,7 @@
     <HostSiteOps Ops="SOpAttachCenter" />
     <Model value="StukovBioKillSwitchDamageImpact" />
   </CActorModel>
-  <CActorModel id="StukovBioKillSwitchVirulentReactionRoot" parent="StormModelAnimationStyleContinuousUnit">
-    <On Terms="Behavior.StukovBioKillSwitchVirulentReactionRootBehavior.On" Send="Create" />
-    <On Terms="Behavior.StukovBioKillSwitchVirulentReactionRootBehavior.Off" Send="AnimBracketStop BSD" />
+  <CActorModel id="StukovBioKillSwitchVirulentReactionRoot" parent="StormModelRoot" effect="StukovBioKillSwitchVirulentReactionApplyRootBehavior" behavior="StukovBioKillSwitchVirulentReactionRootBehavior">
     <On Terms="ActorCreation" Send="SetTintColor 169,14,220" />
     <HostSiteOps Ops="SOpAttachOriginSoft SOpRotationRandomDisc" HoldRotation="1" />
     <AutoScaleFactor value="1.300000" />
@@ -1368,12 +1389,33 @@
   </CBehaviorBuff>
   <CBehaviorBuff id="StukovWeightedPustuleSlow" parent="StormSlowParent">
     <RemoveValidatorArray value="StukovTargetHasWeightedPustuleControllerBehavior" />
-    <MaxStackCount value="10" />
-    <MaxStackCountPerCaster value="10" />
+    <InitialEffect value="StukovWeightedPustuleApplyTimeStampBehavior" />
+    <RefreshEffect value="StukovWeightedPustuleApplyTimeStampBehavior" />
+    <FinalEffect value="StukovWeightedPustuleRemoveTimeStampBehavior" />
     <Modification>
-      <UnifiedMoveSpeedFactor value="-0.05" />
+      <UnifiedMoveSpeedFactor value="$StukovWeightedPustuleInitialSlowAmount">
+        <AccumulatorArray value="StukovWeightedPustuleRampingAccumulator" />
+      </UnifiedMoveSpeedFactor>
     </Modification>
   </CBehaviorBuff>
+  <CBehaviorBuff id="StukovWeightedPustuleSlow50PercentCCReduction" parent="StukovWeightedPustuleSlow">
+    <Modification>
+      <UnifiedMoveSpeedFactor value="$StukovWeightedPustuleInitialSlowAmount">
+        <AccumulatorArray index="0" value="StukovWeightedPustuleRampingAccumulator50PercentCCReduction" />
+      </UnifiedMoveSpeedFactor>
+    </Modification>
+  </CBehaviorBuff>
+  <CBehaviorBuff id="StukovWeightedPustuleSlow75PercentCCReduction" parent="StukovWeightedPustuleSlow">
+    <Modification>
+      <UnifiedMoveSpeedFactor value="$StukovWeightedPustuleInitialSlowAmount">
+        <AccumulatorArray index="0" value="StukovWeightedPustuleRampingAccumulator75PercentCCReduction" />
+      </UnifiedMoveSpeedFactor>
+    </Modification>
+  </CBehaviorBuff>
+  <CBehaviorTimestamp id="StukovWeightedPustuleTimestamp">
+    <Flags index="UseTimeScale" value="1" />
+    <TimeScaleSource Value="Target" />
+  </CBehaviorTimestamp>
   <CBehaviorBuff id="StukovSpineLauncherSlow" parent="StormSlowParent">
     <Duration value="1.5" />
     <Modification>
@@ -1387,7 +1429,6 @@
     <PeriodCount value="10" />
     <InitialEffect value="StukovHealingPathogenInitialBehaviorSet" />
     <RefreshEffect value="StukovWeightedPustuleAddTrackedUnit" />
-    <PeriodicEffect value="StukovWeightedPustuleApplySlowBehavior" />
     <RemoveValidatorArray index="0" value="TargetDoesNotHaveImmuneToCrowdControlBehavior" />
     <RemoveValidatorArray index="1" removed="1" />
   </CBehaviorBuff>
@@ -2312,9 +2353,19 @@
     <EffectArray value="StukovHealingPathogenSpreadLaunchMissile" />
   </CEffectSet>
   <CEffectSet id="StukovHealingPathogenInitialBehaviorSet">
-    <EffectArray value="StukovWeightedPustuleApplySlowBehavior" />
+    <EffectArray value="StukovWeightedPustuleRemoveTimeStampBehavior" />
+    <EffectArray value="StukovWeightedPustuleApplySlowBehaviorSwitch" />
     <EffectArray value="StukovWeightedPustuleAddTrackedUnit" />
   </CEffectSet>
+  <CEffectApplyBehavior id="StukovWeightedPustuleApplyTimeStampBehavior">
+    <Behavior value="StukovWeightedPustuleTimestamp" />
+  </CEffectApplyBehavior>
+  <CEffectRemoveBehavior id="StukovWeightedPustuleRemoveTimeStampBehavior">
+    <BehaviorLink value="StukovWeightedPustuleTimestamp" />
+  </CEffectRemoveBehavior>
+  <CEffectModifyUnit id="StukovWeightedPustuleCatalogReference">
+    <XP value="$StukovWeightedPustuleTotalSlowAmountPos" />
+  </CEffectModifyUnit>
   <CEffectSet id="StukovWeightedPustuleBehaviorsApplicationSet">
     <EffectArray value="StukovWeightedPustuleApplySlowControllerBehavior" />
     <EffectArray value="StukovWeightedPustuleApplyDoTBehavior" />
@@ -2717,8 +2768,20 @@
   <CEffectApplyBehavior id="StukovWeightedPustuleApplyDoTBehavior">
     <Behavior value="StukovWeightedPustuleDoT" />
   </CEffectApplyBehavior>
+  <CEffectSwitch id="StukovWeightedPustuleApplySlowBehaviorSwitch">
+    <ValidatorArray value="TargetNotUnstoppable" />
+    <CaseArray Validator="TargetHas50PercentCCReductionCombine" Effect="StukovWeightedPustuleApplySlowBehavior50PercentCCReduction" />
+    <CaseArray Validator="TargetHas75PercentCCReduction" Effect="StukovWeightedPustuleApplySlowBehavior75PercentCCReduction" />
+    <CaseDefault value="StukovWeightedPustuleApplySlowBehavior" />
+  </CEffectSwitch>
   <CEffectApplyBehavior id="StukovWeightedPustuleApplySlowBehavior">
     <Behavior value="StukovWeightedPustuleSlow" />
+  </CEffectApplyBehavior>
+  <CEffectApplyBehavior id="StukovWeightedPustuleApplySlowBehavior50PercentCCReduction">
+    <Behavior value="StukovWeightedPustuleSlow50PercentCCReduction" />
+  </CEffectApplyBehavior>
+  <CEffectApplyBehavior id="StukovWeightedPustuleApplySlowBehavior75PercentCCReduction">
+    <Behavior value="StukovWeightedPustuleSlow75PercentCCReduction" />
   </CEffectApplyBehavior>
   <CEffectDamage id="StukovWeightedPustuleImpactDamage" parent="StormSpell">
     <Amount value="20" />
@@ -2732,7 +2795,7 @@
     <ValidatorArray value="StukovTargetHasWeightedPustuleDoTBehavior" />
     <Behavior value="StukovBioKillSwitchSlow" />
   </CEffectApplyBehavior>
-  <CEffectApplyBehavior id="StukovBioKillSwitchVirulentReactionApplyRootBehavior">
+  <CEffectApplyBehavior id="StukovBioKillSwitchVirulentReactionApplyRootBehavior" parent="StormRootApply">
     <ValidatorArray value="StukovTargetHasWeightedPustuleDoTBehavior" />
     <ValidatorArray value="StukovTargetHasLurkingArmBehavior" />
     <Chance value="0" />

@@ -1,5 +1,11 @@
 <?xml version="1.0" encoding="us-ascii"?>
 <Catalog>
+  <const id="$RehgarPurgeSlowDuration" value="2" />
+  <const id="$RehgarPurgeSlowAmountPos" value="0.8" />
+  <const id="$RehgarPurgeSlowMultiplierPerStep" value="/($RehgarPurgeSlowAmountPos *($RehgarPurgeSlowDuration 16))" evaluateAsExpression="1" />
+  <const id="$RehgarPurgeSlowMultiplierPerStep50PercentCCReduction" value="/($RehgarPurgeSlowMultiplierPerStep 0.5)" evaluateAsExpression="1" />
+  <const id="$RehgarPurgeSlowMultiplierPerStep75PercentCCReduction" value="/($RehgarPurgeSlowMultiplierPerStep 0.25)" evaluateAsExpression="1" />
+  <const id="$RehgarPurgeSlowAmount" value="negate($RehgarPurgeSlowAmountPos)" evaluateAsExpression="1" />
   <CAbilEffectInstant id="RehgarElementalConduit">
     <PrepEffect value="RehgarDismountDecloakCasterSet" />
     <Effect value="RehgarElementalConduitCastSet" />
@@ -206,6 +212,20 @@
     <TokenId value="RehgarLightningShieldRisingStormTokenCounter" />
     <Scale value="0.1" />
   </CAccumulatorToken>
+  <CAccumulatorTimed id="RehgarPurgeDecayAccumulator">
+    <TimestampBehavior value="RehgarPurgeTimestamp" />
+    <MinAccumulation value="0" />
+    <MaxAccumulation value="$RehgarPurgeSlowAmountPos" />
+    <ApplicationRule value="Add" />
+    <MultiplierPerStep value="$RehgarPurgeSlowMultiplierPerStep" />
+    <UnitSource Value="Target" />
+  </CAccumulatorTimed>
+  <CAccumulatorTimed id="RehgarPurgeDecayAccumulator50PercentCCReduction" parent="RehgarPurgeDecayAccumulator">
+    <MultiplierPerStep value="$RehgarPurgeSlowMultiplierPerStep50PercentCCReduction" />
+  </CAccumulatorTimed>
+  <CAccumulatorTimed id="RehgarPurgeDecayAccumulator75PercentCCReduction" parent="RehgarPurgeDecayAccumulator">
+    <MultiplierPerStep value="$RehgarPurgeSlowMultiplierPerStep75PercentCCReduction" />
+  </CAccumulatorTimed>
   <CActorModel id="RehgarEarthbindTotemEarthgraspTotemFlavorGroundModelFX" parent="StormModelAnimationStyleOneShotUnit">
     <Aliases index="0" removed="1" />
     <On Terms="Effect.RehgarEarthbindTotemEarthgraspTotemSearch.Start; At Source" Send="Create" />
@@ -1035,20 +1055,34 @@
     <Duration value="2" />
   </CBehaviorBuff>
   <CBehaviorBuff id="RehgarPurgeSlow" parent="StormSlowParent">
-    <MaxStackCount value="32" />
-    <MaxStackCountPerCaster value="32" />
-    <Duration value="2" />
+    <Duration value="$RehgarPurgeSlowDuration" />
+    <InitialEffect value="RehgarPurgeApplyTimeStampBehavior" />
+    <RefreshEffect value="RehgarPurgeApplyTimeStampBehavior" />
+    <FinalEffect value="RehgarPurgeRemoveTimeStampBehavior" />
     <Modification>
-      <UnifiedMoveSpeedFactor value="-0.025" />
+      <UnifiedMoveSpeedFactor value="$RehgarPurgeSlowAmount">
+        <AccumulatorArray value="RehgarPurgeDecayAccumulator" />
+      </UnifiedMoveSpeedFactor>
     </Modification>
   </CBehaviorBuff>
-  <CBehaviorBuff id="RehgarPurgeSlowController">
-    <Alignment value="Negative" />
-    <BehaviorCategories index="Slow" value="1" />
-    <Duration value="2" />
-    <Period value="0.0625" />
-    <PeriodicEffect value="RehgarPurgeRemoveStack" />
+  <CBehaviorBuff id="RehgarPurgeSlow50PercentCCReduction" parent="RehgarPurgeSlow">
+    <Modification>
+      <UnifiedMoveSpeedFactor value="$RehgarPurgeSlowAmount">
+        <AccumulatorArray index="0" value="RehgarPurgeDecayAccumulator50PercentCCReduction" />
+      </UnifiedMoveSpeedFactor>
+    </Modification>
   </CBehaviorBuff>
+  <CBehaviorBuff id="RehgarPurgeSlow75PercentCCReduction" parent="RehgarPurgeSlow">
+    <Modification>
+      <UnifiedMoveSpeedFactor value="$RehgarPurgeSlowAmount">
+        <AccumulatorArray index="0" value="RehgarPurgeDecayAccumulator75PercentCCReduction" />
+      </UnifiedMoveSpeedFactor>
+    </Modification>
+  </CBehaviorBuff>
+  <CBehaviorTimestamp id="RehgarPurgeTimestamp">
+    <Flags index="UseTimeScale" value="1" />
+    <TimeScaleSource Value="Target" />
+  </CBehaviorTimestamp>
   <CBehaviorBuff id="RehgarElementalConduitTalentBaseShield" parent="StormShield">
     <Duration value="5" />
     <DamageResponse>
@@ -1618,22 +1652,32 @@
     </Cost>
     <FloaterCreation value="Force" />
   </CEffectModifyUnit>
-  <CEffectApplyBehavior id="RehgarPurgeApplySlowStacks" parent="StormSlowApply">
+  <CEffectSwitch id="RehgarPurgeApplySlowSwitch">
+    <ValidatorArray value="TargetNotUnstoppable" />
+    <CaseArray Validator="TargetHas50PercentCCReductionCombine" Effect="RehgarPurgeApplySlow50PercentCCReduction" />
+    <CaseArray Validator="TargetHas75PercentCCReduction" Effect="RehgarPurgeApplySlow75PercentCCReduction" />
+    <CaseDefault value="RehgarPurgeApplySlow" />
+  </CEffectSwitch>
+  <CEffectApplyBehavior id="RehgarPurgeApplySlow" parent="StormSlowApply">
     <Behavior value="RehgarPurgeSlow" />
-    <Count value="32" />
   </CEffectApplyBehavior>
-  <CEffectApplyBehavior id="RehgarPurgeApplySlowController" parent="StormSlowApply">
-    <Behavior value="RehgarPurgeSlowController" />
+  <CEffectApplyBehavior id="RehgarPurgeApplySlow50PercentCCReduction" parent="StormSlowApply">
+    <Behavior value="RehgarPurgeSlow50PercentCCReduction" />
   </CEffectApplyBehavior>
+  <CEffectApplyBehavior id="RehgarPurgeApplySlow75PercentCCReduction" parent="StormSlowApply">
+    <Behavior value="RehgarPurgeSlow75PercentCCReduction" />
+  </CEffectApplyBehavior>
+  <CEffectApplyBehavior id="RehgarPurgeApplyTimeStampBehavior">
+    <Behavior value="RehgarPurgeTimestamp" />
+  </CEffectApplyBehavior>
+  <CEffectRemoveBehavior id="RehgarPurgeRemoveTimeStampBehavior">
+    <BehaviorLink value="RehgarPurgeTimestamp" />
+  </CEffectRemoveBehavior>
   <CEffectSet id="RehgarPurgeEnemySet">
-    <EffectArray value="RehgarPurgeApplySlowStacks" />
-    <EffectArray value="RehgarPurgeApplySlowController" />
+    <EffectArray value="RehgarPurgeRemoveTimeStampBehavior" />
+    <EffectArray value="RehgarPurgeApplySlowSwitch" />
     <EffectArray value="RehgarPurgePurificationTalentEnemyProcSet" />
   </CEffectSet>
-  <CEffectRemoveBehavior id="RehgarPurgeRemoveStack">
-    <BehaviorLink value="RehgarPurgeSlow" />
-    <Count value="1" />
-  </CEffectRemoveBehavior>
   <CEffectApplyBehavior id="RehgarGhostWolfFeralHeartTalentApplyArmor">
     <Chance value="0" />
     <WhichUnit Value="Caster" />

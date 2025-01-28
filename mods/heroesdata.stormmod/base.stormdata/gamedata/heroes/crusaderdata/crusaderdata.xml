@@ -1,5 +1,13 @@
 <?xml version="1.0" encoding="us-ascii"?>
 <Catalog>
+  <const id="$CrusaderPunishSlowDuration" value="2" />
+  <const id="$CrusaderPunishSlowAmountPos" value="0.6" />
+  <const id="$CrusaderPunishSlowMultiplierPerStep" value="/($CrusaderPunishSlowAmountPos *($CrusaderPunishSlowDuration 16))" evaluateAsExpression="1" />
+  <const id="$CrusaderPunishSlowMultiplierPerStep50PercentCCReduction" value="/($CrusaderPunishSlowMultiplierPerStep 0.5)" evaluateAsExpression="1" />
+  <const id="$CrusaderPunishSlowMultiplierPerStep75PercentCCReduction" value="/($CrusaderPunishSlowMultiplierPerStep 0.25)" evaluateAsExpression="1" />
+  <const id="$CrusaderPunishSlowAmount" value="negate($CrusaderPunishSlowAmountPos)" evaluateAsExpression="1" />
+  <const id="$CrusaderPunishSubdueBonusSlowAmount" value="0.2" />
+  <const id="$CrusaderPunishSubdueSlowAmount" value="negate(+($CrusaderPunishSlowAmountPos $CrusaderPunishSubdueBonusSlowAmount))" evaluateAsExpression="1" />
   <CAbilEffectInstant id="CrusaderBlindedByTheLight">
     <PrepEffect value="DismountDecloakCasterSet" />
     <Effect value="CrusaderBlindedByTheLightCastSet" />
@@ -65,7 +73,7 @@
     </CmdButtonArray>
     <CastIntroTime value="0.125" />
     <Cost>
-      <Vital index="Energy" value="45" />
+      <Vital index="Energy" value="55" />
       <Charge>
         <CountMax value="1" />
         <CountStart value="1" />
@@ -166,7 +174,7 @@
     <CmdButtonArray index="Execute" DefaultButtonFace="CrusaderBlessedShield" Requirements="Ultimate2Unlocked" />
   </CAbilEffectTarget>
   <CAccumulatorToken id="CrusaderDivineFortressInstantHealthAccumulator" parent="BaseAccumulator">
-    <MaxAccumulation value="0.2" />
+    <MaxAccumulation value="0.25" />
     <ApplicationRule value="Add" />
     <TokenId value="CrusaderDivineFortressInstantTokenCounter" />
     <Scale value="0.05" />
@@ -188,6 +196,20 @@
     <MaxAccumulation value="9001" />
     <UnitSource Value="Source" />
   </CAccumulatorToken>
+  <CAccumulatorTimed id="CrusaderPunishDecayAccumulator">
+    <TimestampBehavior value="CrusaderPunishTimestamp" />
+    <MinAccumulation value="0" />
+    <MaxAccumulation value="$CrusaderPunishSlowAmountPos" />
+    <ApplicationRule value="Add" />
+    <MultiplierPerStep value="$CrusaderPunishSlowMultiplierPerStep" />
+    <UnitSource Value="Target" />
+  </CAccumulatorTimed>
+  <CAccumulatorTimed id="CrusaderPunishDecayAccumulator50PercentCCReduction" parent="CrusaderPunishDecayAccumulator">
+    <MultiplierPerStep value="$CrusaderPunishSlowMultiplierPerStep50PercentCCReduction" />
+  </CAccumulatorTimed>
+  <CAccumulatorTimed id="CrusaderPunishDecayAccumulator75PercentCCReduction" parent="CrusaderPunishDecayAccumulator">
+    <MultiplierPerStep value="$CrusaderPunishSlowMultiplierPerStep75PercentCCReduction" />
+  </CAccumulatorTimed>
   <CActorModelMaterial id="CrusaderFallingSwordGlaze" parent="BuffContinuous">
     <ModelFlags index="AutomateGlobalLoops" value="1" />
   </CActorModelMaterial>
@@ -873,13 +895,13 @@
   </CActorSound>
   <CBehaviorBuff id="CrusaderSteedChargeMountedController">
     <RemoveValidatorArray value="Mounted" />
-    <Duration value="3" />
+    <Duration value="4" />
     <CancelEffect value="CrusaderSteedChargeRemoveTimedBehavior" />
   </CBehaviorBuff>
   <CBehaviorBuff id="CrusaderCondemnShrinkingVacuumTalentSlow" parent="StormSlowParent">
-    <Duration value="2" />
+    <Duration value="3" />
     <Modification>
-      <UnifiedMoveSpeedFactor value="-0.25" />
+      <UnifiedMoveSpeedFactor value="-0.3" />
     </Modification>
   </CBehaviorBuff>
   <CBehaviorBuff id="CrusaderFallingSwordAllyUnstoppableBehavior" parent="StormUnstoppableParent">
@@ -892,7 +914,7 @@
   <CBehaviorBuff id="CrusaderSteedChargeTimedBehavior" parent="CarryBehaviorParent">
     <DisplayDuration index="Self" value="1" />
     <RemoveValidatorArray value="NoCrusaderFallingSword" />
-    <Duration value="3" />
+    <Duration value="4" />
     <Period value="0.0625" />
     <PeriodCount value="1" />
     <PeriodicEffect value="CrusaderSteedChargeApplyMountedController" />
@@ -935,11 +957,6 @@
   <CBehaviorBuff id="CrusaderCondemnEternalRetaliationTalentMarkedBehavior">
     <Duration value="10" />
   </CBehaviorBuff>
-  <CBehaviorBuff id="CrusaderPunishSubdueTalentStackingSlowController2">
-    <Duration value="2.5" />
-    <Period value="0.3125" />
-    <PeriodicEffect value="CrusaderPunishRemoveSubdueTalentSlowStack" />
-  </CBehaviorBuff>
   <CBehaviorBuff id="CrusaderDivineFortressMaxHealthInstantCarryBehavior" parent="CarryBehaviorParent">
     <InfoIcon value="Assets\Textures\storm_ui_icon_health.dds" />
     <BehaviorCategories index="Permanent" value="1" />
@@ -954,8 +971,8 @@
     <InfoTooltipPriority value="10" />
   </CBehaviorBuff>
   <CBehaviorTokenCounter id="CrusaderDivineFortressInstantTokenCounter" parent="StormGenericToken">
-    <Max value="4" />
-    <Init value="4" />
+    <Max value="5" />
+    <Init value="5" />
     <Face value="CrusaderPassiveDivineFortressToken" />
     <Alignment value="Positive" />
     <InfoFlags index="AlwaysUseGameText" value="1" />
@@ -1018,11 +1035,10 @@
     <RemoveValidatorArray value="CrusaderHasCrusaderMasteryPunishSubdue" />
     <InitialEffect value="CrusaderPunishSetSubdueTalentToken" />
   </CBehaviorBuff>
-  <CBehaviorBuff id="CrusaderPunishSubdueTalentSlow" parent="StormSlowParent">
-    <MaxStackCount value="8" />
-    <Duration value="2" />
+  <CBehaviorBuff id="CrusaderPunishSubdueSlow" parent="StormSlowParent">
+    <Duration value="$CrusaderPunishSlowDuration" />
     <Modification>
-      <UnifiedMoveSpeedFactor value="-0.1" />
+      <UnifiedMoveSpeedFactor value="$CrusaderPunishSubdueSlowAmount" />
     </Modification>
   </CBehaviorBuff>
   <CBehaviorTokenCounter id="CrusaderPunishSubdueTalentTokenCounter" parent="StormGenericToken">
@@ -1140,10 +1156,10 @@
   <CBehaviorBuff id="CrusaderCondemnShrinkingVacuumTalentDamageReduction" parent="StormDamageReduction">
     <BehaviorCategories index="DebuffAbilityPower" value="1" />
     <BehaviorCategories index="DebuffAutoattackDPS" value="1" />
-    <Duration value="2" />
+    <Duration value="3" />
     <Modification>
-      <DamageDealtFraction index="Basic" value="-0.25" />
-      <DamageDealtFraction index="Ability" value="-0.25" />
+      <DamageDealtFraction index="Basic" value="-0.3" />
+      <DamageDealtFraction index="Ability" value="-0.3" />
     </Modification>
     <RemoveValidatorArray value="TargetNotSpecialDeathState" />
   </CBehaviorBuff>
@@ -1154,18 +1170,35 @@
       <UnifiedMoveSpeedFactor value="0.2" />
     </Modification>
   </CBehaviorBuff>
-  <CBehaviorBuff id="CrusaderPunishStackingSlowController">
-    <Duration value="2" />
-    <Period value="0.3125" />
-    <PeriodicEffect value="CrusaderPunishRemoveStackingSlow" />
-  </CBehaviorBuff>
-  <CBehaviorBuff id="CrusaderPunishStackingSlow" parent="StormSlowParent">
-    <MaxStackCount value="6" />
-    <Duration value="2" />
+  <CBehaviorBuff id="CrusaderPunishSlow" parent="StormSlowParent">
+    <Duration value="$CrusaderPunishSlowDuration" />
+    <InitialEffect value="CrusaderPunishApplyTimeStampBehavior" />
+    <RefreshEffect value="CrusaderPunishApplyTimeStampBehavior" />
+    <FinalEffect value="CrusaderPunishRemoveTimeStampBehavior" />
     <Modification>
-      <UnifiedMoveSpeedFactor value="-0.1" />
+      <UnifiedMoveSpeedFactor value="$CrusaderPunishSlowAmount">
+        <AccumulatorArray value="CrusaderPunishDecayAccumulator" />
+      </UnifiedMoveSpeedFactor>
     </Modification>
   </CBehaviorBuff>
+  <CBehaviorBuff id="CrusaderPunishSlow50PercentCCReduction" parent="CrusaderPunishSlow">
+    <Modification>
+      <UnifiedMoveSpeedFactor value="$CrusaderPunishSlowAmount">
+        <AccumulatorArray index="0" value="CrusaderPunishDecayAccumulator50PercentCCReduction" />
+      </UnifiedMoveSpeedFactor>
+    </Modification>
+  </CBehaviorBuff>
+  <CBehaviorBuff id="CrusaderPunishSlow75PercentCCReduction" parent="CrusaderPunishSlow">
+    <Modification>
+      <UnifiedMoveSpeedFactor value="$CrusaderPunishSlowAmount">
+        <AccumulatorArray index="0" value="CrusaderPunishDecayAccumulator75PercentCCReduction" />
+      </UnifiedMoveSpeedFactor>
+    </Modification>
+  </CBehaviorBuff>
+  <CBehaviorTimestamp id="CrusaderPunishTimestamp">
+    <Flags index="UseTimeScale" value="1" />
+    <TimeScaleSource Value="Target" />
+  </CBehaviorTimestamp>
   <CBehaviorBuff id="CrusaderBlessedHammerTimedLife">
     <Duration value="3.5" />
     <FinalEffect value="SuicideRemove" />
@@ -1572,9 +1605,6 @@
   <CEffectApplyBehavior id="CrusaderCondemnEternalRetaliationApplyMarkedBehavior">
     <Behavior value="CrusaderCondemnEternalRetaliationTalentMarkedBehavior" />
   </CEffectApplyBehavior>
-  <CEffectApplyBehavior id="CrusaderPunishApplySubdueTalentSlowController" parent="StormSlowApply">
-    <Behavior value="CrusaderPunishSubdueTalentStackingSlowController2" />
-  </CEffectApplyBehavior>
   <CEffectRemoveBehavior id="CrusaderCondemnEternalRetaliationRemoveMarkedBehavior">
     <BehaviorLink value="CrusaderCondemnEternalRetaliationTalentMarkedBehavior" />
   </CEffectRemoveBehavior>
@@ -1682,11 +1712,6 @@
     </AreaArray>
     <SearchFlags index="ExtendByUnitRadius" value="1" />
   </CEffectEnumArea>
-  <CEffectSet id="CrusaderPunishApplySlowSet">
-    <ValidatorArray value="noMarkers" />
-    <EffectArray value="CrusaderPunishApplyStackingSlow" />
-    <EffectArray value="CrusaderPunishApplyStackingSlowController" />
-  </CEffectSet>
   <CEffectApplyBehavior id="CrusaderPunishApplySubdueTalentCompletionCarry">
     <Behavior value="CrusaderPunishSubdueTalentCompletionCarry" />
   </CEffectApplyBehavior>
@@ -1704,15 +1729,33 @@
     <Operation value="Set" />
     <Value value="0" />
   </CEffectModifyTokenCount>
-  <CEffectRemoveBehavior id="CrusaderPunishRemoveSubdueTalentSlowStack">
-    <WhichUnit Value="Source" />
-    <BehaviorLink value="CrusaderPunishStackingSlow" />
-    <Count value="1" />
-  </CEffectRemoveBehavior>
   <CEffectSwitch id="CrusaderPunishSlowSwitch">
-    <CaseArray Validator="CrusaderHasGTE2SubdueToken" Effect="CrusaderPunishApplySubdueTalentSlowSet" />
-    <CaseDefault value="CrusaderPunishApplySlowSet" />
+    <CaseArray Validator="CrusaderHasGTE2SubdueToken" Effect="CrusaderPunishSubdueApplySlow" />
+    <CaseDefault value="CrusaderPunishApplyBaseSlowSwitch" />
   </CEffectSwitch>
+  <CEffectSwitch id="CrusaderPunishApplyBaseSlowSwitch">
+    <CaseArray Validator="TargetHas50PercentCCReductionCombine" Effect="CrusaderPunishApplySlow50PercentCCReduction" />
+    <CaseArray Validator="TargetHas75PercentCCReduction" Effect="CrusaderPunishApplySlow75PercentCCReduction" />
+    <CaseDefault value="CrusaderPunishApplySlow" />
+  </CEffectSwitch>
+  <CEffectApplyBehavior id="CrusaderPunishApplySlow" parent="StormSlowApply">
+    <Behavior value="CrusaderPunishSlow" />
+  </CEffectApplyBehavior>
+  <CEffectApplyBehavior id="CrusaderPunishApplySlow50PercentCCReduction" parent="StormSlowApply">
+    <Behavior value="CrusaderPunishSlow50PercentCCReduction" />
+  </CEffectApplyBehavior>
+  <CEffectApplyBehavior id="CrusaderPunishApplySlow75PercentCCReduction" parent="StormSlowApply">
+    <Behavior value="CrusaderPunishSlow75PercentCCReduction" />
+  </CEffectApplyBehavior>
+  <CEffectApplyBehavior id="CrusaderPunishApplyTimeStampBehavior">
+    <Behavior value="CrusaderPunishTimestamp" />
+  </CEffectApplyBehavior>
+  <CEffectRemoveBehavior id="CrusaderPunishRemoveTimeStampBehavior">
+    <BehaviorLink value="CrusaderPunishTimestamp" />
+  </CEffectRemoveBehavior>
+  <CEffectApplyBehavior id="CrusaderPunishSubdueApplySlow" parent="StormSlowApply">
+    <Behavior value="CrusaderPunishSubdueSlow" />
+  </CEffectApplyBehavior>
   <CEffectEnumArea id="CrusaderPunishSubdueTalentSearchArea">
     <ValidatorArray value="CrusaderHasCrusaderMasteryPunishSubdue" />
     <ValidatorArray value="CrusaderHasLT4SubdueToken" />
@@ -2025,7 +2068,7 @@
   </CEffectModifyUnit>
   <CEffectModifyUnit id="CrusaderShieldGlareHolyRenewalModifyCooldown">
     <ImpactUnit Value="Caster" />
-    <Cost Abil="CrusaderShieldGlare,Execute" ChargeTimeUse="-1.5" CooldownOperation="Add" />
+    <Cost Abil="CrusaderShieldGlare,Execute" ChargeTimeUse="-1" CooldownOperation="Add" />
   </CEffectModifyUnit>
   <CEffectApplyBehavior id="CrusaderCondemnKnightTakesPawnApplyBehavior">
     <ValidatorArray index="0" value="TargetMinionOrMerc" />
@@ -2098,7 +2141,7 @@
   </CEffectSet>
   <CEffectDamage id="CrusaderShieldGlareDamage" parent="StormSpell">
     <Amount value="59" />
-    <MultiplicativeModifierArray index="ZealousGlare" Validator="CrusaderHasZealousGlareTalent" Modifier="0.75" />
+    <MultiplicativeModifierArray index="ZealousGlare" Validator="CrusaderHasZealousGlareTalent" Modifier="0.7" />
   </CEffectDamage>
   <CEffectApplyBehavior id="CrusaderShieldGlareApplyBehavior" parent="StormBlindApply">
     <Behavior value="ShieldGlare" />
@@ -2302,7 +2345,7 @@
     <ValidatorArray value="CrusaderTargetHasNoBlessedHammerImmune" />
   </CEffectSet>
   <CEffectDamage id="CrusaderBlessedHammerDamage" parent="StormSpell">
-    <Amount value="74" />
+    <Amount value="65" />
     <SourceButtonFace value="CrusaderCondemnBlessedHammerTalent" />
   </CEffectDamage>
   <CEffectApplyBehavior id="CrusaderBlessedHammerSpeedApplyBehavior">
@@ -2386,6 +2429,7 @@
     <ValidatorArray value="noMarkers" />
     <EffectArray value="CrusaderPunishDamage" />
     <EffectArray value="ApplyAbilityImpactReveal" />
+    <EffectArray value="CrusaderPunishRemoveTimeStampBehavior" />
     <EffectArray value="CrusaderPunishSlowSwitch" />
     <EffectArray value="CrusaderPunishSinsExposedApplyHealingReductionBehavior" />
     <EffectArray value="CrusaderShieldGlareBlessedHammerTalentModifyPlayerCooldown" />
@@ -2402,18 +2446,6 @@
   <CEffectDamage id="CrusaderPunishRoarDamage" parent="StormSpell">
     <Amount value="170" />
   </CEffectDamage>
-  <CEffectApplyBehavior id="CrusaderPunishApplyStackingSlowController" parent="StormSlowApply">
-    <Behavior value="CrusaderPunishStackingSlowController" />
-  </CEffectApplyBehavior>
-  <CEffectApplyBehavior id="CrusaderPunishApplyStackingSlow" parent="StormSlowApply">
-    <Behavior value="CrusaderPunishStackingSlow" />
-    <Count value="6" />
-  </CEffectApplyBehavior>
-  <CEffectRemoveBehavior id="CrusaderPunishRemoveStackingSlow">
-    <BehaviorLink value="CrusaderPunishStackingSlow" />
-    <Count value="1" />
-    <WhichUnit Value="Source" />
-  </CEffectRemoveBehavior>
   <CEffectSet id="CrusaderBlessedShieldCastSet">
     <EffectArray value="CrusaderBlessedShieldCreatePersistent" />
     <TargetLocationType value="Point" />
@@ -3151,7 +3183,7 @@
       <BehaviorArray value="CrusaderDivineFortressMaxHealthQuestCarryBehavior" />
       <BehaviorArray value="CrusaderDivineFortressQuestTokenCounter" />
     </RankArray>
-    <QuestData StackBehavior="CrusaderDivineFortressInstantTokenCounter" TargetCount="4" IgnoreTargetCount="0" />
+    <QuestData StackBehavior="CrusaderDivineFortressInstantTokenCounter" TargetCount="5" IgnoreTargetCount="0" />
   </CTalent>
   <CTalent id="CrusaderHolyFury">
     <Face value="CrusaderHolyFury" />
@@ -3544,11 +3576,19 @@
     <Find value="1" />
     <Value value="CrusaderIronSkinSteedCharge" />
   </CValidatorPlayerTalent>
-  <CValidatorCombine id="CrusaderPunishSlowCombine">
+  <CValidatorCombine id="CrusaderTargetHasNoPunishSlowCombine">
     <Type value="And" />
     <CombineArray value="CrusaderTargetHasPunishSlow" />
+    <CombineArray value="CrusaderTargetHasPunishSlow50PercentCCReduction" />
+    <CombineArray value="CrusaderTargetHasPunishSlow75PercentCCReduction" />
     <CombineArray value="CrusaderTargetHasPunishSubdueSlow" />
     <Negate value="1" />
+  </CValidatorCombine>
+  <CValidatorCombine id="CrusaderTargetHasPunishSlowCombine">
+    <CombineArray value="CrusaderTargetHasPunishSlow" />
+    <CombineArray value="CrusaderTargetHasPunishSlow50PercentCCReduction" />
+    <CombineArray value="CrusaderTargetHasPunishSlow75PercentCCReduction" />
+    <CombineArray value="CrusaderTargetHasPunishSubdueSlow" />
   </CValidatorCombine>
   <CValidatorPlayerTalent id="CrusaderHasPassiveDivineFortressTalent">
     <WhichPlayer Value="Caster" />
@@ -3604,17 +3644,21 @@
     <Find value="1" />
     <Value value="CrusaderZealousGlare" />
   </CValidatorPlayerTalent>
-  <CValidatorUnitCompareBehaviorCount id="CrusaderTargetHas4StacksofPunishSubdueTalentSlow">
-    <Value value="4" />
-    <Behavior value="CrusaderPunishSubdueTalentSlow" />
-  </CValidatorUnitCompareBehaviorCount>
   <CValidatorUnitCompareBehaviorCount id="CrusaderTargetHasPunishSlow">
     <Value value="1" />
-    <Behavior value="CrusaderPunishStackingSlow" />
+    <Behavior value="CrusaderPunishSlow" />
+  </CValidatorUnitCompareBehaviorCount>
+  <CValidatorUnitCompareBehaviorCount id="CrusaderTargetHasPunishSlow50PercentCCReduction">
+    <Value value="1" />
+    <Behavior value="CrusaderPunishSlow50PercentCCReduction" />
+  </CValidatorUnitCompareBehaviorCount>
+  <CValidatorUnitCompareBehaviorCount id="CrusaderTargetHasPunishSlow75PercentCCReduction">
+    <Value value="1" />
+    <Behavior value="CrusaderPunishSlow75PercentCCReduction" />
   </CValidatorUnitCompareBehaviorCount>
   <CValidatorUnitCompareBehaviorCount id="CrusaderTargetHasPunishSubdueSlow">
     <Value value="1" />
-    <Behavior value="CrusaderPunishSubdueTalentSlow" />
+    <Behavior value="CrusaderPunishSubdueSlow" />
   </CValidatorUnitCompareBehaviorCount>
   <CValidatorUnitCompareBehaviorCount id="CrusaderTargetHasShieldGlare">
     <Value value="1" />
@@ -3649,10 +3693,6 @@
     <Find value="1" />
     <Value value="CrusaderBlindedByTheLight" />
   </CValidatorPlayerTalent>
-  <CValidatorUnitCompareBehaviorCount id="CrusaderTargetHas4StacksofPunishStackingSlow">
-    <Value value="4" />
-    <Behavior value="CrusaderPunishStackingSlow" />
-  </CValidatorUnitCompareBehaviorCount>
   <CValidatorCombine id="BlessedShieldLongProximityCombine">
     <CombineArray value="BlessedShieldTargetIsBenignNoLongTargets" />
     <CombineArray value="BlessedShieldTargetNotBenignNoLongTargets" />

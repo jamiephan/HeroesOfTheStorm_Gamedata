@@ -46,6 +46,7 @@ void libHIMP_gf_HeroImperiusIncrementHeroCountFunction () {
         TriggerEnable(libHIMP_gt_HeroImperiusWrathOfTheAngirisImperiusTeleport, true);
         TriggerEnable(libHIMP_gt_HeroImperiusWrathOfTheAngirisTargetTeleport, true);
         TriggerEnable(libHIMP_gt_HeroImperiusWrathOfTheAngirisValorousBrandStoreDuration, true);
+        TriggerEnable(libHIMP_gt_HeroImperiusUnrelentingDescentFloatingText, true);
         TriggerEnable(libHIMP_gt_HeroImperiusCelestialChargeMoltenArmorOrderProc, true);
     }
 
@@ -68,6 +69,7 @@ void libHIMP_gf_HeroImperiusDecrementHeroCountFunction () {
         TriggerEnable(libHIMP_gt_HeroImperiusWrathOfTheAngirisImperiusTeleport, false);
         TriggerEnable(libHIMP_gt_HeroImperiusWrathOfTheAngirisTargetTeleport, false);
         TriggerEnable(libHIMP_gt_HeroImperiusWrathOfTheAngirisValorousBrandStoreDuration, false);
+        TriggerEnable(libHIMP_gt_HeroImperiusUnrelentingDescentFloatingText, false);
         TriggerEnable(libHIMP_gt_HeroImperiusCelestialChargeMoltenArmorOrderProc, false);
     }
 
@@ -553,6 +555,53 @@ void libHIMP_gt_HeroImperiusWrathOfTheAngirisValorousBrandStoreDuration_Init () 
 }
 
 //--------------------------------------------------------------------------------------------------
+// Trigger: Hero - Imperius - Unrelenting Descent Floating Text
+//--------------------------------------------------------------------------------------------------
+bool libHIMP_gt_HeroImperiusUnrelentingDescentFloatingText_Func (bool testConds, bool runActions) {
+    // Variable Declarations
+    unit lv_imperiusUnit;
+    int lv_imperiusPlayer;
+    int lv_amountHealed;
+
+    // Automatic Variable Declarations
+    // Variable Initialization
+    lv_imperiusUnit = EventPlayerEffectUsedUnit(c_effectUnitCaster);
+    lv_imperiusPlayer = EventPlayerEffectUsedUnitOwner(c_effectPlayerCaster);
+    lv_amountHealed = EventPlayerEffectUsedAmountInt(c_effectAmountHealed, false);
+
+    // Conditions
+    if (testConds) {
+        if (!((lv_imperiusPlayer <= libCore_gv_bALMaxPlayers))) {
+            return false;
+        }
+
+        if (!((lv_imperiusPlayer != 0))) {
+            return false;
+        }
+
+        if (!((lv_amountHealed != 0))) {
+            return false;
+        }
+    }
+
+    // Actions
+    if (!runActions) {
+        return true;
+    }
+
+    Wait(0.0625, c_timeGame);
+    FloatingCombatElementCreateTextAtUnit(PlayerGroupSingle(lv_imperiusPlayer), "FloatingCombatElements/FloatingCombatNormalAmountReceived", "HealState", lv_imperiusUnit, IntToText(lv_amountHealed), libNtve_gv_FloatingCombatTextAutoRandomSeed);
+    return true;
+}
+
+//--------------------------------------------------------------------------------------------------
+void libHIMP_gt_HeroImperiusUnrelentingDescentFloatingText_Init () {
+    libHIMP_gt_HeroImperiusUnrelentingDescentFloatingText = TriggerCreate("libHIMP_gt_HeroImperiusUnrelentingDescentFloatingText_Func");
+    TriggerEnable(libHIMP_gt_HeroImperiusUnrelentingDescentFloatingText, false);
+    TriggerAddEventPlayerEffectUsed(libHIMP_gt_HeroImperiusUnrelentingDescentFloatingText, c_playerAny, "ImperiusWrathOfTheAngirisUnrelentingDescentCreateHealer");
+}
+
+//--------------------------------------------------------------------------------------------------
 // Trigger: Hero - Imperius - Celestial Charge - Molten Armor Order Proc
 //--------------------------------------------------------------------------------------------------
 bool libHIMP_gt_HeroImperiusCelestialChargeMoltenArmorOrderProc_Func (bool testConds, bool runActions) {
@@ -616,6 +665,7 @@ void libHIMP_InitTriggers () {
     libHIMP_gt_HeroImperiusWrathOfTheAngirisImperiusTeleport_Init();
     libHIMP_gt_HeroImperiusWrathOfTheAngirisTargetTeleport_Init();
     libHIMP_gt_HeroImperiusWrathOfTheAngirisValorousBrandStoreDuration_Init();
+    libHIMP_gt_HeroImperiusUnrelentingDescentFloatingText_Init();
     libHIMP_gt_HeroImperiusCelestialChargeMoltenArmorOrderProc_Init();
 }
 

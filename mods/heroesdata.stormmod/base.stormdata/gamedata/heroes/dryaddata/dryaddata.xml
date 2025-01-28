@@ -1,5 +1,12 @@
 <?xml version="1.0" encoding="us-ascii"?>
 <Catalog>
+  <const id="$DryadCripplingSporesSlowDuration" value="3" />
+  <const id="$DryadCripplingSporesSlowAmountPos" value="0.4" />
+  <const id="$DryadCripplingSporesSlowMultiplierPerStep" value="/($DryadCripplingSporesSlowAmountPos *($DryadCripplingSporesSlowDuration 16))" evaluateAsExpression="1" />
+  <const id="$DryadCripplingSporesSlowMultiplierPerStep50PercentCCReduction" value="/($DryadCripplingSporesSlowMultiplierPerStep 0.5)" evaluateAsExpression="1" />
+  <const id="$DryadCripplingSporesSlowMultiplierPerStep75PercentCCReduction" value="/($DryadCripplingSporesSlowMultiplierPerStep 0.25)" evaluateAsExpression="1" />
+  <const id="$DryadCripplingSporesSlowAmount" value="negate($DryadCripplingSporesSlowAmountPos)" evaluateAsExpression="1" />
+  <const id="$DryadLetThemWitherBonusDuration" value="1" />
   <CAbilEffectTarget id="DryadLeapingStrike">
     <Effect value="DryadLeapingStrikeTargetSwitch" />
     <Flags index="ClearLastAttackTargetOutOfRange" value="1" />
@@ -156,6 +163,20 @@
     </OffCost>
     <BehaviorArray value="DryadGreaterSpellShieldDisabled" />
   </CAbilBehavior>
+  <CAccumulatorTimed id="DryadCripplingSporesDecayAccumulator">
+    <TimestampBehavior value="DryadCripplingSporesTimestamp" />
+    <MinAccumulation value="0" />
+    <MaxAccumulation value="$DryadCripplingSporesSlowAmountPos" />
+    <ApplicationRule value="Add" />
+    <MultiplierPerStep value="$DryadCripplingSporesSlowMultiplierPerStep" />
+    <UnitSource Value="Target" />
+  </CAccumulatorTimed>
+  <CAccumulatorTimed id="DryadCripplingSporesDecayAccumulator50PercentCCReduction" parent="DryadCripplingSporesDecayAccumulator">
+    <MultiplierPerStep value="$DryadCripplingSporesSlowMultiplierPerStep50PercentCCReduction" />
+  </CAccumulatorTimed>
+  <CAccumulatorTimed id="DryadCripplingSporesDecayAccumulator75PercentCCReduction" parent="DryadCripplingSporesDecayAccumulator">
+    <MultiplierPerStep value="$DryadCripplingSporesSlowMultiplierPerStep75PercentCCReduction" />
+  </CAccumulatorTimed>
   <CActorModel id="DryadHippityHopMovementSpeedRibbon" parent="StormMoveSpeedRibbon">
     <On Terms="Behavior.DryadHippityHopCarryBehavior.On" Send="Create" />
     <On Terms="Behavior.DryadHippityHopCarryBehavior.Off" Send="Destroy" />
@@ -277,7 +298,7 @@
     <Radius value="2.000000" />
   </CActorForceSphere>
   <CActorForceSphere id="DryadCripplingSporesForceSphere">
-    <On Terms="Effect.DryadCripplingSporesApplyBehavior.Start; At Target" Send="Create" />
+    <On Terms="Effect.DryadCripplingSporesApplySlowSwitch.Start; At Target" Send="Create" />
     <HostSiteOps Ops="SOpTargetPoint" />
     <Duration value="0.150000" />
     <Magnitude value="20.000000" />
@@ -1197,13 +1218,6 @@
       <MoveSpeedMaximum value="2.379" />
     </Modification>
   </CBehaviorBuff>
-  <CBehaviorBuff id="DryadCripplingSporesStackController">
-    <Alignment value="Negative" />
-    <BehaviorCategories index="Slow" value="1" />
-    <Duration value="3" />
-    <Period value="0.375" />
-    <PeriodicEffect value="DryadCripplingSporesRemoveBehavior" />
-  </CBehaviorBuff>
   <CBehaviorBuff id="DryadNoxiousBlossomDoT">
     <Duration value="15" />
     <Period value="1" />
@@ -1249,13 +1263,34 @@
     <DisableValidatorArray value="DryadCripplingSporesTargetsAvailable" />
   </CBehaviorBuff>
   <CBehaviorBuff id="DryadCripplingSporesSlow" parent="StormSlowParent">
-    <MaxStackCount value="12" />
-    <Duration value="3" />
-    <InitialEffect value="DryadCripplingSporesApplyStackController" />
+    <Duration value="$DryadCripplingSporesSlowDuration" />
+    <InitialEffect value="DryadCripplingSporesApplyTimeStampBehavior" />
+    <RefreshEffect value="DryadCripplingSporesApplyTimeStampBehavior" />
+    <FinalEffect value="DryadCripplingSporesRemoveTimeStampBehavior" />
     <Modification>
-      <UnifiedMoveSpeedFactor value="-0.05" />
+      <UnifiedMoveSpeedFactor value="$DryadCripplingSporesSlowAmount">
+        <AccumulatorArray value="DryadCripplingSporesDecayAccumulator" />
+      </UnifiedMoveSpeedFactor>
     </Modification>
   </CBehaviorBuff>
+  <CBehaviorBuff id="DryadCripplingSporesSlow50PercentCCReduction" parent="DryadCripplingSporesSlow">
+    <Modification>
+      <UnifiedMoveSpeedFactor value="$DryadCripplingSporesSlowAmount">
+        <AccumulatorArray index="0" value="DryadCripplingSporesDecayAccumulator50PercentCCReduction" />
+      </UnifiedMoveSpeedFactor>
+    </Modification>
+  </CBehaviorBuff>
+  <CBehaviorBuff id="DryadCripplingSporesSlow75PercentCCReduction" parent="DryadCripplingSporesSlow">
+    <Modification>
+      <UnifiedMoveSpeedFactor value="$DryadCripplingSporesSlowAmount">
+        <AccumulatorArray index="0" value="DryadCripplingSporesDecayAccumulator75PercentCCReduction" />
+      </UnifiedMoveSpeedFactor>
+    </Modification>
+  </CBehaviorBuff>
+  <CBehaviorTimestamp id="DryadCripplingSporesTimestamp">
+    <Flags index="UseTimeScale" value="1" />
+    <TimeScaleSource Value="Target" />
+  </CBehaviorTimestamp>
   <CBehaviorBuff id="DryadNaturesToxin" parent="StormDot">
     <BuffFlags index="Extend" value="1" />
     <Duration value="3" />
@@ -2309,12 +2344,29 @@
     <BehaviorLink value="DryadCripplingSporesTrackedTargets" />
     <Effect value="DryadCripplingSporesImpactSet" />
   </CEffectEnumTrackedUnits>
+  <CEffectSwitch id="DryadCripplingSporesApplySlowSwitch">
+    <ValidatorArray value="NotStructureTarget" />
+    <ValidatorArray value="TargetNotUnstoppable" />
+    <CaseArray Validator="TargetHas50PercentCCReductionCombine" Effect="DryadCripplingSporesApplyBehavior50PercentCCReduction" />
+    <CaseArray Validator="TargetHas75PercentCCReduction" Effect="DryadCripplingSporesApplyBehavior75PercentCCReduction" />
+    <CaseDefault value="DryadCripplingSporesApplyBehavior" />
+  </CEffectSwitch>
   <CEffectApplyBehavior id="DryadCripplingSporesApplyBehavior">
     <Behavior value="DryadCripplingSporesSlow" />
-    <Count value="8" />
-    <ValidatorArray index="0" value="NotStructureTarget" />
-    <ValidatorArray value="TargetNotUnstoppable" />
   </CEffectApplyBehavior>
+  <CEffectApplyBehavior id="DryadCripplingSporesApplyBehavior50PercentCCReduction">
+    <Behavior value="DryadCripplingSporesSlow50PercentCCReduction" />
+  </CEffectApplyBehavior>
+  <CEffectApplyBehavior id="DryadCripplingSporesApplyBehavior75PercentCCReduction">
+    <Behavior value="DryadCripplingSporesSlow75PercentCCReduction" />
+  </CEffectApplyBehavior>
+  <CEffectApplyBehavior id="DryadCripplingSporesApplyTimeStampBehavior">
+    <ValidatorArray value="DryadDoesNotHaveLetThemWitherTalent" />
+    <Behavior value="DryadCripplingSporesTimestamp" />
+  </CEffectApplyBehavior>
+  <CEffectRemoveBehavior id="DryadCripplingSporesRemoveTimeStampBehavior">
+    <BehaviorLink value="DryadCripplingSporesTimestamp" />
+  </CEffectRemoveBehavior>
   <CEffectSet id="DryadCripplingSporesCastSet">
     <EffectArray value="DryadCripplingSporesApplyCruelSporesMastery" />
     <EffectArray value="DryadCripplingSporesPhotosynthesisMasterySearch" />
@@ -2326,15 +2378,11 @@
   </CEffectSet>
   <CEffectSet id="DryadCripplingSporesImpactSet">
     <ValidatorArray value="HasNaturesToxinAnyVariety" />
-    <EffectArray value="DryadCripplingSporesApplyBehavior" />
+    <EffectArray value="DryadCripplingSporesApplySlowSwitch" />
     <EffectArray value="DryadNaturesToxinDebuffSet" />
     <EffectArray value="DryadCripplingSporesImpactDummy" />
     <EffectArray value="DryadCripplingSporesRemoveCruelSporesMastery" />
   </CEffectSet>
-  <CEffectRemoveBehavior id="DryadCripplingSporesRemoveBehavior">
-    <BehaviorLink value="DryadCripplingSporesSlow" />
-    <Count value="1" />
-  </CEffectRemoveBehavior>
   <CEffectApplyBehavior id="DryadNoxiousBlossomApplyBehavior">
     <Behavior value="DryadNoxiousBlossomDoT" />
   </CEffectApplyBehavior>
@@ -2434,9 +2482,6 @@
     <PeriodicEffectArray value="DryadThornwoodVineLaunchMissile" />
     <PeriodicPeriodArray value="0" />
   </CEffectCreatePersistent>
-  <CEffectApplyBehavior id="DryadCripplingSporesApplyStackController">
-    <Behavior value="DryadCripplingSporesStackController" />
-  </CEffectApplyBehavior>
   <CEffectSet id="DryadWispDividingWispMasterySpawnSet">
     <EffectArray value="DryadWispApplyControllerBehavior" />
     <EffectArray value="DryadWispApplyDividingWispMasteryTimedLife" />
@@ -3208,18 +3253,24 @@
     <AbilityModificationArray>
       <Modifications>
         <Type value="FlatModification" />
-        <Catalog value="Effect" />
-        <Entry value="DryadCripplingSporesApplyStackController" />
-        <Field value="Chance" />
-        <Value value="-1.000000" />
+        <Catalog value="Behavior" />
+        <Entry value="DryadCripplingSporesSlow" />
+        <Field value="Duration" />
+        <Value value="$DryadLetThemWitherBonusDuration" />
       </Modifications>
       <Modifications>
         <Type value="FlatModification" />
         <Catalog value="Behavior" />
-        <Entry value="DryadCripplingSporesSlow" />
+        <Entry value="DryadCripplingSporesSlow50PercentCCReduction" />
         <Field value="Duration" />
-        <FieldIsInteger value="1" />
-        <Value value="1.000000" />
+        <Value value="$DryadLetThemWitherBonusDuration" />
+      </Modifications>
+      <Modifications>
+        <Type value="FlatModification" />
+        <Catalog value="Behavior" />
+        <Entry value="DryadCripplingSporesSlow75PercentCCReduction" />
+        <Field value="Duration" />
+        <Value value="$DryadLetThemWitherBonusDuration" />
       </Modifications>
     </AbilityModificationArray>
   </CTalent>
@@ -3677,8 +3728,20 @@
   <CValidatorUnitCompareBehaviorCount id="DryadGreaterSpellShieldIsDisabled">
     <Behavior value="DryadGreaterSpellShieldDisabled" />
   </CValidatorUnitCompareBehaviorCount>
+  <CValidatorCombine id="DryadTargetDoesNotHaveCripplingSporesCombine">
+    <Type value="And" />
+    <CombineArray value="DryadTargetDoesNotHaveCripplingSpores" />
+    <CombineArray value="DryadTargetDoesNotHaveCripplingSpores50PercentCCReduction" />
+    <CombineArray value="DryadTargetDoesNotHaveCripplingSpores75PercentCCReduction" />
+  </CValidatorCombine>
   <CValidatorUnitCompareBehaviorCount id="DryadTargetDoesNotHaveCripplingSpores">
     <Behavior value="DryadCripplingSporesSlow" />
+  </CValidatorUnitCompareBehaviorCount>
+  <CValidatorUnitCompareBehaviorCount id="DryadTargetDoesNotHaveCripplingSpores50PercentCCReduction">
+    <Behavior value="DryadCripplingSporesSlow50PercentCCReduction" />
+  </CValidatorUnitCompareBehaviorCount>
+  <CValidatorUnitCompareBehaviorCount id="DryadTargetDoesNotHaveCripplingSpores75PercentCCReduction">
+    <Behavior value="DryadCripplingSporesSlow75PercentCCReduction" />
   </CValidatorUnitCompareBehaviorCount>
   <CValidatorCombine id="DryadIsNotHoverorisWisp">
     <CombineArray value="DryadTargetIsWisporAlly" />
@@ -3798,6 +3861,10 @@
   <CValidatorPlayerTalent id="DryadHasLetThemWitherTalent">
     <WhichPlayer Value="Caster" />
     <Find value="1" />
+    <Value value="DryadLetThemWither" />
+  </CValidatorPlayerTalent>
+  <CValidatorPlayerTalent id="DryadDoesNotHaveLetThemWitherTalent">
+    <WhichPlayer Value="Caster" />
     <Value value="DryadLetThemWither" />
   </CValidatorPlayerTalent>
   <CValidatorPlayerTalent id="DryadHasForestsWrathTalent">

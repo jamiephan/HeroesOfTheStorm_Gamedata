@@ -1,5 +1,11 @@
 <?xml version="1.0" encoding="us-ascii"?>
 <Catalog>
+  <const id="$L90ETCFaceSmeltSlowDuration" value="2" />
+  <const id="$L90ETCFaceSmeltSlowAmountPos" value="0.5" />
+  <const id="$L90ETCFaceSmeltSlowMultiplierPerStep" value="/($L90ETCFaceSmeltSlowAmountPos *($L90ETCFaceSmeltSlowDuration 16))" evaluateAsExpression="1" />
+  <const id="$L90ETCFaceSmeltSlowMultiplierPerStep50PercentCCReduction" value="/($L90ETCFaceSmeltSlowMultiplierPerStep 0.5)" evaluateAsExpression="1" />
+  <const id="$L90ETCFaceSmeltSlowMultiplierPerStep75PercentCCReduction" value="/($L90ETCFaceSmeltSlowMultiplierPerStep 0.25)" evaluateAsExpression="1" />
+  <const id="$L90ETCFaceSmeltSlowAmount" value="negate($L90ETCFaceSmeltSlowAmountPos)" evaluateAsExpression="1" />
   <CAbilEffectInstant id="RockstarDummy">
     <Effect value="RockstarDummyEffect" />
     <CmdButtonArray index="Execute" DefaultButtonFace="L90ETCRockstar" />
@@ -107,6 +113,20 @@
     <TokenId value="ETCProgRockTokenCounter" />
     <Scale value="5" />
   </CAccumulatorToken>
+  <CAccumulatorTimed id="L90ETCFaceSmeltDecayAccumulator">
+    <TimestampBehavior value="L90ETCFaceSmeltSlowTimestamp" />
+    <MinAccumulation value="0" />
+    <MaxAccumulation value="$L90ETCFaceSmeltSlowAmountPos" />
+    <ApplicationRule value="Add" />
+    <MultiplierPerStep value="$L90ETCFaceSmeltSlowMultiplierPerStep" />
+    <UnitSource Value="Target" />
+  </CAccumulatorTimed>
+  <CAccumulatorTimed id="L90ETCFaceSmeltDecayAccumulator50PercentCCReduction" parent="L90ETCFaceSmeltDecayAccumulator">
+    <MultiplierPerStep value="$L90ETCFaceSmeltSlowMultiplierPerStep50PercentCCReduction" />
+  </CAccumulatorTimed>
+  <CAccumulatorTimed id="L90ETCFaceSmeltDecayAccumulator75PercentCCReduction" parent="L90ETCFaceSmeltDecayAccumulator">
+    <MultiplierPerStep value="$L90ETCFaceSmeltSlowMultiplierPerStep75PercentCCReduction" />
+  </CAccumulatorTimed>
   <CActorSound id="ETCBlockPartySound" parent="SoundOneShot">
     <Filter index="All" value="1" />
     <VisibleToAtCreation index="Source" value="1" />
@@ -734,14 +754,35 @@
       <DamageTakenFraction index="Ability" value="0.25" />
     </Modification>
   </CBehaviorBuff>
-  <CBehaviorBuff id="FaceSmelting" parent="StormSlowParent">
-    <MaxStackCount value="32" />
-    <Duration value="2" />
-    <InitialEffect value="RemoveFaceSmeltPersistent" />
+  <CBehaviorBuff id="L90ETCFaceSmeltSlow" parent="StormSlowParent">
+    <Duration value="$L90ETCFaceSmeltSlowDuration" />
+    <InitialEffect value="L90ETCFaceSmeltApplyTimeStampBehavior" />
+    <RefreshEffect value="L90ETCFaceSmeltApplyTimeStampBehavior" />
+    <FinalEffect value="L90ETCFaceSmeltRemoveTimeStampBehavior" />
     <Modification>
-      <UnifiedMoveSpeedFactor value="-0.0156" />
+      <UnifiedMoveSpeedFactor value="$L90ETCFaceSmeltSlowAmount">
+        <AccumulatorArray value="L90ETCFaceSmeltDecayAccumulator" />
+      </UnifiedMoveSpeedFactor>
     </Modification>
   </CBehaviorBuff>
+  <CBehaviorBuff id="L90ETCFaceSmeltSlow50PercentCCReduction" parent="L90ETCFaceSmeltSlow">
+    <Modification>
+      <UnifiedMoveSpeedFactor value="$L90ETCFaceSmeltSlowAmount">
+        <AccumulatorArray index="0" value="L90ETCFaceSmeltDecayAccumulator50PercentCCReduction" />
+      </UnifiedMoveSpeedFactor>
+    </Modification>
+  </CBehaviorBuff>
+  <CBehaviorBuff id="L90ETCFaceSmeltSlow75PercentCCReduction" parent="L90ETCFaceSmeltSlow">
+    <Modification>
+      <UnifiedMoveSpeedFactor value="$L90ETCFaceSmeltSlowAmount">
+        <AccumulatorArray index="0" value="L90ETCFaceSmeltDecayAccumulator75PercentCCReduction" />
+      </UnifiedMoveSpeedFactor>
+    </Modification>
+  </CBehaviorBuff>
+  <CBehaviorTimestamp id="L90ETCFaceSmeltSlowTimestamp">
+    <Flags index="UseTimeScale" value="1" />
+    <TimeScaleSource Value="Target" />
+  </CBehaviorTimestamp>
   <CBehaviorBuff id="L90ETCPassiveEchoPedal">
     <Alignment value="Positive" />
     <InfoIcon value="Assets\Textures\storm_btn_d3_monk_mantraofconviction.dds" />
@@ -846,7 +887,7 @@
       <MoveSpeedMaximum value="12" />
       <MoveSpeedMinimum value="12" />
     </Modification>
-    <ExpireEffect value="ApplyFaceSmelting" />
+    <ExpireEffect value="L90ETCFaceSmeltingApplySlowSwitch" />
   </CBehaviorBuff>
   <CBehaviorBuff id="StageDiveChannel" parent="StormStasisAir">
     <Modification>
@@ -1371,8 +1412,8 @@
     <CaseDefault value="FaceMeltDamage" />
   </CEffectSwitch>
   <CEffectDamage id="L90ETCFaceMeltPinballWizardDamage" parent="StormSpell">
-    <Amount value="272" />
-    <Flags index="Crit" value="1" />
+    <Amount value="68" />
+    <MultiplicativeModifierArray index="PinballWizard" Modifier="3" Crit="1" />
   </CEffectDamage>
   <CEffectSet id="L90ETCFaceMeltPinballWizardDamageSet">
     <EffectArray value="L90ETCFaceMeltPinballWizardDamage" />
@@ -1480,23 +1521,27 @@
   <CEffectSet id="GuitarSoloGuitarHeroImpactDummy">
     <ValidatorArray value="ETCHasGuitarHero" />
   </CEffectSet>
-  <CEffectApplyBehavior id="ApplyFaceSmelting">
-    <ValidatorArray value="HasL90ETCFaceMeltFaceSmelt" />
+  <CEffectSwitch id="L90ETCFaceSmeltingApplySlowSwitch">
     <ValidatorArray value="TargetNotUnstoppable" />
-    <WhichUnit Effect="FaceMeltSet" />
-    <Behavior value="FaceSmelting" />
-    <Count value="32" />
+    <ValidatorArray value="HasL90ETCFaceMeltFaceSmelt" />
+    <CaseArray Validator="TargetHas50PercentCCReductionCombine" Effect="L90ETCFaceSmeltApplySlow50PercentCCReduction" />
+    <CaseArray Validator="TargetHas75PercentCCReduction" Effect="L90ETCFaceSmeltApplySlow75PercentCCReduction" />
+    <CaseDefault value="L90ETCFaceSmeltApplySlow" />
+  </CEffectSwitch>
+  <CEffectApplyBehavior id="L90ETCFaceSmeltApplySlow" parent="StormSlowApply">
+    <Behavior value="L90ETCFaceSmeltSlow" />
   </CEffectApplyBehavior>
-  <CEffectCreatePersistent id="RemoveFaceSmeltPersistent">
-    <WhichLocation Effect="FaceMeltSet" Value="TargetUnit" />
-    <PeriodCount value="32" />
-    <PeriodicEffectArray value="RemoveFaceSmeltingStack" />
-    <PeriodicPeriodArray value="0.0625" />
-  </CEffectCreatePersistent>
-  <CEffectRemoveBehavior id="RemoveFaceSmeltingStack">
-    <WhichUnit Effect="FaceMeltSet" />
-    <BehaviorLink value="FaceSmelting" />
-    <Count value="1" />
+  <CEffectApplyBehavior id="L90ETCFaceSmeltApplySlow50PercentCCReduction" parent="StormSlowApply">
+    <Behavior value="L90ETCFaceSmeltSlow50PercentCCReduction" />
+  </CEffectApplyBehavior>
+  <CEffectApplyBehavior id="L90ETCFaceSmeltApplySlow75PercentCCReduction" parent="StormSlowApply">
+    <Behavior value="L90ETCFaceSmeltSlow75PercentCCReduction" />
+  </CEffectApplyBehavior>
+  <CEffectApplyBehavior id="L90ETCFaceSmeltApplyTimeStampBehavior">
+    <Behavior value="L90ETCFaceSmeltSlowTimestamp" />
+  </CEffectApplyBehavior>
+  <CEffectRemoveBehavior id="L90ETCFaceSmeltRemoveTimeStampBehavior">
+    <BehaviorLink value="L90ETCFaceSmeltSlowTimestamp" />
   </CEffectRemoveBehavior>
   <CEffectApplyBehavior id="L90ETCPassiveEchoPedalApplyBehavior">
     <WhichUnit Value="Caster" />
