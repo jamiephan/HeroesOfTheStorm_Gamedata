@@ -33,6 +33,8 @@ void libHWHI_gf_HeroWhitemaneIncrementHeroCountFunction () {
         TriggerEnable(libHWHI_gt_HeroWhitemaneZealAbilityDamageTracker, true);
         TriggerEnable(libHWHI_gt_HeroWhitemaneZealBasicDamageTracker, true);
         TriggerEnable(libHWHI_gt_HeroWhitemaneZealCombinedHeal, true);
+        TriggerEnable(libHWHI_gt_HeroWhitemaneDivineReckoningAddLeech, true);
+        TriggerEnable(libHWHI_gt_HeroWhitemaneDivineReckoningLeechProc, true);
     }
 
 }
@@ -49,6 +51,8 @@ void libHWHI_gf_HeroWhitemaneDecrementHeroCountFunction () {
         TriggerEnable(libHWHI_gt_HeroWhitemaneZealAbilityDamageTracker, false);
         TriggerEnable(libHWHI_gt_HeroWhitemaneZealBasicDamageTracker, false);
         TriggerEnable(libHWHI_gt_HeroWhitemaneZealCombinedHeal, false);
+        TriggerEnable(libHWHI_gt_HeroWhitemaneDivineReckoningAddLeech, false);
+        TriggerEnable(libHWHI_gt_HeroWhitemaneDivineReckoningLeechProc, false);
     }
 
 }
@@ -188,10 +192,106 @@ void libHWHI_gt_HeroWhitemaneZealCombinedHeal_Init () {
     TriggerAddEventPlayerEffectUsed(libHWHI_gt_HeroWhitemaneZealCombinedHeal, c_playerAny, "WhitemaneZealCombinedHealDummy");
 }
 
+//--------------------------------------------------------------------------------------------------
+// Trigger: Hero - Whitemane - Divine Reckoning - Add Leech
+//--------------------------------------------------------------------------------------------------
+bool libHWHI_gt_HeroWhitemaneDivineReckoningAddLeech_Func (bool testConds, bool runActions) {
+    // Variable Declarations
+    fixed lv_damageAmount;
+    int lv_whitemanePlayer;
+
+    // Automatic Variable Declarations
+    // Variable Initialization
+    lv_whitemanePlayer = EventUnitDamageSourcePlayer();
+
+    // Conditions
+    if (testConds) {
+        if (!((UnitTypeTestAttribute(UnitGetType(EventUnit()), c_unitAttributeHeroic) == true))) {
+            return false;
+        }
+
+        if (!((lv_whitemanePlayer > 0))) {
+            return false;
+        }
+
+        if (!((lv_whitemanePlayer <= libCore_gv_bALMaxPlayers))) {
+            return false;
+        }
+    }
+
+    // Actions
+    if (!runActions) {
+        return true;
+    }
+
+    lv_damageAmount = (EventUnitDamageAbsorbed() * CatalogFieldValueGetAsFixed(c_gameCatalogEffect, EventUnitDamageEffect(), "LeechFraction[" + IntToString(c_unitVitalEnergy) + "]", lv_whitemanePlayer));
+    libHWHI_gv_heroWhitemaneDivineReckoningCombinedLeech[lv_whitemanePlayer] += lv_damageAmount;
+    return true;
+}
+
+//--------------------------------------------------------------------------------------------------
+void libHWHI_gt_HeroWhitemaneDivineReckoningAddLeech_Init () {
+    libHWHI_gt_HeroWhitemaneDivineReckoningAddLeech = TriggerCreate("libHWHI_gt_HeroWhitemaneDivineReckoningAddLeech_Func");
+    TriggerEnable(libHWHI_gt_HeroWhitemaneDivineReckoningAddLeech, false);
+    TriggerAddDamageEvent(libHWHI_gt_HeroWhitemaneDivineReckoningAddLeech, "HeroWhitemane", null, c_unitDamageTypeAbility, c_unitDamageEither, "WhitemaneDivineReckoningDamage");
+}
+
+//--------------------------------------------------------------------------------------------------
+// Trigger: Hero - Whitemane - Divine Reckoning - Leech Proc
+//--------------------------------------------------------------------------------------------------
+bool libHWHI_gt_HeroWhitemaneDivineReckoningLeechProc_Func (bool testConds, bool runActions) {
+    // Variable Declarations
+    unit lv_whitemaneUnit;
+    int lv_whitemanePlayer;
+
+    // Automatic Variable Declarations
+    // Variable Initialization
+    lv_whitemaneUnit = EventPlayerEffectUsedUnit(c_effectUnitCaster);
+    lv_whitemanePlayer = EventPlayerEffectUsedUnitOwner(c_effectPlayerCaster);
+
+    // Conditions
+    if (testConds) {
+        if (!((UnitGetType(lv_whitemaneUnit) == "HeroWhitemane"))) {
+            return false;
+        }
+
+        if (!((libHWHI_gv_heroWhitemaneDivineReckoningCombinedLeech[lv_whitemanePlayer] > 0.0))) {
+            return false;
+        }
+
+        if (!((lv_whitemanePlayer > 0))) {
+            return false;
+        }
+
+        if (!((lv_whitemanePlayer <= libCore_gv_bALMaxPlayers))) {
+            return false;
+        }
+    }
+
+    // Actions
+    if (!runActions) {
+        return true;
+    }
+
+    CatalogFieldValueSetFixed(c_gameCatalogEffect, "WhitemaneDivineReckoningRestoreMana", "RechargeVitalRate", lv_whitemanePlayer, libHWHI_gv_heroWhitemaneDivineReckoningCombinedLeech[lv_whitemanePlayer]);
+    UnitCreateEffectUnit(lv_whitemaneUnit, "WhitemaneDivineReckoningRestoreManaSet", lv_whitemaneUnit);
+    libHWHI_gv_heroWhitemaneDivineReckoningCombinedLeech[lv_whitemanePlayer] = 0.0;
+    return true;
+}
+
+//--------------------------------------------------------------------------------------------------
+void libHWHI_gt_HeroWhitemaneDivineReckoningLeechProc_Init () {
+    libHWHI_gt_HeroWhitemaneDivineReckoningLeechProc = TriggerCreate("libHWHI_gt_HeroWhitemaneDivineReckoningLeechProc_Func");
+    TriggerEnable(libHWHI_gt_HeroWhitemaneDivineReckoningLeechProc, false);
+    TriggerAddEventPlayerEffectUsed(libHWHI_gt_HeroWhitemaneDivineReckoningLeechProc, c_playerAny, "WhitemaneDivineReckoningLeechProcDummy");
+}
+
 void libHWHI_InitTriggers () {
     libHWHI_gt_HeroWhitemaneZealAbilityDamageTracker_Init();
     libHWHI_gt_HeroWhitemaneZealBasicDamageTracker_Init();
     libHWHI_gt_HeroWhitemaneZealCombinedHeal_Init();
+    libHWHI_gt_HeroWhitemaneDivineReckoningAddLeech_Init();
+    libHWHI_gt_HeroWhitemaneDivineReckoningLeechProc_Init();
 }
 
 //--------------------------------------------------------------------------------------------------

@@ -231,6 +231,12 @@
     <Scale value="0.15" />
     <UnitSource Value="Target" />
   </CAccumulatorToken>
+  <CAccumulatorToken id="TychusLaserDrillFocusingDiodesAccumulator" parent="BaseTokenAccumulator">
+    <MinAccumulation value="0" />
+    <MaxAccumulation value="1" />
+    <TokenId value="TychusLaserDrillFocusingDiodesTokenCounter" />
+    <Scale value="0.1" />
+  </CAccumulatorToken>
   <CActorUnit id="HeroTychus" parent="StormHeroBase" unitName="HeroTychus">
     <DeathArray index="Normal" SoundLink="Tychus_Death" />
     <On Terms="Abil.TychusRunAndGun.SourceCastStart" Send="AnimGroupApply Ready Ready" />
@@ -1134,10 +1140,12 @@
     <Duration value="5" />
   </CBehaviorBuff>
   <CBehaviorBuff id="LaserDrillDamageIncrease">
-    <BuffFlags index="RefreshStack" value="1" />
-    <MaxStackCount value="5" />
-    <Duration value="1.0625" />
+    <Duration value="0.5625" />
+    <FinalEffect value="TychusLaserDrillFocusingDiodesResetToken" />
   </CBehaviorBuff>
+  <CBehaviorTokenCounter id="TychusLaserDrillFocusingDiodesTokenCounter" parent="StormGenericToken">
+    <Max value="10" />
+  </CBehaviorTokenCounter>
   <CBehaviorBuff id="TychusMeltingPointDebuff" parent="StormDot">
     <Duration value="3" />
     <Period value="1" />
@@ -1771,30 +1779,6 @@
     <CaseArray Validator="OverkillTargetinStasis" Effect="OverkillTargetedStasisedTargetRetargetSwitch" />
     <CaseArray Validator="OverkillTargetTooFarAway" Effect="OverkillTargetedOutofRangeTargetRetargetSwitch" />
   </CEffectSwitch>
-  <CEffectDamage id="LaserDrillWeaponDamageOneStack" parent="StormSummonedUnitWeapon">
-    <Amount value="85" />
-  </CEffectDamage>
-  <CEffectDamage id="LaserDrillWeaponDamageTwoStacks" parent="StormSummonedUnitWeapon">
-    <Amount value="99" />
-  </CEffectDamage>
-  <CEffectDamage id="LaserDrillWeaponDamageThreeStacks" parent="StormSummonedUnitWeapon">
-    <Amount value="113" />
-  </CEffectDamage>
-  <CEffectDamage id="LaserDrillWeaponDamageFourStacks" parent="StormSummonedUnitWeapon">
-    <Amount value="127" />
-  </CEffectDamage>
-  <CEffectDamage id="LaserDrillWeaponDamageFiveStacks" parent="StormSummonedUnitWeapon">
-    <Amount value="141" />
-    <Flags index="Crit" value="1" />
-  </CEffectDamage>
-  <CEffectSwitch id="LaserDrillWeaponDamageSwitch">
-    <CaseArray Validator="TychusLaserHasOneDamageStack" Effect="LaserDrillWeaponDamageOneStack" />
-    <CaseArray Validator="TychusLaserHasTwoDamageStacks" Effect="LaserDrillWeaponDamageTwoStacks" />
-    <CaseArray Validator="TychusLaserHasThreeDamageStacks" Effect="LaserDrillWeaponDamageThreeStacks" />
-    <CaseArray Validator="TychusLaserHasFourDamageStacks" Effect="LaserDrillWeaponDamageFourStacks" />
-    <CaseArray Validator="TychusLaserHasFiveDamageStacks" Effect="LaserDrillWeaponDamageFiveStacks" />
-    <CaseDefault value="LaserDrillWeaponDamage" />
-  </CEffectSwitch>
   <CEffectCreatePersistent id="TychusOdinRagnarokMissilesNuclearBlastCreatePersistent">
     <InitialEffect value="TychusOdinRagnarokMissilesNuclearBlastCastVisionSearch" />
     <FinalEffect value="TychusOdinRagnarokMissilesNuclearBlastSearchArea" />
@@ -1955,18 +1939,23 @@
   </CEffectSet>
   <CEffectApplyBehavior id="LaserDrillApplyStackingDamageIncreaseBehavior">
     <Behavior value="LaserDrillDamageIncrease" />
+    <WhichUnit Value="Caster" />
   </CEffectApplyBehavior>
-  <CEffectCreatePersistent id="LaserDrillWeaponCreateStackingPersistent">
-    <WhichLocation Value="TargetUnit" />
-    <Flags index="Channeled" value="1" />
-    <Flags index="PersistUntilDestroyed" value="1" />
-    <PeriodicEffectArray value="LaserDrillApplyStackingDamageIncreaseBehavior" />
-    <PeriodicPeriodArray value="1" />
-    <Chance value="0" />
-    <PeriodicValidator value="CasterNotStasisOrStunned" />
-  </CEffectCreatePersistent>
+  <CEffectRemoveBehavior id="TychusLaserDrillFocusingDiodesRemoveBehavior">
+    <WhichUnit Value="Caster" />
+    <BehaviorLink value="LaserDrillDamageIncrease" />
+  </CEffectRemoveBehavior>
+  <CEffectModifyTokenCount id="TychusLaserDrillFocusingDiodesResetToken" parent="BaseEffectModifyTokenCount">
+    <Operation value="Set" />
+    <Value value="0" />
+    <TokenId value="TychusLaserDrillFocusingDiodesTokenCounter" />
+    <ValidatorArray value="HasTychusDrakkenLaserFocusingDiodes" />
+  </CEffectModifyTokenCount>
+  <CEffectModifyTokenCount id="TychusLaserDrillFocusingDiodesAddToken" parent="BaseEffectModifyTokenCount">
+    <TokenId value="TychusLaserDrillFocusingDiodesTokenCounter" />
+    <ValidatorArray value="HasTychusDrakkenLaserFocusingDiodes" />
+  </CEffectModifyTokenCount>
   <CEffectSet id="LaserDrillWeaponSet">
-    <EffectArray value="LaserDrillWeaponCreateStackingPersistent" />
     <EffectArray value="LaserDrillWeaponCreatePersistent" />
   </CEffectSet>
   <CEffectApplyBehavior id="OdinApplyDamageScale">
@@ -2221,8 +2210,15 @@
     <WhichUnit Value="Caster" />
     <Behavior value="LaserDrillActive" />
   </CEffectApplyBehavior>
+  <CEffectSet id="LaserDrillWeaponImpactSet">
+    <EffectArray value="LaserDrillWeaponDamage" />
+    <EffectArray value="TychusLaserDrillFocusingDiodesAddToken" />
+    <EffectArray value="LaserDrillApplyStackingDamageIncreaseBehavior" />
+  </CEffectSet>
   <CEffectDamage id="LaserDrillWeaponDamage" parent="StormSummonedUnitWeapon">
     <Amount value="71" />
+    <MultiplicativeModifierArray index="FocusingDiodes" Validator="HasTychusDrakkenLaserFocusingDiodes" Accumulator="TychusLaserDrillFocusingDiodesAccumulator" />
+    <CritValidatorArray index="0" value="TychusLaserDrillCritValidator" />
   </CEffectDamage>
   <CEffectCreateUnit id="LaserDrillCreateUnit">
     <WhichLocation Value="TargetPoint" />
@@ -2237,8 +2233,9 @@
     <WhichLocation Value="TargetUnit" />
     <Flags index="Channeled" value="1" />
     <Flags index="PersistUntilDestroyed" value="1" />
-    <InitialEffect value="LaserDrillWeaponDamageSwitch" />
-    <PeriodicEffectArray value="LaserDrillWeaponDamageSwitch" />
+    <InitialEffect value="LaserDrillWeaponImpactSet" />
+    <FinalEffect value="TychusLaserDrillFocusingDiodesRemoveBehavior" />
+    <PeriodicEffectArray value="LaserDrillWeaponImpactSet" />
     <PeriodicPeriodArray value="0.5" />
     <PeriodicValidator value="CasterNotStasisOrStunned" />
     <ExpireDelay value="0.5" />
@@ -2808,41 +2805,6 @@
         <Field value="Amount" />
         <Value value="0.040000" />
         <AffectedByAbilityPower value="1" />
-        <AffectedByOverdrive value="1" />
-      </Modifications>
-      <Modifications>
-        <Catalog value="Effect" />
-        <Entry value="LaserDrillWeaponDamageOneStack" />
-        <Field value="Amount" />
-        <Value value="0.040000" />
-        <AffectedByOverdrive value="1" />
-      </Modifications>
-      <Modifications>
-        <Catalog value="Effect" />
-        <Entry value="LaserDrillWeaponDamageTwoStacks" />
-        <Field value="Amount" />
-        <Value value="0.040000" />
-        <AffectedByOverdrive value="1" />
-      </Modifications>
-      <Modifications>
-        <Catalog value="Effect" />
-        <Entry value="LaserDrillWeaponDamageThreeStacks" />
-        <Field value="Amount" />
-        <Value value="0.040000" />
-        <AffectedByOverdrive value="1" />
-      </Modifications>
-      <Modifications>
-        <Catalog value="Effect" />
-        <Entry value="LaserDrillWeaponDamageFourStacks" />
-        <Field value="Amount" />
-        <Value value="0.040000" />
-        <AffectedByOverdrive value="1" />
-      </Modifications>
-      <Modifications>
-        <Catalog value="Effect" />
-        <Entry value="LaserDrillWeaponDamageFiveStacks" />
-        <Field value="Amount" />
-        <Value value="0.040000" />
         <AffectedByOverdrive value="1" />
       </Modifications>
     </LevelScalingArray>
@@ -3498,13 +3460,6 @@
         <Field value="Range" />
         <Value value="5.000000" />
       </Modifications>
-      <Modifications>
-        <Type value="FlatModification" />
-        <Catalog value="Effect" />
-        <Entry value="LaserDrillWeaponCreateStackingPersistent" />
-        <Field value="Chance" />
-        <Value value="1.000000" />
-      </Modifications>
     </AbilityModificationArray>
     <Abil value="TychusDrakkenLaserDrill" />
   </CTalent>
@@ -3909,6 +3864,7 @@
     <BehaviorArray Link="LaserDrillStartupDelay" />
     <BehaviorArray Link="HeroicSummon" />
     <BehaviorArray Link="IsPseudoStructure" />
+    <BehaviorArray Link="TychusLaserDrillFocusingDiodesTokenCounter" />
     <WeaponArray Link="TychusLaserDrillWeapon" Turret="TychusLaserDrillTurret" />
     <SeparationRadius value="1.5" />
     <MinimapRadius value="0.75" />
@@ -4217,26 +4173,16 @@
     <Value value="HeroTychus" />
     <Find value="0" />
   </CValidatorUnitType>
-  <CValidatorUnitCompareBehaviorCount id="TychusLaserHasOneDamageStack">
-    <Value value="1" />
-    <Behavior value="LaserDrillDamageIncrease" />
-  </CValidatorUnitCompareBehaviorCount>
-  <CValidatorUnitCompareBehaviorCount id="TychusLaserHasTwoDamageStacks">
-    <Value value="2" />
-    <Behavior value="LaserDrillDamageIncrease" />
-  </CValidatorUnitCompareBehaviorCount>
-  <CValidatorUnitCompareBehaviorCount id="TychusLaserHasThreeDamageStacks">
-    <Value value="3" />
-    <Behavior value="LaserDrillDamageIncrease" />
-  </CValidatorUnitCompareBehaviorCount>
-  <CValidatorUnitCompareBehaviorCount id="TychusLaserHasFourDamageStacks">
-    <Value value="4" />
-    <Behavior value="LaserDrillDamageIncrease" />
-  </CValidatorUnitCompareBehaviorCount>
-  <CValidatorUnitCompareBehaviorCount id="TychusLaserHasFiveDamageStacks">
-    <Value value="5" />
-    <Behavior value="LaserDrillDamageIncrease" />
-  </CValidatorUnitCompareBehaviorCount>
+  <CValidatorCombine id="TychusLaserDrillCritValidator">
+    <CombineArray value="CritAliasSpellPowerCreator" />
+    <CombineArray value="TychusLaserDrillGE10Count" />
+  </CValidatorCombine>
+  <CValidatorUnitCompareTokenCount id="TychusLaserDrillGE10Count">
+    <WhichUnit Value="Caster" />
+    <Compare value="GE" />
+    <Value value="10" />
+    <TokenId value="TychusLaserDrillFocusingDiodesTokenCounter" />
+  </CValidatorUnitCompareTokenCount>
   <CValidatorUnitCompareBehaviorCount id="TychusNotInOdin">
     <WhichUnit Value="Source" />
     <Behavior value="TychusOdin" />

@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="us-ascii"?>
 <Catalog>
+  <const id="$MonkLifeMax" value="2080" />
+  <const id="$MonkLifeRegen" value="/($MonkLifeMax 480)" evaluateAsExpression="1" />
   <CAbilEffectTarget id="MonkAirAlly">
     <OrderArray index="0" Model="Assets\UI\Feedback\WayPointConfirm\WayPointConfirm.m3" LineTexture="Assets\Textures\Storm_WayPointLine.dds" />
     <PrepEffect value="DismountDecloakCasterSet" />
@@ -86,7 +88,7 @@
     <PrepEffect value="DismountDecloakCasterSet" />
     <Effect value="MonkEpiphanyInitialSet" />
     <Cost>
-      <Cooldown TimeUse="60" />
+      <Cooldown TimeUse="70" />
     </Cost>
     <UninterruptibleArray index="Cast" value="1" />
     <UninterruptibleArray index="Channel" value="1" />
@@ -989,9 +991,9 @@
     <DisplayPriority value="1001" />
     <Duration value="0.26" />
     <Modification>
-      <HealDealtAdditiveMultiplier index="Life" value="0.15" />
-      <HealDealtAdditiveMultiplier index="Shields" value="0.15" />
-      <DamageDealtFraction index="Ability" value="0.15" />
+      <HealDealtAdditiveMultiplier index="Life" value="0.20" />
+      <HealDealtAdditiveMultiplier index="Shields" value="0.20" />
+      <DamageDealtFraction index="Ability" value="0.20" />
     </Modification>
     <BehaviorCategories index="BuffAbilityPower" value="1" />
   </CBehaviorBuff>
@@ -1112,6 +1114,46 @@
       </ArmorSet>
     </ArmorModification>
   </CBehaviorBuff>
+  <CBehaviorBuff id="MonkSixthSenseArmorCarry" parent="StormArmor">
+    <BehaviorFlags index="Permanent" value="1" />
+    <BehaviorFlags index="EnabledWhileDead" value="1" />
+    <BehaviorCategories index="BuffResistant" value="1" />
+    <DisableValidatorArray value="CasterIsRootedOrStunned" />
+    <DisableEffect value="MonkSixthSenseApplyArmorProcBehavior" />
+    <DamageResponse>
+      <Chance value="1" />
+      <Handled value="MonkSixthSenseDamageResponseSet" />
+      <TargetFilters value="Heroic;Structure" />
+      <Priority value="55" />
+      <Kind index="Ability" value="0" />
+      <ProvideCategories index="Proc" value="1" />
+    </DamageResponse>
+    <ArmorModification>
+      <ArmorSet index="Hero">
+        <ArmorMitigationTable index="Basic" value="75" />
+      </ArmorSet>
+    </ArmorModification>
+  </CBehaviorBuff>
+  <CBehaviorBuff id="MonkSixthSenseArmorProc" parent="StormArmor">
+    <BehaviorCategories index="BuffResistant" value="1" />
+    <RemoveValidatorArray value="MonkHasSixthSenseTalent" />
+    <RemoveValidatorArray value="SourceNotDead" />
+    <RemoveValidatorArray value="CasterNotRootedOrStunned" />
+    <Duration value="4" />
+    <DamageResponse>
+      <Chance value="1" />
+      <Handled value="MonkSixthSenseDamageResponseSet" />
+      <TargetFilters value="Heroic;Structure" />
+      <Priority value="55" />
+      <Kind index="Ability" value="0" />
+      <ProvideCategories index="Proc" value="1" />
+    </DamageResponse>
+    <ArmorModification>
+      <ArmorSet index="Hero">
+        <ArmorMitigationTable index="Basic" value="75" />
+      </ArmorSet>
+    </ArmorModification>
+  </CBehaviorBuff>
   <CBehaviorTokenCounter id="MonkInsightQuestToken" parent="StormQuestToken">
     <Max value="100" />
   </CBehaviorTokenCounter>
@@ -1203,7 +1245,7 @@
   <CBehaviorBuff id="MonkDivinePalmTargetBehavior">
     <Alignment value="Positive" />
     <InfoIcon value="Assets\Textures\storm_btn_d3_monk_explodingpalm.dds" />
-    <Duration value="3" />
+    <Duration value="4" />
     <DamageResponse>
       <Chance value="1" />
       <Handled value="MonkDivinePalmProcSet" />
@@ -1592,6 +1634,10 @@
   <CEffectApplyBehavior id="MonkSixthSenseApplyBlockBehavior">
     <Behavior value="MonkSixthSenseBlockBuff" />
   </CEffectApplyBehavior>
+  <CEffectApplyBehavior id="MonkSixthSenseApplyArmorProcBehavior">
+    <WhichUnit Value="Caster" />
+    <Behavior value="MonkSixthSenseArmorProc" />
+  </CEffectApplyBehavior>
   <CEffectSet id="MonkSixthSenseDamageResponseSet">
     <EffectArray value="BlockDummyDamage" />
     <EffectArray value="MonkSixthSenseBlockDummyDamageTarget" />
@@ -1604,12 +1650,13 @@
     <Flags index="NoBehaviorResponse" value="1" />
     <Flags index="NoDamageTimerReset" value="1" />
   </CEffectDamage>
-  <CEffectRemoveBehavior id="MonkDivinePalmCleanseDoTs">
-    <WhichUnit Value="Caster" />
-    <BehaviorCategories index="DamageOverTime" value="1" />
-  </CEffectRemoveBehavior>
+  <CEffectCreatePersistent id="MonkDivinePalmCleanseDelayPersistent">
+    <WhichLocation Value="SourceUnit" />
+    <InitialDelay value="0.0625" />
+    <InitialEffect value="HeroGenericCleanseRemoveCCBehaviorCategoriesExpandedTarget" />
+  </CEffectCreatePersistent>
   <CEffectModifyUnit id="MonkInsightModifyUnit">
-    <ValidatorArray value="MonkHasInsightMaxStacks" />
+    <ValidatorArray value="MonkInsightQuestCompleteOrSourceAbathurUltimateEvolution" />
     <ValidatorArray value="CasterNotBlindedAndTargetNotEvading" />
     <ImpactUnit Value="Caster" />
     <Cost Abil="MonkBreathOfHeaven,Execute" CooldownOperation="Add" CooldownTimeUse="-1.75" />
@@ -1938,7 +1985,7 @@
   </CEffectSet>
   <CEffectSet id="MonkDivinePalmProcSet">
     <EffectArray value="MonkDivinePalmApplyProcBehavior" />
-    <EffectArray value="MonkDivinePalmCleanseDoTs" />
+    <EffectArray value="MonkDivinePalmCleanseDelayPersistent" />
     <EffectArray value="ApplyChanneledAbilityFullStopBehavior" />
     <EffectArray value="DismountSource" />
   </CEffectSet>
@@ -1960,7 +2007,7 @@
   </CEffectModifyUnit>
   <CEffectCreateHealer id="MonkEpiphanyRenerateMana" parent="StormManaRestore">
     <ImpactUnit Value="Source" />
-    <RechargeVitalFraction value="0.3281" />
+    <RechargeVitalFraction value="0.7" />
   </CEffectCreateHealer>
   <CEffectApplyBehavior id="MonkSevenSidedStrike">
     <WhichUnit Value="Caster" />
@@ -2204,7 +2251,7 @@
     <EffectArray value="MonkRadiantDashImpactEnemySwitch" />
   </CEffectSet>
   <CEffectCreateHealer id="MonkBreathOfHeavenCreateHealerExecute" parent="StormHealingSpell">
-    <RechargeVitalRate value="285" />
+    <RechargeVitalRate value="295" />
     <MultiplicativeModifierArray index="MonkBreathOfHeavenEchoOfHeaven" Validator="HasMonkEchoofHeavenBreathofHeaven" Modifier="-0.25" />
     <MultiplicativeModifierArray index="MonkBreathOfHeavenDashOfHeaven" Validator="MonkTargetHasHeavenlyZealTrackingBehavior" Modifier="0.5" Crit="1" />
   </CEffectCreateHealer>
@@ -2870,6 +2917,9 @@
   </CTalent>
   <CTalent id="MonkSixthSense">
     <Face value="MonkSixthSense" />
+    <RankArray>
+      <BehaviorArray value="MonkSixthSenseArmorCarry" />
+    </RankArray>
   </CTalent>
   <CTalent id="MonkBlazingFistsDeadlyReach">
     <Face value="MonkBlazingFistsTalent" />
@@ -3002,8 +3052,8 @@
     <Descending value="1" />
   </CTargetSortVitalFraction>
   <CUnit id="MonkAirAlly" parent="StormSummonPassive">
-    <LifeStart value="200" />
-    <LifeMax value="200" />
+    <LifeStart value="300" />
+    <LifeMax value="300" />
     <BehaviorArray Link="ShrubProximityDetector" />
     <Sight value="8.25" />
     <Radius value="0.125" />
@@ -3024,9 +3074,9 @@
     <InnerRadius value="0.125" />
   </CUnit>
   <CUnit id="HeroMonk" parent="StormHeroMounted">
-    <LifeStart value="2027" />
-    <LifeMax value="2027" />
-    <LifeRegenRate value="4.2226" />
+    <LifeStart value="$MonkLifeMax" />
+    <LifeMax value="$MonkLifeMax" />
+    <LifeRegenRate value="$MonkLifeRegen" />
     <AbilArray Link="MonkDeadlyReach" />
     <AbilArray Link="MonkBreathOfHeaven" />
     <AbilArray Link="MonkRadiantDash" />
@@ -3192,6 +3242,10 @@
     <Value value="100" />
     <Behavior value="MonkInsightQuestToken" />
   </CValidatorUnitCompareBehaviorCount>
+  <CValidatorCombine id="MonkInsightQuestCompleteOrSourceAbathurUltimateEvolution">
+    <CombineArray value="MonkHasInsightMaxStacks" />
+    <CombineArray value="SourceHasAbathurUltimateEvolutionControl" />
+  </CValidatorCombine>
   <CValidatorUnitCompareBehaviorCount id="MonkNotInsightMaxStacks">
     <WhichUnit Value="Caster" />
     <Value value="100" />
@@ -3454,6 +3508,11 @@
     <WhichPlayer Value="Caster" />
     <Find value="1" />
     <Value value="MonkBlazingFistsDeadlyReach" />
+  </CValidatorPlayerTalent>
+  <CValidatorPlayerTalent id="MonkHasSixthSenseTalent">
+    <WhichPlayer Value="Caster" />
+    <Find value="1" />
+    <Value value="MonkSixthSense" />
   </CValidatorPlayerTalent>
   <CValidatorUnitCompareBehaviorCount id="MonkTargetHasDivinePalmCasterBehavior">
     <Value value="1" />

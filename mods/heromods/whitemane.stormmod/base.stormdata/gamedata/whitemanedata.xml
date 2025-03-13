@@ -1137,19 +1137,15 @@
       <VitalMaxArray index="Life" value="0">
         <AccumulatorArray value="WhitemaneInquisitorsPrayerHealthAccumulator" />
       </VitalMaxArray>
-    </Modification>
-  </CBehaviorBuff>
-  <CBehaviorBuff id="WhitemaneInquisitorsPrayerMana" parent="CarryBehaviorParent">
-    <Alignment value="Positive" />
-    <InfoIcon value="Assets\Textures\storm_ui_icon_health.dds" />
-    <BehaviorCategories index="Permanent" value="1" />
-    <BehaviorCategories index="BuffPermanentMaxHealth" value="1" />
-    <Modification>
       <VitalMaxArray index="Energy" value="0">
         <AccumulatorArray value="WhitemaneInquisitorsPrayerManaAccumulator" />
       </VitalMaxArray>
     </Modification>
   </CBehaviorBuff>
+  <CBehaviorTokenCounter id="WhitemaneInquisitorsPrayerAttackTokenCounter" parent="StormGenericToken">
+    <AtMaxEvents Effect="WhitemaneInquisitorsPrayerAttackProcSet" />
+    <Max value="3" />
+  </CBehaviorTokenCounter>
   <CBehaviorTokenCounter id="WhitemaneInquisitorsPrayerQuestToken" parent="StormQuestToken">
     <Face value="WhitemaneInquisitor'sPrayerQuestTokens" />
     <Max value="65000" />
@@ -1272,6 +1268,9 @@
     <PeriodCount value="4" />
     <PeriodicEffect value="WhitemanePurgeTheWickedDamage" />
     <PeriodicDisplayEffect value="WhitemanePurgeTheWickedDamage" />
+  </CBehaviorBuff>
+  <CBehaviorBuff id="WhitemaneDivineReckoningHeroHitMarker">
+    <Duration value="0.125" />
   </CBehaviorBuff>
   <CBehaviorBuff id="WhitemaneDivineReckoningJudgmentDayPullBehavior" parent="PushPullParent">
     <Duration value="0.1875" />
@@ -1506,6 +1505,25 @@
     <CaseArray Validator="TargetIsAlly" Effect="WhitemaneInquisitionClemencyInitialSet" />
     <CaseDefault value="WhitemaneInquisitionInitialSet" />
   </CEffectSwitch>
+  <CEffectSet id="WhitemaneInquisitorsPrayerAttackProcSet">
+    <EffectArray value="WhitemaneInquisitorsPrayerAttackAddQuestToken" />
+    <EffectArray value="WhitemaneInquisitorsPrayerResetTokenAttack" />
+  </CEffectSet>
+  <CEffectModifyTokenCount id="WhitemaneInquisitorsPrayerAttackAddToken" parent="BaseEffectModifyTokenCount">
+    <ValidatorArray value="TargetIsHero" />
+    <ValidatorArray value="CasterNotBlindedAndTargetNotEvading" />
+    <ContextUnit Value="Caster" />
+    <TokenId value="WhitemaneInquisitorsPrayerAttackTokenCounter" />
+  </CEffectModifyTokenCount>
+  <CEffectModifyTokenCount id="WhitemaneInquisitorsPrayerResetTokenAttack" parent="BaseEffectModifyTokenCount">
+    <TokenId value="WhitemaneInquisitorsPrayerAttackTokenCounter" />
+    <Operation value="Set" />
+    <Value value="0" />
+  </CEffectModifyTokenCount>
+  <CEffectModifyTokenCount id="WhitemaneInquisitorsPrayerAttackAddQuestToken" parent="BaseEffectModifyTokenCount">
+    <ContextUnit Value="Caster" />
+    <TokenId value="WhitemaneInquisitorsPrayerQuestToken" />
+  </CEffectModifyTokenCount>
   <CEffectModifyTokenCount id="WhitemaneInquisitorsPrayerAddTokenFirstStrike" parent="BaseEffectModifyTokenCount">
     <ValidatorArray value="TargetIsHero" />
     <ContextUnit Value="Caster" />
@@ -1911,12 +1929,13 @@
   <CEffectSet id="WhitemaneDivineReckoningImpactSet">
     <EffectArray value="WhitemaneDivineReckoningJudgmentDayPullSet" />
     <EffectArray value="WhitemaneDivineReckoningDamage" />
+    <EffectArray value="WhitemaneDivineReckoningApplyTargetHitMarker" />
     <EffectArray value="ApplyAbilityImpactReveal" />
   </CEffectSet>
   <CEffectCreatePersistent id="WhitemaneDivineReckoningSearchPersistent">
-    <InitialEffect value="WhitemaneDivineReckoningSearch" />
+    <InitialEffect value="WhitemaneDivineReckoningSearchSet" />
     <PeriodCount value="8" />
-    <PeriodicEffectArray value="WhitemaneDivineReckoningSearch" />
+    <PeriodicEffectArray value="WhitemaneDivineReckoningSearchSet" />
     <PeriodicPeriodArray value="0.5" />
     <Marker>
       <MatchFlags index="Id" value="1" />
@@ -1931,6 +1950,10 @@
     <PeriodCount value="1" />
     <PeriodicPeriodArray value="0.875" />
   </CEffectCreatePersistent>
+  <CEffectSet id="WhitemaneDivineReckoningSearchSet">
+    <EffectArray value="WhitemaneDivineReckoningSearch" />
+    <EffectArray value="WhitemaneDivineReckoningLeechProcDummy" />
+  </CEffectSet>
   <CEffectEnumArea id="WhitemaneDivineReckoningSearch">
     <SearchFilters value="-;Player,Ally,Neutral,ImmuneToAOE,Missile,Item,Stasis,Dead,Hidden,Invulnerable" />
     <AreaArray Effect="WhitemaneDivineReckoningImpactSet">
@@ -1948,9 +1971,35 @@
     <MultiplicativeModifierArray index="FanaticalPower" Validator="WhitemaneHasFanaticalPowerBehavior" Crit="1" />
     <LeechFraction index="Energy" value="0.25" />
     <FloaterCreation value="Force" />
-    <LeechValidator index="Energy" value="TargetIsHero" />
+    <LeechValidator index="Energy" value="AlwaysReturnsFalse" />
     <LeechScoreArray index="0" removed="1" />
   </CEffectDamage>
+  <CEffectModifyUnit id="WhitemaneDivineReckoningLeechProcDummy">
+    <ValidatorArray value="WhitemaneCasterHasDivineReckoningHeroHitMarker" />
+    <ImpactUnit Value="Caster" />
+  </CEffectModifyUnit>
+  <CEffectApplyBehavior id="WhitemaneDivineReckoningApplyTargetHitMarker">
+    <ValidatorArray value="TargetIsHero" />
+    <WhichUnit Value="Caster" />
+    <Behavior value="WhitemaneDivineReckoningHeroHitMarker" />
+  </CEffectApplyBehavior>
+  <CEffectRemoveBehavior id="WhitemaneDivineReckoningRemoveTargetHitMarker">
+    <WhichUnit Value="Caster" />
+    <BehaviorLink value="WhitemaneDivineReckoningHeroHitMarker" />
+  </CEffectRemoveBehavior>
+  <CEffectSet id="WhitemaneDivineReckoningRestoreManaSet">
+    <EffectArray value="WhitemaneDivineReckoningRestoreMana" />
+    <EffectArray value="WhitemaneDivineReckoningResetManaRestore" />
+    <EffectArray value="WhitemaneDivineReckoningRemoveTargetHitMarker" />
+  </CEffectSet>
+  <CEffectCreateHealer id="WhitemaneDivineReckoningRestoreMana" parent="StormManaRestore">
+    <ImpactUnit Value="Caster" />
+  </CEffectCreateHealer>
+  <CEffectModifyCatalogNumeric id="WhitemaneDivineReckoningResetManaRestore">
+    <CatalogModifications Operation="Set" Reference="Effect,WhitemaneDivineReckoningRestoreMana,RechargeVitalRate">
+      <Value value="0" />
+    </CatalogModifications>
+  </CEffectModifyCatalogNumeric>
   <CEffectSet id="WhitemaneDivineReckoningInitialSet">
     <EffectArray value="WhitemaneDivineReckoningInitialPersistent" />
     <TargetLocationType value="Point" />
@@ -2071,6 +2120,7 @@
     <EffectArray value="ZealScarletWrathEnumerateTrackedUnits" />
     <EffectArray value="WhitemaneSearingLashSaintlyGreatstaffRemoveMarkedBehavior" />
     <EffectArray value="WhitemaneZealScarletWrathModifyCooldown" />
+    <EffectArray value="WhitemaneInquisitorsPrayerAttackAddToken" />
     <EffectArray value="UniversalWeaponPostImpactSet" />
   </CEffectSet>
   <CEffectLaunchMissile id="WhitemaneWeaponLaunchMissile">
@@ -2137,15 +2187,24 @@
     <EffectArray value="WhitemaneDesperatePleaRadianceCreateHealer" />
     <EffectArray value="WhitemaneZealApplyBehaviorSet" />
   </CEffectSet>
+  <CEffectSet id="WhitemaneZealScarletWrathEnumSet">
+    <EffectArray value="WhitemaneZealScarletWrathModifyBehaviorDuration" />
+    <EffectArray value="WhitemaneZealScarletWrathRestoreMana" />
+  </CEffectSet>
   <CEffectModifyBehaviorBuffDuration id="WhitemaneZealScarletWrathModifyBehaviorDuration">
     <WhichUnit Value="Target" />
     <Behavior value="WhitemaneZealBuff" />
     <Value value="0.75" />
   </CEffectModifyBehaviorBuffDuration>
+  <CEffectCreateHealer id="WhitemaneZealScarletWrathRestoreMana" parent="StormManaRestore">
+    <ValidatorArray value="TargetIsManaUser" />
+    <ValidatorArray value="TargetIsHero" />
+    <RechargeVitalFraction value="0.005" />
+  </CEffectCreateHealer>
   <CEffectEnumTrackedUnits id="ZealScarletWrathEnumerateTrackedUnits">
     <Chance value="0" />
     <BehaviorLink value="WhitemaneZealUnitTracker" />
-    <Effect value="WhitemaneZealScarletWrathModifyBehaviorDuration" />
+    <Effect value="WhitemaneZealScarletWrathEnumSet" />
     <ValidatorArray value="TargetIsHero" />
     <ValidatorArray value="CasterNotBlindedAndTargetNotEvading" />
   </CEffectEnumTrackedUnits>
@@ -3400,7 +3459,7 @@
     <RankArray>
       <BehaviorArray value="WhitemaneInquisitorsPrayerQuestToken" />
       <BehaviorArray value="WhitemaneInquisitorsPrayerHealth" />
-      <BehaviorArray value="WhitemaneInquisitorsPrayerMana" />
+      <BehaviorArray value="WhitemaneInquisitorsPrayerAttackTokenCounter" />
     </RankArray>
     <QuestData StackBehavior="WhitemaneInquisitorsPrayerQuestToken" />
   </CTalent>
