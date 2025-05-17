@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="us-ascii"?>
 <Catalog>
+  <const id="$ArtanisShieldOverloadValue" value="365" />
+  <const id="$ArtanisShieldSurgeModifier" value="0.8" />
+  <const id="$ArtanisShieldOverloadShieldSurgeBonus" value="*($ArtanisShieldOverloadValue $ArtanisShieldSurgeModifier)" evaluateAsExpression="1" />
   <CAbilEffectInstant id="ArtanisTwinBlades">
     <Effect value="ArtanisTwinBladesInitialSet" />
     <Cost>
@@ -130,6 +133,11 @@
   <CAccumulatorToken id="ArtanisProtectorOfAiurDamageAccumulator" parent="BaseTokenAccumulator">
     <TokenId value="ArtanisProtectorOfAiurQuestTokenCounter" />
     <Scale value="0.001" />
+  </CAccumulatorToken>
+  <CAccumulatorToken id="ArtanisShieldOverloadShieldSurgeAddition" parent="BaseAccumulator">
+    <MaxAccumulation value="10000" />
+    <ApplicationRule value="Add" />
+    <Offset value="$ArtanisShieldOverloadShieldSurgeBonus" />
   </CAccumulatorToken>
   <CActorSound id="HeroArtanisTauntVO" parent="SoundOneShot">
     <Sound value="ArtanisBase_Taunt" />
@@ -1006,7 +1014,7 @@
   </CBehaviorBuff>
   <CBehaviorBuff id="ArtanisShieldOverload" parent="StormShield">
     <Duration value="5" />
-    <DamageResponse ModifyLimit="365" />
+    <DamageResponse ModifyLimit="$ArtanisShieldOverloadValue" />
     <ExpireEffect value="ArtanisShieldOverloadShieldBatteryModifyCooldown" />
     <FinalEffect value="ArtanisShieldOverloadPhaseBulwarkTemporaryApplySpellShield" />
   </CBehaviorBuff>
@@ -1409,13 +1417,22 @@
   <CEffectSet id="ArtanisTwinBladesHoldfireSet" parent="PrimedAbilityHoldfireSet">
     <ValidatorArray value="ArtanisCasterIsNotCastingBladeDash" />
   </CEffectSet>
-  <CEffectApplyBehavior id="ArtanisShieldOverloadApplyBehaviorImproved">
-    <WhichUnit Value="Source" />
-    <Behavior value="ArtanisShieldOverloadImprovedNewShieldSurge" />
-  </CEffectApplyBehavior>
-  <CEffectSwitch id="ArtanisShieldOverloadApplyBehaviorSwitch">
-    <CaseArray Validator="ArtanisShieldSurgeandLT25Combine" Effect="ArtanisShieldOverloadApplyBehaviorImproved" />
-    <CaseDefault value="ArtanisShieldOverloadApplyBehavior" />
+  <CEffectModifyUnit id="ArtanisShieldSurgeCatalogReference">
+    <XP value="$ArtanisShieldSurgeModifier" />
+  </CEffectModifyUnit>
+  <CEffectModifyCatalogNumeric id="ArtanisShieldOverloadResetFlatShieldBonus">
+    <CatalogModifications Operation="Set" Reference="Behavior,ArtanisShieldOverload,FlatShieldBonus" />
+  </CEffectModifyCatalogNumeric>
+  <CEffectModifyCatalogNumeric id="ArtanisShieldOverloadApplyFlatShieldBonus">
+    <CatalogModifications Operation="Set" Reference="Behavior,ArtanisShieldOverload,FlatShieldBonus">
+      <Value value="0">
+        <AccumulatorArray value="ArtanisShieldOverloadShieldSurgeAddition" />
+      </Value>
+    </CatalogModifications>
+  </CEffectModifyCatalogNumeric>
+  <CEffectSwitch id="ArtanisShieldOverloadShieldSurgeModifySwitch">
+    <CaseArray Validator="ArtanisShieldSurgeandLT25Combine" Effect="ArtanisShieldOverloadApplyFlatShieldBonus" />
+    <CaseDefault value="ArtanisShieldOverloadResetFlatShieldBonus" />
   </CEffectSwitch>
   <CEffectModifyUnit id="ArtanisShieldOverloadShieldBatteryModifyCooldownCDR">
     <ImpactUnit Value="Caster" />
@@ -2050,7 +2067,8 @@
     <Cost Abil="ArtanisShieldOverloadDummy,Execute" CooldownOperation="Add" CooldownTimeUse="-8" />
   </CEffectModifyUnit>
   <CEffectSet id="ArtanisShieldOverloadProcSet">
-    <EffectArray value="ArtanisShieldOverloadApplyBehaviorSwitch" />
+    <EffectArray value="ArtanisShieldOverloadShieldSurgeModifySwitch" />
+    <EffectArray value="ArtanisShieldOverloadApplyBehavior" />
     <EffectArray value="ArtanisShieldOverloadSetCooldownToFull" />
     <EffectArray value="ArtanisShieldOverloadShieldSurgeApplyController" />
     <EffectArray value="ArtanisShieldOverloadShieldSurgeApplyStacks" />
@@ -2559,9 +2577,9 @@
         <AffectedByOverdrive value="1" />
       </Modifications>
       <Modifications>
-        <Catalog value="Behavior" />
-        <Entry value="ArtanisShieldOverloadImprovedNewShieldSurge" />
-        <Field value="DamageResponse.ModifyLimit" />
+        <Catalog value="Accumulator" />
+        <Entry value="ArtanisShieldOverloadShieldSurgeAddition" />
+        <Field value="Offset" />
         <Value value="0.040000" />
         <AffectedByOverdrive value="1" />
       </Modifications>

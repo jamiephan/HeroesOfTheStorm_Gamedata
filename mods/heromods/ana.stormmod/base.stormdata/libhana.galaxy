@@ -55,6 +55,7 @@ void libHANA_gf_HeroAnaIncrementHeroCountFunction () {
         TriggerEnable(libHANA_gt_HeroAnaNanoBoostFullscreenOverlayOn, true);
         TriggerEnable(libHANA_gt_HeroAnaNanoBoostFullscreenOverlayOff, true);
         TriggerEnable(libHANA_gt_HeroAnaShrikeTokenCounter, true);
+        TriggerEnable(libHANA_gt_AnaGainsDeadeyeTalentCooldownConversion, true);
         libHANA_gv_hero_Ana_HealingDart_ConcentratedDoses_PoisonDotStr = CatalogFieldValueGet(c_gameCatalogBehavior, "AnaShrikeDotDamageToken", "TokenId", c_playerAny);
         libHANA_gv_hero_Ana_HealingDart_ConcentratedDoses_TokenCounterStr = CatalogFieldValueGet(c_gameCatalogBehavior, "AnaHealingDartConcentratedDosesTokenCounter", "TokenId", c_playerAny);
         libHANA_gv_hero_Ana_Shrike_DamageDoneToken_TokenCounterStr = CatalogFieldValueGet(c_gameCatalogBehavior, "AnaShrikeSelfHealPoisonTraitHealToken", "TokenId", c_playerAny);
@@ -84,6 +85,7 @@ void libHANA_gf_HeroAnaDecrementHeroCountFunction () {
         TriggerEnable(libHANA_gt_HeroAnaNanoBoostGenderHitCheck, false);
         TriggerEnable(libHANA_gt_HeroAnaNanoBoostFullscreenOverlayOn, false);
         TriggerEnable(libHANA_gt_HeroAnaNanoBoostFullscreenOverlayOff, false);
+        TriggerEnable(libHANA_gt_AnaGainsDeadeyeTalentCooldownConversion, false);
         libHANA_gv_hero_Ana_HealingDart_ConcentratedDoses_PoisonDotStr = "";
         libHANA_gv_hero_Ana_HealingDart_ConcentratedDoses_TokenCounterStr = "";
         TriggerEnable(libHANA_gt_HeroAnaShrikeTokenCounter, false);
@@ -560,6 +562,68 @@ void libHANA_gt_HeroAnaEyeOfHorusOverlayOff_Init () {
 }
 
 //--------------------------------------------------------------------------------------------------
+// Trigger: Hero - Ana - Gains Deadeye Talent - Cooldown Conversion
+//--------------------------------------------------------------------------------------------------
+bool libHANA_gt_AnaGainsDeadeyeTalentCooldownConversion_Func (bool testConds, bool runActions) {
+    // Variable Declarations
+    int lv_anaPlayer;
+    unit lv_anaUnit;
+    fixed lv_eyeOfHorusCooldown;
+    int lv_chargesToGain;
+    const fixed lv_eyeOfHorusChargeRegen = 10.0;
+    string lv_attackChargeLink;
+    string lv_activateChargeLink;
+
+    // Automatic Variable Declarations
+    // Variable Initialization
+    lv_anaPlayer = libGame_gf_HeroGainTalentPlayer();
+    lv_anaUnit = libGame_gv_players[lv_anaPlayer].lv_heroUnit;
+    lv_attackChargeLink = "Abil/AnaEyeOfHorusAttack";
+    lv_activateChargeLink = "Abil/AnaEyeOfHorusActivate";
+
+    // Conditions
+    if (testConds) {
+        if (!((libGame_gf_HeroGainTalentGainedTalent() == "AnaEyeOfHorusDeadeye"))) {
+            return false;
+        }
+    }
+
+    // Actions
+    if (!runActions) {
+        return true;
+    }
+
+    Wait(0.0625, c_timeGame);
+    lv_eyeOfHorusCooldown = UnitGetCooldown(lv_anaUnit, lv_activateChargeLink);
+    if ((UnitHasBehavior2(lv_anaUnit, "AnaEyeOfHorus") == true)) {
+        UnitAddChargeRegenRemaining(lv_anaUnit, lv_attackChargeLink, lv_eyeOfHorusChargeRegen);
+        UnitAddChargeUsed(lv_anaUnit, lv_activateChargeLink, -6.0);
+        UnitAddChargeUsed(lv_anaUnit, lv_activateChargeLink, UnitGetChargeUsed(lv_anaUnit, lv_attackChargeLink));
+        UnitAddChargeRegenRemaining(lv_anaUnit, lv_activateChargeLink, lv_eyeOfHorusChargeRegen);
+        return true;
+    }
+    else if ((lv_eyeOfHorusCooldown != 0.0)) {
+        UnitAddChargeUsed(lv_anaUnit, lv_activateChargeLink, -6.0);
+        while ((lv_eyeOfHorusCooldown > 0.0625)) {
+            UnitAddChargeUsed(lv_anaUnit, lv_attackChargeLink, 1.0);
+            lv_eyeOfHorusCooldown = (lv_eyeOfHorusCooldown - lv_eyeOfHorusChargeRegen);
+        }
+        UnitModifyCooldown(lv_anaUnit, lv_activateChargeLink, 0.5, c_cooldownOperationSet);
+        UnitAddChargeRegenRemaining(lv_anaUnit, lv_attackChargeLink, lv_eyeOfHorusChargeRegen);
+        UnitAddChargeRegenRemaining(lv_anaUnit, lv_activateChargeLink, lv_eyeOfHorusCooldown);
+        UnitAddChargeRegenRemaining(lv_anaUnit, lv_attackChargeLink, lv_eyeOfHorusCooldown);
+    }
+    return true;
+}
+
+//--------------------------------------------------------------------------------------------------
+void libHANA_gt_AnaGainsDeadeyeTalentCooldownConversion_Init () {
+    libHANA_gt_AnaGainsDeadeyeTalentCooldownConversion = TriggerCreate("libHANA_gt_AnaGainsDeadeyeTalentCooldownConversion_Func");
+    TriggerEnable(libHANA_gt_AnaGainsDeadeyeTalentCooldownConversion, false);
+    libGame_gf_HeroGainTalent(libHANA_gt_AnaGainsDeadeyeTalentCooldownConversion);
+}
+
+//--------------------------------------------------------------------------------------------------
 // Trigger: Hero - Ana - Concentrated Doses
 //--------------------------------------------------------------------------------------------------
 bool libHANA_gt_HeroAnaConcentratedDoses_Func (bool testConds, bool runActions) {
@@ -657,6 +721,7 @@ void libHANA_InitTriggers () {
     libHANA_gt_HeroAnaEyeOfHorusActivate_Init();
     libHANA_gt_HeroAnaEyeOfHorusOverlayOn_Init();
     libHANA_gt_HeroAnaEyeOfHorusOverlayOff_Init();
+    libHANA_gt_AnaGainsDeadeyeTalentCooldownConversion_Init();
     libHANA_gt_HeroAnaConcentratedDoses_Init();
     libHANA_gt_AnaUIInitialize_Init();
 }

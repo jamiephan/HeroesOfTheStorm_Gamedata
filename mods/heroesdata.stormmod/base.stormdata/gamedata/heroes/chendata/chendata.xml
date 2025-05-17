@@ -1011,9 +1011,9 @@
       <AbilLinkDisableArray value="ChenEarth" />
     </Modification>
   </CBehaviorBuff>
-  <CBehaviorBuff id="ChenFortifyingBrewComboStrikesAttackSpeedBuffPeriodicRunBehavior">
-    <RemoveValidatorArray value="ChenHasFortifyingBrewShieldAndHasComboStrikesTalent" />
-    <PeriodicEffect value="ChenFortifyingBrewComboStrikesAttackSpeedBuffApplyBehavior" />
+  <CBehaviorBuff id="ChenFortifyingBrewComboStrikesInitialApply">
+    <Duration value="0.0625" />
+    <ExpireEffect value="ChenFortifyingBrewComboStrikesAttackSpeedBuffApplyBehaviorPermanentInitial" />
   </CBehaviorBuff>
   <CBehaviorBuff id="ChenEnergizingBrewFortifyingBrewHealthBuff">
     <Alignment value="Positive" />
@@ -1086,13 +1086,15 @@
       <AllArmorBonus value="30" />
     </ArmorModification>
   </CBehaviorBuff>
-  <CBehaviorBuff id="ChenFortifyingBrewComboStrikesAttackSpeedBuff">
-    <BehaviorFlags index="Permanent" value="1" />
-    <BehaviorFlags index="EnabledWhileDead" value="1" />
+  <CBehaviorBuff id="ChenFortifyingBrewComboStrikesAttackSpeedBuff" paernt="CarryBehaviorParent">
+    <Face value="ChenComboStrikesBuff" />
+    <Alignment value="Positive" />
+    <InfoFlags index="Hidden" value="0" />
+    <SortIndex value="75" />
+    <BehaviorCategories index="BuffAutoattackDPS" value="1" />
     <Modification>
       <AdditiveAttackSpeedFactor value="0.35" />
     </Modification>
-    <Duration value="2.0625" />
   </CBehaviorBuff>
   <CBehaviorUnitTracker id="ChenFortifyingBrewComboStrikesUnitTracker">
     <MaxTrackedUnits value="1" />
@@ -1347,6 +1349,8 @@
   <CBehaviorBuff id="ChenFortifyingBrewShield" parent="StormShield">
     <MaxStackCount value="6" />
     <DamageResponse ModifyLimit="90" />
+    <EnableEffect value="ChenComboStrikesApplyAttackSpeedSwitch" />
+    <DisableEffect value="ChenComboStrikesApplyAttackSpeedSwitch" />
   </CBehaviorBuff>
   <CBehaviorBuff id="ChenFortifyingBrewEnoughToShareAlliedShield" parent="StormShield">
     <MaxStackCount value="6" />
@@ -1565,6 +1569,9 @@
   <CButton id="ChenFortifyingBrewComboStrikesTalent" parent="StormButtonParent">
     <Icon value="Assets\Textures\storm_ui_icon_chen_fortifyingbrew.dds" />
     <HotkeyAlias value="ChenFortifyingBrewBrewmastersBalanceTalent" />
+  </CButton>
+  <CButton id="ChenComboStrikesBuff" parent="StormButtonParent">
+    <Icon value="Assets\Textures\storm_ui_icon_chen_fortifyingbrew.dds" />
   </CButton>
   <CButton id="ChenGiftOfTheOxStagger" parent="StormButtonParent">
     <TooltipVitalName index="Energy" value="UI/Tooltip/Abil/Brew" />
@@ -1801,13 +1808,22 @@
     <BehaviorLink value="ChenStormEarthFireFireAbilityDisable" />
   </CEffectRemoveBehavior>
   <CEffectModifyUnit id="ChenStaggerDamageResponseDummy" />
+  <CEffectSwitch id="ChenComboStrikesApplyAttackSpeedSwitch">
+    <ValidatorArray value="ChenHasComboStrikesFortifyingBrewTalent" />
+    <CaseArray Validator="ChenHasFortifyingBrewShield" Effect="ChenFortifyingBrewComboStrikesAttackSpeedBuffApplyBehaviorPermanent" />
+    <CaseDefault value="ChenFortifyingBrewComboStrikesAttackSpeedBuffApplyBehavior" />
+  </CEffectSwitch>
   <CEffectApplyBehavior id="ChenFortifyingBrewComboStrikesAttackSpeedBuffApplyBehavior">
     <WhichUnit Value="Caster" />
+    <Flags index="UseDuration" value="1" />
+    <Duration value="2" />
     <Behavior value="ChenFortifyingBrewComboStrikesAttackSpeedBuff" />
   </CEffectApplyBehavior>
-  <CEffectApplyBehavior id="ChenFortifyingBrewComboStrikesAttackSpeedBuffPeriodicRunApplyBehavior">
-    <WhichUnit Value="Caster" />
-    <Behavior value="ChenFortifyingBrewComboStrikesAttackSpeedBuffPeriodicRunBehavior" />
+  <CEffectApplyBehavior id="ChenFortifyingBrewComboStrikesAttackSpeedBuffApplyBehaviorPermanent" parent="ChenFortifyingBrewComboStrikesAttackSpeedBuffApplyBehavior">
+    <Duration value="-1" />
+  </CEffectApplyBehavior>
+  <CEffectApplyBehavior id="ChenFortifyingBrewComboStrikesAttackSpeedBuffApplyBehaviorPermanentInitial" parent="ChenFortifyingBrewComboStrikesAttackSpeedBuffApplyBehaviorPermanent">
+    <ValidatorArray value="ChenHasFortifyingBrewShield" />
   </CEffectApplyBehavior>
   <CEffectApplyBehavior id="ChenFortifyingBrewEnergizingBrewBuffApplyBehavior">
     <ValidatorArray index="0" value="ChenHasEnergizingBrewFortifyingBrewTalent" />
@@ -3172,7 +3188,6 @@
     <EffectArray value="ChenFortifyingBrewApplyController" />
     <EffectArray value="ChenFortifyingBrewApplyChannelingCoolup" />
     <EffectArray value="ChenPurifyingBrewApplyUnstoppableBuff" />
-    <EffectArray value="ChenFortifyingBrewComboStrikesAttackSpeedBuffPeriodicRunApplyBehavior" />
   </CEffectSet>
   <CEffectSet id="ChenFortifyingBrewFinalSet">
     <EffectArray value="ChenFortifyingBrewRemoveEnergyBehavior" />
@@ -3915,6 +3930,7 @@
     <Abil value="ChenFortifyingBrew" />
     <RankArray>
       <BehaviorArray value="ChenFortifyingBrewComboStrikesUnitTracker" />
+      <BehaviorArray value="ChenFortifyingBrewComboStrikesInitialApply" />
     </RankArray>
   </CTalent>
   <CTalent id="ChenEyeOfTheTiger">

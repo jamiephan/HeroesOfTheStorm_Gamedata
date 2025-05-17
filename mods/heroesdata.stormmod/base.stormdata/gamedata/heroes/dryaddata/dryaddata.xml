@@ -107,7 +107,7 @@
   </CAbilEffectInstant>
   <CAbilEffectTarget id="DryadThornwoodVine">
     <PrepEffect value="DryadSpecialCaseAbilityUseDismountDecloakSet" />
-    <Effect value="DryadThornwoodVineInitialPersistent" />
+    <Effect value="DryadThornwoodVineInitialSet" />
     <Flags index="ClearLastMoveTarget" value="1" />
     <Flags index="RequireTargetVision" value="0" />
     <Flags index="TargetVectorLock" value="1" />
@@ -127,7 +127,7 @@
     <UninterruptibleArray index="Cast" value="1" />
     <UninterruptibleArray index="Channel" value="1" />
     <UninterruptibleArray index="Finish" value="1" />
-    <CursorEffect value="DryadThornwoodVineMissileScanSearch" />
+    <CursorEffect value="DryadThornwoodVineMissileSearch" />
     <CmdButtonArray index="Execute" DefaultButtonFace="DryadThornwoodVine" Requirements="Ultimate1Unlocked">
       <Flags index="AllowSelfCast" value="0" />
     </CmdButtonArray>
@@ -179,6 +179,13 @@
   <CAccumulatorTimed id="DryadCripplingSporesDecayAccumulator75PercentCCReduction" parent="DryadCripplingSporesDecayAccumulator">
     <MultiplierPerStep value="$DryadCripplingSporesSlowMultiplierPerStep75PercentCCReduction" />
   </CAccumulatorTimed>
+  <CAccumulatorToken id="DryadSplinteredSpearTokenAccumulator" parent="BaseTokenAccumulator">
+    <ApplicationRule value="Add" />
+    <TokenId value="DryadSplineredSpearTokenCounter" />
+    <MinAccumulation value="0" />
+    <MaxAccumulation value="4" />
+    <UnitSource Value="Caster" />
+  </CAccumulatorToken>
   <CActorModel id="DryadHippityHopMovementSpeedRibbon" parent="StormMoveSpeedRibbon">
     <On Terms="Behavior.DryadHippityHopCarryBehavior.On" Send="Create" />
     <On Terms="Behavior.DryadHippityHopCarryBehavior.Off" Send="Destroy" />
@@ -308,7 +315,8 @@
   </CActorForceSphere>
   <CActorForceSphere id="DryadThornwoodVineForceSphere">
     <Host Subject="_Missile" />
-    <On Terms="Effect.DryadThornwoodVineMissileScanSearchPersistent.Start" Send="Create" />
+    <On Terms="Effect.DryadThornwoodVineMissileSearch.Start" Send="Create" />
+    <On Terms="Effect.DryadThornwoodVineForTheWildlandsSearch.Start" Send="Create" />
     <HostSiteOps Ops="SOpSourcePoint SOpMoveBackBy1" />
     <Duration value="0.150000" />
     <Magnitude value="40.000000" />
@@ -320,7 +328,8 @@
     <Magnitude value="40.000000" />
     <Duration value="0.150000" />
     <Angle value="40.000000" />
-    <On Terms="Effect.DryadThornwoodVineMissileScanSearchPersistent.Start" Send="Create" />
+    <On Terms="Effect.DryadThornwoodVineMissileSearch.Start" Send="Create" />
+    <On Terms="Effect.DryadThornwoodVineForTheWildlandsSearch.Start" Send="Create" />
     <ForceFlags index="FallOff" value="0" />
     <Length value="3.000000" />
     <HostSiteOps Ops="SOpSourcePoint SOpForwardOriginPoint SOpMoveForwardBy1 SOpMoveForwardBy1" HoldPosition="1" HoldRotation="1" />
@@ -650,6 +659,12 @@
     <ShieldFlashType value="None" />
     <LaunchAttachQuery Methods="Origin 0" Fallback="Origin" />
   </CActorAction>
+  <CActorAction id="DryadThornwoodVineForTheWildlandsAction" parent="GenericAttackPointStorm" effectImpact="DryadThornwoodVineDamage" effectLaunch="DryadThornwoodVineForTheWildlandsLaunchMissile">
+    <Missile value="DryadThornwoodVineForTheWildlandsMissile" />
+    <LaunchAttachQuery Methods="Origin 0" Fallback="Origin" />
+    <ShieldFlashType value="None" />
+    <ImpactModel value="DryadThornwoodVineImpactModel" />
+  </CActorAction>
   <CActorModel id="DryadThornwoodVineImpactModel" parent="StormModelAnimationStyleOneShotUnit">
     <On Terms="Effect.DryadThornwoodVineDamage.Start; At Target" Send="Create" />
     <On Terms="ActorCreation" Send="RefSetFromRequest ::actor.TeamColorActor DryadThornwoodVineImpactTeamColorActor Effect Find" />
@@ -669,15 +684,132 @@
   </CActorSound>
   <CActorMissile id="DryadThornwoodVineMissile" parent="StormMissileWithDeath" unitName="DryadThornwoodVineMissile">
     <On Terms="UnitBirth" Send="AnimBracketStart BSD Birth Stand Death 0 1.000000 AsTimeScale" />
-    <On Terms="Effect.DryadThornwoodVineMissileScanSearchPersistent.Start; At Source; ValidateUnit SourceNotDead" Send="Create DryadThornwoodVineGroundVisual" />
+    <On Terms="UnitBirth; ValidatePlayer DryadHasForestsWrathTalent" Send="AnimSetTimeScale BSD 0.700000" />
+    <On Terms="Effect.DryadThornwoodVineMissileSearch.Start; At Source; ValidateUnit SourceNotDead" Send="Create DryadThornwoodVineGroundVisual" />
     <On Terms="UnitDeath" Target="DryadThornwoodVineGroundVisual" Send="Destroy" />
     <On Terms="Effect.DryadThornwoodVineDamage.Start; At Source" Send="AnimPlay Spell Spell" />
     <Remove Terms="UnitBirth" Send="AnimBracketStart BSD Birth Stand Death" />
+  </CActorMissile>
+  <CActorMissile id="DryadThornwoodVineForTheWildlandsMissile" parent="StormMissileWithDeath" unitName="DryadThornwoodVineForTheWildlandsMissile">
+    <On Terms="UnitBirth" Send="AnimBracketStart BSD Birth Stand Death 0 1.000000 AsTimeScale" />
+    <On Terms="Effect.DryadThornwoodVineForTheWildlandsSearch.Start; At Source; ValidateUnit SourceNotDead" Send="Create DryadThornwoodVineGroundVisual" />
+    <On Terms="UnitDeath" Target="DryadThornwoodVineGroundVisual" Send="Destroy" />
+    <On Terms="Effect.DryadThornwoodVineDamage.Start; At Source" Send="AnimPlay Spell Spell" />
+    <Remove Terms="UnitBirth" Send="AnimBracketStart BSD Birth Stand Death" />
+    <Model value="DryadThornwoodVineMissile" />
   </CActorMissile>
   <CActorSound id="DryadThornwoodVineImpactSound" parent="SoundOneShot">
     <On Terms="Effect.DryadThornwoodVineMissileScanImpactSet.Start" Send="Create" />
     <Sound value="Dryad_ThornwoodVine_Impact" />
   </CActorSound>
+  <CActorQuad id="DryadThornwoodVineForTheWildlandsLeftGuide" parent="StormGuideVisualQuadDown" abil="DryadThornwoodVine">
+    <Aliases value="_GuideVisualLeft" />
+    <Remove Terms="ActorCreation" Send="Create StormGuideRegionQuadDown" />
+    <On index="0" Terms="Abil.DryadThornwoodVine.Guide; ValidatePlayer DryadHasForTheWildlands" />
+    <On Terms="ActorCreation; IsActorLocalPlayer" Send="Create DryadThornwoodVineForTheWildlandsGuideRegionLeft" />
+    <Host Subject="_GuideRegionLeft" />
+    <Height value="13.000000" />
+    <Width value="1.400000" />
+  </CActorQuad>
+  <CActorRegionQuad id="DryadThornwoodVineForTheWildlandsGuideRegionLeft" parent="StormGuideRegionClosest">
+    <Aliases value="_GuideRegionLeft" />
+    <Remove Terms="RegionSubject.*.AddedFirst" Target="_GuideVisual" Send="ClearTintColor 0.100000 BaseTint" />
+    <Remove Terms="RegionSubject.*.AddedFirst" Target="_GuideVisual" Send="SetTintColor 0,255,0 0.100000 OneShot Active" />
+    <Remove Terms="RegionSubject.*.RemovedLast" Target="_GuideVisual" Send="SetTintColor 225,160,25 0.000000 OneShot BaseTint" />
+    <Remove Terms="RegionSubject.*.RemovedLast" Target="_GuideVisual" Send="ClearTintColor 0.100000 Active" />
+    <On Terms="ActorOrphan" Send="Destroy" />
+    <On Terms="RegionSubject.*.AddedFirst" Target="_GuideVisualLeft" Send="ClearTintColor 0.100000 BaseTint" />
+    <On Terms="RegionSubject.*.AddedFirst" Target="_GuideVisualLeft" Send="SetTintColor 0,255,0 0.100000 OneShot Active" />
+    <On Terms="RegionSubject.*.RemovedLast" Target="_GuideVisualLeft" Send="SetTintColor 225,160,25 0.000000 OneShot BaseTint" />
+    <On Terms="RegionSubject.*.RemovedLast" Target="_GuideVisualLeft" Send="ClearTintColor 0.100000 Active" />
+    <HostSiteOps Ops="DryadThornwoodVineForTheWildlandsLeftRotation" />
+    <RegionFlags index="UseEffectRange" value="1" />
+  </CActorRegionQuad>
+  <CActorQuad id="DryadThornwoodVineForTheWildlandsRightGuide" parent="StormGuideVisualQuadDown" abil="DryadThornwoodVine">
+    <Aliases value="_GuideVisualRight" />
+    <Remove Terms="ActorCreation" Send="Create StormGuideRegionQuadDown" />
+    <On index="0" Terms="Abil.DryadThornwoodVine.Guide; ValidatePlayer DryadHasForTheWildlands" />
+    <On Terms="ActorCreation; IsActorLocalPlayer" Send="Create DryadThornwoodVineForTheWildlandsGuideRegionRight" />
+    <Host Subject="_GuideRegionRight" />
+    <Height value="13.000000" />
+    <Width value="1.400000" />
+  </CActorQuad>
+  <CActorRegionQuad id="DryadThornwoodVineForTheWildlandsGuideRegionRight" parent="StormGuideRegionClosest">
+    <Aliases value="_GuideRegionRight" />
+    <Remove Terms="RegionSubject.*.AddedFirst" Target="_GuideVisual" Send="ClearTintColor 0.100000 BaseTint" />
+    <Remove Terms="RegionSubject.*.AddedFirst" Target="_GuideVisual" Send="SetTintColor 0,255,0 0.100000 OneShot Active" />
+    <Remove Terms="RegionSubject.*.RemovedLast" Target="_GuideVisual" Send="SetTintColor 225,160,25 0.000000 OneShot BaseTint" />
+    <Remove Terms="RegionSubject.*.RemovedLast" Target="_GuideVisual" Send="ClearTintColor 0.100000 Active" />
+    <On Terms="ActorOrphan" Send="Destroy" />
+    <On Terms="RegionSubject.*.AddedFirst" Target="_GuideVisualRight" Send="ClearTintColor 0.100000 BaseTint" />
+    <On Terms="RegionSubject.*.AddedFirst" Target="_GuideVisualRight" Send="SetTintColor 0,255,0 0.100000 OneShot Active" />
+    <On Terms="RegionSubject.*.RemovedLast" Target="_GuideVisualRight" Send="SetTintColor 225,160,25 0.000000 OneShot BaseTint" />
+    <On Terms="RegionSubject.*.RemovedLast" Target="_GuideVisualRight" Send="ClearTintColor 0.100000 Active" />
+    <HostSiteOps Ops="DryadThornwoodVineForTheWildlandsRightRotation" />
+    <RegionFlags index="UseEffectRange" value="1" />
+  </CActorRegionQuad>
+  <CActorQuad id="DryadThornwoodVineForTheWildlandsFarLeftGuide" parent="StormGuideVisualQuadDown" abil="DryadThornwoodVine">
+    <Aliases value="_GuideVisualFarLeft" />
+    <Remove Terms="ActorCreation" Send="Create StormGuideRegionQuadDown" />
+    <On index="0" Terms="Abil.DryadThornwoodVine.Guide; ValidatePlayer DryadHasForTheWildlands" />
+    <On Terms="ActorCreation; IsActorLocalPlayer" Send="Create DryadThornwoodVineForTheWildlandsGuideRegionFarLeft" />
+    <Host Subject="_GuideRegionFarLeft" />
+    <Height value="13.000000" />
+    <Width value="1.400000" />
+  </CActorQuad>
+  <CActorRegionQuad id="DryadThornwoodVineForTheWildlandsGuideRegionFarLeft" parent="StormGuideRegionClosest">
+    <Aliases value="_GuideRegionFarLeft" />
+    <Remove Terms="RegionSubject.*.AddedFirst" Target="_GuideVisual" Send="ClearTintColor 0.100000 BaseTint" />
+    <Remove Terms="RegionSubject.*.AddedFirst" Target="_GuideVisual" Send="SetTintColor 0,255,0 0.100000 OneShot Active" />
+    <Remove Terms="RegionSubject.*.RemovedLast" Target="_GuideVisual" Send="SetTintColor 225,160,25 0.000000 OneShot BaseTint" />
+    <Remove Terms="RegionSubject.*.RemovedLast" Target="_GuideVisual" Send="ClearTintColor 0.100000 Active" />
+    <On Terms="ActorOrphan" Send="Destroy" />
+    <On Terms="RegionSubject.*.AddedFirst" Target="_GuideVisualFarLeft" Send="ClearTintColor 0.100000 BaseTint" />
+    <On Terms="RegionSubject.*.AddedFirst" Target="_GuideVisualFarLeft" Send="SetTintColor 0,255,0 0.100000 OneShot Active" />
+    <On Terms="RegionSubject.*.RemovedLast" Target="_GuideVisualFarLeft" Send="SetTintColor 225,160,25 0.000000 OneShot BaseTint" />
+    <On Terms="RegionSubject.*.RemovedLast" Target="_GuideVisualFarLeft" Send="ClearTintColor 0.100000 Active" />
+    <HostSiteOps Ops="DryadThornwoodVineForTheWildlandsFarLeftRotation" />
+    <RegionFlags index="UseEffectRange" value="1" />
+  </CActorRegionQuad>
+  <CActorQuad id="DryadThornwoodVineForTheWildlandsFarRightGuide" parent="StormGuideVisualQuadDown" abil="DryadThornwoodVine">
+    <Aliases value="_GuideVisualFarRight" />
+    <Remove Terms="ActorCreation" Send="Create StormGuideRegionQuadDown" />
+    <On index="0" Terms="Abil.DryadThornwoodVine.Guide; ValidatePlayer DryadHasForTheWildlands" />
+    <On Terms="ActorCreation; IsActorLocalPlayer" Send="Create DryadThornwoodVineForTheWildlandsGuideRegionFarRight" />
+    <Host Subject="_GuideRegionFarRight" />
+    <Height value="12.000000" />
+    <Width value="1.400000" />
+  </CActorQuad>
+  <CActorRegionQuad id="DryadThornwoodVineForTheWildlandsGuideRegionFarRight" parent="StormGuideRegionClosest">
+    <Aliases value="_GuideRegionFarRight" />
+    <Remove Terms="RegionSubject.*.AddedFirst" Target="_GuideVisual" Send="ClearTintColor 0.100000 BaseTint" />
+    <Remove Terms="RegionSubject.*.AddedFirst" Target="_GuideVisual" Send="SetTintColor 0,255,0 0.100000 OneShot Active" />
+    <Remove Terms="RegionSubject.*.RemovedLast" Target="_GuideVisual" Send="SetTintColor 225,160,25 0.000000 OneShot BaseTint" />
+    <Remove Terms="RegionSubject.*.RemovedLast" Target="_GuideVisual" Send="ClearTintColor 0.100000 Active" />
+    <On Terms="ActorOrphan" Send="Destroy" />
+    <On Terms="RegionSubject.*.AddedFirst" Target="_GuideVisualFarRight" Send="ClearTintColor 0.100000 BaseTint" />
+    <On Terms="RegionSubject.*.AddedFirst" Target="_GuideVisualFarRight" Send="SetTintColor 0,255,0 0.100000 OneShot Active" />
+    <On Terms="RegionSubject.*.RemovedLast" Target="_GuideVisualFarRight" Send="SetTintColor 225,160,25 0.000000 OneShot BaseTint" />
+    <On Terms="RegionSubject.*.RemovedLast" Target="_GuideVisualFarRight" Send="ClearTintColor 0.100000 Active" />
+    <HostSiteOps Ops="DryadThornwoodVineForTheWildlandsFarRightRotation" />
+    <RegionFlags index="UseEffectRange" value="1" />
+  </CActorRegionQuad>
+  <CActorSiteOpRotationExplicit id="DryadThornwoodVineForTheWildlandsRightRotation">
+    <Forward X="-5.5410" Y="-10.6441" />
+    <IsLocal value="1" />
+  </CActorSiteOpRotationExplicit>
+  <CActorSiteOpRotationExplicit id="DryadThornwoodVineForTheWildlandsLeftRotation">
+    <Forward X="-2.8522" Y="-11.6561" />
+    <IsLocal value="1" />
+  </CActorSiteOpRotationExplicit>
+  <CActorSiteOpRotationExplicit id="DryadThornwoodVineForTheWildlandsFarLeftRotation">
+    <Forward X="2.8522" Y="-11.6561" />
+    <IsLocal value="1" />
+  </CActorSiteOpRotationExplicit>
+  <CActorSiteOpRotationExplicit id="DryadThornwoodVineForTheWildlandsFarRightRotation">
+    <Forward X="5.5410" Y="-10.6441" />
+    <IsLocal value="1" />
+  </CActorSiteOpRotationExplicit>
   <CActorUnit id="HeroDryad" parent="StormHeroStandard" unitName="HeroDryad">
     <Macros value="TipableKnockbackMacro" />
     <Macros value="AttackPredictionMacro" />
@@ -1316,12 +1448,12 @@
     <ExpireEffect value="DryadDryadsSwiftnessApplyMovementPause" />
     <FinalEffect value="DryadDryadsSwiftnessRemoveWeaponSuppression" />
   </CBehaviorBuff>
-  <CBehaviorBuff id="SplinteredSpearActive">
+  <CBehaviorTokenCounter id="DryadSplineredSpearTokenCounter" parent="StormGenericToken">
+    <Max value="3" />
     <Alignment value="Positive" />
-    <InfoFlags index="Hidden" value="0" />
-    <Face value="DryadSplinteredSpearTalent" />
+    <MinStackCountDisplayed value="0" />
     <SortIndex value="75" />
-  </CBehaviorBuff>
+  </CBehaviorTokenCounter>
   <CBehaviorUnitTracker id="DryadCripplingSporesTrackedTargets">
     <TrackingValidatorArray value="HasNaturesToxinAnyVariety" />
     <UnitAddedAtMaxRule value="ReplaceOldest" />
@@ -1419,8 +1551,11 @@
     <Icon value="Assets\Textures\storm_ui_icon_Lunara_FullBloom.dds" />
     <HotkeyAlias value="DryadSplinteredSpearTalent" />
   </CButton>
-  <CButton id="DryadForestsWrathTalent" parent="StormButtonParentTrait">
+  <CButton id="DryadForTheWildlandsTalent" parent="StormButtonParentTrait">
     <Icon value="Assets\Textures\storm_ui_icon_Lunara_WildSpear.dds" />
+  </CButton>
+  <CButton id="DryadForestsWrathTalent" parent="StormButtonParentTrait">
+    <Icon value="Assets\Textures\storm_ui_icon_lunara_forests_wrath.dds" />
     <HotkeyAlias value="DryadSplinteredSpearTalent" />
   </CButton>
   <CButton id="DryadTimelostWispTalent" parent="StormButtonParentTrait">
@@ -1436,6 +1571,9 @@
     <Icon value="Assets\Textures\storm_ui_icon_lunara_stiflingblossom_var1.dds" />
   </CButton>
   <CButton id="DryadSplinteredSpearTalent" parent="StormButtonParentTrait">
+    <Icon value="Assets\Textures\storm_ui_icon_Lunara_PollenCloud.dds" />
+  </CButton>
+  <CButton id="DryadSplineredSpearTokenCounter" parent="StormButtonParent">
     <Icon value="Assets\Textures\storm_ui_icon_Lunara_PollenCloud.dds" />
   </CButton>
   <CButton id="DryadSentinelWispTalent" parent="StormButtonParentTrait">
@@ -1464,7 +1602,7 @@
   </CButton>
   <CButton id="DryadThornwoodVine" parent="StormButtonParentTrait">
     <Icon value="Assets\Textures\storm_ui_icon_Lunara_WildSpear.dds" />
-    <TooltipAppender Validator="DryadHasForestsWrathTalent" Face="DryadForestsWrathTalent" />
+    <TooltipAppender Validator="DryadHasForTheWildlands" Face="DryadForTheWildlandsTalent" />
   </CButton>
   <CButton id="DryadLeapingStrike" parent="StormButtonParentTrait">
     <Icon value="Assets\Textures\storm_ui_icon_Lunara_BoundlessStride.dds" />
@@ -1583,9 +1721,17 @@
     <BehaviorLink value="DryadAcceleratedContaminationUnitTracker" />
     <TrackedUnit Value="Target" />
   </CEffectRemoveTrackedUnit>
-  <CEffectModifyUnit id="DryadCooldownReductionEndlessSpores">
+  <CEffectSet id="DryadEndlessSporesProcSet">
     <ValidatorArray value="DryadEndlessSporesGreaterThanorEqualto2Heroes" />
     <ValidatorArray value="DryadHasEndlessSpores" />
+    <EffectArray value="DryadCooldownReductionEndlessSpores" />
+    <EffectArray value="DryadEndlessSporesManaRestore" />
+  </CEffectSet>
+  <CEffectCreateHealer id="DryadEndlessSporesManaRestore" parent="StormManaRestore">
+    <ImpactUnit Value="Caster" />
+    <RechargeVitalRate value="50" />
+  </CEffectCreateHealer>
+  <CEffectModifyUnit id="DryadCooldownReductionEndlessSpores">
     <ImpactUnit Value="Caster" />
     <Cost Abil="DryadCripplingSpores,Execute" CooldownOperation="Add" CooldownTimeUse="-4" />
   </CEffectModifyUnit>
@@ -1622,8 +1768,7 @@
   </CEffectSet>
   <CEffectSet id="DryadHeroWeaponMeleeLaunchSet">
     <EffectArray value="DryadHeroWeaponDryadSpecialCaseUniversalLaunchSet" />
-    <EffectArray value="HeroWeaponSplinteredSpearMeleeeSearchSwitch" />
-    <EffectArray value="DryadNoxiousBlossomRemoveSplinteredSpearMasteryActiveBehavior" />
+    <EffectArray value="DryadHeroWeaponSplinteredSpearMeleePersistent" />
     <EffectArray value="DryadHippityHopAutoAttackDisableApplyBehavior" />
   </CEffectSet>
   <CEffectSet id="DryadHeroWeaponMeleeSet">
@@ -1660,8 +1805,17 @@
     <BehaviorCategories index="DebuffSilence" value="1" />
     <BehaviorCategories index="DamageOverTime" value="1" />
   </CEffectRemoveBehavior>
+  <CEffectCreatePersistent id="DryadHeroWeaponSplinteredSpearMeleePersistent">
+    <ValidatorArray value="DryadDoesNotHave0SplinteredSpearTokens" />
+    <Marker>
+      <MatchFlags index="Id" value="1" />
+    </Marker>
+    <PeriodCount value="0">
+      <AccumulatorArray value="DryadSplinteredSpearTokenAccumulator" />
+    </PeriodCount>
+    <PeriodicEffectArray value="HeroWeaponSplinteredSpearMeleeeSearchSwitch" />
+  </CEffectCreatePersistent>
   <CEffectSwitch id="HeroWeaponSplinteredSpearMeleeeSearchSwitch">
-    <ValidatorArray value="CasterHasSplinteredSpearActive" />
     <CaseArray Validator="DryadHasStarWoodSpearStacksAndTargetIsBenign" Effect="DryadHeroWeaponSplinteredSpearMasteryMeleeSearchStarwoodIncludeBenign" />
     <CaseArray Validator="DryadDoesNotHaveStarWoodSpearStacksAndTargetIsBenign" Effect="DryadHeroWeaponSplinteredSpearMasteryMeleeSearchIncludeBenign" />
     <CaseArray Validator="DryadHasStarWoodSpearStacksCaster" Effect="DryadHeroWeaponSplinteredSpearMasteryMeleeSearchStarwood" />
@@ -1673,10 +1827,10 @@
     <TargetSorts RequestCount="1" RequestPercentage="1">
       <SortArray value="TSHeroic" />
     </TargetSorts>
-    <AreaArray Arc="54.9975" MaxCount="3" Effect="DryadHeroWeaponLaunchMissileSplinteredSpearMastery">
+    <AreaArray Arc="54.9975" MaxCount="1" Effect="DryadSplinteredSpearMissileLaunchSet">
       <Radius value="11" />
     </AreaArray>
-    <MaxCount value="3" />
+    <MaxCount value="1" />
     <SearchFlags index="CenterAtLaunch" value="1" />
     <SearchFlags index="OffsetAreaByAngle" value="0" />
   </CEffectEnumArea>
@@ -1684,7 +1838,7 @@
     <SearchFilters value="Visible;Self,Player,Ally,Neutral,Missile,Item,Stasis,Dead,Hidden,Invulnerable" />
   </CEffectEnumArea>
   <CEffectEnumArea id="DryadHeroWeaponSplinteredSpearMasteryMeleeSearchStarwood" parent="DryadHeroWeaponSplinteredSpearMasteryMeleeSearch">
-    <AreaArray index="0" Arc="54.9975" MaxCount="3" Effect="DryadHeroWeaponLaunchMissileSplinteredSpearMastery">
+    <AreaArray index="0" Arc="54.9975" MaxCount="1" Effect="DryadSplinteredSpearMissileLaunchSet">
       <Radius value="15.4" />
     </AreaArray>
   </CEffectEnumArea>
@@ -1717,6 +1871,7 @@
   </CEffectModifyUnit>
   <CEffectSet id="DryadLeapingStrikeAttackImpactSet">
     <EffectArray value="DryadLeapingStrikeDamage" />
+    <EffectArray value="DryadForestsWrathApplyThornwoodVineDebuff" />
     <EffectArray value="DryadNaturesToxinDebuffSet" />
     <EffectArray value="DryadLeapingStrikeApplySlow" />
     <EffectArray value="ApplyAbilityImpactReveal" />
@@ -1879,6 +2034,13 @@
     <EffectArray value="DryadNaturesToxinDebuffSetWeapon" />
     <EffectArray value="UniversalWeaponPostImpactSet" />
   </CEffectSet>
+  <CEffectSet id="DryadSplinteredSpearMissileLaunchSet">
+    <ValidatorArray value="noMarkers" />
+    <EffectArray value="DryadHeroWeaponLaunchMissileSplinteredSpearMastery" />
+    <EffectArray value="DryadSplinteredSpearRemoveToken" />
+    <EffectArray value="DryadSplinteredSpearMarkerDummy" />
+  </CEffectSet>
+  <CEffectModifyUnit id="DryadSplinteredSpearMarkerDummy" />
   <CEffectLaunchMissile id="DryadHeroWeaponLaunchMissileSplinteredSpearMastery">
     <LaunchEffect value="DryadHeroWeaponSplinteredSpearMasteryLaunchSet" />
     <ImpactEffect value="DryadHeroWeaponImpactSetSplinteredSpearMastery" />
@@ -1890,8 +2052,17 @@
   <CEffectSet id="DryadHeroWeaponSplinteredSpearMasteryLaunchSet">
     <EffectArray value="DryadHeroWeaponDryadSpecialCaseUniversalLaunchSet" />
   </CEffectSet>
+  <CEffectCreatePersistent id="DryadHeroWeaponSplinteredSpearRangedPersistent">
+    <ValidatorArray value="DryadDoesNotHave0SplinteredSpearTokens" />
+    <Marker>
+      <MatchFlags index="Id" value="1" />
+    </Marker>
+    <PeriodCount value="0">
+      <AccumulatorArray value="DryadSplinteredSpearTokenAccumulator" />
+    </PeriodCount>
+    <PeriodicEffectArray value="HeroWeaponSplinteredSpearRangedSearchSwitch" />
+  </CEffectCreatePersistent>
   <CEffectSwitch id="HeroWeaponSplinteredSpearRangedSearchSwitch">
-    <ValidatorArray value="CasterHasSplinteredSpearActive" />
     <CaseArray Validator="DryadHasStarWoodSpearStacksAndTargetIsBenign" Effect="DryadHeroWeaponSplinteredSpearMasteryRangedSearchStarwoodIncludeBenign" />
     <CaseArray Validator="DryadDoesNotHaveStarWoodSpearStacksAndTargetIsBenign" Effect="DryadHeroWeaponSplinteredSpearMasteryRangedSearchIncludeBenign" />
     <CaseArray Validator="DryadHasStarWoodSpearStacksCaster" Effect="DryadHeroWeaponSplinteredSpearMasteryRangedSearchStarwood" />
@@ -1903,10 +2074,10 @@
     <TargetSorts RequestCount="1" RequestPercentage="1">
       <SortArray value="TSHeroic" />
     </TargetSorts>
-    <AreaArray Arc="54.9975" MaxCount="3" Effect="DryadHeroWeaponLaunchMissileSplinteredSpearMastery">
+    <AreaArray Arc="54.9975" MaxCount="1" Effect="DryadSplinteredSpearMissileLaunchSet">
       <Radius value="11" />
     </AreaArray>
-    <MaxCount value="3" />
+    <MaxCount value="1" />
     <SearchFlags index="CenterAtLaunch" value="1" />
     <SearchFlags index="OffsetAreaByAngle" value="0" />
   </CEffectEnumArea>
@@ -1914,7 +2085,7 @@
     <SearchFilters value="Visible;Self,Player,Ally,Neutral,Missile,Item,Stasis,Dead,Hidden,Invulnerable" />
   </CEffectEnumArea>
   <CEffectEnumArea id="DryadHeroWeaponSplinteredSpearMasteryRangedSearchStarwood" parent="DryadHeroWeaponSplinteredSpearMasteryRangedSearch">
-    <AreaArray index="0" Arc="54.9975" MaxCount="3" Effect="DryadHeroWeaponLaunchMissileSplinteredSpearMastery">
+    <AreaArray index="0" Arc="54.9975" MaxCount="1" Effect="DryadSplinteredSpearMissileLaunchSet">
       <Radius value="15.4" />
     </AreaArray>
   </CEffectEnumArea>
@@ -1947,15 +2118,17 @@
     <CaseArray Validator="DryadChokingPollenMasteryCombine" Effect="DryadNoxiousBlossomChokingPollenMasteryDamage" />
     <CaseDefault value="DryadNoxiousBlossomDamage" />
   </CEffectSwitch>
-  <CEffectApplyBehavior id="DryadNoxiousBlossomApplySplinteredSpearMasteryActiveBehavior">
-    <Chance value="0" />
-    <WhichUnit Value="Caster" />
-    <Behavior value="SplinteredSpearActive" />
-  </CEffectApplyBehavior>
-  <CEffectRemoveBehavior id="DryadNoxiousBlossomRemoveSplinteredSpearMasteryActiveBehavior">
-    <WhichUnit Value="Caster" />
-    <BehaviorLink value="SplinteredSpearActive" />
-  </CEffectRemoveBehavior>
+  <CEffectModifyTokenCount id="DryadSplinteredSpearAddTokens" parent="BaseEffectModifyTokenCount">
+    <TokenId value="DryadSplineredSpearTokenCounter" />
+    <ContextUnit Value="Caster" />
+    <Operation value="Set" />
+    <Value value="3" />
+  </CEffectModifyTokenCount>
+  <CEffectModifyTokenCount id="DryadSplinteredSpearRemoveToken" parent="BaseEffectModifyTokenCount">
+    <TokenId value="DryadSplineredSpearTokenCounter" />
+    <ContextUnit Value="Caster" />
+    <Value value="-1" />
+  </CEffectModifyTokenCount>
   <CEffectApplyBehavior id="DryadCripplingSporesApplyStarWoodSpearMasteryRangeBuffBehavior">
     <WhichUnit Value="Caster" />
     <Behavior value="DryadStarWoodSpearRangeBuff" />
@@ -2020,7 +2193,6 @@
     <WhichUnit Value="Caster" />
     <Behavior value="DryadInvigoratingSpores" />
   </CEffectApplyBehavior>
-  <CEffectSet id="DryadThornwoodVineInitialSet" />
   <CEffectModifyUnit id="DryadWispAddRedirectCharges">
     <ImpactUnit Value="Caster" />
     <Cost Abil="DryadWispRedirect,Execute" ChargeCountUse="-2" CooldownOperation="Set" />
@@ -2324,8 +2496,7 @@
   </CEffectLaunchMissile>
   <CEffectSet id="DryadHeroWeaponLaunchSet">
     <EffectArray value="DryadHeroWeaponDryadSpecialCaseUniversalLaunchSet" />
-    <EffectArray value="HeroWeaponSplinteredSpearRangedSearchSwitch" />
-    <EffectArray value="DryadNoxiousBlossomRemoveSplinteredSpearMasteryActiveBehavior" />
+    <EffectArray value="DryadHeroWeaponSplinteredSpearRangedPersistent" />
     <EffectArray value="DryadHippityHopAutoAttackDisableApplyBehavior" />
   </CEffectSet>
   <CEffectSet id="DryadHeroWeaponImpactSet">
@@ -2376,7 +2547,7 @@
     <EffectArray value="DryadCripplingSporesWildVigorMasterySet" />
     <EffectArray value="DryadCripplingSporesApplyInvigoratingSporesMasteryBehavior" />
     <EffectArray value="DryadCripplingSporesApplyStarWoodSpearMasteryRangeBuffBehavior" />
-    <EffectArray value="DryadCooldownReductionEndlessSpores" />
+    <EffectArray value="DryadEndlessSporesProcSet" />
   </CEffectSet>
   <CEffectSet id="DryadCripplingSporesImpactSet">
     <ValidatorArray value="HasNaturesToxinAnyVariety" />
@@ -2390,7 +2561,7 @@
   </CEffectApplyBehavior>
   <CEffectSet id="DryadNoxiousBlossomCastSet">
     <EffectArray value="DryadNoxiousBlossomCreatePersistent" />
-    <EffectArray value="DryadNoxiousBlossomApplySplinteredSpearMasteryActiveBehavior" />
+    <EffectArray value="DryadSplinteredSpearAddTokens" />
     <TargetLocationType value="Point" />
   </CEffectSet>
   <CEffectDamage id="DryadNoxiousBlossomDamage" parent="StormSpell">
@@ -2422,44 +2593,52 @@
   <CEffectSet id="DryadNaturesToxinPeriodicSet">
     <EffectArray value="DryadNaturesToxinDamage" />
   </CEffectSet>
-  <CEffectCreatePersistent id="DryadThornwoodVineCreateMissileScanPersistent">
-    <WhichLocation Value="SourcePoint" />
-    <PeriodCount value="10" />
-    <PeriodicEffectArray value="DryadThornwoodVineMissileScanSearchPersistent" />
-    <PeriodicPeriodArray value="0.0625" />
+  <CEffectCreatePersistent id="DryadForTheWildlandsArcPersistent">
+    <ValidatorArray value="DryadHasForTheWildlands" />
+    <WhichLocation Value="OriginPoint" />
+    <OffsetVectorStartLocation Value="OriginPoint" />
+    <PeriodCount value="4" />
+    <PeriodicEffectArray value="DryadThornwoodVineForTheWildlandsLaunchMissile" />
+    <PeriodicOffsetArray X="-5.5410" Y="-10.6441" />
+    <PeriodicOffsetArray X="-2.8522" Y="-11.6561" />
+    <PeriodicOffsetArray X="2.8522" Y="-11.6561" />
+    <PeriodicOffsetArray X="5.5410" Y="-10.6441" />
+    <PeriodicPeriodArray value="0" />
   </CEffectCreatePersistent>
-  <CEffectCreatePersistent id="DryadThornwoodVineInitialPersistent">
+  <CEffectSet id="DryadThornwoodVineInitialSet">
     <Marker>
       <MatchFlags index="Id" value="1" />
     </Marker>
-    <WhichLocation Value="CasterPoint" />
-    <PeriodCount value="1" />
-    <PeriodicEffectArray value="DryadThornwoodVineOffsetPersistent" />
-    <PeriodicOffsetArray Y="-12" />
-    <PeriodicPeriodArray value="0" />
-    <InitialEffect value="DryadThornwoodVineInitialSet" />
-  </CEffectCreatePersistent>
+    <TargetLocationType value="Point" />
+    <EffectArray value="DryadThornwoodVineLaunchMissile" />
+    <EffectArray value="DryadForTheWildlandsArcPersistent" />
+  </CEffectSet>
   <CEffectDamage id="DryadThornwoodVineDamage" parent="StormSpell">
     <Amount value="184" />
   </CEffectDamage>
-  <CEffectCreatePersistent id="DryadThornwoodVineMissileScanSearchPersistent">
-    <WhichLocation Value="SourcePoint" />
-    <OffsetVectorStartLocation Effect="DryadThornwoodVineInitialPersistent" Value="OriginPoint" />
-    <PeriodCount value="2" />
-    <PeriodicEffectArray value="DryadThornwoodVineMissileScanSearch" />
-    <PeriodicOffsetArray Y="0.5" />
-    <PeriodicOffsetArray Y="-0.5" />
-    <PeriodicPeriodArray value="0" />
-  </CEffectCreatePersistent>
-  <CEffectLaunchMissile id="DryadThornwoodVineLaunchMissile">
-    <LaunchLocation Effect="DryadThornwoodVineInitialPersistent" Value="CasterPoint" />
-    <ImpactLocation Effect="DryadThornwoodVineOffsetPersistent" Value="TargetPoint" />
-    <LaunchOffset Y="-1" />
-    <LaunchEffect value="DryadThornwoodVineLaunchSet" />
+  <CEffectLaunchMissile id="DryadThornwoodVineLaunchParent">
+    <ImpactLocation>
+      <Value value="TargetPoint" />
+      <ProjectionMultiplier value="1" />
+      <ProjectionTargetValue value="TargetPoint" />
+      <UsesLineDash value="1" />
+      <LineDashType value="AllowedInUnpathable" />
+      <ProjectionDistanceScale value="13" />
+    </ImpactLocation>
+    <SharedFlags index="DynamicSearchArea" value="1" />
+    <SharedFlags index="DisableArriveOnLaunch" value="1" />
+    <SearchEffect value="DryadThornwoodVineMissileSearch" />
     <AmmoUnit value="DryadThornwoodVineMissile" />
+    <Movers Link="DryadThornwoodVineSkillshotMissile" />
+    <ImpactEffect value="DryadThornwoodSpearImpactDummy" />
   </CEffectLaunchMissile>
-  <CEffectSet id="DryadThornwoodVineLaunchSet">
-    <EffectArray value="DryadThornwoodVineCreateMissileScanPersistent" />
+  <CEffectLaunchMissile id="DryadThornwoodVineLaunchMissile" parent="DryadThornwoodVineLaunchParent" />
+  <CEffectLaunchMissile id="DryadThornwoodVineForTheWildlandsLaunchMissile" parent="DryadThornwoodVineLaunchParent">
+    <AmmoUnit value="DryadThornwoodVineForTheWildlandsMissile" />
+    <SearchEffect value="DryadThornwoodVineForTheWildlandsSearch" />
+  </CEffectLaunchMissile>
+  <CEffectSet id="DryadThornwoodSpearImpactDummy">
+    <TargetLocationType value="Point" />
   </CEffectSet>
   <CEffectSet id="DryadThornwoodVineMissileScanImpactSet">
     <ValidatorArray value="noMarkers" />
@@ -2468,10 +2647,27 @@
     <EffectArray value="DryadNaturesToxinDebuffSet" />
     <EffectArray value="ApplyAbilityImpactReveal" />
   </CEffectSet>
-  <CEffectEnumArea id="DryadThornwoodVineMissileScanSearch">
+  <CEffectSet id="DryadThornwoodVineForTheWildlandsImpactSet">
+    <ValidatorArray value="noMarkers" />
+    <EffectArray value="DryadThornwoodVineDamage" />
+    <EffectArray value="DryadNaturesToxinDebuffSet" />
+    <EffectArray value="ApplyAbilityImpactReveal" />
+  </CEffectSet>
+  <CEffectEnumArea id="DryadThornwoodVineMissileSearch">
     <SearchFilters value="-;Player,Ally,ImmuneToAOE,Missile,Item,Stasis,Dead,Invulnerable" />
     <SearchFlags index="DoActorSearch" value="1" />
     <AreaArray Effect="DryadThornwoodVineMissileScanImpactSet">
+      <RectangleWidth value="1.4" />
+      <RectangleHeight value="1" />
+    </AreaArray>
+    <RevealerParams Duration="0.75" ShapeExpansion="1">
+      <RevealFlags index="Unfog" value="1" />
+    </RevealerParams>
+  </CEffectEnumArea>
+  <CEffectEnumArea id="DryadThornwoodVineForTheWildlandsSearch">
+    <SearchFilters value="-;Player,Ally,ImmuneToAOE,Missile,Item,Stasis,Dead,Invulnerable" />
+    <SearchFlags index="DoActorSearch" value="1" />
+    <AreaArray Effect="DryadThornwoodVineForTheWildlandsImpactSet">
       <RectangleWidth value="1.4" />
       <RectangleHeight value="1" />
     </AreaArray>
@@ -2692,14 +2888,15 @@
     <TalentTreeArray Talent="DryadStarWoodSpear" Tier="6" Column="2" />
     <TalentTreeArray Talent="DryadInvigoratingSpores" Tier="6" Column="3" />
     <TalentTreeArray Talent="DryadUnfairAdvantage" Tier="6" Column="4" />
-    <TalentTreeArray Talent="DryadForestsWrath" Tier="7" Column="1">
+    <TalentTreeArray Talent="DryadForTheWildlands" Tier="7" Column="1">
       <PrerequisiteTalentArray value="DryadHeroicAbilityThornwoodVine" />
     </TalentTreeArray>
     <TalentTreeArray Talent="DryadBoundlessStrideTalent" Tier="7" Column="2">
       <PrerequisiteTalentArray value="DryadHeroicAbilityLeapingStrike" />
     </TalentTreeArray>
-    <TalentTreeArray Talent="DryadIntensifyingToxin" Tier="7" Column="3" />
-    <TalentTreeArray Talent="DryadGallopingGait" Tier="7" Column="4" />
+    <TalentTreeArray Talent="DryadForestsWrath" Tier="7" Column="3" />
+    <TalentTreeArray Talent="DryadIntensifyingToxin" Tier="7" Column="4" />
+    <TalentTreeArray Talent="DryadGallopingGait" Tier="7" Column="5" />
     <SelectScreenButtonImage value="Assets\Textures\storm_ui_ingame_heroselect_btn_lunara.dds" />
     <Portrait value="Assets\Textures\ui_targetportrait_hero_lunara.dds" />
     <PartyPanelButtonImage value="Assets\Textures\storm_ui_ingame_partypanel_btn_lunara.dds" />
@@ -2868,17 +3065,11 @@
     <ScaleMax X="0.750000" Y="0.750000" Z="0.750000" />
     <ScaleMin X="0.750000" Y="0.750000" Z="0.750000" />
   </CModel>
-  <CMoverMissile id="DryadThornwoodVineMissile">
-    <MotionPhases>
-      <Driver value="Guidance" />
-      <Speed value="23.3984" />
-      <MaxSpeed value="23.3984" />
-      <IgnoresClearanceChecks value="1" />
-      <ThrowBandYaw value="-360,-360,-360,-360" />
-      <ThrowBandPitch value="-360,-360,-360,-360" />
-      <YawPitchRoll value="5759.6484" />
-    </MotionPhases>
-  </CMoverMissile>
+  <CMoverSkillShot id="DryadThornwoodVineSkillshotMissile">
+    <Speed value="23.3984" />
+    <MinSpeed value="23.3984" />
+    <MaxSpeed value="23.3984" />
+  </CMoverSkillShot>
   <CMoverMissile id="DryadLeapingStrikeMissile">
     <MotionPhases>
       <Driver value="AdaptableParabola" />
@@ -3231,15 +3422,9 @@
   <CTalent id="DryadSplinteredSpear">
     <Face value="DryadSplinteredSpearTalent" />
     <Abil value="DryadNoxiousBlossom" />
-    <AbilityModificationArray>
-      <Modifications>
-        <Type value="FlatModification" />
-        <Catalog value="Effect" />
-        <Entry value="DryadNoxiousBlossomApplySplinteredSpearMasteryActiveBehavior" />
-        <Field value="Chance" />
-        <Value value="1.000000" />
-      </Modifications>
-    </AbilityModificationArray>
+    <RankArray>
+      <BehaviorArray value="DryadSplineredSpearTokenCounter" />
+    </RankArray>
   </CTalent>
   <CTalent id="DryadHeroicAbilityLeapingStrike">
     <Face value="DryadLeapingStrike" />
@@ -3298,31 +3483,27 @@
       </Modifications>
     </AbilityModificationArray>
   </CTalent>
+  <CTalent id="DryadForTheWildlands">
+    <Face value="DryadForTheWildlandsTalent" />
+    <Abil value="DryadThornwoodVine" />
+  </CTalent>
   <CTalent id="DryadForestsWrath">
     <Face value="DryadForestsWrathTalent" />
     <Abil value="DryadThornwoodVine" />
     <AbilityModificationArray>
       <Modifications>
         <Type value="FlatModification" />
-        <Catalog value="Effect" />
-        <Entry value="DryadThornwoodVineInitialPersistent" />
-        <Field value="PeriodicOffsetArray[0]" />
-        <Value value="-3.500000" />
-      </Modifications>
-      <Modifications>
-        <Type value="FlatModification" />
         <Catalog value="Actor" />
         <Entry value="DryadThornwoodVineGuide" />
         <Field value="Height" />
-        <Value value="3.600000" />
+        <Value value="3.900000" />
       </Modifications>
       <Modifications>
         <Type value="FlatModification" />
         <Catalog value="Effect" />
-        <Entry value="DryadThornwoodVineCreateMissileScanPersistent" />
-        <Field value="PeriodCount" />
-        <FieldIsInteger value="1" />
-        <Value value="3.000000" />
+        <Entry value="DryadThornwoodVineLaunchMissile" />
+        <Field value="ImpactLocation.ProjectionDistanceScale" />
+        <Value value="3.900000" />
       </Modifications>
       <Modifications>
         <Type value="FlatModification" />
@@ -3330,21 +3511,6 @@
         <Entry value="HeroDryad" />
         <Field value="Sight" />
         <Value value="4.200000" />
-      </Modifications>
-      <Modifications>
-        <Type value="FlatModification" />
-        <Catalog value="Effect" />
-        <Entry value="DryadThornwoodVineMissileScanSearchPersistent" />
-        <Field value="PeriodicOffsetArray[1]" />
-        <Value value="-0.200000" />
-      </Modifications>
-      <Modifications>
-        <Type value="FlatModification" />
-        <Catalog value="Effect" />
-        <Entry value="DryadThornwoodVineMissileScanSearchPersistent" />
-        <Field value="PeriodCount" />
-        <FieldIsInteger value="1" />
-        <Value value="1.000000" />
       </Modifications>
       <Modifications>
         <Type value="CatalogReplacement" />
@@ -3359,6 +3525,19 @@
         <Entry value="DryadForestsWrathApplyThornwoodVineDebuff" />
         <Field value="Chance" />
         <Value value="1.000000" />
+      </Modifications>
+      <Modifications>
+        <Type value="FlatModification" />
+        <Entry value="DryadLeapingStrike" />
+        <Field value="Range[0]" />
+        <Value value="1.650000" />
+      </Modifications>
+      <Modifications>
+        <Type value="FlatModification" />
+        <Catalog value="Actor" />
+        <Entry value="DryadLeapingStrikeRangeSplat" />
+        <Field value="Scale" />
+        <Value value="1.650000" />
       </Modifications>
     </AbilityModificationArray>
   </CTalent>
@@ -3551,6 +3730,9 @@
     <Radius value="0.125" />
   </CUnit>
   <CUnit id="DryadThornwoodVineMissile" parent="MISSILE_INVULNERABLE">
+    <Sight value="1.5" />
+  </CUnit>
+  <CUnit id="DryadThornwoodVineForTheWildlandsMissile" parent="MISSILE_INVULNERABLE">
     <Sight value="1.5" />
   </CUnit>
   <CUnit id="DryadHeroWeaponMissile" parent="MISSILE_INVULNERABLE">
@@ -3869,6 +4051,11 @@
     <WhichPlayer Value="Caster" />
     <Value value="DryadLetThemWither" />
   </CValidatorPlayerTalent>
+  <CValidatorPlayerTalent id="DryadHasForTheWildlands">
+    <WhichPlayer Value="Caster" />
+    <Find value="1" />
+    <Value value="DryadForTheWildlands" />
+  </CValidatorPlayerTalent>
   <CValidatorPlayerTalent id="DryadHasForestsWrathTalent">
     <WhichPlayer Value="Caster" />
     <Find value="1" />
@@ -4133,11 +4320,11 @@
     <CombineArray value="TargetInShrub" />
     <CombineArray value="DryadHasBoundlessSpiritTalent" />
   </CValidatorCombine>
-  <CValidatorUnitCompareBehaviorCount id="CasterHasSplinteredSpearActive">
+  <CValidatorUnitCompareTokenCount id="DryadDoesNotHave0SplinteredSpearTokens">
     <WhichUnit Value="Caster" />
-    <Compare value="GT" />
-    <Behavior value="SplinteredSpearActive" />
-  </CValidatorUnitCompareBehaviorCount>
+    <Compare value="NE" />
+    <TokenId value="DryadSplineredSpearTokenCounter" />
+  </CValidatorUnitCompareTokenCount>
   <CValidatorUnitCompareBehaviorCount id="DryadHasLeapingStrikeBoundlessStrideFriendlyCast">
     <Compare value="GT" />
     <Behavior value="DryadLeapingStrikeFriendlyCast" />

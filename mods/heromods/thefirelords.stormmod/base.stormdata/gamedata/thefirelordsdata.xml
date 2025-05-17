@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="us-ascii"?>
 <Catalog>
+  <const id="$RagnarosCauterizeWoundsHealPercentage" value="0.45" />
+  <const id="$RagnarosCauterizeWoundsTokenReducePercentage" value="negate($RagnarosCauterizeWoundsHealPercentage)" evaluateAsExpression="1" />
   <CAbilEffectTarget id="RagnarosBlastWave">
     <PrepEffect value="DismountDecloakCasterSet" />
     <Effect value="RagnarosBlastWaveCastSet" />
@@ -281,6 +283,20 @@
     <TokenId value="RagnarosLivingMeteorShiftingMeteorDamageTokenCounter" />
     <Scale value="0.06" />
     <UnitSource Value="Target" />
+  </CAccumulatorToken>
+  <CAccumulatorToken id="RagnarosCauterizeWoundsHealerAccumulator" parent="BaseTokenAccumulator">
+    <MinAccumulation value="0" />
+    <MaxAccumulation value="10000" />
+    <ApplicationRule value="Add" />
+    <TokenId value="RagnarosCauterizeWoundsTokenCounter" />
+    <Scale value="$RagnarosCauterizeWoundsHealPercentage" />
+  </CAccumulatorToken>
+  <CAccumulatorToken id="RagnarosCauterizeWoundsRemoveAccumulator" parent="BaseTokenAccumulator">
+    <MaxAccumulation value="0" />
+    <MinAccumulation value="-10000" />
+    <ApplicationRule value="Add" />
+    <TokenId value="RagnarosCauterizeWoundsTokenCounter" />
+    <Scale value="$RagnarosCauterizeWoundsTokenReducePercentage" />
   </CAccumulatorToken>
   <CActorSound id="HeroRagnarosTauntVO" parent="SoundOneShot">
     <Sound value="RagnarosBase_Taunt" />
@@ -1596,14 +1612,17 @@
     </Modification>
   </CBehaviorBuff>
   <CBehaviorBuff id="RagnarosEmpowerSulfurasCauterizeWoundsHeal">
-    <MaxStackCount value="20" />
     <Duration value="2" />
     <Period value="0.5" />
-    <PeriodCount value="4" />
-    <PeriodicEffect value="RagnarosEmpowerSulfurasCauterizeWoundsCreateHealer" />
+    <PeriodicEffect value="RagnarosEmpowerSulfurasCauterizeWoundsHealSet" />
     <Alignment value="Positive" />
     <PeriodicDisplayEffect value="RagnarosEmpowerSulfurasCauterizeWoundsCreateHealer" />
+    <FinalEffect value="RagnarosEmpowerSulfurasCauterizeWoundsResetToken" />
   </CBehaviorBuff>
+  <CBehaviorTokenCounter id="RagnarosCauterizeWoundsTokenCounter" parent="StormGenericToken">
+    <InfoFlags index="Hidden" value="1" />
+    <Max value="10000" />
+  </CBehaviorTokenCounter>
   <CBehaviorBuff id="RagnarosEmpowerSulfurasCasterBehavior">
     <InitialEffect value="RagnarosEmpowerSulfurasCasterBehaviorInitialSet" />
     <FinalEffect value="RagnarosEmpowerSulfurasCooldownSet" />
@@ -2275,10 +2294,50 @@
     <WhichUnit Value="Caster" />
     <BehaviorLink value="RagnarosMoltenCoreCastingBehavior" />
   </CEffectRemoveBehavior>
+  <CEffectSet id="RagnarosEmpowerSulfurasCauterizeWoundsUpdateSet">
+    <EffectArray value="RagnarosEmpowerSulfurasCauterizeWoundsHealUpdateCatalog" />
+  </CEffectSet>
+  <CEffectModifyCatalogNumeric id="RagnarosEmpowerSulfurasCauterizeWoundsHealUpdateCatalog">
+    <CatalogModifications Operation="Set" Reference="Effect,RagnarosEmpowerSulfurasCauterizeWoundsCreateHealer,RechargeVitalRate">
+      <Value value="0">
+        <AccumulatorArray value="RagnarosCauterizeWoundsHealerAccumulator" />
+      </Value>
+    </CatalogModifications>
+    <CatalogModifications Operation="Set" Reference="Effect,RagnarosEmpowerSulfurasCauterizeWoundsRemoveTokens,Value">
+      <Value value="0">
+        <AccumulatorArray value="RagnarosCauterizeWoundsRemoveAccumulator" />
+      </Value>
+    </CatalogModifications>
+  </CEffectModifyCatalogNumeric>
+  <CEffectSwitch id="RagnarosEmpowerSulfurasCauterizeWoundsHealApplySwitch">
+    <ValidatorArray value="RagnarosHasEmpowerSulfurasCauterizeWounds" />
+    <CaseArray Validator="RagnarosEmpowerSulfurasCauterizeWoundsCasterHasHeal" Effect="RagnarosEmpowerSulfurasCauterizeWoundsRefreshDuration" />
+    <CaseDefault value="RagnarosEmpowerSulfurasCauterizeWoundsHealApplyBehavior" />
+  </CEffectSwitch>
   <CEffectApplyBehavior id="RagnarosEmpowerSulfurasCauterizeWoundsHealApplyBehavior">
     <Chance value="0" />
+    <WhichUnit Value="Caster" />
     <Behavior value="RagnarosEmpowerSulfurasCauterizeWoundsHeal" />
   </CEffectApplyBehavior>
+  <CEffectModifyBehaviorBuffDuration id="RagnarosEmpowerSulfurasCauterizeWoundsRefreshDuration">
+    <Behavior value="RagnarosEmpowerSulfurasCauterizeWoundsHeal" />
+    <Operation value="Set" />
+    <Value value="2" />
+  </CEffectModifyBehaviorBuffDuration>
+  <CEffectSet id="RagnarosEmpowerSulfurasCauterizeWoundsHealSet">
+    <EffectArray value="RagnarosEmpowerSulfurasCauterizeWoundsRemoveTokens" />
+    <EffectArray value="RagnarosEmpowerSulfurasCauterizeWoundsCreateHealer" />
+  </CEffectSet>
+  <CEffectModifyTokenCount id="RagnarosEmpowerSulfurasCauterizeWoundsRemoveTokens" parent="BaseEffectModifyTokenCount">
+    <WhichUnit Value="Source" />
+    <ContextUnit Value="Source" />
+    <TokenId value="RagnarosCauterizeWoundsTokenCounter" />
+  </CEffectModifyTokenCount>
+  <CEffectModifyTokenCount id="RagnarosEmpowerSulfurasCauterizeWoundsResetToken" parent="BaseEffectModifyTokenCount">
+    <TokenId value="RagnarosCauterizeWoundsTokenCounter" />
+    <Operation value="Set" />
+    <Value value="0" />
+  </CEffectModifyTokenCount>
   <CEffectCreateHealer id="RagnarosEmpowerSulfurasCauterizeWoundsCreateHealer" parent="StormSelfOnlyHealingSpell">
     <SourceButtonFace value="RagnarosEmpowerSulfurasCauterizeWounds" />
   </CEffectCreateHealer>
@@ -2521,6 +2580,7 @@
     <EffectArray value="RagnarosBlisteringAttacksModifyCooldownDuration" />
     <EffectArray value="RagnarosEmpowerSulfurasHeroicSplashDamage" />
     <EffectArray value="RagnarosEmpowerSulfurasGiantScorcherApplyTargetBehavior" />
+    <EffectArray value="RagnarosEmpowerSulfurasCauterizeWoundsHealApplySwitch" />
     <EffectArray value="UniversalWeaponPostImpactSet" />
     <ValidatorArray value="TargetNotEvading" />
   </CEffectSet>
@@ -3804,6 +3864,9 @@
         <Value value="1.000000" />
       </Modifications>
     </AbilityModificationArray>
+    <RankArray>
+      <BehaviorArray value="RagnarosCauterizeWoundsTokenCounter" />
+    </RankArray>
   </CTalent>
   <CTalent id="RagnarosEmpowerSulfurasSulfurasHungers">
     <Face value="RagnarosEmpowerSulfurasSulfurasHungers" />
@@ -4251,6 +4314,10 @@
     <WhichUnit Value="Caster" />
     <Behavior value="RagnarosEmpowerSulfurasCasterBehavior" />
   </CValidatorUnitCompareBehaviorCount>
+  <CValidatorUnitHasBehavior id="RagnarosEmpowerSulfurasCauterizeWoundsCasterHasHeal">
+    <WhichUnit Value="Caster" />
+    <Behavior value="RagnarosEmpowerSulfurasCauterizeWoundsHeal" />
+  </CValidatorUnitHasBehavior>
   <CValidatorPlayerTalent id="RagnarosHasBlisteringAttacksTalent">
     <Find value="1" />
     <Value value="RagnarosBlisteringAttacks" />

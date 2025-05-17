@@ -362,6 +362,9 @@
     <HostSiteOps Ops="SOpTargetPoint" HoldPosition="1" />
     <Model value="Invisible" />
   </CActorModel>
+  <CActorUnit id="OrpheaShadowWaltzMovingWalkStartDummy" parent="StormUnitBase" unitName="OrpheaShadowWaltzMovingWalkStartDummy">
+    <Model value="Invisible" />
+  </CActorUnit>
   <CActorOverrides id="OrpheaModelAnimationOverrides">
     <ModelOverrides>
       <Model value="HeroOrphea" />
@@ -1355,15 +1358,32 @@
     <InitialEffect value="OrpheaShadowWaltzDashTalentSet" />
   </CBehaviorBuff>
   <CBehaviorBuff id="OrpheaShadowWaltzDashAllowed">
+    <RemoveValidatorArray value="OrpheaShadowWaltzDashRemoveCombine" />
     <Alignment value="Positive" />
     <InfoFlags index="AlwaysUseGameText" value="1" />
     <BehaviorCategories index="Restorable" value="1" />
     <DisplayPriority value="1001" />
     <Duration value="2" />
     <StartWalkingEffect value="OrpheaShadowWaltzDashStartWalkingSet" />
+    <CancelEffect value="OrpheaShadowWaltzDashCancelSet" />
   </CBehaviorBuff>
   <CBehaviorBuff id="OrpheaShadowWaltzRefundController">
     <CancelEffect value="OrpheaShadowWaltzRefundMana" />
+  </CBehaviorBuff>
+  <CBehaviorBuff id="OrpheaShadowWaltzMovingWalkStartDummyTimedLife" parent="StormTimedLife">
+    <DisplayDuration index="Self" value="0" />
+    <DisplayDuration index="Ally" value="0" />
+    <DisplayDuration index="Enemy" value="0" />
+    <Duration value="0.125" />
+    <ExpireEffect value="StormSuicide" />
+    <Modification>
+      <StateFlags index="Summoned" value="0" />
+      <StateFlags index="SuppressCollision" value="1" />
+    </Modification>
+    <KillCredit Value="Unknown" />
+  </CBehaviorBuff>
+  <CBehaviorBuff id="OrpheaShadowWaltzStartWalkingDummyBehavior">
+    <StartWalkingEffect value="OrpheaShadowWaltzStartWalkingDummySet" />
   </CBehaviorBuff>
   <CBehaviorBuff id="OrpheaChompKnockback" parent="PushPullParent">
     <Duration value="0.25" />
@@ -3115,6 +3135,43 @@
     <Flags index="UseDuration" value="1" />
     <Duration value="1.5625" />
   </CEffectApplyBehavior>
+  <CEffectSet id="OrpheaShadowWaltzDashCancelSet">
+    <EffectArray value="OrpheaShadowWaltzDashCancelCreateUnit" />
+  </CEffectSet>
+  <CEffectCreateUnit id="OrpheaShadowWaltzDashCancelCreateUnit">
+    <WhichLocation Value="CasterPoint" />
+    <SpawnUnit value="OrpheaShadowWaltzMovingWalkStartDummy" />
+    <SpawnRange value="3" />
+    <SpawnEffect value="OrpheaShadowWaltzMovingWalkStartDummyCreateUnitSet" />
+  </CEffectCreateUnit>
+  <CEffectSet id="OrpheaShadowWaltzMovingWalkStartDummyCreateUnitSet">
+    <EffectArray value="OrpheaShadowWaltzDummyApplyStartWalking" />
+    <EffectArray value="OrpheaShadowWaltzDashCopyOrderToDummy" />
+  </CEffectSet>
+  <CEffectApplyBehavior id="OrpheaShadowWaltzDummyApplyStartWalking">
+    <Behavior value="OrpheaShadowWaltzStartWalkingDummyBehavior" />
+  </CEffectApplyBehavior>
+  <CEffectModifyUnit id="OrpheaShadowWaltzDashCopyOrderToDummy">
+    <LaunchUnit Value="Caster" />
+    <ImpactUnit Value="Target" />
+    <CopyOrderCount value="4294967295" />
+  </CEffectModifyUnit>
+  <CEffectRemoveBehavior id="OrpheaStartWalkingRemove">
+    <WhichUnit Effect="OrpheaShadowWaltzMovingWalkStartDummyCreateUnitSet" Value="Target" />
+    <Count value="1" />
+    <BehaviorLink value="OrpheaShadowWaltzStartWalkingDummyBehavior" />
+  </CEffectRemoveBehavior>
+  <CEffectCancelOrder id="OrpheaShadowWaltzDummyUnitCancelOrders">
+    <WhichUnit Effect="OrpheaShadowWaltzMovingWalkStartDummyCreateUnitSet" Value="Target" />
+    <Count value="40" />
+    <Flags index="Queued" value="1" />
+    <Flags index="Uninterruptible" value="1" />
+  </CEffectCancelOrder>
+  <CEffectSet id="OrpheaShadowWaltzStartWalkingDummySet">
+    <EffectArray value="OrpheaStartWalkingRemove" />
+    <EffectArray value="OrpheaShadowWaltzDummyUnitCancelOrders" />
+    <EffectArray value="OrpheaShadowWaltzDashStartWalkingSet" />
+  </CEffectSet>
   <CEffectSet id="OrpheaShadowWaltzDashStartWalkingSet">
     <EffectArray value="OrpheaShadowWaltzDashCancelMoveOrder" />
     <EffectArray value="OrpheaShadowWaltzDashAllowedRemoveBehavior" />
@@ -3132,6 +3189,7 @@
     <WhichUnit Value="Caster" />
   </CEffectApplyBehavior>
   <CEffectLaunchMissileAdvanced id="OrpheaShadowWaltzDashLaunch">
+    <LaunchLocation Value="CasterUnit" />
     <ImpactLocation>
       <Value value="TargetPoint" />
       <UsesLineDash value="1" />
@@ -3799,6 +3857,25 @@
     <HeroPlaystyleFlags index="SoloLaner" value="1" />
     <HeroPlaystyleFlags index="WaveClearer" value="1" />
   </CUnit>
+  <CUnit id="OrpheaShadowWaltzMovingWalkStartDummy" parent="StormSummonFigment">
+    <FlagArray index="Unselectable" value="1" />
+    <FlagArray index="Untargetable" value="1" />
+    <FlagArray index="NoDraw" value="1" />
+    <FlagArray index="Undetectable" value="1" />
+    <FlagArray index="Invulnerable" value="1" />
+    <FlagArray index="PlayerRevivable" value="0" />
+    <Attributes index="ImmuneToAOE" value="1" />
+    <Attributes index="ImmuneToSkillshots" value="1" />
+    <Attributes index="ImmuneToFriendlyAbilities" value="1" />
+    <Collide index="Structure" value="0" />
+    <Mover value="Fly" />
+    <AbilArray Link="move" />
+    <Speed value="4" />
+    <Acceleration value="1000" />
+    <BehaviorArray Link="OrpheaShadowWaltzMovingWalkStartDummyTimedLife" />
+    <StationaryTurningRate value="1499.9414" />
+    <TurningRate value="1759.9218" />
+  </CUnit>
   <CUnit id="OrpheaWeaponMissile" parent="MISSILE_INVULNERABLE">
     <Mover value="OrpheaWeaponMissileMover" />
   </CUnit>
@@ -4008,6 +4085,15 @@
     <Behavior value="OrpheaShadowWaltzDashAllowed" />
     <WhichUnit Value="Caster" />
   </CValidatorUnitCompareBehaviorCount>
+  <CValidatorCombine id="OrpheaShadowWaltzDashRemoveCombine">
+    <CombineArray value="CasterIsStationary" />
+    <CombineArray value="OrpheaShadowWaltzDashHasNoMoveOrder" />
+    <CombineArray value="CasterIsPushPull" />
+  </CValidatorCombine>
+  <CValidatorUnitCompareOrderCount id="OrpheaShadowWaltzDashHasNoMoveOrder">
+    <WhichUnit Value="Caster" />
+    <AbilLink value="move" />
+  </CValidatorUnitCompareOrderCount>
   <CValidatorUnitCompareCooldown id="OrpheaShadowWaltzIsOnCooldown">
     <Ability value="OrpheaShadowWaltz" />
     <CooldownLink value="Abil/OrpheaShadowWaltz" />

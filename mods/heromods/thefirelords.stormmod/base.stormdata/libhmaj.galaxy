@@ -720,13 +720,13 @@ void libHMaj_gt_HeroRagnarosGainsHeroic_Init () {
 //--------------------------------------------------------------------------------------------------
 bool libHMaj_gt_HeroRagnarosEmpowerSulfurasCauterizeWounds_Func (bool testConds, bool runActions) {
     // Variable Declarations
-    const fixed lv_healingCoefficient = 0.45;
     string lv_effect;
     unit lv_damagedUnit;
     unit lv_ragnarosUnit;
     int lv_owner;
     fixed lv_damageAmount;
-    fixed lv_damageValue;
+    fixed lv_periodCount;
+    fixed lv_tokenValue;
 
     // Automatic Variable Declarations
     // Variable Initialization
@@ -752,8 +752,10 @@ bool libHMaj_gt_HeroRagnarosEmpowerSulfurasCauterizeWounds_Func (bool testConds,
     }
 
     lv_damageAmount = (EventUnitDamageAmount() + EventUnitDamageBehaviorShield());
-    lv_damageValue = ((lv_damageAmount * lv_healingCoefficient) / CatalogFieldValueGetAsInt(c_gameCatalogBehavior, "RagnarosEmpowerSulfurasCauterizeWoundsHeal", "PeriodCount", c_playerAny));
-    CatalogFieldValueSetFixed(c_gameCatalogEffect, "RagnarosEmpowerSulfurasCauterizeWoundsCreateHealer", "RechargeVitalRate", lv_owner, lv_damageValue);
+    lv_periodCount = (CatalogFieldValueGetAsFixed(c_gameCatalogBehavior, "RagnarosEmpowerSulfurasCauterizeWoundsHeal", "Duration", c_playerAny) / CatalogFieldValueGetAsFixed(c_gameCatalogBehavior, "RagnarosEmpowerSulfurasCauterizeWoundsHeal", "Period", c_playerAny));
+    lv_tokenValue = (lv_damageAmount / lv_periodCount);
+    libGame_gf_ModifyTokenCount(FixedToInt(lv_tokenValue), "RagnarosCauterizeWoundsTokenCounter", lv_ragnarosUnit);
+    UnitCreateEffectUnit(lv_ragnarosUnit, "RagnarosEmpowerSulfurasCauterizeWoundsUpdateSet", lv_ragnarosUnit);
     UnitCreateEffectUnit(lv_ragnarosUnit, "RagnarosEmpowerSulfurasCauterizeWoundsHealApplyBehavior", lv_ragnarosUnit);
     return true;
 }

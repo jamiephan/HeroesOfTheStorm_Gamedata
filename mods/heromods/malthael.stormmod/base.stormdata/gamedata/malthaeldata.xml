@@ -1,5 +1,11 @@
 <?xml version="1.0" encoding="us-ascii"?>
 <Catalog>
+  <const id="$MalthaelWraithStrikeRange" value="7" />
+  <const id="$MalthaelWraithStrikeCooldown" value="5" />
+  <const id="$MalthaelWraithStrikeManaCost" value="30" />
+  <const id="$MalthaelDeathsReachRangeModifier" value="0.35" />
+  <const id="$MalthaelDeathsReachRangeIncrease" value="*($MalthaelWraithStrikeRange $MalthaelDeathsReachRangeModifier)" evaluateAsExpression="1" />
+  <const id="$MalthaelWraithStrikeTormentedSoulsCooldown" value="2" />
   <CAbilEffectTarget id="MalthaelDeathShroud">
     <AbilityCategories index="RequiresCastTime" value="1" />
     <PrepEffect value="MalthaelDeathShroudPrepSet" />
@@ -99,12 +105,13 @@
     <Effect value="MalthaelWraithStrikeInitialSet" />
     <Flags index="ClearLastAttackTargetOutOfRange" value="1" />
     <Flags index="ClearLastMoveTarget" value="1" />
+    <Flags index="RangeUseCasterRadius" value="0" />
     <Cost>
-      <Vital index="Energy" value="30" />
-      <Cooldown TimeUse="5" />
+      <Vital index="Energy" value="$MalthaelWraithStrikeManaCost" />
+      <Cooldown TimeUse="$MalthaelWraithStrikeCooldown" />
     </Cost>
     <TargetFilters value="Visible;Self,Player,Ally,RawResource,HarvestableResource,Missile,Item,Stasis,Dead,Hidden,Invulnerable" />
-    <Range value="6" />
+    <Range value="$MalthaelWraithStrikeRange" />
     <Arc value="360" />
     <SetLastTarget value="Attack" />
     <CmdButtonArray index="Execute" DefaultButtonFace="MalthaelWraithStrike">
@@ -828,7 +835,7 @@
   <CActorSound id="Malthael_WraithStrike_Impact" parent="SoundOneShot" />
   <CActorSound id="Malthael_WraithStrike_Impact_SWT" parent="SoundOneShot" />
   <CActorSplat id="MalthaelWraithStrikeRangeSplat" parent="StormRangeSplat">
-    <Scale value="7.000000" />
+    <Scale value="$MalthaelWraithStrikeRange" />
   </CActorSplat>
   <CActorSound id="Malthael_ShroudOfWisdom_Warning" parent="SoundContinuous">
     <On Terms="Behavior.MalthaelShroudOfWisdomWarning.On" Send="Create" />
@@ -1117,7 +1124,7 @@
     <Face value="MalthaelBlackHarvestQuestToken" />
     <IncreaseEvents index="0" EventId="" Effect="MalthaelReapersMarkBlackHarvestQuestPingSuppressorApplyBehavior" />
     <AtMaxEvents index="0" EventId="QuestComplete" Effect="MalthaelReapersMarkBlackHarvestQuestCompleteModifyPlayer" />
-    <Max value="180" />
+    <Max value="150" />
     <SortIndex value="20" />
   </CBehaviorTokenCounter>
   <CBehaviorBuff id="MalthaelReapersMarkBlackHarvestPreventDebuffRefresh">
@@ -1279,15 +1286,12 @@
     </Modification>
   </CBehaviorBuff>
   <CBehaviorBuff id="MalthaelTormentedSoulsBuff">
-    <Alignment value="Positive" />
-    <InfoFlags index="AlwaysUseGameText" value="1" />
-    <BehaviorCategories index="Restorable" value="1" />
-    <DisplayDuration index="Self" value="1" />
     <DisableValidatorArray value="NotMounted" />
     <DisableValidatorArray value="CasterNotStasis" />
     <BuffFlags index="UpdateDurationWhileDisabled" value="1" />
+    <InfoFlags index="Hidden" value="1" />
     <TimeScaleSource Value="Caster" />
-    <Duration value="4" />
+    <Duration value="-1" />
     <Period value="0.125" />
     <PeriodicEffect value="MalthaelTormentedSoulsSearch" />
     <Modification>
@@ -1295,7 +1299,15 @@
       <AbilLinkDisableArray value="Mount" />
       <AbilLinkDisableArray value="MountCabooseSmartCommandUnitInteraction" />
     </Modification>
-    <ExpireEffect value="MalthaelTormentedSoulsWraithStrikeCooldownReset" />
+    <InitialEffect value="MalthaelTormentedSoulsInitialModifyWraithStrikeCosts" />
+    <FinalEffect value="MalthaelTormentedSoulsFinalResetWraithStrikeCosts" />
+  </CBehaviorBuff>
+  <CBehaviorBuff id="MalthaelTormentedSoulsDuration">
+    <RemoveValidatorArray value="MalthaelTormentedSoulsCasterHasTormentedSoulsBuff" />
+    <Duration value="4" />
+    <Period value="0.0625" />
+    <PeriodicEffect value="MalthaelTormentedSoulsDurationIncrease" />
+    <FinalEffect value="MalthaelTormentedSoulsRemoveBehavior" />
   </CBehaviorBuff>
   <CBehaviorAbility id="MalthaelShroudOfWisdomItem">
     <Buttons Face="MalthaelShroudOfWisdom" Type="AbilCmd" AbilCmd="MalthaelShroudOfWisdom,Execute" />
@@ -1766,6 +1778,14 @@
     <ImpactUnit Value="Caster" />
     <Cost Abil="MalthaelWraithStrike,Execute" CooldownOperation="Set" />
   </CEffectModifyUnit>
+  <CEffectModifyPlayer id="MalthaelTormentedSoulsInitialModifyWraithStrikeCosts">
+    <EffectArray Operation="Set" Reference="Abil,MalthaelWraithStrike,Cost[0].Cooldown.TimeUse" Value="$MalthaelWraithStrikeTormentedSoulsCooldown" />
+    <EffectArray Operation="Set" Reference="Abil,MalthaelWraithStrike,Cost.Vital[Energy]" Value="0" />
+  </CEffectModifyPlayer>
+  <CEffectModifyPlayer id="MalthaelTormentedSoulsFinalResetWraithStrikeCosts">
+    <EffectArray Operation="Set" Reference="Abil,MalthaelWraithStrike,Cost[0].Cooldown.TimeUse" Value="$MalthaelWraithStrikeCooldown" />
+    <EffectArray Operation="Set" Reference="Abil,MalthaelWraithStrike,Cost.Vital[Energy]" Value="$MalthaelWraithStrikeManaCost" />
+  </CEffectModifyPlayer>
   <CEffectDamage id="MalthaelWraithStrikeDamage" parent="StormSpell">
     <Amount value="59" />
     <SourceButtonFace value="MalthaelWraithStrike" />
@@ -1943,6 +1963,7 @@
   </CEffectApplyBehavior>
   <CEffectSet id="MalthaelTormentedSoulsInitialSet">
     <EffectArray value="MalthaelTormentedSoulsApplyBuffBehavior" />
+    <EffectArray value="MalthaelTormentedSoulsApplyDurationBehavior" />
     <EffectArray value="MalthaelTormentedSoulsWraithStrikeCooldownReset" />
     <ValidatorArray value="IsHeroAndNotVehicle" />
   </CEffectSet>
@@ -1950,6 +1971,19 @@
     <WhichUnit Value="Caster" />
     <Behavior value="MalthaelTormentedSoulsBuff" />
   </CEffectApplyBehavior>
+  <CEffectRemoveBehavior id="MalthaelTormentedSoulsRemoveBehavior">
+    <WhichUnit Value="Caster" />
+    <BehaviorLink value="MalthaelTormentedSoulsBuff" />
+  </CEffectRemoveBehavior>
+  <CEffectApplyBehavior id="MalthaelTormentedSoulsApplyDurationBehavior">
+    <WhichUnit Value="Caster" />
+    <Behavior value="MalthaelTormentedSoulsDuration" />
+  </CEffectApplyBehavior>
+  <CEffectModifyBehaviorBuffDuration id="MalthaelTormentedSoulsDurationIncrease">
+    <ValidatorArray value="MalthaelReaperOfSoulsTalentProcCombine" />
+    <Behavior value="MalthaelTormentedSoulsDuration" />
+    <Value value="0.0625" />
+  </CEffectModifyBehaviorBuffDuration>
   <CEffectEnumArea id="MalthaelTormentedSoulsSearch">
     <SearchFilters value="-;Player,Ally,Neutral,ImmuneToAOE,Structure,Missile,Item,Stasis,Dead,Hidden,Invulnerable" />
     <AreaArray Effect="MalthaelTormentedSoulsImpactSet">
@@ -1967,7 +2001,7 @@
   </CEffectSet>
   <CEffectApplyBehavior id="MalthaelTormentedSoulsReaperOfSoulsDummyApplyBuffBehavior">
     <WhichUnit Value="Caster" />
-    <Behavior value="MalthaelTormentedSoulsBuff" />
+    <Behavior value="MalthaelTormentedSoulsDuration" />
   </CEffectApplyBehavior>
   <CEffectSet id="MalthaelWeaponApplyReapersMarkSet">
     <EffectArray value="MalthaelReapersMarkApplySet" />
@@ -2146,6 +2180,7 @@
     <VoiceLineArray value="MalthaelBase_VoiceLine02" />
     <Labels value="HeroMalthael" />
     <HeroSpecificUIArray Location="Status" DescName="Malthael/MalthaelFrame" />
+    <HeroSpecificUIArray Location="FullscreenStatus" DescName="Malthael/MalthaelTormentedSoulsDuration" />
     <Ratings>
       <Damage value="7" />
       <Utility value="4" />
@@ -3017,14 +3052,14 @@
         <Type value="FlatModification" />
         <Entry value="MalthaelWraithStrike" />
         <Field value="Range[0]" />
-        <Value value="2.100000" />
+        <Value value="$MalthaelDeathsReachRangeIncrease" />
       </Modifications>
       <Modifications>
         <Type value="FlatModification" />
         <Catalog value="Actor" />
         <Entry value="MalthaelWraithStrikeRangeSplat" />
         <Field value="Scale" />
-        <Value value="2.100000" />
+        <Value value="$MalthaelDeathsReachRangeIncrease" />
       </Modifications>
     </AbilityModificationArray>
   </CTalent>
@@ -3114,7 +3149,7 @@
       <Modifications>
         <Type value="FlatModification" />
         <Catalog value="Behavior" />
-        <Entry value="MalthaelTormentedSoulsBuff" />
+        <Entry value="MalthaelTormentedSoulsDuration" />
         <Field value="Duration" />
         <Value value="2.000000" />
       </Modifications>
@@ -3434,7 +3469,7 @@
   </CValidatorUnitCompareBehaviorCount>
   <CValidatorUnitCompareTokenCount id="MalthaelReapersMarkBlackHarvestCasterHasQuestComplete">
     <WhichUnit Value="Caster" />
-    <Value value="180" />
+    <Value value="150" />
     <TokenId value="MalthaelReapersMarkBlackHarvestCounter" />
   </CValidatorUnitCompareTokenCount>
   <CValidatorUnitCompareBehaviorCount id="MalthaelReapersMarkBlackHarvestSourceDoesNotHavePingSuppressor">
@@ -3442,7 +3477,7 @@
   </CValidatorUnitCompareBehaviorCount>
   <CValidatorUnitCompareTokenCount id="MalthaelReapersMarkBlackHarvestSourceDoesNotHaveQuestComplete">
     <Compare value="LT" />
-    <Value value="180" />
+    <Value value="150" />
     <TokenId value="MalthaelReapersMarkBlackHarvestCounter" />
   </CValidatorUnitCompareTokenCount>
   <CValidatorUnitCompareBehaviorCount id="MalthaelReapersMarkBlackHarvestTargetDoesNotHavePreventDebuffRefresh">
@@ -3615,6 +3650,28 @@
     <Compare value="GT" />
     <Behavior value="MalthaelTormentedSoulsBuff" />
   </CValidatorUnitCompareBehaviorCount>
+  <CValidatorUnitCompareBehaviorCount id="MalthaelTormentedSoulsHasDurationActive">
+    <WhichUnit Value="Caster" />
+    <Compare value="GT" />
+    <Behavior value="MalthaelTormentedSoulsDuration" />
+  </CValidatorUnitCompareBehaviorCount>
+  <CValidatorUnitHasBehavior id="MalthaelTormentedSoulsNoBuff">
+    <Negate value="1" />
+    <WhichUnit Value="Caster" />
+    <Behavior value="MalthaelTormentedSoulsBuff" />
+  </CValidatorUnitHasBehavior>
+  <CValidatorCombine id="MalthaelReaperOfSoulsTalentProcCombine">
+    <Type value="And" />
+    <CombineArray value="MalthaelTormentedSoulsReaperOfSoulsHasTalent" />
+    <CombineArray value="MalthaelReaperOfSoulsProcValidator" />
+  </CValidatorCombine>
+  <CValidatorLocationEnumArea id="MalthaelReaperOfSoulsProcValidator">
+    <WhichLocation Value="CasterUnit" />
+    <AreaArray Compare="GE" Count="2">
+      <Radius value="5" />
+    </AreaArray>
+    <SearchFilters value="Heroic;Player,Ally,Neutral,ImmuneToAOE,Structure,Missile,Item,Stasis,Dead,Hidden,Invulnerable" />
+  </CValidatorLocationEnumArea>
   <CValidatorCompareTrackedUnitsCount id="MalthaelWraithStrikeEnemyWithinProximity">
     <Compare value="GT" />
     <BehaviorLink value="MalthaelReapersMarkUnitTracker" />

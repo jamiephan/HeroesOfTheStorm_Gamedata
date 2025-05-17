@@ -169,6 +169,12 @@
     <Flags index="UpdateTarget" value="1" />
     <Cost>
       <Vital index="Energy" value="45" />
+      <Charge>
+        <CountMax value="6" />
+        <CountStart value="6" />
+        <CountUse value="0" />
+        <HideCount value="1" />
+      </Charge>
       <Cooldown TimeUse="60" />
     </Cost>
     <CancelableArray index="Channel" value="1" />
@@ -197,6 +203,7 @@
     <Cost>
       <Charge CountMax="6" CountStart="6" CountUse="1" />
       <Cooldown TimeUse="1" />
+      <CostEventEffectArray index="ChargeDecrease" value="AnaHorusAttackDecrease" />
     </Cost>
     <Range value="500" />
     <Arc value="360" />
@@ -1135,7 +1142,12 @@
     <InfoIcon value="Assets\Textures\storm_ui_icon_ana_overwatch.dds" />
     <SortIndex value="70" />
     <Max value="65535" />
+    <DisplayDurationProxyBehavior value="AnaEyeOfHorusDeadeyeController" />
   </CBehaviorTokenCounter>
+  <CBehaviorBuff id="AnaEyeOfHorusDeadeyeController">
+    <Duration value="4" />
+    <FinalEffect value="AnaEyeOfHorusDeadeyeTokenCounterReset" />
+  </CBehaviorBuff>
   <CBehaviorBuff id="AnaHealingDartAddOnMagazineChargeBuff" parent="CarryBehaviorParent">
     <RemoveValidatorArray value="AnaHasAddOnMagazineTalent" />
     <MaxStackCount value="3" />
@@ -1201,6 +1213,18 @@
   <CBehaviorTokenCounter id="AnaBioticGrenadeGrenadeCalibrationCountTracker" parent="StormGenericToken">
     <InfoFlags index="Hidden" value="1" />
     <Max value="100" />
+  </CBehaviorTokenCounter>
+  <CBehaviorTokenCounter id="AnaBioticGrenadeEnemyHitCounter" parent="StormGenericToken">
+    <InfoFlags index="Hidden" value="1" />
+    <Max value="2" />
+  </CBehaviorTokenCounter>
+  <CBehaviorTokenCounter id="AnaBioticGrenadeAllyHitCounter" parent="StormGenericToken">
+    <InfoFlags index="Hidden" value="1" />
+    <Max value="2" />
+  </CBehaviorTokenCounter>
+  <CBehaviorTokenCounter id="AnaBioticGrenadeSelfHitCounter" parent="StormGenericToken">
+    <InfoFlags index="Hidden" value="1" />
+    <Max value="2" />
   </CBehaviorTokenCounter>
   <CBehaviorTokenCounter id="AnaBioticGrenadeContactHealingCountTracker" parent="StormGenericToken">
     <InfoFlags index="Hidden" value="1" />
@@ -1608,15 +1632,25 @@
     <WhichUnit Value="Caster" />
     <Behavior value="AnaEyeOfHorusDeadeyeTokenCounter" />
   </CEffectApplyBehavior>
+  <CEffectApplyBehavior id="AnaEyeOfHorusDeadeyeApplyControllerBehavior">
+    <WhichUnit Value="Caster" />
+    <Behavior value="AnaEyeOfHorusDeadeyeController" />
+  </CEffectApplyBehavior>
   <CEffectRemoveBehavior id="AnaEyeOfHorusDeadeyeTokenCounterRemoveBehavior">
     <WhichUnit Value="Caster" />
     <BehaviorLink value="AnaEyeOfHorusDeadeyeTokenCounter" />
   </CEffectRemoveBehavior>
+  <CEffectRemoveBehavior id="AnaEyeOfHorusDeadeyeRemoveControllerBehavior">
+    <WhichUnit Value="Caster" />
+    <BehaviorLink value="AnaEyeOfHorusDeadeyeController" />
+  </CEffectRemoveBehavior>
   <CEffectCreatePersistent id="AnaEyeOfHorusDeadeyeDelayPersistent">
     <Chance value="0" />
-    <PeriodCount value="1" />
+    <PeriodCount value="2" />
     <PeriodicEffectArray value="AnaEyeOfHorusDeadeyeAddToken" />
+    <PeriodicEffectArray value="AnaEyeOfHorusDeadeyeApplyControllerBehavior" />
     <PeriodicPeriodArray value="0.0625" />
+    <PeriodicPeriodArray value="0" />
     <ValidatorArray value="TargetIsHero" />
   </CEffectCreatePersistent>
   <CEffectModifyTokenCount id="AnaEyeOfHorusDeadeyeAddToken" parent="BaseEffectModifyTokenCount">
@@ -1625,10 +1659,26 @@
   </CEffectModifyTokenCount>
   <CEffectCreatePersistent id="AnaEyeOfHorusDeadeyeRemoveTokensDelayCreatePersistent">
     <Chance value="0" />
-    <PeriodCount value="1" />
+    <PeriodCount value="2" />
     <PeriodicEffectArray value="AnaEyeOfHorusDeadeyeTokenCounterRemoveBehavior" />
+    <PeriodicEffectArray value="AnaEyeOfHorusDeadeyeRemoveControllerBehavior" />
     <PeriodicPeriodArray value="0.125" />
+    <PeriodicPeriodArray value="0" />
   </CEffectCreatePersistent>
+  <CEffectModifyTokenCount id="AnaEyeOfHorusDeadeyeTokenCounterReset" parent="BaseEffectModifyTokenCount">
+    <TokenId value="AnaEyeOfHorusDeadeyeTokenCounter" />
+    <Operation value="Set" />
+    <Value value="0" />
+  </CEffectModifyTokenCount>
+  <CEffectModifyUnit id="AnaHorusAttackDecrease">
+    <ValidatorArray value="AnaHasEyeOfHorusDeadeyeTalent" />
+    <ImpactUnit Value="Caster" />
+    <Cost>
+      <Abil value="AnaEyeOfHorusActivate,Execute" />
+      <ChargeCountUse value="1" />
+      <ChargeTimeUse value="10" />
+    </Cost>
+  </CEffectModifyUnit>
   <CEffectRemoveBehavior id="AnaHealingDartSharpshooterMaxStacksCarryRemoveBehavior">
     <WhichUnit Value="Caster" />
     <BehaviorLink value="AnaHealingDartSharpshooterMaxStacksCarry" />
@@ -1952,6 +2002,8 @@
     <EffectArray value="AnaBioticGrenadeGrenadeCalibrationSet" />
     <EffectArray value="AnaBioticGrenadeTargetSearchAlly" />
     <EffectArray value="AnaBioticGrenadeTargetSearchEnemy" />
+    <EffectArray value="AnaBioticGrenadeCooldownRefundNoEnemyHit" />
+    <EffectArray value="AnaBioticGrenadeCooldownRefundOnlySelfHitMarker" />
   </CEffectSet>
   <CEffectEnumArea id="AnaBioticGrenadeTargetSearchDummy">
     <ImpactLocation Value="TargetPoint" />
@@ -1991,6 +2043,8 @@
   <CEffectSet id="AnaBioticGrenadeAllyImpactSet">
     <EffectArray value="AnaBioticGrenadeAllyImpactCreateHealer" />
     <EffectArray value="AnaBioticGrenadeAllyBuffApplyBehavior" />
+    <EffectArray value="AnaBioticGrenadeAddAllyHitCounter" />
+    <EffectArray value="AnaBioticGrenadeAddSelfHitCounter" />
   </CEffectSet>
   <CEffectCreateHealer id="AnaBioticGrenadeAllyImpactCreateHealer" parent="StormHealingSpell">
     <RechargeVitalRate value="152" />
@@ -2016,6 +2070,7 @@
   <CEffectSet id="AnaBioticGrenadeEnemyImpactSet">
     <EffectArray value="AnaBioticGrenadeEnemyImpactDamage" />
     <EffectArray value="AnaBioticGrenadeEnemyBuffAB" />
+    <EffectArray value="AnaBioticGrenadeAddEnemyHitCounter" />
     <EffectArray value="CameraShakeLightTauntingTotemSet" />
     <EffectArray value="ApplyAbilityImpactReveal" />
   </CEffectSet>
@@ -2174,6 +2229,35 @@
     <ValidatorArray value="TargetNotImmuneToFriendlyAbilities" />
     <TokenId value="AnaBioticGrenadeContactHealingCountTracker" />
   </CEffectModifyTokenCount>
+  <CEffectModifyTokenCount id="AnaBioticGrenadeAddEnemyHitCounter" parent="BaseEffectModifyTokenCount">
+    <ContextUnit Value="Source" />
+    <WhichUnit Value="Source" />
+    <TokenId value="AnaBioticGrenadeEnemyHitCounter" />
+  </CEffectModifyTokenCount>
+  <CEffectModifyTokenCount id="AnaBioticGrenadeAddAllyHitCounter" parent="BaseEffectModifyTokenCount">
+    <ValidatorArray value="IsNotSelf" />
+    <ContextUnit Value="Source" />
+    <WhichUnit Value="Source" />
+    <TokenId value="AnaBioticGrenadeAllyHitCounter" />
+  </CEffectModifyTokenCount>
+  <CEffectModifyTokenCount id="AnaBioticGrenadeAddSelfHitCounter" parent="BaseEffectModifyTokenCount">
+    <ValidatorArray value="TargetIsSelf" />
+    <ContextUnit Value="Source" />
+    <WhichUnit Value="Source" />
+    <TokenId value="AnaBioticGrenadeSelfHitCounter" />
+  </CEffectModifyTokenCount>
+  <CEffectModifyUnit id="AnaBioticGrenadeCooldownRefundNoEnemyHit">
+    <ValidatorArray value="AnaBioticGrenadeSourceLT1EnemyHitCounter" />
+    <ImpactUnit Value="Caster" />
+    <Cost Abil="AnaBioticGrenade,Execute" CooldownOperation="Add" CooldownTimeUse="-3" />
+  </CEffectModifyUnit>
+  <CEffectModifyUnit id="AnaBioticGrenadeCooldownRefundOnlySelfHitMarker">
+    <ValidatorArray value="AnaBioticGrenadeSourceLT1EnemyHitCounter" />
+    <ValidatorArray value="AnaBioticGrenadeSourceLT1AllyHitCounter" />
+    <ValidatorArray value="AnaBioticGrenadeSourceEQ1SelfHitCounter" />
+    <ImpactUnit Value="Caster" />
+    <Cost Abil="AnaBioticGrenade,Execute" CooldownOperation="Add" CooldownTimeUse="-2" />
+  </CEffectModifyUnit>
   <CEffectModifyTokenCount id="AnaShrikeVampiricRoundsAdd4Tokens" parent="BaseEffectModifyTokenCount">
     <ValidatorArray value="TargetIsHero" />
     <Chance value="0" />
@@ -2552,10 +2636,12 @@
     <EffectArray value="DismountDecloakCasterSet" />
   </CEffectSet>
   <CEffectModifyUnit id="AnaEyeOfHorusGrantCharges">
+    <ValidatorArray value="AnaDoesNotHaveEyeOfHorusDeadeyeTalent" />
     <ImpactUnit Value="Caster" />
     <Cost Abil="AnaEyeOfHorusAttack,Execute" ChargeCountUse="-6" CooldownOperation="Add" />
   </CEffectModifyUnit>
   <CEffectSet id="AnaEyeOfHorusInitialSet">
+    <ValidatorArray value="AnaEyeOfHorusAnyChargesLeft" />
     <EffectArray value="HeroGenericCasterIssueStopOrder" />
     <EffectArray value="AnaEyeOfHorusApplyBehavior" />
     <TargetLocationType value="Point" />
@@ -2616,9 +2702,12 @@
   </CEffectModifyUnit>
   <CEffectModifyUnit id="AnaEyeOfHorusSetCooldownFull">
     <ImpactUnit Value="Caster" />
-    <Cost Abil="AnaEyeOfHorusActivate,Execute" CooldownOperation="Set" CooldownTimeUse="60" />
+    <Cost Abil="AnaEyeOfHorusActivate,Execute" CooldownOperation="Set">
+      <Fraction Cooldown="1" />
+    </Cost>
   </CEffectModifyUnit>
   <CEffectModifyUnit id="AnaEyeOfHorusRemoveCharges">
+    <ValidatorArray value="AnaDoesNotHaveEyeOfHorusDeadeyeTalent" />
     <ImpactUnit Value="Caster" />
     <Cost Abil="AnaEyeOfHorusAttack,Execute" ChargeCountUse="-6" CooldownOperation="Add" />
   </CEffectModifyUnit>
@@ -4514,6 +4603,25 @@
         <Field value="Chance" />
         <Value value="1.000000" />
       </Modifications>
+      <Modifications>
+        <Type value="FlatModification" />
+        <Entry value="AnaEyeOfHorusAttack" />
+        <Field value="Cost.Charge.TimeUse" />
+        <Value value="10.000000" />
+      </Modifications>
+      <Modifications>
+        <Type value="FlatModification" />
+        <Entry value="AnaEyeOfHorusActivate" />
+        <Field value="Cost[0].Charge.HideCount" />
+        <FieldIsInteger value="1" />
+        <Value value="-1.000000" />
+      </Modifications>
+      <Modifications>
+        <Type value="FlatModification" />
+        <Entry value="AnaEyeOfHorusActivate" />
+        <Field value="Cost.Cooldown.TimeUse" />
+        <Value value="-54.000000" />
+      </Modifications>
     </AbilityModificationArray>
   </CTalent>
   <CTalent id="AnaHealingDartSpeedSerum">
@@ -4899,6 +5007,7 @@
         <Catalog value="Accumulator" />
         <Entry value="AnaShrikeSelfHealPoisonTraitHealToken" />
         <Field value="Scale" />
+        <Value value="0.150000" />
       </Modifications>
     </AbilityModificationArray>
     <QuestData StackBehavior="AnaShrikeVampiricRoundsTokenCounter" />
@@ -5050,6 +5159,9 @@
     <Mover value="AnaHealingDartMissileMover" />
   </CUnit>
   <CUnit id="AnaBioticGrenadeMissile" parent="MISSILE_INVULNERABLE">
+    <BehaviorArray Link="AnaBioticGrenadeEnemyHitCounter" />
+    <BehaviorArray Link="AnaBioticGrenadeAllyHitCounter" />
+    <BehaviorArray Link="AnaBioticGrenadeSelfHitCounter" />
     <Sight value="2.5" />
   </CUnit>
   <CUnit id="AnaSleepDartMissile" parent="MISSILE_INVULNERABLE">
@@ -5097,6 +5209,10 @@
     <Find value="1" />
     <Value value="AnaEyeOfHorusDeadeye" />
   </CValidatorPlayerTalent>
+  <CValidatorPlayerTalent id="AnaDoesNotHaveEyeOfHorusDeadeyeTalent">
+    <WhichPlayer Value="Caster" />
+    <Value value="AnaEyeOfHorusDeadeye" />
+  </CValidatorPlayerTalent>
   <CValidatorCompareTrackedUnitsCount id="AnaHasGTE1ConcentratedDosesUnitsTracked">
     <Compare value="GE" />
     <Value value="1" />
@@ -5125,6 +5241,23 @@
     <Compare value="GE" />
     <Value value="2" />
     <TokenId value="AnaBioticGrenadeContactHealingCountTracker" />
+  </CValidatorUnitCompareTokenCount>
+  <CValidatorUnitCompareTokenCount id="AnaBioticGrenadeSourceLT1EnemyHitCounter">
+    <WhichUnit Value="Source" />
+    <Compare value="LT" />
+    <Value value="1" />
+    <TokenId value="AnaBioticGrenadeEnemyHitCounter" />
+  </CValidatorUnitCompareTokenCount>
+  <CValidatorUnitCompareTokenCount id="AnaBioticGrenadeSourceLT1AllyHitCounter">
+    <WhichUnit Value="Source" />
+    <Compare value="LT" />
+    <Value value="1" />
+    <TokenId value="AnaBioticGrenadeAllyHitCounter" />
+  </CValidatorUnitCompareTokenCount>
+  <CValidatorUnitCompareTokenCount id="AnaBioticGrenadeSourceEQ1SelfHitCounter">
+    <WhichUnit Value="Source" />
+    <Value value="1" />
+    <TokenId value="AnaBioticGrenadeSelfHitCounter" />
   </CValidatorUnitCompareTokenCount>
   <CValidatorPlayerTalent id="AnaHasShrikeArmoredStanceTalent">
     <WhichPlayer Value="Caster" />

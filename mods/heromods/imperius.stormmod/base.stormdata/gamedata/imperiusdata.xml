@@ -2,6 +2,7 @@
 <Catalog>
   <const id="$ImperiusSolarionsFireDamage" value="110" />
   <const id="$ImperiusValorousBrandBonusDamage" value="0.2" />
+  <const id="$ImperiusImpalingLightBonusModifier" value="1.8" />
   <CAbilEffectTarget id="ImperiusCelestialCharge">
     <AbilityCategories index="Control" value="1" />
     <AbilityCategories index="TargetPoint" value="1" />
@@ -171,6 +172,13 @@
     <VitalType value="Life" />
     <Ratio value="2" />
   </CAccumulatorVitals>
+  <CAccumulatorToken id="ImperiusImpalingLightDamageAccumulator" parent="BaseAccumulator">
+    <TokenId value="ImperiusCelestialChargeImpalingLightTokenCounter" />
+    <Scale value="-0.2" />
+    <Offset value="0.2" />
+    <MaxAccumulation value="0" />
+    <MinAccumulation value="-1.8" />
+  </CAccumulatorToken>
   <CActorScene id="SYSTEM_Scene">
     <On Terms="SceneEffectSearchNotifyResults.ImperiusSolarionsFireBlazeOfGloryExplosionSearch" Send="SceneEffectSearchResponse DoodadImpactable" />
     <On Terms="SceneEffectSearchNotifyResults.ImperiusSolarionsFireSearchArea" Send="SceneEffectSearchResponse DoodadImpactable" />
@@ -212,6 +220,8 @@
     <On Terms="Effect.ImperiusMoltenArmorImpactBeamSet.Start; At Target" Send="Create" />
     <On Terms="Effect.ImperiusMoltenArmorImpactSet.Start; At Target" Target="ImperiusMoltenArmorImpactActionBeam" Send="AnimPlay GL_BSD GLstand PlayForever,RandomStartOffset" />
     <On Terms="Effect.ImperiusMoltenArmorImpactSet.Start; At Target" Target="ImperiusMoltenArmorImpactActionBeam" Send="AnimPlay Birth Birth" />
+    <On Terms="Effect.ImperiusMoltenArmorResetImpactSet.Start; At Target" Target="ImperiusMoltenArmorImpactActionBeam" Send="AnimPlay GL_BSD GLstand PlayForever,RandomStartOffset" />
+    <On Terms="Effect.ImperiusMoltenArmorResetImpactSet.Start; At Target" Target="ImperiusMoltenArmorImpactActionBeam" Send="AnimPlay Birth Birth" />
     <On Terms="Behavior.ImperiusMoltenArmorImpactBeamBehavior.Off" Send="Destroy" />
     <On Terms="ActorDestruction" Target="ImperiusMoltenArmorImpactActionBeam" Send="Destroy" />
     <On Terms="ActorCreation" Send="RefSetFromRequest ::scope.MoltenArmorLaunch ImperiusMoltenArmorLaunchBeamSite Implicit Find" />
@@ -1129,6 +1139,7 @@
   </CActorModel>
   <CActorModel id="ImperiusMoltenArmorImpactFX" parent="StormModelAnimationStyleOneShotUnit">
     <On Terms="Effect.ImperiusMoltenArmorImpactSet.Start; At Target" Send="Create" />
+    <On Terms="Effect.ImperiusMoltenArmorResetImpactSet.Start; At Target" Send="Create" />
     <HostSiteOps Ops="SOpAttachCenter SOpRandomPointInCircleDot35" />
   </CActorModel>
   <CActorModel id="ImperiusWeaponAttackImpactFX" parent="StormModelAnimationStyleOneShotUnit">
@@ -1145,7 +1156,7 @@
     <On Terms="Effect.ImperiusCelestialChargePreImpactSet.Start; At Target; !ValidateUnit TargetIsHero" Send="Create" />
   </CActorSound>
   <CActorSound id="Imperius_AngelicArmaments_ShieldBreak" parent="SoundOneShot">
-    <On Terms="Effect.ImperiusAngelicArmamentsShieldCancelSet.Start; At Caster" Send="Create" />
+    <On Terms="Effect.ImperiusAngelicArmamentsShieldCancelSet.Start; At Caster; ValidateUnit ImperiusHasAngelicArmamentsCasterBehavior" Send="Create" />
   </CActorSound>
   <CActorSound id="Imperius_AngelicArmaments_ShieldTransition" parent="SoundOneShot">
     <Aliases value="_TimeStopAffectedActor" />
@@ -1213,6 +1224,7 @@
   </CActorSplat>
   <CActorSound id="Imperius_MoltenArmor_Impact" parent="SoundOneShot">
     <On Terms="Effect.ImperiusMoltenArmorImpactSet.Start; At Target" Send="Create" />
+    <On Terms="Effect.ImperiusMoltenArmorResetImpactSet.Start; At Target" Send="Create" />
     <HostSiteOps Ops="SOpTargetPointStationary" />
   </CActorSound>
   <CActorSound id="Imperius_WrathOfTheAngiris_AttackImpact" parent="SoundOneShot">
@@ -1437,6 +1449,7 @@
   </CActorForceSphere>
   <CActorForceSphere id="ImperiusMoltenArmorForce">
     <On Terms="Effect.ImperiusMoltenArmorSearch.Start; At Caster" Send="Create" />
+    <On Terms="Effect.ImperiusMoltenArmorSearchSwitch.Start; At Caster" Send="Create" />
     <Host Subject="SOpCasterPoint" />
     <Duration value="0.300000" />
     <Magnitude value="12.000000" />
@@ -1498,17 +1511,21 @@
     <RemoveValidatorArray value="ImperiusCelestialChargeCasterMarkerCombine" />
     <Duration value="0.75" />
   </CBehaviorBuff>
+  <CBehaviorTokenCounter id="ImperiusCelestialChargeImpalingLightTokenCounter" parent="StormGenericToken">
+    <InfoFlags index="Hidden" value="1" />
+    <Max value="15" />
+  </CBehaviorTokenCounter>
   <CBehaviorBuff id="ImperiusCelestialChargeFlashOfAngerShield" parent="StormShield">
     <Duration value="4" />
     <DamageResponse Priority="26" ModifyLimit="250" />
   </CBehaviorBuff>
   <CBehaviorBuff id="ImperiusAngelicArmamentsShieldBehavior" parent="StormShield">
-    <DamageResponse Priority="26" ModifyLimit="850" />
+    <DamageResponse Priority="26" ModifyLimit="850" Exhausted="ImperiusAngelicArmamentsShieldCancelSet" />
     <BehaviorCategories index="BuffTempMaxHealth" value="0" />
-    <RemoveValidatorArray value="ImperiusHasAngelicArmamentsCasterBehavior" />
-    <Duration value="3" />
-    <CancelEffect value="ImperiusAngelicArmamentsShieldCancelSet" />
-    <ExpireEffect value="ImperiusAngelicArmamentsShieldExpireDummyModifyUnit" />
+    <RemoveValidatorArray value="ImperiusAngelicArmamentsShieldValidator" />
+    <DurationOverride Duration="3">
+      <ValidatorArray value="ImperiusAngelicArmamentsHeavenlyHostDoesNotHaveTalent" />
+    </DurationOverride>
   </CBehaviorBuff>
   <CBehaviorBuff id="ImperiusAngelicArmamentsLaunchDelay">
     <Duration value="0.3125" />
@@ -1559,7 +1576,9 @@
     <BehaviorFlags index="EnabledWhileDead" value="1" />
   </CBehaviorBuff>
   <CBehaviorUnitTracker id="ImperiusWrathOfTheAngirisCursorUnitTracker" />
-  <CBehaviorBuff id="ImperiusMoltenArmorNoHitsBehavior" />
+  <CBehaviorBuff id="ImperiusMoltenArmorNoHitsBehavior">
+    <MaxStackCount value="3" />
+  </CBehaviorBuff>
   <CBehaviorBuff id="ImperiusMoltenArmorMeltingTouchDebuff" parent="StormArmor">
     <Alignment value="Negative" />
     <BehaviorCategories index="DebuffVulnerable" value="1" />
@@ -1648,7 +1667,7 @@
     <Alignment value="Positive" />
     <Duration value="3" />
     <Period value="0.25" />
-    <InitialEffect value="ImperiusMoltenArmorSearch" />
+    <InitialEffect value="ImperiusMoltenArmorSearchSwitch" />
     <PeriodicEffect value="ImperiusMoltenArmorPeriodicSet" />
     <AINotifySettings AreaEffect="ImperiusMoltenArmorSearch">
       <Flags index="Disabled" value="1" />
@@ -1732,6 +1751,9 @@
     <DisplayDuration index="Enemy" value="1" />
     <InitialEffect value="ImperiusAngelicArmamentsActivationCoolup" />
     <ExpireEffect value="ImperiusAngelicArmamentsCasterExpireDummyModifyUnit" />
+    <Period value="3" />
+    <PeriodCount value="1" />
+    <PeriodicEffect value="ImperiusAngelicArmamentsShieldExpireDummyModifyUnit" />
   </CBehaviorBuff>
   <CBehaviorBuff id="ImperiusHolyFervorAttackCounterBehavior">
     <Tooltip value="Button/Tooltip/ImperiusHolyFervor" />
@@ -1889,11 +1911,12 @@
     <RemoveValidatorArray value="ImperiusImperviousCasterHasDurationControllerBehavior" />
   </CBehaviorBuff>
   <CBehaviorBuff id="ImperiusAngelicArmamentsHeavenlyHostShield" parent="StormShield">
-    <Duration value="3" />
+    <Period value="3" />
+    <PeriodCount value="1" />
+    <PeriodicEffect value="ImperiusAngelicArmamentsHeavenlyHostShieldBuffExpireSet" />
     <DamageResponse Priority="26" ModifyLimit="600" SuppressFloatersCausedByBehavior="1">
       <ModifyScoreArray index="0" Value="Healing" />
     </DamageResponse>
-    <ExpireEffect value="ImperiusAngelicArmamentsHeavenlyHostShieldBuffExpireSet" />
   </CBehaviorBuff>
   <CBehaviorBuff id="ImperiusAngelicArmamentsHeavenlyHostTargetBehavior">
     <Duration value="8" />
@@ -1968,6 +1991,7 @@
     <TooltipAppender Validator="ImperiusMoltenArmorDivineRageHasTalent" Face="ImperiusMoltenArmorDivineRage" />
     <TooltipAppender Validator="ImperiusMoltenArmorHeatOfBattleHasTalent" Face="ImperiusMoltenArmorHeatOfBattle" />
     <TooltipAppender Validator="ImperiusMoltenArmorMeltingTouchHasTalent" Face="ImperiusMoltenArmorMeltingTouch" />
+    <TooltipAppender Validator="ImperiusHasMoltenWrathTalent" Face="ImperiusMoltenWrath" />
   </CButton>
   <CButton id="ImperiusMoltenArmorUnshakableFaith" parent="StormButtonParent">
     <Icon value="Assets\Textures\storm_ui_icon_imperius_e.dds" />
@@ -1982,6 +2006,9 @@
     <Icon value="Assets\Textures\storm_ui_icon_imperius_e.dds" />
   </CButton>
   <CButton id="ImperiusMoltenArmorSovereignArmor" parent="StormButtonParent">
+    <Icon value="Assets\Textures\storm_ui_icon_imperius_e.dds" />
+  </CButton>
+  <CButton id="ImperiusMoltenWrath" parent="StormButtonParent">
     <Icon value="Assets\Textures\storm_ui_icon_imperius_e.dds" />
   </CButton>
   <CButton id="ImperiusValorousBrand" parent="StormButtonParent">
@@ -2044,11 +2071,11 @@
   </CEffectApplyBehavior>
   <CEffectModifyUnit id="ImperiusCelestialChargeImpalingLightCooldownModifyUnitTier2">
     <ImpactUnit Value="Caster" />
-    <Cost Abil="ImperiusCelestialCharge,Execute" CooldownOperation="Add" CooldownTimeUse="-2.5" />
+    <Cost Abil="ImperiusCelestialCharge,Execute" CooldownOperation="Add" CooldownTimeUse="-2" />
   </CEffectModifyUnit>
   <CEffectModifyUnit id="ImperiusCelestialChargeImpalingLightCooldownModifyUnitTier3">
     <ImpactUnit Value="Caster" />
-    <Cost Abil="ImperiusCelestialCharge,Execute" CooldownOperation="Add" CooldownTimeUse="-3.75" />
+    <Cost Abil="ImperiusCelestialCharge,Execute" CooldownOperation="Add" CooldownTimeUse="-3" />
   </CEffectModifyUnit>
   <CEffectSwitch id="ImperiusCelestialChargeImpalingLightCooldownSwitch">
     <ValidatorArray value="ImperiusValorousBrandTargetHasAtLeast1StackofTrackingComboPointBehavior" />
@@ -2064,6 +2091,7 @@
   </CEffectApplyBehavior>
   <CEffectSet id="ImperiusCelestialChargePrepareSet">
     <EffectArray value="ImperiusCelestialChargeCasterMarkerAdd" />
+    <EffectArray value="ImperiusImpalingLightResetTokenCounter" />
     <EffectArray value="DismountDecloakCasterSet" />
   </CEffectSet>
   <CEffectSet id="ImperiusFlashOfAngerApplySet">
@@ -2076,7 +2104,7 @@
   </CEffectSwitch>
   <CEffectModifyUnit id="ImperiusCelestialChargeImpalingLightCooldownModifyUnitTier1">
     <ImpactUnit Value="Caster" />
-    <Cost Abil="ImperiusCelestialCharge,Execute" CooldownOperation="Add" CooldownTimeUse="-1.25" />
+    <Cost Abil="ImperiusCelestialCharge,Execute" CooldownOperation="Add" CooldownTimeUse="-1" />
   </CEffectModifyUnit>
   <CEffectApplyBehavior id="ImperiusHolyFervorApplyAttackReadyBehavior">
     <WhichUnit Value="Caster" />
@@ -2110,13 +2138,17 @@
     <ValidatorArray value="ImperiusHolyFervorCasterDoesNotHaveAttackCounterBehavior" />
   </CEffectRemoveBehavior>
   <CEffectSet id="ImperiusMoltenArmorCelestialChargeInitialSet">
+    <Marker Duration="0.0625">
+      <MatchFlags index="Id" value="1" />
+    </Marker>
     <EffectArray value="ImperiusMoltenArmorSetCooldown" />
     <EffectArray value="ImperiusCelestialChargeCasterMarkerRemove" />
+    <EffectArray value="ImperiusMoltenArmorClearTrackedUnits" />
     <EffectArray value="ImperiusMoltenArmorApplyCasterBehavior" />
     <EffectArray value="ImperiusMoltenArmorSovereignArmorBuffApplyBehavior" />
     <EffectArray value="ImperiusMoltenArmorUnshakableFaithImpactSet" />
     <EffectArray value="ImperiusMoltenArmorUnshakableFaithCreateHealer" />
-    <EffectArray value="ImperiusHolyFervorMoltenArmorSwitch" />
+    <EffectArray value="ImperiusCancelMoltenArmorOrder" />
   </CEffectSet>
   <CEffectModifyUnit id="ImperiusMoltenArmorSetCooldown">
     <ImpactUnit Value="Caster" />
@@ -2127,6 +2159,12 @@
       <Change value="-75" />
     </VitalArray>
   </CEffectModifyUnit>
+  <CEffectCancelOrder id="ImperiusCancelMoltenArmorOrder">
+    <AbilCmd value="ImperiusMoltenArmor,Execute" />
+    <Count value="32" />
+    <Flags index="Queued" value="1" />
+    <Flags index="Uninterruptible" value="1" />
+  </CEffectCancelOrder>
   <CEffectModifyBehaviorBuffDuration id="ImperiusMoltenArmorSovereignArmorIncreaseDuration">
     <ValidatorArray value="TargetIsHero" />
     <Chance value="0" />
@@ -2294,9 +2332,7 @@
     <Cost Abil="ImperiusAngelicArmamentsLaunchMissiles,Execute" CooldownOperation="Add" CooldownTimeUse="3" />
   </CEffectModifyUnit>
   <CEffectDamage id="ImperiusCelestialChargePostImpactDamage" parent="StormSpell">
-    <MultiplicativeModifierArray index="ImpalingLightCelestialChargeMark" Validator="ImperiusCasterHasImpalingLightTalentandTargetHasCelestialChargeComboPointBehavior" Modifier="0.75" />
-    <MultiplicativeModifierArray index="ImpalingLightSolarionsFireMark" Validator="ImperiusCasterHasImpalingLightTalentandTargetHasSolarionsFireComboPointBehavior" Modifier="0.75" />
-    <MultiplicativeModifierArray index="ImpalingLightMoltenArmorMark" Validator="ImperiusCasterHasImpalingLightTalentandTargetHasMoltenArmorComboPointBehavior" Modifier="0.75" />
+    <MultiplicativeModifierArray index="ImpalingLight" Validator="ImperiusCasterHasImpalingLightTalentandTargetIsHero" Accumulator="ImperiusImpalingLightDamageAccumulator" Modifier="$ImperiusImpalingLightBonusModifier" />
     <Amount value="80" />
     <SourceButtonFace value="ImperiusCelestialCharge" />
     <CritValidatorArray index="0" value="ImperiusCritAliasSpellPowerORTargetHas3StacksofTrackingComboPointBehavior" />
@@ -2307,6 +2343,9 @@
     <EffectArray value="ImperiusImperviousSpellArmorApplyBehavior" />
   </CEffectSet>
   <CEffectSet id="ImperiusMoltenArmorImpactBeamSet">
+    <Marker>
+      <MatchFlags index="Id" value="1" />
+    </Marker>
     <EffectArray value="ImperiusMoltenArmorImpactBeamApplyBehavior" />
     <ValidatorArray value="ImperiusTargetDoesNotHaveMoltenArmorImpactBeamBehavior" />
   </CEffectSet>
@@ -2338,6 +2377,7 @@
   <CEffectApplyBehavior id="ImperiusMoltenArmorApplyNoHitsBehaviorCaster">
     <WhichUnit Value="Caster" />
     <Behavior value="ImperiusMoltenArmorNoHitsBehavior" />
+    <Count value="3" />
   </CEffectApplyBehavior>
   <CEffectClearTrackedUnits id="ImperiusMoltenArmorClearTrackedUnits">
     <BehaviorLink value="ImperiusMoltenArmorUnitTracker" />
@@ -2346,9 +2386,13 @@
     <ValidatorArray value="ImperiusMoltenArmorUnitNotTracked" />
     <EffectArray value="ImperiusMoltenArmorDamage" />
     <EffectArray value="ImperiusMoltenArmorAddTrackedUnit" />
-    <EffectArray value="ImperiusMoltenArmorRemoveNoHitsBehaviorCaster" />
+    <EffectArray value="ImperiusMoltenArmorRemoveNoHitsBehaviorSwitch" />
     <EffectArray value="ImperiusValorousBrandApplyMoltenArmorMarkSet" />
     <EffectArray value="ImperiusMoltenArmorSovereignArmorIncreaseDuration" />
+  </CEffectSet>
+  <CEffectSet id="ImperiusMoltenArmorResetImpactSet" parent="ImperiusMoltenArmorImpactSet">
+    <ValidatorArray value="noMarkers" />
+    <ValidatorArray value="ImperiusMoltenArmorCasterHasNoHitsBehavior" />
   </CEffectSet>
   <CEffectModifyUnit id="ImperiusMoltenArmorDivineRageCooldownModifyUnit">
     <Chance value="0" />
@@ -2358,11 +2402,21 @@
   <CEffectSet id="ImperiusMoltenArmorPeriodicReset">
     <ValidatorArray value="ImperiusMoltenArmorCasterHasNoHitsBehavior" />
     <EffectArray value="ImperiusMoltenArmorClearTrackedUnits" />
-    <EffectArray value="ImperiusMoltenArmorSearch" />
+    <EffectArray value="ImperiusMoltenArmorSearchResetSwitch" />
   </CEffectSet>
+  <CEffectSwitch id="ImperiusMoltenArmorRemoveNoHitsBehaviorSwitch">
+    <CaseArray Validator="ImperiusMoltenArmorSingleTargetValidatorCombine" Effect="ImperiusMoltenArmorRemoveNoHitsBehaviorCasterHeroHit" />
+    <CaseDefault value="ImperiusMoltenArmorRemoveNoHitsBehaviorCaster" />
+  </CEffectSwitch>
   <CEffectRemoveBehavior id="ImperiusMoltenArmorRemoveNoHitsBehaviorCaster">
     <WhichUnit Value="Caster" />
     <BehaviorLink value="ImperiusMoltenArmorNoHitsBehavior" />
+    <Count value="1" />
+  </CEffectRemoveBehavior>
+  <CEffectRemoveBehavior id="ImperiusMoltenArmorRemoveNoHitsBehaviorCasterHeroHit">
+    <WhichUnit Value="Caster" />
+    <BehaviorLink value="ImperiusMoltenArmorNoHitsBehavior" />
+    <Count value="3" />
   </CEffectRemoveBehavior>
   <CEffectCreatePersistent id="ImperiusSolarionsFireBlazeOfGloryExplosionPersistent">
     <Chance value="0" />
@@ -2370,7 +2424,7 @@
     <OffsetVectorStartLocation Value="OriginPoint" />
     <ExpireEffect value="ImperiusSolarionsFireBlazeOfGloryExplosionSearch" />
     <PeriodCount value="1" />
-    <PeriodicPeriodArray value="2" />
+    <PeriodicPeriodArray value="1.75" />
   </CEffectCreatePersistent>
   <CEffectDamage id="ImperiusSolarionsFireBlazeOfGloryExplosionDamage" parent="StormSpell">
     <Amount value="205" />
@@ -2490,6 +2544,10 @@
     <BehaviorLink value="ImperiusSolarionsFireBulwarkOfFlameBuff" />
     <Count value="1" />
   </CEffectRemoveBehavior>
+  <CEffectSwitch id="ImperiusMoltenArmorSearchSwitch">
+    <CaseArray Validator="ImperiusMoltenWrathAreaValidator" Effect="ImperiusMoltenArmorMultiSearch" />
+    <CaseDefault value="ImperiusMoltenArmorSearch" />
+  </CEffectSwitch>
   <CEffectEnumArea id="ImperiusMoltenArmorSearch">
     <ImpactLocation Value="TargetUnit" />
     <SearchFilters value="Visible;Self,Player,Ally,Neutral,ImmuneToAOE,Item,Stasis,Dead,Hidden,Invulnerable,PhaseShifted" />
@@ -2505,6 +2563,43 @@
       <Radius value="4" />
     </AreaArray>
   </CEffectEnumArea>
+  <CEffectEnumArea id="ImperiusMoltenArmorMultiSearch" parent="ImperiusMoltenArmorSearch">
+    <AreaArray index="0" MaxCount="3" Effect="ImperiusMoltenArmorImpactSet">
+      <Radius value="4" />
+    </AreaArray>
+  </CEffectEnumArea>
+  <CEffectSwitch id="ImperiusMoltenArmorSearchResetSwitch">
+    <CaseArray Validator="ImperiusMoltenArmorResetMultiSearchCombine" Effect="ImperiusMoltenArmorResetMultiSearch" />
+    <CaseDefault value="ImperiusMoltenArmorResetSearch" />
+  </CEffectSwitch>
+  <CEffectEnumArea id="ImperiusMoltenArmorResetSearch" parent="ImperiusMoltenArmorSearch">
+    <AreaArray index="0" MaxCount="1" Effect="ImperiusMoltenArmorResetImpactSet">
+      <Radius value="4" />
+    </AreaArray>
+  </CEffectEnumArea>
+  <CEffectEnumArea id="ImperiusMoltenArmorResetMultiSearch" parent="ImperiusMoltenArmorMultiSearch">
+    <AreaArray index="0" MaxCount="3" Effect="ImperiusMoltenArmorResetImpactSet">
+      <Radius value="4" />
+    </AreaArray>
+  </CEffectEnumArea>
+  <CEffectEnumArea id="ImperiusCelestialChargePresearchArea">
+    <LaunchLocation Value="CasterUnitOrPoint" />
+    <ImpactLocation Value="CasterPoint" />
+    <SearchFilters value="Heroic;Player,Ally,Neutral,ImmuneToAOE,Item,Stasis,Dead,Invulnerable,PhaseShifted" />
+    <AreaArray Effect="ImperiusImpalingLightIncreaseTokenCounter">
+      <RectangleWidth value="1.25" />
+      <RectangleHeight value="5.5" />
+    </AreaArray>
+    <AreaRelativeOffset Y="-2.75" />
+  </CEffectEnumArea>
+  <CEffectModifyTokenCount id="ImperiusImpalingLightResetTokenCounter" parent="BaseEffectModifyTokenCount">
+    <TokenId value="ImperiusCelestialChargeImpalingLightTokenCounter" />
+    <Operation value="Set" />
+    <Value value="0" />
+  </CEffectModifyTokenCount>
+  <CEffectModifyTokenCount id="ImperiusImpalingLightIncreaseTokenCounter" parent="BaseEffectModifyTokenCount">
+    <TokenId value="ImperiusCelestialChargeImpalingLightTokenCounter" />
+  </CEffectModifyTokenCount>
   <CEffectEnumArea id="ImperiusCelestialChargeSearchArea">
     <LaunchLocation Value="CasterUnitOrPoint" />
     <ImpactLocation Value="CasterPoint" />
@@ -2578,16 +2673,18 @@
   </CEffectLaunchMissile>
   <CEffectSet id="ImperiusMoltenArmorPeriodicSet">
     <EffectArray value="ImperiusMoltenArmorApplyNoHitsBehaviorCaster" />
-    <EffectArray value="ImperiusMoltenArmorSearch" />
+    <EffectArray value="ImperiusMoltenArmorSearchSwitch" />
     <EffectArray value="ImperiusMoltenArmorPeriodicReset" />
   </CEffectSet>
   <CEffectSet id="ImperiusMoltenArmorInitialSet">
+    <Marker Duration="0.0625">
+      <MatchFlags index="Id" value="1" />
+    </Marker>
     <EffectArray value="ImperiusMoltenArmorClearTrackedUnits" />
     <EffectArray value="ImperiusMoltenArmorApplyCasterBehavior" />
     <EffectArray value="ImperiusMoltenArmorSovereignArmorBuffApplyBehavior" />
     <EffectArray value="ImperiusMoltenArmorUnshakableFaithImpactSet" />
     <EffectArray value="ImperiusMoltenArmorUnshakableFaithCreateHealer" />
-    <EffectArray value="ImperiusHolyFervorMoltenArmorSwitch" />
   </CEffectSet>
   <CEffectSet id="ImperiusMoltenArmorUnshakableFaithImpactSet">
     <Chance value="0" />
@@ -2606,6 +2703,7 @@
     <EffectArray value="ImperiusAngelicArmamentsRemoveCasterBehavior" />
   </CEffectSet>
   <CEffectSet id="ImperiusAngelicArmamentsInitialSet">
+    <EffectArray value="ImperiusAngelicArmamentsRemoveShield" />
     <EffectArray value="ImperiusAngelicArmamentsApplyCasterBehavior" />
     <EffectArray value="ImperiusAngelicArmamentsApplyShield" />
     <EffectArray value="ImperiusAngelicArmamentsHeavenlyHostApplyShieldSearch" />
@@ -2636,8 +2734,9 @@
   </CEffectSet>
   <CEffectEnumArea id="ImperiusAngelicArmamentsHeavenlyHostLaunchMissileSearch">
     <ImpactLocation Value="TargetUnit" />
-    <SearchFilters value="Heroic;Player,Ally,Neutral,ImmuneToAOE,ImmuneToSkillshots,Structure,Worker,Missile,Item,Stasis,Dead,Hidden,Invulnerable" />
+    <SearchFilters value="-;Player,Ally,Neutral,ImmuneToAOE,ImmuneToSkillshots,Structure,Worker,Missile,Item,Stasis,Dead,Hidden,Invulnerable,Benign" />
     <TargetSorts>
+      <SortArray value="TSHeroic" />
       <SortArray value="TSDistanceFromSource" />
     </TargetSorts>
     <AreaArray Effect="ImperiusAngelicArmamentsHeavenlyHostLaunchMissile">
@@ -2713,6 +2812,10 @@
   <CEffectApplyBehavior id="ImperiusAngelicArmamentsApplyShield">
     <Behavior value="ImperiusAngelicArmamentsShieldBehavior" />
   </CEffectApplyBehavior>
+  <CEffectRemoveBehavior id="ImperiusAngelicArmamentsRemoveShield">
+    <WhichUnit Value="Caster" />
+    <BehaviorLink value="ImperiusAngelicArmamentsShieldBehavior" />
+  </CEffectRemoveBehavior>
   <CEffectSet id="ImperiusCelestialChargeInitialSet">
     <ValidatorArray value="CasterNotRooted" />
     <EffectArray value="ImperiusCelestialChargeOffsetCreatePersistent" />
@@ -2775,6 +2878,7 @@
     <ValidatorArray value="CasterNotPolymorphed" />
     <ValidatorArray value="CasterNotTaunted" />
     <ValidatorArray value="CasterNotFeared" />
+    <EffectArray value="ImperiusCelestialChargePresearchArea" />
     <EffectArray value="ImperiusCelestialChargeSearchArea" />
     <EffectArray value="ImperiusCelestialChargeImpalingLightMasterQuestTokenTier1ModifyAdd" />
     <EffectArray value="ImperiusCelestialChargeImpalingLightMasterQuestTokenTier2ModifyAdd" />
@@ -2951,6 +3055,7 @@
   </CEffectDamage>
   <CEffectDamage id="ImperiusCelestialChargePreImpactDamage" parent="StormSpell">
     <Amount value="35" />
+    <MultiplicativeModifierArray index="ImpalingLight" Validator="ImperiusCasterHasImpalingLightTalentandTargetIsHero" Accumulator="ImperiusImpalingLightDamageAccumulator" Modifier="$ImperiusImpalingLightBonusModifier" />
     <SourceButtonFace value="ImperiusCelestialCharge" />
   </CEffectDamage>
   <CEffectLaunchMissile id="ImperiusSolarionsFireLaunchMissile">
@@ -3279,8 +3384,9 @@
     <TalentTreeArray Talent="ImperiusWrathOfTheAngirisUnrelentingDescent" Tier="7" Column="2">
       <PrerequisiteTalentArray value="ImperiusWrathOfTheAngiris" />
     </TalentTreeArray>
-    <TalentTreeArray Talent="ImperiusValorousBrandBrandOfSolarion" Tier="7" Column="3" />
-    <TalentTreeArray Talent="ImperiusImpervious" Tier="7" Column="4" />
+    <TalentTreeArray Talent="ImperiusMoltenWrath" Tier="7" Column="3" />
+    <TalentTreeArray Talent="ImperiusValorousBrandBrandOfSolarion" Tier="7" Column="4" />
+    <TalentTreeArray Talent="ImperiusImpervious" Tier="7" Column="5" />
     <Difficulty value="Medium" />
     <Ratings>
       <Damage value="6" />
@@ -3764,6 +3870,9 @@
   <CTalent id="ImperiusCelestialChargeImpalingLight">
     <Face value="ImperiusCelestialChargeImpalingLight" />
     <Abil value="ImperiusCelestialCharge" />
+    <RankArray>
+      <BehaviorArray value="ImperiusCelestialChargeImpalingLightTokenCounter" />
+    </RankArray>
     <AbilityModificationArray>
       <Modifications>
         <Type value="FlatModification" />
@@ -3771,6 +3880,18 @@
         <Entry value="ImperiusCelestialChargeImpalingLightCooldownSwitch" />
         <Field value="Chance" />
         <Value value="1.000000" />
+      </Modifications>
+      <Modifications>
+        <Type value="FlatModification" />
+        <Entry value="ImperiusCelestialCharge" />
+        <Field value="Cost.Cooldown.TimeUse" />
+        <Value value="-2.000000" />
+      </Modifications>
+      <Modifications>
+        <Type value="FlatModification" />
+        <Entry value="ImperiusCelestialCharge" />
+        <Field value="Cost.Vital[Energy]" />
+        <Value value="-10.000000" />
       </Modifications>
     </AbilityModificationArray>
   </CTalent>
@@ -3908,6 +4029,10 @@
         <Value value="1.000000" />
       </Modifications>
     </AbilityModificationArray>
+  </CTalent>
+  <CTalent id="ImperiusMoltenWrath">
+    <Face value="ImperiusMoltenWrath" />
+    <Abil value="ImperiusMoltenArmor" />
   </CTalent>
   <CTalent id="ImperiusImpervious">
     <Face value="ImperiusImpervious" />
@@ -4111,6 +4236,11 @@
     <CombineArray value="ImperiusCelestialChargeImpalingLightHasTalent" />
     <CombineArray value="ImperiusValorousBrandTargetHasMoltenArmorComboPointBehavior" />
   </CValidatorCombine>
+  <CValidatorCombine id="ImperiusCasterHasImpalingLightTalentandTargetIsHero">
+    <Type value="And" />
+    <CombineArray value="ImperiusCelestialChargeImpalingLightHasTalent" />
+    <CombineArray value="TargetIsHero" />
+  </CValidatorCombine>
   <CValidatorCompareTrackedUnitsCount id="ImperiusCelestialChargeCasterDoesNotHaveTrackedUnits">
     <BehaviorLink value="ImperiusCelestialChargeUnitTracker" />
     <TrackedUnitValidatorArray value="ImperiusCelestialChargeTargetHasChannelStunDebuff" />
@@ -4242,6 +4372,13 @@
     <WhichUnit Value="Caster" />
     <Behavior value="ImperiusMoltenArmorCasterBehavior" />
   </CValidatorUnitHasBehavior>
+  <CValidatorCombine id="ImperiusAngelicArmamentsShieldValidator">
+    <CombineArray value="ImperiusHasAngelicArmamentsCasterBehavior" />
+    <CombineArray value="ImperiusAngelicArmamentsHeavenlyHostHasTalent" />
+  </CValidatorCombine>
+  <CValidatorPlayerTalent id="ImperiusAngelicArmamentsHeavenlyHostDoesNotHaveTalent">
+    <Value value="ImperiusAngelicArmamentsHeavenlyHost" />
+  </CValidatorPlayerTalent>
   <CValidatorPlayerTalent id="ImperiusAngelicArmamentsHeavenlyHostHasTalent">
     <Find value="1" />
     <Value value="ImperiusAngelicArmamentsHeavenlyHost" />
@@ -4400,6 +4537,15 @@
     <Find value="1" />
     <Value value="ImperiusMoltenArmorSovereignArmor" />
   </CValidatorPlayerTalent>
+  <CValidatorPlayerTalent id="ImperiusDoesNotHaveMoltenWrathTalent">
+    <WhichPlayer Value="Caster" />
+    <Value value="ImperiusMoltenWrath" />
+  </CValidatorPlayerTalent>
+  <CValidatorPlayerTalent id="ImperiusHasMoltenWrathTalent">
+    <WhichPlayer Value="Caster" />
+    <Find value="1" />
+    <Value value="ImperiusMoltenWrath" />
+  </CValidatorPlayerTalent>
   <CValidatorUnitHasBehavior id="ImperiusCelestialChargeCasterHasChannelBuff">
     <WhichUnit Value="Caster" />
     <Behavior value="ImperiusCelestialChargeCasterChannelBuff" />
@@ -4423,6 +4569,30 @@
     <Compare value="GT" />
     <Behavior value="ImperiusHolyFervorAttackCounterBehavior" />
   </CValidatorUnitCompareBehaviorCount>
+  <CValidatorCombine id="ImperiusMoltenArmorResetMultiSearchCombine">
+    <Type value="And" />
+    <CombineArray value="ImperiusMoltenArmorCasterHasGT1NoHeroHitsBehavior" />
+    <CombineArray value="ImperiusMoltenWrathAreaValidator" />
+  </CValidatorCombine>
+  <CValidatorUnitCompareBehaviorCount id="ImperiusMoltenArmorCasterHasGT1NoHeroHitsBehavior">
+    <WhichUnit Value="Caster" />
+    <Value value="1" />
+    <Compare value="GT" />
+    <Behavior value="ImperiusMoltenArmorNoHitsBehavior" />
+  </CValidatorUnitCompareBehaviorCount>
+  <CValidatorLocationEnumArea id="ImperiusMoltenWrathAreaValidator">
+    <WhichLocation Value="CasterUnit" />
+    <AreaArray Compare="LT" Count="1" Validator="ImperiusMoltenArmorSingleTargetValidatorCombine">
+      <Radius value="4" />
+    </AreaArray>
+    <Compare value="Eq" />
+    <SearchFilters value="Visible;Self,Player,Ally,Neutral,ImmuneToAOE,Item,Stasis,Dead,Hidden,Invulnerable,PhaseShifted" />
+  </CValidatorLocationEnumArea>
+  <CValidatorCombine id="ImperiusMoltenArmorSingleTargetValidatorCombine">
+    <Type value="And" />
+    <CombineArray value="TargetIsHero" />
+    <CombineArray value="ImperiusDoesNotHaveMoltenWrathTalent" />
+  </CValidatorCombine>
   <CValidatorUnitHasBehavior id="ImperiusMoltenArmorCasterHasNoHitsBehavior">
     <WhichUnit Value="Caster" />
     <Behavior value="ImperiusMoltenArmorNoHitsBehavior" />

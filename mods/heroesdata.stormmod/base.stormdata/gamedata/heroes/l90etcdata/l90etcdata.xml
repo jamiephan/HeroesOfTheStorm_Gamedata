@@ -6,6 +6,9 @@
   <const id="$L90ETCFaceSmeltSlowMultiplierPerStep50PercentCCReduction" value="/($L90ETCFaceSmeltSlowMultiplierPerStep 0.5)" evaluateAsExpression="1" />
   <const id="$L90ETCFaceSmeltSlowMultiplierPerStep75PercentCCReduction" value="/($L90ETCFaceSmeltSlowMultiplierPerStep 0.25)" evaluateAsExpression="1" />
   <const id="$L90ETCFaceSmeltSlowAmount" value="negate($L90ETCFaceSmeltSlowAmountPos)" evaluateAsExpression="1" />
+  <const id="$L90ETCPoweroftheHordeRadius" value="8" />
+  <const id="$L90ETCRidetheLightningTeleportRange" value="7.2" />
+  <const id="$L90ETCRidetheLightningImpactRadius" value="3.6" />
   <CAbilEffectInstant id="RockstarDummy">
     <Effect value="RockstarDummyEffect" />
     <CmdButtonArray index="Execute" DefaultButtonFace="L90ETCRockstar" />
@@ -72,7 +75,7 @@
     <Effect value="FaceMeltInitialSet" />
     <Cost>
       <Vital index="Energy" value="55" />
-      <Cooldown TimeUse="12" />
+      <Cooldown TimeUse="10" />
     </Cost>
     <CmdButtonArray index="Execute" DefaultButtonFace="L90ETCFaceMelt" />
     <PrepEffect value="DismountDecloakCasterSet" />
@@ -108,6 +111,40 @@
     </InterruptCost>
     <CastIntroTime value="1.25" />
   </CAbilEffectTarget>
+  <CAbilEffectInstant id="L90ETCPoweroftheHorde">
+    <Effect value="L90ETCPoweroftheHordeInitialSet" />
+    <Flags index="NoDeceleration" value="1" />
+    <Cost>
+      <Cooldown TimeUse="45" />
+    </Cost>
+    <CmdButtonArray index="Execute" DefaultButtonFace="GenericStormShield" />
+    <PrepEffect value="L90ETCPoweroftheHordePrepSet" />
+  </CAbilEffectInstant>
+  <CAbilEffectTarget id="L90ETCRidetheLightning">
+    <PrepEffect value="DismountDecloakCasterSet" />
+    <Effect value="L90ETCRidetheLightningInitialSet" />
+    <Flags index="ClearLastAttackTargetOutOfRange" value="1" />
+    <Flags index="ClearLastMoveTarget" value="1" />
+    <Flags index="RangeUseCasterRadius" value="0" />
+    <Flags index="RequireTargetVision" value="0" />
+    <Cost>
+      <Cooldown TimeUse="70" />
+    </Cost>
+    <Range value="$L90ETCRidetheLightningTeleportRange" />
+    <Arc value="360" />
+    <ArcSlop value="0" />
+    <UninterruptibleArray index="Cast" value="1" />
+    <UninterruptibleArray index="Channel" value="1" />
+    <UninterruptibleArray index="Finish" value="1" />
+    <ValidatedArray index="Approach" value="0" />
+    <ValidatedArray index="Prep" value="0" />
+    <ValidatedArray index="Channel" value="0" />
+    <Flags index="RequireTargetVision" value="0" />
+    <CursorEffect value="L90ETCRidetheLightningSearch" />
+    <CursorRangeFlags index="ClampMin" value="1" />
+    <CursorRangeFlags index="ClampMax" value="1" />
+    <CmdButtonArray index="Execute" DefaultButtonFace="L90ETCRidetheLightning" />
+  </CAbilEffectTarget>
   <CAccumulatorToken id="ETCProgRockAccumulator" parent="BaseAccumulator">
     <ApplicationRule value="Add" />
     <TokenId value="ETCProgRockTokenCounter" />
@@ -127,6 +164,13 @@
   <CAccumulatorTimed id="L90ETCFaceSmeltDecayAccumulator75PercentCCReduction" parent="L90ETCFaceSmeltDecayAccumulator">
     <MultiplierPerStep value="$L90ETCFaceSmeltSlowMultiplierPerStep75PercentCCReduction" />
   </CAccumulatorTimed>
+  <CAccumulatorTrackedUnitCount id="L90ETCPoweroftheHordeAccumulator" parent="BaseAccumulator">
+    <MaxAccumulation value="0.8" />
+    <Scale value="0.02" />
+    <TrackingBehavior value="L90ETCPoweroftheHordeUnitTracker" />
+    <TrackedUnitFilters value="-;Player" />
+    <ApplicationRule value="Add" />
+  </CAccumulatorTrackedUnitCount>
   <CActorSound id="ETCBlockPartySound" parent="SoundOneShot">
     <Filter index="All" value="1" />
     <VisibleToAtCreation index="Source" value="1" />
@@ -136,6 +180,63 @@
     <Host Subject="_Unit" />
     <Sound value="Talent_Block_BlockAttack" />
   </CActorSound>
+  <CActorRange id="L90ETCPoweroftheHordeRange" parent="StormRangeAbilPlusSplat" abil="L90ETCPoweroftheHorde" />
+  <CActorSplat id="L90ETCPoweroftheHordeRangeSplat" parent="StormRangeSplat">
+    <Scale value="$L90ETCPoweroftheHordeRadius" />
+  </CActorSplat>
+  <CModel id="L90ETCRidetheLightningTeleportInModel" parent="PersistentSpellFX">
+    <Model value="Assets\Effects\Storm_Effect_Talent_BoltoftheStorm_In\Storm_Effect_Talent_BoltoftheStorm_In.m3" />
+    <Priority value="16" />
+  </CModel>
+  <CActorModel id="L90ETCRidetheLightningTeleportInModel" parent="StormModelAnimationStyleOneShot">
+    <Flags index="VisionTestCenterOnly" value="1" />
+    <Inherits index="CloakEffect" value="1" />
+    <Inherits index="Visibility" value="1" />
+    <FogVisibility value="Hidden" />
+    <On Terms="Effect.L90ETCRidetheLightningTeleport.Stop; At Source" Send="Create" />
+    <On Terms="ActorCreation" Send="Create FlashoftheStormSound" />
+    <Host Scope="Caster" />
+    <HostSiteOps Ops="SOpAttachCenterStationary SOpForwardOriginPoint" />
+    <Model value="L90ETCRidetheLightningTeleportInModel" />
+  </CActorModel>
+  <CModel id="L90ETCRidetheLightningTeleportOutModel" parent="PersistentSpellFX">
+    <Model value="Assets\Effects\Storm_Effect_Talent_BoltoftheStorm_Out\Storm_Effect_Talent_BoltoftheStorm_Out.m3" />
+    <Priority value="16" />
+  </CModel>
+  <CActorModel id="L90ETCRidetheLightningTeleportOutModel" parent="StormModelAnimationStyleOneShot">
+    <Flags index="VisionTestCenterOnly" value="1" />
+    <InheritType value="OneShot" />
+    <Inherits index="CloakEffect" value="1" />
+    <Inherits index="Visibility" value="1" />
+    <FogVisibility value="Hidden" />
+    <On Terms="ActorCreation" Send="Create FlashoftheStormSound" />
+    <On Terms="Effect.L90ETCRidetheLightningTeleport.Start; At Source" Send="Create" />
+    <Host Subject="_Selectable" />
+    <HostSiteOps Ops="SOpAttachCenterStationary SOpForwardCasterPoint" />
+    <Model value="L90ETCRidetheLightningTeleportOutModel" />
+  </CActorModel>
+  <CActorRange id="L90ETCRidetheLightningRange" parent="StormRangeAbilPlusSplat" abil="L90ETCRidetheLightning" />
+  <CActorSplat id="L90ETCRidetheLightningRangeSplat" parent="StormRangeSplat">
+    <Preload index="0" value="FlashoftheStormsRangeSplat" />
+    <Scale value="$L90ETCRidetheLightningTeleportRange" />
+  </CActorSplat>
+  <CModel id="L90ETCRidetheLightningExplosion" parent="ImpactFX">
+    <Model value="Assets\Effects\Storm_Effect_Muradin_Base_ThunderClapImpact\Storm_Effect_Muradin_Base_ThunderClapImpact.m3" />
+    <RadiusLoose value="1.000000" />
+    <ScaleMax X="2.500000" Y="2.500000" />
+    <ScaleMin X="2.500000" Y="2.500000" />
+  </CModel>
+  <CActorModel id="L90ETCRidetheLightningExplosion" parent="StormModelAnimationStyleOneShot">
+    <On Terms="Effect.L90ETCRidetheLightningSearch.Start; At Effect" Send="Create" />
+    <On Terms="ActorCreation" Send="SetScale 1.600000" />
+    <On Terms="Effect.L90ETCRidetheLightningSearch.Start" Send="SetTintColor 0,42,74" />
+  </CActorModel>
+  <CModel id="L90ETCRidetheLightningCursorSplat" parent="UI">
+    <Model value="Assets\UI\Cursors\Storm_UI_AOECursor_Fantasy\Storm_UI_AOECursor_Fantasy.m3" />
+  </CModel>
+  <CActorSplat id="L90ETCRidetheLightningCursorSplat" parent="StormGuideVisualCircle" abil="L90ETCRidetheLightning">
+    <Model value="L90ETCRidetheLightningCursorSplat" />
+  </CActorSplat>
   <CActorModel id="ETCBlockPartyImpactModel" parent="StormModelAnimationStyleOneShot">
     <Flags index="VisionTestCenterOnly" value="1" />
     <On Terms="Effect.ETCBlockPartyDummyDamage.Start; At Source" Send="Create" />
@@ -624,7 +725,7 @@
       <ModifyScoreArray Validator="TargetIsHero" Value="DamageTaken" />
     </DamageResponse>
     <ArmorModification>
-      <AllArmorBonus value="60" />
+      <AllArmorBonus value="50" />
     </ArmorModification>
   </CBehaviorBuff>
   <CBehaviorBuff id="L90ETCPowerSlideCrowdSurferDummyBehavior" parent="CarryBehaviorParent">
@@ -657,7 +758,7 @@
       <ModifyScoreArray Validator="TargetIsHero" Value="DamageTaken" />
     </DamageResponse>
     <ArmorModification>
-      <AllArmorBonus value="20" />
+      <AllArmorBonus value="25" />
     </ArmorModification>
   </CBehaviorBuff>
   <CBehaviorBuff id="L90ETCMoshPitRevealer" parent="StormReveal">
@@ -948,6 +1049,32 @@
       </ArmorSet>
     </ArmorModification>
   </CBehaviorBuff>
+  <CBehaviorAbility id="L90ETCPoweroftheHordeItem">
+    <Buttons Face="L90ETCPoweroftheHorde" Type="AbilCmd" AbilCmd="L90ETCPoweroftheHorde,Execute" />
+  </CBehaviorAbility>
+  <CBehaviorUnitTracker id="L90ETCPoweroftheHordeUnitTracker">
+    <BehaviorFlags index="Permanent" value="1" />
+    <BehaviorFlags index="EnabledWhileDead" value="1" />
+    <MaxTrackedUnits value="15" />
+    <UnitAddedAtMaxRule value="ReplaceOldest" />
+  </CBehaviorUnitTracker>
+  <CBehaviorBuff id="L90ETCPoweroftheHordeShield" parent="StormShield">
+    <Duration value="5" />
+    <DamageResponse>
+      <ModifyLimitVitalMaxFractionArray index="Life" value="1" />
+      <ModifyScoreArray index="0" Value="Healing" />
+      <SuppressModifyLimitOnCreation value="1" />
+    </DamageResponse>
+  </CBehaviorBuff>
+  <CBehaviorAbility id="L90ETCRidetheLightningItem">
+    <Buttons Face="L90ETCRidetheLightning" Type="AbilCmd" AbilCmd="L90ETCRidetheLightning,Execute" />
+  </CBehaviorAbility>
+  <CBehaviorBuff id="L90ETCRideTheLightningCooldownController">
+    <MaxStackCount value="5" />
+    <Duration value="0.0625" />
+    <InitialEffect value="L90ETCRidetheLightningModifyCooldown" />
+    <RefreshEffect value="L90ETCRidetheLightningModifyCooldown" />
+  </CBehaviorBuff>
   <CButton id="ETCBlockParty" parent="StormButtonParent">
     <Icon value="Assets\Textures\storm_ui_icon_etc_rockstar.dds" />
   </CButton>
@@ -1009,6 +1136,9 @@
   <CButton id="L90ETCMoshPitDeathMetalTalent" parent="StormButtonParent">
     <Icon value="Assets\Textures\storm_ui_icon_etc_moshpit_a.dds" />
   </CButton>
+  <CButton id="L90ETCPoweroftheHorde" parent="StormButtonParent">
+    <Icon value="Assets\Textures\storm_ui_icon_talent_stormshield.dds" />
+  </CButton>
   <CButton id="L90ETCMoshPitDeathMetalTalentSimple" parent="StormButtonParent">
     <Icon value="Assets\Textures\storm_ui_icon_etc_moshpit_a.dds" />
   </CButton>
@@ -1023,6 +1153,9 @@
   </CButton>
   <CButton id="L90ETCFaceMeltFaceSmeltTalent" parent="StormButtonParent">
     <Icon value="Assets\Textures\storm_ui_icon_ETC_FaceMelt_B.dds" />
+  </CButton>
+  <CButton id="L90ETCRidetheLightning" parent="StormButtonParent">
+    <Icon value="Assets\Textures\storm_ui_icon_talent_boltofthestorm.dds" />
   </CButton>
   <CButton id="L90ETCMoshPitCancel" parent="StormButtonParent">
     <Icon value="Assets\Textures\hud_btn_bg_ability_cancel.dds" />
@@ -1582,7 +1715,7 @@
     <ValidatorArray value="ETCHasCrowdSurfer" />
     <ValidatorArray value="DoesNotHavePowerSlideCrowdSurferDummyBehavior" />
     <ImpactUnit Value="Caster" />
-    <Cost Abil="L90ETCPowerslide,Execute" CooldownOperation="Add" CooldownTimeUse="-7" />
+    <Cost Abil="L90ETCPowerslide,Execute" CooldownOperation="Add" CooldownTimeUse="-6" />
     <VitalArray index="Energy">
       <Change value="60" />
     </VitalArray>
@@ -1849,7 +1982,8 @@
   </CEffectSet>
   <CEffectDamage id="L90ETCWeaponDamage" parent="StormWeapon">
     <Amount value="99" />
-    <MultiplicativeModifierArray index="HammerOn" Validator="ETCHasGuitarSoloActiveAndHasHammerOnTalentCombine" Modifier="0.35" Crit="1" />
+    <MultiplicativeModifierArray index="HasHammeron" Validator="HasETCHammeron" Modifier="0.12" />
+    <MultiplicativeModifierArray index="HasGuitarSoloActive" Validator="ETCHasGuitarSoloActiveAndHasHammerOnTalentCombine" Modifier="0.24" Crit="1" />
   </CEffectDamage>
   <CEffectEnumArea id="FaceMeltSearch">
     <SearchFilters value="-;Player,Ally,Neutral,ImmuneToAOE,Missile,Item,Stasis,Dead,Hidden,Invulnerable" />
@@ -1873,10 +2007,10 @@
     <ValidatorArray value="TargetIsHero" />
     <ImpactUnit Value="Caster" />
     <Cost Abil="L90ETCMoshPit,Execute" CooldownOperation="Add">
-      <Fraction Cooldown="-0.05" />
+      <Fraction Cooldown="-0.04" />
     </Cost>
     <Cost Abil="L90ETCStageDive,Execute" CooldownOperation="Add">
-      <Fraction Cooldown="-0.05" />
+      <Fraction Cooldown="-0.04" />
     </Cost>
   </CEffectModifyUnit>
   <CEffectCreatePersistent id="FaceMeltPersistent">
@@ -1915,6 +2049,86 @@
     <EffectArray value="ETCBlockPartyDummyDamageTarget" />
     <EffectArray value="ETCBlockPartyRemoveStack" />
   </CEffectSet>
+  <CEffectSet id="L90ETCPoweroftheHordePrepSet">
+    <EffectArray value="DismountDecloakCasterSet" />
+    <EffectArray value="L90ETCPoweroftheHordeClearTrackedUnits" />
+  </CEffectSet>
+  <CEffectClearTrackedUnits id="L90ETCPoweroftheHordeClearTrackedUnits">
+    <BehaviorLink value="L90ETCPoweroftheHordeUnitTracker" />
+  </CEffectClearTrackedUnits>
+  <CEffectSet id="L90ETCPoweroftheHordeInitialSet">
+    <EffectArray value="L90ETCPoweroftheHordeInitialSearch" />
+    <EffectArray value="L90ETCPoweroftheHordeEnumTrackedUnits" />
+  </CEffectSet>
+  <CEffectEnumArea id="L90ETCPoweroftheHordeInitialSearch">
+    <SearchFilters value="Heroic;Neutral,Enemy,ImmuneToFriendlyAbilities,Dead" />
+    <AreaArray Effect="L90ETCPoweroftheHordeAddToTracker">
+      <Radius value="$L90ETCPoweroftheHordeRadius" />
+    </AreaArray>
+    <ValidatorArray value="CasterNotStasis" />
+  </CEffectEnumArea>
+  <CEffectAddTrackedUnit id="L90ETCPoweroftheHordeAddToTracker">
+    <BehaviorLink value="L90ETCPoweroftheHordeUnitTracker" />
+    <TrackedUnit Value="Target" />
+  </CEffectAddTrackedUnit>
+  <CEffectEnumTrackedUnits id="L90ETCPoweroftheHordeEnumTrackedUnits">
+    <BehaviorLink value="L90ETCPoweroftheHordeUnitTracker" />
+    <Effect value="L90ETCPoweroftheHordeEnumSet" />
+  </CEffectEnumTrackedUnits>
+  <CEffectSet id="L90ETCPoweroftheHordeEnumSet">
+    <EffectArray value="L90ETCPoweroftheHordeApplyShield" />
+    <EffectArray value="L90ETCPoweroftheHordeShieldCreateHealer" />
+  </CEffectSet>
+  <CEffectApplyBehavior id="L90ETCPoweroftheHordeApplyShield">
+    <Behavior value="L90ETCPoweroftheHordeShield" />
+  </CEffectApplyBehavior>
+  <CEffectCreateHealer id="L90ETCPoweroftheHordeShieldCreateHealer" parent="StormHealingSpellPercent">
+    <Flags index="TriggerVoiceResponse" value="0" />
+    <ImpactUnit History="Unknown" />
+    <RechargeVital value="Shields" />
+    <RechargeShieldsTargetBehaviorBuff value="L90ETCPoweroftheHordeShield" />
+    <RechargeVitalFraction value="0.3">
+      <AccumulatorArray value="L90ETCPoweroftheHordeAccumulator" />
+    </RechargeVitalFraction>
+    <AmountScoreArray index="0" removed="1" />
+  </CEffectCreateHealer>
+  <CEffectSet id="L90ETCRidetheLightningInitialSet">
+    <ValidatorArray value="CasterNotRooted" />
+    <ValidatorArray value="CasterNotStasis" />
+    <EffectArray value="RemoveMountBehaviorOnCaster" />
+    <EffectArray value="L90ETCRidetheLightningTeleport" />
+    <EffectArray value="L90ETCRidetheLightningSearch" />
+    <TargetLocationType value="Point" />
+  </CEffectSet>
+  <CEffectSet id="L90ETCRidetheLightningImpactSet">
+    <EffectArray value="L90ETCRidetheLightningDamage" />
+    <EffectArray value="L90ETCRideTheLightningApplyCooldownController" />
+  </CEffectSet>
+  <CEffectApplyBehavior id="L90ETCRideTheLightningApplyCooldownController">
+    <ValidatorArray value="L90ETCCasterHasLT5RideTheLightningCooldown" />
+    <WhichUnit Value="Caster" />
+    <Behavior value="L90ETCRideTheLightningCooldownController" />
+  </CEffectApplyBehavior>
+  <CEffectDamage id="L90ETCRidetheLightningDamage" parent="StormSpell">
+    <Amount value="48" />
+  </CEffectDamage>
+  <CEffectModifyUnit id="L90ETCRidetheLightningModifyCooldown">
+    <ValidatorArray value="TargetIsHero" />
+    <ImpactUnit Value="Caster" />
+    <Cost Abil="L90ETCRidetheLightning,Execute" CooldownOperation="Add" CooldownTimeUse="-10" />
+  </CEffectModifyUnit>
+  <CEffectTeleport id="L90ETCRidetheLightningTeleport" parent="StormTeleportSelf">
+    <PlacementRange value="11" />
+    <Range value="11" />
+    <TargetLocation Value="TargetPoint" />
+  </CEffectTeleport>
+  <CEffectEnumArea id="L90ETCRidetheLightningSearch">
+    <SearchFilters value="Heroic;Self,Player,Ally,Neutral,ImmuneToAOE,Missile,Item,Stasis,Dead,Invulnerable" />
+    <AreaArray Effect="L90ETCRidetheLightningImpactSet">
+      <Radius value="$L90ETCRidetheLightningImpactRadius" />
+    </AreaArray>
+    <ValidatorArray value="CasterNotStasis" />
+  </CEffectEnumArea>
   <CHero id="L90ETC">
     <AttributeId value="L90E" />
     <ProductId value="10174" />
@@ -2021,8 +2235,8 @@
       <PrerequisiteTalentArray value="ETCHeroicAbilityStageDive" />
     </TalentTreeArray>
     <TalentTreeArray Talent="L90ETCMasteryDeathMetal" Tier="7" Column="3" />
-    <TalentTreeArray Talent="GenericTalentStormShield" Tier="7" Column="4" />
-    <TalentTreeArray Talent="GenericTalentFlashoftheStorms" Tier="7" Column="5" />
+    <TalentTreeArray Talent="L90ETCPoweroftheHorde" Tier="7" Column="4" />
+    <TalentTreeArray Talent="L90ETCRidetheLightning" Tier="7" Column="5" />
     <TalentAIBuildsArray ChanceToPick="16">
       <TalentsArray value="ETCMasteryGuitarHero" />
       <TalentsArray value="ETCMasterySpeedMetal" />
@@ -2039,7 +2253,7 @@
       <TalentsArray value="ETCHeroicAbilityMoshPit" />
       <TalentsArray value="ETCMasteryFaceSmelt" />
       <TalentsArray value="ETCMasteryShowStopper" />
-      <TalentsArray value="GenericTalentFlashoftheStorms" />
+      <TalentsArray value="L90ETCRidetheLightning" />
     </TalentAIBuildsArray>
     <TalentAIBuildsArray ChanceToPick="16">
       <TalentsArray value="ETCMasteryProgRock" />
@@ -2048,7 +2262,7 @@
       <TalentsArray value="ETCHeroicAbilityMoshPit" />
       <TalentsArray value="ETCMasteryFaceSmelt" />
       <TalentsArray value="ETCMasteryShowStopper" />
-      <TalentsArray value="GenericTalentFlashoftheStorms" />
+      <TalentsArray value="L90ETCRidetheLightning" />
     </TalentAIBuildsArray>
     <TalentAIBuildsArray ChanceToPick="16">
       <TalentsArray value="ETCMasteryProgRock" />
@@ -2057,7 +2271,7 @@
       <TalentsArray value="ETCHeroicAbilityMoshPit" />
       <TalentsArray value="ETCMasteryFaceSmelt" />
       <TalentsArray value="GenericTalentImposingPresence" />
-      <TalentsArray value="GenericTalentFlashoftheStorms" />
+      <TalentsArray value="L90ETCRidetheLightning" />
     </TalentAIBuildsArray>
     <TalentAIBuildsArray AIOnly="1" ChanceToPick="16">
       <TalentsArray value="ETCBlockParty" />
@@ -2075,7 +2289,7 @@
       <TalentsArray value="ETCHeroicAbilityStageDive" />
       <TalentsArray value="ETCMasteryMicCheck" />
       <TalentsArray value="ETCMasteryShowStopper" />
-      <TalentsArray value="GenericTalentStormShield" />
+      <TalentsArray value="L90ETCPoweroftheHorde" />
     </TalentAIBuildsArray>
     <HeroTierAchievementId value="5216701565556967713" />
     <Universe value="Warcraft" />
@@ -2118,14 +2332,6 @@
       </Modifications>
       <Modifications>
         <Catalog value="Effect" />
-        <Entry value="L90ETCGuitarSoloHeroHealDummy" />
-        <Field value="RechargeVitalRate" />
-        <Value value="0.040000" />
-        <AffectedByAbilityPower value="1" />
-        <AffectedByOverdrive value="1" />
-      </Modifications>
-      <Modifications>
-        <Catalog value="Effect" />
         <Entry value="L90ETCGuitarSoloAllyHeal" />
         <Field value="RechargeVitalRate" />
         <Value value="0.040000" />
@@ -2147,6 +2353,14 @@
       <Modifications>
         <Catalog value="Effect" />
         <Entry value="L90ETCPassiveEchoPedalDamage" />
+        <Field value="Amount" />
+        <Value value="0.040000" />
+        <AffectedByAbilityPower value="1" />
+        <AffectedByOverdrive value="1" />
+      </Modifications>
+      <Modifications>
+        <Catalog value="Effect" />
+        <Entry value="L90ETCRidetheLightningDamage" />
         <Field value="Amount" />
         <Value value="0.040000" />
         <AffectedByAbilityPower value="1" />
@@ -2734,6 +2948,23 @@
     <Active value="1" />
     <Abil value="L90ETCStageDive" />
   </CTalent>
+  <CTalent id="L90ETCPoweroftheHorde">
+    <Face value="L90ETCPoweroftheHorde" />
+    <RankArray>
+      <BehaviorArray value="L90ETCPoweroftheHordeItem" />
+      <BehaviorArray value="L90ETCPoweroftheHordeUnitTracker" />
+    </RankArray>
+    <Abil value="L90ETCPoweroftheHorde" />
+    <Active value="1" />
+  </CTalent>
+  <CTalent id="L90ETCRidetheLightning">
+    <Face value="L90ETCRidetheLightning" />
+    <Abil value="L90ETCRidetheLightning" />
+    <RankArray>
+      <BehaviorArray value="L90ETCRidetheLightningItem" />
+    </RankArray>
+    <Active value="1" />
+  </CTalent>
   <CUnit id="L90ETCDeathMetalGhost" parent="StormSummonFigment">
     <FlagArray index="Turnable" value="0" />
     <FlagArray index="Unselectable" value="1" />
@@ -2844,6 +3075,12 @@
   <CValidatorUnitCompareBehaviorCount id="DoesNotHavePowerSlideCrowdSurferDummyBehavior">
     <WhichUnit Value="Source" />
     <Behavior value="L90ETCPowerSlideCrowdSurferDummyBehavior" />
+  </CValidatorUnitCompareBehaviorCount>
+  <CValidatorUnitCompareBehaviorCount id="L90ETCCasterHasLT5RideTheLightningCooldown">
+    <WhichUnit Value="Caster" />
+    <Compare value="LT" />
+    <Value value="5" />
+    <Behavior value="L90ETCRideTheLightningCooldownController" />
   </CValidatorUnitCompareBehaviorCount>
   <CValidatorCombine id="DoesntHaveMoshPitChannelBehaviorOrHasTourBus">
     <CombineArray value="DoesNotHaveMoshPitChannelBehavior" />

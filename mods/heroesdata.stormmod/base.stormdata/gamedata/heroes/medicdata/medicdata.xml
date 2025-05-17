@@ -51,7 +51,7 @@
     <TargetFilters value="-;Neutral,Enemy,Structure,ImmuneToFriendlyAbilities,Missile,Stasis,Dead,Hidden" />
     <Range value="5.5" />
     <Arc value="360" />
-    <CmdButtonArray index="Execute" DefaultButtonFace="MedicRedirectHealingBeam" Requirements="MedicHasHealingBeamActiveShow" />
+    <CmdButtonArray index="Execute" DefaultButtonFace="MedicRedirectHealingBeam" ShowValidator="MedicHealingBeamHasUnitTracked" UseValidator="MedicHealingBeamHasUnitTracked" />
     <BailEffect index="Approach" value="MedicRedirectHealingBeamIssueOrder" />
     <ParentAbil value="MedicHealingBeam" />
   </CAbilEffectTarget>
@@ -177,7 +177,7 @@
     <UninterruptibleArray index="Cast" value="1" />
     <UninterruptibleArray index="Channel" value="1" />
     <UninterruptibleArray index="Finish" value="1" />
-    <CmdButtonArray index="Execute" DefaultButtonFace="MedicHealingBeam">
+    <CmdButtonArray index="Execute" DefaultButtonFace="MedicHealingBeam" ShowValidator="MedicHealingBeamDoesNotHaveTargetTracked" UseValidator="MedicHealingBeamDoesNotHaveTargetTracked">
       <Flags index="AllowSelfCast" value="0" />
     </CmdButtonArray>
     <Arc value="360" />
@@ -188,7 +188,7 @@
     <Cost>
       <Cooldown TimeUse="0.5" />
     </Cost>
-    <CmdButtonArray index="Execute" AutoQueueId="" DefaultButtonFace="MedicCancelHealingBeam" Requirements="MedicHasHealingBeamActiveShow" />
+    <CmdButtonArray index="Execute" AutoQueueId="" DefaultButtonFace="MedicCancelHealingBeam" ShowValidator="MedicHealingBeamHasUnitTracked" UseValidator="MedicHealingBeamHasUnitTracked" />
     <ParentAbil value="MedicHealingBeam" />
   </CAbilEffectInstant>
   <CAbilEffectTarget id="MedicDisplacementGrenade">
@@ -524,7 +524,7 @@
       <Actor value="Find" />
       <Effect value="MedicMedivacDropshipCastSet" />
     </HostImpact>
-    <HostImpactSiteOps Ops="SOpAttachCenter" HoldRotation="1" />
+    <HostImpactSiteOps Ops="SOpAttachCenter" HoldPosition="1" HoldRotation="1" />
   </CActorBeamSimple>
   <CActorBeamSimple id="MedicMedivacDropshipConfirmedPathBeamMedic" parent="BeamSimpleAnimationStyleContinuous">
     <Filter index="Ally" value="1" />
@@ -1360,6 +1360,12 @@
     <BehaviorFlags index="EnabledWhileDead" value="0" />
     <DisableValidatorArray value="MedicCaduceusReactorVisualsBuffCombine" />
   </CBehaviorBuff>
+  <CBehaviorUnitTracker id="MedicHealingBeamUnitTracker">
+    <MaxTrackedUnits value="1" />
+    <UnitAddedAtMaxRule value="ReplaceOldest" />
+    <BehaviorFlags index="Permanent" value="1" />
+    <BehaviorFlags index="EnabledWhileDead" value="1" />
+  </CBehaviorUnitTracker>
   <CBehaviorBuff id="MedicHealingBeamCancelled">
     <Duration value="0.0625" />
   </CBehaviorBuff>
@@ -2293,6 +2299,7 @@
     <EffectArray value="MedicHealingBeamRemoveCastingBehavior" />
     <EffectArray value="MedicHealingBeamApplyCancelledBehavior" />
     <EffectArray value="MedicHealingBeamCancelRedirectOrder" />
+    <EffectArray value="MedicHealingBeamClearTracking" />
   </CEffectSet>
   <CEffectCancelOrder id="MedicHealingBeamCancelRedirectOrder">
     <WhichUnit Value="Caster" />
@@ -2326,21 +2333,21 @@
     <Target Value="TargetUnit" />
   </CEffectIssueOrder>
   <CEffectSet id="MedicRedirectHealingBeamRedirectSet">
-    <EffectArray value="MedicRedirectHealingBeamApplyDelayBehavior" />
-    <EffectArray value="MedicHealingBeamRemoveCastingBuff" />
+    <EffectArray value="MedicHealingBeamClearTracking" />
     <EffectArray value="MedicRedirectHealingBeamDelayPersistent" />
   </CEffectSet>
   <CEffectSet id="MedicRedirectHealingBeamDefaultSet">
     <EffectArray value="MedicHealingBeamRemoveCastingBuff" />
+    <EffectArray value="MedicHealingBeamClearTracking" />
     <TargetLocationType value="Point" />
   </CEffectSet>
   <CEffectCreatePersistent id="MedicRedirectHealingBeamDelayPersistent">
     <WhichLocation Value="TargetUnit" />
-    <InitialDelay value="0.0625" />
+    <InitialEffect value="MedicHealingBeamAddUnitToTracker" />
     <PeriodCount value="1" />
     <PeriodicValidator value="MedicDoesNotHaveHealingBeamCancelled" />
     <PeriodicEffectArray value="MedicHealingBeamCreatePersistent" />
-    <PeriodicPeriodArray value="0" />
+    <PeriodicPeriodArray value="0.0625" />
   </CEffectCreatePersistent>
   <CEffectSwitch id="MedicRedirectHealingBeamSwitch">
     <CaseArray Validator="IsNotSelf" Effect="MedicRedirectHealingBeamRedirectSet" />
@@ -2801,6 +2808,7 @@
     <ExpireDelay value="20" />
   </CEffectCreatePersistent>
   <CEffectSet id="MedicHealingBeamCastSet">
+    <EffectArray value="MedicHealingBeamClearTracking" />
     <EffectArray value="MedicHealingBeamCreatePersistent" />
     <ValidatorArray value="MedicHasGTHealingBeamManaCost" />
     <ValidatorArray value="TargetIsMinionNotMercLanerORTargetIsHero" />
@@ -2843,6 +2851,7 @@
     <Behavior value="MedicCastingHealingBeamBuff" />
   </CEffectApplyBehavior>
   <CEffectSet id="MedicHealingBeamInitialSet">
+    <EffectArray value="MedicHealingBeamAddUnitToTracker" />
     <EffectArray value="MedicHealingBeamApplyDisplayBuff" />
     <EffectArray value="MedicHealingBeamApplyCastingBuff" />
     <EffectArray value="MedicHealingBeamApplyAllyRangeDisplayDummy" />
@@ -2886,6 +2895,17 @@
     <TeleportValidator value="GenericTeleportRangeValidator" />
     <TimeScaleSource Value="Caster" />
   </CEffectCreatePersistent>
+  <CEffectAddTrackedUnit id="MedicHealingBeamAddUnitToTracker">
+    <BehaviorLink value="MedicHealingBeamUnitTracker" />
+    <TrackedUnit Value="Target" />
+  </CEffectAddTrackedUnit>
+  <CEffectRemoveTrackedUnit id="MedicHealingBeamRemoveTrackedUnit">
+    <BehaviorLink value="MedicHealingBeamUnitTracker" />
+    <TrackedUnit Value="Target" />
+  </CEffectRemoveTrackedUnit>
+  <CEffectClearTrackedUnits id="MedicHealingBeamClearTracking">
+    <BehaviorLink value="MedicHealingBeamUnitTracker" />
+  </CEffectClearTrackedUnits>
   <CEffectApplyBehavior id="MedicHealingBeamApplyTargetLifeNotFullBehavior">
     <Behavior value="MedicHealingBeamOnTargetTargetLifeNotFull" />
   </CEffectApplyBehavior>
@@ -2907,6 +2927,7 @@
     <EffectArray value="MedicHealingBeamRemoveVisibilityController" />
     <EffectArray value="MedicHealingBeamRemoveDisplayBuffSwitch" />
     <EffectArray value="MedicHealingBeamSetMedSchoolCooldown" />
+    <EffectArray value="MedicHealingBeamRemoveTrackedUnit" />
   </CEffectSet>
   <CEffectSet id="MedicDisplacementGrenadeInitialSet">
     <EffectArray value="MedicDisplacementGrenadeInitialPersistent" />
@@ -3932,6 +3953,7 @@
     <BehaviorArray Link="NotManaUserDummy" />
     <BehaviorArray Link="MedicCaduceusReactorUIDummyBuff" />
     <BehaviorArray Link="MedicHealingBeamEnergyRegeneration" />
+    <BehaviorArray Link="MedicHealingBeamUnitTracker" />
     <WeaponArray Link="MedicHeroWeapon" />
     <CardLayouts index="0">
       <LayoutButtons index="10" Face="CaptureMacGuffin" Type="AbilCmd" AbilCmd="CaptureMacGuffin,Execute" Slot="Interact" />
@@ -4416,6 +4438,13 @@
     <CombineArray value="TargetIsCloaked" />
     <CombineArray value="MedicStimVisibilityControllerShrubStatusCombine" />
   </CValidatorCombine>
+  <CValidatorCompareTrackedUnitsCount id="MedicHealingBeamHasUnitTracked">
+    <Compare value="GT" />
+    <BehaviorLink value="MedicHealingBeamUnitTracker" />
+  </CValidatorCompareTrackedUnitsCount>
+  <CValidatorCompareTrackedUnitsCount id="MedicHealingBeamDoesNotHaveTargetTracked">
+    <BehaviorLink value="MedicHealingBeamUnitTracker" />
+  </CValidatorCompareTrackedUnitsCount>
   <CValidatorCombine id="MedicHealingBeamPeriodicValidator">
     <Type value="And" />
     <CombineArray value="CasterNotDeadOrSilencedOrStasisOrStunned" />
@@ -4427,7 +4456,14 @@
     <CombineArray value="TargetIsNotImmuneToFriendlyAbilities" />
     <CombineArray value="TargetNotBenignOrIsHealingDummy" />
     <CombineArray value="TargetIsNotEnemy" />
+    <CombineArray value="MedicHealingBeamTargetIsTracked" />
   </CValidatorCombine>
+  <CValidatorIsUnitTracked id="MedicHealingBeamTargetIsTracked">
+    <Find value="1" />
+    <BehaviorLink value="MedicHealingBeamUnitTracker" />
+    <TrackedUnit Value="Target" />
+    <TrackedUnit Effect="MedicHealingBeamCreatePersistent" Value="Target" />
+  </CValidatorIsUnitTracked>
   <CValidatorLocationCompareRange id="MedicStimDroneTargetNotAtExcessiveRange">
     <WhichLocation Effect="MedicStimDroneCreatePersistent" Value="TargetUnit" />
     <Compare value="LT" />

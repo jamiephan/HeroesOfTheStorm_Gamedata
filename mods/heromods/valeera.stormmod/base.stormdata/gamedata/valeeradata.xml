@@ -724,8 +724,8 @@
     <On Terms="Abil.ValeeraGarrote.SourceCastStart" Send="Create" />
   </CActorSound>
   <CActorModel id="ValeeraAssassinationTarget" parent="StormModelAnimationStyleContinuousUnit">
-    <On Terms="Behavior.ValeeraAssassinationTarget.On" Send="Create" />
-    <On Terms="Behavior.ValeeraAssassinationTarget.Off" Send="AnimBracketStop BSD" />
+    <On Terms="Effect.ValeeraAssassinationApply.Start; At Target" Send="Create" />
+    <On Terms="Effect.ValeeraAssassinationRemoveModifyUnit.Start; FromEffectTreeDescendant" Send="AnimBracketStop BSD" />
     <HostSiteOps Ops="SOpAttachOverhead SOpPointSouthWorld" HoldRotation="1" />
     <Filter index="All" value="1" />
     <VisibleTo index="Self" value="1" />
@@ -1108,14 +1108,13 @@
     <PeriodicEffect value="ValeeraAssassinateSearchArea" />
   </CBehaviorBuff>
   <CBehaviorBuff id="ValeeraAssassinationTarget">
+    <MaxStackCount value="10" />
+    <MaxStackCountPerCaster value="1" />
     <RemoveValidatorArray value="ValeeraRangeLTE12" />
     <RemoveValidatorArray value="ValeeraHasAssassinate" />
     <RemoveValidatorArray value="ValeeraIsStealthedCombine" />
     <Duration value="0.1875" />
-    <DamageResponse Chance="1" ModifyFraction="1.5">
-      <RequireEffectArray value="ValeeraAmbushDamage" />
-      <RequireEffectArray value="ValeeraAmbushFullDamage" />
-    </DamageResponse>
+    <FinalEffect value="ValeeraAssassinationRemoveModifyUnit" />
   </CBehaviorBuff>
   <CBehaviorBuff id="ValeeraSmokeBombUnrevealable" parent="StormUnrevealableCloak">
     <Duration value="0.125" />
@@ -1737,7 +1736,7 @@
   </CEffectSwitch>
   <CEffectDamage id="ValeeraAmbushDamage" parent="StormSpell">
     <Amount value="130" />
-    <CritValidatorArray index="0" value="ValeeraTargetHasAssassinateTarget" />
+    <MultiplicativeModifierArray index="Assassinate" Validator="ValeeraTargetHasAssassinateTarget" Modifier="0.5" Crit="1" />
   </CEffectDamage>
   <CEffectSet id="ValeeraCheapShotInitialSet">
     <EffectArray value="ValeeraModifyWeaponCooldown" />
@@ -2218,10 +2217,20 @@
   </CEffectModifyTokenCount>
   <CEffectEnumArea id="ValeeraAssassinateSearchArea">
     <SearchFilters value="Heroic,Visible;Self,Player,Ally,Neutral,Missile,Stasis,Dead,Hidden,Invulnerable" />
-    <AreaArray Effect="ValeeraAssassinationApply">
+    <AreaArray Effect="ValeeraAssassinationApplySwitch">
       <Radius value="12" />
     </AreaArray>
   </CEffectEnumArea>
+  <CEffectSwitch id="ValeeraAssassinationApplySwitch">
+    <CaseArray Validator="ValeeraTargetHasAssassinateTarget" Effect="ValeeraAssassinationRefreshDuration" />
+    <CaseDefault value="ValeeraAssassinationApply" />
+  </CEffectSwitch>
+  <CEffectModifyBehaviorBuffDuration id="ValeeraAssassinationRefreshDuration">
+    <WhichUnit Value="Target" />
+    <Behavior value="ValeeraAssassinationTarget" />
+    <Operation value="Set" />
+    <Value value="0.1875" />
+  </CEffectModifyBehaviorBuffDuration>
   <CEffectApplyBehavior id="ValeeraAssassinationApply">
     <ValidatorArray index="0" value="ValeeraAssassinateTargetNotNearAllies" />
     <Behavior value="ValeeraAssassinationTarget" />
@@ -2230,6 +2239,7 @@
     <WhichUnit Value="Caster" />
     <Behavior value="ValeeraAssassinate" />
   </CEffectApplyBehavior>
+  <CEffectModifyUnit id="ValeeraAssassinationRemoveModifyUnit" />
   <CEffectSet id="ValeeraSmokeBombInitialSet">
     <EffectArray value="ValeeraSmokeBombCreatePersistent" />
     <EffectArray value="ValeeraSmokeBombApplyResistant" />
@@ -3393,6 +3403,7 @@
   <CValidatorUnitCompareBehaviorCount id="ValeeraTargetHasAssassinateTarget">
     <Behavior value="ValeeraAssassinationTarget" />
     <Value value="1" />
+    <RequireCasterUnit Value="Caster" />
   </CValidatorUnitCompareBehaviorCount>
   <CValidatorUnitCompareBehaviorCount id="ValeeraHasVanish">
     <WhichUnit Value="Caster" />
