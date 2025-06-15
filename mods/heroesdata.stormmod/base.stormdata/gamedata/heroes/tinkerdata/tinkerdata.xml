@@ -165,8 +165,6 @@
     <UninterruptibleArray index="Channel" value="1" />
     <UninterruptibleArray index="Finish" value="1" />
     <PrepEffect value="DismountDecloakCasterSet" />
-    <CursorRangeFlags index="ClampMin" value="1" />
-    <MinimumRange value="0.2" />
   </CAbilEffectTarget>
   <CAbilEffectTarget id="TinkerGravOBomb3000">
     <Effect value="GazloweGravOBomb3000InitialSet" />
@@ -186,8 +184,6 @@
     <CursorEffect value="GravOBomb3000PullSearchArea" />
     <CmdButtonArray index="Execute" DefaultButtonFace="TinkerGravOBomb3000" Requirements="Ultimate2Unlocked" />
     <PrepEffect value="DismountDecloakCasterSet" />
-    <CursorRangeFlags index="ClampMin" value="1" />
-    <MinimumRange value="0.2" />
   </CAbilEffectTarget>
   <CAbilAttack id="TinkerSalvageAttack" parent="attack">
     <Name value="Abil/Name/TinkerSalvageAttack" />
@@ -848,6 +844,7 @@
     <On Terms="Effect.XplodiumBombDamage.Start; At Target" Send="Create" />
   </CActorModel>
   <CActorAction id="TinkerXplodiumChargeAttack" parent="GenericAttackPointStorm" effectImpact="XplodiumBombCreatePersistent" effectLaunch="XplodiumChargeLaunchMissile">
+    <On Terms="Effect.XplodiumChargeLaunchMissileLaunchOffset.Start; At Caster" Send="Create" />
     <LaunchAttachQuery Methods="AMFilterWeaponRight01" />
   </CActorAction>
   <CActorSound id="TinkerXplodiumBombCastSound" parent="SoundOneShot">
@@ -1030,6 +1027,7 @@
   </CActorSplat>
   <CActorSound id="TinkerGravOBomb3000ThrowSound" parent="SoundOneShot">
     <On Terms="Effect.GravOBomb3000LaunchMissile.Start" Send="Create" />
+    <On Terms="Effect.GravOBomb3000LaunchMissileLaunchOffset.Start" Send="Create" />
     <On Terms="Effect.GravOBomb3000Persistent.Start" Send="Destroy" />
     <Sound value="Gazlowe_GravOBomb3000_ThrowWhoosh" />
     <Host Subject="_Missile" />
@@ -2256,7 +2254,7 @@
     <ValidatorArray value="GazloweDethLazorTargetIsHero" />
   </CEffectCreateHealer>
   <CEffectSet id="GazloweGravOBomb3000InitialSet">
-    <EffectArray value="GravOBomb3000LaunchMissile" />
+    <EffectArray value="GravOBomb3000LaunchMissileSwitch" />
     <EffectArray value="GazloweGravOBomb3000BasicAbilityDamageBuffApplyBehavior" />
     <TargetLocationType value="Point" />
   </CEffectSet>
@@ -2330,7 +2328,7 @@
   </CEffectSet>
   <CEffectCreatePersistent id="XplodiumChargeLaunchPersistent">
     <ValidatorArray value="TargetPointWalkable" />
-    <InitialEffect value="XplodiumChargeLaunchMissile" />
+    <InitialEffect value="XplodiumChargeLaunchMissileSwitch" />
   </CEffectCreatePersistent>
   <CEffectAddTrackedUnit id="TinkerRockItTurretAddToTrackingList">
     <BehaviorLink value="TinkerRockItTurretTrackingBehavior" />
@@ -2562,11 +2560,18 @@
       <Radius value="3" />
     </AreaArray>
   </CEffectEnumArea>
+  <CEffectSwitch id="XplodiumChargeLaunchMissileSwitch">
+    <CaseArray Validator="GazloweXplodiumBombMinimumDistanceCast" Effect="XplodiumChargeLaunchMissileLaunchOffset" />
+    <CaseDefault value="XplodiumChargeLaunchMissile" />
+  </CEffectSwitch>
   <CEffectLaunchMissile id="XplodiumChargeLaunchMissile">
     <ImpactLocation Value="TargetPoint" />
     <ImpactEffect value="GazloweXplodiumChargeMissileImpactSet" />
     <AmmoUnit value="XplodiumChargeMissile" />
     <Movers Link="TinkerXplodiumBombWhackyMissile" />
+  </CEffectLaunchMissile>
+  <CEffectLaunchMissile id="XplodiumChargeLaunchMissileLaunchOffset" parent="XplodiumChargeLaunchMissile">
+    <LaunchOffset Y="0.5" />
   </CEffectLaunchMissile>
   <CEffectSet id="RockItTurretLaunchSet">
     <EffectArray value="GazloweRockItTurretPositiveReinforcementApplyBehavior" />
@@ -2653,7 +2658,7 @@
     <OffsetVectorStartLocation Value="OriginUnitOrPoint" />
   </CEffectCreatePersistent>
   <CEffectLaunchMissile id="GazloweXplodiumChargeBombTossLaunchMissile">
-    <LaunchLocation Effect="XplodiumChargeLaunchMissile" Value="TargetPoint" />
+    <LaunchLocation Effect="XplodiumChargeLaunchPersistent" Value="TargetPoint" />
     <ImpactLocation Value="TargetPoint" />
     <ImpactEffect value="GazloweXplodiumChargeBombTossSearchPersistent" />
     <AmmoUnit value="XplodiumChargeMissile" />
@@ -2777,12 +2782,19 @@
       <Flags index="HurtsEnemy" value="1" />
     </AINotifySettings>
   </CEffectCreatePersistent>
+  <CEffectSwitch id="GravOBomb3000LaunchMissileSwitch">
+    <CaseArray Validator="GazloweGravOBomb3000MinimumDistanceCast" Effect="GravOBomb3000LaunchMissileLaunchOffset" />
+    <CaseDefault value="GravOBomb3000LaunchMissile" />
+  </CEffectSwitch>
   <CEffectLaunchMissile id="GravOBomb3000LaunchMissile">
     <ImpactLocation Value="TargetPoint" />
     <ImpactEffect value="GravOBomb3000Persistent" />
     <SharedFlags index="TravelValidation" value="1" />
     <AmmoUnit value="TinkerGravOBomb3000Missile" />
     <Movers Link="XplodiumChargeMissile" />
+  </CEffectLaunchMissile>
+  <CEffectLaunchMissile id="GravOBomb3000LaunchMissileLaunchOffset" parent="GravOBomb3000LaunchMissile">
+    <LaunchOffset Y="0.5" />
   </CEffectLaunchMissile>
   <CEffectEnumArea id="GravOBomb3000DamageSearchArea">
     <SearchFilters value="-;Player,Ally,ImmuneToAOE,Missile,Stasis,Hidden,Invulnerable" />
@@ -4935,6 +4947,14 @@
     <Value value="60" />
     <Vital value="Energy" />
   </CValidatorUnitCompareVital>
+  <CValidatorLocationCompareRange id="GazloweXplodiumBombMinimumDistanceCast">
+    <Compare value="LT" />
+    <Range value="0.5" />
+  </CValidatorLocationCompareRange>
+  <CValidatorLocationCompareRange id="GazloweGravOBomb3000MinimumDistanceCast">
+    <Compare value="LT" />
+    <Range value="0.5" />
+  </CValidatorLocationCompareRange>
   <CWeaponLegacy id="GazloweXplodiumChargeArkReaktorRockItTurretWeapon">
     <Icon value="Assets\Textures\storm_temp_btn-upgrade-terran-hisecautotracking.dds" />
     <DisplayEffect value="GazloweXplodiumChargeArkReaktorRockItTurretWeaponDamage" />

@@ -144,8 +144,6 @@
     <CursorEffect value="MurkyPufferfishSearchAreaUnnamed" />
     <CmdButtonArray index="Execute" DefaultButtonFace="MurkyPufferfish" />
     <PlaceUnit value="MurkyPufferfish" />
-    <CursorRangeFlags index="ClampMin" value="1" />
-    <MinimumRange value="0.05" />
   </CAbilEffectTarget>
   <CAbilEffectTarget id="MurkyRespawnEgg">
     <Activity value="Abil/MurkyRespawnEgg/Activity" />
@@ -606,6 +604,7 @@
     <Filter index="Ally" value="1" />
   </CActorModel>
   <CActorAction id="MurkyPufferfishAttack" parent="RangedMinionAttackParent" effectImpact="MurkyPufferfishLMImpact" effectLaunch="MurkyPufferfishLaunchMissile">
+    <On Terms="Effect.MurkyPufferfishLaunchMissileLaunchOffset.Start; At Caster" Send="Create" />
     <LaunchSiteOps Ops="SOpAttachHead SOpMoveBy1" />
     <LaunchAttachQuery Methods="AMFilterHead" />
     <ImpactSiteOps Ops="SOpAttachOrigin" />
@@ -669,6 +668,7 @@
     <Sound value="Murky_Pufferfish_Missile" />
   </CActorSound>
   <CActorAction id="MurkyPufferfishNoBounceAttack" parent="RangedMinionAttackParent" effectImpact="MurkyPufferfishLMImpact" effectLaunch="MurkyPufferfishLaunchMissileNoBounce">
+    <On Terms="Effect.MurkyPufferfishLaunchMissileNoBounceLaunchOffset.Start; At Caster" Send="Create" />
     <LaunchAttachQuery Methods="AMFilterHead" />
     <ImpactSiteOps Ops="SOpAttachOrigin" />
     <ImpactMap index="None" Model="" Sound="Murky_Pufferfish_Impact" />
@@ -2677,11 +2677,22 @@
     <EffectArray value="PufferfishWrathofCodTalentApplyDoT" />
     <EffectArray value="ApplyAbilityImpactReveal" />
   </CEffectSet>
+  <CEffectSwitch id="MurkyPufferfishLaunchMissileSwitch">
+    <CaseArray Validator="MurkyPufferfishLaunchMinimumDistanceCast" Effect="MurkyPufferfishLaunchMissileLaunchOffset" />
+    <CaseDefault value="MurkyPufferfishLaunchMissile" />
+  </CEffectSwitch>
   <CEffectLaunchMissile id="MurkyPufferfishLaunchMissile">
     <ImpactEffect value="MurkyPufferfishLMImpact" />
     <AmmoUnit value="MurkyPufferfishMissile" />
     <Movers Link="MurkyPufferfishMissile" />
   </CEffectLaunchMissile>
+  <CEffectLaunchMissile id="MurkyPufferfishLaunchMissileLaunchOffset" parent="MurkyPufferfishLaunchMissile">
+    <LaunchOffset Y="0.5" />
+  </CEffectLaunchMissile>
+  <CEffectSwitch id="MurkyPufferfishLaunchMissileNoBounceSwitch">
+    <CaseArray Validator="MurkyPufferfishLaunchMinimumDistanceCast" Effect="MurkyPufferfishLaunchMissileNoBounceLaunchOffset" />
+    <CaseDefault value="MurkyPufferfishLaunchMissileNoBounce" />
+  </CEffectSwitch>
   <CEffectLaunchMissile id="MurkyPufferfishLaunchMissileNoBounce">
     <ImpactEffect value="MurkyPufferfishLMImpact" />
     <AmmoUnit value="MurkyPufferfishNoBounceMissile" />
@@ -2689,11 +2700,11 @@
   </CEffectLaunchMissile>
   <CEffectSet id="MurkyPufferfishLaunchSet">
     <EffectArray value="MakePrecursor" />
-    <EffectArray value="MurkyPufferfishLaunchMissile" />
+    <EffectArray value="MurkyPufferfishLaunchMissileSwitch" />
   </CEffectSet>
   <CEffectSet id="MurkyPufferfishLaunchSetNoBounce">
     <EffectArray value="MakePrecursor" />
-    <EffectArray value="MurkyPufferfishLaunchMissileNoBounce" />
+    <EffectArray value="MurkyPufferfishLaunchMissileNoBounceSwitch" />
   </CEffectSet>
   <CEffectEnumArea id="MurkyPufferfishSearchAreaUnnamed">
     <SearchFilters value="-;Player,Ally,ImmuneToAOE,Missile,Item,Stasis,Dead,Hidden,Invulnerable" />
@@ -4174,6 +4185,10 @@
     <CombineArray value="IsStructureTarget" />
     <CombineArray value="MurkyPufferfishTargetIsHeroAndMurkyHasWrathOfCod" />
   </CValidatorCombine>
+  <CValidatorLocationCompareRange id="MurkyPufferfishLaunchMinimumDistanceCast">
+    <Compare value="LT" />
+    <Range value="0.5" />
+  </CValidatorLocationCompareRange>
   <CValidatorCombine id="MurkyPufferfishTargetBounceCheck">
     <Type value="And" />
     <CombineArray value="TargetNotAcrossChasm" />
