@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="us-ascii"?>
 <Catalog>
+  <const id="$KelThuzadChainsLinkFilter" value="Heroic;Player,Ally,Structure,Missile,Stasis,Dead,Hidden,Unstoppable" />
   <CAbilEffectTarget id="KelThuzadFrostNova">
     <AbilityCategories index="Control" value="1" />
     <AbilityCategories index="Reveals" value="1" />
@@ -866,7 +867,7 @@
     <LaunchSiteOps Ops="SOpAttachCenterStationary" HoldPosition="1" />
   </CActorAction>
   <CActorBeamSimple id="KelThuzadChainsBeam" parent="BeamSimpleAnimationStyleContinuous">
-    <On Terms="Effect.KelThuzadChainsLinkSlowCreateCP.Start; ValidateEffect KelThuzadChainsLinkSlowLinkDistanceCheck" Send="Create" />
+    <On Terms="Effect.KelThuzadChainsLinkTargetCreationSwitch.Start; ValidateEffect KelThuzadChainsLinkSlowLinkDistanceCheck" Send="Create" />
     <On Terms="ActorCreation" Send="TimerSet 0.750000 Death" />
     <On Terms="TimerExpired; TimerName Death" Send="AnimBracketStop BSD" />
     <HostLaunch>
@@ -1519,10 +1520,11 @@
     <Sound value="KelthuzadBase_VOX_Dash" />
   </CActorSound>
   <CActorSound id="KelThuzadChainsRetargetHeroPullImpact" parent="SoundOneShot">
-    <On Terms="Effect.KelThuzadChainsRetargetHeroPullImpactDummy.Start; At Effect" Send="Create" />
+    <On Terms="Effect.KelThuzadChainsLinkCreatePullPointAtMiddle.Start; At Effect" Send="Create" />
   </CActorSound>
   <CActorSound id="KelThuzadChainsRetargetBuildingPullImpact" parent="SoundOneShot">
-    <On Terms="Effect.KelThuzadChainsRetargetBuildingPullImpactDummy.Start; At Effect" Send="Create" />
+    <On Terms="Effect.KelThuzadChainsLinkCreatePullPointAtTarget.Start; At Effect" Send="Create" />
+    <On Terms="Effect.KelThuzadChainsLinkCreatePullPointAtTargetRadius.Start; At Effect" Send="Create" />
   </CActorSound>
   <CActorSound id="KelThuzadComboVO" parent="SoundOneShot">
     <On Terms="Effect.KelThuzadComboVOPlay.Start; At Effect" Send="Create" />
@@ -1728,6 +1730,23 @@
     <RemoveValidatorArray value="KelThuzadChainsPullDistanceCheck" />
     <RemoveValidatorArray value="HallOfStormsTargetDoesNotHaveProtectionBuff" />
     <InitialEffect value="KelThuzadChainsTargetRevealerRemove" />
+    <FinalEffect value="KelThuzadChainsStunApply" />
+    <ExpireEffect value="KelThuzadChainsStunApply" />
+  </CBehaviorBuff>
+  <CBehaviorBuff id="KelThuzadChainsPullTargetNew" parent="PushPullParent">
+    <Duration value="0.4375" />
+    <Period value="0.0625" />
+    <Modification>
+      <Height value="0.75" />
+      <HeightTime index="Start" value="0.0625" />
+      <HeightTime index="Stop" value="0.0625" />
+      <MoveSpeedMaximum value="22" />
+      <MoveSpeedMinimum value="22" />
+    </Modification>
+    <RemoveValidatorArray value="KelThuzadChainsPullDistanceCheckNew" />
+    <RemoveValidatorArray value="HallOfStormsTargetDoesNotHaveProtectionBuff" />
+    <InitialEffect value="KelThuzadChainsPullBehaviorInitialSet" />
+    <PeriodicEffect value="KelThuzadChainsPullApplyForceNew" />
     <FinalEffect value="KelThuzadChainsStunApply" />
     <ExpireEffect value="KelThuzadChainsStunApply" />
   </CBehaviorBuff>
@@ -2574,7 +2593,7 @@
     <EffectArray value="KelThuzadChainsRemoveTargetBehavior" />
     <EffectArray value="KelThuzadChainsRemoveCasterBehavior" />
     <EffectArray value="KelThuzadChainsLinkDamageSwitch" />
-    <EffectArray value="KelThuzadChainsLinkSlowCreateCP" />
+    <EffectArray value="KelThuzadChainsLinkTargetCreationSwitch" />
     <EffectArray value="KelThuzadMasterOfTheColdDarkModifyToken" />
     <EffectArray value="KelThuzadComboVOApply" />
     <EffectArray value="SuicideRemove" />
@@ -2582,15 +2601,114 @@
     <ValidatorArray value="KelThuzadChainsImpactValidator" />
     <ValidatorArray value="KelThuzadTargetDoesNotHaveChainsRetarget" />
   </CEffectSet>
-  <CEffectCreatePersistent id="KelThuzadChainsLinkSlowCreateCP">
-    <PeriodicEffectArray value="KelThuzadChainsLinkSet" />
-    <PeriodicPeriodArray value="0.0625" />
-    <PeriodicValidator value="KelThuzadChainsPeriodicValidator" />
-    <WhichLocation Value="TargetUnit" />
-    <PeriodCount value="1" />
+  <CEffectSwitch id="KelThuzadChainsLinkTargetCreationSwitch">
     <ValidatorArray value="KelThuzadChainsLinkSlowLinkDistanceCheck" />
     <ValidatorArray value="TargetNotDeadAndNoSpecialDeathState" />
+    <CaseArray Validator="KelThuzadChainsLinkHostIsValidAndTargetIsValid" Effect="KelThuzadChainsLinkCreatePullPointAtMiddle" />
+    <CaseArray Validator="KelThuzadChainsLinkHostIsValidAndTargetIsTownGateOrWall" Effect="KelThuzadChainsLinkCreatePullPointAtTarget" />
+    <CaseArray Validator="KelThuzadChainsLinkHostIsTownGateOrWallAndTargetIsValid" Effect="KelThuzadChainsLinkCreatePullPointAtHost" />
+    <CaseArray Validator="KelThuzadChainsLinkHostIsValidAndTargetIsInvalid" Effect="KelThuzadChainsLinkCreatePullPointAtTargetRadius" />
+    <CaseArray Validator="KelThuzadChainsLinkHostIsInvalidAndTargetIsValid" Effect="KelThuzadChainsLinkCreatePullPointAtHostRadiusPersistent" />
+    <CaseArray Validator="KelThuzadChainsLinkNoValidTargets" Effect="KelThuzadChainsLinkCreationSwitchNoValid" />
+    <CaseDefault value="KelThuzadChainsLinkCreationSwitchDefault" />
+  </CEffectSwitch>
+  <CEffectModifyUnit id="KelThuzadChainsLinkCreationSwitchDefault" />
+  <CEffectModifyUnit id="KelThuzadChainsLinkCreationSwitchNoValid" />
+  <CEffectCreatePersistent id="KelThuzadChainsLinkCreatePullPointAtHostRadiusPersistent">
+    <WhichLocation Effect="KelThuzadChainsLinkInitialCP" Value="TargetUnit" />
+    <InitialEffect value="KelThuzadChainsLinkCreatePullPointAtHostRadius" />
   </CEffectCreatePersistent>
+  <CEffectApplyOffset id="KelThuzadChainsLinkCreatePullPointAtHostRadius">
+    <Effect value="KelThuzadChainLinkPullPointSet" />
+    <SourceOffset>
+      <WhichLocation Effect="KelThuzadChainsLinkInitialCP" Value="TargetUnitOrPoint" />
+      <OffsetVectorStartLocation Effect="KelThuzadChainsLinkEnemySearchImpactSet" Value="TargetUnit" />
+      <OffsetVectorEndLocation Effect="KelThuzadChainsLinkInitialCP" Value="TargetUnit" />
+    </SourceOffset>
+    <TargetOffset OffsetType="OffsetByUnitRadius">
+      <WhichLocation Effect="KelThuzadChainsLinkInitialCP" Value="TargetUnitOrPoint" />
+      <OffsetVectorStartLocation Effect="KelThuzadChainsLinkEnemySearchImpactSet" Value="TargetUnit" />
+      <OffsetVectorEndLocation Effect="KelThuzadChainsLinkInitialCP" Value="TargetUnit" />
+    </TargetOffset>
+  </CEffectApplyOffset>
+  <CEffectApplyOffset id="KelThuzadChainsLinkCreatePullPointAtTargetRadius">
+    <Effect value="KelThuzadChainLinkPullPointSet" />
+    <SourceOffset>
+      <WhichLocation Effect="KelThuzadChainsLinkEnemySearchImpactSet" Value="TargetUnitOrPoint" />
+      <OffsetVectorStartLocation Effect="KelThuzadChainsLinkInitialCP" Value="TargetUnit" />
+      <OffsetVectorEndLocation Effect="KelThuzadChainsLinkEnemySearchImpactSet" Value="TargetUnit" />
+    </SourceOffset>
+    <TargetOffset OffsetType="OffsetByUnitRadius">
+      <WhichLocation Effect="KelThuzadChainsLinkEnemySearchImpactSet" Value="TargetUnitOrPoint" />
+      <OffsetVectorStartLocation Effect="KelThuzadChainsLinkInitialCP" Value="TargetUnit" />
+      <OffsetVectorEndLocation Effect="KelThuzadChainsLinkEnemySearchImpactSet" Value="TargetUnit" />
+    </TargetOffset>
+  </CEffectApplyOffset>
+  <CEffectCreatePersistent id="KelThuzadChainsLinkCreatePullPointAtMiddle">
+    <WhichLocation>
+      <Effect value="KelThuzadChainsLinkInitialCP" />
+      <Value value="TargetPoint" />
+      <ProjectionMultiplier value="0.5" />
+      <ProjectionSourceEffect value="KelThuzadChainsLinkInitialCP" />
+      <ProjectionSourceValue value="TargetPoint" />
+      <ProjectionTargetEffect value="KelThuzadChainsLinkEnemySearchImpactSet" />
+      <ProjectionTargetValue value="TargetUnit" />
+    </WhichLocation>
+    <InitialEffect value="KelThuzadChainLinkPullPointSet" />
+  </CEffectCreatePersistent>
+  <CEffectCreatePersistent id="KelThuzadChainsLinkCreatePullPointAtHost">
+    <WhichLocation Effect="KelThuzadChainsLinkInitialCP" Value="TargetUnit" />
+    <InitialEffect value="KelThuzadChainLinkPullPointSet" />
+  </CEffectCreatePersistent>
+  <CEffectCreatePersistent id="KelThuzadChainsLinkCreatePullPointAtTarget">
+    <WhichLocation Effect="KelThuzadChainsLinkEnemySearchImpactSet" Value="TargetUnit" />
+    <InitialEffect value="KelThuzadChainLinkPullPointSet" />
+  </CEffectCreatePersistent>
+  <CEffectSet id="KelThuzadChainLinkPullPointSet">
+    <TargetLocationType value="Point" />
+    <EffectArray value="KelThuzadChainsLinkCreatePushEffectAtHost" />
+    <EffectArray value="KelThuzadChainsLinkCreatePushEffectAtTarget" />
+  </CEffectSet>
+  <CEffectCreatePersistent id="KelThuzadChainsLinkCreatePushEffectAtHost">
+    <ValidatorArray value="KelThuzadChainsLinkHostUnitValid" />
+    <WhichLocation Effect="KelThuzadChainsLinkInitialCP" Value="TargetUnit" />
+    <InitialEffect value="KelThuzadChainsPullTargetSet" />
+  </CEffectCreatePersistent>
+  <CEffectCreatePersistent id="KelThuzadChainsLinkCreatePushEffectAtTarget">
+    <ValidatorArray value="KelThuzadChainsLinkTargetUnitValid" />
+    <WhichLocation Effect="KelThuzadChainsLinkEnemySearchImpactSet" Value="TargetUnit" />
+    <InitialEffect value="KelThuzadChainsPullTargetSet" />
+  </CEffectCreatePersistent>
+  <CEffectSet id="KelThuzadChainsPullTargetSet">
+    <EffectArray value="HeroRemovePushPullDebuffs" />
+    <EffectArray value="HeroRemovePreventsMovement" />
+    <EffectArray value="KelThuzadChainsPullApplyNewBehavior" />
+    <EffectArray value="KelThuzadBarbedChainsApplyArmorReduction" />
+    <EffectArray value="KelThuzadStripShieldsApplyShield" />
+    <EffectArray value="KelThuzadPowerOfIcecrownApply" />
+  </CEffectSet>
+  <CEffectApplyBehavior id="KelThuzadBarbedChainsApplyArmorReduction">
+    <ValidatorArray value="KelThuzadHasBarbedChains" />
+    <ValidatorArray value="KelThuzadMasterOfTheColdDarkComplete" />
+    <Behavior value="KelThuzadBarbedChainsArmorDecrease" />
+  </CEffectApplyBehavior>
+  <CEffectApplyBehavior id="KelThuzadStripShieldsApplyShield">
+    <ValidatorArray value="KelThuzadHasStripShields" />
+    <WhichUnit Value="Caster" />
+    <Behavior value="KelThuzadStripShieldsShield" />
+  </CEffectApplyBehavior>
+  <CEffectApplyBehavior id="KelThuzadChainsPullApplyNewBehavior">
+    <Behavior value="KelThuzadChainsPullTargetNew" />
+  </CEffectApplyBehavior>
+  <CEffectSet id="KelThuzadChainsPullBehaviorInitialSet">
+    <EffectArray value="KelThuzadChainsTargetRevealerRemove" />
+    <EffectArray value="KelThuzadChainsPullApplyForceNew" />
+  </CEffectSet>
+  <CEffectApplyForce id="KelThuzadChainsPullApplyForceNew">
+    <ValidatorArray value="KelThuzadChainsPullDistanceCheckNew" />
+    <WhichLocation Effect="KelThuzadChainLinkPullPointSet" Value="TargetPoint" />
+    <Amount value="-10" />
+  </CEffectApplyForce>
   <CEffectSet id="KelThuzadChainsLinkSet">
     <EffectArray value="KelThuzadChainsHost" />
     <EffectArray value="KelThuzadChainsTarget" />
@@ -5044,6 +5162,98 @@
     <Compare value="GE" />
     <WhichUnit Value="Caster" />
   </CValidatorUnitCompareBehaviorCount>
+  <CValidatorCombine id="KelThuzadChainsLinkHostIsValidAndTargetIsInvalid">
+    <Type value="And" />
+    <CombineArray value="KelThuzadChainsLinkHostUnitValid" />
+    <CombineArray value="KelThuzadChainsLinkTargetInvalid" />
+  </CValidatorCombine>
+  <CValidatorCombine id="KelThuzadChainsLinkHostIsInvalidAndTargetIsValid">
+    <Type value="And" />
+    <CombineArray value="KelThuzadChainsLinkHostInvalid" />
+    <CombineArray value="KelThuzadChainsLinkTargetUnitValid" />
+  </CValidatorCombine>
+  <CValidatorUnitFilters id="KelThuzadChainsLinkHostUnitValid">
+    <WhichUnit Effect="KelThuzadChainsLinkInitialCP" />
+    <Filters value="$KelThuzadChainsLinkFilter" />
+  </CValidatorUnitFilters>
+  <CValidatorCombine id="KelThuzadChainsLinkHostInvalid">
+    <CombineArray value="KelThuzadChainsLinkHostUnitValid" />
+    <Negate value="1" />
+  </CValidatorCombine>
+  <CValidatorUnitFilters id="KelThuzadChainsLinkTargetUnitValid">
+    <WhichUnit Effect="KelThuzadChainsLinkEnemySearchImpactSet" />
+    <Filters value="$KelThuzadChainsLinkFilter" />
+  </CValidatorUnitFilters>
+  <CValidatorCombine id="KelThuzadChainsLinkTargetInvalid">
+    <CombineArray value="KelThuzadChainsLinkTargetUnitValid" />
+    <Negate value="1" />
+  </CValidatorCombine>
+  <CValidatorUnitCompareBehaviorCount id="KelThuzadChainsLinkTargetIsTownWall">
+    <WhichUnit Effect="KelThuzadChainsLinkEnemySearchImpactSet" />
+    <Value value="1" />
+    <Behavior value="TownWallBehavior" />
+  </CValidatorUnitCompareBehaviorCount>
+  <CValidatorUnitCompareBehaviorCount id="KelThuzadChainsLinkTargetIsTownGate">
+    <WhichUnit Effect="KelThuzadChainsLinkEnemySearchImpactSet" />
+    <Value value="1" />
+    <Behavior value="TownGateBehavior" />
+  </CValidatorUnitCompareBehaviorCount>
+  <CValidatorUnitCompareBehaviorCount id="KelThuzadChainsLinkHostIsTownWall">
+    <WhichUnit Effect="KelThuzadChainsLinkInitialCP" />
+    <Value value="1" />
+    <Behavior value="TownWallBehavior" />
+  </CValidatorUnitCompareBehaviorCount>
+  <CValidatorUnitCompareBehaviorCount id="KelThuzadChainsLinkHostIsTownGate">
+    <WhichUnit Effect="KelThuzadChainsLinkInitialCP" />
+    <Value value="1" />
+    <Behavior value="TownGateBehavior" />
+  </CValidatorUnitCompareBehaviorCount>
+  <CValidatorCombine id="KelThuzadChainLinkHostIsTownWallOrGate">
+    <CombineArray value="KelThuzadChainsLinkHostIsTownWall" />
+    <CombineArray value="KelThuzadChainsLinkHostIsTownGate" />
+  </CValidatorCombine>
+  <CValidatorCombine id="KelThuzadChainLinkTargetIsTownWallOrGate">
+    <CombineArray value="KelThuzadChainsLinkTargetIsTownWall" />
+    <CombineArray value="KelThuzadChainsLinkTargetIsTownGate" />
+  </CValidatorCombine>
+  <CValidatorCombine id="KelThuzadChainsLinkHostIsTownGateOrWallAndTargetIsValid">
+    <Type value="And" />
+    <CombineArray value="KelThuzadChainLinkHostIsTownWallOrGate" />
+    <CombineArray value="KelThuzadChainsLinkTargetUnitValid" />
+  </CValidatorCombine>
+  <CValidatorCombine id="KelThuzadChainsLinkHostIsValidAndTargetIsTownGateOrWall">
+    <Type value="And" />
+    <CombineArray value="KelThuzadChainsLinkHostUnitValid" />
+    <CombineArray value="KelThuzadChainLinkTargetIsTownWallOrGate" />
+  </CValidatorCombine>
+  <CValidatorCombine id="KelThuzadChainsLinkNoValidTargets">
+    <Type value="And" />
+    <CombineArray value="KelThuzadChainsLinkHostInvalid" />
+    <CombineArray value="KelThuzadChainsLinkTargetInvalid" />
+  </CValidatorCombine>
+  <CValidatorCombine id="KelThuzadChainsLinkHostIsValidAndTargetIsValid">
+    <Type value="And" />
+    <CombineArray value="KelThuzadChainsLinkHostUnitValid" />
+    <CombineArray value="KelThuzadChainsLinkTargetUnitValid" />
+  </CValidatorCombine>
+  <CValidatorLocationCompareRange id="KelThuzadChainsPullDistanceCheckNew">
+    <WhichLocation Effect="KelThuzadChainLinkPullPointSet" Value="TargetPoint" />
+    <Compare value="GT" />
+    <Range value="0.5" />
+    <Value Value="TargetUnit" />
+  </CValidatorLocationCompareRange>
+  <CValidatorUnitHasBehavior id="KelThuzadTargetHasFrostNovaRootIncludeDisabled">
+    <Behavior value="KelThuzadFrostNovaRoot" />
+    <IncludeDisabled value="1" />
+  </CValidatorUnitHasBehavior>
+  <CValidatorUnitHasBehavior id="KelThuzadTargetHasFrozenTombRootIncludeDisabled">
+    <Behavior value="KelThuzadFrozenTombRoot" />
+    <IncludeDisabled value="1" />
+  </CValidatorUnitHasBehavior>
+  <CValidatorCombine id="StormTargetHasRootCombineIncludeDisabled">
+    <CombineArray value="KelThuzadTargetHasFrostNovaRootIncludeDisabled" />
+    <CombineArray value="KelThuzadTargetHasFrozenTombRootIncludeDisabled" />
+  </CValidatorCombine>
   <CWeaponLegacy id="HeroKelThuzad" parent="StormHeroSlowWeapon">
     <Icon value="Assets\Textures\storm_temp_btn-upgrade-zerg-meleeattacks-level3.dds" />
     <DisplayEffect value="KelThuzadWeaponDamage" />

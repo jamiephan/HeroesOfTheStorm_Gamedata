@@ -1380,11 +1380,12 @@
     <Duration value="5" />
     <Period value="0.0625" />
     <InitialEffect value="ChenWanderingKegTargetSearch" />
-    <PeriodicEffect value="ChenWanderingKegTargetSearch" />
+    <PeriodicEffect value="ChenWanderingKegTargetSearchSet" />
     <FinalEffect value="ChenWanderingKegSetRemoveBehaviors" />
     <Modification>
       <StateFlags index="SuppressAttack" value="1" />
       <StateFlags index="SuppressCollision" value="1" />
+      <MoveSpeedMinimum value="$HeroBaseMovementSpeed" />
       <UnifiedMoveSpeedFactor value="0.7" />
       <AbilClassDisableArray index="CAbilAttack" value="1" />
       <AbilClassDisableArray index="CAbilEffectInstant" value="1" />
@@ -1420,11 +1421,14 @@
     <Duration value="1" />
   </CBehaviorBuff>
   <CBehaviorBuff id="ChenWanderingKegKnockback" parent="PushPullParent">
-    <Duration value="0.32" />
+    <Duration value="0.3125" />
+    <Period value="0.0625" />
     <Modification>
-      <MoveSpeedMaximum value="23" />
-      <MoveSpeedMinimum value="23" />
+      <MoveSpeedMaximum value="18.6" />
+      <MoveSpeedMinimum value="18.6" />
     </Modification>
+    <InitialEffect value="ChenWanderingKegApplyForce" />
+    <PeriodicEffect value="ChenWanderingKegApplyForce" />
   </CBehaviorBuff>
   <CBehaviorBuff id="ChenWanderingKegRecoilSlow">
     <Alignment value="Negative" />
@@ -1433,7 +1437,6 @@
     <BuffFlags index="RefreshStack" value="1" />
     <MaxStackCount value="6" />
     <Duration value="0.375" />
-    <InitialEffect value="ChenWanderingKegRecoilPersistent" />
     <Modification>
       <AdditiveMoveSpeedFactor value="-0.07" />
     </Modification>
@@ -2778,42 +2781,30 @@
     <Behavior value="ChenWanderingKegDontDie" />
   </CEffectApplyBehavior>
   <CEffectApplyForce id="ChenWanderingKegApplyForce">
-    <WhichLocation Effect="ChenWanderingKegDestinationSet" Value="TargetPoint" />
+    <WhichLocation Effect="ChenWanderingKegApplyKnockback" Value="TargetPoint" />
     <WhichUnit Effect="ChenWanderingKegImpactSet" />
-    <Amount value="-2" />
+    <Amount value="2" />
   </CEffectApplyForce>
   <CEffectApplyBehavior id="ChenWanderingKegApplyImmuneBehavior">
     <ValidatorArray index="0" value="NoChenPandamoniumImmune" />
     <Behavior value="ChenWanderingKegImmune" />
   </CEffectApplyBehavior>
+  <CEffectSet id="ChenWanderingKegApplyKnockbackSet">
+    <ValidatorArray value="TargetNotUnstoppable" />
+    <EffectArray value="HeroRemovePushPullDebuffs" />
+    <EffectArray value="HeroRemovePreventsMovement" />
+    <EffectArray value="ChenWanderingKegKnockbackCreationPersistent" />
+  </CEffectSet>
+  <CEffectCreatePersistent id="ChenWanderingKegKnockbackCreationPersistent">
+    <WhichLocation Value="CasterUnit" />
+    <OffsetVectorEndLocation Value="CasterUnit" />
+    <InitialEffect value="ChenWanderingKegApplyKnockback" />
+    <InitialOffset Y="0.75" />
+  </CEffectCreatePersistent>
   <CEffectApplyBehavior id="ChenWanderingKegApplyKnockback">
+    <WhichUnit Effect="ChenWanderingKegImpactSet" />
     <Behavior value="ChenWanderingKegKnockback" />
   </CEffectApplyBehavior>
-  <CEffectSet id="ChenWanderingKegBehaviorsSet">
-    <EffectArray value="HeroRemovePushPullDebuffs" />
-    <EffectArray value="ChenWanderingKegApplyKnockback" />
-    <EffectArray value="ChenWanderingKegApplyImmuneBehavior" />
-  </CEffectSet>
-  <CEffectSet id="ChenWanderingKegImpactPositionSet">
-    <EffectArray value="ChenWanderingKegDestinationOffsetPersistent" />
-    <TargetLocationType value="Point" />
-  </CEffectSet>
-  <CEffectCreatePersistent id="ChenWanderingKegDestinationOffsetPersistent">
-    <InitialEffect value="ChenWanderingKegDestinationSet" />
-    <InitialOffset Y="-8" />
-  </CEffectCreatePersistent>
-  <CEffectSet id="ChenWanderingKegDestinationSet">
-    <EffectArray value="ChenWanderingKegPersistent" />
-    <TargetLocationType value="Point" />
-  </CEffectSet>
-  <CEffectCreatePersistent id="ChenWanderingKegPersistent">
-    <WhichLocation Effect="ChenWanderingKegImpactSet" Value="TargetUnit" />
-    <InitialEffect value="ChenWanderingKegBehaviorsSet" />
-    <PeriodCount value="4" />
-    <PeriodicValidator value="HasWanderingKegKnockback" />
-    <PeriodicEffectArray value="ChenWanderingKegApplyForce" />
-    <PeriodicPeriodArray value="0.0625" />
-  </CEffectCreatePersistent>
   <CEffectModifyUnit id="ChenHearthstoneBrewRestore">
     <ValidatorArray value="CustomResourceUserIsChen" />
     <ImpactUnit Value="Caster" />
@@ -3060,8 +3051,9 @@
     <ValidatorArray value="TargetIsNotABossUnitOrMonsterMinorCombine" />
     <ValidatorArray value="CasterNotStasis" />
     <EffectArray value="ChenWanderingKegDamage" />
-    <EffectArray value="ChenWanderingKegImpactPositionSet" />
+    <EffectArray value="ChenWanderingKegApplyKnockbackSet" />
     <EffectArray value="ChenWanderingKegApplyRecoilSlowBehavior" />
+    <EffectArray value="ChenWanderingKegApplyImmuneBehavior" />
     <EffectArray value="DecloakCasterSet" />
   </CEffectSet>
   <CEffectSet id="ChenWanderingKegInitialSet">
@@ -3087,6 +3079,10 @@
     <EffectArray value="ChenWanderingKegApplyPostAbilityDousedBehavior" />
     <EffectArray value="ChenWanderingKegRemoveRecoilSlowBehavior" />
     <EffectArray value="ChenWanderingKegRemoveCursorController" />
+  </CEffectSet>
+  <CEffectSet id="ChenWanderingKegTargetSearchSet">
+    <EffectArray value="ChenWanderingKegRemoveRecoilStack" />
+    <EffectArray value="ChenWanderingKegTargetSearch" />
   </CEffectSet>
   <CEffectEnumArea id="ChenWanderingKegTargetSearch">
     <ImpactLocation Value="CasterUnit" />
@@ -4250,6 +4246,13 @@
         <Field value="ArmorModification.AllArmorBonus" />
         <Value value="50.000000" />
       </Modifications>
+      <Modifications>
+        <Type value="FlatModification" />
+        <Catalog value="Behavior" />
+        <Entry value="ChenWanderingKegRecoilSlow" />
+        <Field value="Modification.AdditiveMoveSpeedFactor" />
+        <Value value="-0.023000" />
+      </Modifications>
     </AbilityModificationArray>
   </CTalent>
   <CUnit id="ChenKegSmashKegTossMissile" parent="MISSILE_INVULNERABLE">
@@ -4396,6 +4399,13 @@
     <Find value="1" />
     <Value value="ChenEnergizingBrew" />
   </CValidatorPlayerTalent>
+  <CValidatorCombine id="StormTargetHasRootCombineIncludeDisabled">
+    <CombineArray value="ChenTargetHasEarthEmpoweredLeapRootIncludeDisabled" />
+  </CValidatorCombine>
+  <CValidatorUnitHasBehavior id="ChenTargetHasEarthEmpoweredLeapRootIncludeDisabled">
+    <Behavior value="ChenEarthEmpoweredLeapRoot" />
+    <IncludeDisabled value="1" />
+  </CValidatorUnitHasBehavior>
   <CValidatorCombine id="ChenHasStormEarthFireCasterBehaviorAndElementalConduitAndEarthButtonNotUsed">
     <Type value="And" />
     <CombineArray value="ChenEarthStormEarthFireEmpoweredElementalConduitButtonNotUsed" />

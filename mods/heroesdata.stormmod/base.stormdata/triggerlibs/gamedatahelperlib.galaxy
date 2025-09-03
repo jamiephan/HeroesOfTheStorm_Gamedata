@@ -22500,11 +22500,15 @@ bool libGDHL_gt_HeroStitchesFreeFishingHookTalent_Func (bool testConds, bool run
     // Variable Declarations
     int lv_player;
     unit lv_unit;
+    int lv_level;
+    int lv_max;
 
     // Automatic Variable Declarations
     // Variable Initialization
     lv_player = libGame_gf_HeroLevelUpPlayer();
     lv_unit = libGame_gv_players[lv_player].lv_heroUnit;
+    lv_level = libGame_gf_HeroLevelUpLevel();
+    lv_max = CatalogFieldValueGetAsInt(c_gameCatalogBehavior, "StitchesHookExtendedHookTokenCounter", "Max", 0);
 
     // Conditions
     if (testConds) {
@@ -22513,10 +22517,6 @@ bool libGDHL_gt_HeroStitchesFreeFishingHookTalent_Func (bool testConds, bool run
         }
 
         if (!((lv_player <= libCore_gv_bALMaxPlayers))) {
-            return false;
-        }
-
-        if (!((libGame_gf_HeroLevelUpLevel() >= 13))) {
             return false;
         }
 
@@ -22534,8 +22534,15 @@ bool libGDHL_gt_HeroStitchesFreeFishingHookTalent_Func (bool testConds, bool run
         return true;
     }
 
-    PlayerAddTalent(lv_player, "StitchesFishingHook");
-    UnitCreateEffectUnit(lv_unit, "StitchesHookLevel13ExtendedHookSet", lv_unit);
+    if ((UnitGetTokenCount(lv_unit, "StitchesHookExtendedHookTokenCounter") <= lv_max)) {
+        UnitSetTokenCount(lv_unit, "StitchesHookExtendedHookTokenCounter", lv_level, lv_unit);
+    }
+
+    if ((lv_level >= lv_max)) {
+        PlayerAddTalent(lv_player, "StitchesFishingHook");
+        UnitCreateEffectUnit(lv_unit, "StitchesHookLevel13ExtendedHookModifyPlayer", lv_unit);
+    }
+
     return true;
 }
 
@@ -22552,11 +22559,15 @@ bool libGDHL_gt_HeroStitchesResetFreeFishingHookTalent_Func (bool testConds, boo
     // Variable Declarations
     int lv_player;
     unit lv_unit;
+    int lv_level;
+    int lv_max;
 
     // Automatic Variable Declarations
     // Variable Initialization
     lv_player = UnitGetOwner(EventUnit());
     lv_unit = libGame_gv_players[lv_player].lv_heroUnit;
+    lv_level = UnitGetOwner(EventUnit());
+    lv_max = CatalogFieldValueGetAsInt(c_gameCatalogBehavior, "StitchesHookExtendedHookTokenCounter", "Max", 0);
 
     // Conditions
     if (testConds) {
@@ -22585,11 +22596,17 @@ bool libGDHL_gt_HeroStitchesResetFreeFishingHookTalent_Func (bool testConds, boo
     PlayerRemoveTalent(lv_player, "StitchesFishingHook");
     UnitCreateEffectUnit(lv_unit, "StitchesHookLevel13ExtendedHookResetPlayer", lv_unit);
     Wait(0.125, c_timeGame);
-    if ((UnitBehaviorCount(EventUnit(), "HeroDummyVeterancy") >= 13)) {
+    lv_level = UnitBehaviorCount(EventUnit(), "HeroDummyVeterancy");
+    if ((lv_level >= lv_max)) {
         PlayerAddTalent(lv_player, "StitchesFishingHook");
-        UnitCreateEffectUnit(lv_unit, "StitchesHookLevel13ExtendedHookSet", lv_unit);
+        UnitCreateEffectUnit(lv_unit, "StitchesHookLevel13ExtendedHookModifyPlayer", lv_unit);
     }
+    else {
+        if ((UnitGetTokenCount(lv_unit, "StitchesHookExtendedHookTokenCounter") < lv_max)) {
+            UnitSetTokenCount(lv_unit, "StitchesHookExtendedHookTokenCounter", lv_level, lv_unit);
+        }
 
+    }
     return true;
 }
 
@@ -25685,7 +25702,12 @@ bool libGDHL_gt_HeroZagaraBanelingBarrage_Func (bool testConds, bool runActions)
 
     libNtve_gf_UnitCreateFacingPoint(1, "ZagaraBaneling", c_unitCreateIgnorePlacement, lv_triggeringPlayer, libNtve_gf_PointOffsetTowardsPoint(UnitGetPosition(lv_zagara), 0.75, lv_targetPoint), lv_targetPoint, lv_zagara);
     lv_baneling = UnitLastCreated();
-    UnitBehaviorAdd(lv_baneling, "ZagaraBanelingExplode", lv_zagara, 1);
+    if ((EventPlayerEffectUsed() == "SummonBanelingsLaunchDummy")) {
+        UnitBehaviorAdd(lv_baneling, "ZagaraBanelingExplode", lv_zagara, 1);
+    }
+    else {
+        UnitBehaviorAdd(lv_baneling, "ZagaraBanelingExplodeBroodmother", lv_zagara, 1);
+    }
     SoundPlayOnUnit(SoundLink("Zagara_BanelingEgg_Explode", -1), PlayerGroupAll(), lv_baneling, 0.0, 100.0, 0.0);
     lv_forwardPoint = libNtve_gf_PointOffsetTowardsPoint(UnitGetPosition(lv_baneling), lv_movementIncrement, lv_targetPoint);
     UnitIssueOrder(lv_baneling, OrderTargetingPoint(AbilityCommand("move", 0), lv_forwardPoint), c_orderQueueReplace);
@@ -25712,6 +25734,7 @@ void libGDHL_gt_HeroZagaraBanelingBarrage_Init () {
     libGDHL_gt_HeroZagaraBanelingBarrage = TriggerCreate("libGDHL_gt_HeroZagaraBanelingBarrage_Func");
     TriggerEnable(libGDHL_gt_HeroZagaraBanelingBarrage, false);
     TriggerAddEventPlayerEffectUsed(libGDHL_gt_HeroZagaraBanelingBarrage, c_playerAny, "SummonBanelingsLaunchDummy");
+    TriggerAddEventPlayerEffectUsed(libGDHL_gt_HeroZagaraBanelingBarrage, c_playerAny, "SummonBanelingsBroodmotherLaunchDummy");
 }
 
 //--------------------------------------------------------------------------------------------------

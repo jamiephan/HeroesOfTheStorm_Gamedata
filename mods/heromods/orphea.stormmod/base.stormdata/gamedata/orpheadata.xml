@@ -1384,14 +1384,15 @@
     <StartWalkingEffect value="OrpheaShadowWaltzStartWalkingDummySet" />
   </CBehaviorBuff>
   <CBehaviorBuff id="OrpheaChompKnockback" parent="PushPullParent">
-    <Duration value="0.25" />
+    <Duration value="0.1875" />
+    <Period value="0.0625" />
     <Modification>
       <ModifyFlags index="SuppressTurning" value="1" />
-      <MoveSpeedMaximum value="24" />
-      <MoveSpeedMinimum value="24" />
+      <MoveSpeedMaximum value="22" />
+      <MoveSpeedMinimum value="22" />
     </Modification>
-    <FinalEffect value="OrpheaChompFinalApply" />
-    <InitialEffect value="OrpheaChompKnockbackProbeApply" />
+    <InitialEffect value="OrpheaChompApplyForce" />
+    <PeriodicEffect value="OrpheaChompApplyForce" />
   </CBehaviorBuff>
   <CBehaviorPathingTypeProbes id="OrpheaChompKnockbackLocationPathable">
     <Offsets RelativeFacing="Unit">
@@ -1400,7 +1401,7 @@
     <HitMask index="Unpathable" value="1" />
     <HitMask index="Building" value="1" />
     <HitMask index="Cliff" value="1" />
-    <HitsChangedEffect value="OrpheaChompKnockbackRemove" />
+    <HitsChangedEffect value="OrpheaChompKnockbackRemoveSet" />
   </CBehaviorPathingTypeProbes>
   <CBehaviorBuff id="OrpheaShadowWaltzCooldown">
     <Alignment value="Positive" />
@@ -2094,7 +2095,6 @@
   <CEffectSet id="OrpheaChompInitialSet">
     <EffectArray value="LockFacingRemoveBehaviors" />
     <EffectArray value="LockFacingToPoint" />
-    <EffectArray value="OrpheaChompCreateKnockbackPoint" />
     <EffectArray value="OrpheaChompSearchArea" />
     <EffectArray value="OrpheaWeaponAddShortCooldown" />
     <TargetLocationType value="Point" />
@@ -2160,25 +2160,9 @@
     <EffectArray value="OrpheaOverflowingChaosChaoticAssaultTalentResetToken" />
     <ValidatorArray value="OrpheaHasMaxOverflowingChaos" />
   </CEffectSet>
-  <CEffectCreatePersistent id="OrpheaChompCreateKnockbackPoint">
-    <WhichLocation Value="CasterUnit" />
-    <InitialEffect value="OrpheaChompKnockbackPersistent" />
-    <OffsetVectorEndLocation Value="CasterUnit" />
-    <InitialOffset Y="9" />
-    <ValidatorArray value="OrpheaHasBackbiterTalent" />
-  </CEffectCreatePersistent>
-  <CEffectCreatePersistent id="OrpheaChompKnockbackPersistent">
-    <WhichLocation Value="CasterUnit" />
-    <InitialEffect value="OrpheaChompKnockbackPersistentInitialSet" />
-    <FinalEffect value="OrpheaChompKnockbackRemove" />
-    <PeriodCount value="5" />
-    <PeriodicEffectArray value="OrpheaChompApplyForce" />
-    <PeriodicPeriodArray value="0.0625" />
-    <PeriodicOffsetArray Y="9" />
-    <OffsetVectorEndLocation Value="CasterUnit" />
-  </CEffectCreatePersistent>
-  <CEffectSet id="OrpheaChompKnockbackPersistentInitialSet">
-    <EffectArray value="HeroRemovePushPullDebuffs" />
+  <CEffectSet id="OrpheaChompKnockbackRemoveSet">
+    <EffectArray value="OrpheaChompKnockbackRemove" />
+    <EffectArray value="OrpheaChompKnockbackLocationPathableRemove" />
   </CEffectSet>
   <CEffectRemoveBehavior id="OrpheaChompKnockbackRemove">
     <BehaviorLink value="OrpheaChompKnockback" />
@@ -2190,27 +2174,41 @@
     <BehaviorLink value="OrpheaChompKnockback" />
     <ValidatorArray value="OrpheaKnockbackLocationPathable" />
   </CEffectRemoveBehavior>
+  <CEffectSet id="OrpheaBackbiterApplySet">
+    <ValidatorArray value="TargetIsHero" />
+    <ValidatorArray value="OrpheaHasBackbiterTalent" />
+    <ValidatorArray value="OrpheaDoesNotHaveChompBackbiterForce" />
+    <EffectArray value="HeroRemovePushPullDebuffsCaster" />
+    <EffectArray value="OrpheaChompKnockbackProbeApply" />
+    <EffectArray value="OrpheaChompKnockbackApply" />
+  </CEffectSet>
   <CEffectApplyBehavior id="OrpheaChompKnockbackApply">
     <Behavior value="OrpheaChompKnockback" />
     <WhichUnit Value="Caster" />
-    <ValidatorArray value="TargetIsHero" />
-    <ValidatorArray value="OrpheaHasBackbiterTalent" />
   </CEffectApplyBehavior>
   <CEffectApplyBehavior id="OrpheaChompKnockbackProbeApply">
     <Behavior value="OrpheaChompKnockbackLocationPathable" />
     <WhichUnit Value="Caster" />
-    <ValidatorArray value="TargetIsHero" />
-    <ValidatorArray value="OrpheaHasBackbiterTalent" />
   </CEffectApplyBehavior>
   <CEffectApplyBehavior id="OrpheaChompFinalApply">
     <Behavior value="OrpheaChompFinal" />
     <WhichUnit Value="Caster" />
   </CEffectApplyBehavior>
   <CEffectApplyForce id="OrpheaChompApplyForce">
+    <WhichLocation>
+      <Value value="OriginPoint" />
+      <Effect value="OrpheaChompInitialSet" />
+      <ProjectionMultiplier value="1" />
+      <ProjectionSourceEffect value="OrpheaChompInitialSet" />
+      <ProjectionSourceValue value="OriginPoint" />
+      <ProjectionTargetEffect value="OrpheaChompInitialSet" />
+      <ProjectionTargetValue value="TargetPoint" />
+      <UsesLineDash value="1" />
+      <LineDashType value="AllowedInUnpathable" />
+      <ProjectionDistanceScale value="8" />
+    </WhichLocation>
     <WhichUnit Value="Caster" />
     <Amount value="5" />
-    <ValidatorArray value="OrpheaHasChompKnockback" />
-    <WhichLocation Effect="OrpheaChompCreateKnockbackPoint" Value="TargetPoint" />
   </CEffectApplyForce>
   <CEffectDamage id="OrpheaChompDamage" parent="StormSpell">
     <Amount value="305" />
@@ -2222,7 +2220,7 @@
     <ImpactUnit Value="Caster" />
   </CEffectModifyUnit>
   <CEffectSet id="OrpheaChompSearchImpactSet">
-    <EffectArray value="OrpheaChompKnockbackApply" />
+    <EffectArray value="OrpheaBackbiterApplySet" />
     <EffectArray value="OrpheaRavenousHungerImpactSet" />
     <EffectArray value="OrpheaChompDamage" />
     <EffectArray value="OrpheaChompAbyssalSymbiosisTalentProcSet" />
@@ -4016,6 +4014,10 @@
     <Value value="1" />
     <Behavior value="OrpheaChompKnockback" />
     <WhichUnit Value="Caster" />
+  </CValidatorUnitCompareBehaviorCount>
+  <CValidatorUnitCompareBehaviorCount id="OrpheaDoesNotHaveChompBackbiterForce">
+    <WhichUnit Value="Caster" />
+    <Behavior value="OrpheaChompKnockback" />
   </CValidatorUnitCompareBehaviorCount>
   <CValidatorUnitCompareWeaponLegacyState id="OrpheaWeaponNotInSwing">
     <Compare value="NE" />

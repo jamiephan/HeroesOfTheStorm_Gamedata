@@ -1299,12 +1299,21 @@
     <FinalEffect value="EarthquakeModifyUnitCCInterruption" />
   </CBehaviorBuff>
   <CBehaviorBuff id="ThrallFeralSpiritImpactMarker" />
-  <CBehaviorBuff id="ThrallSunderingForceSpeed" parent="PushPullParent">
-    <Duration value="0.25" />
+  <CBehaviorBuff id="ThrallSunderingPushParent" parent="PushPullParent">
+    <Duration value="0.1875" />
+    <Period value="0.0625" />
     <Modification>
-      <MoveSpeedMaximum value="30" />
-      <MoveSpeedMinimum value="30" />
+      <MoveSpeedMaximum value="24" />
+      <MoveSpeedMinimum value="24" />
     </Modification>
+  </CBehaviorBuff>
+  <CBehaviorBuff id="ThrallSunderingRightPush" parent="ThrallSunderingPushParent">
+    <InitialEffect value="ThrallSunderingApplyForceRight" />
+    <PeriodicEffect value="ThrallSunderingApplyForceRight" />
+  </CBehaviorBuff>
+  <CBehaviorBuff id="ThrallSunderingLeftPush" parent="ThrallSunderingPushParent">
+    <InitialEffect value="ThrallSunderingApplyForceLeft" />
+    <PeriodicEffect value="ThrallSunderingApplyForceLeft" />
   </CBehaviorBuff>
   <CBehaviorBuff id="ThrallSunderingSuppressCollision">
     <Duration value="0.125" />
@@ -2728,26 +2737,6 @@
   <CEffectCreateHealer id="ThrallFeralSpiritCreateHealer" parent="StormSelfOnlyHealingSpell">
     <RechargeVitalRate value="130" />
   </CEffectCreateHealer>
-  <CEffectApplyForce id="SunderingApplyForceLeft">
-    <WhichLocation Value="TargetPoint" />
-    <WhichUnit Effect="SunderingForceOffsetPersistentLeft" />
-    <Amount value="-20" />
-    <ValidatorArray value="TargetofSunderingForceOffsetLeftPersistentNotUnstoppable" />
-  </CEffectApplyForce>
-  <CEffectCreatePersistent id="SunderingForceOffsetPersistentRight">
-    <WhichLocation Value="TargetUnit" />
-    <InitialEffect value="SunderingForcePersistentRight" />
-    <InitialOffset X="-5" />
-    <OffsetVectorStartLocation Value="TargetPoint" />
-    <ValidatorArray value="TargetNotUnstoppable" />
-  </CEffectCreatePersistent>
-  <CEffectCreatePersistent id="SunderingForcePersistentLeft">
-    <InitialEffect value="SunderingApplyForceLeft" />
-    <PeriodCount value="4" />
-    <PeriodicValidator value="HasSunderingKnockbackLeft" />
-    <PeriodicEffectArray value="SunderingApplyForceLeft" />
-    <PeriodicPeriodArray value="0.0625" />
-  </CEffectCreatePersistent>
   <CEffectCreatePersistent id="ThrallSunderingMissilePersistent">
     <WhichLocation Value="SourceUnit" />
     <OffsetFacingFallback Value="OriginUnit" />
@@ -2756,31 +2745,8 @@
     <PeriodicPeriodArray value="0.0625" />
     <InitialEffect value="ThrallSunderingWorldbreakerTalentMissilePersistent" />
   </CEffectCreatePersistent>
-  <CEffectCreatePersistent id="SunderingForceOffsetPersistentLeft">
-    <WhichLocation Value="TargetUnit" />
-    <InitialEffect value="SunderingForcePersistentLeft" />
-    <InitialOffset X="5" />
-    <OffsetVectorStartLocation Value="TargetPoint" />
-    <ValidatorArray value="TargetNotUnstoppable" />
-  </CEffectCreatePersistent>
-  <CEffectApplyForce id="SunderingApplyForceRight">
-    <WhichLocation Value="TargetPoint" />
-    <WhichUnit Effect="SunderingForceOffsetPersistentRight" />
-    <Amount value="-20" />
-    <ValidatorArray value="TargetofSunderingForceOffsetRightPersistentNotUnstoppable" />
-  </CEffectApplyForce>
-  <CEffectApplyBehavior id="SunderingApplyForceSpeed">
-    <Behavior value="ThrallSunderingForceSpeed" />
-  </CEffectApplyBehavior>
   <CEffectCreatePersistent id="SunderingDummyPersistent">
     <WhichLocation Value="SourcePoint" />
-  </CEffectCreatePersistent>
-  <CEffectCreatePersistent id="SunderingForcePersistentRight">
-    <InitialEffect value="SunderingApplyForceRight" />
-    <PeriodCount value="4" />
-    <PeriodicValidator value="HasSunderingKnockbackRight" />
-    <PeriodicEffectArray value="SunderingApplyForceRight" />
-    <PeriodicPeriodArray value="0.0625" />
   </CEffectCreatePersistent>
   <CEffectEnumArea id="SunderingImpactSearchRight">
     <LaunchLocation Effect="ThrallSunderingMissileRightPersistent" Value="OriginPoint" />
@@ -2796,13 +2762,12 @@
   </CEffectEnumArea>
   <CEffectSet id="SunderingImpactSetRight">
     <ValidatorArray value="noMarkers" />
-    <EffectArray value="HeroRemovePushPullDebuffs" />
-    <EffectArray value="SunderingApplyForceSpeed" />
     <EffectArray value="SunderingApplyStun" />
-    <EffectArray value="SunderingForceOffsetPersistentRight" />
+    <EffectArray value="ThrallSunderingKnockbackInitialSetRight" />
     <EffectArray value="SunderingDamage" />
     <EffectArray value="ThrallSunderingWorldbreakerTalentSet" />
     <EffectArray value="ThrallFrostwolfResilienceImpactSwitch" />
+    <EffectArray value="ApplyAbilityImpactReveal" />
   </CEffectSet>
   <CEffectCreatePersistent id="ThrallSunderingMissileRightPersistent">
     <InitialEffect value="SunderingImpactSearchRight" />
@@ -3142,13 +3107,12 @@
   </CEffectApplyBehavior>
   <CEffectSet id="SunderingImpactSetLeft">
     <ValidatorArray value="noMarkers" />
-    <EffectArray value="HeroRemovePushPullDebuffs" />
-    <EffectArray value="SunderingApplyForceSpeed" />
     <EffectArray value="SunderingApplyStun" />
-    <EffectArray value="SunderingForceOffsetPersistentLeft" />
+    <EffectArray value="ThrallSunderingKnockbackInitialSetLeft" />
     <EffectArray value="SunderingDamage" />
     <EffectArray value="ThrallSunderingWorldbreakerTalentSet" />
     <EffectArray value="ThrallFrostwolfResilienceImpactSwitch" />
+    <EffectArray value="ApplyAbilityImpactReveal" />
   </CEffectSet>
   <CEffectApplyBehavior id="WindfuryStacksApplyStackBehavior">
     <WhichUnit Value="Caster" />
@@ -3223,6 +3187,50 @@
     <AmmoUnit value="ThrallSunderingMissile" />
     <ImpactRange value="0.375" />
   </CEffectLaunchMissile>
+  <CEffectSet id="ThrallSunderingKnockbackInitialSetRight">
+    <ValidatorArray value="TargetNotUnstoppable" />
+    <EffectArray value="HeroRemovePushPullDebuffs" />
+    <EffectArray value="HeroRemovePreventsMovement" />
+    <EffectArray value="ThrallSunderingRightPushCreationPersistent" />
+  </CEffectSet>
+  <CEffectCreatePersistent id="ThrallSunderingRightPushCreationPersistent">
+    <OffsetVectorStartLocation Effect="ThrallSunderingInitialSet" Value="OriginPoint" />
+    <OffsetVectorEndLocation Effect="ThrallSunderingLaunchPersistent" Value="TargetPoint" />
+    <WhichLocation Effect="ThrallSunderingKnockbackInitialSetRight" Value="TargetUnit" />
+    <InitialEffect value="ThrallSunderingRightPushApply" />
+    <InitialOffset X="5" />
+  </CEffectCreatePersistent>
+  <CEffectApplyBehavior id="ThrallSunderingRightPushApply">
+    <WhichUnit Effect="ThrallSunderingKnockbackInitialSetRight" />
+    <Behavior value="ThrallSunderingRightPush" />
+  </CEffectApplyBehavior>
+  <CEffectApplyForce id="ThrallSunderingApplyForceRight">
+    <Amount value="20" />
+    <WhichUnit Effect="ThrallSunderingKnockbackInitialSetRight" />
+    <WhichLocation Effect="ThrallSunderingRightPushApply" Value="TargetPoint" />
+  </CEffectApplyForce>
+  <CEffectSet id="ThrallSunderingKnockbackInitialSetLeft">
+    <ValidatorArray value="TargetNotUnstoppable" />
+    <EffectArray value="HeroRemovePushPullDebuffs" />
+    <EffectArray value="HeroRemovePreventsMovement" />
+    <EffectArray value="ThrallSunderingLeftPushCreationPersistent" />
+  </CEffectSet>
+  <CEffectCreatePersistent id="ThrallSunderingLeftPushCreationPersistent">
+    <OffsetVectorStartLocation Effect="ThrallSunderingInitialSet" Value="OriginPoint" />
+    <OffsetVectorEndLocation Effect="ThrallSunderingLaunchPersistent" Value="TargetPoint" />
+    <WhichLocation Effect="ThrallSunderingKnockbackInitialSetLeft" Value="TargetUnit" />
+    <InitialEffect value="ThrallSunderingLeftPushApply" />
+    <InitialOffset X="-5" />
+  </CEffectCreatePersistent>
+  <CEffectApplyBehavior id="ThrallSunderingLeftPushApply">
+    <WhichUnit Effect="ThrallSunderingKnockbackInitialSetLeft" />
+    <Behavior value="ThrallSunderingLeftPush" />
+  </CEffectApplyBehavior>
+  <CEffectApplyForce id="ThrallSunderingApplyForceLeft">
+    <Amount value="20" />
+    <WhichUnit Effect="ThrallSunderingKnockbackInitialSetLeft" />
+    <WhichLocation Effect="ThrallSunderingLeftPushApply" Value="TargetPoint" />
+  </CEffectApplyForce>
   <CEffectSet id="ThrallHeroWeaponImpactSet">
     <EffectArray value="TalentBucketFollowThroughCasterBlindedRemoveBehavior" />
     <EffectArray value="UniversalWeaponImpact" />
@@ -4174,16 +4182,6 @@
     <Find value="1" />
     <Value value="ThrallCrashLightning" />
   </CValidatorPlayerTalent>
-  <CValidatorUnitCompareBehaviorCount id="HasSunderingKnockbackRight">
-    <WhichUnit Effect="SunderingForceOffsetPersistentRight" />
-    <Value value="1" />
-    <Behavior value="ThrallSunderingForceSpeed" />
-  </CValidatorUnitCompareBehaviorCount>
-  <CValidatorUnitCompareBehaviorCount id="HasSunderingKnockbackLeft">
-    <WhichUnit Effect="SunderingForceOffsetPersistentLeft" />
-    <Value value="1" />
-    <Behavior value="ThrallSunderingForceSpeed" />
-  </CValidatorUnitCompareBehaviorCount>
   <CValidatorPlayerTalent id="CasterDoesNotHaveSpiritTotem">
     <WhichPlayer Value="Caster" />
     <Find value="1" />
@@ -4258,14 +4256,6 @@
   <CValidatorUnitType id="IsFeralSpiritMissile">
     <Value value="ThrallFeralSpiritMissile" />
   </CValidatorUnitType>
-  <CValidatorUnitFilters id="TargetofSunderingForceOffsetLeftPersistentNotUnstoppable">
-    <WhichUnit Effect="SunderingForceOffsetPersistentLeft" />
-    <Filters value="-;Unstoppable" />
-  </CValidatorUnitFilters>
-  <CValidatorUnitFilters id="TargetofSunderingForceOffsetRightPersistentNotUnstoppable">
-    <WhichUnit Effect="SunderingForceOffsetPersistentRight" />
-    <Filters value="-;Unstoppable" />
-  </CValidatorUnitFilters>
   <CValidatorUnitCompareBehaviorCount id="ThrallNoSunderingKnockback">
     <Behavior value="ThrallSunderingForceSpeed" />
   </CValidatorUnitCompareBehaviorCount>
@@ -4428,6 +4418,13 @@
     <CombineArray value="HasWindfuryEnabled" />
     <CombineArray value="NotTempestFuryProc" />
   </CValidatorCombine>
+  <CValidatorCombine id="StormTargetHasRootCombineIncludeDisabled">
+    <CombineArray value="ThrallTargetHasFeralSpiritRootIncludeDisabled" />
+  </CValidatorCombine>
+  <CValidatorUnitHasBehavior id="ThrallTargetHasFeralSpiritRootIncludeDisabled">
+    <Behavior value="ThrallFeralSpiritRoot" />
+    <IncludeDisabled value="1" />
+  </CValidatorUnitHasBehavior>
   <CWeaponLegacy id="ThrallHeroWeapon" parent="StormHeroMediumWeapon">
     <Options index="Melee" value="1" />
     <DisplayEffect value="ThrallWeaponAttackDamage" />

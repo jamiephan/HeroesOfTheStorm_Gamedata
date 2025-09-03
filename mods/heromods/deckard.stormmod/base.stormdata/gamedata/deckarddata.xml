@@ -846,7 +846,8 @@
     <Sound value="Deckard_Lorenado_Launch_Player_Alert" />
   </CActorSound>
   <CActorSound id="DeckardLorenadoImpactSound" parent="SoundOneShot">
-    <On Terms="Effect.DeckardLorenadoImpactPersistent.Start; At Target" Send="Create" />
+    <On Terms="Effect.DeckardLorenadoDamageSet.Start; At Target" Send="Create" />
+    <Terms value="Cap 5" />
     <Sound value="Deckard_Lorenado_Impact" />
   </CActorSound>
   <CActorSite id="DeckardLorenadoVectorLaunchSite">
@@ -1402,15 +1403,21 @@
     <PeriodCount value="96" />
     <Duration value="6" />
   </CBehaviorBuff>
+  <CBehaviorUnitTracker id="DeckardLorenadoHitTracker">
+    <MaxTrackedUnits value="30" />
+  </CBehaviorUnitTracker>
   <CBehaviorBuff id="DeckardLorenadoMissileDeathEarly">
     <Duration value="0.4375" />
   </CBehaviorBuff>
   <CBehaviorBuff id="DeckardLorenadoKnockbackBehavior" parent="PushPullParent">
-    <Duration value="0.1875" />
+    <Duration value="0.125" />
+    <Period value="0.0625" />
     <Modification>
-      <MoveSpeedMaximum value="18" />
-      <MoveSpeedMinimum value="18" />
+      <MoveSpeedMaximum value="14.65" />
+      <MoveSpeedMinimum value="14.65" />
     </Modification>
+    <InitialEffect value="DeckardLorenadoKnockbackApplyForce" />
+    <PeriodicEffect value="DeckardLorenadoKnockbackApplyForce" />
   </CBehaviorBuff>
   <CBehaviorBuff id="DeckardLorenadoTimedLife" parent="StormTimedLife">
     <DisplayDuration index="Self" value="0" />
@@ -2637,15 +2644,10 @@
   </CEffectApplyBehavior>
   <CEffectSet id="DeckardLorenadoImpactSet">
     <ValidatorArray value="TargetNotUnstoppable" />
-    <ValidatorArray value="DeckardTargetDoesNotHaveLorenadoKnockback" />
-    <EffectArray value="DismountDecloakTargetSet" />
-    <EffectArray value="HeroRemovePushPullDebuffs" />
-    <EffectArray value="DeckardLorenadoApplyKnocbackBehavior" />
-    <EffectArray value="DeckardLorenadoImpactPersistent" />
+    <EffectArray value="DeckardLorenadoKnockbackApplySet" />
     <EffectArray value="DeckardLorenadoMorenadosTalentModifyCooldown" />
     <EffectArray value="DeckardMorenadosCooldownApply" />
-    <EffectArray value="DeckardLorenadoImpactDamage" />
-    <EffectArray value="AbilityImpactRevealDummyDamage" />
+    <EffectArray value="DeckardLorenadoDamageSet" />
   </CEffectSet>
   <CEffectModifyUnit id="DeckardLorenadoMorenadosTalentModifyCooldown">
     <ValidatorArray value="DeckardMorenadosCooldownValidator" />
@@ -2653,27 +2655,51 @@
     <ImpactUnit Value="Caster" />
     <Cost Abil="DeckardLorenado,Execute" ChargeTimeUse="-10" CooldownOperation="Add" />
   </CEffectModifyUnit>
+  <CEffectApplyBehavior id="DeckardMorenadosCooldownApply">
+    <WhichUnit Value="Source" />
+    <Behavior value="DeckardMorenadosCooldown" />
+    <ValidatorArray index="0" value="DeckardMorenadosCooldownValidator" />
+  </CEffectApplyBehavior>
   <CEffectApplyBehavior id="DeckardLorenadoApplyKnocbackBehavior">
+    <WhichUnit Effect="DeckardLorenadoImpactSet" />
     <Behavior value="DeckardLorenadoKnockbackBehavior" />
   </CEffectApplyBehavior>
-  <CEffectCreatePersistent id="DeckardLorenadoImpactPersistent">
-    <InitialEffect value="DeckardLorenadoKnockbackPersistent" />
-    <InitialOffset Y="-5" />
+  <CEffectSet id="DeckardLorenadoKnockbackApplySet">
+    <EffectArray value="HeroRemovePushPullDebuffs" />
+    <EffectArray value="HeroRemovePreventsMovement" />
+    <EffectArray value="DeckardLorenadoKnockbackCreationPersistent" />
+  </CEffectSet>
+  <CEffectCreatePersistent id="DeckardLorenadoKnockbackCreationPersistent">
     <OffsetVectorEndLocation Value="TargetUnit" />
-  </CEffectCreatePersistent>
-  <CEffectCreatePersistent id="DeckardLorenadoKnockbackPersistent">
-    <PeriodCount value="14" />
-    <PeriodicEffectArray value="DeckardLorenadoKnockbackApplyForce" />
-    <PeriodicPeriodArray value="0.0625" />
-    <OffsetVectorEndLocation Value="TargetUnit" />
-    <PeriodicOffsetArray Y="-5" />
+    <InitialEffect value="DeckardLorenadoApplyKnocbackBehavior" />
+    <InitialOffset Y="10" />
   </CEffectCreatePersistent>
   <CEffectApplyForce id="DeckardLorenadoKnockbackApplyForce">
-    <WhichLocation Value="TargetPoint" />
-    <WhichUnit Effect="DeckardLorenadoImpactPersistent" />
-    <Amount value="-10" />
-    <ValidatorArray value="HasLorenadoKnockbackBehavior" />
+    <WhichLocation Effect="DeckardLorenadoApplyKnocbackBehavior" Value="TargetPoint" />
+    <WhichUnit Effect="DeckardLorenadoImpactSet" />
+    <Amount value="10" />
   </CEffectApplyForce>
+  <CEffectSet id="DeckardLorenadoDamageSet">
+    <ValidatorArray value="DeckardLorenadoTargetIsNotTrackedBySource" />
+    <EffectArray value="DeckardLorenadoImpactDamage" />
+    <EffectArray value="DeckardLorenadoImpactDamageCooldownPersistent" />
+  </CEffectSet>
+  <CEffectCreatePersistent id="DeckardLorenadoImpactDamageCooldownPersistent">
+    <WhichLocation Value="TargetUnit" />
+    <InitialEffect value="DeckardLorenadoAddUnitToTracker" />
+    <ExpireDelay value="0.1875" />
+    <FinalEffect value="DeckardLorenadoRemoveUnitFromTracker" />
+  </CEffectCreatePersistent>
+  <CEffectAddTrackedUnit id="DeckardLorenadoAddUnitToTracker">
+    <BehaviorLink value="DeckardLorenadoHitTracker" />
+    <TrackerUnit Value="Source" />
+    <TrackedUnit Value="Target" />
+  </CEffectAddTrackedUnit>
+  <CEffectRemoveTrackedUnit id="DeckardLorenadoRemoveUnitFromTracker">
+    <BehaviorLink value="DeckardLorenadoHitTracker" />
+    <TrackerUnit Value="Source" />
+    <TrackedUnit Value="Target" />
+  </CEffectRemoveTrackedUnit>
   <CEffectSet id="DeckardLorenadoCastSet">
     <EffectArray value="DeckardLorenadoCreateUnit" />
     <TargetLocationType value="Point" />
@@ -2865,11 +2891,6 @@
       <Radius value="1" />
     </AreaArray>
   </CEffectEnumArea>
-  <CEffectApplyBehavior id="DeckardMorenadosCooldownApply">
-    <WhichUnit Value="Caster" />
-    <Behavior value="DeckardMorenadosCooldown" />
-    <ValidatorArray index="0" value="DeckardMorenadosCooldownValidator" />
-  </CEffectApplyBehavior>
   <CEffectDamage id="DeckardHealingPotionSuicide" parent="StormSuicideParent">
     <Flags index="NoKillCredit" value="0" />
   </CEffectDamage>
@@ -3859,6 +3880,7 @@
     <Speed value="3" />
     <Acceleration value="5" />
     <BehaviorArray Link="DeckardLorenadoTimedLife" />
+    <BehaviorArray Link="DeckardLorenadoHitTracker" />
     <Mover value="Fly" />
     <FlagArray index="Unclickable" value="0" />
     <FlagArray index="Uncommandable" value="1" />
@@ -4174,6 +4196,11 @@
   <CValidatorUnitCompareBehaviorCount id="DeckardTargetDoesNotHaveLorenadoKnockback">
     <Behavior value="DeckardLorenadoKnockbackBehavior" />
   </CValidatorUnitCompareBehaviorCount>
+  <CValidatorIsUnitTracked id="DeckardLorenadoTargetIsNotTrackedBySource">
+    <BehaviorLink value="DeckardLorenadoHitTracker" />
+    <TrackerUnit Value="Source" />
+    <TrackedUnit Value="Target" />
+  </CValidatorIsUnitTracked>
   <CValidatorCombine id="DeckardHoradricStaffController">
     <CombineArray value="DeckardDoesNotHaveHoradricStaffActive" />
     <CombineArray value="DeckardDoesNotHaveHoradricStaffCooldown" />
@@ -4270,14 +4297,22 @@
     <CombineArray value="DeckardHasSafetyInNumbersTalent" />
     <CombineArray value="DeckardDoesNotHaveAncientBlessingsTalent" />
   </CValidatorCombine>
-  <CValidatorUnitCompareBehaviorCount id="DeckardDoesNotHaveMorenadosCooldown">
+  <CValidatorUnitCompareBehaviorCount id="DeckardSourceDoesNotHaveMorenadosCooldown">
     <Behavior value="DeckardMorenadosCooldown" />
-    <WhichUnit Value="Caster" />
+    <WhichUnit Value="Source" />
   </CValidatorUnitCompareBehaviorCount>
   <CValidatorCombine id="DeckardMorenadosCooldownValidator">
     <Type value="And" />
-    <CombineArray value="DeckardDoesNotHaveMorenadosCooldown" />
+    <CombineArray value="DeckardSourceDoesNotHaveMorenadosCooldown" />
     <CombineArray value="TargetIsHero" />
+    <CombineArray value="DeckardHasMorenadosTalent" />
+  </CValidatorCombine>
+  <CValidatorUnitHasBehavior id="DeckardTargetHasScrollOfSealingRootIncludeDisabled">
+    <Behavior value="DeckardScrollOfSealingRootBehavior" />
+    <IncludeDisabled value="1" />
+  </CValidatorUnitHasBehavior>
+  <CValidatorCombine id="StormTargetHasRootCombineIncludeDisabled">
+    <CombineArray value="DeckardTargetHasScrollOfSealingRootIncludeDisabled" />
   </CValidatorCombine>
   <CWeaponLegacy id="DeckardHealingPotionPickupWeapon">
     <Options index="ContinuousScan" value="1" />

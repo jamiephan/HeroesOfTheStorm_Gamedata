@@ -1129,8 +1129,7 @@
     <TrackingValidatorArray value="TargetHasButchersBrandTargetBehavior" />
     <UnitAddedAtMaxRule value="ReplaceOldest" />
   </CBehaviorUnitTracker>
-  <CBehaviorBuff id="RuthlessOnslaughtKnockupBehavior">
-    <RemoveValidatorArray value="TargetNotUnstoppable" />
+  <CBehaviorBuff id="RuthlessOnslaughtKnockupBehavior" parent="PushPullParent">
     <Duration value="0.125" />
     <Period value="0.0625" />
     <InitialEffect value="RuthlessOnslaughtApplyForce" />
@@ -1219,6 +1218,7 @@
     <MaxStackCount value="5" />
   </CBehaviorBuff>
   <CBehaviorBuff id="ButcherLambToTheSlaughterLMHookedStun" parent="PushPullParent">
+    <BehaviorCategories index="PushOrPull" value="0" />
     <Duration value="0.1875" />
     <Period value="0.0625" />
     <PeriodCount value="1" />
@@ -1535,7 +1535,7 @@
   </CEffectApplyBehavior>
   <CEffectSet id="ButcherRuthlessOnslaughtApplyStunSet">
     <EffectArray value="RuthlessOnslaughtImpactStunApplyBehavior" />
-    <EffectArray value="RuthlessOnslaughtApplyKnockupBehavior" />
+    <EffectArray value="ButcherRuthlessOnslaughtKnockbackApplySet" />
   </CEffectSet>
   <CEffectSet id="ButcherFreshMeat20StackImpactSet">
     <EffectArray value="ButcherFreshMeatStackAddSwitch" />
@@ -1973,6 +1973,12 @@
     <WhichLocation Value="CasterUnit" />
     <Amount value="10" />
   </CEffectApplyForce>
+  <CEffectSet id="ButcherRuthlessOnslaughtKnockbackApplySet">
+    <ValidatorArray value="TargetNotUnstoppable" />
+    <EffectArray value="HeroRemovePushPullDebuffs" />
+    <EffectArray value="HeroRemovePreventsMovement" />
+    <EffectArray value="RuthlessOnslaughtApplyKnockupBehavior" />
+  </CEffectSet>
   <CEffectApplyBehavior id="RuthlessOnslaughtApplyKnockupBehavior">
     <Behavior value="RuthlessOnslaughtKnockupBehavior" />
   </CEffectApplyBehavior>
@@ -2279,17 +2285,39 @@
     <Flags index="Placement" value="1" />
     <PlacementRange value="10" />
   </CEffectLaunchMissileAdvanced>
+  <CEffectLaunchMissileAdvanced id="ButcherLambToTheSlaughterPullInLMInstant">
+    <ImpactLocation Effect="ButcherLambToTheSlaughterPostCreateUnit" Value="TargetPoint" />
+    <LaunchLocation Effect="ButcherLambToTheSlaughterPostDistanceCheck" Value="TargetUnit" />
+    <Movers Link="ButcherLambToTheSlaughterPullInMissileShort" IfRangeLTE="5" />
+    <Movers Link="ButcherLambToTheSlaughterPullInMissileLong" IfRangeLTE="500" />
+    <DeathType value="Unknown" />
+    <ImpactOffset Y="1" />
+    <Flags index="Placement" value="1" />
+    <PlacementRange value="10" />
+  </CEffectLaunchMissileAdvanced>
   <CEffectRedirectMissile id="ButcherLambToTheSlaughterPullInRM">
     <ImpactLocation Effect="ButcherLambToTheSlaughterPostTargetLMHookedAB" Value="SourceUnit" />
     <Movers Link="MissileDefault" />
   </CEffectRedirectMissile>
   <CEffectSwitch id="ButcherLambToTheSlaughterPullInSwitch">
-    <CaseArray Validator="ButcherLambToTheSlaughterPullInSwitchCombine" Effect="ButcherLambToTheSlaughterPostTargetLMHookedAB" />
-    <CaseDefault value="ButcherLambToTheSlaughterPostTargetStunAB" />
+    <ValidatorArray value="ButcherLambToTheSlaughterTargetNotBeingPulledCombine" />
+    <CaseArray Validator="ButcherLambToTheSlaughterPullInSwitchCombine" Effect="ButcherLambToTheSlaughterLMApplySet" />
+    <CaseDefault value="ButcherLambToTheSlaughterKnockbackApplySet" />
   </CEffectSwitch>
+  <CEffectSet id="ButcherLambToTheSlaughterLMApplySet">
+    <EffectArray value="HeroRemovePushPullDebuffs" />
+    <EffectArray value="ButcherLambToTheSlaughterPostTargetLMHookedSwitch" />
+  </CEffectSet>
+  <CEffectSwitch id="ButcherLambToTheSlaughterPostTargetLMHookedSwitch">
+    <CaseArray Validator="TargetIsNotGroundMover" Effect="ButcherLambToTheSlaughterPostTargetLMHookedAB" />
+    <CaseDefault value="ButcherLambToTheSlaughterPullInLMInstant" />
+  </CEffectSwitch>
+  <CEffectSet id="ButcherLambToTheSlaughterKnockbackApplySet">
+    <EffectArray value="HeroRemovePushPullDebuffs" />
+    <EffectArray value="ButcherLambToTheSlaughterPostTargetStunAB" />
+  </CEffectSet>
   <CEffectApplyBehavior id="ButcherLambToTheSlaughterPostTargetStunAB">
     <Behavior value="ButcherLambToTheSlaughterHookedStun" />
-    <ValidatorArray index="0" value="TargetNotUnstoppable" />
   </CEffectApplyBehavior>
   <CEffectApplyForce id="ButcherLambToTheSlaughterHookedStunForce">
     <WhichLocation Effect="ButcherLambToTheSlaughterPostTargetStunAB" Value="SourceUnit" />
@@ -3418,6 +3446,27 @@
     <CombineArray value="TargetNotInDevouringMaw" />
     <CombineArray value="AnubarakTargetIsNotWebbed" />
   </CValidatorCombine>
+  <CValidatorCombine id="ButcherLambToTheSlaughterTargetNotBeingPulledCombine">
+    <Type value="And" />
+    <CombineArray value="ButcherLambToTheSlaughterTargetNotBeingPulled" />
+    <CombineArray value="ButcherLambToTheSlaughterTargetNotBeingPulledForce" />
+    <CombineArray value="ButcherLambToTheSlaughterTargetNotBeingPulledMoverShort" />
+    <CombineArray value="ButcherLambToTheSlaughterTargetNotBeingPulledMoverLong" />
+  </CValidatorCombine>
+  <CValidatorUnitHasBehavior id="ButcherLambToTheSlaughterTargetNotBeingPulled">
+    <Behavior value="ButcherLambToTheSlaughterLMHookedStun" />
+    <Negate value="1" />
+  </CValidatorUnitHasBehavior>
+  <CValidatorUnitHasBehavior id="ButcherLambToTheSlaughterTargetNotBeingPulledForce">
+    <Behavior value="ButcherLambToTheSlaughterHookedStun" />
+    <Negate value="1" />
+  </CValidatorUnitHasBehavior>
+  <CValidatorUnitMover id="ButcherLambToTheSlaughterTargetNotBeingPulledMoverShort">
+    <Value value="ButcherLambToTheSlaughterPullInMissileShort" />
+  </CValidatorUnitMover>
+  <CValidatorUnitMover id="ButcherLambToTheSlaughterTargetNotBeingPulledMoverLong">
+    <Value value="ButcherLambToTheSlaughterPullInMissileLong" />
+  </CValidatorUnitMover>
   <CValidatorUnitCompareBehaviorCount id="RuthlessOnslaughtDoesNotHaveChargingBehavior">
     <WhichUnit Value="Caster" />
     <Behavior value="ButcherRuthlessOnslaughtCaster" />

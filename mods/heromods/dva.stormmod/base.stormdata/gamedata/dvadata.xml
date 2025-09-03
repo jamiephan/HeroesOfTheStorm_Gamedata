@@ -2368,9 +2368,13 @@
     </Modification>
   </CBehaviorBuff>
   <CBehaviorBuff id="DVaPilotConcussivePulseKnockback" parent="PushPullParent">
+    <Duration value="0.1875" />
+    <Period value="0.0625" />
+    <InitialEffect value="DVaPilotConcussivePulseKnockbackApplyForce" />
+    <PeriodicEffect value="DVaPilotConcussivePulseKnockbackApplyForce" />
     <Modification>
-      <MoveSpeedMaximum value="14" />
-      <MoveSpeedMinimum value="14" />
+      <MoveSpeedMaximum value="11.75" />
+      <MoveSpeedMinimum value="11.75" />
     </Modification>
   </CBehaviorBuff>
   <CBehaviorBuff id="CapturePointAllowed">
@@ -4109,9 +4113,21 @@
     <WhichUnit Value="Caster" />
     <BehaviorLink value="DVaMechDefenseMatrixChannelling" />
   </CEffectRemoveBehavior>
+  <CEffectSet id="DVaBoostersKnockbackApplySet">
+    <ValidatorArray value="TargetNotUnstoppable" />
+    <EffectArray value="HeroRemovePushPullDebuffs" />
+    <EffectArray value="HeroRemovePreventsMovement" />
+    <EffectArray value="DVaBoostersKnockbackCreationPersistent" />
+  </CEffectSet>
+  <CEffectCreatePersistent id="DVaBoostersKnockbackCreationPersistent">
+    <WhichLocation Value="CasterPoint" />
+    <OffsetVectorEndLocation Value="CasterUnit" />
+    <InitialEffect value="DVaBoostersApplyKnockback" />
+    <InitialOffset Y="0.75" />
+  </CEffectCreatePersistent>
   <CEffectApplyBehavior id="DVaBoostersApplyKnockback">
+    <WhichUnit Effect="DVaBoostersImpactSet" />
     <Behavior value="DVaBoostersKnockback" />
-    <ValidatorArray index="0" value="TargetNotUnstoppable" />
   </CEffectApplyBehavior>
   <CEffectRemoveBehavior id="DVaBoostersRemoveBoosterBehavior">
     <WhichUnit Value="Caster" />
@@ -4171,8 +4187,7 @@
     <Behavior value="DVaMechBunnyHopSlow" />
   </CEffectApplyBehavior>
   <CEffectSet id="DVaBoostersImpactSet">
-    <EffectArray value="HeroRemovePushPullDebuffs" />
-    <EffectArray value="DVaBoostersApplyKnockback" />
+    <EffectArray value="DVaBoostersKnockbackApplySet" />
     <EffectArray value="DVaBoostersRushDownTalentDamage" />
     <EffectArray value="DVaBoostersImpactDamage" />
     <EffectArray value="DVaMechBoostersCrashCourseSwitch" />
@@ -4188,12 +4203,7 @@
     <Behavior value="DVaBoostersActive" />
   </CEffectApplyBehavior>
   <CEffectApplyForce id="DVaBoostersKnockbackForce">
-    <WhichLocation>
-      <Effect value="DVaBoostersImpactSearch" />
-      <Value value="TargetPoint" />
-      <ProjectionSourceEffect value="DVaBoostersImpactSearch" />
-      <ProjectionSourceValue value="SourcePoint" />
-    </WhichLocation>
+    <WhichLocation Effect="DVaBoostersApplyKnockback" Value="TargetPoint" />
     <WhichUnit Effect="DVaBoostersImpactSet" />
     <Amount value="75" />
   </CEffectApplyForce>
@@ -4598,8 +4608,20 @@
     <TargetLocationType value="Point" />
   </CEffectSet>
   <CEffectApplyForce id="DVaPilotConcussivePulseKnockbackApplyForce">
-    <WhichLocation Effect="DVaPilotConcussivePulseKnockbackPersistent" Value="CasterPoint" />
-    <WhichUnit Effect="DVaPilotConcussivePulseKnockbackPersistent" />
+    <WhichLocation>
+      <Value value="OriginPoint" />
+      <Effect value="DVaPilotConcussivePulseInitialSet" />
+      <ProjectionMultiplier value="1" />
+      <ProjectionSourceEffect value="DVaPilotConcussivePulseInitialSet" />
+      <ProjectionSourceValue value="OriginPoint" />
+      <ProjectionTargetEffect value="DVaPilotConcussivePulseInitialSet" />
+      <ProjectionTargetValue value="TargetPoint" />
+      <UsesLineDash value="1" />
+      <LineDashType value="AllowedInUnpathable" />
+      <ProjectionAngle value="180" />
+      <ProjectionDistanceScale value="2" />
+    </WhichLocation>
+    <WhichUnit Effect="DVaPilotConcussivePulseImpactSet" />
     <Amount value="10" />
   </CEffectApplyForce>
   <CEffectCreatePersistent id="DVaPilotConcussivePulseDelayPersistent">
@@ -4623,28 +4645,19 @@
   </CEffectEnumArea>
   <CEffectSet id="DVaPilotConcussivePulseImpactSet">
     <EffectArray value="DVaPilotConcussivePulseDamage" />
-    <EffectArray value="DVaPilotConcussivePulseKnockbackPersistent" />
+    <EffectArray value="DVaPilotConcussivePulseKnockbackSet" />
     <EffectArray value="ApplyAbilityImpactReveal" />
   </CEffectSet>
   <CEffectDamage id="DVaPilotConcussivePulseDamage" parent="StormSpell">
     <Amount value="120" />
   </CEffectDamage>
-  <CEffectCreatePersistent id="DVaPilotConcussivePulseKnockbackPersistent">
-    <ValidatorArray value="TargetNotUnstoppable" />
-    <WhichLocation Value="TargetUnit" />
-    <InitialEffect value="DVaPilotConcussivePulseKnockbackSet" />
-    <FinalEffect value="DVaPilotConcussivePulseKnockbackRemoveBehavior" />
-    <PeriodCount value="3" />
-    <PeriodicValidator value="DVaPilotConcussivePulseHasKnockback" />
-    <PeriodicEffectArray value="DVaPilotConcussivePulseKnockbackApplyForce" />
-    <PeriodicPeriodArray value="0.0625" />
-  </CEffectCreatePersistent>
   <CEffectSet id="DVaPilotConcussivePulseKnockbackSet">
+    <ValidatorArray value="TargetNotUnstoppable" />
     <EffectArray value="HeroRemovePushPullDebuffs" />
+    <EffectArray value="HeroRemovePreventsMovement" />
     <EffectArray value="DVaPilotConcussivePulseKnockbackApplyBehavior" />
   </CEffectSet>
   <CEffectApplyBehavior id="DVaPilotConcussivePulseKnockbackApplyBehavior">
-    <ValidatorArray index="0" value="TargetNotUnstoppable" />
     <Behavior value="DVaPilotConcussivePulseKnockback" />
   </CEffectApplyBehavior>
   <CEffectRemoveBehavior id="DVaPilotConcussivePulseKnockbackRemoveBehavior">

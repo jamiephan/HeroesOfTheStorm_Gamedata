@@ -1380,6 +1380,9 @@
   </CBehaviorBuff>
   <CBehaviorBuff id="MaievUmbralBindPull" parent="PushPullParent">
     <Duration value="0.25" />
+    <Period value="0.0625" />
+    <InitialEffect value="MaievUmbralBindPullApplyForce" />
+    <PeriodicEffect value="MaievUmbralBindPullApplyForce" />
     <ExpireEffect value="MaievUmbralBindApplyArrivalStunBehavior" />
     <Modification>
       <StateFlags index="OrdersPaused" value="1" />
@@ -1526,13 +1529,16 @@
   </CBehaviorTokenCounter>
   <CBehaviorBuff id="MaievWardensCagePush" parent="PushPullParent">
     <RemoveValidatorArray value="MaievTargetNotAtWardensCageCenter" />
-    <Duration value="0.375" />
+    <Duration value="0.3125" />
+    <Period value="0.0625" />
     <Modification>
       <Height value="1" />
       <HeightTime index="Start" value="0.0625" />
       <MoveSpeedMaximum value="27" />
       <MoveSpeedMinimum value="27" />
     </Modification>
+    <InitialEffect value="MaievWardensCagePushApplyForce" />
+    <PeriodicEffect value="MaievWardensCagePushApplyForce" />
   </CBehaviorBuff>
   <CBehaviorTokenCounter id="MaievUmbralBindBondsOfJusticeQuestToken" parent="StormQuestToken">
     <SortIndex value="10" />
@@ -1933,7 +1939,6 @@
   </CEffectSet>
   <CEffectApplyBehavior id="MaievUmbralBindBondsOfCorruptionSlowApplyBehavior">
     <ValidatorArray value="MaievHasUmbralBindBondsOfCorruptionTalent" />
-    <WhichUnit Effect="MaievUmbralBindPullCreatePersistent" />
     <Behavior value="MaievUmbralBindBondsOfCorruptionSlow" />
   </CEffectApplyBehavior>
   <CEffectModifyUnit id="MaievUmbralBindPursuitOfVengeanceUmbralBindModifyCooldown">
@@ -2353,31 +2358,32 @@
   <CEffectSet id="MaievUmbralBindPullSet">
     <ValidatorArray value="CasterNotDead" />
     <EffectArray value="MaievUmbralBindPullDamage" />
-    <EffectArray value="MaievUmbralBindPullCreatePersistent" />
+    <EffectArray value="MaievUmbralBindPullImpactKnockbackSet" />
     <EffectArray value="MaievShadowOrbShadowStrikeChargeModifyPlayer" />
     <EffectArray value="MaievSpiritOfVengeanceVengefulKnivesIncreaseTokenCount" />
   </CEffectSet>
-  <CEffectCreatePersistent id="MaievUmbralBindPullCreatePersistent">
+  <CEffectSet id="MaievUmbralBindPullImpactKnockbackSet">
     <ValidatorArray value="TargetNotUnstoppable" />
-    <ValidatorArray value="MaievUmbralBindTargetHasNoLeoricWraithWalkSlopBehavior" />
-    <WhichLocation Value="CasterPoint" />
-    <TimeScaleSource Value="Target" />
-    <InitialEffect value="MaievUmbralBindPullPersistentInitialSet" />
-    <PeriodCount value="4" />
-    <PeriodicValidator value="MaievTargetHasUmbralBindPullBehavior" />
-    <PeriodicEffectArray value="MaievUmbralBindPullApplyForce" />
-    <PeriodicPeriodArray value="0.0625" />
-  </CEffectCreatePersistent>
-  <CEffectSet id="MaievUmbralBindPullPersistentInitialSet">
-    <EffectArray value="MaievUmbralBindRemovePushPullDebuffs" />
-    <EffectArray value="MaievUmbralBindAbortMissileTarget" />
-    <EffectArray value="MaievUmbralBindPullApplyBehavior" />
+    <EffectArray value="HeroRemovePushPullDebuffs" />
+    <EffectArray value="HeroRemovePreventsMovement" />
+    <EffectArray value="MaievUmbralBindAbortMissile" />
+    <EffectArray value="MaievUmbralBindCreatePullPersistent" />
     <EffectArray value="MaievUmbralBindBondsOfCorruptionArmorDecreaseApplyBehavior" />
     <EffectArray value="MaievUmbralBindBondsOfCorruptionSlowApplyBehavior" />
   </CEffectSet>
+  <CEffectCreatePersistent id="MaievUmbralBindCreatePullPersistent">
+    <ValidatorArray value="MaievUmbralBindTargetHasNoLeoricWraithWalkSlopBehavior" />
+    <WhichLocation Value="CasterPoint" />
+    <InitialEffect value="MaievUmbralBindApplyPullBehavior" />
+    <ExpireDelay value="0.3125" />
+  </CEffectCreatePersistent>
+  <CEffectApplyBehavior id="MaievUmbralBindApplyPullBehavior">
+    <WhichUnit Effect="MaievUmbralBindPullImpactKnockbackSet" />
+    <Behavior value="MaievUmbralBindPull" />
+  </CEffectApplyBehavior>
   <CEffectApplyForce id="MaievUmbralBindPullApplyForce">
-    <WhichLocation Value="TargetPoint" />
-    <WhichUnit Effect="MaievUmbralBindPullCreatePersistent" />
+    <WhichLocation Effect="MaievUmbralBindApplyPullBehavior" Value="TargetPoint" />
+    <WhichUnit Effect="MaievUmbralBindPullImpactKnockbackSet" />
     <Amount value="-2" />
   </CEffectApplyForce>
   <CEffectApplyBehavior id="MaievUmbralBindPullApplyBehavior">
@@ -2625,13 +2631,12 @@
     <TimeScaleSource Value="Target" />
   </CEffectCreatePersistent>
   <CEffectApplyBehavior id="MaievUmbralBindBondsOfCorruptionArmorDecreaseApplyBehavior">
+    <ValidatorArray value="MaievHasUmbralBindBondsOfCorruptionTalent" />
     <Chance value="0" />
-    <WhichUnit Effect="MaievUmbralBindPullCreatePersistent" />
     <Behavior value="MaievUmbralBindBondsOfCorruptionArmorDecrease" />
   </CEffectApplyBehavior>
-  <CEffectAbortMissile id="MaievUmbralBindAbortMissileTarget">
-    <ValidatorArray value="MaievUmbralBindTargetMissileCanBeAborted" />
-    <WhichUnit Effect="MaievUmbralBindPullCreatePersistent" />
+  <CEffectAbortMissile id="MaievUmbralBindAbortMissile">
+    <ValidatorArray value="TargetCanBeAborted" />
   </CEffectAbortMissile>
   <CEffectCreatePersistent id="MaievWardensCageInitialPersistent">
     <OffsetVectorStartLocation Value="OriginPoint" />
@@ -2677,30 +2682,22 @@
   </CEffectDestroyPersistent>
   <CEffectSet id="MaievWardensCageImpactSet">
     <EffectArray value="DismountDecloakTargetSet" />
-    <EffectArray value="MaievWardensCagePushCreatePersistent" />
+    <EffectArray value="MaievWardensCagePushImpactKnockbackSet" />
     <EffectArray value="MaievWardensCageDestroyDelayPersistent" />
   </CEffectSet>
-  <CEffectCreatePersistent id="MaievWardensCagePushCreatePersistent">
+  <CEffectSet id="MaievWardensCagePushImpactKnockbackSet">
     <ValidatorArray value="TargetNotUnstoppable" />
-    <WhichLocation Value="TargetUnit" />
-    <TimeScaleSource Value="Target" />
-    <InitialEffect value="MaievWardensCagePushPersistentInitialSet" />
-    <PeriodCount value="6" />
-    <PeriodicValidator value="MaievTargetHasWardensCagePushBehavior" />
-    <PeriodicEffectArray value="MaievWardensCagePushApplyForce" />
-    <PeriodicPeriodArray value="0.0625" />
-  </CEffectCreatePersistent>
-  <CEffectSet id="MaievWardensCagePushPersistentInitialSet">
     <EffectArray value="HeroRemovePushPullDebuffs" />
+    <EffectArray value="HeroRemovePreventsMovement" />
     <EffectArray value="MaievWardensCagePushApplyBehavior" />
   </CEffectSet>
   <CEffectApplyBehavior id="MaievWardensCagePushApplyBehavior">
-    <WhichUnit Effect="MaievWardensCagePushCreatePersistent" />
     <Behavior value="MaievWardensCagePush" />
   </CEffectApplyBehavior>
   <CEffectApplyForce id="MaievWardensCagePushApplyForce">
+    <ValidatorArray value="MaievTargetNotAtWardensCageCenter" />
     <WhichLocation Value="OriginPoint" />
-    <WhichUnit Effect="MaievWardensCagePushCreatePersistent" />
+    <WhichUnit Effect="MaievWardensCagePushImpactKnockbackSet" />
     <Amount value="-2" />
   </CEffectApplyForce>
   <CEffectEnumArea id="MaievFanOfKnivesBladeDanceSearch">
@@ -3718,7 +3715,7 @@
     <Filters value="-;Unstoppable" />
   </CValidatorUnitFilters>
   <CValidatorUnitCompareBehaviorCount id="MaievUmbralBindTargetHasNoLeoricWraithWalkSlopBehavior">
-    <WhichUnit Effect="MaievUmbralBindPullCreatePersistent" />
+    <WhichUnit Effect="MaievUmbralBindPullImpactKnockbackSet" />
     <Behavior value="LeoricWraithWalkGameLoopSlop" />
   </CValidatorUnitCompareBehaviorCount>
   <CValidatorUnitCompareBehaviorCount id="MaievUmbralBindTargetMissileCanBeAborted">
@@ -3791,7 +3788,7 @@
     <WhichLocation Value="TargetUnit" />
     <Compare value="GT" />
     <Range value="0.1" />
-    <Value Effect="MaievWardensCagePushApplyBehavior" Value="OriginPoint" />
+    <Value Effect="MaievWardensCagePushImpactKnockbackSet" Value="OriginPoint" />
   </CValidatorLocationCompareRange>
   <CValidatorUnitCompareBehaviorCount id="MaievHasFanOfKnivesElunesWrathAvailable">
     <WhichUnit Value="Caster" />

@@ -1013,7 +1013,7 @@
     <DisableValidatorArray value="SourceNotDead" />
     <BuffFlags index="RemoveDamageResponseExhausted" value="0" />
     <BuffFlags index="RefreshStack" value="1" />
-    <Duration value="5" />
+    <Duration value="4" />
     <ArmorModification>
       <AllArmorBonus value="40" />
     </ArmorModification>
@@ -1209,11 +1209,13 @@
   </CBehaviorBuff>
   <CBehaviorBuff id="DehakaBurrowTalentNumbingEruptionKnockback" parent="PushPullParent">
     <Duration value="0.25" />
+    <Period value="0.0625" />
     <Modification>
-      <StateFlags index="OrdersPaused" value="1" />
-      <MoveSpeedMaximum value="10" />
-      <MoveSpeedMinimum value="10" />
+      <MoveSpeedMaximum value="11" />
+      <MoveSpeedMinimum value="11" />
     </Modification>
+    <InitialEffect value="DehakaBurrowApplyNumbingEruptionTalentForce" />
+    <PeriodicEffect value="DehakaBurrowApplyNumbingEruptionTalentForce" />
   </CBehaviorBuff>
   <CBehaviorBuff id="DehakaDragMissileScan">
     <Period value="0.0625" />
@@ -1238,6 +1240,7 @@
       <BehaviorLinkDisableArray value="SiegeModeRoot" />
       <BehaviorLinkDisableArray value="ShrubStatusController" />
       <BehaviorLinkDisableArray value="DVaMechSelfDestructNotBoostingRoots" />
+      <BehaviorLinkDisableArray value="StormRootSuppressMoving" />
     </Modification>
     <FinalEffect value="DehakaDragTalentFinalSet" />
     <InitialEffect value="DehakaDragTalentInitialSet" />
@@ -1412,8 +1415,8 @@
   <CBehaviorBuff id="DehakaDragParalyzingEnzymesHealingReduction" parent="StormHealReduction">
     <Duration value="$DehakaParalyzingEnzymesTotalDuration" />
     <Modification>
-      <HealTakenAdditiveMultiplier index="Life" value="-0.4" />
-      <VitalRegenMultiplier index="Life" value="-0.4" />
+      <HealTakenAdditiveMultiplier index="Life" value="-0.5" />
+      <VitalRegenMultiplier index="Life" value="-0.5" />
     </Modification>
   </CBehaviorBuff>
   <CBehaviorBuff id="DehakaBrushstalkerCarry" parent="CarryBehaviorParent">
@@ -1971,6 +1974,7 @@
     <EffectArray value="DehakaHeroWeaponDamage" />
     <EffectArray value="DehakaEssenceCollectionEssenceClawsTalentSet" />
     <EffectArray value="DehakaHeroWeaponFeedingFrenzyTalentModifyCooldown" />
+    <EffectArray value="DehakaDragParaylzingEnzymesSetRemainingDurationBasicAttack" />
     <EffectArray value="UniversalWeaponPostImpactSet" />
   </CEffectSet>
   <CEffectApplyBehavior id="DehakaBurrowApplyChannelingBehavior">
@@ -2366,22 +2370,16 @@
     <PeriodicPeriodArray value="0.0625" />
   </CEffectCreatePersistent>
   <CEffectSet id="DehakaBurrowNumbingEruptionTalentImpactSet">
-    <EffectArray value="DehakaBurrowApplyNumbingEruptionTalentKnockbackBehavior" />
-    <EffectArray value="DehakaBurrowNumbingEruptionTalentKnockbackPersistent" />
+    <EffectArray value="DehakaLurkerStrainApplyKnockbackSet" />
     <EffectArray value="DehakaBurrowLurkerStrainTalentDamage" />
     <EffectArray value="ApplyAbilityImpactReveal" />
   </CEffectSet>
-  <CEffectCreatePersistent id="DehakaBurrowNumbingEruptionTalentKnockbackPersistent">
+  <CEffectSet id="DehakaLurkerStrainApplyKnockbackSet">
     <ValidatorArray value="TargetNotUnstoppable" />
-    <WhichLocation Value="TargetUnit" />
-    <InitialEffect value="DehakaBurrowApplyNumbingEruptionTalentForce" />
-    <FinalEffect value="DehakaBurrowApplyNumbingEruptionTalentSlow" />
-    <PeriodCount value="6" />
-    <PeriodicValidator value="TargetNotDeadOrUnstoppable" />
-    <PeriodicEffectArray value="DehakaBurrowApplyNumbingEruptionTalentForce" />
-    <PeriodicPeriodArray value="0.0625" />
-    <ExpireDelay value="0.0625" />
-  </CEffectCreatePersistent>
+    <EffectArray value="HeroRemovePushPullDebuffs" />
+    <EffectArray value="HeroRemovePreventsMovement" />
+    <EffectArray value="DehakaBurrowApplyNumbingEruptionTalentKnockbackBehavior" />
+  </CEffectSet>
   <CEffectEnumArea id="DehakaBurrowNumbingEruptionTalentSearch">
     <SearchFilters value="-;Self,Player,Ally,Neutral,ImmuneToAOE,Missile,Item,Stasis,Dead,Hidden,Invulnerable" />
     <AreaArray Effect="DehakaBurrowNumbingEruptionTalentImpactSet">
@@ -2411,8 +2409,8 @@
     <EffectArray value="DehakaIsolationApplyRevealer" />
   </CEffectSet>
   <CEffectApplyForce id="DehakaBurrowApplyNumbingEruptionTalentForce">
-    <ValidatorArray value="TargetNotSpecialDeathState" />
-    <WhichLocation Effect="DehakaBurrowNumbingEruptionTalentKnockbackPersistent" Value="CasterUnit" />
+    <WhichUnit Effect="DehakaLurkerStrainApplyKnockbackSet" />
+    <WhichLocation Effect="DehakaBurrowNumbingEruptionTalentSearch" Value="TargetPoint" />
     <Amount value="10" />
   </CEffectApplyForce>
   <CEffectCreatePersistent id="DehakaDragMissedCreatePersistent">
@@ -2435,6 +2433,14 @@
     <Behavior value="DehakaDragParalyzingEnzymesHealingReduction" />
     <Operation value="Set" />
     <WhichUnit Value="Target" />
+    <Value value="$DehakaParalyzingEnzymesDurationAfter" />
+  </CEffectModifyBehaviorBuffDuration>
+  <CEffectModifyBehaviorBuffDuration id="DehakaDragParaylzingEnzymesSetRemainingDurationBasicAttack">
+    <ValidatorArray value="CasterNotBlindedAndTargetNotEvading" />
+    <ValidatorArray value="DehakaHasDragParalyzingEnzymesTalent" />
+    <WhichUnit Value="Target" />
+    <Behavior value="DehakaDragParalyzingEnzymesHealingReduction" />
+    <Operation value="Max" />
     <Value value="$DehakaParalyzingEnzymesDurationAfter" />
   </CEffectModifyBehaviorBuffDuration>
   <CEffectApplyBehavior id="DehakaBrushstalkerApplyShrubMoveSpeedBuff">
@@ -2617,6 +2623,7 @@
     <EffectArray value="DehakaHeroWeaponDamage" />
     <EffectArray value="DehakaEssenceCollectionEssenceClawsTalentSet" />
     <EffectArray value="DehakaHeroWeaponFeedingFrenzyTalentModifyCooldown" />
+    <EffectArray value="DehakaDragParaylzingEnzymesSetRemainingDurationBasicAttack" />
     <EffectArray value="UniversalWeaponPostImpactSet" />
   </CEffectSet>
   <CEffectSet id="DehakaDarkSwarmBehaviorInitialSet">
@@ -3263,7 +3270,7 @@
         <Catalog value="Behavior" />
         <Entry value="DehakaBrushstalkerShrubMoveSpeedBuff" />
         <Field value="Duration" />
-        <Value value="3.000000" />
+        <Value value="2.000000" />
       </Modifications>
     </AbilityModificationArray>
     <QuestData StackBehavior="DehakaEssenceCollectionEnhancedAgilityQuestToken" TargetCount="10" />

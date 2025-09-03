@@ -75,13 +75,11 @@ void libHAUR_gf_HeroAurielIncrementHeroCountFunction () {
     // Implementation
     libHAUR_gv_heroAurielTriggerRegistrationVariable += 1;
     if ((libHAUR_gv_heroAurielTriggerRegistrationVariable == 1)) {
-        TriggerEnable(libHAUR_gt_HeroAurielShieldofHopeSetShieldStrength, true);
         TriggerEnable(libHAUR_gt_HeroAurielBestowHopeBestowHopeCast, true);
         TriggerEnable(libHAUR_gt_HeroAurielBestowHopeSetProxy, true);
         TriggerEnable(libHAUR_gt_HeroAurielBestowHopeRemoveProxy, true);
         TriggerEnable(libHAUR_gt_HeroAurielBestowHopeToggleBestowHopeProxyDamageDealtTrigger, true);
         TriggerEnable(libHAUR_gt_HeroAurielBestowHopeProxyUnitSwapped, true);
-        TriggerEnable(libHAUR_gt_HeroAurielRayofHeavenAbilityUsed, true);
         TriggerEnable(libHAUR_gt_HeroAurielCrystalAegisOverlayController, true);
         TriggerEnable(libHAUR_gt_HeroAurielResurrectPlayerUnlocksResurrect, true);
         TriggerEnable(libHAUR_gt_HeroAurielResurrectPlayerRespecs, true);
@@ -102,7 +100,6 @@ void libHAUR_gf_HeroAurielDecrementHeroCountFunction () {
     }
 
     if ((libHAUR_gv_heroAurielTriggerRegistrationVariable == 0)) {
-        TriggerEnable(libHAUR_gt_HeroAurielShieldofHopeSetShieldStrength, false);
         TriggerEnable(libHAUR_gt_HeroAurielBestowHopeBestowHopeCast, false);
         TriggerEnable(libHAUR_gt_HeroAurielBestowHopeSetProxy, false);
         TriggerEnable(libHAUR_gt_HeroAurielBestowHopeRemoveProxy, false);
@@ -110,7 +107,6 @@ void libHAUR_gf_HeroAurielDecrementHeroCountFunction () {
         TriggerEnable(libHAUR_gt_HeroAurielBestowHopeHealingStoredFromProxyDamageDealt, false);
         TriggerEnable(libHAUR_gt_HeroAurielBestowHopeHealingStoredFromProxyDamageTaken, false);
         TriggerEnable(libHAUR_gt_HeroAurielBestowHopeProxyUnitSwapped, false);
-        TriggerEnable(libHAUR_gt_HeroAurielRayofHeavenAbilityUsed, false);
         TriggerEnable(libHAUR_gt_HeroAurielCrystalAegisOverlayController, false);
         TriggerEnable(libHAUR_gt_HeroAurielResurrectPlayerUnlocksResurrect, false);
         TriggerEnable(libHAUR_gt_HeroAurielResurrectCreateSpirit, false);
@@ -633,10 +629,12 @@ bool libHAUR_gt_HeroAurielBestowHopeHealingStoredFromProxyDamageDealt_Func (bool
         lv_auriel = UnitBehaviorEffectUnit(lv_proxy, "AurielBestowHopeProxyBehavior", c_effectUnitCaster, lv_bestowHopeStackIteration);
         lv_aurielPlayer = UnitGetOwner(lv_auriel);
         if ((UnitTypeTestAttribute(UnitGetType(lv_target), c_unitAttributeHeroic) == true)) {
-            UnitSetPropertyFixed(lv_auriel, c_unitPropEnergy, (UnitGetPropertyFixed(lv_auriel, c_unitPropEnergy, c_unitPropCurrent) + (lv_damageDealt * libHAUR_gv_heroAurielBestowHopeHeroicDamageStoredFraction)));
+            CatalogFieldValueSetFixed(c_gameCatalogEffect, "AurielBestowHopeRestoreHope", "RechargeVitalRate", lv_proxyPlayer, (lv_damageDealt * libHAUR_gv_heroAurielBestowHopeHeroicDamageStoredFraction));
+            UnitCreateEffectUnit(lv_proxy, "AurielBestowHopeRestoreHopeSet", lv_auriel);
         }
         else {
-            UnitSetPropertyFixed(lv_auriel, c_unitPropEnergy, (UnitGetPropertyFixed(lv_auriel, c_unitPropEnergy, c_unitPropCurrent) + (lv_damageDealt * libHAUR_gv_heroAurielBestowHopeNonHeroicDamageStoredFraction)));
+            CatalogFieldValueSetFixed(c_gameCatalogEffect, "AurielBestowHopeRestoreHope", "RechargeVitalRate", lv_proxyPlayer, (lv_damageDealt * libHAUR_gv_heroAurielBestowHopeNonHeroicDamageStoredFraction));
+            UnitCreateEffectUnit(lv_proxy, "AurielBestowHopeRestoreHopeSet", lv_auriel);
         }
     }
     return true;
@@ -685,7 +683,8 @@ bool libHAUR_gt_HeroAurielBestowHopeHealingStoredFromProxyDamageTaken_Func (bool
     if ((PlayerHasTalent(libHAUR_gv_heroAurielBestowHopeProxyOwner[lv_proxyPlayer], "AurielEmpathicLinkBestowHopeTalent") == true)) {
         lv_auriel = libGame_gv_players[libHAUR_gv_heroAurielBestowHopeProxyOwner[lv_proxyPlayer]].lv_heroUnit;
         lv_damageTaken = (EventUnitDamageAmount() + EventUnitDamageBehaviorShield());
-        UnitSetPropertyFixed(lv_auriel, c_unitPropEnergy, (UnitGetPropertyFixed(lv_auriel, c_unitPropEnergy, c_unitPropCurrent) + (lv_damageTaken * libHAUR_gv_heroAurielBestowHopeEmpathicLinkStoredPercentage)));
+        CatalogFieldValueSetFixed(c_gameCatalogEffect, "AurielBestowHopeEmpathicLinkRestoreHope", "RechargeVitalRate", lv_proxyPlayer, (lv_damageTaken * libHAUR_gv_heroAurielBestowHopeEmpathicLinkStoredPercentage));
+        UnitCreateEffectUnit(lv_aurielProxy, "AurielBestowHopeRestoreHopeEmpathicLinkSet", lv_auriel);
     }
 
     if ((UnitIsAlive(EventUnit()) == false)) {

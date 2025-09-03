@@ -598,9 +598,9 @@
     <On Terms="Abil.DiabloApocalypse.SourceCastStart" Send="AnimPlay Spell Spell,C 0 -1.000000 -1.000000 1.000000 AsTimeScale" />
     <On Terms="Effect.DiabloShadowChargeLaunchSet.Start; At Caster" Send="AnimPlay Charge Spell,B PlayForever -1.000000 -1.000000 1.000000 AsTimeScale" />
     <On Terms="Behavior.DiabloShadowChargeCasterPreUnitImpactBehavior.Off" Send="AnimClear Charge" />
-    <On Terms="Behavior.DiabloShadowChargeCasterPostUnitImpactChargeBehavior.On" Send="AnimPlay Charge Spell,B PlayForever -1.000000 -1.000000 1.000000 AsTimeScale" />
-    <On Terms="Behavior.DiabloShadowChargeCasterPostUnitImpactChargeBehavior.Off" Send="AnimClear Charge" />
-    <On Terms="Behavior.DiabloShadowChargeCasterPostUnitImpactChargeBehavior.Off" Send="AnimPlay Spell Spell,B,End 0 -1.000000 -1.000000 1.000000 AsTimeScale" />
+    <On Terms="Behavior.DiabloShadowChargeSelfKnockback.On" Send="AnimPlay Charge Spell,B PlayForever -1.000000 -1.000000 1.000000 AsTimeScale" />
+    <On Terms="Behavior.DiabloShadowChargeSelfKnockback.Off" Send="AnimClear Charge" />
+    <On Terms="Behavior.DiabloShadowChargeSelfKnockback.Off" Send="AnimPlay Spell Spell,B,End 0 -1.000000 -1.000000 1.000000 AsTimeScale" />
     <On Terms="Effect.DiabloOverpowerInitialChannelCreatePersistent.Start" Send="AnimPlay Spell Spell,F 0 -1.000000 0.000000 1.000000 AsTimeScale" />
     <On Terms="Effect.DiabloOverpowerCasterSetFacingTriggerTriggerDummy.Start" Send="AnimPlay Spell Spell,F,End 0 0.000000 -1.000000 1.000000 AsTimeScale" />
     <On Terms="Abil.DiabloLightningBreath.SourceCastStart" Send="AnimPlay Spell Spell,D,Start 0 -1.000000 -1.000000 1.000000 AsTimeScale" />
@@ -724,8 +724,8 @@
     <On Terms="Behavior.DiabloOverpowerTargetBehavior.Off" Send="AnimClear Grabbed" />
   </CActorEventMacro>
   <CActorModel id="DiabloShadowChargeFlail" parent="StormFlailStun">
-    <On Terms="Behavior.DiabloShadowChargeUnitImpactStun.On" Send="Create" />
-    <On Terms="Behavior.DiabloShadowChargeUnitImpactStun.Off" Send="AnimBracketStop BSD" />
+    <On Terms="Behavior.DiabloShadowChargeTargetKnockback.On" Send="Create" />
+    <On Terms="Behavior.DiabloShadowChargeTargetKnockback.Off" Send="AnimBracketStop BSD" />
   </CActorModel>
   <CActorModel id="DiabloShadowChargeTrailModel" parent="StormModelAddition">
     <On Terms="Behavior.DiabloShadowChargeFullDurationCasterBehavior.On" Send="Create" />
@@ -1318,24 +1318,6 @@
       <ModifyFlags index="SuppressMoving" value="1" />
     </Modification>
   </CBehaviorBuff>
-  <CBehaviorBuff id="DiabloShadowChargeTargetMoveSpeedBehavior" parent="PushPullParent">
-    <Duration value="0.1875" />
-    <Modification>
-      <MoveSpeedMaximum value="27" />
-      <MoveSpeedMinimum value="27" />
-      <BehaviorLinkDisableArray value="Mounted" />
-    </Modification>
-    <RemoveValidatorArray value="TargetNotRooted" />
-    <CancelEffect value="DiabloDiabloShadowChargeApplyTargetRootedMoveSpeedApplyBehavior" />
-  </CBehaviorBuff>
-  <CBehaviorBuff id="DiabloShadowChargeTargetRootedMoveSpeedIncrease" parent="PushPullParent">
-    <Duration value="0.1875" />
-    <Modification>
-      <MoveSpeedMaximum value="41" />
-      <MoveSpeedMinimum value="41" />
-      <BehaviorLinkDisableArray value="Mounted" />
-    </Modification>
-  </CBehaviorBuff>
   <CBehaviorBuff id="FireStompReturnMissileSearch">
     <Period value="0.0625" />
     <PeriodicEffect value="FireStompReturnSearch" />
@@ -1412,19 +1394,46 @@
   </CBehaviorBuff>
   <CBehaviorBuff id="DiabloShadowChargeTerrainImpactStun" parent="StormStun">
     <Duration value="1" />
-    <InitialEffect value="DiabloShadowChargeTerrainImpactSet" />
-    <RefreshEffect value="DiabloShadowChargeTerrainImpactSet" />
-    <Modification>
-      <AbilLinkEnableArray value="SgtHammerSiegeMode" />
-      <AbilLinkEnableArray value="SgtHammerTankMode" />
-    </Modification>
+    <InitialEffect value="DiabloShadowChargeApplyStunLimiter" />
+    <RefreshEffect value="DiabloShadowChargeApplyStunLimiter" />
   </CBehaviorBuff>
-  <CBehaviorBuff id="DiabloShadowChargeUnitImpactStun" parent="PushPullParent">
-    <Duration value="0.25" />
-    <InitialEffect value="DiabloShadowChargeUnitImpactedIssueStopOrder" />
+  <CBehaviorBuff id="DiabloShadowChargeTargetKnockback" parent="PushPullParent">
+    <Duration value="0.1875" />
+    <Period value="0.0625" />
     <Modification>
-      <BehaviorCategoriesDisable index="DebuffRoot" value="1" />
+      <MoveSpeedMaximum value="23.5" />
+      <MoveSpeedMinimum value="23.5" />
     </Modification>
+    <InitialEffect value="DiabloShadowChargeTargetKnockbackForce" />
+    <PeriodicEffect value="DiabloShadowChargeTargetKnockbackForce" />
+    <FinalEffect value="DiabloShadowChargeRemoveSelfKnockback" />
+    <ExpireEffect value="DiabloShadowChargeApplyPathingProbeSlop" />
+  </CBehaviorBuff>
+  <CBehaviorPathingTypeProbes id="DiabloShadowChargePathingProbe">
+    <Offsets OffsetAngle="-50" RelativeFacing="Velocity" OffsetByRadius="1">
+      <OffsetVector Y="-0.3125" />
+    </Offsets>
+    <Offsets OffsetAngle="-25" RelativeFacing="Velocity" OffsetByRadius="1">
+      <OffsetVector Y="-0.3125" />
+    </Offsets>
+    <Offsets RelativeFacing="Velocity" OffsetByRadius="1">
+      <OffsetVector Y="-0.3125" />
+    </Offsets>
+    <Offsets OffsetAngle="25" RelativeFacing="Velocity" OffsetByRadius="1">
+      <OffsetVector Y="-0.3125" />
+    </Offsets>
+    <Offsets OffsetAngle="50" RelativeFacing="Velocity" OffsetByRadius="1">
+      <OffsetVector Y="-0.3125" />
+    </Offsets>
+    <HitMask index="Unpathable" value="1" />
+    <HitMask index="Building" value="1" />
+    <HitMask index="Cliff" value="1" />
+    <RemoveValidatorArray value="DiabloShadowChargeTargetHasKnockbackorSlop" />
+    <HitsChangedEffect value="DiabloShadowChargeCollisionProcSet" />
+  </CBehaviorPathingTypeProbes>
+  <CBehaviorBuff id="DiabloShadowChargePathingProbeSlop">
+    <Duration value="0.0625" />
+    <FinalEffect value="DiabloShadowChargeRemovePathingProbe" />
   </CBehaviorBuff>
   <CBehaviorBuff id="DiabloShadowChargeStunLimiter">
     <EditorCategories value="AbilityorEffectType:Units" />
@@ -1433,18 +1442,20 @@
   <CBehaviorBuff id="DiabloShadowChargeTargetImpactedBehavior">
     <Duration value="0.0625" />
   </CBehaviorBuff>
-  <CBehaviorBuff id="DiabloShadowChargeCasterPostUnitImpactChargeBehavior">
-    <InfoIcon value="Assets\Textures\storm_temp_war3_btnghoulfrenzy.dds" />
+  <CBehaviorBuff id="DiabloShadowChargeSelfKnockback">
     <RemoveValidatorArray value="DiabloShadowChargeDiabloKnockbackValidator" />
     <BuffFlags index="UpdateDurationWhileDisabled" value="1" />
     <Duration value="0.1875" />
+    <Period value="0.0625" />
+    <InitialEffect value="DiabloShadowChargeSelfKnockbackOffset" />
+    <PeriodicEffect value="DiabloShadowChargeSelfKnockbackOffset" />
     <FinalEffect value="DiabloShadowChargeIssueAttackOrder" />
     <ExpireEffect value="DiabloShadowChargeIssueAttackOrder" />
-    <Modification>
-      <MoveSpeedMaximum value="27" />
-      <MoveSpeedMinimum value="27" />
-      <BehaviorCategoriesDisable index="Slow" value="1" />
-      <BehaviorCategoriesDisable index="Fast" value="1" />
+    <Modification PushPriority="5000">
+      <MoveSpeedMaximum value="26" />
+      <MoveSpeedMinimum value="26" />
+      <StateFlags index="SuppressAttack" value="1" />
+      <StateFlags index="SuppressCollision" value="1" />
     </Modification>
   </CBehaviorBuff>
   <CBehaviorBuff id="DiabloShadowChargeCasterPostChargeBehaviorChannel">
@@ -1665,12 +1676,6 @@
       <Value value="1" />
     </CatalogModifications>
   </CEffectModifyCatalogNumeric>
-  <CEffectCreateHealer id="DiabloFireStompEternalFlamesManaRestore" parent="StormManaRestore">
-    <ValidatorArray value="HasEternalFlamesTalent" />
-    <ValidatorArray value="TargetIsHero" />
-    <ImpactUnit Value="Caster" />
-    <RechargeVitalRate value="45" />
-  </CEffectCreateHealer>
   <CEffectApplyBehavior id="DiabloBlackSoulstoneSoulShieldApplyArmorBehavior">
     <WhichUnit Value="Caster" />
     <Behavior value="DiabloSoulShieldSpellArmor" />
@@ -1776,6 +1781,7 @@
   </CEffectCreatePersistent>
   <CEffectLaunchMissileAdvanced id="DiabloShadowChargeStructureTargetLaunchMissile" parent="DiabloShadowChargeCasterLaunchMissile">
     <ValidatorArray index="1" value="DiabloShadowChargeLaunchDiabloTargetFilters" />
+    <ImpactEffect value="DiabloShadowChargeTargetImpactedApplyBehavior" />
     <FinishEffect value="DiabloShadowChargeStructureTargetLaunchMissileFinishSet" />
     <Marker Link="Effect/DiabloShadowChargeLaunchDiablo" />
     <ImpactRange value="0.85" />
@@ -1811,6 +1817,9 @@
     <WhichUnit Value="Caster" />
     <Behavior value="DiabloShadowChargeTargetImpactedBehavior" />
   </CEffectApplyBehavior>
+  <CEffectCreatePersistent id="DiabloShadowChargeTargetKnockbackLocationPersistent">
+    <PeriodicOffsetArray Y="-5" />
+  </CEffectCreatePersistent>
   <CEffectSet id="DiabloShadowChargeFailsafeSet">
     <EffectArray value="DiabloShadowChargeFullDurationCasterBehaviorRemoveBehavior" />
     <EffectArray value="DiabloShadowChargeNotUnitImpactedRefund" />
@@ -1843,7 +1852,7 @@
     <CaseArray Validator="TargetIsUnstoppable" Effect="DiabloShadowChargeFullDurationCasterBehaviorRemoveBehavior" />
     <CaseArray Validator="TargetIsNotGroundMover" Effect="DiabloShadowChargeImpactMissileUnitKnockbackSet" />
     <CaseArray Validator="DiabloShadowChargeTargetNotWithin30Degrees" Effect="DiabloShadowChargeFailsafeSet" />
-    <CaseDefault value="DiabloShadowChargeTargetKnockbackLocationPersistent" />
+    <CaseDefault value="DiabloShadowChargeKnockbackApplySet" />
   </CEffectSwitch>
   <CEffectDamage id="DiabloShadowChargeUnitImpactDamage" parent="StormSpell">
     <ImpactLocation Value="TargetUnit" />
@@ -1854,99 +1863,124 @@
     <Behavior value="DiabloShadowChargeSelfMovementSpeedBuff" />
   </CEffectApplyBehavior>
   <CEffectSet id="DiabloShadowChargeImpactMissileUnitKnockbackSet">
-    <EffectArray value="DiabloShadowChargeMissileImpactedDelayedKnockbackLocationPersistent" />
-    <EffectArray value="DiabloShadowChargeCancelRedirctSwitch" />
+    <EffectArray value="DiabloShadowChargeTargetAbortMissile" />
+    <EffectArray value="DiabloShadowChargeKnockbackSetMissileDelay" />
     <EffectArray value="DiabloShadowChargeFullDurationCasterBehaviorRemoveBehavior" />
   </CEffectSet>
-  <CEffectCreatePersistent id="DiabloShadowChargeMissileImpactedDelayedKnockbackLocationPersistent">
-    <ValidatorArray value="TargetNotStasisCategory" />
-    <ValidatorArray value="TargetNotUnstoppableCategory" />
-    <ValidatorArray value="DiabloShadowChargeTargetWithin30Degrees" />
-    <OffsetVectorStartLocation Effect="DiabloShadowChargeInitialSet" Value="OriginPoint" />
-    <PeriodCount value="1" />
-    <PeriodicValidator value="DiabloShadowChargeTargetWithin30Degrees" />
-    <PeriodicEffectArray value="DiabloShadowChargeKnockbackInitialSet" />
-    <PeriodicOffsetArray Y="-5" />
-    <PeriodicPeriodArray value="0.0625" />
+  <CEffectCreatePersistent id="DiabloShadowChargeKnockbackSetMissileDelay">
+    <WhichLocation Value="TargetUnit" />
+    <InitialEffect value="DiabloShadowChargeKnockbackApplySet" />
   </CEffectCreatePersistent>
-  <CEffectApplyBehavior id="DiabloShadowChargeUnitImpactStunApplyBehavior">
-    <WhichUnit Effect="DiabloShadowChargeInitialSet" />
-    <Behavior value="DiabloShadowChargeUnitImpactStun" />
-  </CEffectApplyBehavior>
-  <CEffectSet id="DiabloShadowChargeKnockbackInitialSet">
-    <EffectArray value="DiabloShadowChargeCasterPostUnitImpactApplyBehavior" />
-    <EffectArray value="DiabloShadowChargeCasterPostChargeChannelBehaviorApply" />
-    <EffectArray value="DiabloShadowChargeUnitImpactStunApplyBehavior" />
-    <EffectArray value="DiabloShadowChargeTargetImpactedMoveSpeedApplyBehavior" />
-    <EffectArray value="DiabloShadowChargeKnockbackPersistent" />
-    <EffectArray value="DiabloShadowChargeDiabloKnockbackPersistent" />
+  <CEffectSet id="DiabloShadowChargeKnockbackApplySet">
+    <EffectArray value="HeroRemovePushPullDebuffs" />
+    <EffectArray value="HeroRemovePreventsMovement" />
+    <EffectArray value="DiabloShadowChargeApplyKnockback" />
+    <EffectArray value="DiabloShadowChargeApplySelfKnockback" />
+    <EffectArray value="DiabloShadowChargeApplyPathingProbe" />
+    <EffectArray value="DiabloShadowChargePathingBlockerDetectionPersistent" />
   </CEffectSet>
-  <CEffectApplyBehavior id="DiabloShadowChargeCasterPostUnitImpactApplyBehavior">
-    <WhichUnit Value="Caster" />
-    <Behavior value="DiabloShadowChargeCasterPostUnitImpactChargeBehavior" />
+  <CEffectApplyBehavior id="DiabloShadowChargeApplyKnockback">
+    <Behavior value="DiabloShadowChargeTargetKnockback" />
   </CEffectApplyBehavior>
-  <CEffectApplyBehavior id="DiabloShadowChargeCasterPostChargeChannelBehaviorApply">
-    <WhichUnit Value="Caster" />
-    <Behavior value="DiabloShadowChargeCasterPostChargeBehaviorChannel" />
-  </CEffectApplyBehavior>
-  <CEffectApplyBehavior id="DiabloDiabloShadowChargeApplyTargetRootedMoveSpeedApplyBehavior">
+  <CEffectRemoveBehavior id="DiabloShadowChargeRemoveKnockback">
+    <BehaviorLink value="DiabloShadowChargeTargetKnockback" />
+    <Count value="1" />
+    <RequireCasterUnit Value="Caster" />
+  </CEffectRemoveBehavior>
+  <CEffectApplyForce id="DiabloShadowChargeTargetKnockbackForce">
+    <WhichLocation>
+      <Value value="OriginPoint" />
+      <Effect value="DiabloShadowChargeInitialSet" />
+      <ProjectionMultiplier value="1" />
+      <ProjectionSourceEffect value="DiabloShadowChargeInitialSet" />
+      <ProjectionSourceValue value="OriginPoint" />
+      <ProjectionTargetEffect value="DiabloShadowChargeMoveableUnitImpactedSet" />
+      <ProjectionTargetValue value="TargetPoint" />
+      <UsesLineDash value="1" />
+      <LineDashType value="AllowedInUnpathable" />
+      <ProjectionAngle value="180" />
+      <ProjectionDistanceScale value="5" />
+    </WhichLocation>
     <WhichUnit Effect="DiabloShadowChargeInitialSet" />
-    <Behavior value="DiabloShadowChargeTargetRootedMoveSpeedIncrease" />
+    <Amount value="60" />
+  </CEffectApplyForce>
+  <CEffectApplyBehavior id="DiabloShadowChargeApplySelfKnockback">
+    <WhichUnit Value="Caster" />
+    <Behavior value="DiabloShadowChargeSelfKnockback" />
   </CEffectApplyBehavior>
-  <CEffectApplyForce id="DiabloShadowChargeApplyDiabloKnockbackForce">
-    <WhichLocation Effect="DiabloShadowChargeKnockbackInitialSet" Value="TargetPoint" />
+  <CEffectRemoveBehavior id="DiabloShadowChargeRemoveSelfKnockback">
+    <BehaviorLink value="DiabloShadowChargeSelfKnockback" />
+    <Count value="1" />
+    <RequireCasterUnit Value="Caster" />
+  </CEffectRemoveBehavior>
+  <CEffectApplyOffset id="DiabloShadowChargeSelfKnockbackOffset">
+    <Effect value="DiabloShadowChargeSelfKnockbackForceOffsetPoint" />
+    <SourceOffset>
+      <WhichLocation Effect="DiabloShadowChargeMoveableUnitImpactedSet" Value="TargetUnit" />
+      <OffsetVectorStartLocation Effect="DiabloShadowChargeInitialSet" Value="CasterUnit" />
+      <OffsetVectorEndLocation Effect="DiabloShadowChargeMoveableUnitImpactedSet" Value="TargetUnit" />
+    </SourceOffset>
+    <TargetOffset OffsetType="OffsetByUnitRadius">
+      <WhichLocation Effect="DiabloShadowChargeMoveableUnitImpactedSet" Value="TargetUnit" />
+      <OffsetVectorStartLocation Effect="DiabloShadowChargeInitialSet" Value="CasterUnit" />
+      <OffsetVectorEndLocation Effect="DiabloShadowChargeMoveableUnitImpactedSet" Value="TargetUnit" />
+    </TargetOffset>
+  </CEffectApplyOffset>
+  <CEffectApplyForce id="DiabloShadowChargeSelfKnockbackForceOffsetPoint">
+    <WhichLocation Value="TargetPoint" />
     <WhichUnit Effect="DiabloShadowChargeInitialSet" Value="Caster" />
     <Amount value="-60" />
   </CEffectApplyForce>
-  <CEffectCreatePersistent id="DiabloShadowChargeKnockbackPathingCheckPersistent">
-    <WhichLocation Effect="DiabloShadowChargeUnitImpactedSet" Value="TargetUnit" />
-    <OffsetVectorEndLocation Effect="DiabloShadowChargeKnockbackInitialSet" />
-    <InitialEffect value="DiabloShadowChargeTargetKnockbackForce" />
-    <PeriodCount value="9" />
-    <PeriodicEffectArray value="DiabloShadowChargeKnockbackCheckBasePathableSet" />
-    <PeriodicEffectArray value="DiabloShadowChargeSmallHeroPathingCheckSet" />
-    <PeriodicEffectArray value="DiabloShadowChargeSmallHeroPathingCheckSet" />
-    <PeriodicEffectArray value="DiabloShadowChargeSmallHeroPathingCheckSet" />
-    <PeriodicEffectArray value="DiabloShadowChargeSmallHeroPathingCheckSet" />
-    <PeriodicEffectArray value="DiabloShadowChargeBigHeroPathingCheckSet" />
-    <PeriodicEffectArray value="DiabloShadowChargeBigHeroPathingCheckSet" />
-    <PeriodicEffectArray value="DiabloShadowChargeBigHeroPathingCheckSet" />
-    <PeriodicEffectArray value="DiabloShadowChargeBigHeroPathingCheckSet" />
-    <PeriodicOffsetArray Y="-1.25" />
-    <PeriodicOffsetArray X="0.6" Y="-1.25" />
-    <PeriodicOffsetArray X="-0.6" Y="-1.25" />
-    <PeriodicOffsetArray X="0.75" Y="-0.75" />
-    <PeriodicOffsetArray X="-0.75" Y="-0.75" />
-    <PeriodicOffsetArray X="0.85" Y="-1.25" />
-    <PeriodicOffsetArray X="-0.85" Y="-1.25" />
-    <PeriodicOffsetArray X="0.75" Y="-0.75" />
-    <PeriodicOffsetArray X="-0.75" Y="-0.75" />
-  </CEffectCreatePersistent>
-  <CEffectApplyForce id="DiabloShadowChargeTargetKnockbackForce">
-    <WhichLocation Effect="DiabloShadowChargeKnockbackInitialSet" Value="TargetPoint" />
-    <WhichUnit Effect="DiabloShadowChargeInitialSet" />
-    <Amount value="-60" />
-  </CEffectApplyForce>
-  <CEffectApplyBehavior id="DiabloShadowChargeTargetImpactedMoveSpeedApplyBehavior">
-    <WhichUnit Effect="DiabloShadowChargeInitialSet" />
-    <Behavior value="DiabloShadowChargeTargetMoveSpeedBehavior" />
+  <CEffectApplyBehavior id="DiabloShadowChargeApplyPathingProbe">
+    <Behavior value="DiabloShadowChargePathingProbe" />
   </CEffectApplyBehavior>
-  <CEffectCreatePersistent id="DiabloShadowChargeKnockbackPersistent">
-    <InitialEffect value="DiabloShadowChargeKnockbackPathingCheckPersistent" />
-    <PeriodCount value="3" />
-    <PeriodicValidator value="DiabloShadowChargeDiabloKnockbackValidator" />
-    <PeriodicEffectArray value="DiabloShadowChargeKnockbackPathingCheckPersistent" />
-    <PeriodicPeriodArray value="0.0625" />
+  <CEffectRemoveBehavior id="DiabloShadowChargeRemovePathingProbe">
+    <BehaviorLink value="DiabloShadowChargePathingProbe" />
+    <Count value="1" />
+  </CEffectRemoveBehavior>
+  <CEffectApplyBehavior id="DiabloShadowChargeApplyPathingProbeSlop">
+    <Behavior value="DiabloShadowChargePathingProbeSlop" />
+  </CEffectApplyBehavior>
+  <CEffectCreatePersistent id="DiabloShadowChargePathingBlockerDetectionPersistent">
+    <WhichLocation Value="TargetUnit" />
+    <TimeScaleSource Value="Target" />
+    <ExpireDelay value="0.25" />
+    <CancelEffect value="DiabloShadowChargePathingBlockerCancelSet" />
+    <PeriodicValidator value="DiabloShadowChargePathingBlockerCheckCombine" />
   </CEffectCreatePersistent>
-  <CEffectCreatePersistent id="DiabloShadowChargeDiabloKnockbackPersistent">
-    <WhichLocation Value="CasterUnit" />
-    <InitialEffect value="DiabloShadowChargeDiabloKnockbackPersistentInitialSet" />
-    <PeriodCount value="3" />
-    <PeriodicValidator value="DiabloShadowChargeDiabloKnockbackValidator" />
-    <PeriodicEffectArray value="DiabloShadowChargeApplyDiabloKnockbackForce" />
-    <PeriodicPeriodArray value="0.0625" />
-    <FinalEffect value="DiabloShadowChargeDiabloKnockbackPersistentFinalSet" />
-  </CEffectCreatePersistent>
+  <CEffectSet id="DiabloShadowChargePathingBlockerCancelSet">
+    <ValidatorArray value="DiabloTargetHasShadowChargePathingProbes" />
+    <EffectArray value="DiabloShadowChargeCollisionProcSet" />
+  </CEffectSet>
+  <CEffectSet id="DiabloShadowChargeRemoveKnockbackBehaviorSet">
+    <EffectArray value="DiabloShadowChargeRemoveKnockback" />
+    <EffectArray value="DiabloShadowChargeRemovePathingProbe" />
+    <EffectArray value="DiabloShadowChargeRemoveSelfKnockback" />
+  </CEffectSet>
+  <CEffectSet id="DiabloShadowChargeKnockbackTerrainImpactSet">
+    <EffectArray value="DiabloShadowChargeTerrainImpactDamage" />
+    <EffectArray value="DiabloShadowChargeTerrainImpactStunApplyBehavior" />
+    <EffectArray value="DiabloBlackSoulstoneFeastOnFearApplyHealerBehavior" />
+    <EffectArray value="DiabloShadowChargeDevastatingChargeSet" />
+    <EffectArray value="DiabloShadowChargeSacrificialSoulSet" />
+    <EffectArray value="DiabloFireStompEternalFlamesStunSet" />
+    <EffectArray value="DiabloShadowChargeOverpowerCrueltyAttackSpeedApplyBehavior" />
+  </CEffectSet>
+  <CEffectSet id="DiabloShadowChargeDevastatingChargeSet">
+    <EffectArray value="DiabloShadowChargeDevastatingChargeArmorDebuffApplyBehavior" />
+    <EffectArray value="DiabloShadowChargeDevastatingChargeTalentIncreaseTokenCount" />
+  </CEffectSet>
+  <CEffectSet id="DiabloShadowChargeSacrificialSoulSet">
+    <EffectArray value="DiabloShadowChargeSacrificialSoulApplyArmorSwitch" />
+    <EffectArray value="DiabloShadowChargeSacrificialSoulAddTokenSet" />
+  </CEffectSet>
+  <CEffectSet id="DiabloShadowChargeCollisionProcSet">
+    <EffectArray value="DiabloShadowChargeRemoveKnockbackBehaviorSet" />
+    <EffectArray value="DiabloShadowChargeKnockbackTerrainImpactSet" />
+    <EffectArray value="ApplyAbilityImpactReveal" />
+    <EffectArray value="CameraShakeMediumTauntingTotemSet" />
+    <EffectArray value="CameraShakeLightCasterDummySet" />
+  </CEffectSet>
   <CEffectSwitch id="DiabloShadowChargeCancelRedirctSwitch">
     <CaseArray Validator="DiabloTargetIsOverpowerTargetMover" Effect="DiabloShadowChargeTargetAbortMissile" />
     <CaseDefault value="DiabloShadowChargeTargetRedirectMissile" />
@@ -1955,54 +1989,11 @@
   <CEffectAbortMissile id="DiabloShadowChargeTargetAbortMissile">
     <ValidatorArray value="TargetCanBeAborted" />
   </CEffectAbortMissile>
-  <CEffectCreatePersistent id="DiabloShadowChargeTargetKnockbackLocationPersistent">
-    <ValidatorArray value="TargetNotStasis" />
-    <ValidatorArray value="TargetNotUnstoppableCategory" />
-    <ValidatorArray value="DiabloShadowChargeTargetWithin30Degrees" />
-    <OffsetVectorStartLocation Effect="DiabloShadowChargeInitialSet" Value="OriginPoint" />
-    <PeriodCount value="1" />
-    <PeriodicEffectArray value="DiabloShadowChargeKnockbackInitialSet" />
-    <PeriodicOffsetArray Y="-5" />
-  </CEffectCreatePersistent>
-  <CEffectSet id="DiabloShadowChargeKnockbackCheckBasePathableSet">
-    <ValidatorArray value="DiabloShadowChargeLocationIsNotWalkableOrTargetHasHitPathingBlocker" />
-    <EffectArray value="DiabloShadowChargeTerrainImpactStunApplyBehavior" />
-    <EffectArray value="DiabloShadowChargeRemoveTargetKnockbackBehavior" />
-    <EffectArray value="DiabloShadowChargeRemoveTargetMovespeedBehaviot" />
-    <EffectArray value="DiabloShadowChargeApplyStunLimiter" />
-    <TargetLocationType value="Point" />
-  </CEffectSet>
-  <CEffectSet id="DiabloShadowChargeBigHeroPathingCheckSet">
-    <ValidatorArray value="DiabloShadowChargeLocationIsNotWalkableOrTargetHasHitPathingBlocker" />
-    <ValidatorArray value="DiabloShadowChargeTargetIsFat" />
-    <EffectArray value="DiabloShadowChargeTerrainImpactStunApplyBehavior" />
-    <EffectArray value="DiabloShadowChargeRemoveTargetKnockbackBehavior" />
-    <EffectArray value="DiabloShadowChargeRemoveTargetMovespeedBehaviot" />
-    <EffectArray value="DiabloShadowChargeApplyStunLimiter" />
-    <TargetLocationType value="Point" />
-  </CEffectSet>
-  <CEffectSet id="DiabloShadowChargeSmallHeroPathingCheckSet">
-    <ValidatorArray value="DiabloShadowChargeLocationIsNotWalkableOrTargetHasHitPathingBlocker" />
-    <ValidatorArray value="DiabloShadowChargeTargetIsNotFat" />
-    <EffectArray value="DiabloShadowChargeTerrainImpactStunApplyBehavior" />
-    <EffectArray value="DiabloShadowChargeRemoveTargetKnockbackBehavior" />
-    <EffectArray value="DiabloShadowChargeRemoveTargetMovespeedBehaviot" />
-    <EffectArray value="DiabloShadowChargeApplyStunLimiter" />
-    <TargetLocationType value="Point" />
-  </CEffectSet>
-  <CEffectRemoveBehavior id="DiabloShadowChargeRemoveTargetMovespeedBehaviot">
-    <WhichUnit Effect="DiabloShadowChargeInitialSet" />
-    <BehaviorLink value="DiabloShadowChargeTargetMoveSpeedBehavior" />
-  </CEffectRemoveBehavior>
   <CEffectApplyBehavior id="DiabloShadowChargeTerrainImpactStunApplyBehavior">
     <ValidatorArray index="0" value="DiabloShadowChargeTargetDoesNotHaveStunLimiter" />
     <WhichUnit Effect="DiabloShadowChargeInitialSet" />
     <Behavior value="DiabloShadowChargeTerrainImpactStun" />
   </CEffectApplyBehavior>
-  <CEffectRemoveBehavior id="DiabloShadowChargeRemoveTargetKnockbackBehavior">
-    <WhichUnit Effect="DiabloShadowChargeInitialSet" />
-    <BehaviorLink value="DiabloShadowChargeUnitImpactStun" />
-  </CEffectRemoveBehavior>
   <CEffectApplyBehavior id="DiabloShadowChargeApplyStunLimiter">
     <WhichUnit Effect="DiabloShadowChargeInitialSet" />
     <Behavior value="DiabloShadowChargeStunLimiter" />
@@ -2013,18 +2004,6 @@
     <Abil value="attack" />
     <Target Effect="DiabloShadowChargeInitialSet" Value="TargetUnit" />
   </CEffectIssueOrder>
-  <CEffectSet id="DiabloShadowChargeTerrainImpactSet">
-    <EffectArray value="DiabloShadowChargeTerrainImpactDamage" />
-    <EffectArray value="DiabloDamageTalentSet" />
-    <EffectArray value="DiabloShadowChargeDevastatingChargeArmorDebuffApplyBehavior" />
-    <EffectArray value="DiabloShadowChargeDevastatingChargeTalentIncreaseTokenCount" />
-    <EffectArray value="DiabloShadowChargeSacrificialSoulApplyArmorSwitch" />
-    <EffectArray value="DiabloShadowChargeSacrificialSoulAddTokenSet" />
-    <EffectArray value="DiabloShadowChargeOverpowerCrueltyAttackSpeedApplyBehavior" />
-    <EffectArray value="DiabloFireStompEternalFlamesFireStompCooldownReduction" />
-    <EffectArray value="DiabloBlackSoulstoneFeastOnFearApplyHealerBehavior" />
-    <EffectArray value="DiabloFireStompEternalFlamesManaRestore" />
-  </CEffectSet>
   <CEffectDamage id="DiabloShadowChargeTerrainImpactDamage" parent="StormSpell">
     <MultiplicativeModifierArray index="DevastatingCharge" Validator="DiabloHasDevastatingChargeTalent" Modifier="0.5" />
     <Amount value="130" />
@@ -2111,10 +2090,9 @@
     <EffectArray value="DiabloOverpowerApplyTargetBehavior" />
     <EffectArray value="DiabloMalevolenceApplyBehavior" />
     <EffectArray value="DiabloBlackSoulstoneFeastOnFearApplyHealerBehavior" />
-    <EffectArray value="DiabloFireStompEternalFlamesFireStompCooldownReduction" />
+    <EffectArray value="DiabloFireStompEternalFlamesStunSet" />
     <EffectArray value="DiabloShadowChargeOverpowerCrueltyAttackSpeedApplyBehavior" />
     <EffectArray value="DiabloOverpowerDominationMasteryCooldownReduction" />
-    <EffectArray value="DiabloFireStompEternalFlamesManaRestore" />
   </CEffectSet>
   <CEffectSet id="DiabloOverpowerPathableBehindSet">
     <EffectArray value="DiabloOverpowerPathableBehindOffset" />
@@ -2240,13 +2218,22 @@
     <ImpactUnit Effect="DiabloOverpowerInitialSet" Value="Caster" />
     <Weapon Weapon="HeroDiablo" CooldownOperation="Set" CooldownAmount="0.4125" />
   </CEffectModifyUnit>
-  <CEffectModifyUnit id="DiabloFireStompEternalFlamesFireStompCooldownReduction">
+  <CEffectSet id="DiabloFireStompEternalFlamesStunSet">
     <ValidatorArray value="TargetIsHero" />
     <ValidatorArray value="TargetNotUnstoppable" />
+    <ValidatorArray value="HasEternalFlamesTalent" />
+    <EffectArray value="DiabloFireStompEternalFlamesFireStompCooldownReduction" />
+    <EffectArray value="DiabloFireStompEternalFlamesManaRestore" />
+  </CEffectSet>
+  <CEffectModifyUnit id="DiabloFireStompEternalFlamesFireStompCooldownReduction">
     <Chance value="0" />
     <ImpactUnit Value="Caster" />
     <Cost Abil="DiabloFireStomp,Execute" CooldownOperation="Set" />
   </CEffectModifyUnit>
+  <CEffectCreateHealer id="DiabloFireStompEternalFlamesManaRestore" parent="StormManaRestore">
+    <ImpactUnit Value="Caster" />
+    <RechargeVitalRate value="45" />
+  </CEffectCreateHealer>
   <CEffectModifyUnit id="DiabloOverpowerDominationMasteryCooldownReduction">
     <ImpactUnit Value="Caster" />
     <Cost Abil="DiabloShadowCharge,Execute" CooldownOperation="Set" />
@@ -2257,7 +2244,7 @@
   </CEffectRedirectMissile>
   <CEffectDamage id="DiabloMalevolenceDamage" parent="StormSpell">
     <ValidatorArray value="DiabloHasMalevolenceStack" />
-    <ValidatorArray value="CasterNotBlindedandTargetNotEvading" />
+    <ValidatorArray value="CasterNotBlindedAndTargetNotEvading" />
     <Amount value="100" />
   </CEffectDamage>
   <CEffectRemoveBehavior id="DiabloMalevolenceRemoveBehavior">
@@ -4194,11 +4181,6 @@
     <Value value="DiabloOverpowerTargetMover" />
     <Find value="1" />
   </CValidatorUnitMover>
-  <CValidatorUnitCompareBehaviorCount id="DiabloShadowChargeTargetIsFat">
-    <WhichUnit Effect="DiabloShadowChargeInitialSet" />
-    <Value value="1" />
-    <Behavior value="HeroGenericIsFat" />
-  </CValidatorUnitCompareBehaviorCount>
   <CValidatorUnitCompareBehaviorCount id="DiabloShadowChargeNoImpactedTargetUnitBehavior">
     <WhichUnit Effect="DiabloShadowChargeInitialSet" Value="Caster" />
     <Behavior value="DiabloShadowChargeTargetImpactedBehavior" />
@@ -4207,10 +4189,6 @@
     <WhichUnit Effect="DiabloShadowChargeInitialSet" Value="Caster" />
     <Value value="1" />
     <Behavior value="DiabloShadowChargeTargetImpactedBehavior" />
-  </CValidatorUnitCompareBehaviorCount>
-  <CValidatorUnitCompareBehaviorCount id="DiabloShadowChargeTargetIsNotFat">
-    <WhichUnit Effect="DiabloShadowChargeInitialSet" />
-    <Behavior value="HeroGenericIsFat" />
   </CValidatorUnitCompareBehaviorCount>
   <CValidatorUnitFilters id="DiabloShadowChargeTargetIsStructure">
     <WhichUnit Effect="DiabloShadowChargeInitialSet" />
@@ -4228,6 +4206,32 @@
     <CombineArray value="DiabloShadowChargeTargetNotDeadOrUnstoppable" />
     <CombineArray value="CasterNotDazedOrDeadOrFearedOrPolymorphedOrRootedOrStasisOrStunnedExceptTimeStop" />
   </CValidatorCombine>
+  <CValidatorUnitCompareBehaviorCount id="DiabloShadowChargeTargetHasKnockback">
+    <WhichUnit Effect="DiabloShadowChargeInitialSet" />
+    <Value value="1" />
+    <Behavior value="DiabloShadowChargeTargetKnockback" />
+  </CValidatorUnitCompareBehaviorCount>
+  <CValidatorUnitCompareBehaviorCount id="DiabloShadowChargeTargetHasPathingProbeSlop">
+    <WhichUnit Effect="DiabloShadowChargeInitialSet" />
+    <Value value="1" />
+    <Behavior value="DiabloShadowChargePathingProbeSlop" />
+  </CValidatorUnitCompareBehaviorCount>
+  <CValidatorCombine id="DiabloShadowChargeTargetHasKnockbackorSlop">
+    <CombineArray value="DiabloShadowChargeTargetHasKnockback" />
+    <CombineArray value="DiabloShadowChargeTargetHasPathingProbeSlop" />
+  </CValidatorCombine>
+  <CValidatorUnitCompareBehaviorCount id="DiabloTargetHasShadowChargePathingProbes">
+    <Value value="1" />
+    <Behavior value="DiabloShadowChargePathingProbe" />
+  </CValidatorUnitCompareBehaviorCount>
+  <CValidatorCombine id="DiabloShadowChargePathingBlockerCheckCombine">
+    <Type value="And" />
+    <CombineArray value="DiabloShadowChargeTargetNotInContactWithPathingBlocker" />
+  </CValidatorCombine>
+  <CValidatorUnitState id="DiabloShadowChargeTargetNotInContactWithPathingBlocker" parent="UnitIsInContactWithPathingBlocker">
+    <WhichUnit Effect="DiabloShadowChargeCasterLaunchMissile" Value="Target" />
+    <Enabled value="0" />
+  </CValidatorUnitState>
   <CValidatorUnitFilters id="FireStompReturnMissileSuicideValidator">
     <WhichUnit Effect="DiabloFireStompInitialSet" Value="Caster" />
   </CValidatorUnitFilters>

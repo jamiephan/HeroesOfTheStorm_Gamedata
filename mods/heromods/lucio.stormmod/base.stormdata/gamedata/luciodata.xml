@@ -1471,9 +1471,19 @@
   </CBehaviorBuff>
   <CBehaviorBuff id="LucioSoundwaveKnockback" parent="PushPullParent">
     <Duration value="0.25" />
+    <Period value="0.0625" />
     <Modification>
-      <MoveSpeedMaximum value="16.5" />
-      <MoveSpeedMinimum value="16.5" />
+      <MoveSpeedMaximum value="10.7" />
+      <MoveSpeedMinimum value="10.7" />
+    </Modification>
+    <InitialEffect value="LucioSoundwaveKnockbackApplyForce" />
+    <PeriodicEffect value="LucioSoundwaveKnockbackApplyForce" />
+  </CBehaviorBuff>
+  <CBehaviorBuff id="LucioSoundwaveKnockbackSubwoofer" parent="LucioSoundwaveKnockback">
+    <Duration value="0.3125" />
+    <Modification>
+      <MoveSpeedMaximum value="16.55" />
+      <MoveSpeedMinimum value="16.55" />
     </Modification>
   </CBehaviorBuff>
   <CBehaviorTokenCounter id="LucioSoundwaveChaseTheBassQuestToken" parent="StormQuestToken">
@@ -2123,11 +2133,11 @@
   </CEffectSwitch>
   <CEffectModifyBehaviorBuffDuration id="LucioAmpItUpUpToElevenModfifyBehaviorDuration">
     <Behavior value="LucioAmpItUp" />
-    <Value value="0.25" />
+    <Value value="0.5" />
   </CEffectModifyBehaviorBuffDuration>
   <CEffectModifyBehaviorBuffDuration id="LucioAmpItUpUpToElevenModfifyBehaviorDurationPushOff">
     <Behavior value="LucioAmpItUp" />
-    <Value value="0.5" />
+    <Value value="1" />
   </CEffectModifyBehaviorBuffDuration>
   <CEffectModifyTokenCount id="LucioAmpItUpUpToElevenAddToken" parent="BaseEffectModifyTokenCount">
     <TokenId value="LucioAmpItUpUpToElevenReservoirTokenCounter" />
@@ -2501,9 +2511,6 @@
     <Chance value="0" />
     <Behavior value="LucioSoundwaveOffTheWallSlow" />
   </CEffectApplyBehavior>
-  <CEffectSet id="LucioSoundwaveSubwooferApplyBehaviorSet">
-    <EffectArray value="LucioSoundwaveSubwooferKnockbackApplyBehavior" />
-  </CEffectSet>
   <CEffectSwitch id="LucioWallRideBehaviorSwitch">
     <CaseArray Validator="LucioWallRideNoProbesHit" Effect="LucioWallRideRemoveBehaviorsSet" />
     <CaseArray Validator="LucioWallRideProbesHitLeftMoreThanRight" Effect="LucioWallRideLeftApplyBehaviorsSet" />
@@ -2551,7 +2558,7 @@
     <EffectArray value="ApplyAbilityImpactReveal" />
     <EffectArray value="LucioSoundwaveDamage" />
     <EffectArray value="CameraShakeLightTauntingTotemSet" />
-    <EffectArray value="LucioSoundwaveKnockbackPersistentSwitch" />
+    <EffectArray value="LucioSoundwaveKnockbackSet" />
     <EffectArray value="LucioSoundwaveOffTheWallSet" />
     <EffectArray value="LucioSoundwaveGoodVibrationsSwitch" />
     <EffectArray value="LucioSoundwaveSoothingBeatsEnumerateTrackedUnits" />
@@ -2565,55 +2572,43 @@
     <ImpactUnit Value="Caster" />
     <Weapon Weapon="HeroLucioWeapon" CooldownOperation="Max" CooldownAmount="0.3125" />
   </CEffectModifyUnit>
-  <CEffectCreatePersistent id="LucioSoundwaveKnockbackPersistent">
-    <WhichLocation Value="TargetUnit" />
-    <InitialEffect value="LucioSoundwaveKnockbackSet" />
-    <FinalEffect value="LucioSoundwaveKnockbackRemoveBehavior" />
-    <PeriodCount value="4" />
-    <PeriodicValidator value="LucioTargetHasSoundwaveKnockback" />
-    <PeriodicEffectArray value="LucioSoundwaveKnockbackApplyForce" />
-    <PeriodicPeriodArray value="0.0625" />
-  </CEffectCreatePersistent>
-  <CEffectCreatePersistent id="LucioSoundwaveSubwooferKnockbackPersistent">
-    <WhichLocation Value="TargetUnit" />
-    <InitialEffect value="LucioSoundwaveKnockbackSet" />
-    <FinalEffect value="LucioSoundwaveKnockbackRemoveBehavior" />
-    <PeriodCount value="7" />
-    <PeriodicValidator value="LucioTargetHasSoundwaveKnockback" />
-    <PeriodicEffectArray value="LucioSoundwaveKnockbackApplyForce" />
-    <PeriodicPeriodArray value="0.0625" />
-  </CEffectCreatePersistent>
   <CEffectSet id="LucioSoundwaveKnockbackSet">
     <EffectArray value="HeroRemovePushPullDebuffs" />
-    <EffectArray value="LucioSoundwaveKnockbackApplySwitch" />
+    <EffectArray value="HeroRemovePreventsMovement" />
+    <EffectArray value="LucioSoundwaveKnockbackBehaviorApplySwitch" />
   </CEffectSet>
+  <CEffectSwitch id="LucioSoundwaveKnockbackBehaviorApplySwitch">
+    <CaseArray Validator="LucioSoundwaveKnockbackCombine" Effect="LucioSoundwaveKnockbackApplyBehaviorSubwoofer" />
+    <CaseDefault value="LucioSoundwaveKnockbackApplyBehavior" />
+  </CEffectSwitch>
   <CEffectApplyBehavior id="LucioSoundwaveKnockbackApplyBehavior">
     <Behavior value="LucioSoundwaveKnockback" />
-    <ValidatorArray index="0" value="TargetNotUnstoppable" />
   </CEffectApplyBehavior>
+  <CEffectApplyBehavior id="LucioSoundwaveKnockbackApplyBehaviorSubwoofer">
+    <Behavior value="LucioSoundwaveKnockbackSubwoofer" />
+  </CEffectApplyBehavior>
+  <CEffectApplyForce id="LucioSoundwaveKnockbackApplyForce">
+    <WhichLocation>
+      <Value value="OriginPoint" />
+      <Effect value="LucioSoundwaveInitialSet" />
+      <ProjectionMultiplier value="1" />
+      <ProjectionSourceEffect value="LucioSoundwaveOffsetPersistent" />
+      <ProjectionSourceValue value="OriginPoint" />
+      <ProjectionTargetEffect value="LucioSoundwaveSearchSet" />
+      <ProjectionTargetValue value="TargetPoint" />
+      <UsesLineDash value="1" />
+      <LineDashType value="AllowedInUnpathable" />
+      <ProjectionAngle value="180" />
+      <ProjectionDistanceScale value="2" />
+    </WhichLocation>
+    <WhichUnit Effect="LucioSoundwaveImpactSet" />
+    <Amount value="16" />
+  </CEffectApplyForce>
   <CEffectApplyBehavior id="LucioSoundwaveSuppressTurningApply">
     <WhichUnit Value="Caster" />
     <Behavior value="LucioSoundwaveSuppressTurning" />
     <ValidatorArray value="LucioHasNoWallRideCombine" />
   </CEffectApplyBehavior>
-  <CEffectApplyBehavior id="LucioSoundwaveSubwooferKnockbackApplyBehavior">
-    <Behavior value="LucioSoundwaveKnockback" />
-    <ValidatorArray index="0" value="TargetNotUnstoppable" />
-    <Flags index="UseDuration" value="1" />
-    <Duration value="0.375" />
-  </CEffectApplyBehavior>
-  <CEffectRemoveBehavior id="LucioSoundwaveKnockbackRemoveBehavior">
-    <BehaviorLink value="LucioSoundwaveKnockback" />
-  </CEffectRemoveBehavior>
-  <CEffectApplyForce id="LucioSoundwaveKnockbackApplyForce">
-    <WhichLocation Effect="LucioSoundwaveKnockbackPersistentSwitch" Value="OriginPoint" />
-    <WhichUnit Effect="LucioSoundwaveKnockbackPersistentSwitch" />
-    <Amount value="16" />
-  </CEffectApplyForce>
-  <CEffectSwitch id="LucioSoundwaveKnockbackPersistentSwitch">
-    <CaseArray Validator="LucioSoundwaveKnockbackCombine" Effect="LucioSoundwaveSubwooferKnockbackPersistent" />
-    <CaseDefault value="LucioSoundwaveKnockbackPersistent" />
-  </CEffectSwitch>
   <CEffectModifyPlayer id="LucioSoundwaveSubwooferQuestCompleteModifyPlayer">
     <WhichPlayer Value="Caster" />
     <EffectArray Reference="Effect,LucioSoundwaveSearch,AreaArray[0].Radius" Value="0.9" />
@@ -2626,10 +2621,6 @@
     <EffectArray Reference="Actor,LucioSoundwaveSubwooferGuideRegionArc,Angle" Value="40.000000" />
     <Chance value="0" />
   </CEffectModifyPlayer>
-  <CEffectSwitch id="LucioSoundwaveKnockbackApplySwitch">
-    <CaseArray Validator="LucioSoundwaveKnockbackCombine" Effect="LucioSoundwaveSubwooferApplyBehaviorSet" />
-    <CaseDefault value="LucioSoundwaveKnockbackApplyBehavior" />
-  </CEffectSwitch>
   <CEffectSet id="LucioSoundwaveOffTheWallRefundSet">
     <EffectArray value="LucioSoundwaveOffTheWallRefundMana" />
     <EffectArray value="LucioSoundwaveOffTheWallModifyUnit" />

@@ -1032,6 +1032,10 @@
     <Sound value="Gazlowe_GravOBomb3000_ThrowWhoosh" />
     <Host Subject="_Missile" />
   </CActorSound>
+  <CActorModel id="GazloweGravOBomb3000StunFlailBackwards" parent="StormFlailStunBackward">
+    <On Terms="Behavior.GravOBomb3000Pull.On" Send="Create" />
+    <On Terms="Behavior.GravOBomb3000Pull.Off" Send="Destroy" />
+  </CActorModel>
   <CActorSound id="TinkerXplodiumBombChargeComplete" parent="SoundOneShot">
     <Sound value="Gazlowe_XplodiumBomb_Charge_Complete" />
     <Host Subject="::Creator" />
@@ -1505,13 +1509,16 @@
     <BehaviorFlags index="Permanent" value="1" />
     <BehaviorFlags index="EnabledWhileDead" value="1" />
   </CBehaviorBuff>
-  <CBehaviorBuff id="GravOBomb3000Pull" parent="StormStun">
-    <Duration value="0.5" />
+  <CBehaviorBuff id="GravOBomb3000Pull" parent="PushPullParent">
+    <Duration value="0.25" />
+    <Period value="0.0625" />
     <Modification>
-      <MoveSpeedMaximum value="28" />
-      <MoveSpeedMinimum value="28" />
+      <MoveSpeedMaximum value="19" />
+      <MoveSpeedMinimum value="19" />
     </Modification>
-    <InitialEffect value="GravOBomb3000ApplyHeightBehavior" />
+    <InitialEffect value="GravOBomb3000PullInitialSet" />
+    <PeriodicEffect value="GravOBomb3000ApplyForce" />
+    <FinalEffect value="GazloweGravOBomb3000ApplyStun" />
   </CBehaviorBuff>
   <CBehaviorBuff id="GravOBomb3000Height" parent="PushPullParent">
     <Duration value="0.125" />
@@ -1520,6 +1527,9 @@
       <HeightTime index="Start" value="0.125" />
       <HeightTime index="Stop" value="0.0625" />
     </Modification>
+  </CBehaviorBuff>
+  <CBehaviorBuff id="GazloweGravOBomb3000Stun" parent="StormStun">
+    <Duration value="0.5" />
   </CBehaviorBuff>
   <CBehaviorBuff id="ElectromagneticPulseGeneratorReadyBehavior">
     <Alignment value="Positive" />
@@ -2472,11 +2482,6 @@
     <ValidatorArray index="0" value="TinkerTargetHasNoRoboGoblinMechaLordTalentFocusTarget" />
     <Behavior value="TinkerFocusTurretsTargetBuff" />
   </CEffectApplyBehavior>
-  <CEffectSet id="TinkerGravOBomb3000PullPersistentInitialSet">
-    <EffectArray value="HeroRemovePushPullDebuffs" />
-    <EffectArray value="GravOBomb3000ApplyPullBehavior" />
-    <EffectArray value="GazloweGravOBomb3000CooldownReduction" />
-  </CEffectSet>
   <CEffectApplyBehavior id="TinkerRoboGoblinRockItTurretApplyAttackCarryBehavior">
     <Behavior value="TinkerRoboGoblinRockItTurretAttackCarryBehavior" />
   </CEffectApplyBehavior>
@@ -2805,32 +2810,38 @@
   <CEffectSet id="ClockwerkSteamFistsDummySet">
     <EffectArray value="TinkerClockwerkSteamFistsModifyTokenCount" />
   </CEffectSet>
-  <CEffectCreatePersistent id="GravOBomb3000CreatePullPersistent">
-    <WhichLocation Value="TargetUnit" />
-    <InitialEffect value="TinkerGravOBomb3000PullPersistentInitialSet" />
-    <PeriodCount value="3" />
-    <PeriodicEffectArray value="GravOBomb3000ApplyForce" />
-    <PeriodicPeriodArray value="0.0625" />
-    <PeriodicValidator value="HasGravOBomb3000Pull" />
-  </CEffectCreatePersistent>
   <CEffectEnumArea id="GravOBomb3000PullSearchArea">
     <SearchFilters value="-;Player,Ally,Neutral,ImmuneToAOE,Structure,Missile,Stasis,Hidden,Invulnerable,Unstoppable" />
-    <AreaArray Effect="GravOBomb3000CreatePullPersistent">
+    <AreaArray Effect="GazloweGravOBomb3000ApplyPullSet">
       <Radius value="$GazloweGravOBomb3000Radius" />
     </AreaArray>
   </CEffectEnumArea>
+  <CEffectSet id="GazloweGravOBomb3000ApplyPullSet">
+    <EffectArray value="HeroRemovePushPullDebuffs" />
+    <EffectArray value="HeroRemovePreventsMovement" />
+    <EffectArray value="GravOBomb3000ApplyPullBehavior" />
+    <EffectArray value="GazloweGravOBomb3000CooldownReduction" />
+  </CEffectSet>
   <CEffectApplyBehavior id="GravOBomb3000ApplyPullBehavior">
     <Behavior value="GravOBomb3000Pull" />
-    <ValidatorArray index="0" value="TargetNotSgtHammerFortified" />
   </CEffectApplyBehavior>
+  <CEffectSet id="GravOBomb3000PullInitialSet">
+    <EffectArray value="GravOBomb3000ApplyHeightBehavior" />
+    <EffectArray value="GravOBomb3000ApplyForce" />
+  </CEffectSet>
   <CEffectApplyBehavior id="GravOBomb3000ApplyHeightBehavior">
     <WhichUnit Value="Source" />
     <Behavior value="GravOBomb3000Height" />
   </CEffectApplyBehavior>
   <CEffectApplyForce id="GravOBomb3000ApplyForce">
     <WhichLocation Effect="GravOBomb3000Persistent" Value="TargetPoint" />
+    <WhichUnit Effect="GazloweGravOBomb3000ApplyPullSet" />
     <Amount value="-50" />
   </CEffectApplyForce>
+  <CEffectApplyBehavior id="GazloweGravOBomb3000ApplyStun">
+    <WhichUnit Value="Source" />
+    <Behavior value="GazloweGravOBomb3000Stun" />
+  </CEffectApplyBehavior>
   <CEffectSet id="TinkerWeaponSet">
     <EffectArray value="TinkerWeaponDamage" />
     <EffectArray value="GazloweOneManWreckingCrewRemoveCasterBehavior" />

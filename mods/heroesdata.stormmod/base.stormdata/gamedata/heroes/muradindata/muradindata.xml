@@ -640,8 +640,10 @@
     <On Terms="ActorCreation" Target="_Unit" Send="AnimClear Channel" />
   </CActorModel>
   <CActorModel id="MuradinHaymakerStunSecondary" parent="StormFlailStun">
-    <On Terms="Behavior.HaymakerSecondary.On" Send="Create" />
-    <On Terms="Behavior.HaymakerSecondary.Off" Send="AnimBracketStop BSD" />
+    <On Terms="Behavior.MuradinHaymakerLeftPush.On" Send="Create" />
+    <On Terms="Behavior.MuradinHaymakerLeftPush.Off" Send="AnimBracketStop BSD" />
+    <On Terms="Behavior.MuradinHaymakerRightPush.On" Send="Create" />
+    <On Terms="Behavior.MuradinHaymakerRightPush.Off" Send="AnimBracketStop BSD" />
   </CActorModel>
   <CActorSound id="MuradinHaymakerStunLandSound" parent="SoundOneShot">
     <On Terms="Behavior.HaymakerTargetBehaviorKnockback.Off" Send="Create" />
@@ -924,16 +926,26 @@
     <Modification>
       <StateFlags index="OrdersPaused" value="1" />
       <BehaviorCategoriesDisable index="DebuffRoot" value="1" />
+      <BehaviorLinkDisableArray value="StormRootSuppressMoving" />
     </Modification>
     <InitialEffect value="HaymakerCancelMoveOrder" />
     <Duration value="8" />
   </CBehaviorBuff>
-  <CBehaviorBuff id="HaymakerSecondary" parent="PushPullParent">
-    <Duration value="0.375" />
+  <CBehaviorBuff id="MuradinHaymakerSecondaryPushParent" parent="PushPullParent">
+    <Duration value="0.25" />
+    <Period value="0.0625" />
     <Modification>
-      <MoveSpeedMaximum value="14" />
-      <MoveSpeedMinimum value="14" />
+      <MoveSpeedMaximum value="16.75" />
+      <MoveSpeedMinimum value="16.75" />
     </Modification>
+  </CBehaviorBuff>
+  <CBehaviorBuff id="MuradinHaymakerLeftPush" parent="MuradinHaymakerSecondaryPushParent">
+    <InitialEffect value="MuradinHaymakerApplyForceLeft" />
+    <PeriodicEffect value="MuradinHaymakerApplyForceLeft" />
+  </CBehaviorBuff>
+  <CBehaviorBuff id="MuradinHaymakerRightPush" parent="MuradinHaymakerSecondaryPushParent">
+    <InitialEffect value="MuradinHaymakerApplyForceRight" />
+    <PeriodicEffect value="MuradinHaymakerApplyForceRight" />
   </CBehaviorBuff>
   <CBehaviorBuff id="MuradinStormboltStun" parent="StormStun">
     <Duration value="1.25" />
@@ -1386,50 +1398,56 @@
     <PeriodicEffectArray value="HaymakerKnockbackXOffsetRightSearch" />
     <PeriodicOffsetArray X="-1.1" Y="0.5" />
     <PeriodicOffsetArray X="1.1" Y="0.5" />
-    <PeriodicOffsetArray X="1.1" Y="-0.5" />
-    <PeriodicOffsetArray X="-1.1" Y="-0.5" />
+    <PeriodicOffsetArray X="-1.1" Y="0.5" />
+    <PeriodicOffsetArray X="1.1" Y="0.5" />
     <PeriodicPeriodArray value="0" />
   </CEffectCreatePersistent>
-  <CEffectApplyForce id="HaymakerKnockbackXOffsetLeftForce">
-    <WhichLocation Effect="HaymakerKnockbackXOffsetLeftKnockbackPersistent" Value="TargetPoint" />
-    <WhichUnit Effect="HaymakerKnockbackXOffsetLeftImpactPersistent" />
-    <Amount value="10" />
-    <ValidatorArray value="MuradinHaymakerLeftKnockbackTargetNotUnstoppable" />
-  </CEffectApplyForce>
-  <CEffectApplyForce id="HaymakerKnockbackXOffsetRightForce">
-    <WhichLocation Effect="HaymakerKnockbackXOffsetRightKnockbackPersistent" Value="TargetPoint" />
-    <WhichUnit Effect="HaymakerKnockbackXOffsetRightImpactPersistent" />
-    <Amount value="10" />
-    <ValidatorArray value="MuradinHaymakerRightKnockbackTargetNotUnstoppable" />
-  </CEffectApplyForce>
-  <CEffectCreatePersistent id="HaymakerKnockbackXOffsetRightImpactPersistent">
-    <WhichLocation Value="TargetUnit" />
-    <InitialEffect value="HaymakerKnockbackXOffsetRightKnockbackPersistent" />
-    <InitialOffset X="3" />
-    <OffsetVectorStartLocation Value="OriginPoint" />
-    <ValidatorArray value="NotStructureTarget" />
+  <CEffectSet id="MuradinHaymakerSecondaryKnockbackInitialSetLeft">
     <ValidatorArray value="TargetNotUnstoppable" />
-  </CEffectCreatePersistent>
-  <CEffectCreatePersistent id="HaymakerKnockbackXOffsetLeftKnockbackPersistent">
-    <PeriodCount value="6" />
-    <PeriodicEffectArray value="HaymakerKnockbackXOffsetLeftForce" />
-    <PeriodicPeriodArray value="0.0625" />
-    <PeriodicValidator value="HasHaymakerSecondaryKnockbackLeft" />
-  </CEffectCreatePersistent>
-  <CEffectCreatePersistent id="HaymakerKnockbackXOffsetLeftImpactPersistent">
-    <WhichLocation Value="TargetUnit" />
-    <InitialEffect value="HaymakerKnockbackXOffsetLeftKnockbackPersistent" />
-    <InitialOffset X="-3" />
-    <OffsetVectorStartLocation Value="OriginPoint" />
     <ValidatorArray value="NotStructureTarget" />
+    <EffectArray value="HeroRemovePushPullDebuffs" />
+    <EffectArray value="HeroRemovePreventsMovement" />
+    <EffectArray value="MuradinHaymakerSecondaryKnockbackCreationPersistentLeft" />
+  </CEffectSet>
+  <CEffectCreatePersistent id="MuradinHaymakerSecondaryKnockbackCreationPersistentLeft">
+    <OffsetVectorStartLocation Effect="HaymakerInitialSet" Value="OriginPoint" />
+    <OffsetVectorEndLocation Effect="HaymakerAttackSet" Value="TargetPoint" />
+    <WhichLocation Effect="MuradinHaymakerSecondaryKnockbackInitialSetLeft" Value="TargetUnit" />
+    <InitialOffset X="-5" />
+    <InitialEffect value="MuradinHaymakerLeftPushApply" />
+  </CEffectCreatePersistent>
+  <CEffectApplyBehavior id="MuradinHaymakerLeftPushApply">
+    <WhichUnit Effect="MuradinHaymakerSecondaryKnockbackInitialSetLeft" />
+    <Behavior value="MuradinHaymakerLeftPush" />
+  </CEffectApplyBehavior>
+  <CEffectApplyForce id="MuradinHaymakerApplyForceLeft">
+    <WhichUnit Effect="MuradinHaymakerSecondaryKnockbackInitialSetLeft" />
+    <WhichLocation Effect="MuradinHaymakerLeftPushApply" Value="TargetPoint" />
+    <Amount value="10" />
+  </CEffectApplyForce>
+  <CEffectSet id="MuradinHaymakerSecondaryKnockbackInitialSetRight">
     <ValidatorArray value="TargetNotUnstoppable" />
+    <ValidatorArray value="NotStructureTarget" />
+    <EffectArray value="HeroRemovePushPullDebuffs" />
+    <EffectArray value="HeroRemovePreventsMovement" />
+    <EffectArray value="MuradinHaymakerSecondaryKnockbackCreationPersistentRight" />
+  </CEffectSet>
+  <CEffectCreatePersistent id="MuradinHaymakerSecondaryKnockbackCreationPersistentRight">
+    <OffsetVectorStartLocation Effect="HaymakerInitialSet" Value="OriginPoint" />
+    <OffsetVectorEndLocation Effect="HaymakerAttackSet" Value="TargetPoint" />
+    <WhichLocation Effect="MuradinHaymakerSecondaryKnockbackInitialSetRight" Value="TargetUnit" />
+    <InitialOffset X="5" />
+    <InitialEffect value="MuradinHaymakerRightPushApply" />
   </CEffectCreatePersistent>
-  <CEffectCreatePersistent id="HaymakerKnockbackXOffsetRightKnockbackPersistent">
-    <PeriodCount value="6" />
-    <PeriodicEffectArray value="HaymakerKnockbackXOffsetRightForce" />
-    <PeriodicPeriodArray value="0.0625" />
-    <PeriodicValidator value="HasHaymakerSecondaryKnockbackRight" />
-  </CEffectCreatePersistent>
+  <CEffectApplyBehavior id="MuradinHaymakerRightPushApply">
+    <WhichUnit Effect="MuradinHaymakerSecondaryKnockbackInitialSetRight" />
+    <Behavior value="MuradinHaymakerRightPush" />
+  </CEffectApplyBehavior>
+  <CEffectApplyForce id="MuradinHaymakerApplyForceRight">
+    <WhichUnit Effect="MuradinHaymakerSecondaryKnockbackInitialSetRight" />
+    <WhichLocation Effect="MuradinHaymakerRightPushApply" Value="TargetPoint" />
+    <Amount value="10" />
+  </CEffectApplyForce>
   <CEffectEnumArea id="HaymakerKnockbackXOffsetLeftSearch">
     <LaunchLocation Value="OriginPoint" />
     <SearchFilters value="-;Player,Ally,ImmuneToAOE,Missile,Item,Dead,Hidden,Invulnerable" />
@@ -1449,17 +1467,14 @@
     <ExcludeArray Value="Source" />
   </CEffectEnumArea>
   <CEffectSet id="HaymakerKnockbackXOffsetLeftSearchImpactSet">
-    <ValidatorArray value="NoHaymakerSecondaryKnockback" />
+    <ValidatorArray value="MuradinHaymakerNoSecondaryPushCombine" />
     <EffectArray value="HaymakerSecondaryImpactDamage" />
-    <EffectArray value="HeroRemovePushPullDebuffs" />
-    <EffectArray value="HaymakerApplySecondaryBehavior" />
-    <EffectArray value="HaymakerKnockbackXOffsetLeftImpactPersistent" />
+    <EffectArray value="MuradinHaymakerSecondaryKnockbackInitialSetLeft" />
   </CEffectSet>
   <CEffectSet id="HaymakerKnockbackXOffsetRightSearchImpactSet">
-    <ValidatorArray value="NoHaymakerSecondaryKnockback" />
+    <ValidatorArray value="MuradinHaymakerNoSecondaryPushCombine" />
     <EffectArray value="HaymakerSecondaryImpactDamage" />
-    <EffectArray value="HaymakerApplySecondaryBehavior" />
-    <EffectArray value="HaymakerKnockbackXOffsetRightImpactPersistent" />
+    <EffectArray value="MuradinHaymakerSecondaryKnockbackInitialSetRight" />
   </CEffectSet>
   <CEffectCreateHealer id="StoneformCreateHealer" parent="StormSelfOnlyHealingSpellPercent">
     <ImpactUnit Value="Caster" />
@@ -1833,7 +1848,7 @@
   </CEffectApplyBehavior>
   <CEffectDamage id="MuradinWeaponDamage" parent="StormWeapon">
     <Amount value="88" />
-    <MultiplicativeModifierArray index="SkullcrackerCrit" Validator="Has3StackSkullcracker" Modifier="0.9" Crit="1" />
+    <MultiplicativeModifierArray index="SkullcrackerCrit" Validator="MuradinSkullcrackerDamageValidator" Modifier="0.9" Crit="1" />
   </CEffectDamage>
   <CEffectDamage id="HeroMuradinSkullcrackerDamage" parent="StormWeapon">
     <Amount value="42" />
@@ -2778,8 +2793,16 @@
     <Value value="1" />
     <Behavior value="HaymakerTargetBehaviorMicroStun" />
   </CValidatorUnitCompareBehaviorCount>
-  <CValidatorUnitCompareBehaviorCount id="NoHaymakerSecondaryKnockback">
-    <Behavior value="HaymakerSecondary" />
+  <CValidatorCombine id="MuradinHaymakerNoSecondaryPushCombine">
+    <Type value="And" />
+    <CombineArray value="MuradinNoHaymakerSecondaryPushLeft" />
+    <CombineArray value="MuradinNoHaymakerSecondaryPushRight" />
+  </CValidatorCombine>
+  <CValidatorUnitCompareBehaviorCount id="MuradinNoHaymakerSecondaryPushRight">
+    <Behavior value="MuradinHaymakerRightPush" />
+  </CValidatorUnitCompareBehaviorCount>
+  <CValidatorUnitCompareBehaviorCount id="MuradinNoHaymakerSecondaryPushLeft">
+    <Behavior value="MuradinHaymakerLeftPush" />
   </CValidatorUnitCompareBehaviorCount>
   <CValidatorUnitCompareBehaviorCount id="MuradinHasBronzebeardRageCCDamageBoost">
     <WhichUnit Value="Caster" />
@@ -2819,24 +2842,6 @@
     <Compare value="GT" />
     <Behavior value="HaymakerTargetBehaviorStun" />
   </CValidatorUnitCompareBehaviorCount>
-  <CValidatorUnitCompareBehaviorCount id="HasHaymakerSecondaryKnockbackRight">
-    <WhichUnit Effect="HaymakerKnockbackXOffsetRightImpactPersistent" />
-    <Value value="1" />
-    <Behavior value="HaymakerSecondary" />
-  </CValidatorUnitCompareBehaviorCount>
-  <CValidatorUnitCompareBehaviorCount id="HasHaymakerSecondaryKnockbackLeft">
-    <WhichUnit Effect="HaymakerKnockbackXOffsetLeftImpactPersistent" />
-    <Value value="1" />
-    <Behavior value="HaymakerSecondary" />
-  </CValidatorUnitCompareBehaviorCount>
-  <CValidatorUnitFilters id="MuradinHaymakerLeftKnockbackTargetNotUnstoppable">
-    <WhichUnit Effect="HaymakerKnockbackXOffsetLeftImpactPersistent" />
-    <Filters value="-;Unstoppable" />
-  </CValidatorUnitFilters>
-  <CValidatorUnitFilters id="MuradinHaymakerRightKnockbackTargetNotUnstoppable">
-    <WhichUnit Effect="HaymakerKnockbackXOffsetRightImpactPersistent" />
-    <Filters value="-;Unstoppable" />
-  </CValidatorUnitFilters>
   <CValidatorPlayerTalent id="HasTalentGiveEmtheAxe">
     <WhichPlayer Value="Caster" />
     <Find value="1" />
@@ -3027,6 +3032,11 @@
     <Type value="And" />
     <CombineArray value="MuradinDoesNotHaveSecondWindActive" />
     <CombineArray value="MuradinDoesNotHaveImprovedSecondWindActive" />
+  </CValidatorCombine>
+  <CValidatorCombine id="MuradinSkullcrackerDamageValidator">
+    <Type value="And" />
+    <CombineArray value="HasSkullcracker" />
+    <CombineArray value="Has3StackSkullcracker" />
   </CValidatorCombine>
   <CValidatorUnitCompareBehaviorCount id="HasSkullcracker">
     <WhichUnit Value="Caster" />

@@ -13,7 +13,9 @@
   <const id="$YrelVindicationAldorPeacekeeperDamageReductionDuration" value="3" />
   <const id="$YrelRighteousHammerSearchRadius" value="4" />
   <const id="$YrelRighteousHammerStunDuration" value="0.75" />
-  <const id="$YrelRighteousHammerMinimumKnockbackMovespeed" value="14" />
+  <const id="$YrelRighteousHammerMinimumKnockbackMovespeed" value="6.5" />
+  <const id="$YrelRighteousHammerMaximumKnockbackMovespeed" value="-($YrelBasicAbilityChannelTokenMax 7.5)" evaluateAsExpression="1" />
+  <const id="$YrelRighteousHammerMaximumKnockbackMovespeedAtFullCharge" value="+($YrelRighteousHammerMaximumKnockbackMovespeed 2.5)" evaluateAsExpression="1" />
   <const id="$YrelRighteousHammerMinimumKnockbackDuration" value="0.125" />
   <const id="$YrelRighteousHammerMaximumKnockbackDuration" value="0.25" />
   <const id="$YrelAvengingWrathSearchRadius" value="2.5" />
@@ -37,7 +39,7 @@
   <const id="$YrelVelensChosenAbilityPowerBuffDuration" value="10" />
   <const id="$YrelBasicAbilityChannelPercentageScale" value="-($YrelBasicAbilityStartingOffsetRatio 1)" evaluateAsExpression="1" />
   <const id="$YrelBasicAbilityChannelPercentageIncreasePerGameLoop" value="/(negate($YrelBasicAbilityChannelPercentageScale) $YrelBasicAbilityChannelTokenMax)" evaluateAsExpression="1" />
-  <const id="$YrelRighteousHammerKnockbackMovespeedAccumulatorScale" value="/(-($YrelBasicAbilityChannelTokenMax $YrelRighteousHammerMinimumKnockbackMovespeed) $YrelBasicAbilityChannelTokenMax)" evaluateAsExpression="1" />
+  <const id="$YrelRighteousHammerKnockbackMovespeedAccumulatorScale" value="/(-($YrelRighteousHammerMaximumKnockbackMovespeed $YrelRighteousHammerMinimumKnockbackMovespeed) $YrelBasicAbilityChannelTokenMax)" evaluateAsExpression="1" />
   <const id="$YrelRighteousHammerKnockbackDurationAccumulatorScale" value="/(-($YrelRighteousHammerMaximumKnockbackDuration $YrelRighteousHammerMinimumKnockbackDuration) $YrelBasicAbilityChannelTokenMax)" evaluateAsExpression="1" />
   <const id="$YrelAvengingWrathRangeAccumulatorScale" value="/(-($YrelAvengingWrathRange $YrelAvengingWrathMinimumRange) $YrelBasicAbilityChannelTokenMax)" evaluateAsExpression="1" />
   <const id="$YrelDivineSteedMountSpeedBuffMultiplierPerStep" value="/($YrelDivineSteedMountSpeedBuffMinAccumulation *($YrelDivineSteedMountSpeedBuffDuration 16))" evaluateAsExpression="1" />
@@ -286,7 +288,7 @@
     <Offset value="$YrelBasicAbilityChannelPercentageScale" />
   </CAccumulatorToken>
   <CAccumulatorToken id="YrelRighteousHammerKnockbackMovespeedAccumulator" parent="BaseAccumulator">
-    <MaxAccumulation value="$YrelBasicAbilityChannelTokenMax" />
+    <MaxAccumulation value="$YrelRighteousHammerMaximumKnockbackMovespeed" />
     <ApplicationRule value="Add" />
     <TokenId value="YrelRighteousHammerChannelToken" />
     <Scale value="$YrelRighteousHammerKnockbackMovespeedAccumulatorScale" />
@@ -798,6 +800,8 @@
   <CActorModel id="YrelRighteousHammerStunFlailBackwards" parent="StormFlailStunBackward">
     <On Terms="Behavior.YrelRighteousHammerKnockback.On" Send="Create" />
     <On Terms="Behavior.YrelRighteousHammerKnockback.Off" Send="Destroy" />
+    <On Terms="Behavior.YrelRighteousHammerKnockbackFullCharge.On" Send="Create" />
+    <On Terms="Behavior.YrelRighteousHammerKnockbackFullCharge.Off" Send="Destroy" />
   </CActorModel>
   <CActorRange id="YrelSacredGroundRange" parent="StormRangeAbilPlusSplat" abil="YrelSacredGround" />
   <CActorSplat id="YrelSacredGroundRangeSplat" parent="StormRangeSplat">
@@ -1542,6 +1546,16 @@
     <EnableEffect value="AbilityTargetingModeCursorOverrideApplyBehavior" />
   </CBehaviorBuff>
   <CBehaviorBuff id="YrelRighteousHammerKnockback" parent="PushPullParent">
+    <Period value="0.0625" />
+    <InitialEffect value="YrelRighteousHammerKnockbackApplyForce" />
+    <PeriodicEffect value="YrelRighteousHammerKnockbackApplyForce" />
+  </CBehaviorBuff>
+  <CBehaviorBuff id="YrelRighteousHammerKnockbackFullCharge" parent="YrelRighteousHammerKnockback">
+    <Duration value="$YrelRighteousHammerMaximumKnockbackDuration" />
+    <Modification>
+      <MoveSpeedMaximum value="$YrelRighteousHammerMaximumKnockbackMovespeedAtFullCharge" />
+      <MoveSpeedMinimum value="$YrelRighteousHammerMaximumKnockbackMovespeedAtFullCharge" />
+    </Modification>
     <FinalEffect value="YrelRighteousHammerStunApplyBehavior" />
   </CBehaviorBuff>
   <CBehaviorBuff id="YrelRighteousHammerStun" parent="StormStun">
@@ -2278,7 +2292,7 @@
     <EffectArray value="YrelRighteousHammerDamage" />
     <EffectArray value="YrelRighteousHammerTemplarsVerdictDamage" />
     <EffectArray value="YrelRighteousHammerTemplarsVerdictDebuffApplyBehavior" />
-    <EffectArray value="YrelRighteousHammerKnockbackCreatePersistent" />
+    <EffectArray value="YrelRighteousHammerKnockbackInitialSet" />
     <EffectArray value="CameraShakeMediumTauntingTotemSet" />
     <EffectArray value="YrelMaraadsInsightBuffApplyBehavior" />
     <EffectArray value="ApplyAbilityImpactReveal" />
@@ -2298,21 +2312,21 @@
     <ValidatorArray value="TargetIsHero" />
     <Behavior value="YrelRighteousHammerTemplarsVerdictDebuff" />
   </CEffectApplyBehavior>
-  <CEffectCreatePersistent id="YrelRighteousHammerKnockbackCreatePersistent">
-    <InitialEffect value="YrelRighteousHammerKnockbackCreatePersistentInitialSet" />
-    <PeriodicValidator value="YrelRighteousHammerImpactSetTargetHasRighteousHammerKnockback" />
-    <PeriodicEffectArray value="YrelRighteousHammerKnockbackApplyForce" />
-    <PeriodicPeriodArray value="0.0625" />
-    <Flags index="PersistUntilDestroyed" value="1" />
-  </CEffectCreatePersistent>
-  <CEffectSet id="YrelRighteousHammerKnockbackCreatePersistentInitialSet">
+  <CEffectSet id="YrelRighteousHammerKnockbackInitialSet">
+    <ValidatorArray value="TargetNotUnstoppable" />
     <EffectArray value="HeroRemovePushPullDebuffs" />
-    <EffectArray value="YrelRighteousHammerKnockbackApplyBehavior" />
-    <EffectArray value="YrelRighteousHammerMaxChargeHitApplyBehavior" />
+    <EffectArray value="HeroRemovePreventsMovement" />
+    <EffectArray value="YrelRighteousHammerKnockbackApplyChargedSwitch" />
   </CEffectSet>
-  <CEffectApplyBehavior id="YrelRighteousHammerKnockbackApplyBehavior">
-    <WhichUnit Effect="YrelRighteousHammerImpactSet" />
+  <CEffectSwitch id="YrelRighteousHammerKnockbackApplyChargedSwitch">
+    <CaseArray Validator="YrelRighteousHammerCasterHasMaxChargeBehavior" Effect="YrelRighteousHammerApplyKnockbackFullCharge" />
+    <CaseDefault value="YrelRighteousHammerApplyKnockback" />
+  </CEffectSwitch>
+  <CEffectApplyBehavior id="YrelRighteousHammerApplyKnockback">
     <Behavior value="YrelRighteousHammerKnockback" />
+  </CEffectApplyBehavior>
+  <CEffectApplyBehavior id="YrelRighteousHammerApplyKnockbackFullCharge">
+    <Behavior value="YrelRighteousHammerKnockbackFullCharge" />
   </CEffectApplyBehavior>
   <CEffectApplyBehavior id="YrelRighteousHammerMaxChargeHitApplyBehavior">
     <ValidatorArray value="YrelRighteousHammerCasterHasMaxChargeBehavior" />
@@ -2320,7 +2334,6 @@
     <Behavior value="YrelRighteousHammerMaxChargeHit" />
   </CEffectApplyBehavior>
   <CEffectApplyBehavior id="YrelRighteousHammerStunApplyBehavior">
-    <ValidatorArray value="YrelRighteousHammerSourceHasMaxChargeHitBehavior" />
     <Behavior value="YrelRighteousHammerStun" />
   </CEffectApplyBehavior>
   <CEffectRemoveBehavior id="YrelRighteousHammerChannelBuffRemoveBehavior">
@@ -2338,9 +2351,21 @@
     <Value value="0" />
   </CEffectModifyTokenCount>
   <CEffectApplyForce id="YrelRighteousHammerKnockbackApplyForce">
-    <WhichLocation Effect="YrelRighteousHammerCastReverseCreatePersistent" Value="TargetPoint" />
+    <WhichLocation>
+      <Value value="OriginPoint" />
+      <Effect value="YrelRighteousHammerInitialSet" />
+      <ProjectionMultiplier value="1" />
+      <ProjectionSourceEffect value="YrelRighteousHammerInitialSet" />
+      <ProjectionSourceValue value="OriginPoint" />
+      <ProjectionTargetEffect value="YrelRighteousHammerInitialSet" />
+      <ProjectionTargetValue value="TargetPoint" />
+      <UsesLineDash value="1" />
+      <LineDashType value="AllowedInUnpathable" />
+      <ProjectionAngle value="180" />
+      <ProjectionDistanceScale value="2" />
+    </WhichLocation>
     <WhichUnit Effect="YrelRighteousHammerImpactSet" />
-    <Amount value="$YrelBasicAbilityChannelTokenMax" />
+    <Amount value="$YrelRighteousHammerMaximumKnockbackMovespeed" />
   </CEffectApplyForce>
   <CEffectSet id="YrelRighteousHammerCastFinalSet">
     <EffectArray value="YrelVelensChosenAbilityPowerTokenAdd" />

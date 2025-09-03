@@ -945,10 +945,6 @@
   <CBehaviorBuff id="NovaAntiArmorShellsWeaponCooldownUIDummy" parent="CarryBehaviorParent">
     <Duration value="2.5" />
   </CBehaviorBuff>
-  <CBehaviorBuff id="TripleTapInitialMissileScan">
-    <Duration value="0.125" />
-    <ExpireEffect value="TripleTapApplyMissileScan" />
-  </CBehaviorBuff>
   <CBehaviorBuff id="NovaTripleTapCCInterruption">
     <RemoveValidatorArray value="CasterNotDazedOrDeadOrSilencedOrStasisOrStunnedExceptTimeStop" />
     <RemoveValidatorArray value="TripleTapRevealBehaviorOn" />
@@ -1032,13 +1028,6 @@
     <PeriodicEffect value="NovaPinningShotCovertOpsApplyTimerBehavior" />
     <EnableEffect value="NovaPermanentCloakInitialSet" />
     <DisableEffect value="NovaPermanentCloakExpireSet" />
-  </CBehaviorBuff>
-  <CBehaviorBuff id="TripleTapMissileScan">
-    <Duration value="3" />
-    <Period value="0.0625" />
-    <InitialEffect value="TripleTapMissilePeriodicSet" />
-    <PeriodicEffect value="TripleTapMissilePeriodicSet" />
-    <FinalEffect value="TripleTapSuicideRemove" />
   </CBehaviorBuff>
   <CBehaviorBuff id="TripleTapReveal" parent="StormReveal">
     <RemoveValidatorArray index="0" value="TargetNotInvulnerable" />
@@ -1456,12 +1445,6 @@
     <ValidatorArray value="TargetIsSpecialDeathState" />
     <EffectArray value="NovaSnipePerfectShotRefundMana" />
   </CEffectSet>
-  <CEffectDestroyPersistent id="TripleTapMissileScanDestroyPersistent">
-    <WhichLocation Value="SourcePoint" />
-    <Effect value="TripleTapMissileScanPersistent" />
-    <Count value="1" />
-    <Radius value="0.25" />
-  </CEffectDestroyPersistent>
   <CEffectSet id="NovaCloakCooldownDisplayDummy">
     <ValidatorArray value="AlwaysReturnsFalse" />
   </CEffectSet>
@@ -1640,10 +1623,6 @@
     <EffectArray value="NovaAntiArmorShellsApplyArmorDebuff" />
     <EffectArray value="UniversalWeaponPostImpactSet" />
   </CEffectSet>
-  <CEffectApplyBehavior id="TripleTapInitialApplyMissileScan">
-    <WhichUnit Value="Source" />
-    <Behavior value="TripleTapInitialMissileScan" />
-  </CEffectApplyBehavior>
   <CEffectSet id="TripleTapCCInterruptionSet">
     <ValidatorArray value="TripleTapCooldownReductionCombine" />
     <EffectArray value="NovaTripleTapModifyUnitCCInterruption" />
@@ -1754,14 +1733,6 @@
     <ImpactUnit Effect="TripleTapApplyMasteryDebuff" Value="Caster" />
     <Cost Abil="NovaTripleTap,Execute" CooldownOperation="Set" CooldownTimeUse="0.1" />
   </CEffectModifyUnit>
-  <CEffectSet id="TripleTapMissilePeriodicSet">
-    <EffectArray value="TripleTapMissileScanPersistent" />
-    <TargetLocationType value="UnitOrPoint" />
-  </CEffectSet>
-  <CEffectSet id="TripleTapMissileInitialSet">
-    <EffectArray value="TripleTapInitialMissileScan" />
-    <TargetLocationType value="UnitOrPoint" />
-  </CEffectSet>
   <CEffectSet id="TripleTapRedirectDummySet" />
   <CEffectCreatePersistent id="TripleTapRevealPersistent">
     <WhichLocation Value="TargetUnit" />
@@ -1906,14 +1877,15 @@
     <EffectArray value="NovaGhostProtocolApplyUnrevealableBehavior" />
   </CEffectSet>
   <CEffectLaunchMissile id="TripleTapLaunchMissile">
-    <LaunchEffect value="TripleTapInitialApplyMissileScan" />
+    <SharedFlags index="DynamicSearchArea" value="1" />
+    <SharedFlags index="DisableArriveOnLaunch" value="1" />
+    <SharedFlags index="ArriveOnSearchHit" value="1" />
+    <SharedFlags index="ValidateAbil" value="0" />
+    <ValidateTeleportRange value="20" />
+    <SearchEffect value="TripleTapMissileScan" />
     <ImpactEffect value="TripleTapImpactSet" />
     <AmmoUnit value="TripleTapArrowMissile" />
   </CEffectLaunchMissile>
-  <CEffectApplyBehavior id="TripleTapApplyMissileScan">
-    <WhichUnit Value="Source" />
-    <Behavior value="TripleTapMissileScan" />
-  </CEffectApplyBehavior>
   <CEffectApplyBehavior id="TripleTapApplyRevealBehavior">
     <Behavior value="TripleTapReveal" />
   </CEffectApplyBehavior>
@@ -1961,7 +1933,6 @@
   <CEffectSet id="TripleTapImpactSet">
     <EffectArray value="TripleTapApplyMasteryDebuff" />
     <EffectArray value="TripleTapMissileDamage" />
-    <EffectArray value="TripleTapMissileScanDestroyPersistent" />
     <EffectArray value="CameraShakeLightTauntingTotemSet" />
     <EffectArray value="TripleTapSuicideRemove" />
     <EffectArray value="ApplyAbilityImpactReveal" />
@@ -1973,17 +1944,6 @@
     <PeriodicEffectArray value="TripleTapLaunchMissile" />
     <PeriodicPeriodArray value="0.1" />
   </CEffectCreatePersistent>
-  <CEffectEnumArea id="TripleTapInitialMissileScan">
-    <SearchFilters value="-;Player,Ally,Neutral,Minion,ImmuneToSkillshots,Missile,Item,Stasis,Dead,Hidden,Invulnerable,Summoned" />
-    <TargetSorts>
-      <SortArray value="TSDistance" />
-    </TargetSorts>
-    <AreaArray Arc="45" MaxCount="1" Effect="TripleTapImpactSet">
-      <Radius value="1" />
-    </AreaArray>
-    <LaunchLocation Value="CasterUnit" />
-    <ImpactLocation Value="CasterUnit" />
-  </CEffectEnumArea>
   <CEffectEnumArea id="TripleTapMissileScan">
     <SearchFilters value="-;Player,Ally,Neutral,Creep,ImmuneToSkillshots,User1,Missile,Item,Stasis,Dead,Hidden,Summoned" />
     <AreaArray MaxCount="1" Effect="TripleTapImpactSet">
@@ -1991,21 +1951,11 @@
       <RectangleHeight value="1.25" />
     </AreaArray>
     <MaxCount value="1" />
-    <LaunchLocation Value="OriginPoint" />
   </CEffectEnumArea>
   <CEffectDamage id="TripleTapMissileDamage" parent="StormSpell">
     <Amount value="372" />
     <ValidatorArray value="TargetNotInvulnerable" />
   </CEffectDamage>
-  <CEffectCreatePersistent id="TripleTapMissileScanPersistent">
-    <WhichLocation Value="SourcePoint" />
-    <PeriodCount value="3" />
-    <PeriodicEffectArray value="TripleTapMissileScan" />
-    <PeriodicOffsetArray Y="-1" />
-    <PeriodicOffsetArray Y="0.5" />
-    <PeriodicOffsetArray />
-    <PeriodicPeriodArray value="0" />
-  </CEffectCreatePersistent>
   <CEffectRemoveBehavior id="TripleTapRemoveRevealBehavior">
     <BehaviorLink value="TripleTapReveal" />
   </CEffectRemoveBehavior>

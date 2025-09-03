@@ -9,6 +9,7 @@
   <const id="$AlexstraszaFlameBuffetHeatExhaustionBonusSlowAmount" value="0.1" />
   <const id="$AlexstraszaFlameBuffetHeatExhaustionSlowAmount" value="negate(+($AlexstraszaFlameBuffetSlowAmountPos $AlexstraszaFlameBuffetHeatExhaustionBonusSlowAmount))" evaluateAsExpression="1" />
   <const id="$AlexstraszaCleansingFlameCastRange" value="20" />
+  <const id="$AlexstraszaBlessingOfTheRedHealthIncrease" value="500" />
   <CAbilEffectTarget id="AlexstraszaAbundance">
     <CmdButtonArray index="Execute" DefaultButtonFace="AlexstraszaAbundance" />
     <Effect value="AlexstraszaAbundanceCreatePersistent" />
@@ -1798,17 +1799,20 @@
   </CBehaviorBuff>
   <CBehaviorBuff id="AlexstraszaWingBuffetKnockback" parent="PushPullParent">
     <Duration value="0.3125" />
+    <Period value="0.0625" />
     <Modification>
-      <MoveSpeedMaximum value="16.5" />
-      <MoveSpeedMinimum value="16.5" />
+      <MoveSpeedMaximum value="12.3" />
+      <MoveSpeedMinimum value="12.3" />
     </Modification>
+    <InitialEffect value="AlexstraszaWingBuffetApplyForce" />
+    <PeriodicEffect value="AlexstraszaWingBuffetApplyForce" />
     <ExpireEffect value="AlexstraszaWingBuffetApplySlowBehavior" />
   </CBehaviorBuff>
   <CBehaviorBuff id="AlexstraszaBlessingOfTheRed">
     <BehaviorCategories index="BuffTempMaxHealth" value="1" />
     <RemoveValidatorArray value="TargetNotSpecialDeathState" />
     <Modification>
-      <VitalMaxArray index="Life" value="500" />
+      <VitalMaxArray index="Life" value="$AlexstraszaBlessingOfTheRedHealthIncrease" />
     </Modification>
   </CBehaviorBuff>
   <CBehaviorBuff id="AlexstraszaLifebinderRitualOfLifeSuccessDummyTarget">
@@ -1966,6 +1970,15 @@
       <Value index="Colorblind" value="ColorWhite" />
     </ColorEntry>
   </CColorStyle>
+  <CEffectSet id="CasterLifeTransferSet">
+    <EffectArray value="AlexstraszaCasterTransferBlessingOfTheRed" />
+  </CEffectSet>
+  <CEffectTransferBehavior id="AlexstraszaCasterTransferBlessingOfTheRed">
+    <LaunchUnit Value="Caster" />
+    <ImpactUnit Value="Target" />
+    <Behavior value="AlexstraszaBlessingOfTheRed" />
+    <Copy value="1" />
+  </CEffectTransferBehavior>
   <CEffectApplyBehavior id="AlexstraszaAbundanceApplyHoTPreviewDummy">
     <Behavior value="AlexstraszaAbundanceHoTPreview" />
   </CEffectApplyBehavior>
@@ -2892,9 +2905,27 @@
     </RevealerParams>
     <SearchFlags index="DoActorSearch" value="1" />
   </CEffectEnumArea>
+  <CEffectSet id="AlexstraszaWingBuffetKnockbackInitialSet">
+    <ValidatorArray value="TargetNotUnstoppable" />
+    <EffectArray value="HeroRemovePushPullDebuffs" />
+    <EffectArray value="HeroRemovePreventsMovement" />
+    <EffectArray value="AlexstraszaWingBuffetApplyKnockbackBehavior" />
+  </CEffectSet>
   <CEffectApplyForce id="AlexstraszaWingBuffetApplyForce">
-    <WhichLocation Effect="AlexstraszaWingBuffetKnockbackPersistent" Value="CasterPoint" />
-    <WhichUnit Effect="AlexstraszaWingBuffetKnockbackPersistent" />
+    <WhichLocation>
+      <Value value="OriginPoint" />
+      <Effect value="AlexstraszaWingBuffetCreatePersistent" />
+      <ProjectionMultiplier value="1" />
+      <ProjectionSourceEffect value="AlexstraszaWingBuffetCreatePersistent" />
+      <ProjectionSourceValue value="OriginPoint" />
+      <ProjectionTargetEffect value="AlexstraszaWingBuffetCreatePersistent" />
+      <ProjectionTargetValue value="TargetPoint" />
+      <UsesLineDash value="1" />
+      <LineDashType value="AllowedInUnpathable" />
+      <ProjectionAngle value="180" />
+      <ProjectionDistanceScale value="2" />
+    </WhichLocation>
+    <WhichUnit Effect="AlexstraszaWingBuffetImpactSet" />
     <Amount value="16" />
   </CEffectApplyForce>
   <CEffectApplyBehavior id="AlexstraszaWingBuffetApplyKnockbackBehavior">
@@ -2926,25 +2957,11 @@
     <EffectArray value="AlexstraszaWingBuffetSearchInside" />
     <EffectArray value="AlexstraszaWingBuffetModifyWeaponCooldown" />
   </CEffectSet>
-  <CEffectCreatePersistent id="AlexstraszaWingBuffetKnockbackPersistent">
-    <ValidatorArray value="TargetNotUnstoppable" />
-    <WhichLocation Value="TargetUnit" />
-    <InitialEffect value="AlexstraszaWingBuffetKnockbackPersistentInitialSet" />
-    <FinalEffect value="AlexstraszaWingBuffetRemoveKnockbackBehavior" />
-    <PeriodCount value="5" />
-    <PeriodicValidator value="AlexstraszaWingBuffetHasWingBuffetKnockback" />
-    <PeriodicEffectArray value="AlexstraszaWingBuffetApplyForce" />
-    <PeriodicPeriodArray value="0.0625" />
-  </CEffectCreatePersistent>
   <CEffectApplyBehavior id="AlexstraszaBlessingOfTheRedApplyBehavior">
     <Behavior value="AlexstraszaBlessingOfTheRed" />
   </CEffectApplyBehavior>
-  <CEffectSet id="AlexstraszaWingBuffetKnockbackPersistentInitialSet">
-    <EffectArray value="HeroRemovePushPullDebuffs" />
-    <EffectArray value="AlexstraszaWingBuffetApplyKnockbackBehavior" />
-  </CEffectSet>
   <CEffectSet id="AlexstraszaWingBuffetImpactSet">
-    <EffectArray value="AlexstraszaWingBuffetKnockbackPersistent" />
+    <EffectArray value="AlexstraszaWingBuffetKnockbackInitialSet" />
     <EffectArray value="AlexstraszaWingBuffetDamage" />
     <EffectArray value="CameraShakeMediumTauntingTotemSet" />
     <ValidatorArray value="noMarkers" />

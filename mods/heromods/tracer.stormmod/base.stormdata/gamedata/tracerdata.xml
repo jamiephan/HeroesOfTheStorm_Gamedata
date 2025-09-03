@@ -243,7 +243,7 @@
     <Inherits index="Visibility" value="0" />
   </CActorSound>
   <CActorSound id="TracerGetStuffedKnockBackSound" parent="SoundOneShot">
-    <On Terms="Effect.TracerPulseBombGetStuffedApplyKnockbackBehavior.Start; At Target" Send="Create" />
+    <On Terms="Effect.TracerPulseBombGetStuffedApplyKnockbackSet.Start; At Target" Send="Create" />
     <Sound value="Tracer_Attack_Melee_GetStuffed" />
   </CActorSound>
   <CActorModel id="TracerMeleeBulletSprayWeaponFXLeft" parent="StormModelAnimationStyleOneShotUnit">
@@ -1253,11 +1253,14 @@
     </Modification>
   </CBehaviorBuff>
   <CBehaviorBuff id="TracerRecallTelefragTalentKnockbackPushPull" parent="PushPullParent">
-    <Duration value="0.1274" />
+    <Duration value="0.125" />
+    <Period value="0.0625" />
     <Modification>
       <MoveSpeedMaximum value="20" />
       <MoveSpeedMinimum value="20" />
     </Modification>
+    <InitialEffect value="TracerRecallTelefragTalentApplyForce" />
+    <PeriodicEffect value="TracerRecallTelefragTalentApplyForce" />
   </CBehaviorBuff>
   <CBehaviorUnitTracker id="TracerRecallUnitAITrackingBehavior">
     <MaxTrackedUnits value="1" />
@@ -1485,10 +1488,13 @@
   </CBehaviorBuff>
   <CBehaviorBuff id="TracerPulseBombGetStuffedKnockback" parent="PushPullParent">
     <Duration value="0.375" />
+    <Period value="0.0625" />
     <Modification>
-      <MoveSpeedMaximum value="24.375" />
-      <MoveSpeedMinimum value="24.375" />
+      <MoveSpeedMaximum value="24" />
+      <MoveSpeedMinimum value="24" />
     </Modification>
+    <PeriodicEffect value="TracerPulseBombGetStuffedKnockback" />
+    <InitialEffect value="TracerPulseBombGetStuffedKnockback" />
   </CBehaviorBuff>
   <CBehaviorBuff id="TracerRecallController" parent="CarryBehaviorParent">
     <Period value="0.25" />
@@ -2053,8 +2059,9 @@
     <Behavior value="TracerRecallVisualFXDummyUnitTimedLife" />
   </CEffectApplyBehavior>
   <CEffectApplyForce id="TracerRecallTelefragTalentApplyForce">
+    <WhichLocation Effect="TracerRecallTelefragTalentSearch" Value="TargetPoint" />
+    <WhichUnit Effect="TracerRecallTelefragTalentKnockbackInitialSet" />
     <Amount value="50" />
-    <MassFraction value="0" />
   </CEffectApplyForce>
   <CEffectApplyBehavior id="TracerRecallTelefragTalentApplyPushPull">
     <Behavior value="TracerRecallTelefragTalentKnockbackPushPull" />
@@ -2070,19 +2077,12 @@
   </CEffectDamage>
   <CEffectSet id="TracerRecallTelefragTalentImpactSet">
     <EffectArray value="TracerRecallTelefragTalentDamage" />
-    <EffectArray value="TracerRecallTelefragTalentKnockbackPersistent" />
+    <EffectArray value="TracerRecallTelefragTalentKnockbackInitialSet" />
   </CEffectSet>
-  <CEffectCreatePersistent id="TracerRecallTelefragTalentKnockbackPersistent">
+  <CEffectSet id="TracerRecallTelefragTalentKnockbackInitialSet">
     <ValidatorArray value="TargetNotUnstoppable" />
-    <WhichLocation Value="TargetUnit" />
-    <InitialEffect value="TracerRecallTelefragTalentKnockbackPersistentInitialSet" />
-    <PeriodCount value="2" />
-    <PeriodicValidator value="HasTelefragPushPull" />
-    <PeriodicEffectArray value="TracerRecallTelefragTalentApplyForce" />
-    <PeriodicPeriodArray value="0.0625" />
-  </CEffectCreatePersistent>
-  <CEffectSet id="TracerRecallTelefragTalentKnockbackPersistentInitialSet">
     <EffectArray value="HeroRemovePushPullDebuffs" />
+    <EffectArray value="HeroRemovePreventsMovement" />
     <EffectArray value="TracerRecallTelefragTalentApplyPushPull" />
   </CEffectSet>
   <CEffectModifyUnit id="TracerRecallTelefragTalentModifyUnit">
@@ -2097,7 +2097,7 @@
     <Chance value="0" />
   </CEffectEnumArea>
   <CEffectCreatePersistent id="TracerRecallTeleportDelayPersistent">
-    <InitialDelay value="0.0625" />
+    <InitialDelay value="0.1875" />
     <InitialEffect value="TracerRecallTeleport" />
   </CEffectCreatePersistent>
   <CEffectCreateUnit id="TracerRecallVisualDummyFXCreateUnit">
@@ -2465,9 +2465,6 @@
     <RequireCasterUnit Value="Caster" />
     <Count value="1" />
   </CEffectRemoveBehavior>
-  <CEffectApplyBehavior id="TracerPulseBombGetStuffedApplyKnockbackBehavior">
-    <Behavior value="TracerPulseBombGetStuffedKnockback" />
-  </CEffectApplyBehavior>
   <CEffectSwitch id="TracerPulseBombCompositionBGroundImpactSwitch">
     <Chance value="0" />
     <CaseArray Validator="TracerHasQuantumSpikeTalent" Effect="TracerPulseBombCompositionBQuantumSpikeGroundImpactPersistent" />
@@ -2560,42 +2557,34 @@
     <Radius value="1" />
     <RequireCaster Value="Caster" />
   </CEffectDestroyPersistent>
-  <CEffectSwitch id="TracerPulseBombGetStuffedInitialPersistentSwitch">
-    <CaseArray Validator="TracerCasterHasRecallActive" Effect="TracerPulseBombGetStuffedInitialPersistentRecallDetected" />
-    <CaseDefault value="TracerPulseBombGetStuffedInitialPersistent" />
-  </CEffectSwitch>
-  <CEffectCreatePersistent id="TracerPulseBombGetStuffedInitialPersistent">
-    <WhichLocation Value="TargetUnit" />
-    <InitialEffect value="TracerPulseBombGetStuffedApplyKnockbackBehavior" />
-    <PeriodCount value="6" />
-    <PeriodicEffectArray value="TracerPulseBombGetStuffedKnockback" />
-    <PeriodicPeriodArray value="0.0625" />
+  <CEffectSet id="TracerPulseBombGetStuffedApplyKnockbackSet">
     <ValidatorArray value="TargetNotUnstoppable" />
-  </CEffectCreatePersistent>
-  <CEffectCreatePersistent id="TracerPulseBombGetStuffedInitialPersistentRecallDetected">
-    <ValidatorArray value="TargetNotUnstoppable" />
-    <WhichLocation Value="TargetUnit" />
+    <EffectArray value="HeroRemovePushPullDebuffs" />
+    <EffectArray value="HeroRemovePreventsMovement" />
+    <EffectArray value="TracerPulseBombGetStuffedCreationPersistent" />
+  </CEffectSet>
+  <CEffectCreatePersistent id="TracerPulseBombGetStuffedCreationPersistent">
+    <WhichLocation Value="CasterPoint" />
+    <OffsetVectorEndLocation Value="TargetUnit" />
     <InitialEffect value="TracerPulseBombGetStuffedApplyKnockbackBehavior" />
-    <PeriodCount value="6" />
-    <PeriodicEffectArray value="TracerPulseBombGetStuffedKnockbackRecallDetected" />
-    <PeriodicPeriodArray value="0.0625" />
+    <InitialOffset Y="5" />
   </CEffectCreatePersistent>
+  <CEffectApplyBehavior id="TracerPulseBombGetStuffedApplyKnockbackBehavior">
+    <WhichUnit Effect="TracerPulseBombGetStuffedApplyKnockbackSet" />
+    <Behavior value="TracerPulseBombGetStuffedKnockback" />
+  </CEffectApplyBehavior>
   <CEffectSet id="TracerPulseBombGetStuffedInitialSet">
     <Chance value="0" />
     <EffectArray value="TracerPulseBombGetStuffedDestroyPulseBombUnitPersistent" />
     <EffectArray value="TracerPulseBombGetStuffedDestroyQuantumSpikeUnitPersistent" />
-    <EffectArray value="TracerPulseBombGetStuffedInitialPersistentSwitch" />
+    <EffectArray value="TracerPulseBombGetStuffedApplyKnockbackSet" />
     <EffectArray value="TracerPulseBombRemoveDummyBehavior" />
     <ValidatorArray value="TracerTargetHasPulseBombDummyBehavior" />
+    <ValidatorArray value="TracerHasGetStuffedTalentMelee" />
   </CEffectSet>
   <CEffectApplyForce id="TracerPulseBombGetStuffedKnockback">
-    <WhichLocation Effect="TracerPulseBombGetStuffedInitialPersistent" Value="OriginPoint" />
-    <WhichUnit Effect="TracerPulseBombGetStuffedInitialPersistent" />
-    <Amount value="16" />
-  </CEffectApplyForce>
-  <CEffectApplyForce id="TracerPulseBombGetStuffedKnockbackRecallDetected">
-    <WhichLocation Effect="TracerMeleeImpactDelayPersistent" Value="OriginPoint" />
-    <WhichUnit Effect="TracerPulseBombGetStuffedInitialPersistentRecallDetected" />
+    <WhichLocation Effect="TracerPulseBombGetStuffedApplyKnockbackBehavior" Value="TargetPoint" />
+    <WhichUnit Effect="TracerPulseBombGetStuffedApplyKnockbackSet" />
     <Amount value="16" />
   </CEffectApplyForce>
   <CEffectSwitch id="TracerPulseBombExpirationSwitch">

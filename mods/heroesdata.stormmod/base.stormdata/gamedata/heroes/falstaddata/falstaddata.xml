@@ -217,6 +217,16 @@
     <ApplicationRule value="Add" />
     <TokenId value="FalstadHammerangGatheringStormQuestToken" />
   </CAccumulatorToken>
+  <CAccumulatorTimed id="FalstadMightyGustMissileTimeAccumulator" parent="BaseAccumulator">
+    <MaxAccumulation value="0" />
+    <MinAccumulation value="-1.1875" />
+    <MultiplierPerStep value="-0.125" />
+    <MaxStepCount value="9" />
+    <OffsetStartLoop value="0" />
+    <TimestampBehavior value="FalstadMightyGustMissileTimestamp" />
+    <UnitSource Value="Source" />
+    <ApplicationRule value="Add" />
+  </CAccumulatorTimed>
   <CAccumulatorTimed id="FalstadMightyGustDecayAccumulator">
     <TimestampBehavior value="FalstadMightyGustTimestamp" />
     <MinAccumulation value="0" />
@@ -714,7 +724,7 @@
     <Sound value="Falstad_MightyGust_Missile" />
   </CActorSound>
   <CActorSound id="FalstadMightyGustImpactSound" parent="SoundOneShot">
-    <On Terms="Effect.FalstadMightyGustImpactPersistent.Start; At Target" Send="Create" />
+    <On Terms="Effect.FalstadMightyGustApplyKnockbackBehavior.Start; At Target" Send="Create" />
     <Sound value="Falstad_MightyGust_Impact" />
   </CActorSound>
   <CActorAction id="FalstadMightyGustAttack" parent="GenericAttackPointStorm" effectImpact="FalstadMightyGustDummyImpact" effectLaunch="FalstadMightyGustLaunchMissile">
@@ -1240,23 +1250,31 @@
   </CBehaviorTimestamp>
   <CBehaviorBuff id="FalstadMightyGustKnockbackBehavior" parent="PushPullParent">
     <Duration value="0.875" />
-    <FinalEffect value="FalstadMightyGustApplySlowSwitch" />
+    <Period value="0.0625" />
     <Modification>
-      <MoveSpeedMaximum value="14" />
-      <MoveSpeedMinimum value="14" />
+      <MoveSpeedMaximum value="17" />
+      <MoveSpeedMinimum value="17" />
     </Modification>
+    <InitialEffect value="FalstadMightyGustKnockbackApplyForce" />
+    <PeriodicEffect value="FalstadMightyGustKnockbackApplyForce" />
+    <FinalEffect value="FalstadMightyGustApplySlowSwitch" />
   </CBehaviorBuff>
   <CBehaviorBuff id="FalstadMightyGustMissileScan">
     <Period value="0.0625" />
     <PeriodCount value="9" />
     <PeriodicEffect value="FalstadMightyGustMissileScan" />
   </CBehaviorBuff>
+  <CBehaviorTimestamp id="FalstadMightyGustMissileTimestamp" />
   <CBehaviorBuff id="FalstadMightyGustWindTunnelKnockbackBehavior" parent="PushPullParent">
     <Duration value="0.125" />
+    <Period value="0.0625" />
     <Modification>
       <MoveSpeedMaximum value="$HeroBaseMovementSpeed" />
       <MoveSpeedMinimum value="$HeroBaseMovementSpeed" />
     </Modification>
+    <InitialEffect value="FalstadMightyGustWindTunnelKnockbackApplyForce" />
+    <PeriodicEffect value="FalstadMightyGustWindTunnelKnockbackApplyForce" />
+    <FinalEffect value="FalstadMightyGustApplySlowSwitch" />
   </CBehaviorBuff>
   <CBehaviorBuff id="FalstadMightyGustWindTunnelMissileScan">
     <Duration value="0.5625" />
@@ -2038,6 +2056,7 @@
     <TargetLocationType value="Point" />
   </CEffectSet>
   <CEffectSet id="FalstadMightyGustLaunchSet">
+    <EffectArray value="FalstadMightyGustApplyTimestamp" />
     <EffectArray value="FalstadMightyGustApplyMissileScan" />
     <EffectArray value="FalstadMightyGustApplyMissileDeathEarlyBehavior" />
   </CEffectSet>
@@ -2066,12 +2085,6 @@
   <CEffectRemoveBehavior id="FalstadMightyGustRemoveTimeStampBehavior">
     <BehaviorLink value="FalstadMightyGustTimestamp" />
   </CEffectRemoveBehavior>
-  <CEffectCreatePersistent id="FalstadMightyGustImpactPersistent">
-    <WhichLocation Value="CasterUnit" />
-    <InitialEffect value="FalstadMightyGustKnockbackPersistent" />
-    <InitialOffset Y="-50" />
-    <OffsetVectorStartLocation Value="TargetUnit" />
-  </CEffectCreatePersistent>
   <CEffectApplyBehavior id="FalstadMightyGustWindTunnelApplyKnockbackBehavior">
     <Behavior value="FalstadMightyGustWindTunnelKnockbackBehavior" />
   </CEffectApplyBehavior>
@@ -2083,29 +2096,34 @@
     <WhichUnit Value="Source" />
     <Behavior value="FalstadMightyGustWindTunnelMissileScanDelay" />
   </CEffectApplyBehavior>
-  <CEffectCreatePersistent id="FalstadMightyGustWindTunnelImpactPersistent">
-    <WhichLocation Effect="FalstadMightyGustWindTunnelLaunchPersistent" Value="OriginPoint" />
-    <OffsetVectorStartLocation Value="TargetUnit" />
-    <InitialEffect value="FalstadMightyGustWindTunnelKnockbackPersistent" />
-    <InitialOffset Y="-50" />
-  </CEffectCreatePersistent>
   <CEffectApplyForce id="FalstadMightyGustWindTunnelKnockbackApplyForce">
-    <WhichLocation Effect="FalstadMightyGustWindTunnelKnockbackPersistent" Value="TargetOuterPoint" />
-    <WhichUnit Effect="FalstadMightyGustWindTunnelImpactPersistent" />
-    <Amount value="-10" />
+    <WhichLocation>
+      <Value value="OriginPoint" />
+      <Effect value="FalstadMightyGustInitialSet" />
+      <ProjectionMultiplier value="1" />
+      <ProjectionSourceEffect value="FalstadMightyGustInitialSet" />
+      <ProjectionSourceValue value="OriginPoint" />
+      <ProjectionTargetEffect value="FalstadMighytGustLaunchPersistent" />
+      <ProjectionTargetValue value="FocusPoint" />
+      <UsesLineDash value="1" />
+      <LineDashType value="AllowedInUnpathable" />
+      <ProjectionAngle value="180" />
+      <ProjectionDistanceScale value="50" />
+    </WhichLocation>
+    <WhichUnit Effect="FalstadMightyGustWindTunnelImpactSet" />
+    <Amount value="10" />
   </CEffectApplyForce>
   <CEffectSet id="FalstadMightyGustWindTunnelImpactSet">
     <ValidatorArray value="TargetNotUnstoppable" />
     <EffectArray value="DismountDecloakTargetSet" />
-    <EffectArray value="FalstadMightyGustWindTunnelApplyKnockbackBehavior" />
-    <EffectArray value="FalstadMightyGustWindTunnelImpactPersistent" />
+    <EffectArray value="FalstadMightyGustWindTunnelKnockbackInitialSet" />
     <EffectArray value="MightyGustApplyWindTunnelMasteryImpactSoundBehavior" />
   </CEffectSet>
-  <CEffectCreatePersistent id="FalstadMightyGustWindTunnelKnockbackPersistent">
-    <PeriodCount value="1" />
-    <PeriodicEffectArray value="FalstadMightyGustWindTunnelKnockbackApplyForce" />
-    <PeriodicPeriodArray value="0.0625" />
-  </CEffectCreatePersistent>
+  <CEffectSet id="FalstadMightyGustWindTunnelKnockbackInitialSet">
+    <EffectArray value="HeroRemovePushPullDebuffs" />
+    <EffectArray value="HeroRemovePreventsMovement" />
+    <EffectArray value="FalstadMightyGustWindTunnelApplyKnockbackBehavior" />
+  </CEffectSet>
   <CEffectLaunchMissile id="FalstadMightyGustWindTunnelLaunchMissile">
     <LaunchLocation Effect="FalstadMighytGustLaunchPersistent" Value="OriginPoint" />
     <ImpactLocation Value="TargetPoint" />
@@ -2160,8 +2178,9 @@
     <PeriodicOffsetArray Y="-6.5" />
   </CEffectCreatePersistent>
   <CEffectCreatePersistent id="FalstadMighytGustWindTunnelGrowSoundDummy" />
-  <CEffectApplyBehavior id="FalstadMightyGustApplyKnocbackBehavior">
-    <Behavior value="FalstadMightyGustKnockbackBehavior" />
+  <CEffectApplyBehavior id="FalstadMightyGustApplyTimestamp">
+    <WhichUnit Value="Source" />
+    <Behavior value="FalstadMightyGustMissileTimestamp" />
   </CEffectApplyBehavior>
   <CEffectApplyBehavior id="FalstadMightyGustApplyMissileScan">
     <WhichUnit Value="Source" />
@@ -2171,25 +2190,63 @@
     <ImpactLocation Value="SourceUnit" />
   </CEffectDamage>
   <CEffectApplyForce id="FalstadMightyGustKnockbackApplyForce">
-    <WhichLocation Effect="FalstadMightyGustKnockbackPersistent" Value="TargetOuterPoint" />
-    <WhichUnit Effect="FalstadMightyGustImpactPersistent" />
-    <Amount value="-10" />
-    <ValidatorArray value="HasMightyGustKnockbackBehavior" />
+    <WhichLocation>
+      <Value value="OriginPoint" />
+      <Effect value="FalstadMightyGustInitialSet" />
+      <ProjectionMultiplier value="1" />
+      <ProjectionSourceEffect value="FalstadMightyGustInitialSet" />
+      <ProjectionSourceValue value="OriginPoint" />
+      <ProjectionTargetEffect value="FalstadMighytGustLaunchPersistent" />
+      <ProjectionTargetValue value="FocusPoint" />
+      <UsesLineDash value="1" />
+      <LineDashType value="AllowedInUnpathable" />
+      <ProjectionAngle value="180" />
+      <ProjectionDistanceScale value="50" />
+    </WhichLocation>
+    <WhichUnit Effect="FalstadMightyGustImpactSet" />
+    <Amount value="10" />
   </CEffectApplyForce>
   <CEffectSet id="FalstadMightyGustImpactSet">
     <ValidatorArray value="TargetNotUnstoppable" />
     <ValidatorArray value="FalstadTargetDoesNotHaveMightyGustKnockback" />
     <EffectArray value="DismountDecloakTargetSet" />
-    <EffectArray value="HeroRemovePushPullDebuffs" />
-    <EffectArray value="FalstadMightyGustApplyKnocbackBehavior" />
-    <EffectArray value="FalstadMightyGustImpactPersistent" />
     <EffectArray value="AbilityImpactRevealDummyDamage" />
+    <EffectArray value="FalstadMightyGustKnockbackInitialSet" />
   </CEffectSet>
-  <CEffectCreatePersistent id="FalstadMightyGustKnockbackPersistent">
-    <PeriodCount value="14" />
-    <PeriodicEffectArray value="FalstadMightyGustKnockbackApplyForce" />
-    <PeriodicPeriodArray value="0.0625" />
-  </CEffectCreatePersistent>
+  <CEffectSet id="FalstadMightyGustKnockbackInitialSet">
+    <EffectArray value="FalstadMightyGustRemoveSlowSet" />
+    <EffectArray value="FalstadMightyGustDurationModifyCatalog" />
+    <EffectArray value="HeroRemovePushPullDebuffs" />
+    <EffectArray value="HeroRemovePreventsMovement" />
+    <EffectArray value="FalstadMightyGustApplyKnockbackBehavior" />
+  </CEffectSet>
+  <CEffectSet id="FalstadMightyGustRemoveSlowSet">
+    <EffectArray value="FalstadMightyGustRemoveSlow" />
+    <EffectArray value="FalstadMightyGustRemove50PercentSlow" />
+    <EffectArray value="FalstadMightyGustRemoveSlow75PercentSlow" />
+  </CEffectSet>
+  <CEffectRemoveBehavior id="FalstadMightyGustRemoveSlow">
+    <BehaviorLink value="FalstadMightyGustSlow" />
+    <Count value="1" />
+  </CEffectRemoveBehavior>
+  <CEffectRemoveBehavior id="FalstadMightyGustRemove50PercentSlow">
+    <BehaviorLink value="FalstadMightyGustSlow50PercentCCReduction" />
+    <Count value="1" />
+  </CEffectRemoveBehavior>
+  <CEffectRemoveBehavior id="FalstadMightyGustRemoveSlow75PercentSlow">
+    <BehaviorLink value="FalstadMightyGustSlow75PercentCCReduction" />
+    <Count value="1" />
+  </CEffectRemoveBehavior>
+  <CEffectModifyCatalogNumeric id="FalstadMightyGustDurationModifyCatalog">
+    <CatalogModifications Operation="Set" Reference="Behavior,FalstadMightyGustKnockbackBehavior,Duration">
+      <Value value="1.3125">
+        <AccumulatorArray value="FalstadMightyGustMissileTimeAccumulator" />
+      </Value>
+    </CatalogModifications>
+  </CEffectModifyCatalogNumeric>
+  <CEffectApplyBehavior id="FalstadMightyGustApplyKnockbackBehavior">
+    <Behavior value="FalstadMightyGustKnockbackBehavior" />
+  </CEffectApplyBehavior>
   <CEffectLaunchMissile id="FalstadMightyGustLaunchMissile">
     <LaunchLocation Effect="FalstadMighytGustLaunchPersistent" Value="OriginPoint" />
     <ImpactLocation Value="TargetPoint" />

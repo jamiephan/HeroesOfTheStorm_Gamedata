@@ -535,6 +535,8 @@
   <CActorModel id="ETCFaceMeltStun" parent="StormFlailStun">
     <On Terms="Behavior.FaceMeltKnockback.On" Send="Create" />
     <On Terms="Behavior.FaceMeltKnockback.Off" Send="AnimBracketStop BSD" />
+    <On Terms="Behavior.L90ETCFaceMeltEncoreKnockback.On" Send="Create" />
+    <On Terms="Behavior.L90ETCFaceMeltEncoreKnockback.Off" Send="AnimBracketStop BSD" />
   </CActorModel>
   <CActorForceSphere id="L90ETCFaceMeltOutForce">
     <Host Subject="SOpTargetPoint SOpSplashDamagePositionVariance" />
@@ -843,6 +845,7 @@
     <Duration value="2" />
   </CBehaviorBuff>
   <CBehaviorBuff id="L90ETCMoshPitSuppressMovement">
+    <BehaviorCategories index="PreventsMovement" value="1" />
     <RemoveValidatorArray value="HasMoshPitCasterBehavior" />
     <Modification PushPriority="5000" AlliedPushPriority="5000">
       <ModifyFlags index="DisableWeapons" value="1" />
@@ -952,6 +955,7 @@
     <InfoFlags index="AlwaysUseGameText" value="1" />
     <InfoIcon value="Assets\Textures\storm_temp_war3_btnbattleroar.dds" />
     <BehaviorCategories index="Restorable" value="1" />
+    <BehaviorCategories index="PreventsMovement" value="1" />
     <RemoveValidatorArray value="CasterNotDazedOrDeadOrSilencedOrStasisOrStunnedExceptTimeStop" />
     <BuffFlags index="Extend" value="1" />
     <Duration value="2" />
@@ -1008,11 +1012,25 @@
     </Modification>
   </CBehaviorBuff>
   <CBehaviorBuff id="FaceMeltKnockback" parent="PushPullParent">
-    <Duration value="0.25" />
+    <Duration value="0.1875" />
+    <Period value="0.0625" />
     <Modification>
-      <MoveSpeedMaximum value="12" />
-      <MoveSpeedMinimum value="12" />
+      <MoveSpeedMaximum value="9.8" />
+      <MoveSpeedMinimum value="9.8" />
     </Modification>
+    <InitialEffect value="FaceMeltApplyForce" />
+    <PeriodicEffect value="FaceMeltApplyForce" />
+    <ExpireEffect value="L90ETCFaceSmeltingApplySlowSwitch" />
+  </CBehaviorBuff>
+  <CBehaviorBuff id="L90ETCFaceMeltEncoreKnockback" parent="PushPullParent">
+    <Duration value="0.1875" />
+    <Period value="0.0625" />
+    <Modification>
+      <MoveSpeedMaximum value="9.8" />
+      <MoveSpeedMinimum value="9.8" />
+    </Modification>
+    <InitialEffect value="FaceMeltApplyEncoreMasteryForce" />
+    <PeriodicEffect value="FaceMeltApplyEncoreMasteryForce" />
     <ExpireEffect value="L90ETCFaceSmeltingApplySlowSwitch" />
   </CBehaviorBuff>
   <CBehaviorBuff id="StageDiveChannel" parent="StormStasisAir">
@@ -1441,10 +1459,6 @@
   <CEffectCreateHealer id="L90ETCGuitarSoloHeroHealDummy" parent="StormSelfOnlyHealingSpell">
     <RechargeVitalRate value="66" />
   </CEffectCreateHealer>
-  <CEffectSet id="ETCFaceMeltKnockbackPersistentInitialSet">
-    <EffectArray value="HeroRemovePushPullDebuffs" />
-    <EffectArray value="FaceMeltApplyBehavior" />
-  </CEffectSet>
   <CEffectApplyBehavior id="ApplyStageDiveSuppressUnitSight">
     <WhichUnit Value="Caster" />
     <Behavior value="StageDiveSuppressUnitSight" />
@@ -1470,10 +1484,6 @@
     <WhichUnit Value="Caster" />
     <Behavior value="FaceMeltMicCheckLimiter" />
   </CEffectApplyBehavior>
-  <CEffectApplyForce id="FaceMeltApplyEncoreMasteryForce">
-    <WhichLocation Effect="FaceMeltEncoreMasterySecondaryPersistent" Value="TargetPoint" />
-    <Amount value="10" />
-  </CEffectApplyForce>
   <CEffectSet id="FaceMeltInitialSet">
     <ValidatorArray value="DoesNotHaveMoshPitChannelBehavior" />
     <EffectArray value="L90ETCFaceMeltSearchSet" />
@@ -1514,21 +1524,27 @@
     <RevealRadius value="1" />
     <RevealFlags index="Unfog" value="1" />
   </CEffectCreatePersistent>
-  <CEffectCreatePersistent id="FaceMeltEncoreMasteryForcePersistent">
-    <WhichLocation Value="TargetUnit" />
-    <InitialEffect value="ETCFaceMeltKnockbackPersistentInitialSet" />
-    <PeriodCount value="4" />
-    <PeriodicValidator value="HasFacemeltKnockback" />
-    <PeriodicEffectArray value="FaceMeltApplyEncoreMasteryForce" />
-    <PeriodicPeriodArray value="0.0625" />
-  </CEffectCreatePersistent>
   <CEffectSet id="FaceMeltEncoreMasteryImpactSet">
-    <EffectArray value="FaceMeltEncoreMasteryForcePersistent" />
+    <EffectArray value="L90ETCFaceMeltEncoreKnockbackInitialSet" />
     <EffectArray value="FaceMeltDamage" />
     <EffectArray value="ApplyAbilityImpactReveal" />
     <EffectArray value="CameraShakeLightTauntingTotemSet" />
     <EffectArray value="ETCFaceMeltEncoreModifyHeroicCooldown" />
   </CEffectSet>
+  <CEffectSet id="L90ETCFaceMeltEncoreKnockbackInitialSet">
+    <ValidatorArray value="TargetNotUnstoppable" />
+    <EffectArray value="HeroRemovePushPullDebuffs" />
+    <EffectArray value="HeroRemovePreventsMovement" />
+    <EffectArray value="L90ETCFaceMeltEncoreKnockbackApplyBehavior" />
+  </CEffectSet>
+  <CEffectApplyBehavior id="L90ETCFaceMeltEncoreKnockbackApplyBehavior">
+    <Behavior value="L90ETCFaceMeltEncoreKnockback" />
+  </CEffectApplyBehavior>
+  <CEffectApplyForce id="FaceMeltApplyEncoreMasteryForce">
+    <WhichLocation Effect="FaceMeltEncoreMasterySecondaryPersistent" Value="TargetPoint" />
+    <WhichUnit Effect="FaceMeltEncoreMasteryImpactSet" />
+    <Amount value="10" />
+  </CEffectApplyForce>
   <CEffectSet id="FaceMeltEncoreMasteryMiscSet">
     <EffectArray value="CameraShakeMediumCasterDummySet" />
   </CEffectSet>
@@ -2021,7 +2037,7 @@
     </RevealerParams>
   </CEffectEnumArea>
   <CEffectSet id="FaceMeltSet">
-    <EffectArray value="FaceMeltPersistent" />
+    <EffectArray value="L90ETCFaceMeltKnockbackInitialSet" />
     <EffectArray value="L90ETCFaceMeltDamageSwitch" />
     <EffectArray value="ApplyAbilityImpactReveal" />
     <EffectArray value="CameraShakeLightTauntingTotemSet" />
@@ -2038,22 +2054,20 @@
       <Fraction Cooldown="-0.04" />
     </Cost>
   </CEffectModifyUnit>
-  <CEffectCreatePersistent id="FaceMeltPersistent">
-    <WhichLocation Value="TargetUnit" />
-    <PeriodCount value="4" />
-    <PeriodicPeriodArray value="0.0625" />
-    <PeriodicEffectArray value="FaceMeltApplyForce" />
-    <InitialEffect value="ETCFaceMeltKnockbackPersistentInitialSet" />
-    <PeriodicValidator value="HasFacemeltKnockback" />
-  </CEffectCreatePersistent>
-  <CEffectApplyForce id="FaceMeltApplyForce">
-    <Amount value="10" />
-    <WhichLocation Effect="FaceMeltPersistent" Value="CasterPoint" />
-    <WhichUnit Effect="FaceMeltPersistent" />
-  </CEffectApplyForce>
+  <CEffectSet id="L90ETCFaceMeltKnockbackInitialSet">
+    <ValidatorArray value="TargetNotUnstoppable" />
+    <EffectArray value="HeroRemovePushPullDebuffs" />
+    <EffectArray value="HeroRemovePreventsMovement" />
+    <EffectArray value="FaceMeltApplyBehavior" />
+  </CEffectSet>
   <CEffectApplyBehavior id="FaceMeltApplyBehavior">
     <Behavior value="FaceMeltKnockback" />
   </CEffectApplyBehavior>
+  <CEffectApplyForce id="FaceMeltApplyForce">
+    <WhichLocation Value="OriginPoint" />
+    <WhichUnit Effect="FaceMeltSet" />
+    <Amount value="10" />
+  </CEffectApplyForce>
   <CEffectRemoveBehavior id="FaceMeltRemoveBehavior">
     <BehaviorLink value="FaceMeltKnockback" />
   </CEffectRemoveBehavior>
@@ -2912,14 +2926,6 @@
       </Modifications>
       <Modifications>
         <Type value="FlatModification" />
-        <Catalog value="Effect" />
-        <Entry value="FaceMeltPersistent" />
-        <Field value="PeriodCount" />
-        <FieldIsInteger value="1" />
-        <Value value="2.000000" />
-      </Modifications>
-      <Modifications>
-        <Type value="FlatModification" />
         <Catalog value="Actor" />
         <Entry value="ETCFaceMeltCast" />
         <Field value="Scale" />
@@ -2930,14 +2936,28 @@
         <Catalog value="Behavior" />
         <Entry value="FaceMeltKnockback" />
         <Field value="Modification.MoveSpeedMaximum" />
-        <Value value="6.000000" />
+        <Value value="6.700000" />
       </Modifications>
       <Modifications>
         <Type value="FlatModification" />
         <Catalog value="Behavior" />
         <Entry value="FaceMeltKnockback" />
         <Field value="Modification.MoveSpeedMinimum" />
-        <Value value="6.000000" />
+        <Value value="6.700000" />
+      </Modifications>
+      <Modifications>
+        <Type value="FlatModification" />
+        <Catalog value="Behavior" />
+        <Entry value="L90ETCFaceMeltEncoreKnockback" />
+        <Field value="Modification.MoveSpeedMaximum" />
+        <Value value="6.700000" />
+      </Modifications>
+      <Modifications>
+        <Type value="FlatModification" />
+        <Catalog value="Behavior" />
+        <Entry value="L90ETCFaceMeltEncoreKnockback" />
+        <Field value="Modification.MoveSpeedMinimum" />
+        <Value value="6.700000" />
       </Modifications>
     </AbilityModificationArray>
     <Abil value="L90ETCFaceMelt" />

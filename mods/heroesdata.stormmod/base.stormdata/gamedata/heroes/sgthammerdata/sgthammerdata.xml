@@ -1058,12 +1058,25 @@
       <AdditiveAttackSpeedFactor value="0.3" />
     </Modification>
   </CBehaviorBuff>
-  <CBehaviorBuff id="ConcussiveBlastKnockbackEntrenched" parent="PushPullParent">
-    <Duration value="0.375" />
+  <CBehaviorBuff id="SgtHammerConcussiveBlastKnockback" parent="PushPullParent">
+    <Duration value="0.3125" />
+    <Period value="0.0625" />
     <Modification>
-      <MoveSpeedMaximum value="24.5" />
-      <MoveSpeedMinimum value="24.5" />
+      <MoveSpeedMaximum value="12.65" />
+      <MoveSpeedMinimum value="12.65" />
     </Modification>
+    <InitialEffect value="ConcussiveBlastKnockbackApplyForce" />
+    <PeriodicEffect value="ConcussiveBlastKnockbackApplyForce" />
+  </CBehaviorBuff>
+  <CBehaviorBuff id="SgtHammerConcussiveBlastKnockbackEntrenched" parent="PushPullParent">
+    <Duration value="0.375" />
+    <Period value="0.0625" />
+    <Modification>
+      <MoveSpeedMaximum value="19.7" />
+      <MoveSpeedMinimum value="19.7" />
+    </Modification>
+    <InitialEffect value="ConcussiveBlastKnockbackApplyForce" />
+    <PeriodicEffect value="ConcussiveBlastKnockbackApplyForce" />
   </CBehaviorBuff>
   <CBehaviorBuff id="SgtHammerSiegeModeRegenerativeBioSteel">
     <Face value="GenericVigorousAssaultTalent" />
@@ -1182,13 +1195,6 @@
     <Modification>
       <UnifiedMoveSpeedFactor value="-0.25" />
     </Modification>
-  </CBehaviorBuff>
-  <CBehaviorBuff id="ConcussiveBlastKnockback" parent="PushPullParent">
-    <Modification>
-      <MoveSpeedMaximum value="14" />
-      <MoveSpeedMinimum value="14" />
-    </Modification>
-    <Duration value="0.375" />
   </CBehaviorBuff>
   <CBehaviorBuff id="SgtHammerSpiderMinesDisableScanBehavior">
     <Face value="SgtHammerSpiderMines" />
@@ -1563,14 +1569,6 @@
     <ValidatorArray value="CasterNotBlindedAndTargetNotEvading" />
     <ValidatorArray value="TargetIsHero" />
   </CEffectModifyUnit>
-  <CEffectApplyBehavior id="ConcussiveBlastKnockbackApplyBehaviorEntrenched">
-    <ValidatorArray index="0" value="TargetNotUnstoppable" />
-    <Behavior value="ConcussiveBlastKnockbackEntrenched" />
-  </CEffectApplyBehavior>
-  <CEffectSwitch id="SgtHammerConcussiveBlastKnockbackApplyBehaviorSwitch">
-    <CaseArray Validator="SgtHammerHasSgtHammerEntrenchedANDCasterHasSiegeMode" Effect="ConcussiveBlastKnockbackApplyBehaviorEntrenched" />
-    <CaseDefault value="ConcussiveBlastKnockbackApplyBehavior" />
-  </CEffectSwitch>
   <CEffectApplyBehavior id="SgtHammerSiegeModeMaelstromRoundsApplyTargetBehavior">
     <ValidatorArray index="0" value="IsTower" />
     <Chance value="0" />
@@ -1986,32 +1984,39 @@
     <Behavior value="ConcussiveBlastKnockback" />
     <ValidatorArray index="0" value="TargetNotUnstoppable" />
   </CEffectApplyBehavior>
+  <CEffectSet id="SgtHammerConcussiveBlastKnockbackSet">
+    <ValidatorArray value="TargetNotUnstoppable" />
+    <EffectArray value="HeroRemovePushPullDebuffs" />
+    <EffectArray value="HeroRemovePreventsMovement" />
+    <EffectArray value="SgtHammerConcussiveBlastKnockbackApplyBehaviorSwitch" />
+  </CEffectSet>
+  <CEffectSwitch id="SgtHammerConcussiveBlastKnockbackApplyBehaviorSwitch">
+    <CaseArray Validator="SgtHammerHasSgtHammerEntrenchedANDCasterHasSiegeMode" Effect="SgtHammerConcussiveBlastKnockbackApplyBehaviorEntrenched" />
+    <CaseDefault value="SgtHammerConcussiveBlastKnockbackApplyBehavior" />
+  </CEffectSwitch>
+  <CEffectApplyBehavior id="SgtHammerConcussiveBlastKnockbackApplyBehavior">
+    <Behavior value="SgtHammerConcussiveBlastKnockback" />
+  </CEffectApplyBehavior>
+  <CEffectApplyBehavior id="SgtHammerConcussiveBlastKnockbackApplyBehaviorEntrenched">
+    <Behavior value="SgtHammerConcussiveBlastKnockbackEntrenched" />
+  </CEffectApplyBehavior>
   <CEffectApplyForce id="ConcussiveBlastKnockbackApplyForce">
-    <WhichLocation Effect="ConcussiveBlastKnockbackPersistent" Value="CasterPoint" />
-    <WhichUnit Effect="ConcussiveBlastKnockbackPersistent" />
+    <WhichLocation>
+      <Value value="OriginPoint" />
+      <Effect value="ConcussiveBlastInitialSet" />
+      <ProjectionMultiplier value="1" />
+      <ProjectionSourceEffect value="ConcussiveBlastInitialSet" />
+      <ProjectionSourceValue value="OriginPoint" />
+      <ProjectionTargetEffect value="ConcussiveBlastSearch" />
+      <ProjectionTargetValue value="TargetPoint" />
+      <UsesLineDash value="1" />
+      <LineDashType value="AllowedInUnpathable" />
+      <ProjectionAngle value="180" />
+      <ProjectionDistanceScale value="2" />
+    </WhichLocation>
+    <WhichUnit Effect="ConcussiveBlastSet" />
     <Amount value="10" />
   </CEffectApplyForce>
-  <CEffectCreatePersistent id="ConcussiveBlastKnockbackPersistent">
-    <WhichLocation Value="TargetUnit" />
-    <InitialEffect value="ConcussiveBlastKnockbackSet" />
-    <FinalEffect value="ConcussiveBlastKnockbackRemoveBehavior" />
-    <PeriodCount value="6" />
-    <PeriodicValidator value="SgtHammerHasConcussiveBlastKnockbackORHasConcussiveBlastEntrenchedKnockback" />
-    <PeriodicEffectArray value="ConcussiveBlastKnockbackApplyForce" />
-    <PeriodicPeriodArray value="0.0625" />
-    <ValidatorArray value="TargetNotUnstoppable" />
-  </CEffectCreatePersistent>
-  <CEffectSet id="ConcussiveBlastKnockbackSet">
-    <EffectArray value="HeroRemovePushPullDebuffs" />
-    <EffectArray value="SgtHammerConcussiveBlastKnockbackApplyBehaviorSwitch" />
-    <EffectArray value="ConcussiveBlastKnockbackIssueStopOrder" />
-  </CEffectSet>
-  <CEffectIssueOrder id="ConcussiveBlastKnockbackIssueStopOrder">
-    <Abil value="stop" />
-  </CEffectIssueOrder>
-  <CEffectRemoveBehavior id="ConcussiveBlastKnockbackRemoveBehavior">
-    <BehaviorLink value="ConcussiveBlastKnockback" />
-  </CEffectRemoveBehavior>
   <CEffectSet id="ConcussiveBlastScrapCancelDummySet" />
   <CEffectApplyBehavior id="SgtHammerSpiderMinesApplySlowBehavior" parent="StormSlowApply">
     <Behavior value="SgtHammerSpiderMinesSlowDebuff" />
@@ -2060,7 +2065,7 @@
   <CEffectSet id="ConcussiveBlastSet">
     <EffectArray value="ConcussiveBlastDamage" />
     <EffectArray value="ConcussiveBlastDamageLethalBlast" />
-    <EffectArray value="ConcussiveBlastKnockbackPersistent" />
+    <EffectArray value="SgtHammerConcussiveBlastKnockbackSet" />
     <EffectArray value="CameraShakeLightTauntingTotemSet" />
     <EffectArray value="ApplyAbilityImpactReveal" />
   </CEffectSet>
@@ -3358,7 +3363,7 @@
   </CValidatorUnitCompareBehaviorCount>
   <CValidatorUnitCompareBehaviorCount id="HasConcussiveBlastEntrenchedKnockback">
     <Value value="1" />
-    <Behavior value="ConcussiveBlastKnockbackEntrenched" />
+    <Behavior value="SgtHammerConcussiveBlastKnockbackEntrenched" />
   </CValidatorUnitCompareBehaviorCount>
   <CValidatorPlayerTalent id="HasSgtHammerEntrenched">
     <WhichPlayer Value="Caster" />
@@ -3411,7 +3416,7 @@
   </CValidatorUnitCompareBehaviorCount>
   <CValidatorUnitCompareBehaviorCount id="HasConcussiveBlastKnockback">
     <Value value="1" />
-    <Behavior value="ConcussiveBlastKnockback" />
+    <Behavior value="SgtHammerConcussiveBlastKnockback" />
   </CValidatorUnitCompareBehaviorCount>
   <CValidatorCombine id="SgtHammerSpiderMineMovePersistentPeriodicValidator">
     <Type value="And" />
