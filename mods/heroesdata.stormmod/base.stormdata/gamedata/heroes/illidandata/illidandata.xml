@@ -247,8 +247,8 @@
     <On Terms="WeaponStart.HeroIllidan.AttackStart; AnimPlaying Birth" Send="AnimClear Birth" />
     <On Terms="WeaponStart.HeroIllidan.AttackStart; AnimPlaying Spell" Send="AnimClear Spell" />
     <On Terms="Abil.IllidanDive.SourceCastStart" Send="Create IllidanDiveVox" />
-    <On Terms="Effect.IllidanDiveLaunchIllidan.Start" Send="Create IllidanDiveLaunchSound" />
-    <On Terms="Effect.IllidanDiveLaunchIllidan.Start" Send="Create IllidanDiveLaunch" />
+    <On Terms="Effect.IllidanDiveLaunchIllidan.Start; At Caster" Send="Create IllidanDiveLaunchSound" />
+    <On Terms="Effect.IllidanDiveLaunchIllidan.Start; At Caster" Send="Create IllidanDiveLaunch" />
     <On Terms="Effect.IllidanDiveImpactSwitch.Start" Target="IllidanDiveLaunch" Send="Destroy" />
     <On Terms="Behavior.IllidanDiveCasterBehavior.Off" Target="IllidanDiveLaunch" Send="Destroy" />
     <On Terms="Effect.IllidanDiveLaunchIllidan.Start; At Caster" Send="AnimPlay Spell Spell,G 0 0.050000 -1.000000 1.000000 AsTimeScale" />
@@ -746,10 +746,18 @@
     <MaxStackCountPerCaster value="1" />
     <Duration value="10" />
   </CBehaviorBuff>
-  <CBehaviorBuff id="IllidanFieryBrandStack">
+  <CBehaviorUnitTracker id="IllidanFieryBrandTargetTracker">
+    <MaxTrackedUnits value="1" />
+    <UnitAddedAtMaxRule value="ReplaceOldest" />
+    <BehaviorFlags index="Permanent" value="1" />
+    <BehaviorFlags index="EnabledWhileDead" value="1" />
+    <TrackingValidatorArray value="TargetNotDeadAndNoSpecialDeathState" />
+  </CBehaviorUnitTracker>
+  <CBehaviorBuff id="IllidanFieryBrandStack" parent="StormStackingComboMarker">
+    <MaxStackCount value="20" />
     <BuffFlags index="RefreshStack" value="1" />
-    <MaxStackCount value="2" />
-    <Duration value="3" />
+    <Duration value="300" />
+    <MaxStackCountPerCaster value="2" />
   </CBehaviorBuff>
   <CBehaviorBuff id="IllidanNowhereToHide" parent="StormReveal">
     <BehaviorFlags index="Permanent" value="1" />
@@ -1410,28 +1418,51 @@
     <EffectArray value="IllidanEvasionApplySixthSenseTalentStacks" />
     <EffectArray value="IllidanEvasionApplySixthSenseTalent" />
   </CEffectSet>
-  <CEffectApplyBehavior id="IllidanFieryBrandApplyStackBuff">
-    <Behavior value="IllidanFieryBrandStack" />
-  </CEffectApplyBehavior>
-  <CEffectDamage id="IllidanFieryBrandDamage" parent="StormSpellPercentDamage">
+  <CEffectSet id="IllidanFieryBrandApplicationSet">
+    <ValidatorArray value="IllidanHasFieryBrandTalent" />
+    <ValidatorArray value="TargetIsHero" />
+    <ValidatorArray value="TargetNotDeadAndNoSpecialDeathState" />
     <ValidatorArray value="CasterNotBlindedAndTargetNotEvading" />
-    <VitalFractionMax index="Life" value="0.07" />
-    <Flags index="Crit" value="1" />
-  </CEffectDamage>
-  <CEffectSet id="IllidanFieryBrandProcSet">
-    <EffectArray value="IllidanFieryBrandRemoveStacks" />
-    <EffectArray value="IllidanFieryBrandDamage" />
+    <EffectArray value="IllidanFieryBrandSwitch" />
+    <EffectArray value="IllidanFieryBrandTargetNotTrackedSet" />
   </CEffectSet>
+  <CEffectSet id="IllidanFieryBrandTargetNotTrackedSet">
+    <ValidatorArray value="IllidanFieryBrandTargetIsNotTracked" />
+    <EffectArray value="IllidanFieryBrandCleanseStacksEnum" />
+    <EffectArray value="IllidanFieryBrandClearTrackedUnits" />
+    <EffectArray value="IllidanFieryBrandTrackTarget" />
+  </CEffectSet>
+  <CEffectEnumTrackedUnits id="IllidanFieryBrandCleanseStacksEnum">
+    <BehaviorLink value="IllidanFieryBrandTargetTracker" />
+    <Effect value="IllidanFieryBrandRemoveStacks" />
+  </CEffectEnumTrackedUnits>
   <CEffectRemoveBehavior id="IllidanFieryBrandRemoveStacks">
     <BehaviorLink value="IllidanFieryBrandStack" />
     <Count value="3" />
+    <RequireCasterUnit Value="Caster" />
   </CEffectRemoveBehavior>
+  <CEffectClearTrackedUnits id="IllidanFieryBrandClearTrackedUnits">
+    <BehaviorLink value="IllidanFieryBrandTargetTracker" />
+  </CEffectClearTrackedUnits>
+  <CEffectAddTrackedUnit id="IllidanFieryBrandTrackTarget">
+    <BehaviorLink value="IllidanFieryBrandTargetTracker" />
+    <TrackedUnit Value="Target" />
+  </CEffectAddTrackedUnit>
   <CEffectSwitch id="IllidanFieryBrandSwitch">
-    <CaseDefault value="IllidanFieryBrandApplyStackBuff" />
-    <ValidatorArray value="TargetIsHero" />
-    <ValidatorArray value="IllidanHasFieryBrandTalent" />
     <CaseArray Validator="IllidanHas2StacksFieryBrandTarget" Effect="IllidanFieryBrandProcSet" />
+    <CaseDefault value="IllidanFieryBrandApplyStackBuff" />
   </CEffectSwitch>
+  <CEffectApplyBehavior id="IllidanFieryBrandApplyStackBuff">
+    <Behavior value="IllidanFieryBrandStack" />
+  </CEffectApplyBehavior>
+  <CEffectSet id="IllidanFieryBrandProcSet">
+    <EffectArray value="IllidanFieryBrandDamage" />
+    <EffectArray value="IllidanFieryBrandRemoveStacks" />
+  </CEffectSet>
+  <CEffectDamage id="IllidanFieryBrandDamage" parent="StormSpellPercentDamage">
+    <VitalFractionMax index="Life" value="0.07" />
+    <Flags index="Crit" value="1" />
+  </CEffectDamage>
   <CEffectApplyBehavior id="IllidanSweepingStrikeApplyNimbleDefenderTalentBuff">
     <ValidatorArray value="TargetIsHero" />
     <ValidatorArray value="IllidanHasNimbleDefender" />
@@ -2134,12 +2165,17 @@
   <CEffectSet id="IllidanWeaponSet">
     <EffectArray value="UniversalWeaponLaunchSet" />
     <EffectArray value="UniversalWeaponImpact" />
+    <EffectArray value="IllidanWeaponPreImpactSet" />
     <EffectArray value="IllidanWeaponDamage" />
-    <EffectArray value="FlightoftheBetrayerApplyCooldownCaster" />
-    <EffectArray value="IllidanBetrayersThirstCooldownReduction" />
-    <EffectArray value="IllidanFieryBrandSwitch" />
+    <EffectArray value="IllidanWeaponPostImpactSet" />
     <EffectArray value="UniversalWeaponPostImpactSet" />
   </CEffectSet>
+  <CEffectSet id="IllidanWeaponPreImpactSet">
+    <EffectArray value="FlightoftheBetrayerApplyCooldownCaster" />
+    <EffectArray value="IllidanBetrayersThirstCooldownReduction" />
+    <EffectArray value="IllidanFieryBrandApplicationSet" />
+  </CEffectSet>
+  <CEffectSet id="IllidanWeaponPostImpactSet" />
   <CEffectDamage id="IllidanWeaponDamage" parent="StormWeapon">
     <Amount value="78" />
     <FlatModifierArray index="IllidanUnendingHatred" Accumulator="IllidanUnendingHatredAccumulator" />
@@ -2709,7 +2745,9 @@
   </CRewardHeroMastery>
   <CTalent id="IllidanFieryBrand">
     <Face value="IllidanFieryBrand" />
-    <RankArray />
+    <RankArray>
+      <BehaviorArray value="IllidanFieryBrandTargetTracker" />
+    </RankArray>
   </CTalent>
   <CTalent id="IllidanUnendingHatredPassive">
     <Face value="IllidanUnendingHatredTalent" />
@@ -3048,9 +3086,14 @@
   <CValidatorUnitCompareBehaviorCount id="IllidanDoesNotHaveIllidanSweepingStrike">
     <Behavior value="IllidanSweepingStrike" />
   </CValidatorUnitCompareBehaviorCount>
+  <CValidatorIsUnitTracked id="IllidanFieryBrandTargetIsNotTracked">
+    <BehaviorLink value="IllidanFieryBrandTargetTracker" />
+    <TrackedUnit Value="Target" />
+  </CValidatorIsUnitTracked>
   <CValidatorUnitCompareBehaviorCount id="IllidanHas2StacksFieryBrandTarget">
     <Value value="2" />
     <Behavior value="IllidanFieryBrandStack" />
+    <RequireCasterUnit Value="Caster" />
   </CValidatorUnitCompareBehaviorCount>
   <CValidatorPlayerTalent id="IllidanHasElusiveStrike">
     <WhichPlayer Value="Caster" />

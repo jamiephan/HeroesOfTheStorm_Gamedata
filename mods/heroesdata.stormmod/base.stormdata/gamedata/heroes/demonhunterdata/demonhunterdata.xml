@@ -1,12 +1,18 @@
 <?xml version="1.0" encoding="us-ascii"?>
 <Catalog>
+  <const id="$DemonHunterWeaponDamage" value="70" />
+  <const id="$DemonHunterHatredDamageBonusModiferPerStack" value="0.08" />
+  <const id="$DemonHunterHatredMovespeedBonusModiferPerStack" value="0.01" />
+  <const id="$DemonHunterVaultDamageModifier" value="0.06" />
+  <const id="$DemonHunterHatredCreedoftheHunterBonusModiferPerStack" value="0.01" />
+  <const id="$DemonHunterVaultDeathDealerDamageModifier" value="0.09" />
   <CAbilEffectInstant id="DemonHunterGloom">
     <Effect value="DemonHunterGloomCastSet" />
     <Flags index="Transient" value="1" />
     <Cost>
       <Cooldown TimeUse="5" />
     </Cost>
-    <CmdButtonArray index="Execute" DefaultButtonFace="DemonHunterGloomItem" Requirements="DemonHunterHas1StacksOfHatred" />
+    <CmdButtonArray index="Execute" DefaultButtonFace="DemonHunterGloomItem" UseValidator="DemonHunterHasAnyHatredTokenCount" />
   </CAbilEffectInstant>
   <CAbilEffectTarget id="DemonHunterHungeringArrow">
     <AbilityCategories index="Reveals" value="1" />
@@ -119,11 +125,34 @@
     <CmdButtonArray index="Execute" DefaultButtonFace="DemonHunterStrafe" Requirements="Ultimate1Unlocked" />
     <PrepEffect value="DismountDecloakCasterSet" />
   </CAbilEffectInstant>
+  <CAccumulatorToken id="DemonHunterHatredMovespeedAccumulator" parent="BaseAccumulator">
+    <MaxAccumulation value="100" />
+    <ApplicationRule value="Add" />
+    <TokenId value="DemonHunterHatredTokenCounter" />
+    <Scale value="$DemonHunterHatredMovespeedBonusModiferPerStack" />
+  </CAccumulatorToken>
+  <CAccumulatorToken id="DemonHunterHatredDamageAccumulator" parent="BaseAccumulator">
+    <MaxAccumulation value="65535" />
+    <ApplicationRule value="Add" />
+    <TokenId value="DemonHunterHatredTokenCounter" />
+    <Scale value="$DemonHunterHatredDamageBonusModiferPerStack" />
+  </CAccumulatorToken>
+  <CAccumulatorToken id="DemonHunterVaultDamageAccumulator" parent="BaseAccumulator">
+    <TokenId value="DemonHunterHatredMissileTokenCounter" />
+    <UnitSource Value="Source" />
+    <Scale value="$DemonHunterVaultDamageModifier" />
+  </CAccumulatorToken>
   <CAccumulatorToken id="DemonHunterMultishotFireAtWillDamageAccumulator" parent="BaseAccumulator">
     <MaxAccumulation value="32000" />
     <ApplicationRule value="Add" />
     <TokenId value="DemonHunterMultishotFireAtWillDamageTokenCounter" />
     <Scale value="2" />
+  </CAccumulatorToken>
+  <CAccumulatorToken id="DemonHunterHatredCreedoftheHunterDamageAccumulator" parent="BaseAccumulator">
+    <MaxAccumulation value="65535" />
+    <ApplicationRule value="Add" />
+    <TokenId value="DemonHunterHatredTokenCounter" />
+    <Scale value="0" />
   </CAccumulatorToken>
   <CAccumulatorToken id="DemonHunterCreedOfTheHunterLoanAccumulator" parent="BaseAccumulator">
     <MaxAccumulation value="0.25" />
@@ -140,8 +169,12 @@
   <CAccumulatorToken id="DemonHunterTemperedByDisciplineAccumulator" parent="BaseAccumulator">
     <MaxAccumulation value="0.2" />
     <ApplicationRule value="Add" />
-    <TokenId value="DemonHunterTemperedByDisciplineTokenCounter" />
+    <TokenId value="DemonHunterHatredTokenCounter" />
     <Scale value="0.02" />
+  </CAccumulatorToken>
+  <CAccumulatorToken id="DemonHunterHatredTokenCountAccumulator" parent="BaseTokenAccumulator">
+    <ApplicationRule value="Add" />
+    <TokenId value="DemonHunterHatredTokenCounter" />
   </CAccumulatorToken>
   <CAccumulatorToken id="DemonHunterGloomActiveSpellArmorAccumulator" parent="BaseAccumulator">
     <MaxAccumulation value="30" />
@@ -151,7 +184,7 @@
   </CAccumulatorToken>
   <CAccumulatorToken id="DemonHunterGloomHPSAccumulator" parent="BaseAccumulator">
     <MaxAccumulation value="10" />
-    <TokenId value="DemonHunterGloomHPSToken" />
+    <TokenId value="DemonHunterHatredTokenCounter" />
     <Scale value="1" />
     <Offset value="-1" />
   </CAccumulatorToken>
@@ -459,7 +492,7 @@
     <Sound value="DemonHunter_Attack_Whoosh" />
     <On Terms="Effect.DemonHunterHeroWeaponLaunchMissile.Start; At Caster" Send="Create" />
   </CActorSound>
-  <CActorAction id="DemonHunterAttack" parent="RangedHeroAttackMissile" effectImpact="DemonHunterHeroWeaponDamage" effectLaunch="DemonHunterHeroWeaponLaunchMissile">
+  <CActorAction id="DemonHunterAttack" parent="RangedHeroAttackMissile" effectImpact="DemonHunterWeaponImpactDummy" effectLaunch="DemonHunterHeroWeaponLaunchMissile">
     <ImpactMap index="None" Sound="DemonHunter_AttackImpact_Unit" />
     <ImpactMap index="Rock" Sound="DemonHunter_AttackImpact_Building" />
     <ImpactMap index="Metal" Sound="DemonHunter_AttackImpact_Large_Metal" />
@@ -784,7 +817,7 @@
   <CActorModel id="DemonHunterRainOfVengeanceInitial" parent="StormModelAnimationStyleContinuous">
     <On Terms="Effect.RainOfVengeanceModelPersistent.Start" Send="Create" />
     <On Terms="Effect.RainOfVengeanceModelPersistent.Stop" Send="AnimBracketStop BSD" />
-    <HostSiteOps Ops="SOpForwardTargetPoint SOpMoveBackByDot1" />
+    <HostSiteOps Ops="SOpForwardTargetPoint SOpMoveBackByDot1" HoldPosition="1" />
   </CActorModel>
   <CActorModel id="DemonHunterRainOfVengeanceStand" parent="StormModelAnimationStyleOneShot">
     <On Terms="Effect.RainOfVengeanceForecastDummy.Start" Send="Create" />
@@ -874,7 +907,7 @@
     </Modification>
   </CBehaviorBuff>
   <CBehaviorBuff id="DemonHunterMultishotPunishmentCarryBehavior" parent="CarryBehaviorParent">
-    <DisableValidatorArray value="DemonHunterHasGTE10StacksHatred" />
+    <DisableValidatorArray value="DemonHunterHasGE10HatredTokenCount" />
     <Period value="0.25" />
     <PeriodicEffect value="DemonHunterMultishotPunishmentModifyCooldown" />
   </CBehaviorBuff>
@@ -890,11 +923,8 @@
       <Event EventId="QuestMilestone" Effect="DemonHunterMultishotFireAtWillQuestMilestoneAddDamageTokenCount" />
     </ConditionalEvents>
   </CBehaviorTokenCounter>
-  <CBehaviorTokenCounter id="DemonHunterTemperedByDisciplineTokenCounter" parent="StormGenericToken">
-    <Max value="10" />
-  </CBehaviorTokenCounter>
   <CBehaviorBuff id="DemonHunterHatredSeethingHatredTalentCarry" parent="CarryBehaviorParent">
-    <DisableValidatorArray value="DemonHunterHasGTE10StacksHatred" />
+    <DisableValidatorArray value="DemonHunterHasGE10HatredTokenCount" />
     <Modification>
       <DamageDealtFraction index="Splash" value="0.1" />
       <DamageDealtFraction index="Basic" value="0.1" />
@@ -909,7 +939,7 @@
     <Buttons Face="DemonHunterGloomItem" Type="AbilCmd" AbilCmd="DemonHunterGloom,Execute" />
   </CBehaviorAbility>
   <CBehaviorBuff id="DemonHunterRainOfVengeanceStormOfVengeanceCarryBehavior" parent="CarryBehaviorParent">
-    <DisableValidatorArray value="DemonHunterHas10StacksHatred" />
+    <DisableValidatorArray value="DemonHunterHasGE10HatredTokenCount" />
     <Modification>
       <AdditiveAttackSpeedFactor value="0.3" />
     </Modification>
@@ -925,7 +955,7 @@
     </Modification>
   </CBehaviorBuff>
   <CBehaviorBuff id="DemonHunterFarflightQuiverMaxRangeIncrease" parent="CarryBehaviorParent">
-    <DisableValidatorArray value="DemonHunterHasGTE10StacksHatred" />
+    <DisableValidatorArray value="DemonHunterHasGE10HatredTokenCount" />
     <Modification>
       <WeaponRange value="1.65" />
       <WeaponScanBonus value="1.65" />
@@ -944,17 +974,8 @@
   <CBehaviorBuff id="DemonHunterVaultDamageBoost">
     <BehaviorCategories index="BuffAutoattackDPS" value="1" />
     <Duration value="2" />
-    <DamageResponse Chance="1" Handled="DemonHunterVaultRemoveDamageBoost" Location="Attacker">
-      <Kind index="Ability" value="0" />
-      <ProvideCategories index="Proc" value="1" />
-    </DamageResponse>
   </CBehaviorBuff>
-  <CBehaviorTokenCounter id="DemonHunterGloomHPSTokenCounter">
-    <BehaviorFlags index="Permanent" value="1" />
-    <BehaviorFlags index="EnabledWhileDead" value="1" />
-    <TokenId value="DemonHunterGloomHPSToken" />
-    <IncreaseEvents />
-    <AtMaxEvents />
+  <CBehaviorTokenCounter id="DemonHunterHatredMissileTokenCounter" parent="StormGenericToken">
     <Max value="10" />
   </CBehaviorTokenCounter>
   <CBehaviorBuff id="DemonHunterHatredTalentGloomCarry" parent="StormArmorPermanent">
@@ -1043,24 +1064,19 @@
     <PeriodicEffect value="MultishotArsenalGrenadeSearchSet" />
     <Face value="DemonHunterMultishotArsenalTalent" />
   </CBehaviorBuff>
-  <CBehaviorBuff id="NewHatredStack" parent="StormSprint">
-    <Face value="DemonHunterNewHatredStackFace" />
-    <InfoIcon value="Assets\Textures\storm_ui_icon_valla_hatred.dds" />
-    <BehaviorCategories index="BuffAutoattackDPS" value="1" />
-    <BuffFlags index="RefreshStack" value="1" />
-    <MaxStackCount value="10" />
-    <InitialEffect value="NewHatredStackSet" />
-    <RefreshEffect value="NewHatredStackSet" />
+  <CBehaviorBuff id="DemonHunterHatredController" parent="CarryBehaviorParent">
     <Modification>
-      <UnifiedMoveSpeedFactor value="0.01" />
-      <DamageDealtFraction index="Basic" value="0.08" />
-      <VitalDamageLeechScoreArray Value="Healing" />
+      <UnifiedMoveSpeedFactor value="0">
+        <AccumulatorArray value="DemonHunterHatredMovespeedAccumulator" />
+      </UnifiedMoveSpeedFactor>
     </Modification>
-    <RemoveValidatorArray value="TargetNotDead" />
-    <InfoFlags index="AlwaysUseGameText" value="1" />
-    <SortIndex value="5" />
   </CBehaviorBuff>
+  <CBehaviorTokenCounter id="DemonHunterHatredTokenCounter" parent="StormGenericToken">
+    <DisplayDurationProxyBehavior value="NewHatredDurationController" />
+    <Max value="10" />
+  </CBehaviorTokenCounter>
   <CBehaviorBuff id="NewHatredDurationController">
+    <BehaviorCategories index="Fast" value="1" />
     <BuffFlags index="RefreshStack" value="1" />
     <Duration value="5" />
     <Period value="1" />
@@ -1400,13 +1416,11 @@
     <ImpactUnit Value="Caster" />
     <RechargeVitalRate value="40" />
   </CEffectCreateHealer>
-  <CEffectApplyBehavior id="DemonHunterMultishotFireAtWillAddHatredBehaviorCount">
-    <ValidatorArray index="0" value="DemonHunterHasMultishotFireAtWillTalent" />
-    <ValidatorArray value="TargetIsHero" />
-    <WhichUnit Value="Caster" />
-    <Behavior value="NewHatredStack" />
-    <Count value="2" />
-  </CEffectApplyBehavior>
+  <CEffectCreatePersistent id="DemonHunterMultishotFireAtWillAddHatredPersistent">
+    <PeriodCount value="2" />
+    <PeriodicEffectArray value="DemonHunterNewHatredApplyStackSetNoValidator" />
+    <PeriodicPeriodArray value="0" />
+  </CEffectCreatePersistent>
   <CEffectModifyPlayer id="DemonHunterVaultCaltropsModifyPlayer">
     <WhichPlayer Value="Caster" />
     <EffectArray Reference="Effect,DemonHunterHeroWeaponDamage,AmountArray" Value="1" />
@@ -1437,7 +1451,7 @@
     <RechargeVitalRate value="1.25">
       <AccumulatorArray value="DemonHunterGloomHPSAccumulator" />
     </RechargeVitalRate>
-    <ValidatorArray value="CasterHasStacksofNewHatred" />
+    <ValidatorArray value="DemonHunterHasAnyHatredTokenCount" />
     <ValidatorArray value="DemonHunterHasGloom" />
   </CEffectCreateHealer>
   <CEffectCreateHealer id="DemonHunterHungeringArrowSiphoningArrowHungeringArrowCreateHealer" parent="StormSelfOnlyHealingSpellPercent">
@@ -1468,39 +1482,28 @@
     <Operation value="Set" />
     <Value value="0" />
   </CEffectModifyTokenCount>
-  <CEffectCreatePersistent id="DemonHunterGloomTokenIncrementPersistent">
+  <CEffectCreatePersistent id="DemonHunterGloomConvertHatredStacksPersistent">
     <WhichLocation Value="CasterUnit" />
-    <FinalEffect value="DemonHunterHatredRemoveDuration" />
-    <PeriodCount value="10" />
-    <PeriodicValidator value="CasterHasStacksofNewHatred" />
-    <PeriodicEffectArray value="DemonHunterHatredDecrementSingleStackSet" />
+    <InitialEffect value="DemonHunterGloomClearStacksSet" />
+    <PeriodCount value="0">
+      <AccumulatorArray value="DemonHunterHatredTokenCountAccumulator" />
+    </PeriodCount>
+    <PeriodicEffectArray value="DemonHunterGloomIncrementSpellArmorToken" />
     <PeriodicPeriodArray value="0" />
   </CEffectCreatePersistent>
-  <CEffectSet id="DemonHunterHatredDecrementSingleStackSet">
-    <ValidatorArray value="CasterHasStacksofNewHatred" />
-    <EffectArray value="DemonHunterHatredRemoveSingleStack" />
-    <EffectArray value="DemonHunterGloomIncrementSpellArmorToken" />
-    <EffectArray value="DemonHunterTemperedByDisciplineDecrementSingleTokenCount" />
-    <EffectArray value="DemonHunterGloomHPSDecrementSingleTokenCount" />
+  <CEffectSet id="DemonHunterGloomClearStacksSet">
+    <EffectArray value="DemonHunterHatredRemoveDuration" />
+    <EffectArray value="DemonHunterHatredDecrementTokenCount" />
   </CEffectSet>
   <CEffectRemoveBehavior id="DemonHunterHatredRemoveDuration">
     <WhichUnit Value="Caster" />
     <BehaviorLink value="NewHatredDurationController" />
     <Count value="1" />
   </CEffectRemoveBehavior>
-  <CEffectModifyTokenCount id="DemonHunterGloomHPSDecrementSingleTokenCount" parent="BaseEffectModifyTokenCount">
-    <TokenId value="DemonHunterGloomHPSToken" />
+  <CEffectModifyTokenCount id="DemonHunterHatredDecrementSingleTokenCount" parent="BaseEffectModifyTokenCount">
+    <TokenId value="DemonHunterHatredTokenCounter" />
     <Value value="-1" />
   </CEffectModifyTokenCount>
-  <CEffectModifyTokenCount id="DemonHunterTemperedByDisciplineDecrementSingleTokenCount" parent="BaseEffectModifyTokenCount">
-    <TokenId value="DemonHunterTemperedByDisciplineTokenCounter" />
-    <Value value="-1" />
-  </CEffectModifyTokenCount>
-  <CEffectRemoveBehavior id="DemonHunterHatredRemoveSingleStack">
-    <WhichUnit Value="Caster" />
-    <BehaviorLink value="NewHatredStack" />
-    <Count value="1" />
-  </CEffectRemoveBehavior>
   <CEffectSet id="MultishotGrenadeDummy" />
   <CEffectCreatePersistent id="HungeringArrowSuicideRemoveDelay">
     <ExpireDelay value="0.0625" />
@@ -1569,7 +1572,7 @@
   <CEffectSet id="DemonHunterGloomCastSet">
     <ValidatorArray value="DemonHunterCasterDoesNotHaveGloomDuration" />
     <EffectArray value="DemonHunterGloomDurationApplyBuff" />
-    <EffectArray value="DemonHunterGloomTokenIncrementPersistent" />
+    <EffectArray value="DemonHunterGloomConvertHatredStacksPersistent" />
   </CEffectSet>
   <CEffectDamage id="DemonHunterHungeringArrowHeroDamage1" parent="StormSpell">
     <Amount value="140">
@@ -1638,15 +1641,8 @@
     <Flags index="Crit" value="1" />
     <VitalFractionMax index="Life" value="0.04" />
   </CEffectDamage>
-  <CEffectSet id="DemonHunterNewHatredStack10StackRefreshSet">
-    <ValidatorArray value="DemonHunterHas10StacksHatred" />
-    <EffectArray value="NewHatredDurationControllerApplyBehavior" />
-    <EffectArray value="DemonHunterTemperedByDisciplineIncrementTokenCount" />
-    <EffectArray value="DemonHunterGloomHPSIncrementTokenCount" />
-  </CEffectSet>
   <CEffectApplyBehavior id="DemonHunterVaultApplyDeathDealerTalentDeathResponse">
-    <ValidatorArray index="0" value="DemonHunterHasDeathDealer" />
-    <ValidatorArray value="DemonHunterHasVaultDamageBoost" />
+    <ValidatorArray index="0" value="DemonHunterVaultDeathDealerHasTalentAndSourceHasAnyHatredTokens" />
     <Behavior value="DemonHunterVaultTalentDeathDealerDeathResponse" />
   </CEffectApplyBehavior>
   <CEffectRemoveBehavior id="DemonHunterVaultRemoveDeathDealerTalentDeathResponse">
@@ -1679,27 +1675,41 @@
     <BehaviorLink value="DemonHunterVaultDamageBoost" />
     <Count value="1" />
   </CEffectRemoveBehavior>
+  <CEffectCreatePersistent id="DemonHunterVaultTransferHatredCount">
+    <ValidatorArray value="DemonHunterHasVaultDamageBoost" />
+    <ValidatorArray value="DemonHunterHasAnyHatredTokenCount" />
+    <WhichLocation Value="SourceUnit" />
+    <PeriodCount value="0">
+      <AccumulatorArray value="DemonHunterHatredTokenCountAccumulator" />
+    </PeriodCount>
+    <PeriodicEffectArray value="DemonHunterVaultApplyHatredTokenCount" />
+    <PeriodicPeriodArray value="0" />
+  </CEffectCreatePersistent>
+  <CEffectModifyTokenCount id="DemonHunterVaultApplyHatredTokenCount" parent="BaseEffectModifyTokenCount">
+    <WhichUnit Value="Target" />
+    <TokenId value="DemonHunterHatredMissileTokenCounter" />
+  </CEffectModifyTokenCount>
   <CEffectSet id="DemonHunterHatredRemoveStackSet">
-    <EffectArray value="NewHatredRemoveStackRemoveBehavior" />
-    <EffectArray value="DemonHunterTemperedByDisciplineDecrementTokenCount" />
-    <EffectArray value="DemonHunterGloomHPSDecrementTokenCount" />
+    <EffectArray value="DemonHunterHatredDecrementTokenCount" />
   </CEffectSet>
-  <CEffectModifyTokenCount id="DemonHunterGloomHPSIncrementTokenCount" parent="BaseEffectModifyTokenCount">
-    <TokenId value="DemonHunterGloomHPSToken" />
+  <CEffectSet id="DemonHunterNewHatredApplyStackSet">
+    <ValidatorArray value="CasterNotBlindedAndTargetNotEvading" />
+    <EffectArray value="NewHatredDurationControllerApplyBehavior" />
+    <EffectArray value="DemonHunterHatredIncrementTokenCount" />
+  </CEffectSet>
+  <CEffectSet id="DemonHunterNewHatredApplyStackSetNoValidator">
+    <EffectArray value="NewHatredDurationControllerApplyBehavior" />
+    <EffectArray value="DemonHunterHatredIncrementTokenCount" />
+  </CEffectSet>
+  <CEffectModifyTokenCount id="DemonHunterHatredIncrementTokenCount" parent="BaseEffectModifyTokenCount">
+    <TokenId value="DemonHunterHatredTokenCounter" />
   </CEffectModifyTokenCount>
-  <CEffectModifyTokenCount id="DemonHunterTemperedByDisciplineIncrementTokenCount" parent="BaseEffectModifyTokenCount">
-    <TokenId value="DemonHunterTemperedByDisciplineTokenCounter" />
-  </CEffectModifyTokenCount>
-  <CEffectModifyTokenCount id="DemonHunterGloomHPSDecrementTokenCount" parent="BaseEffectModifyTokenCount">
-    <TokenId value="DemonHunterGloomHPSToken" />
-    <Value value="-10" />
-  </CEffectModifyTokenCount>
-  <CEffectModifyTokenCount id="DemonHunterTemperedByDisciplineDecrementTokenCount" parent="BaseEffectModifyTokenCount">
-    <TokenId value="DemonHunterTemperedByDisciplineTokenCounter" />
+  <CEffectModifyTokenCount id="DemonHunterHatredDecrementTokenCount" parent="BaseEffectModifyTokenCount">
+    <TokenId value="DemonHunterHatredTokenCounter" />
     <Value value="-10" />
   </CEffectModifyTokenCount>
   <CEffectModifyPlayer id="DemonHunterHeroWeaponCreedoftheHunterTalentModifyPlayer">
-    <EffectArray Reference="Behavior,NewHatredStack,Modification.DamageDealtFraction[Basic]" Value="0.01" />
+    <EffectArray Reference="Accumulator,DemonHunterHatredCreedoftheHunterDamageAccumulator,Scale" Value="$DemonHunterHatredCreedoftheHunterBonusModiferPerStack" />
   </CEffectModifyPlayer>
   <CEffectModifyTokenCount id="DemonHunterHeroWeaponCreedoftheHunterTalentModifyTokenCount" parent="BaseEffectModifyTokenCount">
     <ValidatorArray value="TargetIsHero" />
@@ -1708,8 +1718,7 @@
     <TokenId value="DemonHunterCreedoftheHunterTokenCounter" />
   </CEffectModifyTokenCount>
   <CEffectModifyPlayer id="DemonHunterHeroWeaponCreedoftheHunterTalentQuestResetPlayer">
-    <EffectArray Operation="Set" Reference="Behavior,NewHatredStack,Modification.DamageDealtFraction[Basic]" Value="0.08" />
-    <EffectArray Operation="Set" Reference="Behavior,NewHatredStack,Modification.UnifiedMoveSpeedFactor" Value="0.01" />
+    <EffectArray Operation="Set" Reference="Accumulator,DemonHunterHatredCreedoftheHunterDamageAccumulator,Scale" Value="0" />
   </CEffectModifyPlayer>
   <CEffectModifyTokenCount id="DemonHunterHungeringArrowPuncturingArrowTalentModifyTokenCount" parent="BaseEffectModifyTokenCount">
     <ValidatorArray value="TargetIsHero" />
@@ -1722,16 +1731,11 @@
   </CEffectModifyPlayer>
   <CEffectModifyTokenCount id="DemonHunterVaultCaltropsTalentModifyTokenCount" parent="BaseEffectModifyTokenCount">
     <ValidatorArray value="DemonHunterHasCaltrops" />
-    <ValidatorArray value="DemonHunterHasGTE10StacksHatred" />
+    <ValidatorArray value="DemonHunterHasGE10HatredTokenCount" />
     <WhichUnit Value="Target" />
     <TokenId value="DemonHunterCaltropsTokenCounter" />
     <Chance value="0" />
   </CEffectModifyTokenCount>
-  <CEffectSet id="DemonHunterNewHatredApplyStackSet">
-    <ValidatorArray value="CasterNotBlindedAndTargetNotEvading" />
-    <EffectArray value="NewHatredAttackStackApplyBehavior" />
-    <EffectArray value="DemonHunterNewHatredStack10StackRefreshSet" />
-  </CEffectSet>
   <CEffectApplyBehavior id="DisciplineAbilityStackApplyBehavior">
     <WhichUnit Value="Caster" />
     <Behavior value="DemonHunterHatredTemperedDisciplineCarry" />
@@ -1803,18 +1807,7 @@
   <CEffectApplyBehavior id="NewHatredDurationControllerApplyBehavior">
     <WhichUnit Value="Caster" />
     <Behavior value="NewHatredDurationController" />
-    <ValidatorArray index="0" value="CasterHasStacksofNewHatred" />
   </CEffectApplyBehavior>
-  <CEffectRemoveBehavior id="NewHatredRemoveStackRemoveBehavior">
-    <WhichUnit Value="Caster" />
-    <BehaviorLink value="NewHatredStack" />
-    <Count value="10" />
-  </CEffectRemoveBehavior>
-  <CEffectSet id="NewHatredStackSet">
-    <EffectArray value="NewHatredDurationControllerApplyBehavior" />
-    <EffectArray value="DemonHunterTemperedByDisciplineIncrementTokenCount" />
-    <EffectArray value="DemonHunterGloomHPSIncrementTokenCount" />
-  </CEffectSet>
   <CEffectDamage id="CaltropsDamage" parent="StormSpell">
     <Amount value="60" />
     <Visibility value="Hidden" />
@@ -1858,6 +1851,7 @@
     <PeriodicPeriodArray value="0.125" />
   </CEffectCreatePersistent>
   <CEffectSet id="StrafeInitialSet">
+    <ValidatorArray value="CasterDoesNotHaveStrafe" />
     <EffectArray value="ApplyStrafeApplyBehavior" />
     <EffectArray value="DemonHunterStrafeDeathSiphonApplyBehavior" />
     <EffectArray value="NewHatredAbilityStackSet" />
@@ -2334,7 +2328,7 @@
     <EffectArray value="DemonHunterHungeringArrowSiphoningArrowMultishotCreateHealer" />
     <EffectArray value="DemonHunterMultishotFireAtWillAddQuestTokenCount" />
     <EffectArray value="DemonHunterMultishotFireAtWillAddDamageTokenCount" />
-    <EffectArray value="DemonHunterMultishotFireAtWillAddHatredBehaviorCount" />
+    <EffectArray value="DemonHunterMultishotFireAtWillAddHatredPersistent" />
     <EffectArray value="DemonHunterFrostShotApplySlowBehavior" />
     <ValidatorArray value="noMarkers" />
   </CEffectSet>
@@ -2513,6 +2507,7 @@
   <CEffectSet id="DemonHunterHeroWeaponLaunchSet">
     <EffectArray value="UniversalWeaponLaunchSet" />
     <EffectArray value="DemonHunterHeroWeaponLaunchMissile" />
+    <EffectArray value="DemonHunterVaultRemoveDamageBoost" />
   </CEffectSet>
   <CEffectSet id="DemonHunterStrafeDeathSiphonBehaviorImpactSet">
     <ValidatorArray value="DemonHunterNoStrafeDeathSiphonLimiterBuff" />
@@ -2528,13 +2523,20 @@
   <CEffectSet id="DemonHunterHeroWeaponImpactSet">
     <EffectArray value="UniversalWeaponImpact" />
     <EffectArray value="DemonHunterVaultApplyDeathDealerTalentDeathResponse" />
+    <EffectArray value="DemonHunterWeaponImpactDummy" />
+    <EffectArray value="DemonHunterWeaponPreImpactSet" />
     <EffectArray value="DemonHunterHeroWeaponDamage" />
+    <EffectArray value="DemonHunterWeaponPostImpactSet" />
     <EffectArray value="DemonHunterNewHatredApplyStackSet" />
-    <EffectArray value="DemonHunterHeroWeaponCreedoftheHunterTalentModifyTokenCount" />
-    <EffectArray value="DemonHunterFarflightQuiverModifyCooldown" />
+    <EffectArray value="UniversalWeaponPostImpactSet" />
+  </CEffectSet>
+  <CEffectModifyUnit id="DemonHunterWeaponImpactDummy" />
+  <CEffectSet id="DemonHunterWeaponPreImpactSet">
     <EffectArray value="DemonHunterStormOfVengeanceModifyHeroicCooldown" />
     <EffectArray value="DemonHunterManticoreApplicationSet" />
-    <EffectArray value="UniversalWeaponPostImpactSet" />
+  </CEffectSet>
+  <CEffectSet id="DemonHunterWeaponPostImpactSet">
+    <EffectArray value="DemonHunterHeroWeaponCreedoftheHunterTalentModifyTokenCount" />
   </CEffectSet>
   <CEffectModifyUnit id="DemonHunterVaultMasteryModifyCooldown">
     <ImpactUnit Value="Source" />
@@ -2547,20 +2549,28 @@
     <EffectArray value="DemonHunterHungeringArrowDestroyInitialPersistantDestroyPersistant" />
   </CEffectSet>
   <CEffectDamage id="DemonHunterHeroWeaponDamage" parent="StormWeapon">
-    <Amount value="70" />
+    <Amount value="$DemonHunterWeaponDamage">
+      <AccumulatorArray value="DemonHunterVaultDamageAccumulator" />
+    </Amount>
     <LeechValidator index="Life" value="DemonHunterHasTemperedByDiscipline" />
     <LeechFraction index="Life" value="0.1">
       <AccumulatorArray value="DemonHunterTemperedByDisciplineAccumulator" />
     </LeechFraction>
-    <MultiplicativeModifierArray index="VaultCrit" Validator="DemonHunterVaultDamageBonusCombine" Crit="1" />
+    <MultiplicativeModifierArray index="Hatred" Accumulator="DemonHunterHatredDamageAccumulator" />
+    <MultiplicativeModifierArray index="CreedoftheHunter" Validator="DemonHunterHasCreedoftheHunter" Accumulator="DemonHunterHatredCreedoftheHunterDamageAccumulator" />
+    <CritValidatorArray index="0" value="CritAliasRangedDamageOrSourceHasAnyHatredToken" />
   </CEffectDamage>
   <CEffectLaunchMissile id="DemonHunterHeroWeaponLaunchMissile">
     <ValidatorArray index="0" value="TargetNotDead" />
+    <LaunchEffect value="DemonHunterHeroWeaponLaunchMissileSet" />
     <ImpactEffect value="DemonHunterHeroWeaponImpactSet" />
     <SharedFlags index="TravelValidation" value="1" />
     <SharedFlags index="ValidateWeapon" value="0" />
     <AmmoUnit value="DemonHunterMissile" />
   </CEffectLaunchMissile>
+  <CEffectSet id="DemonHunterHeroWeaponLaunchMissileSet">
+    <EffectArray value="DemonHunterVaultTransferHatredCount" />
+  </CEffectSet>
   <CEffectApplyBehavior id="DemonHunterCaltropsApplySearchBehavior">
     <Behavior value="CaltropSearchBehavior" />
   </CEffectApplyBehavior>
@@ -3260,9 +3270,9 @@
     <AbilityModificationArray>
       <Modifications>
         <Type value="FlatModification" />
-        <Catalog value="Behavior" />
-        <Entry value="NewHatredStack" />
-        <Field value="Modification.UnifiedMoveSpeedFactor" />
+        <Catalog value="Accumulator" />
+        <Entry value="DemonHunterHatredMovespeedAccumulator" />
+        <Field value="Scale" />
         <Value value="0.010000" />
       </Modifications>
     </AbilityModificationArray>
@@ -3447,6 +3457,13 @@
         <Entry value="DemonHunterVault" />
         <Field value="Cost.Charge.TimeUse" />
         <Value value="-5.000000" />
+      </Modifications>
+      <Modifications>
+        <Type value="FlatModification" />
+        <Catalog value="Accumulator" />
+        <Entry value="DemonHunterVaultDamageAccumulator" />
+        <Field value="Scale" />
+        <Value value="$DemonHunterVaultDeathDealerDamageModifier" />
       </Modifications>
     </AbilityModificationArray>
   </CTalent>
@@ -3640,6 +3657,7 @@
   </CUnit>
   <CUnit id="DemonHunterMissile" parent="MISSILE_INVULNERABLE">
     <Mover value="HeroMissileSpeed22Ribbon" />
+    <BehaviorArray Link="DemonHunterHatredMissileTokenCounter" />
   </CUnit>
   <CUnit id="HeroDemonHunter" parent="StormHeroMounted">
     <LifeStart value="1340" />
@@ -3651,8 +3669,8 @@
     <AbilArray Link="DemonHunterRainOfVengeance" />
     <AbilArray Link="DemonHunterStrafe" />
     <BehaviorArray Link="ExcellentMana" />
-    <BehaviorArray Link="DemonHunterTemperedByDisciplineTokenCounter" />
-    <BehaviorArray Link="DemonHunterGloomHPSTokenCounter" />
+    <BehaviorArray Link="DemonHunterHatredTokenCounter" />
+    <BehaviorArray Link="DemonHunterHatredController" />
     <WeaponArray Link="HeroDemonHunter" />
     <CardLayouts index="0">
       <LayoutButtons Face="DemonHunterStrafe" Type="AbilCmd" AbilCmd="DemonHunterStrafe,Execute" Slot="Heroic" />
@@ -3676,11 +3694,6 @@
     <HeroPlaystyleFlags index="WaveClearer" value="1" />
     <EffectArray index="Death" value="DemonHunterCreedoftheHunterRemoveLoanToken" />
   </CUnit>
-  <CValidatorCombine id="DemonHunterVaultDamageBonusCombine">
-    <Type value="And" />
-    <CombineArray value="DemonHunterHasVaultDamageBoost" />
-    <CombineArray value="CasterHasStacksofNewHatred" />
-  </CValidatorCombine>
   <CValidatorCombine id="DemonHunterFrostShotHasTalentAndIsSlowed">
     <CombineArray value="DemonHunterHasFrostShot" />
     <CombineArray value="TargetIsSlowed" />
@@ -3713,13 +3726,14 @@
   <CValidatorCombine id="DisciplineBehaviorCombine">
     <Type value="And" />
     <CombineArray value="DemonHunterHasTemperedByDiscipline" />
-    <CombineArray value="DemonHunterHasGTE10StacksHatred" />
+    <CombineArray value="DemonHunterHasGE10HatredTokenCount" />
   </CValidatorCombine>
-  <CValidatorUnitCompareBehaviorCount id="CasterHasStacksofNewHatred">
+  <CValidatorUnitCompareTokenCount id="DemonHunterHasAnyHatredTokenCount">
     <WhichUnit Value="Caster" />
-    <Compare value="GT" />
-    <Behavior value="NewHatredStack" />
-  </CValidatorUnitCompareBehaviorCount>
+    <Compare value="GE" />
+    <Value value="1" />
+    <TokenId value="DemonHunterHatredTokenCounter" />
+  </CValidatorUnitCompareTokenCount>
   <CValidatorCombine id="ManticoreSwitchCombine">
     <Type value="And" />
     <CombineArray value="DemonHunterNotSummoned" />
@@ -3813,11 +3827,6 @@
   <CValidatorUnitCompareBehaviorCount id="DemonHunterDoesNotHaveTemperedByDisciplineBuff">
     <Behavior value="DemonHunterHatredTemperedByDisciplineTalentBuff" />
   </CValidatorUnitCompareBehaviorCount>
-  <CValidatorUnitCompareBehaviorCount id="DemonHunterHas10StacksHatred">
-    <WhichUnit Value="Caster" />
-    <Value value="10" />
-    <Behavior value="NewHatredStack" />
-  </CValidatorUnitCompareBehaviorCount>
   <CValidatorPlayerTalent id="DemonHunterHasSeethingHatred">
     <WhichPlayer Value="Caster" />
     <Find value="1" />
@@ -3834,11 +3843,26 @@
     <Find value="1" />
     <Value value="DemonHunterDeathDealer" />
   </CValidatorPlayerTalent>
+  <CValidatorCombine id="DemonHunterVaultDeathDealerHasTalentAndSourceHasAnyHatredTokens">
+    <Type value="And" />
+    <CombineArray value="DemonHunterSourceHasAnyHatredToken" />
+    <CombineArray value="DemonHunterHasDeathDealer" />
+  </CValidatorCombine>
   <CValidatorUnitCompareBehaviorCount id="DemonHunterHasVaultDamageBoost">
     <WhichUnit Value="Caster" />
     <Value value="1" />
     <Behavior value="DemonHunterVaultDamageBoost" />
   </CValidatorUnitCompareBehaviorCount>
+  <CValidatorCombine id="CritAliasRangedDamageOrSourceHasAnyHatredToken">
+    <CombineArray value="CritAliasRangedDamage" />
+    <CombineArray value="DemonHunterSourceHasAnyHatredToken" />
+  </CValidatorCombine>
+  <CValidatorUnitCompareTokenCount id="DemonHunterSourceHasAnyHatredToken">
+    <WhichUnit Value="Source" />
+    <Compare value="GE" />
+    <Value value="1" />
+    <TokenId value="DemonHunterHatredMissileTokenCounter" />
+  </CValidatorUnitCompareTokenCount>
   <CValidatorPlayerTalent id="DemonHunterHasGloom">
     <WhichPlayer Value="Caster" />
     <Find value="1" />
@@ -3860,12 +3884,12 @@
     <Find value="1" />
     <Value value="DemonHunterCreedoftheHunter" />
   </CValidatorPlayerTalent>
-  <CValidatorUnitCompareBehaviorCount id="DemonHunterHasGTE10StacksHatred">
+  <CValidatorUnitCompareTokenCount id="DemonHunterHasGE10HatredTokenCount">
     <WhichUnit Value="Caster" />
     <Compare value="GE" />
     <Value value="10" />
-    <Behavior value="NewHatredStack" />
-  </CValidatorUnitCompareBehaviorCount>
+    <TokenId value="DemonHunterHatredTokenCounter" />
+  </CValidatorUnitCompareTokenCount>
   <CValidatorPlayerTalent id="DemonHunterDoesNotHaveDeathSiphon">
     <WhichPlayer Value="Caster" />
     <Value value="DemonHunterMasteryDeathSiphon" />

@@ -100,79 +100,9 @@ void libMSHD_gt_MMShrinesDataInit_Init () {
     libGame_gf_MapMechanicInitialization(libMSHD_gt_MMShrinesDataInit);
 }
 
-//--------------------------------------------------------------------------------------------------
-// Trigger: Punisher - Leap
-//--------------------------------------------------------------------------------------------------
-bool libMSHD_gt_PunisherLeap_Func (bool testConds, bool runActions) {
-    // Variable Declarations
-    fixed lv_abilityRange;
-    point lv_playerTargetPoint;
-    fixed lv_distanceFromBarbarianToPlayerTargetPoint;
-    fixed lv_barbarianRadius;
-    point lv_actualTargetPoint;
-    fixed lv_modifiedDistance;
-
-    // Automatic Variable Declarations
-    // Variable Initialization
-
-    // Actions
-    if (!runActions) {
-        return true;
-    }
-
-    lv_barbarianRadius = StringToFixed(CatalogFieldValueGet(c_gameCatalogUnit, (UnitGetType(EventPlayerEffectUsedUnit(c_effectUnitCaster))), "Radius", EventPlayerEffectUsedUnitOwner(c_effectPlayerCaster)));
-    lv_abilityRange = (StringToFixed(CatalogFieldValueGet(c_gameCatalogActor, "MercPunisherLanerLeapRangeSplat", "Scale", EventPlayerEffectUsedUnitOwner(c_effectPlayerCaster))) + lv_barbarianRadius);
-    lv_playerTargetPoint = EventPlayerEffectUsedPoint(c_effectLocationTargetPoint);
-    lv_distanceFromBarbarianToPlayerTargetPoint = DistanceBetweenPoints(UnitGetPosition(EventPlayerEffectUsedUnit(c_effectUnitCaster)), lv_playerTargetPoint);
-    if ((lv_distanceFromBarbarianToPlayerTargetPoint > lv_abilityRange)) {
-        lv_actualTargetPoint = libNtve_gf_PointOffsetTowardsPoint(UnitGetPosition(EventPlayerEffectUsedUnit(c_effectUnitCaster)), lv_abilityRange, lv_playerTargetPoint);
-    }
-    else {
-        lv_actualTargetPoint = lv_playerTargetPoint;
-    }
-    lv_modifiedDistance = lv_distanceFromBarbarianToPlayerTargetPoint;
-    while ((PointPathingPassable(lv_actualTargetPoint) == false)) {
-        lv_modifiedDistance -= 0.125;
-        lv_actualTargetPoint = libNtve_gf_PointOffsetTowardsPoint(UnitGetPosition(EventPlayerEffectUsedUnit(c_effectUnitCaster)), lv_modifiedDistance, lv_playerTargetPoint);
-        if ((PointPathingPassable(lv_actualTargetPoint) == false)) {
-            lv_actualTargetPoint = PointWithOffsetPolar(libNtve_gf_PointOffsetTowardsPoint(UnitGetPosition(EventPlayerEffectUsedUnit(c_effectUnitCaster)), lv_modifiedDistance, lv_playerTargetPoint), 0.5, (AngleBetweenPoints(UnitGetPosition(EventPlayerEffectUsedUnit(c_effectUnitCaster)), lv_playerTargetPoint) + 90.0));
-            if ((PointPathingPassable(lv_actualTargetPoint) == false)) {
-                lv_actualTargetPoint = PointWithOffsetPolar(libNtve_gf_PointOffsetTowardsPoint(UnitGetPosition(EventPlayerEffectUsedUnit(c_effectUnitCaster)), lv_modifiedDistance, lv_playerTargetPoint), 0.5, (AngleBetweenPoints(UnitGetPosition(EventPlayerEffectUsedUnit(c_effectUnitCaster)), lv_playerTargetPoint) - 90.0));
-                if ((PointPathingPassable(lv_actualTargetPoint) == false)) {
-                    lv_actualTargetPoint = libNtve_gf_PointOffsetTowardsPoint(UnitGetPosition(EventPlayerEffectUsedUnit(c_effectUnitCaster)), lv_modifiedDistance, lv_playerTargetPoint);
-                }
-
-            }
-
-        }
-
-        if ((DistanceBetweenPoints(UnitGetPosition(EventPlayerEffectUsedUnit(c_effectUnitCaster)), lv_actualTargetPoint) <= (lv_barbarianRadius + 0.125))) {
-            libNtve_gf_UIErrorMessage(libCore_gv_playerGroupFromPlayer[EventPlayerEffectUsedUnitOwner(c_effectPlayerCaster)], StringExternal("Param/Value/lib_MSHD_D63B1DB4"), SoundLink("UI_GenericError", -1));
-            UnitBehaviorRemove(EventPlayerEffectUsedUnit(c_effectUnitCaster), "MercPunisherLanerLeap", 1);
-            UnitAbilityReset(EventPlayerEffectUsedUnit(c_effectUnitCaster), AbilityCommand("MercPunisherLanerLeap", 0), c_spendLocationAll);
-            return true;
-        }
-
-    }
-    if ((UnitIsAlive(EventPlayerEffectUsedUnit(c_effectUnitCaster)) == true)) {
-        UnitCreateEffectPointWithSource(EventPlayerEffectUsedUnit(c_effectUnitCaster), "MercPunisherLanerLeapLaunchMissile", lv_actualTargetPoint, c_gameCatalogAbil, "MercPunisherLanerLeap");
-        UnitCreateEffectPoint(EventPlayerEffectUsedUnit(c_effectUnitCaster), "MercPunisherLanerLeapCreateWarningPersistent", lv_actualTargetPoint);
-    }
-
-    return true;
-}
-
-//--------------------------------------------------------------------------------------------------
-void libMSHD_gt_PunisherLeap_Init () {
-    libMSHD_gt_PunisherLeap = TriggerCreate("libMSHD_gt_PunisherLeap_Func");
-    TriggerAddEventPlayerEffectUsed(libMSHD_gt_PunisherLeap, c_playerAny, "MercPunisherLanerLeapInitialSet");
-    TriggerAddEventPlayerEffectUsed(libMSHD_gt_PunisherLeap, c_playerAny, "MercPunisherLanerLeapNoMovementInitialSet");
-}
-
 void libMSHD_InitTriggers () {
     libMSHD_gt_IncludeInfernalShrinesData_Init();
     libMSHD_gt_MMShrinesDataInit_Init();
-    libMSHD_gt_PunisherLeap_Init();
 }
 
 //--------------------------------------------------------------------------------------------------

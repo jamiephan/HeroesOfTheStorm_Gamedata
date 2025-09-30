@@ -1011,7 +1011,7 @@
   <CActorPortrait id="HoggerPortrait" parent="StormCompositePortrait" />
   <CActorModel id="HoggerPortraitAddition" parent="StormCompositePortraitAddition" />
   <CActorModel id="HeroHoggerDeathRagdoll" parent="StormHeroDeathRagdoll" />
-  <CActorAction id="HoggerWeaponAttackAction" parent="MeleeHeroAttack" effectAttack="HoggerHeroWeaponImpactSet">
+  <CActorAction id="HoggerWeaponAttackAction" parent="MeleeHeroAttack" effectAttack="HoggerHeroWeaponDamage">
     <ImpactMap index="None" Sound="HoggerBaseWeaponImpactSound" />
   </CActorAction>
   <CActorSound id="HoggerWeaponImpactSound" parent="SoundOneShot">
@@ -1297,17 +1297,6 @@
     <Duration value="20" />
     <Period value="1" />
     <InitialEffect value="HoggerHoardapultSecretStashTalentPersistentsSet" />
-  </CBehaviorBuff>
-  <CBehaviorBuff id="HoggerFurzerkerTalentDamageCarry" parent="CarryBehaviorParent">
-    <DisableValidatorArray value="HoggerHasGTE1FurzerkerStack" />
-    <Modification>
-      <DamageDealtFraction index="Basic" value="0.5" />
-    </Modification>
-    <DamageResponse Chance="1" Handled="HoggerFurzerkerTalentProcSet" Location="Attacker">
-      <Kind index="Splash" value="0" />
-      <Kind index="Ability" value="0" />
-      <ProvideCategories index="Proc" value="1" />
-    </DamageResponse>
   </CBehaviorBuff>
   <CBehaviorBuff id="HoggerFurzerkerTalentDamageStack">
     <Alignment value="Positive" />
@@ -1834,12 +1823,6 @@
     <ImpactUnit Value="Caster" />
     <RechargeVitalFraction value="0.08" />
   </CEffectCreateHealer>
-  <CEffectRemoveBehavior id="HoggerFurzerkerTalentRemoveStackBlind">
-    <ValidatorArray index="0" value="CasterIsBlindedOrTargetIsEvading" />
-    <WhichUnit Value="Caster" />
-    <BehaviorLink value="HoggerFurzerkerTalentDamageStack" />
-    <Count value="1" />
-  </CEffectRemoveBehavior>
   <CEffectApplyBehavior id="HoggerHoardapultApplyMissileTimeStopController">
     <WhichUnit Value="Source" />
     <Behavior value="HoggerHoardapultMissileTimeStopController" />
@@ -2754,10 +2737,6 @@
     <Chance value="0" />
     <EffectArray value="HoggerStaggeringBlowBruteForceTalentAddBonusTokens" />
   </CEffectSet>
-  <CEffectSet id="HoggerFurzerkerTalentProcSet">
-    <EffectArray value="HoggerFurzerkerTalentRemoveStack" />
-    <ValidatorArray value="TargetNotEvading" />
-  </CEffectSet>
   <CEffectSet id="HoggerHoggWildCasterBuffInitialSet" />
   <CEffectModifyUnit id="HoggerHoggWildModifyCooldowns">
     <ImpactUnit Value="Caster" />
@@ -3565,13 +3544,16 @@
   </CEffectModifyUnit>
   <CEffectSet id="HoggerHeroWeaponAttackSet">
     <EffectArray value="UniversalWeaponLaunchSet" />
-    <EffectArray value="HoggerHeroWeaponImpactSet" />
+    <EffectArray value="UniversalWeaponImpact" />
+    <EffectArray value="HoggerWeaponPreImpactSet" />
+    <EffectArray value="HoggerHeroWeaponDamage" />
+    <EffectArray value="HoggerWeaponPostImpactSet" />
     <EffectArray value="UniversalWeaponPostImpactSet" />
   </CEffectSet>
-  <CEffectSet id="HoggerHeroWeaponImpactSet">
-    <EffectArray value="HoggerHeroWeaponDamage" />
+  <CEffectSet id="HoggerWeaponPreImpactSet" />
+  <CEffectSet id="HoggerWeaponPostImpactSet">
     <EffectArray value="HoggerHeroWeaponGnollFrenzyModifyRageSet" />
-    <EffectArray value="HoggerFurzerkerTalentRemoveStackBlind" />
+    <EffectArray value="HoggerFurzerkerTalentRemoveStack" />
   </CEffectSet>
   <CEffectDamage id="HoggerHeroWeaponDamage" parent="StormWeapon">
     <Amount value="150">
@@ -3580,7 +3562,7 @@
     <SourceButtonFace value="Attack" />
     <LeechFraction index="Life" value="0.33" />
     <LeechValidator index="Life" value="HoggerBloodthirstProcCombine" />
-    <MultiplicativeModifierArray index="FurserkerRageCrit" Validator="HoggerHasGTE1FurzerkerStack" Crit="1" />
+    <MultiplicativeModifierArray index="Furzerker" Validator="HoggerHasGTE1FurzerkerStack" Modifier="0.5" Crit="1" />
   </CEffectDamage>
   <CEffectRemoveBehavior id="HoggerHoggWildCasterBuffRemove">
     <WhichUnit Value="Caster" />
@@ -4667,9 +4649,6 @@
   </CTalent>
   <CTalent id="HoggerFurzerker">
     <Face value="HoggerFurzerker" />
-    <RankArray>
-      <BehaviorArray value="HoggerFurzerkerTalentDamageCarry" />
-    </RankArray>
     <AbilityModificationArray>
       <Modifications>
         <Type value="FlatModification" />

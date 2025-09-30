@@ -448,7 +448,7 @@
     <ImpactPointSiteOps Ops="SOpTargetPointStationary SOpShadow JainaFrostboltVolleyOffset" />
     <LaunchSiteOps Ops="SOpForwardTargetUnit SOpOffsetLaunch" />
   </CActorAction>
-  <CActorAction id="HeroJainaAttack" parent="RangedHeroAttackMissile" effectImpact="JainaHeroWeaponImpactSet" effectLaunch="JainaWeaponLaunchMissile">
+  <CActorAction id="HeroJainaAttack" parent="RangedHeroAttackMissile" effectImpact="JainaWeaponDamage" effectLaunch="JainaWeaponLaunchMissile">
     <LaunchAssets Sound="Jaina_Attack_Launch" />
     <ImpactMap index="None" Model="JainaAttackImpact" Sound="Jaina_Attack_Impact" />
     <DamageSiteOps Ops="SOpAttachHarness SOpAttachVolumeStandard SOpJainaImpact" />
@@ -525,7 +525,7 @@
     <On Terms="ActorDestruction" Target="_GuideQuadSegment" Send="Destroy" />
     <On Terms="ActorOrphan" Send="Destroy" />
   </CActorQuad>
-  <CActorModel id="NumbingBlastRoot" parent="StormModelRoot" effect="JainaConeOfColdNumbingBlastApplyRoot" behavior="JainaConeOfColdNumbingBlastRoot">
+  <CActorModel id="NumbingBlastRoot" parent="StormModelRoot" behavior="JainaConeOfColdNumbingBlastRoot" effect="JainaConeOfColdNumbingBlastApplyRoot">
     <HostSiteOps Ops="SOpAttachOriginSoft SOpRotationRandomDisc" HoldRotation="1" />
     <AutoScaleFactor value="1.000000" />
   </CActorModel>
@@ -726,7 +726,7 @@
   <CActorSplat id="JainaRingOfFrostCursorSplat" parent="StormGuideVisualCircle" abil="JainaRingOfFrost">
     <Model value="JainaRingOfFrostCursorSplat" />
   </CActorSplat>
-  <CActorModel id="JainaRingOfFrostRoot" parent="StormModelRoot" effect="JainaRingOfFrostApplyRootBehavior" behavior="JainaRingOfFrostRoot">
+  <CActorModel id="JainaRingOfFrostRoot" parent="StormModelRoot" behavior="JainaRingOfFrostRoot" effect="JainaRingOfFrostApplyRootBehavior">
     <On Terms="ActorCreation" Send="AnimSetPausedAll" />
     <On Terms="ActorCreation" Send="TimerSet 0.125000 DelayTimer" />
     <On Terms="TimerExpired; TimerName DelayTimer" Send="AnimSetPausedAll 0" />
@@ -944,6 +944,7 @@
       <Chance value="1" />
       <Handled value="JainaFrostArmorBlockProcSet" />
       <TargetFilters value="Heroic;-" />
+      <ValidateEffectAliasesOp value="ExcludeHasAny" />
       <Priority value="55" />
       <Cost>
         <Charge>
@@ -953,10 +954,9 @@
           <TimeUse value="10" />
         </Charge>
       </Cost>
+      <ValidateEffectAliases value="IgnorePositiveArmor" />
       <Kind index="Ability" value="0" />
       <ProvideCategories index="Proc" value="1" />
-      <ValidateEffectAliasesOp value="ExcludeHasAny" />
-      <ValidateEffectAliases value="IgnorePositiveArmor" />
     </DamageResponse>
   </CBehaviorBuff>
   <CBehaviorBuff id="JainaFrostbiteFrostArmorBlockCountdown">
@@ -1264,7 +1264,6 @@
   <CEffectModifyTokenCount id="JainaBlizzardSnowstormSetToken1" parent="BaseEffectModifyTokenCount">
     <ValidatorArray value="JainaHasBlizzardSnowstorm" />
     <Operation value="Set" />
-    <Value value="1" />
     <TokenId value="JainaBlizzardSnowstormTokenCounter" />
   </CEffectModifyTokenCount>
   <CEffectModifyTokenCount id="JainaBlizzardSnowstormSetToken2" parent="BaseEffectModifyTokenCount">
@@ -1917,18 +1916,23 @@
   </CEffectDestroyPersistent>
   <CEffectSet id="JainaHeroWeaponImpactSet">
     <EffectArray value="UniversalWeaponImpact" />
-    <EffectArray value="JainaArcaneIntellectBasicAttackManaRestore" />
-    <EffectArray value="JainaHeroWeaponIcefuryWandTalentSet" />
+    <EffectArray value="JainaWeaponPreImpactSet" />
     <EffectArray value="JainaWeaponDamage" />
+    <EffectArray value="JainaWeaponPostImpactSet" />
     <EffectArray value="UniversalWeaponPostImpactSet" />
   </CEffectSet>
+  <CEffectSet id="JainaWeaponPreImpactSet">
+    <EffectArray value="JainaArcaneIntellectBasicAttackManaRestore" />
+    <EffectArray value="JainaHeroWeaponIcefuryWandTalentSet" />
+  </CEffectSet>
+  <CEffectSet id="JainaWeaponPostImpactSet" />
   <CEffectRemoveBehavior id="JainaSummonWaterElementalRemoveCasterBehavior">
     <WhichUnit Value="Caster" />
     <BehaviorLink value="JainaWaterElementalCasterBehavior" />
   </CEffectRemoveBehavior>
   <CEffectSet id="JainaWeaponLaunchMissileSet">
-    <EffectArray value="JainaWeaponLaunchMissile" />
     <EffectArray value="UniversalWeaponLaunchSet" />
+    <EffectArray value="JainaWeaponLaunchMissile" />
   </CEffectSet>
   <CEffectDamage id="JainaWeaponDamage" parent="StormWeapon">
     <Amount value="60" />
@@ -2188,11 +2192,13 @@
     <Flags index="Crit" value="1" />
     <DamageModifierSource Value="Creator" />
   </CEffectDamage>
+  <CEffectSwitch id="JainaWaterElementalWeaponSplashImpactSwitch" parent="SummonedBasicAttackAbilityDamageMissCheck">
+    <CaseDefault value="JainaWaterElementalWeaponImpactSplashSet" />
+  </CEffectSwitch>
   <CEffectSet id="JainaWaterElementalWeaponImpactSplashSet">
     <EffectArray value="StormSummonedWeaponPhysicalDamageDummy" />
     <EffectArray value="JainaWaterElementalWeaponSplashDamageSwitch" />
     <EffectArray value="JainaFrostbiteApplyChilledBehaviorSet" />
-    <EffectArray value="ApplyAbilityImpactReveal" />
   </CEffectSet>
   <CEffectDamage id="JainaWaterElementalWeaponSplashDamage" parent="StormSummonedUnitWeapon">
     <Amount value="15.5" />
@@ -2336,9 +2342,12 @@
   <CEffectEnumArea id="JainaWaterElementalWeaponImpactSplashSearch">
     <ExcludeArray Value="Target" />
     <SearchFilters value="-;Self,Player,Ally,Neutral,ImmuneToAOE,Missile,Item,Stasis,Dead,Hidden,Invulnerable" />
-    <AreaArray Effect="JainaWaterElementalWeaponImpactSplashSet">
+    <AreaArray Effect="JainaWaterElementalWeaponSplashImpactSwitch">
       <Radius value="2" />
     </AreaArray>
+    <RevealerParams Duration="0.75" ShapeExpansion="1">
+      <RevealFlags index="Unfog" value="1" />
+    </RevealerParams>
   </CEffectEnumArea>
   <CEffectLaunchMissile id="JainaWaterElementalWeaponLaunchMissile">
     <ValidatorArray index="0" value="TargetNotDead" />

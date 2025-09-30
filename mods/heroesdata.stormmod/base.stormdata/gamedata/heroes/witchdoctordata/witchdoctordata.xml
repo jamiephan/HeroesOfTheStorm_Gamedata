@@ -706,7 +706,7 @@
     <DeathArray index="Normal" ModelLink="WitchDoctorCorpseSpidersUnit" />
     <PlacementModel value="WitchDoctorCorpseSpidersUnit" />
   </CActorUnit>
-  <CActorAction id="WitchDoctorCorpseSpiderAttack" parent="GenericAttackStorm" effectAttack="WitchDoctorCorpseSpidersWeaponDamage">
+  <CActorAction id="WitchDoctorCorpseSpiderAttack" parent="GenericAttackStorm" effectAttack="WitchDoctorCorpseSpiderWeaponImpactDummy">
     <LaunchAssets Sound="WitchDoctor_CorpseSpiders_Spider_AttackLaunch" />
     <ShieldFlashType value="Header" />
     <ActionFlags index="ImpactSuppressUnitSound" value="1" />
@@ -816,7 +816,7 @@
       <Image value="Assets\Textures\Storm_UI_InGame_TargetInfoPanel_Unit_Nazeebo_ZombieWall.dds" />
     </GroupIcon>
   </CActorUnit>
-  <CActorAction id="WitchDoctorZombieWallAttack" parent="GenericAttackStorm" effectAttack="WitchDoctorZombieWallWeaponDamage">
+  <CActorAction id="WitchDoctorZombieWallAttack" parent="GenericAttackStorm" effectAttack="WitchDoctorZombieWallWeaponImpactDummy">
     <ImpactMap index="None" Sound="WitchDoctor_Zombie_Attack_Impact" />
   </CActorAction>
   <CActorSound id="WitchDoctorZombieWallAttackSound" parent="SoundOneShot">
@@ -982,14 +982,14 @@
     <On Terms="Effect.WitchDoctorGargantuanCreateUnit.Start; At Effect" Send="Create" />
     <Sound value="WitchDoctor_Gargantuan_Rise" />
   </CActorSound>
-  <CActorAction id="WitchDoctorGargantuanAttack" parent="GenericAttackStorm" effectAttack="WitchDoctorGargantuanDamage">
+  <CActorAction id="WitchDoctorGargantuanAttack" parent="GenericAttackStorm" effectAttack="WitchDoctorGargantuanWeaponImpactDummy">
     <ImpactMap index="None" Sound="WitchDoctor_Gargantuan_AttackImpact_Unit" />
     <ImpactMap index="Rock" Sound="WitchDoctor_Gargantuan_AttackImpact_Building" />
     <ImpactMap index="Wood" Sound="WitchDoctor_Gargantuan_AttackImpact_Building" />
     <ImpactModel value="WitchDoctorGargantuanAttackImpactModel" />
   </CActorAction>
   <CActorModel id="WitchDoctorGargantuanAttackImpactModel" parent="GenericAttackImpactModel">
-    <On Terms="ActorCreation" Send="RefSetFromRequest ::actor.propshost _Unit Caster Find WitchDoctorGargantuanDamage" />
+    <On Terms="ActorCreation" Send="RefSetFromRequest ::actor.propshost _Unit Caster Find WitchDoctorGargantuanWeaponImpactDummy" />
     <On Terms="ActorCreation" Send="SetTeamColorFrom TeamColor ::actor.propshost ::Base 300.000000" />
     <AcceptedHostedPropTransfers index="TeamColor" value="0" />
   </CActorModel>
@@ -1442,9 +1442,15 @@
     <Modification>
       <StateFlags index="Benign" value="1" />
     </Modification>
-    <DamageResponse Chance="1" Handled="WitchDoctorCorpseSpidersDamageResponseSet" Location="Attacker">
-      <RequireEffectArray value="WitchDoctorCorpseSpidersWeaponDamage" />
-    </DamageResponse>
+  </CBehaviorBuff>
+  <CBehaviorBuff id="WitchDoctorCorpseSpiderAbilityController" parent="CarryBehaviorParent">
+    <EnableEffect value="WitchDoctorCorpseSpiderAddAbilityTargetController" />
+    <PeriodicEffect value="WitchDoctorCorpseSpiderAddAbilityTargetController" />
+    <Period value="0.0625" />
+    <DisableValidatorArray value="WitchDoctorCorpseSpiderDoesNotHaveAbilityTargetController" />
+  </CBehaviorBuff>
+  <CBehaviorBuff id="WitchDoctorCorpseSpiderAbilityTargetController" parent="CarryBehaviorParent">
+    <CancelEffect value="WitchDoctorCorpseSpiderEnumTargetUnit" />
   </CBehaviorBuff>
   <CBehaviorBuff id="WitchDoctorGargantuanTimedLife">
     <DisplayDuration index="Self" value="1" />
@@ -1456,6 +1462,18 @@
       <StateFlags index="Hallucination" value="1" />
     </Modification>
     <DamageResponse Chance="1" TargetFilters="Tower;-" ModifyFraction="0.5" />
+  </CBehaviorBuff>
+  <CBehaviorBuff id="WitchDoctorGargantuanStompDamageController">
+    <CancelEffect value="WitchDoctorGargantuanStompSearchSet" />
+  </CBehaviorBuff>
+  <CBehaviorBuff id="WitchDoctorGargantuanAbilityController" parent="CarryBehaviorParent">
+    <EnableEffect value="WitchDoctorGargantuanAddAbilityTargetController" />
+    <PeriodicEffect value="WitchDoctorGargantuanAddAbilityTargetController" />
+    <Period value="0.0625" />
+    <DisableValidatorArray value="WitchDoctorGargantuanDoesNotHaveAbilityTargetController" />
+  </CBehaviorBuff>
+  <CBehaviorBuff id="WitchDoctorGargantuanAbilityTargetController" parent="CarryBehaviorParent">
+    <CancelEffect value="WitchDoctorGargantuanEnumTargetUnit" />
   </CBehaviorBuff>
   <CBehaviorBuff id="WitchDoctorPlagueofToadsMovementController">
     <Period value="0.1875" />
@@ -1536,6 +1554,15 @@
   <CBehaviorBuff id="WitchDoctorZombieWallTimedLife">
     <Duration value="3" />
     <FinalEffect value="WitchDoctorZombieWallTimedLifeFinishSwitch" />
+  </CBehaviorBuff>
+  <CBehaviorBuff id="WitchDoctorZombieWallAbilityController" parent="CarryBehaviorParent">
+    <EnableEffect value="WitchDoctorZombieWallAddAbilityTargetController" />
+    <PeriodicEffect value="WitchDoctorZombieWallAddAbilityTargetController" />
+    <Period value="0.0625" />
+    <DisableValidatorArray value="WitchDoctorZombieWallDoesNotHaveAbilityTargetController" />
+  </CBehaviorBuff>
+  <CBehaviorBuff id="WitchDoctorZombieWallAbilityTargetController" parent="CarryBehaviorParent">
+    <CancelEffect value="WitchDoctorZombieWallEnumTargetUnit" />
   </CBehaviorBuff>
   <CBehaviorBuff id="WitchDoctorRavenousSpiritUnitBuff">
     <DisplayDuration index="Self" value="1" />
@@ -1764,6 +1791,7 @@
     <EffectArray value="WitchDoctorSoulHarvestApplyCarry" />
     <EffectArray value="WitchDoctorVoodooRitualApplyDeathRitualTalentSummonCarry" />
     <EffectArray value="WitchDoctorCorpseSpidersApplyWidowmakersDamageBonusCarryBehavior" />
+    <EffectArray value="WitchDoctorCorpseSpiderAddAbilityController" />
   </CEffectSet>
   <CEffectCreateUnit id="WitchDoctorCorpseSpidersSuperstitionTalentSpawnSpider">
     <ValidatorArray value="WitchDoctorDoesNotHaveSuperstitionSpellArmorSuppressionBehavior" />
@@ -1929,6 +1957,7 @@
     <EffectArray value="WitchDoctorGargantuanApplyActiveBehavior" />
     <EffectArray value="WitchDoctorGargantuanApplyTimedLifeBehavior" />
     <EffectArray value="WitchDoctorGargantuanApplyRootDelayBehavior" />
+    <EffectArray value="WitchDoctorGargantuanApplyAbilityController" />
     <EffectArray value="GargantuanApplyMasteryBuff" />
     <EffectArray value="ApplySummonedUnitMountBehavior" />
   </CEffectSet>
@@ -1957,7 +1986,7 @@
   </CEffectAddTrackedUnit>
   <CEffectEnumTrackedUnits id="WitchDoctorGargantuanStompCommandEnumerator">
     <BehaviorLink value="WitchDoctorGargantuanTrackingBehavior" />
-    <Effect value="WitchDoctorGargantuanIssueStompCastOrder" />
+    <Effect value="WitchDoctorGargantuanStompOrderIssueOrderSet" />
   </CEffectEnumTrackedUnits>
   <CEffectApplyBehavior id="WitchDoctorVoodooRitualApplyDeathRitualTalentCarry">
     <WhichUnit Value="Source" />
@@ -2028,7 +2057,6 @@
     <ValidatorArray value="TargetIsHero" />
     <ValidatorArray value="WitchDoctorDoesNotHave100CorpseSpidersWidowmakersTokens" />
     <EffectCategory index="Quest" value="1" />
-    <WhichUnit Effect="CorpseSpidersApplyTimedLifeBehavior" />
     <TokenId value="WitchDoctorCorpseSpidersWidowmakersTokenCounter" />
   </CEffectModifyTokenCount>
   <CEffectSet id="WitchDoctorCorpseSpidersWidowmakersTalentProcSet">
@@ -2046,10 +2074,31 @@
     <ValidatorArray value="WitchDoctorHasDeathRitual" />
     <Behavior value="WitchDoctorVoodooRitualTalentDeathRitualSummonCarry" />
   </CEffectApplyBehavior>
+  <CEffectSet id="WitchDoctorCorpseSpiderAttackSet" parent="StormSummonedUnitAddAttackTargetSet" behaviorRemoveEffect="WitchDoctorCorpseSpiderRemoveAbilityTargetController">
+    <EffectArray value="WitchDoctorCorpseSpiderWeaponImpactDummy" />
+  </CEffectSet>
+  <CEffectModifyUnit id="WitchDoctorCorpseSpiderWeaponImpactDummy" />
+  <CEffectRemoveBehavior id="WitchDoctorCorpseSpiderRemoveAbilityTargetController">
+    <WhichUnit Value="Caster" />
+    <BehaviorLink value="WitchDoctorCorpseSpiderAbilityTargetController" />
+    <CancelBehavior value="1" />
+  </CEffectRemoveBehavior>
+  <CEffectEnumTrackedUnits id="WitchDoctorCorpseSpiderEnumTargetUnit" parent="StormSummonedUnitEnumTrackedAttackUnit">
+    <Effect value="WitchDoctorCorpseSpidersWeaponImpactSet" />
+  </CEffectEnumTrackedUnits>
   <CEffectSet id="WitchDoctorCorpseSpidersWeaponImpactSet">
     <EffectArray value="WitchDoctorVoodooRitualApplyDoTSwitch" />
     <EffectArray value="WitchDoctorCorpseSpidersWeaponDamage" />
+    <EffectArray value="WitchDoctorCorpseSpidersDamageResponseSet" />
+    <EffectArray value="WitchDoctorCorpseSpiderDamagedUnitTrackerAdd" />
+    <EffectArray value="WitchDoctorCorpseSpiderCreatePersistentRevealDummy" />
   </CEffectSet>
+  <CEffectAddTrackedUnit id="WitchDoctorCorpseSpiderDamagedUnitTrackerAdd" parent="StormSummonedUnitDamagedUnitTrackerAdd">
+    <TrackerUnit Effect="WitchDoctorCorpseSpiderEnumTargetUnit" Value="Target" />
+  </CEffectAddTrackedUnit>
+  <CEffectCreatePersistent id="WitchDoctorCorpseSpiderCreatePersistentRevealDummy" parent="StormSummonedUnitSpellDamageDealtPersistent">
+    <WhichLocation Effect="WitchDoctorCorpseSpiderEnumTargetUnit" Value="TargetUnit" />
+  </CEffectCreatePersistent>
   <CEffectSet id="WitchDoctorRavenousSpiritImpactSet">
     <EffectArray value="WitchDoctorVoodooRitualApplyDoTSwitch" />
     <EffectArray value="WitchDoctorRavenousSpiritDamage" />
@@ -2114,7 +2163,7 @@
     <Behavior value="WitchDoctorSoulHarvestStack" />
   </CEffectApplyBehavior>
   <CEffectModifyUnit id="WitchDoctorCorpseSpidersSpiderColonyTalentModifyCooldown">
-    <ImpactUnit Effect="CorpseSpidersApplyTimedLifeBehavior" Value="Caster" />
+    <ImpactUnit Value="Caster" />
     <Cost Abil="WitchDoctorPlagueofToads,Execute" ChargeTimeUse="-0.125" CooldownOperation="Add" />
     <Cost Abil="WitchDoctorZombieWall,Execute" CooldownOperation="Add" CooldownTimeUse="-0.125" />
     <Cost Abil="WitchDoctorCorpseSpiders,Execute" CooldownOperation="Add" CooldownTimeUse="-0.125" />
@@ -2245,12 +2294,12 @@
     </AreaArray>
   </CEffectEnumArea>
   <CEffectCreateHealer id="WitchDoctorCorpseSpidersHexedCrawlersCreateHealer" parent="StormSelfOnlyHealingSpellPercent">
-    <ImpactUnit Effect="CorpseSpidersApplyTimedLifeBehavior" Value="Caster" />
+    <ImpactUnit Value="Caster" />
     <RechargeVitalFraction value="0.01" />
     <SourceButtonFace value="WitchDoctorHexedCrawlers" />
   </CEffectCreateHealer>
   <CEffectCreateHealer id="WitchDoctorCorpseSpidersHexedCrawlersTalentModifyMana" parent="StormManaRestore">
-    <ImpactUnit Effect="CorpseSpidersApplyTimedLifeBehavior" Value="Caster" />
+    <ImpactUnit Value="Caster" />
     <RechargeVitalFraction value="0.01" />
   </CEffectCreateHealer>
   <CEffectSet id="WitchDoctorCorpseSpidersHexedCrawlersTalentProcSet">
@@ -2550,9 +2599,13 @@
   <CEffectSet id="WitchDoctorHeroWeaponImpactSet">
     <EffectArray value="UniversalWeaponImpact" />
     <EffectArray value="WitchDoctorVoodooRitualApplyDoTSwitchHeroWeapon" />
+    <EffectArray value="WitchDoctorWeaponPreImpactSet" />
     <EffectArray value="WitchDoctorHeroWeaponDamage" />
+    <EffectArray value="WitchDoctorWeaponPostImpactSet" />
     <EffectArray value="UniversalWeaponPostImpactSet" />
   </CEffectSet>
+  <CEffectSet id="WitchDoctorWeaponPreImpactSet" />
+  <CEffectSet id="WitchDoctorWeaponPostImpactSet" />
   <CEffectSet id="WitchDoctorVoodooRitualBloodRitualSet">
     <EffectArray value="WitchDoctorVoodooRitualBloodRitualTalentCreateHealer" />
     <EffectArray value="WitchDoctorVoodooRitualBloodRitualModifyUnit" />
@@ -2564,19 +2617,37 @@
   <CEffectApplyBehavior id="WitchDoctorGargantuanApplyRootDelayBehavior">
     <Behavior value="GargantuanSpawnRootDelay" />
   </CEffectApplyBehavior>
-  <CEffectSwitch id="WitchDoctorGargantuanAttackSwitch" parent="SummonedBasicAttackAbilityDamageMissCheck">
+  <CEffectSwitch id="WitchDoctorGargantuanAttackSwitch">
+    <CaseArray Validator="WitchDoctorGargantuanAttackerBlindedOrTargetIsEvadingAndNotGenjiDodge" Effect="BlindMissedDummy" />
     <CaseDefault value="WitchDoctorGargantuanAttackSet" />
   </CEffectSwitch>
-  <CEffectSet id="WitchDoctorGargantuanAttackSet">
-    <EffectArray value="WitchDoctorVoodooRitualApplyDoTSwitch" />
-    <EffectArray value="StormSummonedWeaponPhysicalDamageDummy" />
-    <EffectArray value="WitchDoctorGargantuanDamage" />
-    <EffectArray value="GargantuanGrabSearch" />
-    <EffectArray value="GargantuanGrabModifyCooldownafterAttack" />
+  <CEffectSet id="WitchDoctorGargantuanAttackSet" parent="StormSummonedUnitAddAttackTargetSet" behaviorRemoveEffect="WitchDoctorGargantuanRemoveAbilityTargetController">
+    <EffectArray value="WitchDoctorGargantuanWeaponImpactDummy" />
   </CEffectSet>
+  <CEffectModifyUnit id="WitchDoctorGargantuanWeaponImpactDummy" />
+  <CEffectRemoveBehavior id="WitchDoctorGargantuanRemoveAbilityTargetController">
+    <WhichUnit Value="Caster" />
+    <BehaviorLink value="WitchDoctorGargantuanAbilityTargetController" />
+    <CancelBehavior value="1" />
+  </CEffectRemoveBehavior>
+  <CEffectEnumTrackedUnits id="WitchDoctorGargantuanEnumTargetUnit" parent="StormSummonedUnitEnumTrackedAttackUnit">
+    <Effect value="WitchDoctorGargantuanAttackSwitch" />
+  </CEffectEnumTrackedUnits>
+  <CEffectSet id="WitchDoctorGargantuanWeaponImpactSet">
+    <EffectArray value="WitchDoctorVoodooRitualApplyDoTSwitch" />
+    <EffectArray value="WitchDoctorGargantuanDamage" />
+    <EffectArray value="WitchDoctorGargantuanAttackDamagedUnitTrackerAdd" />
+    <EffectArray value="WitchDoctorGargantuanCreatePersistentRevealDummy" />
+  </CEffectSet>
+  <CEffectAddTrackedUnit id="WitchDoctorGargantuanAttackDamagedUnitTrackerAdd" parent="StormSummonedUnitDamagedUnitTrackerAdd">
+    <TrackerUnit Effect="WitchDoctorGargantuanEnumTargetUnit" Value="Target" />
+  </CEffectAddTrackedUnit>
+  <CEffectCreatePersistent id="WitchDoctorGargantuanCreatePersistentRevealDummy" parent="StormSummonedUnitPhysicalDamageDealtPersistent">
+    <WhichLocation Effect="WitchDoctorGargantuanEnumTargetUnit" Value="TargetUnit" />
+  </CEffectCreatePersistent>
   <CEffectDamage id="WitchDoctorGargantuanStompDamage" parent="StormSpell">
     <Amount value="240" />
-    <DamageModifierSource Value="Creator" />
+    <Visibility value="Hidden" />
   </CEffectDamage>
   <CEffectApplyBehavior id="WitchDoctorGargantuanApplyStompSlowBehavior" parent="StormSlowApply">
     <Behavior value="WitchDoctorGargantuanStompSlow" />
@@ -2586,7 +2657,7 @@
     <Flags index="Channeled" value="1" />
     <FinalEffect value="GargantuanGrabModifyCooldownafterStomp" />
     <PeriodCount value="1" />
-    <PeriodicEffectArray value="WitchDoctorGargantuanStompSearch" />
+    <PeriodicEffectArray value="WitchDoctorGargantuanDamageControllerCancelBehavior" />
     <PeriodicPeriodArray value="0.5625" />
   </CEffectCreatePersistent>
   <CEffectSet id="WitchDoctorGargantuanStompImpactSet">
@@ -2594,7 +2665,25 @@
     <EffectArray value="WitchDoctorGargantuanStompDamage" />
     <EffectArray value="WitchDoctorGargantuanApplyStompSlowBehavior" />
     <EffectArray value="GargantuanStompStunApplyBehavior" />
+    <EffectArray value="WitchDoctorGargantuanStompDamagedUnitTrackerAdd" />
   </CEffectSet>
+  <CEffectRemoveBehavior id="WitchDoctorGargantuanDamageControllerCancelBehavior">
+    <WhichUnit Value="Caster" />
+    <BehaviorLink value="WitchDoctorGargantuanStompDamageController" />
+    <CancelBehavior value="1" />
+  </CEffectRemoveBehavior>
+  <CEffectSet id="WitchDoctorGargantuanStompSearchSet">
+    <ValidatorArray value="TargetNotDead" />
+    <EffectArray value="WitchDoctorGargantuanStompSearch" />
+    <EffectArray value="WitchDoctorGargantuanStompCreatePersistentRevealDummy" />
+  </CEffectSet>
+  <CEffectAddTrackedUnit id="WitchDoctorGargantuanStompDamagedUnitTrackerAdd" parent="StormSummonedUnitDamagedUnitTrackerAdd">
+    <TrackerUnit Effect="WitchDoctorGargantuanStompSearchSet" Value="Target" />
+  </CEffectAddTrackedUnit>
+  <CEffectCreatePersistent id="WitchDoctorGargantuanStompCreatePersistentRevealDummy" parent="StormSummonedUnitSpellDamageDealtPersistent">
+    <ValidatorArray value="WitchDoctorGargantuanTargetHasDamagedUnitsTracked" />
+    <WhichLocation Value="TargetUnit" />
+  </CEffectCreatePersistent>
   <CEffectEnumArea id="WitchDoctorGargantuanStompSearch">
     <ImpactLocation Value="TargetPoint" />
     <SearchFilters value="-;Player,Ally,ImmuneToAOE,Missile,Item,Stasis,Dead,Hidden,Invulnerable" />
@@ -2602,12 +2691,19 @@
       <Radius value="4" />
     </AreaArray>
   </CEffectEnumArea>
+  <CEffectSet id="WitchDoctorGargantuanStompOrderIssueOrderSet">
+    <EffectArray value="WitchDoctorGargantuanIssueStompCastOrder" />
+    <EffectArray value="WitchDoctorGargantuanStompApplyDamageController" />
+  </CEffectSet>
   <CEffectIssueOrder id="WitchDoctorGargantuanIssueStompCastOrder">
     <Abil value="WitchDoctorGargantuanStomp" />
     <CmdFlags index="Preempt" value="1" />
     <Player Value="Caster" />
     <Target Value="TargetUnitOrPoint" />
   </CEffectIssueOrder>
+  <CEffectApplyBehavior id="WitchDoctorGargantuanStompApplyDamageController">
+    <Behavior value="WitchDoctorGargantuanStompDamageController" />
+  </CEffectApplyBehavior>
   <CEffectSet id="WitchDoctorRavenousSpiritsSpawnSet">
     <EffectArray value="WitchDoctorRavenousSpiritApplyBehavior" />
     <EffectArray value="AnnihilatingSpiritsApplyMoveSpeedBehavior" />
@@ -2627,7 +2723,15 @@
     <EffectArray value="WitchDoctorSoulHarvestApplyCarry" />
     <EffectArray value="WitchDoctorVoodooRitualApplyDeathRitualTalentSummonCarry" />
     <EffectArray value="WitchDoctorCorpseSpidersApplyWidowmakersDamageBonusCarryBehavior" />
+    <EffectArray value="WitchDoctorCorpseSpiderAddAbilityController" />
   </CEffectSet>
+  <CEffectApplyBehavior id="WitchDoctorCorpseSpiderAddAbilityController">
+    <Behavior value="WitchDoctorCorpseSpiderAbilityController" />
+  </CEffectApplyBehavior>
+  <CEffectApplyBehavior id="WitchDoctorCorpseSpiderAddAbilityTargetController">
+    <ValidatorArray value="WitchDoctorCorpseSpiderDoesNotHaveAbilityTargetController" />
+    <Behavior value="WitchDoctorCorpseSpiderAbilityTargetController" />
+  </CEffectApplyBehavior>
   <CEffectIssueOrder id="WitchDoctorCorpseSpidersSpawnIssueAttackOrder">
     <Abil value="attack" />
     <Player Value="Source" />
@@ -2743,7 +2847,6 @@
   </CEffectApplyBehavior>
   <CEffectDamage id="WitchDoctorGargantuanInitialImpactDamage" parent="StormSpell">
     <Amount value="100" />
-    <DamageModifierSource Value="Creator" />
   </CEffectDamage>
   <CEffectEnumArea id="WitchDoctorGargantuanInitialImpactSearchArea">
     <SearchFilters value="-;Player,Ally,ImmuneToAOE,Missile,Item,Stasis,Dead,Hidden,Invulnerable" />
@@ -2772,16 +2875,36 @@
   <CEffectApplyBehavior id="WitchDoctorZombieWallApplyNoMeleeBehavior">
     <Behavior value="WitchDoctorZombieWallNoMeleeBehavior" />
   </CEffectApplyBehavior>
-  <CEffectSwitch id="WitchDoctorZombieWallWeaponSwitch" parent="SummonedBasicAttackAbilityDamageMissCheck">
+  <CEffectSet id="WitchDoctorZombieWallWeaponSet" parent="StormSummonedUnitAddAttackTargetSet" behaviorRemoveEffect="WitchDoctorZombieWallRemoveAbilityTargetController">
     <ValidatorArray value="WitchDoctorZombieWallMeleeCombine" />
-    <CaseDefault value="WitchDoctorZombieWallWeaponSet" />
+    <EffectArray value="WitchDoctorZombieWallWeaponImpactDummy" />
+  </CEffectSet>
+  <CEffectModifyUnit id="WitchDoctorZombieWallWeaponImpactDummy" />
+  <CEffectRemoveBehavior id="WitchDoctorZombieWallRemoveAbilityTargetController">
+    <WhichUnit Value="Caster" />
+    <BehaviorLink value="WitchDoctorZombieWallAbilityTargetController" />
+    <CancelBehavior value="1" />
+  </CEffectRemoveBehavior>
+  <CEffectEnumTrackedUnits id="WitchDoctorZombieWallEnumTargetUnit" parent="StormSummonedUnitEnumTrackedAttackUnit">
+    <Effect value="WitchDoctorZombieWallWeaponSwitch" />
+  </CEffectEnumTrackedUnits>
+  <CEffectSwitch id="WitchDoctorZombieWallWeaponSwitch">
+    <CaseArray Validator="WitchDoctorZombieWallAttackerBlindedOrTargetIsEvadingAndNotGenjiDodge" Effect="BlindMissedDummy" />
+    <CaseDefault value="WitchDoctorZombieWallWeaponImpactSet" />
   </CEffectSwitch>
-  <CEffectSet id="WitchDoctorZombieWallWeaponSet">
+  <CEffectSet id="WitchDoctorZombieWallWeaponImpactSet">
     <EffectArray value="WitchDoctorVoodooRitualApplyDoTSwitch" />
-    <EffectArray value="StormSummonedWeaponPhysicalDamageDummy" />
     <EffectArray value="WitchDoctorZombieWallWeaponDamage" />
     <EffectArray value="WitchDoctorZombieWallApplyNoMeleeBehavior" />
+    <EffectArray value="WitchDoctorZombieWallDamagedUnitTrackerAdd" />
+    <EffectArray value="WitchDoctorZombieWallCreatePersistentRevealDummy" />
   </CEffectSet>
+  <CEffectAddTrackedUnit id="WitchDoctorZombieWallDamagedUnitTrackerAdd" parent="StormSummonedUnitDamagedUnitTrackerAdd">
+    <TrackerUnit Effect="WitchDoctorZombieWallEnumTargetUnit" Value="Target" />
+  </CEffectAddTrackedUnit>
+  <CEffectCreatePersistent id="WitchDoctorZombieWallCreatePersistentRevealDummy" parent="StormSummonedUnitPhysicalDamageDealtPersistent">
+    <WhichLocation Effect="WitchDoctorZombieWallEnumTargetUnit" Value="TargetUnit" />
+  </CEffectCreatePersistent>
   <CEffectDamage id="WitchDoctorRavenousSpiritSuicide" parent="StormSuicideParent">
     <CasterHistory value="Damage" />
     <ImpactLocation Value="TargetUnitOrPoint" />
@@ -2897,8 +3020,9 @@
     <Abil value="move" />
     <Target Effect="WitchDoctorPlagueofToadsCreationPersistent5" Value="TargetPoint" />
   </CEffectIssueOrder>
-  <CEffectDamage id="WitchDoctorGargantuanDamage" parent="StormSummonedUnitWeapon">
+  <CEffectDamage id="WitchDoctorGargantuanDamage" parent="StormSpell">
     <Amount value="140" />
+    <Visibility value="Hidden" />
   </CEffectDamage>
   <CEffectSet id="WitchDoctorGargantuanSpawnSet">
     <EffectArray value="WitchDoctorGargantuanAddToTrackingList" />
@@ -2909,6 +3033,13 @@
     <EffectArray value="WitchDoctorSoulHarvestApplyCarry" />
     <EffectArray value="WitchDoctorVoodooRitualApplyDeathRitualTalentSummonCarry" />
   </CEffectSet>
+  <CEffectApplyBehavior id="WitchDoctorGargantuanApplyAbilityController">
+    <Behavior value="WitchDoctorGargantuanAbilityController" />
+  </CEffectApplyBehavior>
+  <CEffectApplyBehavior id="WitchDoctorGargantuanAddAbilityTargetController">
+    <ValidatorArray value="WitchDoctorGargantuanDoesNotHaveAbilityTargetController" />
+    <Behavior value="WitchDoctorGargantuanAbilityTargetController" />
+  </CEffectApplyBehavior>
   <CEffectApplyBehavior id="WitchDoctorGargantuanApplyTimedLifeBehavior">
     <Behavior value="WitchDoctorGargantuanTimedLife" />
   </CEffectApplyBehavior>
@@ -2995,9 +3126,10 @@
     <PeriodicOffsetArray X="1.5" Y="-3" />
     <PeriodicPeriodArray value="0" />
   </CEffectCreatePersistent>
-  <CEffectDamage id="WitchDoctorCorpseSpidersWeaponDamage" parent="StormSummonedUnitWeapon">
+  <CEffectDamage id="WitchDoctorCorpseSpidersWeaponDamage" parent="StormSpell">
     <Amount value="38" />
-    <MultiplicativeModifierArray index="Widowmakers" Validator="WitchDoctorCorpseSpidersHasWidowmakersDamageBonusCarry" Modifier="0.25" />
+    <MultiplicativeModifierArray index="Widowmakers" Validator="WitchDoctorHas100CorpseSpidersWidowmakersTokens" Modifier="0.25" />
+    <Visibility value="Hidden" />
   </CEffectDamage>
   <CEffectCreateUnit id="CorpseSpidersSpawnSpider">
     <WhichLocation Value="TargetPoint" />
@@ -3087,8 +3219,8 @@
     <MultiplicativeModifierArray index="AnnihilatingSpirit" Accumulator="RavenousSpiritAnnihilatingSpiritDamageAccumulator" />
   </CEffectDamage>
   <CEffectSet id="WitchDoctorHeroWeaponLaunchMissileSet">
-    <EffectArray value="WitchDoctorHeroWeaponLaunchMissile" />
     <EffectArray value="UniversalWeaponLaunchSet" />
+    <EffectArray value="WitchDoctorHeroWeaponLaunchMissile" />
   </CEffectSet>
   <CEffectLaunchMissile id="WitchDoctorHeroWeaponLaunchMissile">
     <ValidatorArray index="0" value="TargetNotDead" />
@@ -3168,6 +3300,7 @@
     <EffectArray value="WitchDoctorSoulHarvestApplyCarry" />
     <EffectArray value="WitchDoctorVoodooRitualApplyDeathRitualTalentSummonCarry" />
     <EffectArray value="WitchDoctorZombieWallSetFacing" />
+    <EffectArray value="WitchDoctorZombieWallAddAbilityController" />
   </CEffectSet>
   <CEffectSet id="WitchDoctorZombieWallMasterySpawnSet">
     <EffectArray value="WitchDoctorZombieWallDeadRushApplyTimedLifeBehavior" />
@@ -3181,9 +3314,17 @@
   <CEffectApplyBehavior id="WitchDoctorZombieWallApplyTimedLifeBehavior">
     <Behavior value="WitchDoctorZombieWallTimedLife" />
   </CEffectApplyBehavior>
-  <CEffectDamage id="WitchDoctorZombieWallWeaponDamage" parent="StormSummonedUnitWeapon">
+  <CEffectApplyBehavior id="WitchDoctorZombieWallAddAbilityController">
+    <Behavior value="WitchDoctorZombieWallAbilityController" />
+  </CEffectApplyBehavior>
+  <CEffectApplyBehavior id="WitchDoctorZombieWallAddAbilityTargetController">
+    <ValidatorArray value="WitchDoctorZombieWallDoesNotHaveAbilityTargetController" />
+    <Behavior value="WitchDoctorZombieWallAbilityTargetController" />
+  </CEffectApplyBehavior>
+  <CEffectDamage id="WitchDoctorZombieWallWeaponDamage" parent="StormSpell">
     <Amount value="28" />
-    <MultiplicativeModifierArray index="DeadRush" Validator="WitchDoctorZombieWallDeadRushSourceHasTalentBuffBehavior" Modifier="1" />
+    <MultiplicativeModifierArray index="DeadRush" Validator="WitchDoctorHasDeadRush" Modifier="1" />
+    <Visibility value="Hidden" />
   </CEffectDamage>
   <CEffectDamage id="WitchDoctorZombieWallSuicide" parent="StormSuicideParent" />
   <CEffectIssueOrder id="WitchDoctorZombieWallIssueMorphOrder">
@@ -4375,6 +4516,8 @@
     <AbilArray Link="move" />
     <AbilArray Link="WitchDoctorGargantuanStomp" />
     <BehaviorArray Link="HeroicSummon" />
+    <BehaviorArray Link="StormSummonedUnitTargetTracker" />
+    <BehaviorArray Link="StormSummonedUnitDamagedUnitTracker" />
     <WeaponArray Link="GargantuanWeapon" />
     <EffectArray index="Death" value="WitchDoctorGargantuanDeathSearch" />
     <CardLayouts>
@@ -4408,6 +4551,8 @@
     <AbilArray Link="stop" />
     <AbilArray Link="attack" />
     <AbilArray Link="move" />
+    <BehaviorArray Link="StormSummonedUnitTargetTracker" />
+    <BehaviorArray Link="StormSummonedUnitDamagedUnitTracker" />
     <WeaponArray Link="WitchDoctorCorpseSpiderWeapon" />
     <CardLayouts>
       <LayoutButtons Face="Move" Type="AbilCmd" AbilCmd="move,Move" Slot="Stop" />
@@ -4537,6 +4682,8 @@
     <AbilArray Link="attack" />
     <AbilArray Link="move" />
     <AbilArray Link="WitchDoctorZombieWallMorph" />
+    <BehaviorArray Link="StormSummonedUnitTargetTracker" />
+    <BehaviorArray Link="StormSummonedUnitDamagedUnitTracker" />
     <BehaviorArray Link="ZombieWallStatusBarController" />
     <WeaponArray Link="WitchDoctorZombieWeapon" />
     <CardLayouts>
@@ -4566,6 +4713,8 @@
     <AbilArray Link="move" />
     <BehaviorArray Link="WitchDoctorZombieWallDeadRushTalentTimedLife" />
     <BehaviorArray Link="ZombieWallStatusBarController" />
+    <BehaviorArray Link="StormSummonedUnitTargetTracker" />
+    <BehaviorArray Link="StormSummonedUnitDamagedUnitTracker" />
     <WeaponArray Link="WitchDoctorZombieWeapon" />
     <CardLayouts>
       <LayoutButtons Face="Move" Type="AbilCmd" AbilCmd="move,Move" Slot="Stop" />
@@ -4858,6 +5007,10 @@
     <Compare value="Eq" />
     <SearchFilters value="-;Self,Player,Ally,Neutral,ImmuneToAOE,Missile,Stasis,Dead,Hidden,Invulnerable" />
   </CValidatorLocationEnumArea>
+  <CValidatorUnitHasBehavior id="WitchDoctorCorpseSpiderDoesNotHaveAbilityTargetController">
+    <Behavior value="WitchDoctorCorpseSpiderAbilityTargetController" />
+    <Negate value="1" />
+  </CValidatorUnitHasBehavior>
   <CValidatorUnitType id="WitchDoctorZombieWallDeadRushUnitIsCaster">
     <WhichUnit Value="Caster" />
     <Value value="WitchDoctorZombieWallDeadRushTalentUnit" />
@@ -4874,6 +5027,22 @@
   <CValidatorUnitType id="TargetisGargantuan">
     <Value value="WitchDoctorGargantuan" />
   </CValidatorUnitType>
+  <CValidatorUnitHasBehavior id="WitchDoctorGargantuanDoesNotHaveAbilityTargetController">
+    <Behavior value="WitchDoctorGargantuanAbilityTargetController" />
+    <Negate value="1" />
+  </CValidatorUnitHasBehavior>
+  <CValidatorCompareTrackedUnitsCount id="WitchDoctorGargantuanTargetHasDamagedUnitsTracked" parent="StormSummonedUnitHasDamagedUnitsTracked">
+    <TrackerUnit Value="Target" />
+  </CValidatorCompareTrackedUnitsCount>
+  <CValidatorUnitCompareBehaviorCount id="WitchDoctorGargantuanAttackerBlinded">
+    <Compare value="GT" />
+    <WhichUnit Effect="WitchDoctorGargantuanEnumTargetUnit" />
+    <Categories index="DebuffBlind" value="1" />
+  </CValidatorUnitCompareBehaviorCount>
+  <CValidatorCombine id="WitchDoctorGargantuanAttackerBlindedOrTargetIsEvadingAndNotGenjiDodge">
+    <CombineArray value="WitchDoctorGargantuanAttackerBlinded" />
+    <CombineArray value="TargetIsEvadingAndNotGenjiDodge" />
+  </CValidatorCombine>
   <CValidatorLocationCompareRange id="WitchDoctorCorpseSpiderLeapMaxDistance">
     <ResultFailed value="TargetIsOutOfRange" />
     <WhichLocation Value="SourceUnit" />
@@ -4917,6 +5086,19 @@
   <CValidatorCombine id="WitchDoctorZombieWallMeleeCombine">
     <CombineArray value="TargetDoesNotHaveNoZombieMeleeBehavior" />
     <CombineArray value="WitchDoctorZombieWallDeadRushUnitIsCaster" />
+  </CValidatorCombine>
+  <CValidatorUnitHasBehavior id="WitchDoctorZombieWallDoesNotHaveAbilityTargetController">
+    <Behavior value="WitchDoctorZombieWallAbilityTargetController" />
+    <Negate value="1" />
+  </CValidatorUnitHasBehavior>
+  <CValidatorUnitCompareBehaviorCount id="WitchDoctorZombieWallAttackerBlinded">
+    <Compare value="GT" />
+    <WhichUnit Effect="WitchDoctorZombieWallEnumTargetUnit" />
+    <Categories index="DebuffBlind" value="1" />
+  </CValidatorUnitCompareBehaviorCount>
+  <CValidatorCombine id="WitchDoctorZombieWallAttackerBlindedOrTargetIsEvadingAndNotGenjiDodge">
+    <CombineArray value="WitchDoctorZombieWallAttackerBlinded" />
+    <CombineArray value="TargetIsEvadingAndNotGenjiDodge" />
   </CValidatorCombine>
   <CValidatorUnitType id="IsWitchDoctor">
     <Value value="HeroWitchDoctor" />
@@ -5085,7 +5267,7 @@
     <Backswing value="0.25" />
     <RandomDelayMin value="11.25" />
     <RandomDelayMax value="0" />
-    <Effect value="WitchDoctorGargantuanAttackSwitch" />
+    <Effect value="WitchDoctorGargantuanAttackSet" />
     <TargetFilters value="Visible;Self,Player,Ally,Neutral,Missile,Stasis,Dead,Hidden,Invulnerable" />
     <RangeSlop value="2.25" />
   </CWeaponLegacy>
@@ -5100,7 +5282,7 @@
     <Period value="1" />
     <DamagePoint value="0" />
     <Backswing value="0" />
-    <Effect value="WitchDoctorCorpseSpidersWeaponImpactSet" />
+    <Effect value="WitchDoctorCorpseSpiderAttackSet" />
     <MinScanRange value="8" />
   </CWeaponLegacy>
   <CWeaponLegacy id="HeroWitchDoctor" parent="StormHeroMediumWeapon">
@@ -5124,7 +5306,7 @@
     <Period value="1.25" />
     <DamagePoint value="0.125" />
     <Backswing value="0" />
-    <Effect value="WitchDoctorZombieWallWeaponSwitch" />
+    <Effect value="WitchDoctorZombieWallWeaponSet" />
     <ScanValidationArray value="TargetNotNoMinionAggroAndSummoned" />
   </CWeaponLegacy>
 </Catalog>

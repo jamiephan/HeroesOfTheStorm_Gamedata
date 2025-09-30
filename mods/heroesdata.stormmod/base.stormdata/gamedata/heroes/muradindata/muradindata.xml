@@ -80,7 +80,7 @@
     <CmdButtonArray index="Execute" DefaultButtonFace="MuradinDwarfToss" />
   </CAbilEffectTarget>
   <CAbilEffectTarget id="MuradinStormBolt">
-    <Effect value="StormBoltCreatePersistent" />
+    <Effect value="MuradinStormBoltInitialSet" />
     <Flags index="ClearLastMoveTarget" value="1" />
     <Flags index="RangeUseCasterRadius" value="0" />
     <Flags index="RequireTargetVision" value="0" />
@@ -302,10 +302,10 @@
       <BodySquibs Name="None" />
     </DeathCustoms>
     <On Terms="UnitDeathCustomize; ValidateUnit HasAvatar" Send="DeathCustomize RagdollUpgraded" />
-    <On Terms="Effect.MuradinHeroWeaponImpactSet.Start; AnimPlaying Attack 00; At Caster" Send="Create MuradinAttackAxeBase" />
-    <On Terms="Effect.MuradinHeroWeaponImpactSet.Start; AnimPlaying Attack 01; At Caster" Send="Create MuradinAttackHammerBase" />
-    <On Terms="Effect.MuradinHeroWeaponImpactSet.Start; AnimPlaying Attack 02; At Caster" Send="Create MuradinAttackHammerBase" />
-    <On Terms="Effect.MuradinHeroWeaponImpactSet.Start" Send="Create MeleeHeroAttackDeathForce" />
+    <On Terms="Effect.MuradinWeaponDamage.Start; AnimPlaying Attack 00; At Caster" Send="Create MuradinAttackAxeBase" />
+    <On Terms="Effect.MuradinWeaponDamage.Start; AnimPlaying Attack 01; At Caster" Send="Create MuradinAttackHammerBase" />
+    <On Terms="Effect.MuradinWeaponDamage.Start; AnimPlaying Attack 02; At Caster" Send="Create MuradinAttackHammerBase" />
+    <On Terms="Effect.MuradinWeaponDamage.Start" Send="Create MeleeHeroAttackDeathForce" />
     <On Terms="Abil.MuradinStormBolt.SourcePrecast; !HasStatus Precast" Send="AnimPlay Spell Spell,A" />
     <On Terms="Effect.StormBoltRefundMasteryModifyUnit.Start; At Caster" Send="Create Storm_Effect_GenericMana_Impact" />
     <On Terms="Abil.MuradinStormBolt.SourceCastStart" Send="AnimPlay Spell Spell,A 0 0.100000 -1.000000 1.000000 AsTimeScale" />
@@ -702,6 +702,9 @@
     <Duration value="3" />
     <Period value="0.0625" />
   </CBehaviorBuff>
+  <CBehaviorTokenCounter id="MuradinStormBoltPierceCounter" parent="StormGenericToken">
+    <Max value="1" />
+  </CBehaviorTokenCounter>
   <CBehaviorTokenCounter id="MuradinItsHammerTimeTokenCounter" parent="StormGenericToken">
     <Face value="MuradinStormBoltItsHammerTimeToken" />
     <InfoFlags index="Hidden" value="1" />
@@ -709,9 +712,10 @@
     <MinStackCountDisplayed value="0" />
     <IncreaseEvents EventId="QuestIncrease" />
     <DecreaseEvents EventId="QuestDecrease" />
-    <AtMaxEvents EventId="QuestComplete" />
+    <AtMaxEvents EventId="QuestComplete" Effect="MuradinStormBoltPiercingModifyCatalog" />
     <AtMaxEvents Effect="MuradinItsHammerTimeApplyQuestCompletionCarry" />
-    <AtMinEvents EventId="QuestReset" />
+    <AtMinEvents EventId="QuestReset" Effect="MuradinStormBoltPiercingResetCatalog" />
+    <InitEvents Effect="MuradinStormBoltPiercingResetCatalog" />
     <Max value="25" />
   </CBehaviorTokenCounter>
   <CBehaviorBuff id="MuradinBronzebeardRage">
@@ -949,11 +953,6 @@
   </CBehaviorBuff>
   <CBehaviorBuff id="MuradinStormboltStun" parent="StormStun">
     <Duration value="1.25" />
-  </CBehaviorBuff>
-  <CBehaviorBuff id="StormBoltMissileScan">
-    <Period value="0.0625" />
-    <PeriodicEffect value="StormBoltMissileScanPersistent" />
-    <InitialEffect value="StormBoltInitialMissileScan" />
   </CBehaviorBuff>
   <CBehaviorBuff id="MuradinThunderclapSlow" parent="StormSlowParent">
     <Duration value="2.5" />
@@ -1299,10 +1298,6 @@
     </AreaArray>
     <SearchFlags index="ExtendByUnitRadius" value="1" />
   </CEffectEnumArea>
-  <CEffectApplyBehavior id="StormBoltPiercingBoltApplyFirstHit">
-    <WhichUnit Value="Source" />
-    <Behavior value="StormBoltPiercingBoltFirstHit" />
-  </CEffectApplyBehavior>
   <CEffectModifyUnit id="MuradinHaymakerModifyFacing">
     <LaunchUnit Value="Caster" />
     <FacingLocation Effect="HaymakerInitialSet" Value="CasterUnit" />
@@ -1508,11 +1503,6 @@
     <ImpactUnit Value="Caster" />
     <RechargeVitalRate value="90" />
   </CEffectCreateHealer>
-  <CEffectSet id="StormBoltSearchCleanupSet">
-    <EffectArray value="StormBoltMissileScanDestroyPersistent" />
-    <EffectArray value="StormBoltRemoveScanBehavior" />
-    <TargetLocationType value="UnitOrPoint" />
-  </CEffectSet>
   <CEffectSwitch id="MuradinThunderclapSearchSwitchThunderstrike">
     <CaseArray Validator="MuradinThunderclapThunderstrikeCombine" Effect="MuradinThunderclapThunderStrikeSearch" />
     <CaseDefault value="ThunderclapSearch" />
@@ -1669,7 +1659,6 @@
   </CEffectDamage>
   <CEffectApplyBehavior id="SkullcrackerApplyBehavior">
     <Behavior value="SkullcrackerStack" />
-    <ValidatorArray index="0" value="CasterNotBlindedAndTargetNotEvading" />
   </CEffectApplyBehavior>
   <CEffectApplyBehavior id="SkullcrackerApplyStunBehavior">
     <Behavior value="SkullcrackerStun" />
@@ -1677,7 +1666,6 @@
   <CEffectSet id="SkullcrackerProcSet">
     <EffectArray value="SkullcrackerApplyStunBehavior" />
     <EffectArray value="SkullcrackerRemoveStackBehavior" />
-    <ValidatorArray value="CasterNotBlindedAndTargetNotEvading" />
   </CEffectSet>
   <CEffectRemoveBehavior id="SkullcrackerRemoveStackBehavior">
     <BehaviorLink value="SkullcrackerStack" />
@@ -1690,7 +1678,7 @@
     <CaseArray Validator="Has3StackSkullcracker" Effect="SkullcrackerProcSet" />
     <CaseDefault value="SkullcrackerApplyBehavior" />
     <ValidatorArray value="HasSkullcracker" />
-    <ValidatorArray value="TargetNotEvading" />
+    <ValidatorArray value="CasterNotBlindedAndTargetNotEvading" />
   </CEffectSwitch>
   <CEffectCreatePersistent id="HaymakerCreatePersistentImpactReveal">
     <WhichLocation Effect="HaymakerInitialSet" Value="TargetUnit" />
@@ -1698,16 +1686,6 @@
     <RevealRadius value="1" />
     <RevealFlags index="Unfog" value="1" />
   </CEffectCreatePersistent>
-  <CEffectDamage id="StormBoltSuicideRemove" parent="StormSuicideParent">
-    <ValidatorArray value="MuradinHasLT25ItsHammerTimeTokens" />
-  </CEffectDamage>
-  <CEffectDamage id="StormBoltPiercingBoltSuicide" parent="StormSuicideParent">
-    <ValidatorArray value="MuradinStormBoltSourceHasFirstHit" />
-  </CEffectDamage>
-  <CEffectRemoveBehavior id="StormBoltRemoveScanBehavior">
-    <WhichUnit Value="Source" />
-    <BehaviorLink value="StormBoltMissileScan" />
-  </CEffectRemoveBehavior>
   <CEffectCreatePersistent id="ThunderclapCreatePersistentReveal">
     <ExpireDelay value="1" />
     <RevealRadius value="4" />
@@ -1790,15 +1768,21 @@
   </CEffectLaunchMissile>
   <CEffectSet id="MuradinHeroWeaponImpactSet">
     <EffectArray value="UniversalWeaponLaunchSet" />
-    <EffectArray value="MuradinGiveEmTheAxeExecutioner50DamageBonusSet" />
     <EffectArray value="UniversalWeaponImpact" />
+    <EffectArray value="MuradinWeaponPreImpactSet" />
     <EffectArray value="MuradinWeaponDamage" />
+    <EffectArray value="SkullcrackerSwitch" />
+    <EffectArray value="MuradinWeaponPostImpactSet" />
+    <EffectArray value="UniversalWeaponPostImpactSet" />
+  </CEffectSet>
+  <CEffectSet id="MuradinWeaponPreImpactSet">
+    <EffectArray value="MuradinGiveEmTheAxeExecutioner50DamageBonusSet" />
     <EffectArray value="MuradinAvatarUnstoppableForceTalentBasicAttackModifyCooldowns" />
     <EffectArray value="MuradinHeroWeaponItsHammerTimeStormBoltModifyCooldown" />
-    <EffectArray value="SkullcrackerSwitch" />
     <EffectArray value="MuradinStormBoltQuestCompleteCreateManaHealer" />
+  </CEffectSet>
+  <CEffectSet id="MuradinWeaponPostImpactSet">
     <EffectArray value="MuradinStormBoltPerfectStormModifyQuestToken" />
-    <EffectArray value="UniversalWeaponPostImpactSet" />
   </CEffectSet>
   <CEffectSet id="HeroMuradinSkullcrackerSet">
     <EffectArray value="UniversalWeaponImpact" />
@@ -1863,22 +1847,40 @@
     <Behavior value="MuradinStormboltStun" />
   </CEffectApplyBehavior>
   <CEffectSet id="StormBoltImpactSet">
-    <ValidatorArray value="noMarkers" />
-    <EffectArray value="StormBoltSearchCleanupSet" />
     <EffectArray value="StormBoltApplyBehavior" />
     <EffectArray value="MuradinItsHammerTimeKillBonusApplyBehavior" />
     <EffectArray value="StormBoltDamage" />
-    <EffectArray value="StormBoltImpactSecondSet" />
     <EffectArray value="CameraShakeMediumTauntingTotemSet" />
     <EffectArray value="ApplyAbilityImpactReveal" />
     <EffectArray value="StormBoltMasteriesSet" />
     <EffectArray value="MuradinHeroWeaponApplyBronzebeardRageTalentCCDamageBoost" />
+    <EffectArray value="MuradinStormBoltSuicide" />
+    <EffectArray value="MuradinStormBoltReducePierceCounter" />
+    <ValidatorArray value="SourceNotDead" />
+    <ValidatorArray value="noMarkers" />
   </CEffectSet>
-  <CEffectSet id="StormBoltImpactSecondSet">
-    <EffectArray value="StormBoltSuicideRemove" />
-    <EffectArray value="StormBoltPiercingBoltSuicide" />
-    <EffectArray value="StormBoltPiercingBoltApplyFirstHit" />
-  </CEffectSet>
+  <CEffectDamage id="MuradinStormBoltSuicide" parent="StormSuicideParent">
+    <ValidatorArray value="MuradinStormBoltHasNoPierceLeft" />
+  </CEffectDamage>
+  <CEffectModifyTokenCount id="MuradinStormBoltReducePierceCounter">
+    <TokenId value="MuradinStormBoltPierceCounter" />
+    <Value value="-1" />
+    <WhichUnit Value="Source" />
+  </CEffectModifyTokenCount>
+  <CEffectModifyCatalogNumeric id="MuradinStormBoltPiercingModifyCatalog">
+    <CatalogModifications Operation="Set" Reference="Behavior,MuradinStormBoltPierceCounter,Init">
+      <Value value="1" />
+    </CatalogModifications>
+    <CatalogModifications Operation="Set" Reference="Effect,StormBoltMissileScan,AreaArray[0].MaxCount">
+      <Value value="2" />
+    </CatalogModifications>
+  </CEffectModifyCatalogNumeric>
+  <CEffectModifyCatalogNumeric id="MuradinStormBoltPiercingResetCatalog">
+    <CatalogModifications Operation="Set" Reference="Behavior,MuradinStormBoltPierceCounter,Init" />
+    <CatalogModifications Operation="Set" Reference="Effect,StormBoltMissileScan,AreaArray[0].MaxCount">
+      <Value value="1" />
+    </CatalogModifications>
+  </CEffectModifyCatalogNumeric>
   <CEffectApplyBehavior id="ThunderclapApplyBehavior">
     <Behavior value="MuradinThunderclapSlow" />
     <ValidatorArray index="0" value="TargetNotUnstoppable" />
@@ -1923,43 +1925,6 @@
     <EffectArray value="ThunderclapDamage" />
     <EffectArray value="ThunderclapSet" />
   </CEffectSet>
-  <CEffectDestroyPersistent id="StormBoltMissileScanDestroyPersistent">
-    <WhichLocation Value="SourcePoint" />
-    <Effect value="StormBoltMissileScanPersistent" />
-    <Count value="1" />
-    <Radius value="0.25" />
-  </CEffectDestroyPersistent>
-  <CEffectApplyBehavior id="StormBoltApplyMissileScan">
-    <WhichUnit Value="Source" />
-    <Behavior value="StormBoltMissileScan" />
-  </CEffectApplyBehavior>
-  <CEffectEnumArea id="StormBoltInitialMissileScan">
-    <SearchFilters value="-;Player,Ally,Neutral,ImmuneToSkillshots,Missile,Item,Stasis,Dead,Hidden,Invulnerable" />
-    <TargetSorts>
-      <SortArray value="TSDistance" />
-    </TargetSorts>
-    <AreaArray Arc="90" MaxCount="1" Effect="StormBoltImpactSet">
-      <Radius value="0.625" />
-    </AreaArray>
-    <MaxCount value="1" />
-    <LaunchLocation Value="CasterUnit" />
-    <ImpactLocation Value="CasterUnit" />
-  </CEffectEnumArea>
-  <CEffectCreatePersistent id="StormBoltMissileScanPersistent">
-    <WhichLocation Value="CasterPoint" />
-    <PeriodCount value="4" />
-    <PeriodicEffectArray value="StormBoltMissileScan" />
-    <PeriodicOffsetArray Y="1.5" />
-    <PeriodicOffsetArray Y="3.5" />
-    <PeriodicOffsetArray Y="5.5" />
-    <PeriodicOffsetArray Y="7.5" />
-    <PeriodicPeriodArray value="0.0625" />
-    <PeriodicPeriodArray value="0.0625" />
-    <PeriodicPeriodArray value="0.0625" />
-    <PeriodicPeriodArray value="0.0625" />
-    <InitialDelay value="0.0625" />
-    <PeriodicValidator value="SourceNotDead" />
-  </CEffectCreatePersistent>
   <CEffectSet id="MuradinDwarfTossLaunchSet">
     <EffectArray value="MuradinDwarfTossLaunchMissile" />
     <EffectArray value="MuradinDwarfTossDwarfBlockTalentApplyBehavior" />
@@ -1980,32 +1945,52 @@
       <Radius value="2" />
     </AreaArray>
   </CEffectEnumArea>
-  <CEffectCreatePersistent id="StormBoltCreatePersistent">
-    <WhichLocation Value="CasterPoint" />
-    <PeriodCount value="1" />
-    <PeriodicEffectArray value="StormBoltLaunchMissile" />
-    <PeriodicOffsetArray Y="-8" />
-    <PeriodicPeriodArray value="0" />
-  </CEffectCreatePersistent>
+  <CEffectSet id="MuradinStormBoltInitialSet">
+    <EffectArray value="StormBoltLaunchMissile" />
+    <TargetLocationType value="Point" />
+  </CEffectSet>
   <CEffectLaunchMissile id="StormBoltLaunchMissile">
     <ImpactEffect value="StormBoltDummyImpact" />
     <AmmoUnit value="MuradinStormBoltMissile" />
-    <ImpactLocation Value="TargetPoint" />
-    <LaunchOffset Y="-1.25" />
-    <LaunchEffect value="StormBoltMissileScanPersistent" />
+    <LaunchOffset Y="-0.75" />
+    <LaunchEffect value="MuradinStormBoltLaunchMissileSet" />
+    <ImpactLocation>
+      <Value value="TargetPoint" />
+      <ProjectionMultiplier value="1" />
+      <ProjectionSourceValue value="OriginPoint" />
+      <ProjectionTargetValue value="TargetPoint" />
+      <UsesLineDash value="1" />
+      <LineDashType value="AllowedInUnpathable" />
+      <ProjectionDistanceScale value="8.5" />
+    </ImpactLocation>
+    <SharedFlags index="DynamicSearchArea" value="1" />
+    <SearchEffect value="StormBoltMissileScan" />
     <Marker>
       <MatchFlags index="Id" value="1" />
     </Marker>
   </CEffectLaunchMissile>
+  <CEffectSet id="MuradinStormBoltLaunchMissileSet">
+    <EffectArray value="MuradinStormBoltApplyPierceCounter" />
+  </CEffectSet>
+  <CEffectApplyBehavior id="MuradinStormBoltApplyPierceCounter">
+    <WhichUnit Value="Source" />
+    <Behavior value="MuradinStormBoltPierceCounter" />
+  </CEffectApplyBehavior>
   <CEffectSet id="StormBoltDummyImpact" />
   <CEffectEnumArea id="StormBoltMissileScan">
+    <LaunchLocation Value="OriginPoint" />
+    <SearchFlags index="DoActorSearch" value="1" />
     <AreaArray MaxCount="1" Effect="StormBoltImpactSet">
       <RectangleWidth value="1.25" />
-      <RectangleHeight value="2" />
+      <RectangleHeight value="1" />
     </AreaArray>
+    <TargetSorts>
+      <SortArray value="TSDistanceFromOriginPoint" />
+    </TargetSorts>
     <SearchFilters value="-;Player,Ally,Neutral,ImmuneToSkillshots,Missile,Item,Stasis,Dead,Hidden,Invulnerable" />
-    <MaxCount value="1" />
-    <LaunchLocation Value="OriginPoint" />
+    <RevealerParams Duration="0.75" ShapeExpansion="1">
+      <RevealFlags index="Unfog" value="1" />
+    </RevealerParams>
   </CEffectEnumArea>
   <CEffectModifyUnit id="MuradinHeroWeaponItsHammerTimeStormBoltModifyCooldown">
     <ValidatorArray value="CasterNotBlindedAndTargetNotEvading" />
@@ -2835,6 +2820,9 @@
     <Find value="1" />
     <Value value="MuradinStormboltPiercingBolt" />
   </CValidatorPlayerTalent>
+  <CValidatorUnitCompareTokenCount id="MuradinStormBoltHasNoPierceLeft">
+    <TokenId value="MuradinStormBoltPierceCounter" />
+  </CValidatorUnitCompareTokenCount>
   <CValidatorMissilePlacement id="MuradinDwarfTossMissilePlacementIsValid">
     <LauncMissileEffect value="MuradinDwarfTossLaunchMissile" />
   </CValidatorMissilePlacement>

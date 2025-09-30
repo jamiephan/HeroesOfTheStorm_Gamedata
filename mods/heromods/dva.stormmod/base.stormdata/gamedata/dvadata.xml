@@ -897,7 +897,6 @@
   <CActorSquib id="DVaMechAttackImpactSoundSquib">
     <On Terms="Effect.DVaMechWeaponImpactSet.Start; At Target" Send="Create" />
     <On Terms="Effect.DVaMechWeaponBonusImpactSet.Start; At Target" Send="Create" />
-    <On Terms="Effect.DVaMechWeaponSgtHammerSpiderMineImpactSet.Start; At Target" Send="Create" />
     <Host Subject="_Unit" />
     <Map index="None" Model="" Sound="DVaMech_AttackImpact_Unit" />
     <Map index="Rock" Sound="DVaMech_AttackImpact_Stone" />
@@ -1508,8 +1507,6 @@
     <On Terms="TimerExpired; TimerName PeriodicTimer" Send="Destroy" />
     <On Terms="Effect.DVaMechWeaponBonusImpactSet.Start; At Target" Send="Create" />
     <On Terms="Effect.DVaMechWeaponBonusImpactSet.Start" Send="TimerSet 0.250000 PeriodicTimer" />
-    <On Terms="Effect.DVaMechWeaponSgtHammerSpiderMineImpactSet.Start; At Target" Send="Create" />
-    <On Terms="Effect.DVaMechWeaponSgtHammerSpiderMineImpactSet.Start" Send="TimerSet 0.250000 PeriodicTimer" />
     <HostSiteOps Ops="SOpAttachCenter" />
     <Model value="DVaMechWeaponImpact" />
   </CActorModel>
@@ -2821,6 +2818,7 @@
     <Behavior value="HearthstonePermanentDisableAbilityBuff" />
   </CEffectTransferBehavior>
   <CEffectEnumArea id="DVaMechWeaponBonusTargetSearch">
+    <IncludeArray Effect="DVaMechWeaponNewTargetImpactSet" Value="Target" />
     <SearchFilters value="-;Self,Player,Ally,Neutral,ImmuneToAOE,Missile,Item,Stasis,Dead,Hidden,Invulnerable" />
     <AreaArray Effect="DVaMechWeaponBonusImpactSet">
       <RectangleWidth value="2" />
@@ -2829,10 +2827,17 @@
   </CEffectEnumArea>
   <CEffectSet id="DVaMechWeaponBonusImpactSet">
     <ValidatorArray value="noMarkers" />
+    <EffectArray value="UniversalWeaponImpact" />
+    <EffectArray value="DVaMechWeaponBonusPreImpactSet" />
     <EffectArray value="DVaMechWeaponBonusDamage" />
-    <EffectArray value="DVaMechDefenseMatrixAggressionMatrixCooldownReduction" />
-    <EffectArray value="DVaSelfDestructNuclearOptionTalentModifyTokenCounter" />
+    <EffectArray value="DVaMechWeaponBonusPostImpactSet" />
     <EffectArray value="UniversalWeaponPostImpactSet" />
+  </CEffectSet>
+  <CEffectSet id="DVaMechWeaponBonusPreImpactSet">
+    <EffectArray value="DVaMechDefenseMatrixAggressionMatrixCooldownReduction" />
+  </CEffectSet>
+  <CEffectSet id="DVaMechWeaponBonusPostImpactSet">
+    <EffectArray value="DVaNuclearOptionApplyCatalogModifications" />
   </CEffectSet>
   <CEffectDamage id="DVaMicroMissilesDamage" parent="StormSpell">
     <Amount value="40" />
@@ -3046,13 +3051,36 @@
       </Cooldown>
     </Cost>
   </CEffectModifyPlayer>
-  <CEffectModifyTokenCount id="DVaSelfDestructNuclearOptionTalentModifyTokenCounter">
+  <CEffectModifyCatalogNumeric id="DVaNuclearOptionApplyCatalogModifications">
     <ValidatorArray value="TargetIsHero" />
     <ValidatorArray value="DVaSelfDestructNuclearOptionHasTalent" />
     <ValidatorArray value="CasterNotBlindedAndTargetNotEvading" />
+    <CatalogModifications Reference="Effect,DVaNuclearOptionModifyTokenCounterPersistent,PeriodCount">
+      <Value value="1" />
+    </CatalogModifications>
+    <CatalogModifications Operation="Set" Reference="Effect,DVaNuclearOptionProcSet,Chance">
+      <Value value="1" />
+    </CatalogModifications>
+  </CEffectModifyCatalogNumeric>
+  <CEffectSet id="DVaNuclearOptionProcSet">
+    <Chance value="0" />
+    <EffectArray value="DVaNuclearOptionModifyTokenCounterPersistent" />
+    <EffectArray value="DVaNuclearOptionResetCatalog" />
+  </CEffectSet>
+  <CEffectCreatePersistent id="DVaNuclearOptionModifyTokenCounterPersistent">
+    <WhichLocation Value="CasterUnit" />
+    <PeriodCount value="0" />
+    <PeriodicEffectArray value="DVaSelfDestructNuclearOptionTalentModifyTokenCounter" />
+    <PeriodicPeriodArray value="0" />
+  </CEffectCreatePersistent>
+  <CEffectModifyTokenCount id="DVaSelfDestructNuclearOptionTalentModifyTokenCounter">
     <TokenId value="DVaMechWeaponChargeEnabler" />
     <Value value="1" />
   </CEffectModifyTokenCount>
+  <CEffectModifyCatalogNumeric id="DVaNuclearOptionResetCatalog">
+    <CatalogModifications Operation="Set" Reference="Effect,DVaNuclearOptionModifyTokenCounterPersistent,PeriodCount" />
+    <CatalogModifications Operation="Set" Reference="Effect,DVaNuclearOptionProcSet,Chance" />
+  </CEffectModifyCatalogNumeric>
   <CEffectApplyBehavior id="DVaMicroMissilesApplyCooldownDisplay">
     <WhichUnit Value="Caster" />
     <Behavior value="DVaMicroMissilesCooldownDisplay" />
@@ -3762,14 +3790,18 @@
   </CEffectEnumArea>
   <CEffectSet id="DVaMechSelfDestructDetonationSearchImpactSet">
     <EffectArray value="DVaMechSelfDestructDamageSwitch" />
-    <EffectArray value="HeroRemovePushPullDebuffs" />
-    <EffectArray value="DVaMechSelfDestructDetonationApplyKnockback" />
+    <EffectArray value="DVaMechSelfDestructKnockbackApplySet" />
     <EffectArray value="ApplyAbilityImpactReveal" />
     <EffectArray value="CameraShakeMediumTauntingTotemSet" />
   </CEffectSet>
+  <CEffectSet id="DVaMechSelfDestructKnockbackApplySet">
+    <ValidatorArray value="TargetNotUnstoppable" />
+    <EffectArray value="HeroRemovePushPullDebuffs" />
+    <EffectArray value="HeroRemovePreventsMovement" />
+    <EffectArray value="DVaMechSelfDestructDetonationApplyKnockback" />
+  </CEffectSet>
   <CEffectApplyBehavior id="DVaMechSelfDestructDetonationApplyKnockback">
     <Behavior value="DVaMechSelfDestructKnockback" />
-    <ValidatorArray value="TargetNotUnstoppable" />
   </CEffectApplyBehavior>
   <CEffectApplyBehavior id="DVaMechCallMechApplyStun">
     <Behavior value="DVaMechCallMechStartingUpStun" />
@@ -4242,11 +4274,17 @@
     <BehaviorLink value="DVaPilotSpawningAbilityDisabler" />
   </CEffectRemoveBehavior>
   <CEffectSet id="DVaPilotWeaponImpactSet">
-    <EffectArray value="DVaPilotWeaponCallMechCooldownReduction" />
-    <EffectArray value="DVaPilotWeaponProMovesCallMechCooldownReduction" />
+    <EffectArray value="UniversalWeaponImpact" />
+    <EffectArray value="DVaPilotWeaponPreImpactSet" />
     <EffectArray value="DVaPilotWeaponDamage" />
+    <EffectArray value="DVaPilotWeaponPostImpactSet" />
     <EffectArray value="UniversalWeaponPostImpactSet" />
   </CEffectSet>
+  <CEffectSet id="DVaPilotWeaponPreImpactSet">
+    <EffectArray value="DVaPilotWeaponCallMechCooldownReduction" />
+    <EffectArray value="DVaPilotWeaponProMovesCallMechCooldownReduction" />
+  </CEffectSet>
+  <CEffectSet id="DVaPilotWeaponPostImpactSet" />
   <CEffectDamage id="DVaMechWeaponDamage" parent="StormWeapon">
     <Amount value="22" />
   </CEffectDamage>
@@ -4257,23 +4295,14 @@
     <LeechFraction index="Life" value="0.16" />
   </CEffectDamage>
   <CEffectSet id="DVaMechWeaponNewTargetImpactSet">
-    <EffectArray value="DecloakCasterSet" />
-    <EffectArray value="DVaMechWeaponSelfDestructIncrementChargeEnablerTokenCounter" />
+    <EffectArray value="UniversalWeaponLaunchSet" />
     <EffectArray value="DVaMechWeaponApplyTargetingBehavior" />
     <EffectArray value="DVaMechWeaponInitialOffset" />
-    <EffectArray value="DVaMechWeaponSgtHammerSpiderMineImpactSet" />
+    <EffectArray value="DVaMechWeaponSelfDestructIncrementChargeEnablerTokenCounter" />
+    <EffectArray value="DVaNuclearOptionProcSet" />
     <EffectArray value="DVaMechApplyArtWeaponCasterSoundDummyLoop" />
     <ValidatorArray value="DVaMechHeroWeaponValidatorCombine" />
   </CEffectSet>
-  <CEffectSet id="DVaMechWeaponSgtHammerSpiderMineImpactSet">
-    <ValidatorArray value="SgtHammerSpiderMinesTargetIsSpiderMine" />
-    <ValidatorArray value="CasterNotBlindedAndTargetNotEvading" />
-    <EffectArray value="DVaMechWeaponSpiderMineWeaponSwitch" />
-  </CEffectSet>
-  <CEffectSwitch id="DVaMechWeaponSpiderMineWeaponSwitch">
-    <CaseArray Validator="TargetWithin2RangeOfCasterLessThanOrEqualTo" Effect="DVaMechWeaponBonusDamage" />
-    <CaseDefault value="DVaMechWeaponDamage" />
-  </CEffectSwitch>
   <CEffectSet id="DVaMechWeaponChargeEnabledSet">
     <EffectArray value="DVaMechSelfDestructAddCharge" />
     <EffectArray value="DVaMechWeaponSelfDestructResetChargeEnablerTokenCounter" />
@@ -4288,6 +4317,7 @@
     <Operation value="Set" />
   </CEffectModifyTokenCount>
   <CEffectEnumArea id="DVaMechWeaponTargetSearch">
+    <IncludeArray Effect="DVaMechWeaponNewTargetImpactSet" Value="Target" />
     <SearchFilters value="-;Self,Player,Ally,Neutral,ImmuneToAOE,Missile,Item,Stasis,Dead,Hidden,Invulnerable" />
     <AreaArray Effect="DVaMechWeaponImpactSet">
       <RectangleWidth value="2" />
@@ -4299,10 +4329,16 @@
   </CEffectEnumArea>
   <CEffectSet id="DVaMechWeaponImpactSet">
     <ValidatorArray value="noMarkers" />
+    <EffectArray value="UniversalWeaponImpact" />
+    <EffectArray value="DVaMechWeaponPreImpactSet" />
     <EffectArray value="DVaMechWeaponDamage" />
-    <EffectArray value="DVaMechDefenseMatrixAggressionMatrixCooldownReduction" />
+    <EffectArray value="DVaMechWeaponPostImpactSet" />
     <EffectArray value="UniversalWeaponPostImpactSet" />
   </CEffectSet>
+  <CEffectSet id="DVaMechWeaponPreImpactSet">
+    <EffectArray value="DVaMechDefenseMatrixAggressionMatrixCooldownReduction" />
+  </CEffectSet>
+  <CEffectSet id="DVaMechWeaponPostImpactSet" />
   <CEffectApplyBehavior id="DVaMechWeaponApplyWeaponScanDisabler">
     <Behavior value="DVaMechWeaponDisableWeaponScan" />
   </CEffectApplyBehavior>

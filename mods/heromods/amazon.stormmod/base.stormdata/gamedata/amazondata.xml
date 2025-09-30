@@ -460,7 +460,7 @@
     <Aliases value="_TimeStopAffectedActor" />
     <On Terms="StatusOn.*.TimeStopPaused" Send="AnimSetPausedAll" />
     <On Terms="StatusOff.*.TimeStopPaused" Send="AnimSetPausedAll 0" />
-    <On Terms="Behavior.AmazonHeroWeaponChargedStrikesActive.On" Send="Create" />
+    <On Terms="Effect.AmazonChargedStrikesFXModifyUnit.Start; At Caster; ValidateEffect AmazonHeroWeaponChargedStrikesIsActive" Send="Create" />
     <On Terms="Behavior.AmazonHeroWeaponChargedStrikesActive.Off" Send="AnimBracketStop BSD" />
     <On Terms="ActorCreation" Send="Create AmazonHeroWeaponChargedStrikesActivateSound" />
     <On Terms="Behavior.*.On; BehaviorCategory DebuffBlind" Send="SetOpacity 0.000000 0.000000 BlindedOpacity" />
@@ -946,12 +946,20 @@
     <SortIndex value="10" />
   </CBehaviorTokenCounter>
   <CBehaviorTokenCounter id="AmazonChargedStrikesTokenCounter" parent="StormGenericToken">
+    <Alignment value="Positive" />
+    <InfoIcon value="Assets\Textures\storm_ui_icon_cassia_new_chargedstrikes.dds" />
+    <MinStackCountDisplayed value="1" />
+    <Min value="1" />
     <Max value="3" />
-    <AtMaxEvents Effect="AmazonChargedStrikesResetTokens" />
-    <DeltaEvents>
-      <Event Effect="AmazonHeroWeaponChargedStrikesApplyBehavior" />
-    </DeltaEvents>
+    <AtMinEvents Effect="AmazonChargedStrikesRemoveActive" />
+    <AtMaxEvents Effect="AmazonHeroWeaponChargedStrikesApplyBehavior" />
+    <SortIndex value="5" />
   </CBehaviorTokenCounter>
+  <CBehaviorBuff id="AmazonHeroWeaponChargedStrikesActive" parent="CarryBehaviorParent">
+    <InitialEffect value="AmazonChargedStrikesFXPersistent" />
+    <FinalEffect value="AmazonChargedStrikesDestroyFXPersistent" />
+  </CBehaviorBuff>
+  <CBehaviorBuff id="AmazonChargedStrikesMissileBehavior" />
   <CBehaviorBuff id="AmazonFendChanneling">
     <BehaviorCategories index="Restorable" value="1" />
     <DisplayDuration index="Self" value="1" />
@@ -1883,15 +1891,46 @@
   <CEffectApplyBehavior id="AmazonHeroWeaponChargedStrikesApplyBehavior">
     <Behavior value="AmazonHeroWeaponChargedStrikesActive" />
   </CEffectApplyBehavior>
-  <CEffectCreatePersistent id="AmazonHeroWeaponChargedStrikesDelayPersistent">
-    <WhichLocation Value="TargetUnit" />
+  <CEffectRemoveBehavior id="AmazonChargedStrikesRemoveActive">
+    <WhichUnit Value="Caster" />
+    <BehaviorLink value="AmazonHeroWeaponChargedStrikesActive" />
+  </CEffectRemoveBehavior>
+  <CEffectApplyBehavior id="AmazonChargedStrikesApplyMissileBehavior">
     <ValidatorArray value="AmazonHeroWeaponChargedStrikesIsActive" />
-    <PeriodCount value="1" />
-    <PeriodicEffectArray value="AmazonHeroWeaponChargedStrikesSearchArea" />
-    <PeriodicPeriodArray value="0.0625" />
-    <PeriodicValidator value="TargetNotDeadAndNoSpecialDeathState" />
+    <WhichUnit Value="Source" />
+    <Behavior value="AmazonChargedStrikesMissileBehavior" />
+  </CEffectApplyBehavior>
+  <CEffectSwitch id="AmazonChargedStrikesSwitch">
+    <ValidatorArray value="AmazonHeroWeaponChargedStrikesHasTalent" />
+    <CaseArray Validator="AmazonChargedStrikesLTMaxStacks" Effect="AmazonChargedStrikesAddToken" />
+    <CaseDefault value="AmazonChargedStrikesResetTokens" />
+  </CEffectSwitch>
+  <CEffectCreatePersistent id="AmazonChargedStrikesFXPersistent">
+    <ExpireDelay value="0.1875" />
+    <ExpireEffect value="AmazonChargedStrikesFXModifyUnit" />
+    <TimeScaleSource Value="Caster" />
+    <WhichLocation Value="Caster" />
   </CEffectCreatePersistent>
+  <CEffectModifyUnit id="AmazonChargedStrikesFXModifyUnit">
+    <ValidatorArray value="AmazonHeroWeaponChargedStrikesIsActive" />
+    <ImpactUnit Value="Caster" />
+  </CEffectModifyUnit>
+  <CEffectDestroyPersistent id="AmazonChargedStrikesDestroyFXPersistent">
+    <WhichLocation Value="CasterPoint" />
+    <Effect value="AmazonChargedStrikesFXPersistent" />
+    <Count value="1" />
+    <Radius value="0.25" />
+    <RequireCaster Value="Caster" />
+  </CEffectDestroyPersistent>
   <CEffectModifyUnit id="AmazonHeroWeaponChargedStrikesImpactDummy" />
+  <CEffectSet id="AmazonChargedStrikesMeleeSet">
+    <ValidatorArray value="AmazonHeroWeaponChargedStrikesIsActive" />
+    <EffectArray value="AmazonHeroWeaponChargedStrikesSearchArea" />
+  </CEffectSet>
+  <CEffectSet id="AmazonChargedStrikesRangedSet">
+    <ValidatorArray value="AmazonSourceIsAmazonHeroWeaponMissileAndHasChargedStrikesMissileMarker" />
+    <EffectArray value="AmazonHeroWeaponChargedStrikesSearchArea" />
+  </CEffectSet>
   <CEffectEnumArea id="AmazonHeroWeaponChargedStrikesSearchArea">
     <ExcludeArray Value="Target" />
     <SearchFilters value="Heroic,Visible;Self,Player,Ally,Neutral,Missile,Item,Stasis,Dead,Hidden,Invulnerable,Benign" />
@@ -1899,52 +1938,58 @@
       <Radius value="3.5" />
     </AreaArray>
     <SearchFlags index="ExtendByUnitRadius" value="1" />
-    <ValidatorArray value="CasterNotBlindedAndTargetNotEvading" />
-    <ValidatorArray value="AmazonHeroWeaponChargedStrikesIsActive" />
+    <ValidatorArray value="TargetNotEvading" />
   </CEffectEnumArea>
   <CEffectSet id="AmazonHeroWeaponChargedStrikesImpactSet">
     <EffectArray value="AmazonHeroWeaponChargedStrikesImpactDummy" />
     <EffectArray value="AmazonChargedStrikesDamageSet" />
-    <ValidatorArray value="TargetNotDead" />
-    <ValidatorArray value="TargetNotEvading" />
-  </CEffectSet>
-  <CEffectSet id="AmazonHeroWeaponDamageSet">
-    <EffectArray value="UniversalWeaponImpact" />
-    <EffectArray value="AmazonHeroWeaponDamageSwitch" />
-    <EffectArray value="AmazonMartialLawDamageSet" />
   </CEffectSet>
   <CEffectSet id="AmazonChargedStrikesDamageSet">
     <EffectArray value="UniversalWeaponImpact" />
+    <EffectArray value="AmazonChargedStrikesPreImpactSet" />
     <EffectArray value="AmazonChargedStrikesWeaponDamageSwitch" />
-    <EffectArray value="AmazonMartialLawDamageSet" />
+    <EffectArray value="AmazonChargedStrikesPostImpactSet" />
     <EffectArray value="UniversalWeaponPostImpactSet" />
   </CEffectSet>
+  <CEffectSet id="AmazonChargedStrikesPreImpactSet">
+    <EffectArray value="AmazonMartialLawDamageSet" />
+  </CEffectSet>
+  <CEffectSet id="AmazonChargedStrikesPostImpactSet" />
   <CEffectSet id="AmazonHeroWeaponSharedImpactSet">
-    <EffectArray value="AmazonHeroWeaponChargedStrikesSearchArea" />
-    <EffectArray value="AmazonHeroWeaponDamageSet" />
+    <EffectArray value="UniversalWeaponImpact" />
+    <EffectArray value="AmazonWeaponPrimaryPreImpactSet" />
+    <EffectArray value="AmazonHeroWeaponDamageSwitch" />
+    <EffectArray value="AmazonWeaponPrimaryPostImpactSet" />
+  </CEffectSet>
+  <CEffectSet id="AmazonWeaponPrimaryPreImpactSet">
     <EffectArray value="AmazonBlindingLightSeraphsHymnModifyCooldown" />
     <EffectArray value="AmazonBlindingLightSeraphsHymnCreateManaHealer" />
-    <EffectArray value="AmazonChargedStrikesTokenGrantDelayCreateDummyPersistent" />
+    <EffectArray value="AmazonMartialLawDamageSet" />
   </CEffectSet>
+  <CEffectSet id="AmazonWeaponPrimaryPostImpactSet" />
   <CEffectModifyUnit id="AmazonHeroWeaponMeleeImpactDummy" />
   <CEffectSet id="AmazonHeroWeaponMeleeImpactSet">
-    <EffectArray value="AmazonHeroWeaponSharedImpactSet" />
     <EffectArray value="AmazonHeroWeaponMeleeImpactDummy" />
+    <EffectArray value="AmazonHeroWeaponSharedImpactSet" />
+    <EffectArray value="AmazonChargedStrikesMeleeSet" />
     <EffectArray value="UniversalWeaponPostImpactSet" />
   </CEffectSet>
   <CEffectModifyUnit id="AmazonHeroWeaponRangedImpactDummy" />
   <CEffectSet id="AmazonHeroWeaponMeleeInitialSet">
     <EffectArray value="UniversalWeaponLaunchSet" />
     <EffectArray value="AmazonHeroWeaponMeleeImpactSet" />
+    <EffectArray value="AmazonChargedStrikesSwitch" />
   </CEffectSet>
   <CEffectSet id="AmazonHeroWeaponRangedImpactSet">
-    <EffectArray value="AmazonHeroWeaponSharedImpactSet" />
     <EffectArray value="AmazonHeroWeaponRangedImpactDummy" />
+    <EffectArray value="AmazonHeroWeaponSharedImpactSet" />
+    <EffectArray value="AmazonChargedStrikesRangedSet" />
     <EffectArray value="UniversalWeaponPostImpactSet" />
   </CEffectSet>
   <CEffectSet id="AmazonHeroWeaponRangedInitialSet">
     <EffectArray value="UniversalWeaponLaunchSet" />
     <EffectArray value="AmazonHeroWeaponLaunchMissile" />
+    <EffectArray value="AmazonChargedStrikesSwitch" />
   </CEffectSet>
   <CEffectDamage id="AmazonLightningFuryLightningDamage" parent="AmazonSpellDamageParent">
     <Amount value="158" />
@@ -2562,7 +2607,7 @@
   <CEffectDamage id="AmazonHeroWeaponDamage" parent="StormWeapon">
     <MultiplicativeModifierArray index="TargetBlinded" Validator="TargetIsBlinded" Modifier="0.15" Crit="1" />
     <MultiplicativeModifierArray index="SeraphsHymn" Validator="AmazonBlindingLightSeraphsHymnHasTalentAndTargetIsBlinded" Modifier="0.15" />
-    <MultiplicativeModifierArray index="ChargedStrikes" Validator="AmazonHeroWeaponChargedStrikesIsActive" Modifier="0.2" Crit="1" />
+    <MultiplicativeModifierArray index="ChargedStrikes" Validator="AmazonHeroWeaponChargedStrikesIsActiveCombine" Modifier="0.2" Crit="1" />
     <MultiplicativeModifierArray index="TitansRevenge" Validator="AmazonAvoidanceIsMaxedAndHasTitansRevenge" Modifier="0.2" Crit="1" />
     <Amount value="125" />
     <LeechFraction index="Life" value="0.2" />
@@ -2580,7 +2625,7 @@
   <CEffectDamage id="AmazonChargedStrikesWeaponDamage" parent="StormWeapon">
     <MultiplicativeModifierArray index="TargetBlinded" Validator="TargetIsBlinded" Modifier="0.15" Crit="1" />
     <MultiplicativeModifierArray index="SeraphsHymn" Validator="AmazonBlindingLightSeraphsHymnHasTalentAndTargetIsBlinded" Modifier="0.15" />
-    <MultiplicativeModifierArray index="ChargedStrikes" Validator="AmazonHeroWeaponChargedStrikesIsActive" Modifier="0.2" Crit="1" />
+    <MultiplicativeModifierArray index="ChargedStrikes" Modifier="0.2" Crit="1" />
     <MultiplicativeModifierArray index="TitansRevenge" Validator="AmazonAvoidanceIsMaxedAndHasTitansRevenge" Modifier="0.2" Crit="1" />
     <Amount value="125" />
     <SourceButtonFace value="Attack" />
@@ -2591,6 +2636,7 @@
   </CEffectDamage>
   <CEffectLaunchMissile id="AmazonHeroWeaponLaunchMissile">
     <ValidatorArray index="0" value="TargetNotDead" />
+    <LaunchEffect value="AmazonChargedStrikesApplyMissileBehavior" />
     <ImpactEffect value="AmazonHeroWeaponRangedImpactSet" />
     <AmmoUnit value="AmazonHeroWeaponMissile" />
   </CEffectLaunchMissile>
@@ -3685,11 +3731,44 @@
     <Value value="AmazonChargedStrikes" />
     <WhichPlayer Value="Caster" />
   </CValidatorPlayerTalent>
+  <CValidatorUnitCompareTokenCount id="AmazonChargedStrikesLTMaxStacks">
+    <Compare value="LT" />
+    <Value value="3" />
+    <TokenId value="AmazonChargedStrikesTokenCounter" />
+  </CValidatorUnitCompareTokenCount>
   <CValidatorUnitCompareBehaviorCount id="AmazonHeroWeaponChargedStrikesIsActive">
     <WhichUnit Value="Caster" />
     <Compare value="GT" />
     <Behavior value="AmazonHeroWeaponChargedStrikesActive" />
   </CValidatorUnitCompareBehaviorCount>
+  <CValidatorUnitType id="AmazonSourceIsNotAmazonAttackMissile">
+    <WhichUnit Value="Source" />
+    <Find value="0" />
+    <Value value="AmazonHeroWeaponMissile" />
+  </CValidatorUnitType>
+  <CValidatorUnitCompareBehaviorCount id="AmazonSourceHasChargedStrikesMissileMarker">
+    <WhichUnit Value="Source" />
+    <Compare value="GT" />
+    <Behavior value="AmazonChargedStrikesMissileBehavior" />
+  </CValidatorUnitCompareBehaviorCount>
+  <CValidatorUnitType id="AmazonSourceIsAmazonAttackMissile">
+    <WhichUnit Value="Source" />
+    <Value value="AmazonHeroWeaponMissile" />
+  </CValidatorUnitType>
+  <CValidatorCombine id="AmazonHeroWeaponChargedStrikesIsActiveCombine">
+    <CombineArray value="AmazonSourceIsNotAmazonHeroWeaponMissileHasChargedStrikesActive" />
+    <CombineArray value="AmazonSourceIsAmazonHeroWeaponMissileAndHasChargedStrikesMissileMarker" />
+  </CValidatorCombine>
+  <CValidatorCombine id="AmazonSourceIsNotAmazonHeroWeaponMissileHasChargedStrikesActive">
+    <Type value="And" />
+    <CombineArray value="AmazonSourceIsNotAmazonAttackMissile" />
+    <CombineArray value="AmazonHeroWeaponChargedStrikesIsActive" />
+  </CValidatorCombine>
+  <CValidatorCombine id="AmazonSourceIsAmazonHeroWeaponMissileAndHasChargedStrikesMissileMarker">
+    <Type value="And" />
+    <CombineArray value="AmazonSourceIsAmazonAttackMissile" />
+    <CombineArray value="AmazonSourceHasChargedStrikesMissileMarker" />
+  </CValidatorCombine>
   <CValidatorCombine id="AmazonHeroWeaponTargetBlindedOrHasChargedStrikesActive">
     <CombineArray value="TargetIsBlinded" />
     <CombineArray value="AmazonHeroWeaponChargedStrikesIsActive" />

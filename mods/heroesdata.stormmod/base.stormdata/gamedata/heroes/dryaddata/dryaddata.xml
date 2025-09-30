@@ -210,7 +210,7 @@
   <CActorSound id="DryadGallopingGaitEndSound" parent="SoundOneShot">
     <Sound value="Dryad_GallopingGate_End" />
   </CActorSound>
-  <CActorAction id="DryadHeroMeleeWeaponActionActor" parent="MeleeHeroAttack" effectLaunch="DryadHeroWeaponMeleeSet">
+  <CActorAction id="DryadHeroMeleeWeaponActionActor" parent="MeleeHeroAttack" effectLaunch="DryadWeaponMeleeImpactDummy">
     <ImpactMap index="None" Sound="Dryad_Attack_Melee_Impact" />
   </CActorAction>
   <CActorSound id="DryadRangedWeaponLaunchSound" parent="SoundOneShot">
@@ -440,7 +440,7 @@
   <CActorSplat id="DryadNoxiousBlossomCursorSplat" parent="StormGuideVisualCircle" abil="DryadNoxiousBlossom">
     <Model value="DryadNoxiousBlossomCursorSplat" />
   </CActorSplat>
-  <CActorAction id="DryadHeroWeaponActionActorSplinteredSpearMastery" parent="RangedHeroAttack" effectImpact="DryadHeroWeaponImpactSetSplinteredSpearMastery" effectLaunch="DryadHeroWeaponLaunchMissileSplinteredSpearMastery">
+  <CActorAction id="DryadHeroWeaponActionActorSplinteredSpearMastery" parent="RangedHeroAttackMissile" effectImpact="DryadHeroWeaponDamageSplinteredSpearMastery" effectLaunch="DryadHeroWeaponLaunchMissileSplinteredSpearMastery">
     <LaunchSiteOps Ops="SOpAttachWeapon" />
     <LaunchAssets Model="DryadHeroWeaponActionActorLaunch" Sound="" />
     <Missile value="DryadHeroWeaponMissileSplinteredSpearMastery" />
@@ -585,7 +585,7 @@
   <CActorSplat id="DryadLeapingStrikeRangeSplat" parent="StormRangeSplat" abil="DryadLeapingStrike">
     <Scale value="6.500000" />
   </CActorSplat>
-  <CActorAction id="DryadHeroWeaponActionActor" parent="RangedHeroAttack" effectImpact="DryadHeroWeaponImpactSet" effectLaunch="DryadHeroWeaponLaunchMissile">
+  <CActorAction id="DryadHeroWeaponActionActor" parent="RangedHeroAttackMissile" effectImpact="DryadHeroWeaponDamage" effectLaunch="DryadHeroWeaponLaunchMissile">
     <LaunchSiteOps Ops="SOpAttachWeapon" />
     <Missile value="DryadHeroWeaponMissile" />
     <ImpactMap index="None" Model="DryadHeroWeaponImpact" Sound="Dryad_Attack_Ranged_Impact" />
@@ -1008,7 +1008,7 @@
   </CActorSound>
   <CActorModel id="DryadCripplingSporesWildVigorImpactFX" parent="StormModelAnimationStyleOneShotUnit">
     <Remove Terms="ActorOrphan" Send="AnimBracketStop BSD" />
-    <On Terms="Effect.DryadWildVigorDummySet.Start; At Target" Send="Create" />
+    <On Terms="Effect.DryadHeroWeaponImpactSet.Start; At Target; ValidateEffect DryadWildVigorIsActiveCritCombine" Send="Create" />
     <On Terms="ActorCreation" Send="Create CripplingSporesWildVigorImpactSound" />
     <HostSiteOps Ops="SOpAttachCenter" />
   </CActorModel>
@@ -1143,18 +1143,7 @@
     <Face value="DryadWildVigorTalent" />
     <SortIndex value="75" />
   </CBehaviorBuff>
-  <CBehaviorBuff id="DryadWildVigorDamageBuff">
-    <Aliases value="RangedDamageCrit" />
-    <BehaviorCategories index="BuffAutoattackDPS" value="1" />
-    <DamageResponse Chance="1" Handled="DryadWildVigorDummySet" Location="Attacker">
-      <Kind index="Ability" value="0" />
-      <ProvideCategories index="Proc" value="1" />
-    </DamageResponse>
-    <RemoveValidatorArray value="DryadHasWildVigorStacks" />
-    <Modification>
-      <DamageDealtFraction index="Basic" value="0.7" />
-    </Modification>
-  </CBehaviorBuff>
+  <CBehaviorBuff id="DryadWildVigorMissileMarker" />
   <CBehaviorBuff id="DryadCripplingSporesCruelSporesMastery">
     <Duration value="0.125" />
     <InitialEffect value="DryadCripplingSporesCreateCruelSporesMasteryDelayPersistent" />
@@ -1767,13 +1756,17 @@
     <EffectArray value="DryadDryadsSwiftnessApplyWeaponSuppression" />
   </CEffectSet>
   <CEffectSet id="DryadHeroWeaponMeleeLaunchSet">
+    <EffectArray value="DryadWeaponMeleeImpactDummy" />
     <EffectArray value="DryadHeroWeaponDryadSpecialCaseUniversalLaunchSet" />
     <EffectArray value="DryadHeroWeaponSplinteredSpearMeleePersistent" />
     <EffectArray value="DryadHippityHopAutoAttackDisableApplyBehavior" />
   </CEffectSet>
+  <CEffectModifyUnit id="DryadWeaponMeleeImpactDummy" />
   <CEffectSet id="DryadHeroWeaponMeleeSet">
+    <EffectArray value="UniversalWeaponLaunchSet" />
     <EffectArray value="DryadHeroWeaponMeleeLaunchSet" />
     <EffectArray value="DryadHeroWeaponImpactSet" />
+    <EffectArray value="DryadCripplingSporesRemoveWildVigorMasteryBehavior" />
   </CEffectSet>
   <CEffectApplyBehavior id="DryadAbolishMagicApplyRelentlessCaster">
     <WhichUnit Value="Caster" />
@@ -1940,10 +1933,6 @@
     <Behavior value="DryadWildVigorActive" />
     <Count value="4" />
   </CEffectApplyBehavior>
-  <CEffectApplyBehavior id="DryadCripplingSporesApplyWildVigorMasteryDamageBuffBehavior">
-    <WhichUnit Value="Caster" />
-    <Behavior value="DryadWildVigorDamageBuff" />
-  </CEffectApplyBehavior>
   <CEffectSet id="DryadCripplingSporesCruelSporesMasteryProcSet">
     <ValidatorArray value="DryadHasCruelSpores" />
     <EffectArray value="DryadCripplingSporesCruelSporesMasteryRestoreMana" />
@@ -1956,15 +1945,18 @@
   <CEffectSet id="DryadCripplingSporesWildVigorMasterySet">
     <Chance value="0" />
     <EffectArray value="DryadCripplingSporesApplyWildVigorMasteryStackBehavior" />
-    <EffectArray value="DryadCripplingSporesApplyWildVigorMasteryDamageBuffBehavior" />
   </CEffectSet>
   <CEffectRemoveBehavior id="DryadCripplingSporesRemoveWildVigorMasteryBehavior">
     <Chance value="0" />
     <WhichUnit Value="Caster" />
     <BehaviorLink value="DryadWildVigorActive" />
     <Count value="1" />
-    <ValidatorArray value="CasterNotBlindedAndTargetNotEvading" />
   </CEffectRemoveBehavior>
+  <CEffectApplyBehavior id="DryadWildVigorApplyMarkerToSource">
+    <ValidatorArray value="DryadCasterHasWildVigorStacks" />
+    <WhichUnit Value="Source" />
+    <Behavior value="DryadWildVigorMissileMarker" />
+  </CEffectApplyBehavior>
   <CEffectApplyBehavior id="DryadCripplingSporesApplyCruelSporesMastery">
     <Chance value="0" />
     <WhichUnit Value="Caster" />
@@ -2026,14 +2018,19 @@
   <CEffectDamage id="DryadHeroWeaponDamageSplinteredSpearMastery" parent="StormWeapon">
     <Marker Link="Effect/DryadHeroWeaponDamage" />
     <Amount value="90" />
+    <MultiplicativeModifierArray index="WildVigor" Validator="DryadWildVigorIsActiveCritCombine" Modifier="0.7" Crit="1" />
     <SourceButtonFace value="DryadSplinteredSpearTalent" />
   </CEffectDamage>
   <CEffectSet id="DryadHeroWeaponImpactSetSplinteredSpearMastery">
     <EffectArray value="UniversalWeaponImpact" />
+    <EffectArray value="DryadSplinteredSpreadPreImpactSet" />
     <EffectArray value="DryadHeroWeaponDamageSplinteredSpearMastery" />
+    <EffectArray value="DryadSplinteredSpreadPostImpactSet" />
     <EffectArray value="DryadNaturesToxinDebuffSetWeapon" />
     <EffectArray value="UniversalWeaponPostImpactSet" />
   </CEffectSet>
+  <CEffectSet id="DryadSplinteredSpreadPreImpactSet" />
+  <CEffectSet id="DryadSplinteredSpreadPostImpactSet" />
   <CEffectSet id="DryadSplinteredSpearMissileLaunchSet">
     <ValidatorArray value="noMarkers" />
     <EffectArray value="DryadHeroWeaponLaunchMissileSplinteredSpearMastery" />
@@ -2051,6 +2048,7 @@
   </CEffectLaunchMissile>
   <CEffectSet id="DryadHeroWeaponSplinteredSpearMasteryLaunchSet">
     <EffectArray value="DryadHeroWeaponDryadSpecialCaseUniversalLaunchSet" />
+    <EffectArray value="DryadWildVigorApplyMarkerToSource" />
   </CEffectSet>
   <CEffectCreatePersistent id="DryadHeroWeaponSplinteredSpearRangedPersistent">
     <ValidatorArray value="DryadDoesNotHave0SplinteredSpearTokens" />
@@ -2480,20 +2478,29 @@
   </CEffectRemoveBehavior>
   <CEffectDamage id="DryadHeroWeaponDamage" parent="StormWeapon">
     <Amount value="90" />
+    <MultiplicativeModifierArray index="WildVigor" Validator="DryadWildVigorIsActiveCritCombine" Modifier="0.7" Crit="1" />
   </CEffectDamage>
   <CEffectSet id="DryadHeroWeaponBaseInitialSet">
+    <EffectArray value="UniversalWeaponLaunchSet" />
     <EffectArray value="DryadHeroWeaponLaunchMissile" />
     <EffectArray value="DryadHeroWeaponLaunchSet" />
+    <EffectArray value="DryadCripplingSporesRemoveWildVigorMasteryBehavior" />
   </CEffectSet>
   <CEffectSet id="DryadHeroWeaponStarwoodMasteryInitialSet">
+    <EffectArray value="UniversalWeaponLaunchSet" />
     <EffectArray value="DryadHeroWeaponLaunchMissile" />
     <EffectArray value="DryadHeroWeaponLaunchSet" />
+    <EffectArray value="DryadCripplingSporesRemoveWildVigorMasteryBehavior" />
   </CEffectSet>
   <CEffectLaunchMissile id="DryadHeroWeaponLaunchMissile">
+    <LaunchEffect value="DryadHeroWeaponRangedLaunchSet" />
     <ImpactEffect value="DryadHeroWeaponImpactSet" />
     <AmmoUnit value="DryadHeroWeaponMissile" />
     <SharedFlags index="ValidateWeapon" value="0" />
   </CEffectLaunchMissile>
+  <CEffectSet id="DryadHeroWeaponRangedLaunchSet">
+    <EffectArray value="DryadWildVigorApplyMarkerToSource" />
+  </CEffectSet>
   <CEffectSet id="DryadHeroWeaponLaunchSet">
     <EffectArray value="DryadHeroWeaponDryadSpecialCaseUniversalLaunchSet" />
     <EffectArray value="DryadHeroWeaponSplinteredSpearRangedPersistent" />
@@ -2501,16 +2508,19 @@
   </CEffectSet>
   <CEffectSet id="DryadHeroWeaponImpactSet">
     <EffectArray value="UniversalWeaponImpact" />
-    <EffectArray value="DryadSwiftBlossomApplyBehavior" />
-    <EffectArray value="DryadDeadlyBlossomDamage" />
-    <EffectArray value="DryadCripplingSporesRemoveWildVigorMasteryBehavior" />
+    <EffectArray value="DryadWeaponPreImpactSet" />
     <EffectArray value="DryadHeroWeaponDamage" />
-    <EffectArray value="DryadPercentMaxHealthDamageInvigoratingSpores" />
+    <EffectArray value="DryadWeaponPostImpactSet" />
     <EffectArray value="DryadNaturesToxinDebuffSetWeapon" />
     <EffectArray value="UniversalWeaponPostImpactSet" />
   </CEffectSet>
+  <CEffectSet id="DryadWeaponPreImpactSet">
+    <EffectArray value="DryadSwiftBlossomApplyBehavior" />
+    <EffectArray value="DryadDeadlyBlossomDamage" />
+    <EffectArray value="DryadPercentMaxHealthDamageInvigoratingSpores" />
+  </CEffectSet>
+  <CEffectSet id="DryadWeaponPostImpactSet" />
   <CEffectSet id="DryadHeroWeaponDryadSpecialCaseUniversalLaunchSet">
-    <EffectArray value="UniversalWeaponLaunchSet" />
     <EffectArray value="DryadSpecialCaseAbilityUseDismountDecloakSet" />
   </CEffectSet>
   <CEffectEnumTrackedUnits id="DryadCripplingSporesSearch">
@@ -4086,6 +4096,39 @@
     <Compare value="GT" />
     <Behavior value="DryadWildVigorActive" />
   </CValidatorUnitCompareBehaviorCount>
+  <CValidatorUnitCompareBehaviorCount id="DryadCasterHasWildVigorStacks">
+    <WhichUnit Value="Caster" />
+    <Compare value="GT" />
+    <Behavior value="DryadWildVigorActive" />
+  </CValidatorUnitCompareBehaviorCount>
+  <CValidatorUnitCompareBehaviorCount id="DryadSourceHasWildVigorMarker">
+    <WhichUnit Value="Source" />
+    <Compare value="GT" />
+    <Behavior value="DryadWildVigorMissileMarker" />
+  </CValidatorUnitCompareBehaviorCount>
+  <CValidatorUnitType id="DryadSourceIsDryadAttackMissile">
+    <WhichUnit Value="Source" />
+    <Value value="DryadHeroWeaponMissile" />
+  </CValidatorUnitType>
+  <CValidatorUnitType id="DryadSourceIsNotDryadAttackMissile">
+    <WhichUnit Value="Source" />
+    <Find value="0" />
+    <Value value="DryadHeroWeaponMissile" />
+  </CValidatorUnitType>
+  <CValidatorCombine id="DryadWildVigorIsActiveCritCombine">
+    <CombineArray value="DryadSourceIsNotDryadAttackMissileHasWildVigorStacks" />
+    <CombineArray value="DryadSourceIsDryadAttackMissileSourceHasWildVigorMarker" />
+  </CValidatorCombine>
+  <CValidatorCombine id="DryadSourceIsNotDryadAttackMissileHasWildVigorStacks">
+    <Type value="And" />
+    <CombineArray value="DryadSourceIsNotDryadAttackMissile" />
+    <CombineArray value="DryadCasterHasWildVigorStacks" />
+  </CValidatorCombine>
+  <CValidatorCombine id="DryadSourceIsDryadAttackMissileSourceHasWildVigorMarker">
+    <Type value="And" />
+    <CombineArray value="DryadSourceIsDryadAttackMissile" />
+    <CombineArray value="DryadSourceHasWildVigorMarker" />
+  </CValidatorCombine>
   <CValidatorPlayerTalent id="DryadHasChokingPollenTalent">
     <WhichPlayer Value="Caster" />
     <Find value="1" />

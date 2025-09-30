@@ -49,12 +49,6 @@
     <DamageModifierSource Value="Creator" />
     <Kind value="Ability" />
   </CEffectDamage>
-  <CEffectDamage id="StormSummonedWeaponPhysicalDamageDummy" parent="StormDamage">
-    <ImpactLocation Value="TargetUnit" History="Unknown" />
-    <Flags index="NoFractionDealtBonus" value="1" />
-    <Amount value="0.001" />
-    <FloaterCreation value="Suppress" />
-  </CEffectDamage>
   <CEffectDamage default="1" id="StormSpellNoTowerAggro" parent="StormSpell">
     <ResponseExclusionFlags index="Enhancement" value="1" />
   </CEffectDamage>
@@ -157,6 +151,42 @@
       <RevealFlags index="Unfog" value="1" />
     </RevealerParams>
   </CEffectEnumArea>
+  <CEffectSet default="1" id="StormSummonedUnitAddAttackTargetSet">
+    <?token id="behaviorRemoveEffect" type="CEffectLink" value="Bogus"?>
+    <EffectArray value="StormSummonedUnitAddTargetToTracker" />
+    <EffectArray value="##behaviorRemoveEffect##" />
+    <EffectArray value="StormSummonedUnitClearTrackedTargets" />
+  </CEffectSet>
+  <CEffectEnumTrackedUnits default="1" id="StormSummonedUnitEnumTrackedAttackUnit">
+    <BehaviorLink value="StormSummonedUnitTargetTracker" />
+    <TrackerUnit Value="Source" />
+  </CEffectEnumTrackedUnits>
+  <CEffectAddTrackedUnit default="1" id="StormSummonedUnitDamagedUnitTrackerAdd">
+    <BehaviorLink value="StormSummonedUnitDamagedUnitTracker" />
+    <TrackedUnit Value="Target" />
+  </CEffectAddTrackedUnit>
+  <CEffectApplyBehavior id="ApplyInspirationApplyBuff">
+    <ValidatorArray index="0" removed="1" />
+    <Behavior value="InspirationBuff" />
+  </CEffectApplyBehavior>
+  <CEffectEnumArea id="BuildingHitSearchArea">
+    <LaunchLocation Value="CasterUnit" />
+    <ImpactLocation Value="CasterUnit" />
+    <SearchFilters value="Minion;Player,Merc,Dead,Summoned,MapBoss" />
+    <AreaArray Effect="ApplyInspirationApplyBuff">
+      <Radius value="11" />
+    </AreaArray>
+  </CEffectEnumArea>
+  <CEffectDamage id="KillExperienceGlobe">
+    <ImpactLocation Value="CasterUnit" />
+    <Flags index="Kill" value="1" />
+  </CEffectDamage>
+  <CEffectDamage id="StormSummonedWeaponPhysicalDamageDummy" parent="StormDamage">
+    <ImpactLocation Value="TargetUnit" History="Unknown" />
+    <Flags index="NoFractionDealtBonus" value="1" />
+    <Amount value="0.001" />
+    <FloaterCreation value="Suppress" />
+  </CEffectDamage>
   <CEffectApplyBehavior id="StormRootSuppressMovementApply">
     <ValidatorArray value="StormTargetHasRootCombineIncludeDisabled" />
     <Behavior value="StormRootSuppressMoving" />
@@ -824,36 +854,41 @@
     <WhichUnit Value="Caster" />
     <Behavior value="HeroGenericExecutioner30DamageBuff" />
   </CEffectApplyBehavior>
-  <CEffectSet default="1" id="StormSummonedUnitAddAttackTargetSet">
-    <?token id="behaviorRemoveEffect" type="CEffectLink" value="Bogus"?>
-    <EffectArray value="StormSummonedUnitAddTargetToTracker" />
-    <EffectArray value="##behaviorRemoveEffect##" />
-    <EffectArray value="StormSummonedUnitClearTrackedTargets" />
-  </CEffectSet>
   <CEffectAddTrackedUnit id="StormSummonedUnitAddTargetToTracker">
     <BehaviorLink value="StormSummonedUnitTargetTracker" />
     <TrackedUnit Value="Target" />
   </CEffectAddTrackedUnit>
-  <CEffectEnumTrackedUnits default="1" id="StormSummonedUnitEnumTrackedAttackUnit">
-    <BehaviorLink value="StormSummonedUnitTargetTracker" />
-    <TrackerUnit Value="Source" />
-  </CEffectEnumTrackedUnits>
   <CEffectClearTrackedUnits id="StormSummonedUnitClearTrackedTargets">
     <BehaviorLink value="StormSummonedUnitTargetTracker" />
     <TrackerUnit Value="Source" />
   </CEffectClearTrackedUnits>
-  <CEffectAddTrackedUnit default="1" id="StormSummonedUnitDamagedUnitTrackerAdd">
-    <BehaviorLink value="StormSummonedUnitDamagedUnitTracker" />
-    <TrackedUnit Value="Target" />
-  </CEffectAddTrackedUnit>
-  <CEffectSet id="StormSummonedUnitDamagedUnitsEnableEffectSet">
-    <EffectArray value="StormSummonedUnitEnumDamagedUnits" />
+  <CEffectCreatePersistent default="1" id="StormSummonedUnitPhysicalDamageDealtPersistent">
+    <InitialEffect value="StormSummonedUnitPhysicalDamageDealtDummy" />
+  </CEffectCreatePersistent>
+  <CEffectModifyUnit id="StormSummonedUnitPhysicalDamageDealtDummy" />
+  <CEffectCreatePersistent default="1" id="StormSummonedUnitSpellDamageDealtPersistent">
+    <InitialEffect value="StormSummonedUnitSpellDamageDealtDummy" />
+  </CEffectCreatePersistent>
+  <CEffectModifyUnit id="StormSummonedUnitSpellDamageDealtDummy" />
+  <CEffectSet id="StormStummonedUnitEnumUnitsSetPhysicalDamage">
+    <EffectArray value="StormSummonedUnitEnumDamagedUnitsPhysical" />
     <EffectArray value="StormSummonedUnitClearDamagedUnit" />
   </CEffectSet>
-  <CEffectEnumTrackedUnits id="StormSummonedUnitEnumDamagedUnits">
+  <CEffectEnumTrackedUnits id="StormSummonedUnitEnumDamagedUnitsPhysical">
     <BehaviorLink value="StormSummonedUnitDamagedUnitTracker" />
-    <TrackerUnit Value="Source" />
-    <Effect value="StormSummonedUnitRevealDummy" />
+    <Effect value="StormSummonedUnitDamageImpactSetPhysical" />
+  </CEffectEnumTrackedUnits>
+  <CEffectSet id="StormSummonedUnitDamageImpactSetPhysical">
+    <EffectArray value="AbilityImpactRevealDummyDamage" />
+    <EffectArray value="StormSummonedUnitApplyImposingPresenceDamageResponseDebuffToCasterTriggerDummy" />
+  </CEffectSet>
+  <CEffectSet id="StormStummonedUnitEnumUnitsSetSpellDamage">
+    <EffectArray value="StormSummonedUnitEnumDamagedUnitsSpell" />
+    <EffectArray value="StormSummonedUnitClearDamagedUnit" />
+  </CEffectSet>
+  <CEffectEnumTrackedUnits id="StormSummonedUnitEnumDamagedUnitsSpell">
+    <BehaviorLink value="StormSummonedUnitDamagedUnitTracker" />
+    <Effect value="AbilityImpactRevealDummyDamage" />
   </CEffectEnumTrackedUnits>
   <CEffectClearTrackedUnits id="StormSummonedUnitClearDamagedUnit">
     <BehaviorLink value="StormSummonedUnitDamagedUnitTracker" />
@@ -933,6 +968,9 @@
     <ValidatorArray index="0" value="AttackSpeedSlowValidatorCombine" />
     <Behavior value="TalentImposingPresenceDamageResponseDebuff" />
   </CEffectApplyBehavior>
+  <CEffectModifyUnit id="StormSummonedUnitApplyImposingPresenceDamageResponseDebuffToCasterTriggerDummy">
+    <ValidatorArray value="TargetHasImposingPresenceCarry" />
+  </CEffectModifyUnit>
   <CEffectApplyBehavior id="TalentImposingPresenceApplyActivatedDebuff">
     <Behavior value="TalentImposingPresenceActivatedDebuff" />
     <ValidatorArray index="0" value="TargetIsSummonedOrHeroic" />
@@ -1862,6 +1900,11 @@
     <BehaviorLink value="AbilityImpactReveal" />
     <Count value="10" />
   </CEffectRemoveBehavior>
+  <CEffectRemoveBehavior id="AbilityImpactRevealRemoveCaster">
+    <BehaviorLink value="AbilityImpactReveal" />
+    <WhichUnit Value="Caster" />
+    <Count value="10" />
+  </CEffectRemoveBehavior>
   <CEffectDamage id="AbilityImpactRevealDummyDamage">
     <Visibility value="Visible" />
     <Flags index="NoBehaviorResponse" value="1" />
@@ -1916,6 +1959,7 @@
   <CEffectSet id="HearthstoneSpecialCaseSet">
     <EffectArray value="ChenHearthstoneBrewRestore" />
     <EffectArray value="ZeratulVorpalBladeRemoveBehaviorCaster" />
+    <EffectArray value="RexxarHearthstoneMishaEnum" />
   </CEffectSet>
   <CEffectIssueOrder id="MountIssueOrder">
     <ValidatorArray value="CasterHasMountAbility" />
@@ -5147,6 +5191,7 @@
     <ImpactLocation Value="TargetUnit" />
     <CasterHistory value="Damage" />
     <SourceButtonFace value="GhostShipCannonBombard" />
+    <MultiplicativeModifierArray index="CoreOrKeep" Validator="TargetUnitTypeIsCoreOrKeepTypes" Modifier="-0.2" />
   </CEffectDamage>
   <CEffectEnumArea id="BattleshipBombardImpactSearchArea">
     <SearchFilters value="-;Self,Player,Ally,Neutral,Creep,ImmuneToAOE,Missile,Item,Invulnerable" />

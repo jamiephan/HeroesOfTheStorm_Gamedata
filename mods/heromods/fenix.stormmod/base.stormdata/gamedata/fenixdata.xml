@@ -7,6 +7,8 @@
   <const id="$FenixInhibitingEnergySlowMultiplierPerStep75PercentCCReduction" value="/($FenixInhibitingEnergySlowMultiplierPerStep 0.25)" evaluateAsExpression="1" />
   <const id="$FenixInhibitingEnergySlowAmount" value="negate($FenixInhibitingEnergySlowAmountPos)" evaluateAsExpression="1" />
   <const id="$FenixArsenalOverchargeCDRAmount" value="-0.5" />
+  <const id="$FenixMobileOffenseModifier" value="0.35" />
+  <const id="$FenixArsenalSynergyModifier" value="1.5" />
   <CAbilEffectInstant id="FenixPlanetCrackerCancel">
     <Effect value="FenixPlanetCrackerCancelSet" />
     <Flags index="Transient" value="1" />
@@ -492,7 +494,7 @@
   <CActorMissile id="FenixHeroWeaponPhaseBombMissile" parent="StormMissileWithDeathEarly" unitName="FenixHeroWeaponPhaseBombMissile">
     <On Terms="ActorCreation" Send="AnimPlay GL_BSD GLstand PlayForever,RandomStartOffset" />
     <On Terms="ActorCreation" Send="Create FenixPhaseBombLaunchSound" />
-    <On Terms="ActorCreation; ValidatePlayer FenixHasPhaseBombArsenalSynergyBehavior 1" Send="ModelSwap FenixHeroWeaponPhaseBombArsenalSynergyMissile" />
+    <On Terms="Effect.FenixArsenalSynergyApplyBuffSource.Start" Send="ModelSwap FenixHeroWeaponPhaseBombArsenalSynergyMissile" />
     <ModelFlags index="AutomateGlobalLoops" value="0" />
   </CActorMissile>
   <CActorUnit id="HeroFenix" parent="StormHeroStandard" unitName="HeroFenix">
@@ -733,12 +735,12 @@
   </CActorModel>
   <CActorModel id="FenixHeroWeaponPhaseBombMissileImpact" parent="StormModelAnimationStyleOneShotUnit">
     <On Terms="Effect.FenixHeroPhaseBombSplashDamage.Start; At Target" Send="Create" />
-    <On Terms="ActorCreation; ValidatePlayer FenixHasGE3ArsenalSynergyTokens 1" Send="ModelSwap FenixHeroWeaponPhaseBombArsenalSynergyMissileImpact" />
+    <On Terms="ActorCreation; ValidateCreationEffect FenixSourceHasPhaseBombArsenalSynergyBehavior" Send="ModelSwap FenixHeroWeaponPhaseBombArsenalSynergyMissileImpact" />
     <HostSiteOps Ops="SOpAttachCenter" />
   </CActorModel>
   <CActorModel id="FenixHeroWeaponPhaseBombSplashSearch" parent="StormModelAnimationStyleOneShot">
     <On Terms="Effect.FenixHeroWeaponPhaseBombMissileImpactSet.Start; At Target" Send="Create" />
-    <On Terms="ActorCreation; ValidatePlayer FenixHasPhaseBombArsenalSynergyBehavior 1" Send="ModelSwap FenixHeroWeaponPhaseBombArsenalSynergySplashSearch" />
+    <On Terms="ActorCreation; ValidateCreationEffect FenixSourceHasPhaseBombArsenalSynergyBehavior" Send="ModelSwap FenixHeroWeaponPhaseBombArsenalSynergySplashSearch" />
     <HostSiteOps Ops="SOpAttachOrigin SOpMoveUpBy1 SOpMoveUpByDot25" HoldPosition="1" HoldRotation="1" />
   </CActorModel>
   <CActorModel id="FenixWarpWarpingOutFX" parent="StormModelAnimationStyleContinuousUnit">
@@ -991,6 +993,7 @@
     <Face value="FenixInhibitingEnergy" />
     <InfoFlags index="Hidden" value="0" />
   </CBehaviorBuff>
+  <CBehaviorBuff id="FenixPhaseBombInhibitingEnergyMissileBehavior" />
   <CBehaviorAbility id="FenixUnconqueredSpiritItem">
     <Buttons Face="FenixUnconqueredSpirit" Type="AbilCmd" AbilCmd="FenixUnconqueredSpirit,Execute" />
   </CBehaviorAbility>
@@ -1064,6 +1067,7 @@
     <ExpireEffect value="FenixPhaseBombArsenalSynergyDecrementToken" />
     <BuffFlags index="RefreshStack" value="1" />
   </CBehaviorBuff>
+  <CBehaviorBuff id="FenixPhaseBombArsenalSynergyMissileBehavior" />
   <CBehaviorBuff id="FenixChargeUpBehavior" />
   <CBehaviorBuff id="FenixAdaniumShellBehavior" parent="StormArmor">
     <Alignment value="Positive" />
@@ -1386,6 +1390,7 @@
   <CBehaviorBuff id="FenixMobileOffenseDamageBuff">
     <BuffFlags index="RefreshStack" value="1" />
   </CBehaviorBuff>
+  <CBehaviorBuff id="FenixMobileOffenseDamageMissileBuff" />
   <CBehaviorBuff id="FenixOffensiveCadenceDamageBuff">
     <Alignment value="Positive" />
     <FinalEffect value="FenixOffensiveCadenceDecrementToken" />
@@ -1536,25 +1541,15 @@
     <ImpactUnit Value="Caster" />
     <VitalArray index="Shields" IsSet="1" />
   </CEffectModifyUnit>
-  <CEffectSet id="FenixPhaseBombArsenalSynergyInhibitingEnergyTalentProcSet">
-    <ValidatorArray value="TargetNotEvading" />
-    <ValidatorArray value="FenixCasterDoesNotHaveInhibitingSlowCooldown" />
-    <Chance value="0" />
-    <EffectArray value="FenixHeroWeaponInhibitingEnergyArsenalSynergySplashSearch" />
-    <EffectArray value="FenixPhaseBombInhibitingEnergyTalentApplyCooldown" />
-  </CEffectSet>
   <CEffectSet id="FenixPhaseBombInhibitingEnergyTalentApplicationSet">
+    <ValidatorArray value="FenixSourceHasPhaseBombInhibitingEnergyBehavior" />
+    <ValidatorArray value="CasterNotBlindedAndTargetNotEvading" />
     <EffectArray value="FenixInhibitingEnergyRemoveTimeStampBehavior" />
     <EffectArray value="FenixPhaseBombInhibitingEnergyApplySlowSwitch" />
   </CEffectSet>
-  <CEffectSet id="FenixPhaseBombInhibitingEnergyTalentProcSet">
-    <ValidatorArray value="TargetNotEvading" />
-    <ValidatorArray value="FenixCasterDoesNotHaveInhibitingSlowCooldown" />
-    <Chance value="0" />
-    <EffectArray value="FenixHeroWeaponInhibitingEnergySplashSearch" />
-    <EffectArray value="FenixPhaseBombInhibitingEnergyTalentApplyCooldown" />
-  </CEffectSet>
   <CEffectApplyBehavior id="FenixPhaseBombInhibitingEnergyTalentApplyCooldown">
+    <ValidatorArray value="FenixCasterDoesNotHaveInhibitingSlowCooldown" />
+    <ValidatorArray value="FenixHasInhibitingEnergy" />
     <WhichUnit Value="Caster" />
     <Behavior value="FenixPhaseBombInhibitingEnergyTalentCooldown" />
   </CEffectApplyBehavior>
@@ -1601,15 +1596,6 @@
     <ValidatorArray value="hasShields" />
     <ValidatorArray value="FenixHasEmergencyProtocol" />
   </CEffectApplyBehavior>
-  <CEffectEnumArea id="FenixHeroWeaponPhaseBombMissileScan">
-    <SearchFilters value="-;Player,Ally,Neutral,Missile,Item,Stasis,Dead,Hidden" />
-    <AreaArray Effect="FenixHeroWeaponPhaseBombMissileSearchImpactSet">
-      <RectangleWidth value="2" />
-    </AreaArray>
-    <RevealerParams Duration="0.75" ShapeExpansion="1">
-      <RevealFlags index="Unfog" value="1" />
-    </RevealerParams>
-  </CEffectEnumArea>
   <CEffectModifyUnit id="FenixPlanetCrackerCancelCoolup">
     <ImpactUnit Value="Caster" />
     <Cost Abil="FenixPlanetCrackerCancel,Execute" CooldownOperation="Add" CooldownTimeUse="1" />
@@ -1719,14 +1705,6 @@
     <Operation value="Set" />
     <Value value="0" />
   </CEffectModifyTokenCount>
-  <CEffectSet id="FenixPhaseBombSplashSearchSet">
-    <EffectArray value="FenixHeroWeaponPhaseBombSplashSearch" />
-    <EffectArray value="FenixPhaseBombInhibitingEnergyTalentProcSet" />
-  </CEffectSet>
-  <CEffectSet id="FenixPhaseBombArsenalSynergySplashSearchSet">
-    <EffectArray value="FenixHeroWeaponPhaseBombArsenalSynergySplashSearch" />
-    <EffectArray value="FenixPhaseBombArsenalSynergyInhibitingEnergyTalentProcSet" />
-  </CEffectSet>
   <CEffectApplyBehavior id="FenixWarpWarpingOutApplyBehavior">
     <WhichUnit Value="Caster" />
     <Behavior value="FenixWarpWarpingOut" />
@@ -1743,10 +1721,18 @@
     <ValidatorArray value="FenixHasChargeUpBehavior" />
   </CEffectSet>
   <CEffectSet id="FenixPhaseBombSplashImpactSet">
+    <EffectArray value="UniversalWeaponImpact" />
+    <EffectArray value="FenixPhaseBombSplashWeaponPreImpactSet" />
     <EffectArray value="FenixHeroPhaseBombSplashDamage" />
+    <EffectArray value="FenixPhaseBombSplashWeaponPostImpactSet" />
+    <EffectArray value="UniversalWeaponPostImpactSet" />
+  </CEffectSet>
+  <CEffectSet id="FenixPhaseBombSplashWeaponPreImpactSet">
     <EffectArray value="FenixDivertPowerWeaponsRefreshBehavior" />
     <EffectArray value="FenixArsenalOverchargePhaseBombModifyCooldowns" />
-    <EffectArray value="UniversalWeaponPostImpactSet" />
+  </CEffectSet>
+  <CEffectSet id="FenixPhaseBombSplashWeaponPostImpactSet">
+    <EffectArray value="FenixPhaseBombInhibitingEnergyTalentApplicationSet" />
   </CEffectSet>
   <CEffectCreatePersistent id="FenixWeaponTargetedFacingPersistent">
     <PeriodicEffectArray value="FenixWeaponTargetedUpdateFacing" />
@@ -1967,18 +1953,21 @@
   </CEffectApplyBehavior>
   <CEffectDamage id="FenixHeroWeaponDamage" parent="StormWeapon">
     <Amount value="83" />
-    <MultiplicativeModifierArray index="0" Validator="FenixHasMobileOffenseDamageBuffAndTargetIsHero" Modifier="0.35" Crit="1" />
+    <MultiplicativeModifierArray index="MobileOffense" Validator="FenixHasSourceMobileOffenseDamageBuffAndTargetIsHero" Modifier="$FenixMobileOffenseModifier" Crit="1" />
+  </CEffectDamage>
+  <CEffectDamage id="FenixHeroWeaponDamagePreview" parent="FenixHeroWeaponDamage">
+    <MultiplicativeModifierArray index="MobileOffense" Validator="FenixHasMobileOffenseDamageBuffBehavior" Modifier="$FenixMobileOffenseModifier" Crit="1" />
   </CEffectDamage>
   <CEffectDamage id="FenixHeroPhaseBombWeaponDamage" parent="StormWeapon">
     <Amount value="103.75" />
-    <MultiplicativeModifierArray index="0" Validator="FenixHasMobileOffenseDamageBuffAndTargetIsHero" Modifier="0.35" Crit="1" />
-    <MultiplicativeModifierArray index="1" Validator="FenixHasPhaseBombArsenalSynergyBehavior" Modifier="1.5" Crit="1" />
+    <MultiplicativeModifierArray index="MobileOffense" Validator="FenixHasSourceMobileOffenseDamageBuffAndTargetIsHero" Modifier="$FenixMobileOffenseModifier" Crit="1" />
+    <MultiplicativeModifierArray index="ArsenalSynergy" Validator="FenixSourceHasPhaseBombArsenalSynergyBehavior" Modifier="$FenixArsenalSynergyModifier" Crit="1" />
   </CEffectDamage>
-  <CEffectDamage id="FenixHeroPhaseBombSplashDamage" parent="StormWeapon">
-    <Amount value="103.75" />
-    <MultiplicativeModifierArray index="0" Validator="FenixHasMobileOffenseDamageBuffAndTargetIsHero" Modifier="0.35" Crit="1" />
-    <MultiplicativeModifierArray index="1" Validator="FenixHasPhaseBombArsenalSynergyBehavior" Modifier="1.5" Crit="1" />
+  <CEffectDamage id="FenixHeroPhaseBombWeaponDamagePreview" parent="FenixHeroPhaseBombWeaponDamage">
+    <MultiplicativeModifierArray index="MobileOffense" Validator="FenixHasMobileOffenseDamageBuffBehavior" Modifier="$FenixMobileOffenseModifier" Crit="1" />
+    <MultiplicativeModifierArray index="ArsenalSynergy" Validator="FenixHasPhaseBombArsenalSynergyBehavior" Modifier="$FenixArsenalSynergyModifier" Crit="1" />
   </CEffectDamage>
+  <CEffectDamage id="FenixHeroPhaseBombSplashDamage" parent="FenixHeroPhaseBombWeaponDamage" />
   <CEffectModifyUnit id="FenixPurificationSalvoCasterVisualDummyEffect">
     <ImpactUnit Value="Caster" />
     <ValidatorArray value="noMarkersCaster" />
@@ -2022,6 +2011,7 @@
   </CEffectApplyBehavior>
   <CEffectLaunchMissile id="FenixHeroWeaponLaunchMissile">
     <ValidatorArray index="0" value="TargetNotDead" />
+    <LaunchEffect value="FenixHeroWeaponLaunchMissileSet" />
     <ImpactEffect value="FenixHeroWeaponMissileImpactSet" />
     <SharedFlags index="TravelValidation" value="1" />
     <SharedFlags index="ValidateWeapon" value="0" />
@@ -2035,6 +2025,7 @@
     <Marker>
       <MatchFlags index="Id" value="1" />
     </Marker>
+    <LaunchEffect value="FenixPhaseBombLaunchMissileSet" />
     <ImpactEffect value="FenixHeroWeaponPhaseBombMissileImpactSet" />
     <AmmoUnit value="FenixHeroWeaponPhaseBombMissile" />
   </CEffectLaunchMissile>
@@ -2213,20 +2204,28 @@
     <Effect value="FenixPurificationSalvoRemoveFromTackingBehavior" />
   </CEffectEnumTrackedUnits>
   <CEffectSet id="FenixHeroWeaponLaunchSet">
+    <EffectArray value="UniversalWeaponLaunchSet" />
     <EffectArray value="FenixHeroWeaponLaunchMissile" />
     <EffectArray value="DismountDecloakCasterSet" />
+    <EffectArray value="FenixWeaponImpactRemoveMobileOffenseBehavior" />
   </CEffectSet>
   <CEffectSet id="FenixHeroWeaponPhaseBombLaunchSet">
+    <EffectArray value="UniversalWeaponLaunchSet" />
     <EffectArray value="FenixHeroWeaponPhaseBombLaunchMissile" />
     <EffectArray value="DismountDecloakCasterSet" />
+    <EffectArray value="FenixWeaponImpactRemoveMobileOffenseBehavior" />
+    <EffectArray value="FenixPhaseBombRemoveArsenalSynergyBehavior" />
+    <EffectArray value="FenixPhaseBombArsenalSynergyDecrementToken" />
+    <EffectArray value="FenixPhaseBombInhibitingEnergyTalentApplyCooldown" />
   </CEffectSet>
   <CEffectModifyUnit id="FenixPhaseBombModifyWeaponCooldown">
     <ImpactUnit Value="Caster" />
     <Weapon Weapon="FenixPhaseBombWeapon" CooldownOperation="Set" CooldownFraction="0.5" />
   </CEffectModifyUnit>
   <CEffectSwitch id="FenixHeroWeaponPhaseBombSplashSwitch">
-    <CaseArray Validator="FenixHasPhaseBombArsenalSynergyBehavior" Effect="FenixPhaseBombArsenalSynergySplashSearchSet" />
-    <CaseDefault value="FenixPhaseBombSplashSearchSet" />
+    <ValidatorArray value="TargetNotEvading" />
+    <CaseArray Validator="FenixSourceHasPhaseBombArsenalSynergyBehavior" Effect="FenixHeroWeaponPhaseBombArsenalSynergySplashSearch" />
+    <CaseDefault value="FenixHeroWeaponPhaseBombSplashSearch" />
   </CEffectSwitch>
   <CEffectSwitch id="FenixHeroWeaponLaunchSwitch">
     <CaseDefault value="FenixHeroWeaponLaunchSet" />
@@ -2278,37 +2277,63 @@
     <EffectArray value="FenixPurificationSalvoRemoveCasterBehavior" />
     <EffectArray value="FenixPurificationSalvoVisualPersistent" />
   </CEffectSet>
+  <CEffectSet id="FenixHeroWeaponLaunchMissileSet">
+    <EffectArray value="FenixMobileOffenseApplyBuffSource" />
+  </CEffectSet>
+  <CEffectSet id="FenixPhaseBombLaunchMissileSet">
+    <EffectArray value="FenixMobileOffenseApplyBuffSource" />
+    <EffectArray value="FenixArsenalSynergyApplyBuffSource" />
+    <EffectArray value="FenixInhibitingEnergyApplyBuffSource" />
+  </CEffectSet>
+  <CEffectApplyBehavior id="FenixMobileOffenseApplyBuffSource">
+    <ValidatorArray value="FenixHasMobileOffenseDamageBuffAndTargetIsHero" />
+    <WhichUnit Value="Source" />
+    <Behavior value="FenixMobileOffenseDamageMissileBuff" />
+  </CEffectApplyBehavior>
+  <CEffectApplyBehavior id="FenixArsenalSynergyApplyBuffSource">
+    <ValidatorArray value="FenixHasPhaseBombArsenalSynergyBehavior" />
+    <WhichUnit Value="Source" />
+    <Behavior value="FenixPhaseBombArsenalSynergyMissileBehavior" />
+  </CEffectApplyBehavior>
+  <CEffectApplyBehavior id="FenixInhibitingEnergyApplyBuffSource">
+    <ValidatorArray value="FenixCasterDoesNotHaveInhibitingSlowCooldown" />
+    <ValidatorArray value="FenixHasInhibitingEnergy" />
+    <WhichUnit Value="Source" />
+    <Behavior value="FenixPhaseBombInhibitingEnergyMissileBehavior" />
+  </CEffectApplyBehavior>
   <CEffectSet id="FenixHeroWeaponMissileImpactSet">
-    <EffectArray value="FenixOffensiveCadenceIncrementToken" />
-    <EffectArray value="FenixOffensiveCadenceDamageResponseSet" />
-    <EffectArray value="FenixHeroWeaponDamage" />
-    <EffectArray value="FenixTargetAcquiredApplyMoveSpeedBehavior" />
-    <EffectArray value="FenixPhaseBombArsenalSynergyIncrementToken" />
-    <EffectArray value="FenixWeaponImpactRemoveMobileOffenseBehavior" />
-    <EffectArray value="FenixDivertPowerWeaponsRefreshBehavior" />
-    <EffectArray value="FenixArsenalOverchargeModifyCooldowns" />
     <EffectArray value="UniversalWeaponImpact" />
+    <EffectArray value="FenixRepeaterCannonWeaponPreImpactSet" />
+    <EffectArray value="FenixHeroWeaponDamage" />
+    <EffectArray value="FenixRepeaterCannonWeaponPostImpactSet" />
     <EffectArray value="UniversalWeaponPostImpactSet" />
   </CEffectSet>
-  <CEffectSet id="FenixHeroWeaponPhaseBombMissileImpactSet">
-    <EffectArray value="FenixHeroPhaseBombWeaponDamage" />
-    <EffectArray value="FenixHeroWeaponPhaseBombSplashSwitch" />
-    <EffectArray value="FenixPhaseBombRemoveArsenalSynergyBehavior" />
-    <EffectArray value="FenixPhaseBombArsenalSynergyDecrementToken" />
-    <EffectArray value="FenixWeaponImpactRemoveMobileOffenseBehavior" />
+  <CEffectSet id="FenixRepeaterCannonWeaponPreImpactSet">
+    <EffectArray value="FenixTargetAcquiredApplyMoveSpeedBehavior" />
     <EffectArray value="FenixDivertPowerWeaponsRefreshBehavior" />
-    <EffectArray value="FenixArsenalOverchargePhaseBombModifyCooldowns" />
+    <EffectArray value="FenixArsenalOverchargeModifyCooldowns" />
+    <EffectArray value="FenixOffensiveCadenceIncrementToken" />
+    <EffectArray value="FenixOffensiveCadenceDamageResponseSet" />
+  </CEffectSet>
+  <CEffectSet id="FenixRepeaterCannonWeaponPostImpactSet">
+    <EffectArray value="FenixPhaseBombArsenalSynergyIncrementToken" />
+  </CEffectSet>
+  <CEffectSet id="FenixHeroWeaponPhaseBombMissileImpactSet">
     <EffectArray value="UniversalWeaponImpact" />
+    <EffectArray value="FenixPhaseBombPrimaryWeaponPreImpactSet" />
+    <EffectArray value="FenixHeroPhaseBombWeaponDamage" />
+    <EffectArray value="FenixPhaseBombPrimaryWeaponPostImpactSet" />
+    <EffectArray value="FenixHeroWeaponPhaseBombSplashSwitch" />
     <EffectArray value="UniversalWeaponPostImpactSet" />
     <ValidatorArray value="TargetNotDead" />
     <ValidatorArray value="TargetNotSpecialDeathState" />
   </CEffectSet>
-  <CEffectSet id="FenixHeroWeaponPhaseBombMissileSearchImpactSet">
-    <EffectArray value="FenixHeroPhaseBombSplashDamage" />
+  <CEffectSet id="FenixPhaseBombPrimaryWeaponPreImpactSet">
     <EffectArray value="FenixDivertPowerWeaponsRefreshBehavior" />
-    <EffectArray value="UniversalWeaponImpact" />
-    <EffectArray value="UniversalWeaponPostImpactSet" />
-    <ValidatorArray value="noMarkers" />
+    <EffectArray value="FenixArsenalOverchargePhaseBombModifyCooldowns" />
+  </CEffectSet>
+  <CEffectSet id="FenixPhaseBombPrimaryWeaponPostImpactSet">
+    <EffectArray value="FenixPhaseBombInhibitingEnergyTalentApplicationSet" />
   </CEffectSet>
   <CEffectSet id="FenixPlasmaCutterInitialSet">
     <EffectArray value="FenixPlasmaCutterApplyControllerBehavior" />
@@ -2484,20 +2509,6 @@
     <WhichUnit Value="Caster" />
     <Behavior value="FenixWarpWarpingIn" />
   </CEffectApplyBehavior>
-  <CEffectEnumArea id="FenixHeroWeaponInhibitingEnergySplashSearch">
-    <SearchFilters value="-;Player,Ally,Neutral,ImmuneToAOE,Missile,Item,Dead,Hidden,Invulnerable" />
-    <AreaArray Effect="FenixPhaseBombInhibitingEnergyTalentApplicationSet">
-      <Radius value="3" />
-    </AreaArray>
-    <ValidatorArray value="CasterNotBlindedAndTargetNotEvading" />
-  </CEffectEnumArea>
-  <CEffectEnumArea id="FenixHeroWeaponInhibitingEnergyArsenalSynergySplashSearch">
-    <SearchFilters value="-;Player,Ally,Neutral,ImmuneToAOE,Missile,Item,Dead,Hidden,Invulnerable" />
-    <AreaArray Effect="FenixPhaseBombInhibitingEnergyTalentApplicationSet">
-      <Radius value="4.5" />
-    </AreaArray>
-    <ValidatorArray value="CasterNotBlindedAndTargetNotEvading" />
-  </CEffectEnumArea>
   <CEffectSet id="FenixWarpWarpingInExpireSet">
     <EffectArray value="FenixAdaniumShellApplyArmorBehavior" />
     <EffectArray value="FenixWarpWarfareApplyAttackSpeedBehavior" />
@@ -2508,7 +2519,6 @@
     <TargetLocation Effect="FenixWarpInitialSet" Value="TargetPoint" />
   </CEffectTeleport>
   <CEffectEnumArea id="FenixHeroWeaponPhaseBombSplashSearch">
-    <ValidatorArray value="TargetNotEvading" />
     <ExcludeArray Effect="FenixHeroWeaponPhaseBombMissileImpactSet" Value="Target" />
     <SearchFilters value="-;Self,Player,Ally,Neutral,ImmuneToAOE,Missile,Item,Stasis,Dead,Hidden,Invulnerable" />
     <AreaArray Effect="FenixPhaseBombSplashImpactSet">
@@ -2519,7 +2529,6 @@
     </RevealerParams>
   </CEffectEnumArea>
   <CEffectEnumArea id="FenixHeroWeaponPhaseBombArsenalSynergySplashSearch">
-    <ValidatorArray value="TargetNotEvading" />
     <ExcludeArray Effect="FenixHeroWeaponPhaseBombSearchImpactSet" Value="Target" />
     <ExcludeArray Effect="FenixHeroWeaponPhaseBombMissileImpactSet" Value="Target" />
     <SearchFilters value="-;Self,Player,Ally,Neutral,ImmuneToAOE,Missile,Item,Stasis,Dead,Hidden,Invulnerable" />
@@ -2619,7 +2628,21 @@
       </Modifications>
       <Modifications>
         <Catalog value="Effect" />
+        <Entry value="FenixHeroWeaponDamagePreview" />
+        <Field value="Amount" />
+        <Value value="0.040000" />
+        <AffectedByOverdrive value="1" />
+      </Modifications>
+      <Modifications>
+        <Catalog value="Effect" />
         <Entry value="FenixHeroWeaponDamage" />
+        <Field value="Amount" />
+        <Value value="0.040000" />
+        <AffectedByOverdrive value="1" />
+      </Modifications>
+      <Modifications>
+        <Catalog value="Effect" />
+        <Entry value="FenixHeroPhaseBombWeaponDamagePreview" />
         <Field value="Amount" />
         <Value value="0.040000" />
         <AffectedByOverdrive value="1" />
@@ -4082,22 +4105,6 @@
   <CTalent id="FenixInhibitingEnergy">
     <Face value="FenixInhibitingEnergy" />
     <Abil value="FenixPhaseBomb" />
-    <AbilityModificationArray>
-      <Modifications>
-        <Type value="FlatModification" />
-        <Catalog value="Effect" />
-        <Entry value="FenixPhaseBombArsenalSynergyInhibitingEnergyTalentProcSet" />
-        <Field value="Chance" />
-        <Value value="1.000000" />
-      </Modifications>
-      <Modifications>
-        <Type value="FlatModification" />
-        <Catalog value="Effect" />
-        <Entry value="FenixPhaseBombInhibitingEnergyTalentProcSet" />
-        <Field value="Chance" />
-        <Value value="1.000000" />
-      </Modifications>
-    </AbilityModificationArray>
   </CTalent>
   <CTalent id="FenixCombatAdvantage">
     <Face value="FenixCombatAdvantage" />
@@ -4309,6 +4316,11 @@
     <WhichUnit Value="Caster" />
     <Behavior value="FenixPhaseBombInhibitingEnergyTalentCooldown" />
   </CValidatorUnitCompareBehaviorCount>
+  <CValidatorUnitCompareBehaviorCount id="FenixSourceHasPhaseBombInhibitingEnergyBehavior">
+    <WhichUnit Value="Source" />
+    <Value value="1" />
+    <Behavior value="FenixPhaseBombInhibitingEnergyMissileBehavior" />
+  </CValidatorUnitCompareBehaviorCount>
   <CValidatorUnitCompareBehaviorCount id="FenixCasterHasDivertPowerWeaponsBuff">
     <WhichUnit Value="Caster" />
     <Compare value="GT" />
@@ -4335,6 +4347,11 @@
   <CValidatorCombine id="FenixHasMobileOffenseDamageBuffAndTargetIsHero">
     <Type value="And" />
     <CombineArray value="FenixHasMobileOffenseDamageBuffBehavior" />
+    <CombineArray value="TargetIsHero" />
+  </CValidatorCombine>
+  <CValidatorCombine id="FenixHasSourceMobileOffenseDamageBuffAndTargetIsHero">
+    <Type value="And" />
+    <CombineArray value="FenixSourceHasMobileOffenseDamageBuffBehavior" />
     <CombineArray value="TargetIsHero" />
   </CValidatorCombine>
   <CValidatorCombine id="FenixHasCombatAdvantageAndTargetIsSlowed">
@@ -4499,6 +4516,11 @@
     <Value value="1" />
     <Behavior value="FenixMobileOffenseDamageBuff" />
   </CValidatorUnitCompareBehaviorCount>
+  <CValidatorUnitCompareBehaviorCount id="FenixSourceHasMobileOffenseDamageBuffBehavior">
+    <WhichUnit Value="Source" />
+    <Value value="1" />
+    <Behavior value="FenixMobileOffenseDamageMissileBuff" />
+  </CValidatorUnitCompareBehaviorCount>
   <CValidatorUnitCompareBehaviorCount id="FenixHasPhaseBombBehavior">
     <WhichUnit Value="Caster" />
     <Value value="1" />
@@ -4508,6 +4530,11 @@
     <WhichUnit Value="Caster" />
     <Value value="1" />
     <Behavior value="FenixPhaseBombArsenalSynergyBehavior" />
+  </CValidatorUnitCompareBehaviorCount>
+  <CValidatorUnitCompareBehaviorCount id="FenixSourceHasPhaseBombArsenalSynergyBehavior">
+    <WhichUnit Value="Source" />
+    <Value value="1" />
+    <Behavior value="FenixPhaseBombArsenalSynergyMissileBehavior" />
   </CValidatorUnitCompareBehaviorCount>
   <CValidatorUnitCompareBehaviorCount id="FenixHasPlanetCrackerCasterBehavior">
     <Value value="1" />
@@ -4681,14 +4708,14 @@
     <Categories index="Slow" value="1" />
   </CValidatorUnitCompareBehaviorCount>
   <CWeaponLegacy id="FenixHeroWeapon" parent="StormHeroFastWeapon">
-    <DisplayEffect value="FenixHeroWeaponDamage" />
+    <DisplayEffect value="FenixHeroWeaponDamagePreview" />
     <Period value="1.35" />
     <Effect value="FenixHeroWeaponLaunchSwitch" />
     <Arc value="360" />
     <Options index="SharedCooldownRatio" value="1" />
   </CWeaponLegacy>
   <CWeaponLegacy id="FenixPhaseBombWeapon" parent="StormHeroMediumWeapon">
-    <DisplayEffect value="FenixHeroPhaseBombWeaponDamage" />
+    <DisplayEffect value="FenixHeroPhaseBombWeaponDamagePreview" />
     <Period value="1.35" />
     <Effect value="FenixHeroWeaponPhaseBombLaunchSet" />
     <Arc value="360" />

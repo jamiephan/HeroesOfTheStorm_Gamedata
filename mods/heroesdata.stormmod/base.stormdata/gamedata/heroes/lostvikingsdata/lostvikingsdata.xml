@@ -1,9 +1,13 @@
 <?xml version="1.0" encoding="us-ascii"?>
 <Catalog>
-  <const id="$LostVikingsLongboatRaidMovespeedModifier" value="0.75" />
-  <const id="$LostVikingsLongboatRaidMovespeed" value="*($HeroBaseMovementSpeed $LostVikingsLongboatRaidMovespeedModifier)" evaluateAsExpression="1" />
-  <const id="$LostVikingsErikMovespeedModifier" value="1.15" />
+  <const id="$LostVikingsLongboatRaidMovespeedModifier" value="0.25" />
+  <const id="$LostVikingsLongboatRaidMovespeed" value="negate(*($HeroBaseMovementSpeed $LostVikingsLongboatRaidMovespeedModifier))" evaluateAsExpression="1" />
+  <const id="$LostVikingsErikMovespeedModifier" value="0.15" />
   <const id="$LostVikingsErikMovespeed" value="*($HeroBaseMovementSpeed $LostVikingsErikMovespeedModifier)" evaluateAsExpression="1" />
+  <const id="$BaleogWeaponAttackDamage" value="75" />
+  <const id="$BaleogWeaponSplashModifier" value="0.5" />
+  <const id="$BaleogWeaponSplashDamage" value="*($BaleogWeaponAttackDamage $BaleogWeaponSplashModifier)" evaluateAsExpression="1" />
+  <const id="$BaleogExplosiveAttacksIncrease" value="-($BaleogWeaponAttackDamage $BaleogWeaponSplashDamage)" evaluateAsExpression="1" />
   <CAbilEffectTarget id="LostVikingsLargeAndInChargeCharge">
     <Effect value="LargeandInChargeCastSwitch" />
     <Flags index="ClearLastAttackTarget" value="1" />
@@ -359,7 +363,7 @@
     <Terms value="Cap 1" />
   </CActorSound>
   <CActorForceConeRoundedEnd id="OlafShoulderChargeForce">
-    <On Terms="Effect.LostVikingsLargeAndInChargeImpactSet.Start; At Caster" Send="Create" />
+    <On Terms="Effect.LostVikingsOlafChargeMissileImpactSwitch.Start; At Caster" Send="Create" />
     <HostSiteOps Ops="SOpAttachCenter SOpMoveUpBy1" />
     <Duration value="0.125000" />
     <Magnitude value="30.000000" />
@@ -1266,8 +1270,7 @@
   </CActorAction>
   <CActorModel id="LostVikingsBaleogSplashDamageImpact" parent="StormModelAnimationStyleOneShotUnit">
     <HostSiteOps Ops="SOpAttachCenter" />
-    <On Terms="Effect.BaleogBowWeaponSplashDamage.Start; At Target" Send="Create" />
-    <On Terms="Effect.BaleogSwordWeaponSplashDamage.Start; At Target" Send="Create" />
+    <On Terms="Effect.BaleogWeaponSplashDamage.Start; At Target" Send="Create" />
     <Model value="LostVikingsBaleogDamageImpact" />
   </CActorModel>
   <CActorMissile id="BaleogBowAttackMissile" parent="StormMissileWithDeathEarly" unitName="HeroBaleogBowMissile" />
@@ -1327,12 +1330,12 @@
     <On Terms="Behavior.LostVikingsGoGoGo.Off" Send="AnimGroupRemove Turbo" />
     <On Terms="Effect.LostVikingsSpinToWinVikingImpactSet.Start; At Target" Send="AnimPlay Spell Spell,B 0 -1.000000 -1.000000 1.000000 AsTimeScale" />
     <On Terms="Behavior.LostVikingsLargeAndInChargeCharge.On" Send="AnimPlay Spell Spell,E DontResetOnUnhide -1.000000 -1.000000 1.000000 AsTimeScale" />
-    <On Terms="Effect.LostVikingsLargeAndInChargeImpactSet.Start" Send="AnimClear Spell" />
-    <On Terms="Effect.LostVikingsLargeAndInChargeImpactSet.Start" Send="AnimPlay Spell Spell,G DontResetOnUnhide -1.000000 -1.000000 1.000000 AsTimeScale" />
-    <On Terms="Effect.LostVikingsLargeAndInChargeImpactSet.Start; AnimPlaying Spell Spell,G" Send="AnimSetTime Spell 1.100000" />
+    <On Terms="Effect.LostVikingsOlafChargeMissileImpactSwitch.Start" Send="AnimClear Spell" />
+    <On Terms="Effect.LostVikingsOlafChargeMissileImpactSwitch.Start" Send="AnimPlay Spell Spell,G DontResetOnUnhide -1.000000 -1.000000 1.000000 AsTimeScale" />
+    <On Terms="Effect.LostVikingsOlafChargeMissileImpactSwitch.Start; AnimPlaying Spell Spell,G" Send="AnimSetTime Spell 1.100000" />
     <On Terms="AnimPlay; AnimPlaying Spell Spell,G" Send="Create LostVikingsOlafWeaponTrail02" />
     <On Terms="AnimPlay; AnimPlaying Spell Spell,G" Send="Create OlafLargeandInChargeSwingSound" />
-    <On Terms="Effect.LostVikingsLargeAndInChargeImpactSet.Start; ValidateUnit SourceHasLargeAndInCharge" Send="Create LostVikingsOlafAutoAttackShield" />
+    <On Terms="Effect.LostVikingsLargeAndInChargeStunImpactSet.Start; ValidateUnit SourceHasLargeAndInCharge" Send="Create LostVikingsOlafAutoAttackShield" />
     <On Terms="AnimPlay; AnimPlaying Attack Attack,00" Send="StatusSet Attack01 0" />
     <On Terms="AnimPlay; AnimPlaying Attack Attack,00" Send="StatusSet Attack02 0" />
     <On Terms="AnimPlay; AnimPlaying Attack Attack,01" Send="StatusSet Attack00 0" />
@@ -1412,11 +1415,11 @@
     <AutoScaleFactor value="1.000000" />
     <ModelFlags index="AllowHitTest" value="0" />
   </CActorModel>
-  <CActorAction id="OlafAttack" parent="MeleeHeroAttack" effectAttack="OlafWeaponImpactSet">
+  <CActorAction id="OlafAttack" parent="MeleeHeroAttack" effectAttack="LostVikingsOlafWeaponImpactDummy">
     <ImpactMap index="None" Sound="" />
     <ImpactMap index="Shield" Sound="" />
   </CActorAction>
-  <CActorAction id="OlafAttackWithValiant" parent="MeleeHeroAttack" effectAttack="OlafWeaponImpactWithValiantSet">
+  <CActorAction id="OlafAttackWithValiant" parent="MeleeHeroAttack" effectAttack="LostVikingsOlafStunImpactDummy">
     <ImpactSiteOps Ops="SOpAttachCenter" />
     <ImpactMap index="None" Model="LargeAndInChargeWeaponImpact" Sound="" />
     <ImpactMap index="Shield" Sound="" />
@@ -2025,6 +2028,11 @@
       <ModifyFraction value="0" />
     </DamageResponse>
   </CBehaviorBuff>
+  <CBehaviorBuff id="LostVikingsLongboatRaidMovespeedModifierCarry" parent="CarryBehaviorParent">
+    <Modification>
+      <MoveSpeedBonus value="$LostVikingsLongboatRaidMovespeed" />
+    </Modification>
+  </CBehaviorBuff>
   <CBehaviorBuff id="FuryoftheStormAoECarryBehaviorLostVikings" parent="CarryBehaviorParent">
     <DamageResponse Chance="1" Handled="FuryoftheStormImpactSetLostVikings" Location="Attacker">
       <Kind index="Ability" value="0" />
@@ -2040,12 +2048,6 @@
   <CBehaviorBuff id="LongboatRaidDeathStun" parent="StormStun">
     <Duration value="1" />
   </CBehaviorBuff>
-  <CBehaviorBuff id="LostVikingsBaleogSplashDamageController" parent="CarryBehaviorParent">
-    <DamageResponse Chance="1" Location="Attacker" ModifyFraction="0.5">
-      <RequireEffectArray value="BaleogBowWeaponSplashDamage" />
-      <RequireEffectArray value="BaleogSwordWeaponSplashDamage" />
-    </DamageResponse>
-  </CBehaviorBuff>
   <CBehaviorBuff id="LostVikingsControllerDamageReductionBehavior">
     <DamageResponse Chance="1" ModifyFraction="0" />
   </CBehaviorBuff>
@@ -2060,6 +2062,9 @@
     <Alignment value="Positive" />
     <InfoIcon value="Assets\Textures\storm_ui_icon_lostvikings_selectolaf.dds" />
     <Duration value="1" />
+    <Modification>
+      <AbilLinkDisableArray value="LostVikingsLargeAndInChargeCharge" />
+    </Modification>
   </CBehaviorBuff>
   <CBehaviorUnitTracker id="LostVikingsVikingTracker">
     <BehaviorFlags index="Permanent" value="1" />
@@ -2380,6 +2385,11 @@
   <CBehaviorBuff id="LostVikingsBaleogDowned">
     <InfoIcon value="Assets\Textures\storm_temp_war3_btnsteelmelee.dds" />
     <BehaviorFlags index="Permanent" value="1" />
+  </CBehaviorBuff>
+  <CBehaviorBuff id="LostVikingsErikMovespeedModifierCarry" parent="CarryBehaviorParent">
+    <Modification>
+      <MoveSpeedBonus value="$LostVikingsErikMovespeed" />
+    </Modification>
   </CBehaviorBuff>
   <CBehaviorBuff id="LostVikingsErikTheSwift" parent="CarryBehaviorParent">
     <Alignment value="Positive" />
@@ -3181,11 +3191,43 @@
   </CEffectSwitch>
   <CEffectSet id="LargeandInChargeCloseRangeCastSet">
     <EffectArray value="LargeandInChargeCloseRangeChargeApplyBehavior" />
+    <EffectArray value="LostVikingsOlafChargeModifyCooldown" />
   </CEffectSet>
+  <CEffectModifyPlayer id="LostVikingsOlafChargeModifyCooldown">
+    <WhichPlayer Value="Caster" />
+    <Cost Abil="LostVikingsLargeAndInChargeCharge">
+      <Cooldown>
+        <Link value="Abil/LostVikingsLargeAndInChargeCharge" />
+        <Location value="Player" />
+        <Operation value="Add" />
+        <TimeUse value="-8" />
+      </Cooldown>
+    </Cost>
+  </CEffectModifyPlayer>
+  <CEffectModifyPlayer id="LostVikingsOlafChargeSetCooldown">
+    <ValidatorArray value="CasterHasLargeandInChargeShortRange" />
+    <WhichPlayer Value="Caster" />
+    <Cost Abil="LostVikingsLargeAndInChargeCharge">
+      <Cooldown>
+        <Link value="Abil/LostVikingsLargeAndInChargeCharge" />
+        <Location value="Player" />
+        <Operation value="Set" />
+        <TimeUse value="8" />
+      </Cooldown>
+    </Cost>
+  </CEffectModifyPlayer>
   <CEffectSet id="LargeandInChargeDamageSet">
     <ValidatorArray value="CasterHasLargeAndInCharge" />
+    <EffectArray value="UniversalWeaponImpact" />
+    <EffectArray value="LostVikingsOlafWeaponPreImpactSet" />
     <EffectArray value="OlafWeaponDamage" />
+    <EffectArray value="LostVikingsOlafLargeAndInChargePostImpactSet" />
   </CEffectSet>
+  <CEffectSet id="LostVikingsOlafLargeAndInChargePreImpactSet">
+    <EffectArray value="LostVikingsImpatienceIsAVirtueSet" />
+    <EffectArray value="LostVikingsNordicAttackSquadDamage" />
+  </CEffectSet>
+  <CEffectSet id="LostVikingsOlafLargeAndInChargePostImpactSet" />
   <CEffectApplyBehavior id="LostVikingsApplyGlobalAbilitySearchExclusion2Seconds">
     <Behavior value="LostVikingsExcludeGlobalAbilitySearch" />
     <Flags index="UseDuration" value="1" />
@@ -3257,6 +3299,7 @@
     <ExpireDelay value="0.5" />
   </CEffectCreatePersistent>
   <CEffectSet id="LostVikingsLongboatRaidAttackAttackSet">
+    <EffectArray value="UniversalWeaponLaunchSet" />
     <EffectArray value="LongboatRaidAttackModifyFacing" />
     <EffectArray value="LostVikingsLongboatRaidWeaponLaunchMissile" />
   </CEffectSet>
@@ -3789,16 +3832,6 @@
     <LaunchUnit Value="Source" />
     <ImpactUnit Value="Source" />
   </CEffectCreateHealer>
-  <CEffectSet id="LostVikingsLargeAndInChargeImpactSet">
-    <ValidatorArray value="CasterhasLargeandInChargeCombine" />
-    <EffectArray value="LostVikingsOlafChargeApplySlowBehavior" />
-    <EffectArray value="LostVikingsLargeAndInChargeApplyStun" />
-    <EffectArray value="LargeandInChargeDamageSet" />
-    <EffectArray value="LargeandInChargeModifyAttackCooldown" />
-    <EffectArray value="LostVikingsLargeAndInChargeRemoveBehavior" />
-    <EffectArray value="LargeandInChargeCloseRangeRemoveBehavior" />
-    <EffectArray value="UniversalWeaponPostImpactSet" />
-  </CEffectSet>
   <CEffectIssueOrder id="LargeAndInChargeIssueAttackOrder">
     <WhichUnit Value="Caster" />
     <Abil value="attack" />
@@ -3964,8 +3997,8 @@
     </AreaArray>
   </CEffectEnumArea>
   <CEffectSet id="ErikSlingshotWeaponLaunchSet">
-    <EffectArray value="ErikSlingshotWeaponLaunchMissile" />
     <EffectArray value="UniversalWeaponLaunchSet" />
+    <EffectArray value="ErikSlingshotWeaponLaunchMissile" />
     <EffectArray value="LostVikingsSpyGamesAttackResponseDecloakSetCaster" />
     <EffectArray value="LostVikingsPeriscopeApplyCooldownCaster" />
   </CEffectSet>
@@ -3977,14 +4010,18 @@
     <AmmoUnit value="HeroErikSlingshotMissile" />
   </CEffectLaunchMissile>
   <CEffectSet id="ErikSlingshotWeaponImpactSet">
-    <EffectArray value="UniversalWeaponLaunchSet" />
     <EffectArray value="UniversalWeaponImpact" />
+    <EffectArray value="LostVikingsErikWeaponPreImpactSet" />
     <EffectArray value="ErikWeaponDamage" />
-    <EffectArray value="LostVikingsNordicAttackSquadDamage" />
-    <EffectArray value="LostVikingsImpatienceIsAVirtueSet" />
-    <EffectArray value="LostVikingsItsASabotageApplyAmmoDestructionDebuff" />
+    <EffectArray value="LostVikingsErikWeaponPostImpactSet" />
     <EffectArray value="UniversalWeaponPostImpactSet" />
   </CEffectSet>
+  <CEffectSet id="LostVikingsErikWeaponPreImpactSet">
+    <EffectArray value="LostVikingsImpatienceIsAVirtueSet" />
+    <EffectArray value="LostVikingsItsASabotageApplyAmmoDestructionDebuff" />
+    <EffectArray value="LostVikingsNordicAttackSquadDamage" />
+  </CEffectSet>
+  <CEffectSet id="LostVikingsErikWeaponPostImpactSet" />
   <CEffectDamage id="ErikWeaponDamage" parent="StormWeapon">
     <Amount value="62" />
     <MultiplicativeModifierArray index="SpyGamesBonusDamage" Validator="LostVikingsHasSpyGamesErikBonusAttackDamageBehavior" Modifier="0.75" Crit="1" />
@@ -4045,22 +4082,69 @@
     <Cost Abil="LostVikingsPlayAgain,Execute" CooldownOperation="Add" CooldownTimeUse="-0.375" />
   </CEffectModifyUnit>
   <CEffectSwitch id="OlafWeaponImpactSwitch">
-    <CaseArray Validator="CasterhasLargeAndInChargeStunCombine" Effect="OlafWeaponImpactWithValiantSet" />
+    <CaseArray Validator="CasterhasLargeAndInChargeStunCombine" Effect="OlafWeaponImpactWithStunSet" />
+    <CaseArray Validator="CasterhasLargeandInChargeCombine" Effect="OlafWeaponImpactWithSlowSet" />
     <CaseDefault value="OlafWeaponImpactSet" />
   </CEffectSwitch>
+  <CEffectModifyUnit id="LostVikingsOlafWeaponImpactDummy" />
   <CEffectSet id="OlafWeaponImpactSet">
     <EffectArray value="UniversalWeaponLaunchSet" />
     <EffectArray value="UniversalWeaponImpact" />
+    <EffectArray value="LostVikingsOlafWeaponImpactDummy" />
+    <EffectArray value="LostVikingsOlafWeaponPreImpactSet" />
     <EffectArray value="OlafWeaponDamage" />
-    <EffectArray value="LostVikingsNordicAttackSquadDamage" />
-    <EffectArray value="LostVikingsImpatienceIsAVirtueSet" />
-    <EffectArray value="LostVikingsLargeAndInChargeImpactSet" />
+    <EffectArray value="LostVikingsOlafWeaponPostImpactSet" />
     <EffectArray value="UniversalWeaponPostImpactSet" />
   </CEffectSet>
+  <CEffectSet id="LostVikingsOlafWeaponPreImpactSet">
+    <EffectArray value="LostVikingsImpatienceIsAVirtueSet" />
+    <EffectArray value="LostVikingsNordicAttackSquadDamage" />
+  </CEffectSet>
+  <CEffectSet id="LostVikingsOlafWeaponPostImpactSet" />
   <CEffectDamage id="OlafWeaponDamage" parent="StormWeapon">
     <SourceButtonFace value="Attack" />
     <Amount value="54" />
   </CEffectDamage>
+  <CEffectSwitch id="LostVikingsOlafChargeMissileImpactSwitch">
+    <CaseArray Validator="LostVikingsHasLargeAndInCharge" Effect="OlafWeaponImpactWithStunSet" />
+    <CaseDefault value="OlafWeaponImpactWithSlowSet" />
+  </CEffectSwitch>
+  <CEffectModifyUnit id="LostVikingsOlafStunImpactDummy" />
+  <CEffectSet id="OlafWeaponImpactWithStunSet">
+    <EffectArray value="UniversalWeaponLaunchSet" />
+    <EffectArray value="UniversalWeaponImpact" />
+    <EffectArray value="LostVikingsOlafStunImpactDummy" />
+    <EffectArray value="LostVikingsOlafChargeSetCooldown" />
+    <EffectArray value="LostVikingsOlafWeaponPreImpactSet" />
+    <EffectArray value="OlafWeaponDamage" />
+    <EffectArray value="LostVikingsOlafWeaponPostImpactSet" />
+    <EffectArray value="LostVikingsLargeAndInChargeStunImpactSet" />
+    <EffectArray value="UniversalWeaponPostImpactSet" />
+  </CEffectSet>
+  <CEffectSet id="LostVikingsLargeAndInChargeStunImpactSet">
+    <EffectArray value="LostVikingsOlafChargeApplySlowBehavior" />
+    <EffectArray value="LostVikingsLargeAndInChargeApplyStun" />
+    <EffectArray value="LargeandInChargeModifyAttackCooldown" />
+    <EffectArray value="LostVikingsLargeAndInChargeRemoveBehavior" />
+    <EffectArray value="LargeandInChargeCloseRangeRemoveBehavior" />
+  </CEffectSet>
+  <CEffectSet id="OlafWeaponImpactWithSlowSet">
+    <EffectArray value="UniversalWeaponLaunchSet" />
+    <EffectArray value="UniversalWeaponImpact" />
+    <EffectArray value="LostVikingsOlafWeaponImpactDummy" />
+    <EffectArray value="LostVikingsOlafChargeSetCooldown" />
+    <EffectArray value="LostVikingsOlafWeaponPreImpactSet" />
+    <EffectArray value="OlafWeaponDamage" />
+    <EffectArray value="LostVikingsOlafWeaponPostImpactSet" />
+    <EffectArray value="LostVikingsLargeAndInChargeSlowImpactSet" />
+    <EffectArray value="UniversalWeaponPostImpactSet" />
+  </CEffectSet>
+  <CEffectSet id="LostVikingsLargeAndInChargeSlowImpactSet">
+    <EffectArray value="LostVikingsOlafChargeApplySlowBehavior" />
+    <EffectArray value="LargeandInChargeModifyAttackCooldown" />
+    <EffectArray value="LostVikingsLargeAndInChargeRemoveBehavior" />
+    <EffectArray value="LargeandInChargeCloseRangeRemoveBehavior" />
+  </CEffectSet>
   <CEffectLaunchMissile id="BaleogBowWeaponLaunchMissile">
     <ValidatorArray index="0" value="CasterNotDead" />
     <ImpactEffect value="BaleogBowWeaponImpactSet" />
@@ -4070,14 +4154,14 @@
     <Movers Link="HeroMissileSpeed22Ribbon" />
   </CEffectLaunchMissile>
   <CEffectSet id="BaleogBowWeaponLaunchSet">
-    <EffectArray value="BaleogBowWeaponLaunchMissile" />
     <EffectArray value="UniversalWeaponLaunchSet" />
+    <EffectArray value="BaleogBowWeaponLaunchMissile" />
   </CEffectSet>
   <CEffectSet id="BaleogBowWeaponImpactSet">
     <EffectArray value="UniversalWeaponImpact" />
-    <EffectArray value="LostVikingsImpatienceIsAVirtueSet" />
+    <EffectArray value="LostVikingsBaleogWeaponPreImpactSet" />
     <EffectArray value="BaleogBowWeaponDamage" />
-    <EffectArray value="LostVikingsNordicAttackSquadDamage" />
+    <EffectArray value="LostVikingsBaleogWeaponPostImpactSet" />
     <EffectArray value="BaleogBowWeaponSplashSearchArea" />
     <EffectArray value="UniversalWeaponPostImpactSet" />
   </CEffectSet>
@@ -4086,73 +4170,61 @@
     <ImpactLocation Value="TargetUnit" />
     <ExcludeArray Effect="BaleogBowWeaponImpactSet" Value="Target" />
     <SearchFilters value="-;Self,Player,Ally,Neutral,ImmuneToAOE,Missile,Item,Stasis,Dead,Hidden,Invulnerable" />
-    <AreaArray Arc="64.995" FacingAdjustment="0.9997" Effect="BaleogBowSplashImpactSet">
+    <AreaArray Arc="64.995" FacingAdjustment="0.9997" Effect="LostVikingsBaleogWeaponSplashImpactSet">
       <Radius value="5" />
     </AreaArray>
     <RevealerParams Duration="0.75" ShapeExpansion="1">
       <RevealFlags index="Unfog" value="1" />
     </RevealerParams>
   </CEffectEnumArea>
-  <CEffectSet id="BaleogBowSplashImpactSet">
-    <EffectArray value="BaleogBowWeaponSplashDamage" />
-    <EffectArray value="LostVikingsNordicAttackSquadDamage" />
-    <EffectArray value="UniversalWeaponPostImpactSet" />
-  </CEffectSet>
-  <CEffectDamage id="BaleogBowWeaponSplashDamage" parent="StormWeapon">
-    <MultiplicativeModifierArray index="ExplosiveAttacks" Validator="TargetNotHeroANDLostVikingsHasExplosiveAttacks" Modifier="1" Crit="1" />
-    <Amount value="75" />
-    <ExcludeArray Value="Target" />
-    <LeechMultiplicativeModifierArray index="PainDontHurtIsHero" Validator="LostVikingsHasPainDontHurtANDTargetIsHero" Modifier="1" Crit="1" />
-    <LeechValidator index="Life" value="LostVikingsHasPainDontHurt" />
-    <LeechFraction index="Life" value="0.2" />
-  </CEffectDamage>
-  <CEffectDamage id="BaleogBowWeaponDamage" parent="StormWeapon">
-    <Amount value="75" />
-    <SearchFilters value="-;Player,Ally,Neutral,ImmuneToAOE,Missile,Item,Stasis,Dead,Hidden,Invulnerable" />
-    <LeechMultiplicativeModifierArray index="PainDontHurtIsHero" Validator="LostVikingsHasPainDontHurtANDTargetIsHero" Modifier="1" Crit="1" />
-    <LeechValidator index="Life" value="LostVikingsHasPainDontHurt" />
-    <LeechFraction index="Life" value="0.2" />
-  </CEffectDamage>
   <CEffectSet id="BaleogSwordWeaponImpactSet">
     <EffectArray value="UniversalWeaponLaunchSet" />
     <EffectArray value="UniversalWeaponImpact" />
-    <EffectArray value="LostVikingsImpatienceIsAVirtueSet" />
+    <EffectArray value="LostVikingsBaleogWeaponPreImpactSet" />
     <EffectArray value="BaleogSwordWeaponDamage" />
-    <EffectArray value="LostVikingsNordicAttackSquadDamage" />
+    <EffectArray value="LostVikingsBaleogWeaponPostImpactSet" />
     <EffectArray value="BaleogSwordWeaponSplashSearchArea" />
     <EffectArray value="UniversalWeaponPostImpactSet" />
   </CEffectSet>
+  <CEffectSet id="LostVikingsBaleogWeaponPreImpactSet">
+    <EffectArray value="LostVikingsNordicAttackSquadDamage" />
+    <EffectArray value="LostVikingsImpatienceIsAVirtueSet" />
+  </CEffectSet>
+  <CEffectSet id="LostVikingsBaleogWeaponPostImpactSet" />
   <CEffectEnumArea id="BaleogSwordWeaponSplashSearchArea">
     <ValidatorArray value="TargetNotEvading" />
     <ImpactLocation Value="TargetUnit" />
     <ExcludeArray Effect="BaleogSwordWeaponImpactSet" Value="Target" />
     <SearchFilters value="-;Self,Player,Ally,Neutral,ImmuneToAOE,Missile,Item,Stasis,Dead,Hidden,Invulnerable" />
-    <AreaArray Arc="64.995" FacingAdjustment="0.9997" Effect="BaleogSwordSplashImpactSet">
+    <AreaArray Arc="64.995" FacingAdjustment="0.9997" Effect="LostVikingsBaleogWeaponSplashImpactSet">
       <Radius value="5" />
     </AreaArray>
     <RevealerParams Duration="0.75" ShapeExpansion="1">
       <RevealFlags index="Unfog" value="1" />
     </RevealerParams>
   </CEffectEnumArea>
-  <CEffectSet id="BaleogSwordSplashImpactSet">
-    <EffectArray value="BaleogSwordWeaponSplashDamage" />
-    <EffectArray value="LostVikingsNordicAttackSquadDamage" />
+  <CEffectSet id="LostVikingsBaleogWeaponSplashImpactSet">
+    <EffectArray value="UniversalWeaponImpact" />
+    <EffectArray value="LostVikingsBaleogWeaponSplashPreImpactSet" />
+    <EffectArray value="BaleogWeaponSplashDamage" />
+    <EffectArray value="LostVikingsBaleogWeaponSplashPostImpactSet" />
     <EffectArray value="UniversalWeaponPostImpactSet" />
   </CEffectSet>
-  <CEffectDamage id="BaleogSwordWeaponSplashDamage" parent="StormWeapon">
-    <MultiplicativeModifierArray index="ExplosiveAttacks" Validator="TargetNotHeroANDLostVikingsHasExplosiveAttacks" Modifier="1" Crit="1" />
-    <Amount value="75" />
-    <ExcludeArray Value="Target" />
+  <CEffectSet id="LostVikingsBaleogWeaponSplashPreImpactSet">
+    <EffectArray value="LostVikingsImpatienceIsAVirtueSet" />
+    <EffectArray value="LostVikingsNordicAttackSquadDamage" />
+  </CEffectSet>
+  <CEffectSet id="LostVikingsBaleogWeaponSplashPostImpactSet" />
+  <CEffectDamage id="BaleogSwordWeaponDamage" parent="StormWeapon">
+    <Amount value="$BaleogWeaponAttackDamage" />
     <LeechMultiplicativeModifierArray index="PainDontHurtIsHero" Validator="LostVikingsHasPainDontHurtANDTargetIsHero" Modifier="1" Crit="1" />
     <LeechValidator index="Life" value="LostVikingsHasPainDontHurt" />
     <LeechFraction index="Life" value="0.2" />
   </CEffectDamage>
-  <CEffectDamage id="BaleogSwordWeaponDamage" parent="StormWeapon">
-    <Amount value="75" />
-    <SearchFilters value="-;Player,Ally,Neutral,ImmuneToAOE,Missile,Item,Stasis,Dead,Hidden,Invulnerable" />
-    <LeechMultiplicativeModifierArray index="PainDontHurtIsHero" Validator="LostVikingsHasPainDontHurtANDTargetIsHero" Modifier="1" Crit="1" />
-    <LeechValidator index="Life" value="LostVikingsHasPainDontHurt" />
-    <LeechFraction index="Life" value="0.2" />
+  <CEffectDamage id="BaleogBowWeaponDamage" parent="BaleogSwordWeaponDamage" />
+  <CEffectDamage id="BaleogWeaponSplashDamage" parent="BaleogSwordWeaponDamage">
+    <Amount value="$BaleogWeaponSplashDamage" />
+    <FlatModifierArray index="ExplosiveAttacks" Validator="TargetNotHeroANDLostVikingsHasExplosiveAttacks" Modifier="$BaleogExplosiveAttacksIncrease" Crit="1" />
   </CEffectDamage>
   <CEffectApplyBehavior id="LostVikingsOlafChargeApplySlowBehavior" parent="StormSlowApply">
     <Behavior value="LostVikingsOlafChargeSlow" />
@@ -4166,7 +4238,6 @@
     <ValidatorArray index="0" value="TargetNotDead" />
     <ImpactEffect value="LostVikingsLongboatRaidWeaponImpactSet" />
     <AmmoUnit value="LostVikingsLongboatRaidMissile" />
-    <LaunchEffect value="UniversalWeaponLaunchSet" />
     <Movers Link="HeroMissileSpeed22NoRibbonSlow" IfRangeLTE="5" />
     <Movers Link="LongboatRaidAttackMissile" IfRangeLTE="13" />
     <ImpactRange value="1" />
@@ -4386,7 +4457,7 @@
   </CEffectCreateHealer>
   <CEffectLaunchMissileAdvanced id="LargeandInChargeLaunchMissile" parent="StormLaunchUnitTargetUnitValidated">
     <LaunchEffect value="LostVikingsLargeAndInChargeChargeApplyBehavior" />
-    <ImpactEffect value="LostVikingsLargeAndInChargeImpactSet" />
+    <ImpactEffect value="LostVikingsOlafChargeMissileImpactSwitch" />
     <Flags index="Placement" value="1" />
     <Flags index="PlacementOriginSideOfFootprints" value="1" />
     <Flags index="Relaunch" value="1" />
@@ -4457,13 +4528,6 @@
     <EffectArray value="LostVikingsHunkaBurningOlafDamage" />
     <EffectArray value="ApplyAbilityImpactReveal" />
     <ValidatorArray value="NoJungleBenignTarget" />
-  </CEffectSet>
-  <CEffectSet id="OlafWeaponImpactWithValiantSet">
-    <EffectArray value="UniversalWeaponImpact" />
-    <EffectArray value="OlafWeaponDamage" />
-    <EffectArray value="LostVikingsImpatienceIsAVirtueSet" />
-    <EffectArray value="LostVikingsLargeAndInChargeImpactSet" />
-    <EffectArray value="UniversalWeaponLaunchSet" />
   </CEffectSet>
   <CEffectModifyUnit id="PlayAgainCairnActivationDummy">
     <ImpactUnit Value="Source" />
@@ -4838,13 +4902,6 @@
       </Modifications>
       <Modifications>
         <Catalog value="Effect" />
-        <Entry value="BaleogSwordWeaponSplashDamage" />
-        <Field value="Amount" />
-        <Value value="0.040000" />
-        <AffectedByOverdrive value="1" />
-      </Modifications>
-      <Modifications>
-        <Catalog value="Effect" />
         <Entry value="BaleogBowWeaponDamage" />
         <Field value="Amount" />
         <Value value="0.040000" />
@@ -4852,8 +4909,15 @@
       </Modifications>
       <Modifications>
         <Catalog value="Effect" />
-        <Entry value="BaleogBowWeaponSplashDamage" />
+        <Entry value="BaleogWeaponSplashDamage" />
         <Field value="Amount" />
+        <Value value="0.040000" />
+        <AffectedByOverdrive value="1" />
+      </Modifications>
+      <Modifications>
+        <Catalog value="Effect" />
+        <Entry value="BaleogWeaponSplashDamage" />
+        <Field value="FlatModifierArray[ExplosiveAttacks].Modifier" />
         <Value value="0.040000" />
         <AffectedByOverdrive value="1" />
       </Modifications>
@@ -5809,7 +5873,6 @@
     <PushPriority value="0" />
     <LifeStart value="750" />
     <LifeMax value="750" />
-    <Speed value="$LostVikingsLongboatRaidMovespeed" />
     <AbilArray Link="move" />
     <AbilArray Link="HoldFire" />
     <AbilArray Link="AttackAlly" />
@@ -5826,6 +5889,7 @@
     <BehaviorArray Link="HeroGenericMapMechanicPickupDisallowed" />
     <BehaviorArray Link="IsHallucination" />
     <BehaviorArray Link="CapturePointAllowed" />
+    <BehaviorArray Link="LostVikingsLongboatRaidMovespeedModifierCarry" />
     <WeaponArray Link="LongboatRaidWeapon" Turret="LongboatRaidBoat" />
     <CardLayouts>
       <LayoutButtons Face="AcquireMove" Type="AbilCmd" AbilCmd="move,AcquireMove" Slot="Attack" />
@@ -5917,7 +5981,6 @@
     <EnergyStart value="0" />
     <EnergyMax value="0" />
     <EnergyRegenRate value="0" />
-    <Speed value="$LostVikingsErikMovespeed" />
     <Sight value="13" />
     <AbilArray Link="LostVikingsPlayAgain" />
     <AbilArray Link="LostVikingsGoGoGo" />
@@ -5952,6 +6015,7 @@
     <BehaviorArray Link="LostVikingsStasisController" />
     <BehaviorArray Link="LostVikingsBaleogTheFierceAndNordicAttackSquadVikingsRangeCarryBehaviorErik" />
     <BehaviorArray Link="LostVikingsNordicAttackSquadDamageBuffErik" />
+    <BehaviorArray Link="LostVikingsErikMovespeedModifierCarry" />
     <WeaponArray Link="LostVikingsErikHardheadedWeapon" />
     <WeaponArray Link="HeroErikSlingshot" />
     <CardLayouts index="0">
@@ -6033,7 +6097,6 @@
     <BehaviorArray Link="LostVikingsVikingHoard" />
     <BehaviorArray Link="HeroGenericIgnoreFullscreenOverlay" />
     <BehaviorArray Link="LostVikingsStasisController" />
-    <BehaviorArray Link="LostVikingsBaleogSplashDamageController" />
     <BehaviorArray Link="LostVikingsBaleogTheFierceAndNordicAttackSquadVikingsRangeCarryBehaviorBaleog" />
     <BehaviorArray Link="LostVikingsBaleogtheFierceBonusAttackSpeed" />
     <BehaviorArray Link="LostVikingsNordicAttackSquadDamageBuffBaleog" />

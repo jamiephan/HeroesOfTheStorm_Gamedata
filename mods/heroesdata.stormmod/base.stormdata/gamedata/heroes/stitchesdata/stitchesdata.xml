@@ -2,6 +2,11 @@
 <Catalog>
   <const id="$StitchesShamblingHorrorMinimumMovespeedModifier" value="1.1" />
   <const id="$StitchesShamblingHorrorMovespeed" value="*($HeroBaseMovementSpeed $StitchesShamblingHorrorMinimumMovespeedModifier)" evaluateAsExpression="1" />
+  <const id="$StitchesSlamCooldown" value="8" />
+  <const id="$StitchesPlaytimeManaRestoredBasicAttacks" value="5" />
+  <const id="$StitchesPlaytimeManaRestoredSlam" value="5" />
+  <const id="$StitchesPlaytimeCooldownReductionBasicAttacks" value="-0.75" />
+  <const id="$StitchesPlaytimeCooldownReductionSlam" value="-1.5" />
   <CAbilEffectInstant id="StitchesShamblingHorror">
     <CmdButtonArray index="Execute" DefaultButtonFace="StitchesShamblingHorror">
       <Flags index="Continuous" value="0" />
@@ -127,7 +132,7 @@
     <Flags index="RequireTargetVision" value="0" />
     <Cost>
       <Vital index="Energy" value="35" />
-      <Cooldown TimeUse="8" />
+      <Cooldown TimeUse="$StitchesSlamCooldown" />
     </Cost>
     <Range value="500" />
     <UninterruptibleArray index="Cast" value="1" />
@@ -527,9 +532,9 @@
     <On Terms="Abil.StitchesPutridBile.SourceCastStart" Send="AnimPlay Putrid Spell,C 0 -1.000000 -1.000000 1.000000 AsTimeScale" />
     <On Terms="Abil.StitchesRetchling.SourcePrecast; !HasStatus Precast" Send="AnimClear Spell" />
     <On Terms="WeaponStart.*.AttackStart; AnimPlaying Spell" Send="AnimClear Spell" />
-    <On Terms="Effect.StitchesHeroWeaponSet.Start; AnimPlaying Attack 02; At Caster" Send="Create StitchesAttackCleaverBase" />
-    <On Terms="Effect.StitchesHeroWeaponSet.Start; AnimPlaying Attack 01; At Caster" Send="Create StitchesAttackChainBase" />
-    <On Terms="Effect.StitchesHeroWeaponSet.Start" Send="Create MeleeHeroAttackDeathForce" />
+    <On Terms="Effect.StitchesHeroWeaponDamage.Start; AnimPlaying Attack 02; At Caster" Send="Create StitchesAttackCleaverBase" />
+    <On Terms="Effect.StitchesHeroWeaponDamage.Start; AnimPlaying Attack 01; At Caster" Send="Create StitchesAttackChainBase" />
+    <On Terms="Effect.StitchesHeroWeaponDamage.Start" Send="Create MeleeHeroAttackDeathForce" />
     <On Terms="Effect.HeroStitchesTenderizerSet.Start; At Caster; AnimPlaying Attack 02" Send="Create StitchesAttackCleaverTenderizer" />
     <On Terms="Effect.HeroStitchesTenderizerSet.Start; At Caster; AnimPlaying Attack 01" Send="Create StitchesAttackChainTenderizer" />
     <On Terms="Effect.StitchesPassiveBuffWeaponImpactSet.Start; At Caster; AnimPlaying Attack 02" Send="Create StitchesAttackCleaverBase" />
@@ -995,6 +1000,8 @@
     <MaxStackCount value="10" />
     <MaxStackCountPerCaster value="10" />
     <Duration value="0.0625" />
+    <InitialEffect value="StitchesSlamPlaytimeTalentUpdateCatalog" />
+    <RefreshEffect value="StitchesSlamPlaytimeTalentUpdateCatalog" />
     <FinalEffect value="StitchesSlamPlaytimeTalentDelayModifyUnit" />
   </CBehaviorBuff>
   <CBehaviorBuff id="StitchesShamblingHorrorGasBagTalentUnstoppable" parent="StormUnstoppableParent">
@@ -2071,12 +2078,28 @@
   </CEffectSwitch>
   <CEffectModifyUnit id="StitchesSlamPlaytimeTalentDelayModifyUnit">
     <ImpactUnit Value="Caster" />
-    <Cost Abil="StitchesSlam,Execute" CooldownOperation="Add" CooldownTimeUse="-1.5" />
-    <VitalArray index="Energy">
-      <Change value="5" />
-    </VitalArray>
-    <FloaterCreation value="Force" />
+    <Cost Abil="StitchesSlam,Execute" CooldownOperation="Add" CooldownTimeUse="$StitchesPlaytimeCooldownReductionSlam" />
   </CEffectModifyUnit>
+  <CEffectModifyCatalogNumeric id="StitchesSlamPlaytimeTalentUpdateCatalog">
+    <CatalogModifications Reference="Effect,StitchesSlamPlaytimeManaRestoration,RechargeVitalRate">
+      <Value value="$StitchesPlaytimeManaRestoredSlam" />
+    </CatalogModifications>
+    <CatalogModifications Operation="Set" Reference="Effect,StitchesSlamPlaytimeTalentProcSet,Chance">
+      <Value value="1" />
+    </CatalogModifications>
+  </CEffectModifyCatalogNumeric>
+  <CEffectSet id="StitchesSlamPlaytimeTalentProcSet">
+    <Chance value="0" />
+    <EffectArray value="StitchesSlamPlaytimeManaRestoration" />
+    <EffectArray value="StitchesSlamPlaytimeResetCatalog" />
+  </CEffectSet>
+  <CEffectCreateHealer id="StitchesSlamPlaytimeManaRestoration" parent="StormManaRestore">
+    <ImpactUnit Value="Caster" />
+  </CEffectCreateHealer>
+  <CEffectModifyCatalogNumeric id="StitchesSlamPlaytimeResetCatalog">
+    <CatalogModifications Operation="Set" Reference="Effect,StitchesSlamPlaytimeManaRestoration,RechargeVitalRate" />
+    <CatalogModifications Operation="Set" Reference="Effect,StitchesSlamPlaytimeTalentProcSet,Chance" />
+  </CEffectModifyCatalogNumeric>
   <CEffectDamage id="StitchesSlamMediumRangeDamage" parent="StormSpell">
     <MultiplicativeModifierArray index="Crit" Modifier="0.5" Crit="1" />
     <Amount value="104" />
@@ -2203,9 +2226,9 @@
   <CEffectModifyUnit id="StitchesSlamPlaytimeTalentModifyUnit">
     <Chance value="0" />
     <ImpactUnit Value="Caster" />
-    <Cost Abil="StitchesSlam,Execute" CooldownOperation="Add" CooldownTimeUse="-0.75" />
+    <Cost Abil="StitchesSlam,Execute" CooldownOperation="Add" CooldownTimeUse="$StitchesPlaytimeCooldownReductionBasicAttacks" />
     <VitalArray index="Energy">
-      <Change value="5" />
+      <Change value="$StitchesPlaytimeManaRestoredBasicAttacks" />
     </VitalArray>
     <FloaterCreation value="Force" />
     <ValidatorArray value="CasterNotBlindedAndTargetNotEvading" />
@@ -2321,9 +2344,6 @@
   <CEffectSet id="StitchesSlamCastSet">
     <EffectArray value="StitchesSlamApplyHeroCheckBehavior" />
     <EffectArray value="StitchesSlamSearchInsideStitches" />
-  </CEffectSet>
-  <CEffectSet id="StitchesHeroWeaponVileCleaverImpactSet">
-    <EffectArray value="StitchesVileGasVileCleaverTalentSearch" />
   </CEffectSet>
   <CEffectSet id="StitchesHookDamageSet">
     <EffectArray value="StitchesHookDamage" />
@@ -2741,15 +2761,21 @@
   <CEffectSet id="StitchesHeroWeaponSet">
     <EffectArray value="UniversalWeaponLaunchSet" />
     <EffectArray value="UniversalWeaponImpact" />
+    <EffectArray value="StitchesWeaponPreImpactSet" />
     <EffectArray value="StitchesHeroWeaponDamageSwitch" />
-    <EffectArray value="StitchesHeroWeaponVileCleaverImpactSet" />
+    <EffectArray value="StitchesWeaponPostImpactSet" />
+    <EffectArray value="StitchesVileGasVileCleaverTalentSearch" />
     <EffectArray value="StitchesVileGasApplySetBasicAttacks" />
-    <EffectArray value="StitchesHeroWeaponTenderizerTalentCreateHealer" />
-    <EffectArray value="StitchesHeroWeaponApplyTenderizerTalentSlowBehavior" />
+    <EffectArray value="UniversalWeaponPostImpactSet" />
+  </CEffectSet>
+  <CEffectSet id="StitchesWeaponPreImpactSet">
     <EffectArray value="StitchesHeroWeaponMeatHookTalentProcSet" />
     <EffectArray value="StitchesSlamPlaytimeTalentModifyUnit" />
     <EffectArray value="StitchesHeroWeaponChopChopTalentModifyDuration" />
-    <EffectArray value="UniversalWeaponPostImpactSet" />
+    <EffectArray value="StitchesHeroWeaponTenderizerTalentCreateHealer" />
+  </CEffectSet>
+  <CEffectSet id="StitchesWeaponPostImpactSet">
+    <EffectArray value="StitchesHeroWeaponApplyTenderizerTalentSlowBehavior" />
   </CEffectSet>
   <CEffectApplyBehavior id="StitchesPutridBileApplyCasterBehavior">
     <WhichUnit Value="Caster" />
@@ -3081,6 +3107,7 @@
     <PeriodCount value="2" />
     <PeriodicEffectArray value="StitchesSlamMediumSearch" />
     <PeriodicEffectArray value="StitchesSlamLargeSearch" />
+    <FinalEffect value="StitchesSlamPlaytimeTalentProcSet" />
     <Marker>
       <MatchFlags index="Id" value="1" />
     </Marker>

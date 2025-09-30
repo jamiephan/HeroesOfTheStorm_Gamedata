@@ -534,7 +534,7 @@
     <HostSiteOps Ops="SOpAttachOrigin" HoldPosition="1" HoldRotation="1" />
     <Host Subject="_Unit" />
   </CActorModel>
-  <CActorAction id="NecromancerCursedStrikesImpactAction" parent="RangedHeroAttack" effectAttack="NecromancerCursedStrikesImpactSet">
+  <CActorAction id="NecromancerCursedStrikesImpactAction" parent="RangedHeroAttack" effectAttack="NecromancerCursedStrikeImpactDummy">
     <ImpactMap index="None" Model="Invisible" Sound="" />
   </CActorAction>
   <CActorModel id="NecromancerCursedStrikesImpactModel" parent="StormModelAnimationStyleOneShotUnit">
@@ -836,7 +836,7 @@
     <ImpactMap index="None" Model="NecromancerRaiseSkeletonAttackImpact" Sound="Necromancer_SkeletalChampion_AttackImpact" />
   </CActorAction>
   <CActorModel id="NecromancerCursedStrikesMasteryHarvestVitalityHealingFX" parent="GenericHealImpactParent">
-    <On Terms="Effect.NecromancerCursedStrikesHarvestVitalityMasteryCreateHealerDummy.Start; At Source" Send="Create" />
+    <On Terms="Effect.NecromancerCursedStrikesHarvestVitalityHealDummy.Start; At Source" Send="Create" />
     <On Terms="ActorCreation" Send="TimerSet 0.660000 Kill" />
     <On Terms="TimerExpired; TimerName Kill" Send="Destroy" />
   </CActorModel>
@@ -1246,7 +1246,7 @@
     <HostBearings Subject="_XulAlias" Actor="Find" />
     <HostBearingsSiteOps Ops="SOpAttachHardPoint05" />
   </CActorSiteOpHostBearings>
-  <CActorAction id="NecromancerHeroWeaponActionActor" parent="MeleeHeroAttack" effectAttack="NecromancerHeroWeaponDamage">
+  <CActorAction id="NecromancerHeroWeaponActionActor" parent="MeleeHeroAttack" effectAttack="NecromancerWeaponImpactDummy">
     <ImpactMap index="None" Sound="None" />
   </CActorAction>
   <CActorModel id="NecromancerWeaponTrailFX" parent="StormModelAnimationStyleOneShotUnit">
@@ -1494,6 +1494,7 @@
   </CBehaviorBuff>
   <CBehaviorTokenCounter id="NecromancerCursedStrikesGrimScytheTokenCounter" parent="StormGenericToken">
     <Max value="12" />
+    <IncreaseEvents Effect="NecromancerCursedStrikesGrimScytheModifyCooldown" />
   </CBehaviorTokenCounter>
   <CBehaviorBuff id="NecromancerRaiseSekeltonTalentDamageResponse">
     <Modification>
@@ -1943,7 +1944,6 @@
     <CatalogModifications Operation="Set" Reference="Effect,NecromancerBonePrisonJailorsQuestProgressIncrementTokenCount,Chance" />
   </CEffectModifyCatalogNumeric>
   <CEffectModifyUnit id="NecromancerCursedStrikesGrimScytheModifyCooldown">
-    <ValidatorArray value="CasterHasLTMaxGrimScytheTokens" />
     <ImpactUnit Value="Caster" />
     <Cost Abil="NecromancerCursedStrikes,Execute" CooldownOperation="Add" CooldownTimeUse="-1" />
   </CEffectModifyUnit>
@@ -2040,7 +2040,6 @@
   </CEffectModifyTokenCount>
   <CEffectSet id="NecromancerCursedStrikesGrimScytheSet">
     <Chance value="0" />
-    <EffectArray value="NecromancerCursedStrikesGrimScytheModifyCooldown" />
     <EffectArray value="NecromancerCursedStrikesGrimScytheAddToken" />
     <ValidatorArray value="CasterNotBlindedAndTargetNotEvading" />
   </CEffectSet>
@@ -2287,6 +2286,7 @@
   </CEffectCreatePersistent>
   <CEffectEnumArea id="NecromancerCursedStrikesSearch2">
     <ImpactLocation Value="SourcePoint" />
+    <IncludeArray Effect="NecromancerHeroWeaponCursedStrikesSet" Value="Target" />
     <SearchFilters value="-;Self,Player,Ally,Neutral,ImmuneToAOE,Missile,Item,Stasis,Dead,Hidden,Invulnerable" />
     <AreaArray Arc="59.9963" Effect="NecromancerCursedStrikesImpactSet">
       <Radius value="5.75" />
@@ -2297,6 +2297,7 @@
   </CEffectEnumArea>
   <CEffectEnumArea id="NecromancerCursedStrikesSearch3">
     <ImpactLocation Value="SourcePoint" />
+    <IncludeArray Effect="NecromancerHeroWeaponCursedStrikesSet" Value="Target" />
     <SearchFilters value="-;Self,Player,Ally,Neutral,ImmuneToAOE,Missile,Item,Stasis,Dead,Hidden,Invulnerable" />
     <AreaArray Arc="59.9963" FacingAdjustment="299.9926" Effect="NecromancerCursedStrikesImpactSet">
       <Radius value="5.75" />
@@ -2327,7 +2328,6 @@
     <EffectArray value="UniversalWeaponLaunchSet" />
     <EffectArray value="NecromancerCursedStrikesProcSet" />
     <EffectArray value="NecromancerCursedStrikesDirectionalSwitch" />
-    <EffectArray value="NecromancerCursedStrikesSpiderMineImpactSet" />
   </CEffectSet>
   <CEffectApplyBehavior id="NecromancerRaiseSkeletonApplyCorpseExplosionTalentDamageLimiter">
     <Behavior value="NecromancerRaiseSkeletonCorpseExplosionDamageLimiter" />
@@ -2356,10 +2356,6 @@
       <Flags index="Disabled" value="1" />
     </AINotifySettings>
   </CEffectCreatePersistent>
-  <CEffectSet id="NecromancerHeroWeaponDamageSet">
-    <EffectArray value="UniversalWeaponImpact" />
-    <EffectArray value="NecromancerHeroWeaponDamage" />
-  </CEffectSet>
   <CEffectSwitch id="NecromancerHeroWeaponSwitch">
     <CaseArray Validator="HasCursedStrikesEnabled" Effect="NecromancerHeroWeaponCursedStrikesSet" />
     <CaseDefault value="NecromancerHeroWeaponDamageSet" />
@@ -2367,12 +2363,13 @@
   <CEffectSet id="NecromancerSpectralScytheMissileFinalSet">
     <EffectArray value="NecromancerSpectralScytheRemoveEchoesOfDeathTalentMarker" />
   </CEffectSet>
-  <CEffectCreateHealer id="NecromancerCursedStrikesHarvestVitalityMasteryCreateHealerDummy" parent="StormSelfOnlyHealingSpell">
+  <CEffectModifyUnit id="NecromancerCursedStrikesHarvestVitalityHealDummy">
     <ValidatorArray value="TargetIsHero" />
     <ValidatorArray value="HasNecromancerTalentHarvestVitality" />
     <ValidatorArray value="CasterNotBlindedAndTargetNotEvading" />
+    <ValidatorArray value="CasterLifeNotFull" />
     <ImpactUnit Value="Caster" />
-  </CEffectCreateHealer>
+  </CEffectModifyUnit>
   <CEffectSwitch id="NecromancerSpectralScytheMortalWoundsDebuffSwitch">
     <ValidatorArray value="HasNecromancerTalentMortalWound" />
     <ValidatorArray value="NotStructureTarget" />
@@ -2411,6 +2408,7 @@
   </CEffectSet>
   <CEffectEnumArea id="NecromancerCursedStrikesSearch1">
     <ImpactLocation Value="SourcePoint" />
+    <IncludeArray Effect="NecromancerHeroWeaponCursedStrikesSet" Value="Target" />
     <SearchFilters value="-;Self,Player,Ally,Neutral,ImmuneToAOE,Missile,Item,Stasis,Dead,Hidden,Invulnerable" />
     <AreaArray Arc="59.9963" FacingAdjustment="59.9963" Effect="NecromancerCursedStrikesImpactSet">
       <Radius value="5.75" />
@@ -2466,16 +2464,24 @@
     <EffectArray value="NecromancerCursedStrikesImpactSet" />
   </CEffectSet>
   <CEffectSet id="NecromancerCursedStrikesImpactSet">
-    <EffectArray value="NecromancerCursedStrikesApplyAttackSpeedSlow" />
-    <EffectArray value="NecromancerCursedStrikesWeakenDamageReductionApplyBehavior" />
-    <EffectArray value="NecromancerCursedStrikesHarvestVitalityMasteryCreateHealerDummy" />
-    <EffectArray value="HeroGenericExecutionerSet" />
-    <EffectArray value="NecromancerCursedStrikesGrimScytheSet" />
-    <EffectArray value="NecromancerShacklerCooldownReductionModifyPlayer" />
-    <EffectArray value="NecromancerCursedStrikesRapidHarvestApplyBehavior" />
+    <EffectArray value="UniversalWeaponImpact" />
+    <EffectArray value="NecromancerCursedStrikeImpactDummy" />
+    <EffectArray value="NecromancerCursedStrikesPreImpactSet" />
     <EffectArray value="NecromancerCursedStrikesDamage" />
+    <EffectArray value="NecromancerCursedStrikesPostImpactSet" />
     <EffectArray value="UniversalWeaponPostImpactSet" />
     <ValidatorArray value="noMarkers" />
+  </CEffectSet>
+  <CEffectModifyUnit id="NecromancerCursedStrikeImpactDummy" />
+  <CEffectSet id="NecromancerCursedStrikesPreImpactSet">
+    <EffectArray value="NecromancerShacklerCooldownReductionModifyPlayer" />
+    <EffectArray value="NecromancerCursedStrikesApplyAttackSpeedSlow" />
+    <EffectArray value="NecromancerCursedStrikesWeakenDamageReductionApplyBehavior" />
+    <EffectArray value="NecromancerCursedStrikesGrimScytheSet" />
+    <EffectArray value="NecromancerCursedStrikesHarvestVitalityHealDummy" />
+  </CEffectSet>
+  <CEffectSet id="NecromancerCursedStrikesPostImpactSet">
+    <EffectArray value="NecromancerCursedStrikesRapidHarvestApplyBehavior" />
   </CEffectSet>
   <CEffectApplyBehavior id="NecromancerSpectralScytheApplyTimedLife">
     <WhichUnit Value="Source" />
@@ -2899,10 +2905,18 @@
   </CEffectModifyUnit>
   <CEffectSet id="NecromancerHeroWeaponImpactSet">
     <EffectArray value="UniversalWeaponLaunchSet" />
-    <EffectArray value="NecromancerHeroWeaponDamageSet" />
-    <EffectArray value="NecromancerShacklerCooldownReductionModifyPlayer" />
+    <EffectArray value="UniversalWeaponImpact" />
+    <EffectArray value="NecromancerWeaponImpactDummy" />
+    <EffectArray value="NecromancerWeaponPreImpactSet" />
+    <EffectArray value="NecromancerHeroWeaponDamage" />
+    <EffectArray value="NecromancerWeaponPostImpactSet" />
     <EffectArray value="UniversalWeaponPostImpactSet" />
   </CEffectSet>
+  <CEffectModifyUnit id="NecromancerWeaponImpactDummy" />
+  <CEffectSet id="NecromancerWeaponPreImpactSet">
+    <EffectArray value="NecromancerShacklerCooldownReductionModifyPlayer" />
+  </CEffectSet>
+  <CEffectSet id="NecromancerWeaponPostImpactSet" />
   <CEffectDamage id="NecromancerHeroWeaponDamage" parent="StormWeapon">
     <Amount value="95" />
     <MultiplicativeModifierArray index="GrimScythe" Validator="HasNecromancerTalentGrimScythe" Modifier="0.15" />

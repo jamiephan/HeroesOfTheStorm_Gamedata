@@ -490,7 +490,7 @@
     <Radius value="3.500000,0.250000" />
   </CActorForceCylinder>
   <CActorModel id="HeroZeratulDeathRagdoll" parent="StormHeroDeathRagdoll" />
-  <CActorAction id="ZeratulAttackActionActor" parent="MeleeHeroAttack" effectAttack="ZeratulHeroWeaponDamageSwitch">
+  <CActorAction id="ZeratulAttackActionActor" parent="MeleeHeroAttack" effectAttack="ZeratulHeroWeaponDamage">
     <ImpactMap index="None" Sound="Zeratul_AttackImpact_Unit" />
     <ImpactMap index="Rock" Sound="Zeratul_AttackImpact_Building" />
     <ImpactPhysics index="0" Name="AttackBlade00" MatchKeys="Basic" Physics="ZeratulAttackDeathForceLateral" />
@@ -1187,27 +1187,18 @@
   <CBehaviorBuff id="ZeratulVoidSlashRendingCleaveMarker">
     <Duration value="3" />
   </CBehaviorBuff>
-  <CBehaviorBuff id="ZeratulMasterWarpBladeCasterHasTarget">
-    <RemoveValidatorArray value="ZeratulMasterWarpBladeDoesHaveTalent" />
-  </CBehaviorBuff>
-  <CBehaviorBuff id="ZeratulMasterWarpBladeTargetStack">
-    <RemoveValidatorArray value="ZeratulMasterWarpBladeCasterHasTarget" />
+  <CBehaviorUnitTracker id="ZeratulMasterWarpBladeTargetTracker">
+    <MaxTrackedUnits value="1" />
+    <UnitAddedAtMaxRule value="ReplaceOldest" />
+    <BehaviorFlags index="Permanent" value="1" />
+    <BehaviorFlags index="EnabledWhileDead" value="1" />
+    <TrackingValidatorArray value="TargetNotDeadAndNoSpecialDeathState" />
+  </CBehaviorUnitTracker>
+  <CBehaviorBuff id="ZeratulMasterWarpBladeStack" parent="StormStackingComboMarker">
     <MaxStackCount value="20" />
-    <MaxStackCountPerCaster value="2" />
-    <Duration value="3" />
     <BuffFlags index="RefreshStack" value="1" />
-  </CBehaviorBuff>
-  <CBehaviorBuff id="ZeratulMasterWarpBladeDamageBuff">
-    <Aliases value="RangedDamageCrit" />
-    <Alignment value="Positive" />
-    <InfoIcon value="Assets\Textures\storm_btn-extra_int_0.dds" />
-    <Modification>
-      <DamageDealtFraction index="Basic" value="1.25" />
-    </Modification>
-    <DamageResponse Chance="1" Handled="ZeratulHeroWeaponMasterWarpBladeTalentDamageBuffRemoveBehavior" Location="Attacker">
-      <ValidatorArray value="TargetNotEvading" />
-      <Kind index="Ability" value="0" />
-    </DamageResponse>
+    <Duration value="3" />
+    <MaxStackCountPerCaster value="2" />
   </CBehaviorBuff>
   <CBehaviorBuff id="ZeratulVoidPrisonDomeBehaviorGiftoftheXelNaga">
     <Duration value="5" />
@@ -2609,6 +2600,7 @@
   <CEffectDamage id="ZeratulHeroWeaponDamage" parent="StormWeapon">
     <Amount value="126" />
     <MultiplicativeModifierArray index="ZeratulSentencedToDeath" Validator="ZeratulHasSentencedtoDeathTalentandTargethasSingularitySpikeOrSingularitySpikeSlow" Modifier="0.25" Crit="1" />
+    <MultiplicativeModifierArray index="ZeratulMasterWarpBlade" Validator="ZeratulTargetHasHas2StacksMasterWarpBlade" Modifier="1.25" Crit="1" />
   </CEffectDamage>
   <CEffectEnumArea id="CleaveSearch">
     <SearchFilters value="-;Player,Ally,Neutral,ImmuneToAOE,Missile,Item,Stasis,Dead,Hidden,Invulnerable" />
@@ -2628,66 +2620,57 @@
   </CEffectDamage>
   <CEffectSet id="ZeratulHeroWeaponSet">
     <EffectArray value="UniversalWeaponLaunchSet" />
-    <EffectArray value="ZeratulHeroWeaponMasterWarpBladeTalentDamageBuffRemoveBehavior" />
-    <EffectArray value="ZeratulHeroWeaponDamageSwitch" />
     <EffectArray value="UniversalWeaponImpact" />
-    <EffectArray value="ZeratulPsionicStrengthWeaponApplyBehavior" />
-    <EffectArray value="ZeratulMightOfTheNerazimRemoveDamageProcBehavior" />
-    <EffectArray value="ZeratulBlinkShadowHunterTalentModifyCooldown" />
-    <EffectArray value="ZeratulWarpSkirmisherRemoveDamageProcBehavior" />
-    <EffectArray value="ZeratulSingularitySpikeUnwaveringPressureSwitch" />
+    <EffectArray value="ZeratulWeaponPreImpactSet" />
+    <EffectArray value="ZeratulHeroWeaponDamage" />
+    <EffectArray value="ZeratulWeaponPostImpactSet" />
     <EffectArray value="UniversalWeaponPostImpactSet" />
   </CEffectSet>
-  <CEffectSet id="ZeratulMasterWarpBladeFirstAttackSet">
-    <EffectArray value="ZeratulMasterWarpBladeRemoveCasterHasTarget" />
-    <EffectArray value="ZeratulHeroWeaponDamage" />
-    <EffectArray value="ZeratulMasterWarpBladeFirstAttackSetupPersistent" />
+  <CEffectSet id="ZeratulWeaponPreImpactSet">
+    <EffectArray value="ZeratulBlinkShadowHunterTalentModifyCooldown" />
+    <EffectArray value="ZeratulSingularitySpikeUnwaveringPressureSwitch" />
   </CEffectSet>
-  <CEffectSet id="ZeratulMasterWarpBladeAddStackSet">
-    <EffectArray value="ZeratulMasterWarpBladeApplyTargetStack" />
-    <EffectArray value="ZeratulHeroWeaponDamage" />
-    <EffectArray value="ZeratulHeroWeaponMasterWarpBladeTalentDamageBuffApplyBehavior" />
+  <CEffectSet id="ZeratulWeaponPostImpactSet">
+    <EffectArray value="ZeratulMasterWarpBladeApplicationSet" />
+    <EffectArray value="ZeratulPsionicStrengthWeaponApplyBehavior" />
+    <EffectArray value="ZeratulMightOfTheNerazimRemoveDamageProcBehavior" />
+    <EffectArray value="ZeratulWarpSkirmisherRemoveDamageProcBehavior" />
   </CEffectSet>
-  <CEffectApplyBehavior id="ZeratulHeroWeaponMasterWarpBladeTalentDamageBuffApplyBehavior">
-    <WhichUnit Value="Caster" />
-    <Behavior value="ZeratulMasterWarpBladeDamageBuff" />
+  <CEffectSet id="ZeratulMasterWarpBladeApplicationSet">
+    <ValidatorArray value="ZeratulMasterWarpBladeDoesHaveTalent" />
     <ValidatorArray value="CasterNotBlindedAndTargetNotEvading" />
+    <EffectArray value="ZeratulMasterWarpBladeSwitch" />
+    <EffectArray value="ZeratulMasterWarpBladeTargetNotTrackedSet" />
+  </CEffectSet>
+  <CEffectSwitch id="ZeratulMasterWarpBladeSwitch">
+    <CaseArray Validator="ZeratulTargetHasHas2StacksMasterWarpBlade" Effect="ZeratulMasterWarpBladeRemoveStacks" />
+    <CaseDefault value="ZeratulMasterWarpBladeApplyStackBuff" />
+  </CEffectSwitch>
+  <CEffectApplyBehavior id="ZeratulMasterWarpBladeApplyStackBuff">
+    <Behavior value="ZeratulMasterWarpBladeStack" />
   </CEffectApplyBehavior>
-  <CEffectRemoveBehavior id="ZeratulHeroWeaponMasterWarpBladeTalentDamageBuffRemoveBehavior">
-    <ValidatorArray index="0" value="ZeratulMasterWarpBladeTargetHasLessThan1Stack" />
-    <ValidatorArray value="CasterNotBlindedAndTargetNotEvading" />
-    <WhichUnit Value="Caster" />
-    <BehaviorLink value="ZeratulMasterWarpBladeDamageBuff" />
+  <CEffectSet id="ZeratulMasterWarpBladeTargetNotTrackedSet">
+    <ValidatorArray value="ZeratulMasterWarpBladeTargetIsNotTracked" />
+    <EffectArray value="ZeratulMasterWarpBladeCleanseStacksEnum" />
+    <EffectArray value="ZeratulMasterWarpBladeClearTrackedUnits" />
+    <EffectArray value="ZeratulMasterWarpBladeTrackTarget" />
+  </CEffectSet>
+  <CEffectEnumTrackedUnits id="ZeratulMasterWarpBladeCleanseStacksEnum">
+    <BehaviorLink value="ZeratulMasterWarpBladeTargetTracker" />
+    <Effect value="ZeratulMasterWarpBladeRemoveStacks" />
+  </CEffectEnumTrackedUnits>
+  <CEffectRemoveBehavior id="ZeratulMasterWarpBladeRemoveStacks">
+    <BehaviorLink value="ZeratulMasterWarpBladeStack" />
+    <Count value="2" />
+    <RequireCasterUnit Value="Caster" />
   </CEffectRemoveBehavior>
-  <CEffectCreatePersistent id="ZeratulMasterWarpBladeFirstAttackSetupPersistent">
-    <WhichLocation Value="TargetUnit" />
-    <PeriodCount value="3" />
-    <PeriodicEffectArray value="" />
-    <PeriodicEffectArray value="ZeratulMasterWarpBladeApplyCasterHasTarget" />
-    <PeriodicEffectArray value="ZeratulMasterWarpBladeApplyTargetStack" />
-    <PeriodicPeriodArray value="0.0625" />
-    <PeriodicPeriodArray value="0" />
-    <PeriodicPeriodArray value="0" />
-    <ValidatorArray value="CasterNotBlindedAndTargetNotEvading" />
-  </CEffectCreatePersistent>
-  <CEffectRemoveBehavior id="ZeratulMasterWarpBladeRemoveCasterHasTarget">
-    <WhichUnit Value="Caster" />
-    <BehaviorLink value="ZeratulMasterWarpBladeCasterHasTarget" />
-    <ValidatorArray value="CasterNotBlindedAndTargetNotEvading" />
-  </CEffectRemoveBehavior>
-  <CEffectApplyBehavior id="ZeratulMasterWarpBladeApplyCasterHasTarget">
-    <WhichUnit Value="Caster" />
-    <Behavior value="ZeratulMasterWarpBladeCasterHasTarget" />
-    <ValidatorArray value="CasterNotBlindedAndTargetNotEvading" />
-  </CEffectApplyBehavior>
-  <CEffectApplyBehavior id="ZeratulMasterWarpBladeApplyTargetStack">
-    <Behavior value="ZeratulMasterWarpBladeTargetStack" />
-    <ValidatorArray value="CasterNotBlindedAndTargetNotEvading" />
-  </CEffectApplyBehavior>
-  <CEffectSet id="ZeratulMasterWarpBladeWeaponDamageSet">
-    <EffectArray value="ZeratulHeroWeaponDamage" />
-    <EffectArray value="ZeratulMasterWarpBladeRemoveCasterHasTarget" />
-  </CEffectSet>
+  <CEffectClearTrackedUnits id="ZeratulMasterWarpBladeClearTrackedUnits">
+    <BehaviorLink value="ZeratulMasterWarpBladeTargetTracker" />
+  </CEffectClearTrackedUnits>
+  <CEffectAddTrackedUnit id="ZeratulMasterWarpBladeTrackTarget">
+    <BehaviorLink value="ZeratulMasterWarpBladeTargetTracker" />
+    <TrackedUnit Value="Target" />
+  </CEffectAddTrackedUnit>
   <CHero id="Zeratul" parent="LegacyVOHero">
     <AttributeId value="Zera" />
     <ProductId value="10130" />
@@ -3489,6 +3472,9 @@
   </CTalent>
   <CTalent id="ZeratulMasterWarpBlade">
     <Face value="ZeratulMasterWarpBlade" />
+    <RankArray>
+      <BehaviorArray value="ZeratulMasterWarpBladeTargetTracker" />
+    </RankArray>
   </CTalent>
   <CTalent id="ZeratulComboSlash">
     <Face value="ZeratulComboSlash" />
@@ -3796,17 +3782,15 @@
   <CValidatorUnitCompareBehaviorCount id="NoZeratulPermanentCloakTarget">
     <Behavior value="ZeratulPermanentCloak" />
   </CValidatorUnitCompareBehaviorCount>
-  <CValidatorUnitCompareBehaviorCount id="ZeratulHasMasterWarpBladeDamageBuff">
-    <WhichUnit Value="Caster" />
-    <Value value="1" />
-    <Behavior value="ZeratulMasterWarpBladeDamageBuff" />
+  <CValidatorIsUnitTracked id="ZeratulMasterWarpBladeTargetIsNotTracked">
+    <BehaviorLink value="ZeratulMasterWarpBladeTargetTracker" />
+    <TrackedUnit Value="Target" />
+  </CValidatorIsUnitTracked>
+  <CValidatorUnitCompareBehaviorCount id="ZeratulTargetHasHas2StacksMasterWarpBlade">
+    <Value value="2" />
+    <Behavior value="ZeratulMasterWarpBladeStack" />
+    <RequireCasterUnit Value="Caster" />
   </CValidatorUnitCompareBehaviorCount>
-  <CValidatorCombine id="ZeratulHasMasterWarpBladeDamageBuffCritKickerCombine">
-    <Type value="And" />
-    <CombineArray value="ZeratulHasMasterWarpBladeDamageBuff" />
-    <CombineArray value="CasterNotBlindedAndTargetNotEvading" />
-    <CombineArray value="DoesNotHaveFollowThrough" />
-  </CValidatorCombine>
   <CValidatorUnitCompareBehaviorCount id="HasZeratulCloakController">
     <WhichUnit Value="Source" />
     <Value value="1" />

@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="us-ascii"?>
 <Catalog>
+  <const id="$ValeeraWeaponPeriod" value="0.5" />
+  <const id="$ValeeraWeaponPreswingBetween" value="0.25" />
+  <const id="$ValeeraSliceAndDiceResetValue" value="-($ValeeraWeaponPeriod /($ValeeraWeaponPreswingBetween 2))" evaluateAsExpression="1" />
   <CAbilEffectTarget id="ValeeraEviscerate">
     <PrepEffect value="DismountDecloakCasterSet" />
     <Effect value="ValeeraEviscerateInitialSet" />
@@ -312,7 +315,7 @@
     <On Terms="ActorCreation" Send="StatusSet SliceAndDice 0" />
     <On Terms="Effect.ValeeraSliceAndDiceBuffApply.Start; At Caster" Send="StatusSet SliceAndDice 3" />
     <On Terms="WeaponStart.*.AttackStart; IsStatus SliceAndDice 3" Send="AnimClear Eviscerate" />
-    <On Terms="Effect.ValeeraSliceAndDiceBuffRemove.Start; At Caster" Send="StatusDecrement SliceAndDice" />
+    <On Terms="Effect.ValeeraSliceAndDiceModifyToken.Start; At Caster" Send="StatusDecrement SliceAndDice" />
     <On Terms="Behavior.ValeeraSliceAndDiceBuff.Off" Send="StatusSet SliceAndDice 0" />
     <On Terms="Behavior.ValeeraStealthCloak.On" Send="ModelMaterialApply ValeeraStealthGlaze" />
     <On Terms="Behavior.ValeeraStealthCloak.Off" Target="ValeeraStealthGlaze" Send="AnimBracketStop BSD" />
@@ -1074,21 +1077,17 @@
     </DamageResponse>
   </CBehaviorBuff>
   <CBehaviorBuff id="ValeeraSliceAndDiceBuff">
-    <MaxStackCount value="3" />
+    <RemoveValidatorArray value="ValeeraHasSliceAndDiceTokens" />
     <Duration value="3" />
     <Modification>
-      <AdditiveAttackSpeedFactor value="1.5" />
+      <AdditiveAttackSpeedFactor value="4" />
     </Modification>
+    <FinalEffect value="ValeeraSliceAndDiceRemoveTokenCounter" />
   </CBehaviorBuff>
-  <CBehaviorBuff id="ValeeraSliceAndDiceMonitor">
-    <DamageResponse>
-      <Chance value="1" />
-      <Handled value="ValeeraSliceAndDiceBuffRemove" />
-      <Location value="Attacker" />
-      <DamageValue value="Original" />
-      <RequireEffectArray value="ValeeraWeaponDamage" />
-    </DamageResponse>
-  </CBehaviorBuff>
+  <CBehaviorTokenCounter id="ValeeraSliceAndDiceToken" parent="StormGenericToken">
+    <Max value="3" />
+    <Init value="3" />
+  </CBehaviorTokenCounter>
   <CBehaviorBuff id="ValeeraInitiativeBonus">
     <Alignment value="Positive" />
     <InfoIcon value="Assets\Textures\storm_ui_temp_icon_stealthmastery_2.dds" />
@@ -1634,11 +1633,18 @@
   <CEffectSet id="ValeeraWeaponSet">
     <EffectArray value="UniversalWeaponLaunchSet" />
     <EffectArray value="UniversalWeaponImpact" />
+    <EffectArray value="ValeeraWeaponPreImpactSet" />
     <EffectArray value="ValeeraWeaponDamageSwitch" />
-    <EffectArray value="ValeeraGarroteRuptureRefresh" />
-    <EffectArray value="ValeeraSliceAndDiceEnergyRestore" />
+    <EffectArray value="ValeeraWeaponPostImpactSet" />
     <EffectArray value="UniversalWeaponPostImpactSet" />
     <ValidatorArray value="ValeeraDoesNotHaveVanish" />
+  </CEffectSet>
+  <CEffectSet id="ValeeraWeaponPreImpactSet">
+    <EffectArray value="ValeeraSliceAndDiceEnergyRestore" />
+    <EffectArray value="ValeeraGarroteRuptureRefresh" />
+  </CEffectSet>
+  <CEffectSet id="ValeeraWeaponPostImpactSet">
+    <EffectArray value="ValeeraSliceAndDiceAttackSet" />
   </CEffectSet>
   <CEffectRemoveBehavior id="ValeeraStealthCloakRemove">
     <WhichUnit Value="Caster" />
@@ -2064,13 +2070,17 @@
   </CEffectSwitch>
   <CEffectSet id="ValeeraSliceAndDiceApplySet">
     <Chance value="0" />
+    <EffectArray value="ValeeraSliceAndDiceApplyTokenCounter" />
     <EffectArray value="ValeeraSliceAndDiceBuffApply" />
-    <EffectArray value="ValeeraSliceAndDiceMonitorApply" />
   </CEffectSet>
-  <CEffectApplyBehavior id="ValeeraSliceAndDiceMonitorApply">
+  <CEffectApplyBehavior id="ValeeraSliceAndDiceApplyTokenCounter">
     <WhichUnit Value="Caster" />
-    <Behavior value="ValeeraSliceAndDiceMonitor" />
+    <Behavior value="ValeeraSliceAndDiceToken" />
   </CEffectApplyBehavior>
+  <CEffectRemoveBehavior id="ValeeraSliceAndDiceRemoveTokenCounter">
+    <WhichUnit Value="Caster" />
+    <BehaviorLink value="ValeeraSliceAndDiceToken" />
+  </CEffectRemoveBehavior>
   <CEffectApplyBehavior id="ValeeraSliceAndDiceBuffApply">
     <WhichUnit Value="Caster" />
     <Behavior value="ValeeraSliceAndDiceBuff" />
@@ -2081,6 +2091,25 @@
     <BehaviorLink value="ValeeraSliceAndDiceBuff" />
     <Count value="1" />
   </CEffectRemoveBehavior>
+  <CEffectSet id="ValeeraSliceAndDiceAttackSet">
+    <ValidatorArray value="ValeeraHasSliceAndDiceTokens" />
+    <EffectArray value="ValeeraSliceAndDiceModifyToken" />
+    <EffectArray value="ValeeraSliceAndDiceRemoveSet" />
+  </CEffectSet>
+  <CEffectModifyTokenCount id="ValeeraSliceAndDiceModifyToken" parent="BaseEffectModifyTokenCount">
+    <TokenId value="ValeeraSliceAndDiceToken" />
+    <Value value="-1" />
+  </CEffectModifyTokenCount>
+  <CEffectSet id="ValeeraSliceAndDiceRemoveSet">
+    <ValidatorArray value="ValeeraHasNoSliceAndDiceTokens" />
+    <EffectArray value="ValeeraSliceAndDiceBuffRemove" />
+    <EffectArray value="ValeeraSliceAndDiceRemoveTokenCounter" />
+    <EffectArray value="ValeeraSliceAndDiceResetWeaponCooldown" />
+  </CEffectSet>
+  <CEffectModifyUnit id="ValeeraSliceAndDiceResetWeaponCooldown">
+    <ImpactUnit Value="Caster" />
+    <Weapon Weapon="HeroValeera" CooldownOperation="Set" CooldownAmount="$ValeeraSliceAndDiceResetValue" />
+  </CEffectModifyUnit>
   <CEffectSet id="ValeeraGarroteInitialSet">
     <EffectArray value="ValeeraModifyWeaponCooldown" />
     <EffectArray value="ValeeraGarroteImpactSet" />
@@ -3452,6 +3481,19 @@
     <Behavior value="ValeeraMutilateDamageBuff" />
     <Value value="1" />
   </CValidatorUnitCompareBehaviorCount>
+  <CValidatorUnitHasBehavior id="ValeeraCasterHasSliceAndDiceBuff">
+    <WhichUnit Value="Caster" />
+    <Behavior value="ValeeraSliceAndDiceBuff" />
+  </CValidatorUnitHasBehavior>
+  <CValidatorUnitCompareTokenCount id="ValeeraHasSliceAndDiceTokens">
+    <WhichUnit Value="Caster" />
+    <Compare value="GT" />
+    <TokenId value="ValeeraSliceAndDiceToken" />
+  </CValidatorUnitCompareTokenCount>
+  <CValidatorUnitCompareTokenCount id="ValeeraHasNoSliceAndDiceTokens">
+    <WhichUnit Value="Caster" />
+    <TokenId value="ValeeraSliceAndDiceToken" />
+  </CValidatorUnitCompareTokenCount>
   <CValidatorPlayerTalent id="ValeeraHasSliceAndDice">
     <Find value="1" />
     <Value value="ValeeraEviscerateSliceAndDice" />
@@ -3580,9 +3622,9 @@
     <DisplayEffect value="ValeeraWeaponDamage" />
     <MinScanRange value="4" />
     <Range value="1.25" />
-    <Period value="0.5" />
+    <Period value="$ValeeraWeaponPeriod" />
     <Effect value="ValeeraWeaponSet" />
     <PreswingBeforeAttack value="0.5" />
-    <PreswingBetweenAttacks value="0.25" />
+    <PreswingBetweenAttacks value="$ValeeraWeaponPreswingBetween" />
   </CWeaponLegacy>
 </Catalog>

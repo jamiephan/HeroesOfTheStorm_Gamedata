@@ -1658,7 +1658,7 @@
   <CBehaviorBuff id="ChromieSandBlastPastAndFutureMeEcho2" />
   <CBehaviorBuff id="ChromieSlowingSandsUnravellingArmorDebuff" parent="StormArmor">
     <BehaviorCategories index="DebuffVulnerable" value="1" />
-    <RemoveValidatorArray value="ChromieSlowingSandsTargetHasSlowingSandsTargetBehavior" />
+    <RemoveValidatorArray value="ChromieSlowingSandsTargetHasSlowingSandsTargetBehaviorIncludeDisabled" />
     <ArmorModification StackCount="5">
       <ArmorSet index="Hero">
         <ArmorMitigationTable index="Ability" value="-10" />
@@ -1727,6 +1727,8 @@
     <Buttons Face="ChromieHereAndThere" Type="AbilCmd" AbilCmd="ChromieHereAndThere,Execute" />
   </CBehaviorAbility>
   <CBehaviorBuff id="ChromieSandEchoWeaponSelfRevealer">
+    <MaxStackCount value="10" />
+    <MaxStackCountPerCaster value="1" />
     <Duration value="1.5" />
     <Modification>
       <ModifyFlags index="Detected" value="1" />
@@ -2486,19 +2488,27 @@
     <BehaviorLink value="ChromieTimeTrapUnitTracker" />
     <TrackedUnit Value="Target" />
   </CEffectAddTrackedUnit>
-  <CEffectApplyBehavior id="ChromieSandEchoWeaponApplyRevealerBehavior">
-    <Behavior value="TalentScoutingDroneRevealed" />
-    <WhichUnit Effect="ChromieSandEchoLaunchMissile" />
-    <Chance value="0" />
-  </CEffectApplyBehavior>
+  <CEffectAddTrackedUnit id="ChromieSandEchoAttackDamagedUnitTrackerAdd" parent="StormSummonedUnitDamagedUnitTrackerAdd">
+    <TrackerUnit Effect="ChromieSandEchoBasicAttackEnumerateTrackedUnitsSet" Value="Target" />
+  </CEffectAddTrackedUnit>
+  <CEffectCreatePersistent id="ChromieSandEchoWeaponCreatePersistentRevealDummy" parent="StormSummonedUnitPhysicalDamageDealtPersistent">
+    <WhichLocation Effect="ChromieSandEchoBasicAttackEnumerateTrackedUnitsSet" Value="TargetUnit" />
+  </CEffectCreatePersistent>
   <CEffectSet id="ChromieSandEchoBasicAttackImpactSet">
     <EffectArray value="UniversalWeaponImpact" />
+    <EffectArray value="ChromieSandEchoWeaponPreImpactSet" />
     <EffectArray value="ChromieSandEchoWeaponDamage" />
-    <EffectArray value="ChromieSandEchoWeaponApplyRevealerBehavior" />
-    <EffectArray value="ChromieAProperGreetingDamageIncreaseApplyBehaviorBasicAttack" />
+    <EffectArray value="ChromieSandEchoWeaponPostImpactSet" />
+    <EffectArray value="ChromieSandEchoAttackDamagedUnitTrackerAdd" />
+    <EffectArray value="ChromieSandEchoWeaponCreatePersistentRevealDummy" />
     <EffectArray value="UniversalWeaponPostImpactSet" />
   </CEffectSet>
+  <CEffectSet id="ChromieSandEchoWeaponPreImpactSet" />
+  <CEffectSet id="ChromieSandEchoWeaponPostImpactSet">
+    <EffectArray value="ChromieAProperGreetingDamageIncreaseApplyBehaviorBasicAttack" />
+  </CEffectSet>
   <CEffectSet id="ChromieHeroWeaponInitialSet">
+    <EffectArray value="UniversalWeaponLaunchSet" />
     <EffectArray value="ChromieHeroWeaponLaunchMissileSet" />
     <EffectArray value="ChromieSandEchoBasicAttackEnumerateLaunchMissile" />
   </CEffectSet>
@@ -2526,8 +2536,8 @@
     <AmmoUnit value="ChromieSandEchoBasicAttackMissile" />
   </CEffectLaunchMissile>
   <CEffectSet id="ChromieSandEchoBasicAttackLaunchMissileSet">
-    <EffectArray value="ChromieSandEchoLaunchMissile" />
     <EffectArray value="UniversalWeaponLaunchSet" />
+    <EffectArray value="ChromieSandEchoLaunchMissile" />
   </CEffectSet>
   <CEffectCreatePersistent id="ChromieSandEchoBasicAttackCreatePersistent">
     <WhichLocation Value="TargetUnit" />
@@ -3061,7 +3071,6 @@
   </CEffectApplyBehavior>
   <CEffectSet id="ChromieHeroWeaponLaunchMissileSet">
     <EffectArray value="ChromieHeroWeaponLaunchMissileSwitch" />
-    <EffectArray value="UniversalWeaponLaunchSet" />
   </CEffectSet>
   <CEffectLaunchMissile id="ChromieHeroWeaponLaunchMissile">
     <ValidatorArray index="0" value="TargetNotDead" />
@@ -3072,9 +3081,14 @@
   </CEffectLaunchMissile>
   <CEffectSet id="ChromieHeroWeaponImpactSet">
     <EffectArray value="UniversalWeaponImpact" />
+    <EffectArray value="ChromieWeaponPreImpactSet" />
     <EffectArray value="ChromieHeroWeaponDamage" />
-    <EffectArray value="ChromieAProperGreetingDamageIncreaseApplyBehaviorBasicAttack" />
+    <EffectArray value="ChromieWeaponPostImpactSet" />
     <EffectArray value="UniversalWeaponPostImpactSet" />
+  </CEffectSet>
+  <CEffectSet id="ChromieWeaponPreImpactSet" />
+  <CEffectSet id="ChromieWeaponPostImpactSet">
+    <EffectArray value="ChromieAProperGreetingDamageIncreaseApplyBehaviorBasicAttack" />
   </CEffectSet>
   <CEffectDamage id="ChromieHeroWeaponDamage" parent="StormWeapon">
     <MultiplicativeModifierArray index="BronzeTalons" Validator="ChromieCreatorHasBronzeTalonsBehavior" Modifier="0.5" Crit="1" />
@@ -3123,6 +3137,7 @@
   <CEffectDamage id="ChromieSandEchoWeaponDamage" parent="ChromieHeroWeaponDamage">
     <MultiplicativeModifierArray index="PastandFutureMe" Validator="ChromieCreatorDoesNotHaveSandBlastOnceAgainTheFirstTimeQuestCompleteBehavior" Modifier="$ChromiePastAndFutureMeDamageModifier" />
     <MultiplicativeModifierArray index="OnceAgainTheFirstTime" Validator="ChromieCreatorDoesHaveSandBlastOnceAgainTheFirstTimeQuestCompleteBehavior" Modifier="-0.55" />
+    <Visibility value="Hidden" />
   </CEffectDamage>
   <CEffectSet id="ChromieTimeTrapTargetBehaviorExpireSet">
     <EffectArray value="HeroGenericRemoveMovementSuppressionBuff" />
@@ -3203,7 +3218,7 @@
     <TargetLocationType value="Point" />
   </CEffectSet>
   <CEffectEnumArea id="ChromieSlowingSandsTargetSearchArea">
-    <SearchFilters value="-;Player,Ally,Neutral,ImmuneToAOE,Missile,Item,Stasis,Dead,Hidden,Invulnerable" />
+    <SearchFilters value="-;Player,Ally,Neutral,ImmuneToAOE,Missile,Item,Stasis,Dead,Hidden,Invulnerable,Unstoppable" />
     <AreaArray Effect="ChromieSlowingSandsTargetImpactSet">
       <Radius value="3.5" />
     </AreaArray>
@@ -3409,12 +3424,21 @@
     <EffectArray value="ChromieAProperGreetingDamageIncreaseApplyBehaviorSandEchoSandBlast" />
     <EffectArray value="ChromieQuantumOverdriveModifyPlayerCooldown" />
     <EffectArray value="ChromieSandBlastBlessingOfTheBronzeCooldownReduction" />
+    <EffectArray value="ChromieSandEchoSandBlastDamagedUnitTrackerAdd" />
+    <EffectArray value="ChromieSandBlastSandEchoCreatePersistentRevealDummy" />
   </CEffectSet>
   <CEffectDamage id="ChromieSandBlastPastAndFutureMeDamage" parent="ChromieSandBlastDamage">
     <MultiplicativeModifierArray index="PastandFutureMe" Validator="ChromieCreatorDoesNotHaveSandBlastOnceAgainTheFirstTimeQuestCompleteBehavior" Modifier="$ChromiePastAndFutureMeDamageModifier" />
     <MultiplicativeModifierArray index="OnceAgainTheFirstTime" Validator="ChromieCreatorDoesHaveSandBlastOnceAgainTheFirstTimeQuestCompleteBehavior" Modifier="-0.55" />
     <Visibility value="Hidden" />
   </CEffectDamage>
+  <CEffectAddTrackedUnit id="ChromieSandEchoSandBlastDamagedUnitTrackerAdd" parent="StormSummonedUnitDamagedUnitTrackerAdd">
+    <TrackerUnit Effect="ChromieSandBlastSandEchoEnumerateTrackedUnitsSet" Value="Target" />
+  </CEffectAddTrackedUnit>
+  <CEffectCreatePersistent id="ChromieSandBlastSandEchoCreatePersistentRevealDummy" parent="StormSummonedUnitSpellDamageDealtPersistent">
+    <ValidatorArray value="ChromieSandBlastSandEchoNotDead" />
+    <WhichLocation Effect="ChromieSandBlastSandEchoEnumerateTrackedUnitsSet" Value="TargetUnit" />
+  </CEffectCreatePersistent>
   <CEffectEnumTrackedUnits id="ChromieBlessingOfTheBronzeEnumerateAllHeroicUnitsApplyBehavior">
     <BehaviorLink value="AllHeroicUnitsTrackingBehavior" />
     <Effect value="ChromieBlessingOfTheBronzeSet" />
@@ -4420,6 +4444,8 @@
       <LayoutButtons Face="ChromieSandBlast" Type="AbilCmd" AbilCmd="ChromiePastAndFutureMeSandBlast,Execute" Slot="Ability1" />
     </CardLayouts>
     <BehaviorArray Link="ChromieSandEchoSandBlastCounter" />
+    <BehaviorArray Link="StormSummonedUnitTargetTracker" />
+    <BehaviorArray Link="StormSummonedUnitDamagedUnitTracker" />
     <Radius value="$PastAndFutureMeUnitRadius" />
   </CUnit>
   <CUnit id="ChromieSandBlastPastAndFutureMeMissile" parent="MISSILE_INVULNERABLE">
@@ -4505,6 +4531,10 @@
     <Compare value="GT" />
     <Behavior value="ChromieSlowingSandsTargetBehavior" />
   </CValidatorUnitCompareBehaviorCount>
+  <CValidatorUnitHasBehavior id="ChromieSlowingSandsTargetHasSlowingSandsTargetBehaviorIncludeDisabled">
+    <Behavior value="ChromieSlowingSandsTargetBehavior" />
+    <IncludeDisabled value="1" />
+  </CValidatorUnitHasBehavior>
   <CValidatorUnitOrderQueue id="ChromieTargetCastingPastAndFutureMeSandBlast">
     <WhichUnit Value="Target" />
     <AbilLink value="ChromiePastAndFutureMeSandBlast" />
@@ -4564,6 +4594,11 @@
     <Range value="$ChromieBasicAttackRange" />
     <Value Value="FocusUnit" />
   </CValidatorLocationCompareRange>
+  <CValidatorUnitFilters id="ChromieSandEchoAttackSandEchoIsNotVisibleToTarget">
+    <WhichUnit Effect="ChromieSandEchoBasicAttackEnumerateTrackedUnitsSet" Value="Target" />
+    <OtherUnit Value="Target" />
+    <Filters value="-;Visible" />
+  </CValidatorUnitFilters>
   <CValidatorCombine id="RemoveSuppressTurningBehavior">
     <CombineArray value="CasterCastingSandBlast" />
     <CombineArray value="CasterCastingChromiePastAndFutureMeSandBlast" />
@@ -4744,6 +4779,10 @@
     <Find value="1" />
     <Value value="ChromieSandBlastMountingSand" />
   </CValidatorPlayerTalent>
+  <CValidatorUnitFilters id="ChromieSandBlastSandEchoNotDead">
+    <WhichUnit Effect="ChromieSandBlastSandEchoEnumerateTrackedUnitsSet" />
+    <Filters value="-;Dead" />
+  </CValidatorUnitFilters>
   <CValidatorUnitCompareBehaviorCount id="ChromieHasPrimedBehaviorCombineUnnamed" />
   <CValidatorPlayerTalent id="ChromieHasTemporalLoopStuckInALoopTalent">
     <WhichPlayer Value="Caster" />

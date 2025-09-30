@@ -46,7 +46,7 @@
     <CmdButtonArray index="Execute" DefaultButtonFace="ThrallWindRush" />
   </CAbilEffectTarget>
   <CAbilEffectTarget id="ThrallChainLightning">
-    <Effect value="ThrallChainLightningInitialPersistent" />
+    <Effect value="ThrallChainLightningCastSet" />
     <Flags index="ClearLastMoveTarget" value="1" />
     <Cost>
       <Vital index="Energy" value="40" />
@@ -602,7 +602,7 @@
   <CActorMissile id="ThrallSunderingMissile" parent="StormMissileWithDeathEarly" unitName="ThrallSunderingMissile">
     <On Terms="ActorCreation" Send="Create ThrallSunderingGrowthSound" />
   </CActorMissile>
-  <CActorAction id="ThrallTempestFuryAttackAction" parent="MeleeHeroAttack" effectAttack="ThrallWindfuryTempestFuryAttackImpactSet">
+  <CActorAction id="ThrallTempestFuryAttackAction" parent="MeleeHeroAttack" effectAttack="ThrallTempestFuryWeaponImpactDummy">
     <ImpactMap index="None" Sound="" />
   </CActorAction>
   <CActorModel id="ThrallWindfuryWeaponEnchantFXBirth" parent="StormModelAddition">
@@ -976,7 +976,7 @@
     <UnitFlags index="ShowBlobShadow" value="0" />
     <UnitIcon value="Assets\Textures\storm_temp_btn-Ability-Terran-ScannerSweep.dds" />
   </CActorUnit>
-  <CActorAction id="ThrallWeaponAttackAction" parent="MeleeHeroAttack" effectAttack="ThrallHeroWeaponImpactSet">
+  <CActorAction id="ThrallWeaponAttackAction" parent="MeleeHeroAttack" effectAttack="ThrallWeaponImpactDummy">
     <ImpactMap index="None" Sound="Thrall_AttackImpact_Unit" />
   </CActorAction>
   <CActorSound id="PulledSoundHeroThrall" parent="SoundOneShot">
@@ -1024,6 +1024,13 @@
     <PeriodicEffect value="ThrallAncestralWrathDamage" />
     <PeriodicDisplayEffect value="ThrallAncestralWrathDamage" />
     <FinalEffect value="ThrallAncestralWrathRemoveDummyHealer" />
+  </CBehaviorBuff>
+  <CBehaviorBuff id="ThrallElementalAssaultBuff">
+    <Alignment value="Positive" />
+    <InfoFlags index="Hidden" value="0" />
+    <InfoIcon value="Assets\Textures\storm_ui_icon_talent_autoattack_damage.dds" />
+    <SortIndex value="45" />
+    <Duration value="4" />
   </CBehaviorBuff>
   <CBehaviorBuff id="ThrallSunderingWorldbreakerTalentActive">
     <Duration value="4" />
@@ -1079,6 +1086,7 @@
     <FinalEffect value="ThrallChainLightningThunderstormTalentRemoveTargetMarker" />
   </CBehaviorBuff>
   <CBehaviorTokenCounter id="ThrallThunderstormTokenCounter" parent="StormQuestToken">
+    <SortIndex value="60" />
     <Face value="ThrallThunderstormToken" />
     <Max value="5" />
   </CBehaviorTokenCounter>
@@ -1384,6 +1392,9 @@
     <Icon value="Assets\Textures\storm_ui_icon_talent_bloodforblood.dds" />
     <HotkeyAlias value="GenericSpellShieldItemDisabled" />
   </CButton>
+  <CButton id="ThrallElementalAssault" parent="StormButtonParent">
+    <Icon value="Assets\Textures\storm_ui_icon_talent_autoattack_damage.dds" />
+  </CButton>
   <CButton id="ThrallSunderingCancel" parent="StormButtonParent">
     <TooltipFlags index="ShowCooldown" value="0" />
     <Icon value="Assets\Textures\hud_btn_bg_ability_cancel.dds" />
@@ -1563,6 +1574,7 @@
   <CEffectSet id="ThrallSunderingInitialSet">
     <EffectArray value="ThrallSunderingInitialOffsetPersistent" />
     <EffectArray value="ThrallSunderingInitialDummyPersistent" />
+    <EffectArray value="ThrallElementalAssaultApplyBuff" />
     <TargetLocationType value="Point" />
   </CEffectSet>
   <CEffectDamage id="ThrallChainLightningRollingThunderProcDamage" parent="StormSpellPercentDamage">
@@ -1701,6 +1713,15 @@
   <CEffectModifyUnit id="ThrallAncestralWrathModifyUnitDummy">
     <ValidatorArray value="ThrallHasAncestralWrathTalent" />
   </CEffectModifyUnit>
+  <CEffectApplyBehavior id="ThrallElementalAssaultApplyBuff">
+    <ValidatorArray value="ThrallHasElementalAssaultTalent" />
+    <WhichUnit Value="Caster" />
+    <Behavior value="ThrallElementalAssaultBuff" />
+  </CEffectApplyBehavior>
+  <CEffectRemoveBehavior id="ThrallElementalAssaultRemoveBuff">
+    <WhichUnit Value="Caster" />
+    <BehaviorLink value="ThrallElementalAssaultBuff" />
+  </CEffectRemoveBehavior>
   <CEffectApplyBehavior id="ThrallSunderingWorldbreakerTalentApplyActive">
     <WhichUnit Value="Caster" />
     <Behavior value="ThrallSunderingWorldbreakerTalentActive" />
@@ -2207,7 +2228,7 @@
     <TargetLocation Value="TargetPoint" />
     <ValidatorArray value="CasterNotRooted" />
     <ValidatorArray value="CasterNotStasis" />
-    <TeleportEffect value="WindfuryApplySet" />
+    <TeleportEffect value="ThrallWindfuryApplySetWindRush" />
   </CEffectTeleport>
   <CEffectCreatePersistent id="ThrallSunderingChannelPersistent">
     <WhichLocation Value="CasterUnit" />
@@ -2593,12 +2614,16 @@
   </CEffectSet>
   <CEffectCreatePersistent id="ThrallEarthquakeOffsetPersistent">
     <WhichLocation Value="CasterPoint" />
-    <InitialEffect value="ThrallModifyWeaponCooldown" />
+    <InitialEffect value="ThrallEarthquakePersistentInitialSet" />
     <PeriodCount value="1" />
     <PeriodicEffectArray value="ThrallEarthquakeInitialPersistent" />
     <PeriodicOffsetArray Y="-1.35" />
     <PeriodicPeriodArray value="0.5" />
   </CEffectCreatePersistent>
+  <CEffectSet id="ThrallEarthquakePersistentInitialSet">
+    <EffectArray value="ThrallModifyWeaponCooldown" />
+    <EffectArray value="ThrallElementalAssaultApplyBuff" />
+  </CEffectSet>
   <CEffectModifyUnit id="EarthquakeModifyUnitCCInterruption">
     <ImpactUnit Value="Caster" />
     <Cost Abil="ThrallEarthquake,Execute" CooldownOperation="Set" CooldownTimeUse="10" />
@@ -2704,6 +2729,7 @@
     <EffectArray value="ThrallModifyWeaponCooldown" />
     <EffectArray value="ThrallFeralSpiritFeralResilienceTalentBlockRemoveAllStacks" />
     <EffectArray value="ThrallSunderingWorldbreakerTalentRemoveStack" />
+    <EffectArray value="ThrallElementalAssaultApplyBuff" />
     <TargetLocationType value="Point" />
   </CEffectSet>
   <CEffectModifyUnit id="ThrallFeralSpiritSetFacing">
@@ -2850,11 +2876,22 @@
     <InitialDelay value="0.5" />
   </CEffectCreatePersistent>
   <CEffectSet id="ThrallWindfuryTempestFuryAttackImpactSet">
+    <EffectArray value="UniversalWeaponImpact" />
+    <EffectArray value="ThrallTempestFuryWeaponImpactDummy" />
+    <EffectArray value="ThrallWindfuryExtraHitsPreImpactSet" />
     <EffectArray value="ThrallWindfuryTempestFuryDamage" />
-    <EffectArray value="ThrallChainLightningRollingThunderMasteryProcSet" />
-    <EffectArray value="ThrallFrostwolfResilienceWindfuryImpactSwitchNoValidator" />
-    <EffectArray value="ThrallWindfuryMaelstromWeaponTalentModifyTokenCount" />
+    <EffectArray value="ThrallWindfuryExtraHitsPostImpactSet" />
     <EffectArray value="UniversalWeaponPostImpactSet" />
+  </CEffectSet>
+  <CEffectModifyUnit id="ThrallTempestFuryWeaponImpactDummy" />
+  <CEffectSet id="ThrallWindfuryExtraHitsPreImpactSet">
+    <EffectArray value="ThrallChainLightningRollingThunderMasteryProcSet" />
+    <EffectArray value="ThrallFeralSpiritAlphaWolfTalentDamage" />
+  </CEffectSet>
+  <CEffectSet id="ThrallWindfuryExtraHitsPostImpactSet">
+    <EffectArray value="ThrallFrostwolfResilienceWindfuryImpactSwitchNoValidator" />
+    <EffectArray value="ThrallElementalAssaultRemoveBuff" />
+    <EffectArray value="ThrallWindfuryMaelstromWeaponTalentModifyTokenCount" />
   </CEffectSet>
   <CEffectSwitch id="ThrallHeroWeaponSwitch">
     <CaseArray Validator="TempestFuryCombine" Effect="ThrallWindfuryTempestFuryMasteryPersistent" />
@@ -2868,6 +2905,7 @@
   <CEffectDamage id="ThrallWindfuryTempestFuryDamage" parent="StormWeapon">
     <Amount value="173" />
     <MultiplicativeModifierArray index="TempestFury" Modifier="-0.25" />
+    <MultiplicativeModifierArray index="ElementalAssault" Validator="ThrallHasElementalAssaultBuff" Modifier="0.45" Crit="1" />
     <FlatModifierArray index="FuriousAssault" Validator="ThrallHasMaelstromWeaponTalent" Accumulator="ThrallMaelstromWeaponDamageAccumulator" />
   </CEffectDamage>
   <CEffectDamage id="ThrallWeaponAttackWindfuryMasteryStructureDamage" parent="StormWeapon">
@@ -2997,6 +3035,13 @@
     <EffectArray value="WindfuryStacksApplyBehaviorsSet" />
     <EffectArray value="WindfuryAttackSwingReset" />
     <EffectArray value="ThrallWindfuryCatchPersistent" />
+    <EffectArray value="ThrallElementalAssaultApplyBuff" />
+  </CEffectSet>
+  <CEffectSet id="ThrallWindfuryApplySetWindRush">
+    <EffectArray value="PrimedAbilityHoldfireSet" />
+    <EffectArray value="WindfuryStacksApplyBehaviorsSet" />
+    <EffectArray value="WindfuryAttackSwingReset" />
+    <EffectArray value="ThrallWindfuryCatchPersistent" />
   </CEffectSet>
   <CEffectModifyUnit id="WindfuryAttackSwingReset">
     <Weapon Weapon="ThrallHeroWeapon" CooldownOperation="Multiply" />
@@ -3050,6 +3095,10 @@
     <FlatModifierArray index="EndlessConduction" Validator="ThrallHasCrashLightningTalent" Accumulator="ThrallCrashLightningBounceDamageAccumulator" />
     <MultiplicativeModifierArray index="Thunderstorm" Validator="ThrallHas5ThunderstormTokens" Modifier="0.25" Crit="1" />
   </CEffectDamage>
+  <CEffectSet id="ThrallChainLightningCastSet">
+    <EffectArray value="ThrallChainLightningInitialPersistent" />
+    <EffectArray value="ThrallElementalAssaultApplyBuff" />
+  </CEffectSet>
   <CEffectCreatePersistent id="ThrallChainLightningInitialPersistent">
     <Marker>
       <MatchFlags index="Id" value="1" />
@@ -3078,11 +3127,22 @@
     <EffectArray value="ThrallWindfuryTempestFuryAttackImpactSet" />
   </CEffectSet>
   <CEffectSet id="WindfuryTempestFuryInitialHitSet">
-    <EffectArray value="UniversalWeaponImpact" />
-    <EffectArray value="ThrallWindfuryTempestFuryAttackImpactNoTraitSet" />
     <EffectArray value="UniversalWeaponLaunchSet" />
-    <EffectArray value="ThrallWindfuryPreImpactSet" />
+    <EffectArray value="UniversalWeaponImpact" />
+    <EffectArray value="ThrallTempestFuryWeaponImpactDummy" />
+    <EffectArray value="ThrallWindfuryWeaponPreImpactSet" />
+    <EffectArray value="ThrallWindfuryTempestFuryDamage" />
+    <EffectArray value="ThrallWindfuryWeaponPostImpactSet" />
     <EffectArray value="UniversalWeaponPostImpactSet" />
+  </CEffectSet>
+  <CEffectSet id="ThrallWindfuryWeaponPreImpactSet">
+    <EffectArray value="ThrallChainLightningRollingThunderMasteryProcSet" />
+    <EffectArray value="ThrallFeralSpiritAlphaWolfTalentDamage" />
+  </CEffectSet>
+  <CEffectSet id="ThrallWindfuryWeaponPostImpactSet">
+    <EffectArray value="ThrallWindfuryPreImpactSet" />
+    <EffectArray value="ThrallElementalAssaultRemoveBuff" />
+    <EffectArray value="ThrallWindfuryMaelstromWeaponTalentModifyTokenCount" />
   </CEffectSet>
   <CEffectSet id="WindfuryStacksApplyBehaviorsSet">
     <EffectArray value="WindfuryApplyEnablerBehavior" />
@@ -3232,13 +3292,23 @@
     <WhichLocation Effect="ThrallSunderingLeftPushApply" Value="TargetPoint" />
   </CEffectApplyForce>
   <CEffectSet id="ThrallHeroWeaponImpactSet">
-    <EffectArray value="TalentBucketFollowThroughCasterBlindedRemoveBehavior" />
-    <EffectArray value="UniversalWeaponImpact" />
     <EffectArray value="UniversalWeaponLaunchSet" />
-    <EffectArray value="ThrallHeroWeaponWindfurySet" />
+    <EffectArray value="UniversalWeaponImpact" />
+    <EffectArray value="ThrallWeaponImpactDummy" />
+    <EffectArray value="ThrallWeaponPreImpactSet" />
     <EffectArray value="ThrallWeaponAttackDamage" />
-    <EffectArray value="ThrallHeroWeaponTalentImpactSet" />
+    <EffectArray value="ThrallWeaponPostImpactSet" />
     <EffectArray value="UniversalWeaponPostImpactSet" />
+  </CEffectSet>
+  <CEffectModifyUnit id="ThrallWeaponImpactDummy" />
+  <CEffectSet id="ThrallWeaponPreImpactSet">
+    <EffectArray value="ThrallChainLightningRollingThunderMasteryProcSet" />
+    <EffectArray value="ThrallFeralSpiritAlphaWolfTalentDamage" />
+  </CEffectSet>
+  <CEffectSet id="ThrallWeaponPostImpactSet">
+    <EffectArray value="ThrallHeroWeaponWindfurySet" />
+    <EffectArray value="ThrallElementalAssaultRemoveBuff" />
+    <EffectArray value="ThrallWindfuryMaelstromWeaponTalentModifyTokenCount" />
   </CEffectSet>
   <CEffectLaunchMissile id="WindfuryWeaponLaunchMissile">
     <ImpactEffect value="WindfuryWeaponAttackImpactSet" />
@@ -3250,6 +3320,7 @@
   </CEffectSet>
   <CEffectDamage id="ThrallWeaponAttackDamage" parent="StormWeapon">
     <FlatModifierArray index="FuriousAssault" Validator="ThrallHasMaelstromWeaponTalent" Accumulator="ThrallMaelstromWeaponDamageAccumulator" />
+    <MultiplicativeModifierArray index="ElementalAssault" Validator="ThrallHasElementalAssaultBuff" Modifier="0.45" Crit="1" />
     <Amount value="173" />
   </CEffectDamage>
   <CHero id="Thrall">
@@ -3438,7 +3509,7 @@
     <TalentTreeArray Talent="ThrallMasteryManaTide" Tier="2" Column="3" />
     <TalentTreeArray Talent="ThrallMaelstromWeapon" Tier="3" Column="1" />
     <TalentTreeArray Talent="ThrallAncestralWrath" Tier="3" Column="2" />
-    <TalentTreeArray Talent="GenericTalentFollowThrough" Tier="3" Column="3" />
+    <TalentTreeArray Talent="ThrallElementalAssault" Tier="3" Column="3" />
     <TalentTreeArray Talent="ThrallHeroicAbilitySundering" Tier="4" Column="1" />
     <TalentTreeArray Talent="ThrallHeroicAbilityEarthquake" Tier="4" Column="2" />
     <TalentTreeArray Talent="ThrallMasteryGraceOfAir" Tier="5" Column="1" />
@@ -3689,6 +3760,9 @@
         <Value value="0.500000" />
       </Modifications>
     </AbilityModificationArray>
+  </CTalent>
+  <CTalent id="ThrallElementalAssault">
+    <Face value="ThrallElementalAssault" />
   </CTalent>
   <CTalent id="ThrallThunderstorm">
     <Face value="ThrallThunderstorm" />
@@ -4010,6 +4084,15 @@
     <Find value="1" />
     <Value value="ThrallAncestralWrath" />
   </CValidatorPlayerTalent>
+  <CValidatorPlayerTalent id="ThrallHasElementalAssaultTalent">
+    <WhichPlayer Value="Caster" />
+    <Find value="1" />
+    <Value value="ThrallElementalAssault" />
+  </CValidatorPlayerTalent>
+  <CValidatorUnitHasBehavior id="ThrallHasElementalAssaultBuff">
+    <WhichUnit Value="Caster" />
+    <Behavior value="ThrallElementalAssaultBuff" />
+  </CValidatorUnitHasBehavior>
   <CValidatorUnitCompareBehaviorCount id="ThrallCasterHasWorldbreakerActive">
     <WhichUnit Value="Caster" />
     <Value value="1" />

@@ -1,5 +1,11 @@
 <?xml version="1.0" encoding="us-ascii"?>
 <Catalog>
+  <const id="$RaynorAdrenalineRushAttackCDR" value="-0.5" />
+  <const id="$RaynorAdrenalineRushAttackHeroMultiplier" value="1" />
+  <const id="$RaynorAdrenalineRushAttackCDRHero" value="*($RaynorAdrenalineRushAttackCDR +($RaynorAdrenalineRushAttackHeroMultiplier 1))" evaluateAsExpression="1" />
+  <const id="$RaynorFuelTheRushCDRMultiplier" value="3.5" />
+  <const id="$RaynorFuelTheRushAttackCDR" value="*($RaynorAdrenalineRushAttackCDR +($RaynorFuelTheRushCDRMultiplier 1))" evaluateAsExpression="1" />
+  <const id="$RaynorFuelTheRushAttackCDRHero" value="*($RaynorAdrenalineRushAttackCDRHero +($RaynorFuelTheRushCDRMultiplier 1))" evaluateAsExpression="1" />
   <CAbilEffectInstant id="RaynorRaynorsRaidersDummy">
     <PrepEffect value="DismountDecloakCasterSet" />
     <Flags index="Transient" value="1" />
@@ -205,7 +211,7 @@
     <ImpactMap index="Wood" Sound="Raynor_AttackImpact_Large_Wood" />
     <LaunchAttachQuery Methods="AMFilterWeapon00FullMatch" />
   </CActorAction>
-  <CActorAction id="RaynorWeaponMeleeAction" parent="MeleeHeroAttack" effectAttack="RaynorWeaponMeleeInitialSet">
+  <CActorAction id="RaynorWeaponMeleeAction" parent="MeleeHeroAttack" effectAttack="RaynorMeleeWeaponImpactDummy">
     <ImpactMap index="None" Sound="Raynor_Weapon_Melee_AttackImpact" />
     <ImpactMap index="Rock" Sound="Raynor_Weapon_Melee_AttackImpact_Building" />
     <ImpactMap index="Metal" Sound="Raynor_Weapon_Melee_AttackImpact_Building" />
@@ -1194,6 +1200,9 @@
     <EffectArray value="RaynorGiveEmSomePepperVeteranMarksmanRemoveLoanToken" />
     <EffectArray value="RaynorExecuteOrdersSearch" />
   </CEffectSet>
+  <CEffectModifyUnit id="RaynorExecuteOrdersDeathTimerReduction">
+    <XP value="-35" />
+  </CEffectModifyUnit>
   <CEffectApplyBehavior id="RaynorPenetratingRoundLineEmUpApplyBehavior">
     <ValidatorArray index="0" value="RaynorHasPenetratingRoundLine'EmUpTalent" />
     <WhichUnit Value="Caster" />
@@ -1317,19 +1326,36 @@
     <Behavior value="RaynorVeteranMarksmanLoanBehavior" />
     <Count value="6" />
   </CEffectApplyBehavior>
+  <CEffectModifyCatalogNumeric id="RaynorGiveEmSomePepperUnstableCompoundUpdateCatalog">
+    <CatalogModifications Reference="Effect,RaynorGiveEmSomePepperUnstableCompoundRestoreMana,RechargeVitalRate">
+      <Value value="10" />
+    </CatalogModifications>
+    <CatalogModifications Operation="Set" Reference="Effect,RaynorGiveEmSomePepperUnstableCompoundTalentProcSet,Chance">
+      <Value value="1" />
+    </CatalogModifications>
+  </CEffectModifyCatalogNumeric>
+  <CEffectModifyCatalogNumeric id="RaynorGiveEmSomePepperUnstableCompoundResetCatalog">
+    <CatalogModifications Operation="Set" Reference="Effect,RaynorGiveEmSomePepperUnstableCompoundRestoreMana,RechargeVitalRate" />
+    <CatalogModifications Operation="Set" Reference="Effect,RaynorGiveEmSomePepperUnstableCompoundTalentProcSet,Chance" />
+  </CEffectModifyCatalogNumeric>
   <CEffectModifyUnit id="RaynorGiveEmSomePepperUnstableCompoundTalentModifyUnit">
     <ImpactUnit Value="Caster" />
     <Cost Abil="RaynorPenetratingRound,Execute" CooldownOperation="Add" CooldownTimeUse="-1.5" />
-    <VitalArray index="Energy">
-      <Change value="10" />
-    </VitalArray>
-    <FloaterCreation value="Force" />
   </CEffectModifyUnit>
+  <CEffectCreateHealer id="RaynorGiveEmSomePepperUnstableCompoundRestoreMana" parent="StormManaRestore">
+    <ImpactUnit Value="Caster" />
+  </CEffectCreateHealer>
   <CEffectSet id="RaynorGiveEmSomePepperUnstableCompoundTalentProcSet">
+    <Chance value="0" />
+    <EffectArray value="RaynorGiveEmSomePepperUnstableCompoundRestoreMana" />
+    <EffectArray value="RaynorGiveEmSomePepperUnstableCompoundResetCatalog" />
+  </CEffectSet>
+  <CEffectSet id="RaynorGiveEmSomePepperUnstableCompoundTalentApplySet">
     <ValidatorArray value="TargetIsHero" />
     <ValidatorArray value="RaynorHasGiveEmSomePepperUnstableCompoundTalent" />
     <ValidatorArray value="RaynorHasGiveEmSomePepperPrimedDummyBehavior" />
     <ValidatorArray value="CasterNotBlindedAndTargetNotEvading" />
+    <EffectArray value="RaynorGiveEmSomePepperUnstableCompoundUpdateCatalog" />
     <EffectArray value="RaynorGiveEmSomePepperUnstableCompoundTalentModifyUnit" />
   </CEffectSet>
   <CEffectEnumArea id="RaynorHyperionDummySearch">
@@ -1411,10 +1437,6 @@
     <ValidatorArray value="NotInCombat4" />
     <RechargeVitalRate value="75" />
   </CEffectCreateHealer>
-  <CEffectSet id="RaynorGiveEmSomePepperDamageSet">
-    <EffectArray value="RaynorHeroWeaponDamage" />
-    <EffectArray value="RaynorGiveEmSomePepperSearch" />
-  </CEffectSet>
   <CEffectSet id="RaynorBountyHunterActivationSet">
     <EffectArray value="RaynorGiveEmSomePepperBountyHunterSetTokenCount" />
     <ValidatorArray value="RaynorDoesNotHave3TokensOfGiveEmSomePepper" />
@@ -1428,10 +1450,17 @@
     <Behavior value="RaynorGiveEmSomePepperAceintheHoleTalentSlow" />
   </CEffectApplyBehavior>
   <CEffectSet id="RaynorGiveEmSomePepperSearchSet">
+    <EffectArray value="UniversalWeaponImpact" />
+    <EffectArray value="RaynorGiveEmSomePepperPreImpactSet" />
     <EffectArray value="RaynorGiveEmSomePepperWeaponDamage" />
-    <EffectArray value="RaynorGiveEmSomePepperAceintheHoleTalentApplySlow" />
-    <EffectArray value="RaynorGiveEmSomePepperUnstableCompoundTalentProcSet" />
+    <EffectArray value="RaynorGiveEmSomePepperWeaponPostImpactSet" />
     <EffectArray value="UniversalWeaponPostImpactSet" />
+  </CEffectSet>
+  <CEffectSet id="RaynorGiveEmSomePepperPreImpactSet">
+    <EffectArray value="RaynorGiveEmSomePepperUnstableCompoundTalentApplySet" />
+  </CEffectSet>
+  <CEffectSet id="RaynorGiveEmSomePepperWeaponPostImpactSet">
+    <EffectArray value="RaynorGiveEmSomePepperAceintheHoleTalentApplySlow" />
   </CEffectSet>
   <CEffectApplyBehavior id="RaynorRaynorsRaidersApplyMovePointState">
     <Behavior value="RaynorRaynorsRaidersMovePointState" />
@@ -1505,10 +1534,10 @@
   </CEffectModifyTokenCount>
   <CEffectEnumArea id="RaynorGiveEmSomePepperSearch">
     <ValidatorArray value="RaynorHasGiveEmSomePepperPrimedDummyBehavior" />
-    <ValidatorArray value="CasterNotBlindedAndTargetNotEvading" />
+    <ValidatorArray value="TargetNotEvading" />
     <LaunchLocation Value="TargetUnit" />
     <ImpactLocation Value="TargetUnit" />
-    <ExcludeArray Effect="RaynorGiveEmSomePepperDamageSet" Value="Target" />
+    <ExcludeArray Value="Target" />
     <SearchFilters value="-;Self,Player,Ally,Neutral,ImmuneToAOE,Missile,Item,Stasis,Dead,Hidden,Invulnerable" />
     <AreaArray Effect="RaynorGiveEmSomePepperSearchSet">
       <Radius value="2.25" />
@@ -1551,6 +1580,7 @@
     <Visibility value="Hidden" />
     <VitalFractionMax index="Life" value="0.03" />
     <ValidatorArray value="CasterNotBlindedAndTargetNotEvading" />
+    <SourceButtonFace value="RaynorBountyHunter" />
   </CEffectDamage>
   <CEffectApplyBehavior id="RaynorInspireApplyAllyMoveSpeedBehavior">
     <Behavior value="RaynorInspireRallyingCryMoveSpeedAlly" />
@@ -1685,14 +1715,14 @@
   <CEffectModifyUnit id="RaynorAdrenalineRushFuelTheRushModifyCooldownNonHero">
     <ValidatorArray value="CasterNotBlindedAndTargetNotEvading" />
     <ImpactUnit Value="Caster" />
-    <Cost Abil="RaynorAdrenalineRush,Execute" CooldownOperation="Add" CooldownTimeUse="-2.25" />
+    <Cost Abil="RaynorAdrenalineRush,Execute" CooldownOperation="Add" CooldownTimeUse="$RaynorFuelTheRushAttackCDR" />
   </CEffectModifyUnit>
   <CEffectModifyUnit id="RaynorAdrenalineRushFuelTheRushModifyCooldownHero">
     <ValidatorArray value="TargetIsHero" />
     <ValidatorArray value="CasterNotBlindedAndTargetNotEvading" />
     <Marker Link="Effect/RaynorAdrenalineRushModifyCooldownHero" />
     <ImpactUnit Value="Caster" />
-    <Cost Abil="RaynorAdrenalineRush,Execute" CooldownOperation="Add" CooldownTimeUse="-4.5" />
+    <Cost Abil="RaynorAdrenalineRush,Execute" CooldownOperation="Add" CooldownTimeUse="$RaynorFuelTheRushAttackCDRHero" />
   </CEffectModifyUnit>
   <CEffectSwitch id="RaynorAdrenalineRushFuelTheRushNonHeroSwitch">
     <CaseArray Validator="RaynorFuelTheRushCombine" Effect="RaynorAdrenalineRushFuelTheRushModifyCooldownNonHero" />
@@ -1705,10 +1735,12 @@
   <CEffectCreateHealer id="RaynorSustainingRoundsCreateHealer" parent="StormSelfOnlyHealingSpellPercent">
     <ImpactUnit Value="Caster" />
     <RechargeVitalFraction value="0.03" />
+    <SourceButtonFace value="RaynorBasicAttackSustainingRounds" />
   </CEffectCreateHealer>
   <CEffectCreateHealer id="RaynorSustainingRoundsCreateHealerHero" parent="StormSelfOnlyHealingSpellPercent">
     <ImpactUnit Value="Caster" />
     <RechargeVitalFraction value="0.06" />
+    <SourceButtonFace value="RaynorBasicAttackSustainingRounds" />
   </CEffectCreateHealer>
   <CEffectModifyTokenCount id="RaynorBehemothArmorAddToken" parent="BaseEffectModifyTokenCount">
     <ValidatorArray value="RaynorGiveEmSomePepperCombine" />
@@ -1741,7 +1773,7 @@
   <CEffectModifyUnit id="RaynorAdrenalineRushModifyCooldownNonHero">
     <ValidatorArray value="CasterNotBlindedAndTargetNotEvading" />
     <ImpactUnit Value="Caster" />
-    <Cost Abil="RaynorAdrenalineRush,Execute" CooldownOperation="Add" CooldownTimeUse="-0.5" />
+    <Cost Abil="RaynorAdrenalineRush,Execute" CooldownOperation="Add" CooldownTimeUse="$RaynorAdrenalineRushAttackCDR" />
   </CEffectModifyUnit>
   <CEffectModifyTokenCount id="RaynorInspireResetTokenCounter" parent="BaseEffectModifyTokenCount">
     <TokenId value="RaynorInspireTokenCounter" />
@@ -1782,7 +1814,7 @@
     <ValidatorArray value="TargetIsHero" />
     <ValidatorArray value="CasterNotBlindedAndTargetNotEvading" />
     <ImpactUnit Value="Caster" />
-    <Cost Abil="RaynorAdrenalineRush,Execute" CooldownOperation="Add" CooldownTimeUse="-1" />
+    <Cost Abil="RaynorAdrenalineRush,Execute" CooldownOperation="Add" CooldownTimeUse="$RaynorAdrenalineRushAttackCDRHero" />
   </CEffectModifyUnit>
   <CEffectModifyUnit id="RaynorPenetratingRoundDebilitatingRoundModifyCooldownHero">
     <ValidatorArray value="TargetIsHero" />
@@ -1809,8 +1841,10 @@
   </CEffectSet>
   <CEffectSet id="RaynorWeaponMeleeInitialSet">
     <EffectArray value="UniversalWeaponLaunchSet" />
+    <EffectArray value="RaynorMeleeWeaponImpactDummy" />
     <EffectArray value="RaynorHeroWeaponSet" />
   </CEffectSet>
+  <CEffectModifyUnit id="RaynorMeleeWeaponImpactDummy" />
   <CEffectCreatePersistent id="RaynorPenetratingRoundCreateSearchPersistent">
     <Marker>
       <MatchFlags index="Id" value="1" />
@@ -2312,20 +2346,28 @@
   </CEffectEnumArea>
   <CEffectSet id="RaynorHeroWeaponSet">
     <EffectArray value="UniversalWeaponImpact" />
-    <EffectArray value="RaynorGiveEmSomePepperDamageSet" />
-    <EffectArray value="RaynorAdrenalineRushHeroicTargetSwitch" />
-    <EffectArray value="RaynorBehemothArmorAddToken" />
-    <EffectArray value="RaynorGiveEmSomePepperAceintheHoleTalentApplySlow" />
-    <EffectArray value="RaynorGiveEmSomePepperCavalrysArrivedApplyBehavior" />
-    <EffectArray value="RaynorGiveEmSomePepperUnstableCompoundTalentProcSet" />
-    <EffectArray value="RaynorHyperionIndomitableResolveModifyCooldown" />
-    <EffectArray value="RaynorBountyHunterEffectSet" />
-    <EffectArray value="RaynorSustainingRoundsHealingSwitch" />
-    <EffectArray value="RaynorGiveEmSomePepperVeteranMarksmanAddToken" />
+    <EffectArray value="RaynorWeaponPreImpactSet" />
+    <EffectArray value="RaynorHeroWeaponDamage" />
+    <EffectArray value="RaynorWeaponPostImpactSet" />
+    <EffectArray value="RaynorGiveEmSomePepperSearch" />
     <EffectArray value="RaynorHyperionPepperedAssaultModifyTokenSwitch" />
     <EffectArray value="RaynorRaynorsRaidersCopyAttackTrackedUnits" />
-    <EffectArray value="RaynorRallyingCryAddToken" />
     <EffectArray value="UniversalWeaponPostImpactSet" />
+  </CEffectSet>
+  <CEffectSet id="RaynorWeaponPreImpactSet">
+    <EffectArray value="RaynorGiveEmSomePepperUnstableCompoundTalentApplySet" />
+    <EffectArray value="RaynorAdrenalineRushHeroicTargetSwitch" />
+    <EffectArray value="RaynorHyperionIndomitableResolveModifyCooldown" />
+    <EffectArray value="RaynorGiveEmSomePepperCavalrysArrivedApplyBehavior" />
+    <EffectArray value="RaynorSustainingRoundsHealingSwitch" />
+    <EffectArray value="RaynorBountyHunterEffectSet" />
+  </CEffectSet>
+  <CEffectSet id="RaynorWeaponPostImpactSet">
+    <EffectArray value="RaynorGiveEmSomePepperVeteranMarksmanAddToken" />
+    <EffectArray value="RaynorBehemothArmorAddToken" />
+    <EffectArray value="RaynorGiveEmSomePepperUnstableCompoundTalentProcSet" />
+    <EffectArray value="RaynorGiveEmSomePepperAceintheHoleTalentApplySlow" />
+    <EffectArray value="RaynorRallyingCryAddToken" />
   </CEffectSet>
   <CEffectCreateHealer id="RaynorAdrenalineRushHealer" parent="StormSelfOnlyHealingSpellPercent">
     <ImpactUnit Value="Caster" />

@@ -258,8 +258,9 @@
     <Host Subject="_Unit" />
   </CActorModel>
   <CActorAction id="GazloweXplodiumChargeArkReaktorRockItTurretAttack" parent="GenericAttackStorm" effectImpact="GazloweXplodiumChargeArkReaktorRockItTurretWeaponDamage" effectLaunch="GazloweXplodiumChargeArkReaktorRockItTurretWeaponLaunchMissile">
+    <Missile value="TinkerRockItTurretAttackMissile" />
     <LaunchAssets Sound="Gazlowe_RockItTurret_AttackLaunch" />
-    <ImpactMap index="None" Sound="Gazlowe_RockItTurret_AttackImpact" />
+    <ImpactMap index="None" Model="TinkerRockItTurretAttackImpact" Sound="Gazlowe_RockItTurret_AttackImpact" />
     <ActionFlags index="ImpactSuppressUnitSound" value="1" />
   </CActorAction>
   <CActorUnit id="GazloweXplodiumChargeArkReaktorRockItTurret" parent="StormMinionStandard" unitName="GazloweXplodiumChargeArkReaktorRockItTurret">
@@ -341,8 +342,8 @@
     <HostSiteOps Ops="SOpAttachWeapon02" />
   </CActorModel>
   <CActorModel id="TinkerDethLazorFirinMahLazorzTalentCharging" parent="StormModelAnimationStyleContinuousUnit">
-    <On Terms="Abil.GazloweDethLazorFirinMahLazorz.SourceCastStart" Send="Create" />
-    <On Terms="Abil.GazloweDethLazorFirinMahLazorz.SourceCastStop" Send="AnimBracketStop BSD" />
+    <On Terms="Behavior.GazloweDethLazorFirinMahLazorsChannel.On" Send="Create" />
+    <On Terms="Behavior.GazloweDethLazorFirinMahLazorsChannel.Off" Send="AnimBracketStop BSD" />
     <HostSiteOps Ops="SOpAttachOrigin" />
   </CActorModel>
   <CActorModel id="TinkerDethLazorFirinMahLazorzTalentImpact" parent="StormModelAnimationStyleOneShotUnit">
@@ -356,6 +357,8 @@
   </CActorSound>
   <CActorSound id="TinkerDethLazorFirinMahLazorzTalentLaunchSound" parent="SoundOneShot">
     <Sound value="Gazlowe_DethLazor_Turret_FirinMahLazorz_Launch" />
+    <VisibilityShape Shape="GazloweDethLazorFirinMahLazorzBeamAttackVisibilityQuad" />
+    <HostSiteOps Ops="SOpTargetUnit SOpGazloweDethLazorFirinMahLazorCastForward" />
   </CActorSound>
   <CActorSound id="TinkerDethLazorFirinMahLazorzTalentSound" parent="SoundOneShot">
     <On Terms="Effect.TinkerDethLazorFirinMahLazorzTalentDamage.Start; At Target" Send="Create" />
@@ -366,16 +369,27 @@
   </CActorModel>
   <CActorModel id="GazloweDethLazorFirinMahLazorzWarningVisibilityShapeModel">
     <VisibilityShape Shape="GazloweDethLazorFirinMahLazorzBeamAttackVisibilityQuad" />
-    <On Terms="Effect.GazloweDethLazorFirinMahLazorzWarningDummy.Start" Send="Create" />
+    <On Terms="Effect.GazloweDethLazorFirinMahLazorzWarningDummy.Start; At Target" Send="Create" />
     <On Terms="Effect.GazloweDethLazorFirinMahLazorzWarningDummy.Start" Send="TimerSet $GazloweDethLazorCastTime KillFirinMahLazorzWarning" />
     <On Terms="TimerExpired; TimerName KillFirinMahLazorzWarning" Send="Destroy" />
     <On Terms="ActorCreation" Send="Create GazloweDethLazorFirinMahLazorzWarning" />
     <On Terms="ActorDestruction" Target="GazloweDethLazorFirinMahLazorzWarning" Send="Signal CreatorDestroyed" />
-    <HostSiteOps Ops="SOpCasterPoint SOpForwardTargetPoint" HoldPosition="1" HoldRotation="1" />
+    <HostSiteOps Ops="SOpTargetUnit SOpGazloweDethLazorFirinMahLazorPrepForward" HoldPosition="1" HoldRotation="1" />
     <Model value="Invisible" />
     <ModelFlags index="AllowHitTest" value="0" />
   </CActorModel>
+  <CActorModel id="GazloweDethLazorFirinMahLazorsPrepOffsetDummy">
+    <On Terms="Effect.GazloweDethLazorPrepSet.Start; At Effect" Send="Create" />
+    <On Terms="ActorCreation" Send="TimerSet $GazloweDethLazorCastTime Destroy" />
+    <On Terms="TimerExpired; TimerName Destroy" Send="Destroy" />
+    <HostSiteOps Ops="SOpTargetPointStationary" />
+    <Model value="Invisible" />
+  </CActorModel>
+  <CActorSiteOpForward id="SOpGazloweDethLazorFirinMahLazorPrepForward">
+    <HostForward Subject="GazloweDethLazorFirinMahLazorsPrepOffsetDummy" Actor="Find" />
+  </CActorSiteOpForward>
   <CActorModel id="GazloweDethLazorFirinMahLazorzWarning">
+    <VisibilityShape Shape="GazloweDethLazorFirinMahLazorzBeamAttackVisibilityQuad" />
     <Aliases value="_TimeStopAffectedActor" />
     <Model value="FalstadHinterlandBlastWarning" />
     <On Terms="ActorCreation" Send="AnimBracketStart BSD Birth Build Death" />
@@ -386,33 +400,33 @@
     <On Terms="StatusOff.*.TimeStopPaused" Send="AnimSetPausedAll 0" />
     <On Terms="ActorCreation" Send="SetScale 0.450000,$GazloweDethLazorFirinMahLazorzWarningRange,1.000000" />
     <Inherits index="Visibility" value="1" />
-    <HostSiteOps Ops="SOpCasterPoint SOpForwardTargetPoint" HoldPosition="1" HoldRotation="1" />
+    <HostSiteOps Ops="SOpTargetUnit SOpGazloweDethLazorFirinMahLazorPrepForward" HoldPosition="1" HoldRotation="1" />
     <ModelFlags index="AllowHitTest" value="0" />
   </CActorModel>
-  <CActorModel id="GazloweDethLazorFirinMahLazorzBeamAttackVisibilityShapeModel">
-    <On Terms="Effect.GazloweDethLazorFirinMahLazorzBeamDummy.Start; At Caster" Send="Create" />
-    <On Terms="ActorCreation" Send="Create GazloweDethLazorFirinMahLazorzBeamAttackBeam" />
-    <On Terms="ActorCreation" Send="Create TinkerDethLazorFirinMahLazorzTalentLaunchSound" />
-    <VisibilityShape Shape="GazloweDethLazorFirinMahLazorzBeamAttackVisibilityQuad" />
-    <HostSiteOps Ops="SOpCasterPoint SOpForwardTargetPoint" HoldPosition="1" HoldRotation="1" />
-    <Model value="Invisible" />
-    <ModelFlags index="AllowHitTest" value="0" />
-  </CActorModel>
-  <CActorBeamSimple id="GazloweDethLazorFirinMahLazorzBeamAttackBeam" parent="GenericAttackBeam">
+  <CActorBeamSimple id="GazloweDethLazorFirinMahLazorzBeamAttackBeam" parent="BeamSimpleAnimationStyleOneShot">
     <Macros value="GlobalLoopMacro" />
+    <On Terms="Effect.GazloweDethLazorFirinMahLazorzBeamDummy.Start" Send="Create" />
+    <On Terms="ActorCreation" Send="Create TinkerDethLazorFirinMahLazorzTalentLaunchSound" />
     <On Terms="ActorCreation" Send="AnimGroupApply B" />
     <On Terms="ActorCreation" Send="AnimPlay Birth Birth" />
-    <On Terms="AnimDone; AnimName Birth" Send="Destroy" />
-    <On Terms="ActorDestruction" Target="::Creator" Send="Destroy" />
+    <HostLaunchSiteOps Ops="SOpTargetUnit SOpAttachWeapon SOpAttachCenter" />
+    <HostImpactSiteOps Ops="SOpTargetUnit SOpGazloweDethLazorFirinMahLazorCastForward GazloewDethLazorFirinMahLazorzRangeOffset SOpMoveUpByDot5" />
     <Model value="TinkerDethLazorFirinMahLazorzTalentBeam" />
-    <HostImpactSiteOps Ops="SOpTargetPointStationary SOpShadow SOpMoveUpByDot5" />
-    <HostLaunch Subject="_Unit" />
-    <HostLaunchSiteOps Ops="SOpAttachWeapon" />
-    <HostImpact Subject="_Unit" />
-    <HostForProps Subject="::Creator" />
-    <Inherits index="Visibility" value="1" />
     <ModelFlags index="AllowHitTest" value="0" />
   </CActorBeamSimple>
+  <CActorModel id="GazloweDethLazorFirinMahLazorsCastOffsetDummy">
+    <On Terms="Effect.GazloweDethLazorInitialSet.Start; At Effect" Send="Create" />
+    <On Terms="ActorCreation" Send="TimerSet $GazloweDethLazorCastTime Destroy" />
+    <On Terms="TimerExpired; TimerName Destroy" Send="Destroy" />
+    <HostSiteOps Ops="SOpTargetPointStationary" />
+    <Model value="Invisible" />
+  </CActorModel>
+  <CActorSiteOpForward id="SOpGazloweDethLazorFirinMahLazorCastForward">
+    <HostForward Subject="GazloweDethLazorFirinMahLazorsCastOffsetDummy" Actor="Find" />
+  </CActorSiteOpForward>
+  <CActorSiteOpLocalOffset id="GazloewDethLazorFirinMahLazorzRangeOffset">
+    <LocalOffset Y="-$GazloweDethLazorFirinMahLazorzRange" />
+  </CActorSiteOpLocalOffset>
   <CActorModel id="GazloweDethLazorBeamAttackVisibilityShapeModel">
     <On Terms="Effect.GazloweDethLazorBeamDummy.Start; At Caster" Send="Create" />
     <On Terms="ActorCreation" Send="Create GazloweDethLazorBeamAttackBeam" />
@@ -1142,6 +1156,16 @@
       <ModifyFlags index="SuppressMoving" value="1" />
     </Modification>
   </CBehaviorBuff>
+  <CBehaviorBuff id="GazloweXplodiumChargeArkReaktorTurretAbilityController" parent="CarryBehaviorParent">
+    <EnableEffect value="GazloweXplodiumChargeArkReaktorTurretAddAbilityTargetController" />
+    <PeriodicEffect value="GazloweXplodiumChargeArkReaktorTurretAddAbilityTargetController" />
+    <Period value="0.0625" />
+    <DisableValidatorArray value="GazloweXplodiumChargeArkReaktorTurretDoesNotHaveAbilityTargetController" />
+  </CBehaviorBuff>
+  <CBehaviorBuff id="GazloweXplodiumChargeArkReaktorTurretAbilityTargetController" parent="CarryBehaviorParent">
+    <Face value="GazloweXplodiumChargeArkReaktor" />
+    <CancelEffect value="GazloweXplodiumChargeArkReaktorTurretEnumTarget" />
+  </CBehaviorBuff>
   <CBehaviorBuff id="GazloweDethLazorEZPZDimensionalRipperActivatedDebuff" parent="StormDamageReduction">
     <BehaviorCategories index="DebuffAbilityPower" value="1" />
     <BehaviorCategories index="DebuffAutoattackDPS" value="1" />
@@ -1584,6 +1608,24 @@
     </Modification>
     <BuffFlags index="RefreshStack" value="1" />
   </CBehaviorBuff>
+  <CBehaviorBuff id="GazloweRockItTurretAbilityController" parent="CarryBehaviorParent">
+    <EnableEffect value="GazloweRockItTurretAddAbilityTargetController" />
+    <PeriodicEffect value="GazloweRockItTurretAddAbilityTargetController" />
+    <Period value="0.0625" />
+    <DisableValidatorArray value="GazloweRockItTurretDoesNotHaveAbilityTargetController" />
+  </CBehaviorBuff>
+  <CBehaviorBuff id="GazloweRockItTurretAbilityTargetController" parent="CarryBehaviorParent">
+    <Face value="TinkerRockItTurret" />
+    <CancelEffect value="GazloweRockItTurretEnumTarget" />
+  </CBehaviorBuff>
+  <CBehaviorBuff id="GazloweDethLazorFirinMahLazorsChannel">
+    <Duration value="$GazloweDethLazorCastTime" />
+    <Modification>
+      <ModifyFlags index="DisableWeapons" value="1" />
+      <StateFlags index="SuppressCloak" value="1" />
+    </Modification>
+    <RemoveValidatorArray value="GazloweIsCastingDethLazor" />
+  </CBehaviorBuff>
   <CBehaviorBuff id="TinkerRoboGoblin" parent="CarryBehaviorParent">
     <BehaviorCategories index="BuffAutoattackDPS" value="1" />
     <BehaviorFlags index="EnabledWhileDead" value="0" />
@@ -1798,10 +1840,16 @@
     <TokenId value="TinkerRockItTurretOverchargedCapacitorsTokenCounter" />
     <Value value="-1" />
   </CEffectModifyTokenCount>
-  <CEffectDamage id="GazloweXplodiumChargeArkReaktorRockItTurretWeaponDamage" parent="StormSummonedUnitWeapon">
+  <CEffectDamage id="GazloweXplodiumChargeArkReaktorRockItTurretWeaponDamage" parent="StormSpell">
     <Amount value="$GazloweXplodiumChargeArkReaktorRockItTurretDamage" />
-    <SourceButtonFace value="TinkerRockItTurret" />
+    <Visibility value="Hidden" />
   </CEffectDamage>
+  <CEffectAddTrackedUnit id="GazloweXplodiumChargeArkReaktorTurretAttackDamagedUnitTrackerAdd" parent="StormSummonedUnitDamagedUnitTrackerAdd">
+    <TrackerUnit Effect="GazloweXplodiumChargeArkReaktorTurretEnumTarget" Value="Target" />
+  </CEffectAddTrackedUnit>
+  <CEffectCreatePersistent id="GazloweXplodiumChargeArkReaktorTurretCreatePersistentRevealDummy" parent="StormSummonedUnitPhysicalDamageDealtPersistent">
+    <WhichLocation Effect="GazloweXplodiumChargeArkReaktorTurretEnumTarget" Value="TargetUnit" />
+  </CEffectCreatePersistent>
   <CEffectLaunchMissile id="GazloweXplodiumChargeArkReaktorRockItTurretWeaponLaunchMissile">
     <ValidatorArray index="0" value="TargetNotDead" />
     <ImpactEffect value="GazloweXplodiumChargeArkReaktorRockItTurretWeaponSwitch" />
@@ -1810,16 +1858,31 @@
     <AmmoUnit value="RockItTurretMissile" />
     <ImpactRange value="0.5" />
   </CEffectLaunchMissile>
-  <CEffectSwitch id="GazloweXplodiumChargeArkReaktorRockItTurretWeaponSwitch" parent="SummonedBasicAttackAbilityDamageMissCheck">
+  <CEffectSwitch id="GazloweXplodiumChargeArkReaktorRockItTurretWeaponSwitch">
+    <CaseArray Validator="GazloweXplodiumChargeArkReaktorTurretAttackerBlindedOrTargetIsEvadingAndNotGenjiDodge" Effect="BlindMissedDummy" />
     <CaseDefault value="GazloweXplodiumChargeArkReaktorRockItTurretWeaponSet" />
   </CEffectSwitch>
   <CEffectSet id="GazloweXplodiumChargeArkReaktorRockItTurretWeaponSet">
-    <EffectArray value="StormSummonedWeaponPhysicalDamageDummy" />
     <EffectArray value="GazloweXplodiumChargeArkReaktorRockItTurretWeaponDamage" />
+    <EffectArray value="GazloweXplodiumChargeArkReaktorTurretAttackDamagedUnitTrackerAdd" />
+    <EffectArray value="GazloweXplodiumChargeArkReaktorTurretCreatePersistentRevealDummy" />
   </CEffectSet>
   <CEffectSet id="GazloweXplodiumChargeArkReaktorTurretExpirationSet">
     <EffectArray value="TimedLifeFate" />
   </CEffectSet>
+  <CEffectRemoveBehavior id="GazloweXplodiumChargeArkReaktorTurretRemoveAbilityTargetController">
+    <WhichUnit Value="Caster" />
+    <BehaviorLink value="GazloweXplodiumChargeArkReaktorTurretAbilityTargetController" />
+    <CancelBehavior value="1" />
+  </CEffectRemoveBehavior>
+  <CEffectApplyBehavior id="GazloweXplodiumChargeArkReaktorTurretAddAbilityTargetController">
+    <ValidatorArray value="GazloweXplodiumChargeArkReaktorTurretDoesNotHaveAbilityTargetController" />
+    <Behavior value="GazloweXplodiumChargeArkReaktorTurretAbilityTargetController" />
+  </CEffectApplyBehavior>
+  <CEffectSet id="GazloweXplodiumChargeArkReaktorTurretAttackSet" parent="StormSummonedUnitAddAttackTargetSet" behaviorRemoveEffect="GazloweXplodiumChargeArkReaktorTurretRemoveAbilityTargetController" />
+  <CEffectEnumTrackedUnits id="GazloweXplodiumChargeArkReaktorTurretEnumTarget" parent="StormSummonedUnitEnumTrackedAttackUnit">
+    <Effect value="GazloweXplodiumChargeArkReaktorRockItTurretWeaponLaunchSet" />
+  </CEffectEnumTrackedUnits>
   <CEffectSet id="GazloweXplodiumChargeArkReaktorRockItTurretWeaponLaunchSet">
     <EffectArray value="GazloweXplodiumChargeArkReaktorRockItTurretWeaponLaunchMissile" />
   </CEffectSet>
@@ -1868,15 +1931,15 @@
     <ValidatorArray value="GazloweTargetIsHeroOrMercOrMonsterOrCreepCombine" />
   </CEffectCreateHealer>
   <CEffectCreatePersistent id="GazloweDethLazorFirinMahLazorzTurretTargetSetFacingPersistent">
+    <WhichLocation Value="TargetUnit" />
     <InitialEffect value="GazloweDethLazorFirinMahLazorzModifyFacing" />
     <PeriodCount value="11" />
     <PeriodicEffectArray value="GazloweDethLazorFirinMahLazorzModifyFacing" />
     <PeriodicPeriodArray value="0.0625" />
   </CEffectCreatePersistent>
   <CEffectModifyUnit id="GazloweDethLazorFirinMahLazorzModifyFacing">
-    <ImpactUnit Value="Caster" />
     <ModifyTurret Turret="TinkerRockItTurret">
-      <Target Effect="GazloweDethLazorFirinMahLazorzPrepSet" Value="TargetPoint" />
+      <Target Effect="GazloweDethLazorPrepSet" Value="TargetPoint" />
       <Flags index="Tracking" value="1" />
       <Flags index="ClearTargetOnAimComplete" value="1" />
     </ModifyTurret>
@@ -1963,9 +2026,13 @@
   </CEffectSet>
   <CEffectSet id="GazloweXplodiumChargeArkReaktorTurretCreateUnitSet">
     <EffectArray value="GazloweXplodiumChargeArkReaktorTurretTimedLifeApplyBehavior" />
+    <EffectArray value="GazloweXplodiumChargeArkReaktorTurretAddAbilityController" />
   </CEffectSet>
   <CEffectApplyBehavior id="GazloweXplodiumChargeArkReaktorTurretTimedLifeApplyBehavior">
     <Behavior value="GazloweXplodiumChargeArkReaktorTurretTimedLifeBehavior" />
+  </CEffectApplyBehavior>
+  <CEffectApplyBehavior id="GazloweXplodiumChargeArkReaktorTurretAddAbilityController">
+    <Behavior value="GazloweXplodiumChargeArkReaktorTurretAbilityController" />
   </CEffectApplyBehavior>
   <CEffectCreatePersistent id="GazloweXplodiumChargeArkReaktorTurretPersistent">
     <PeriodCount value="3" />
@@ -2112,10 +2179,9 @@
   </CEffectSet>
   <CEffectApplyBehavior id="GazloweRockItTurretPositiveReinforcementApplyBehavior">
     <Behavior value="GazloweRockItTurretPositiveReinforcementBuff" />
-    <ValidatorArray index="0" value="CasterNotBlindedAndTargetNotEvading" />
-    <ValidatorArray value="GazloweHasPositiveReinforcement" />
+    <ValidatorArray index="0" value="GazloweHasPositiveReinforcement" />
     <ValidatorArray value="TargetIsHero" />
-    <WhichUnit Value="Creator" />
+    <WhichUnit Value="Caster" />
   </CEffectApplyBehavior>
   <CEffectRemoveTrackedUnit id="GazloweRockItTurretRemoveTrackedUnit">
     <BehaviorLink value="TinkerRockItTurretTrackingBehavior" />
@@ -2193,41 +2259,53 @@
   </CEffectApplyBehavior>
   <CEffectEnumTrackedUnits id="GazloweDethLazorFirinMahLazorzTurretEnumeration">
     <BehaviorLink value="TinkerRockItTurretTrackingBehavior" />
-    <Effect value="GazloweDethLazorFirinMahLazorzTurretIssueOrder" />
+    <Effect value="GazloweDethLazorFirinMahLazorzPrepSet" />
     <ValidatorArray value="GazloweHasFirinMahLazorz" />
   </CEffectEnumTrackedUnits>
-  <CEffectIssueOrder id="GazloweDethLazorFirinMahLazorzTurretIssueOrder">
-    <Abil value="GazloweDethLazorFirinMahLazorz" />
-    <Target Effect="GazloweDethLazorPrepSet" Value="TargetPoint" />
-  </CEffectIssueOrder>
   <CEffectSet id="GazloweDethLazorFirinMahLazorzPrepSet">
-    <EffectArray value="GazloweDethLazorFirinMahLazorzWarningPersistent" />
     <EffectArray value="GazloweDethLazorFirinMahLazorzTurretTargetSetFacingPersistent" />
+    <EffectArray value="GazloweDethLazorFirinMahLazorzWarningPersistent" />
+    <EffectArray value="GazloweDethLazorFirinMahLazorsApplyChannel" />
     <TargetLocationType value="Point" />
   </CEffectSet>
   <CEffectCreatePersistent id="GazloweDethLazorFirinMahLazorzWarningPersistent">
-    <WhichLocation Value="CasterPoint" />
-    <OffsetVectorStartLocation Value="CasterPoint" />
+    <WhichLocation Value="TargetUnit" />
+    <OffsetVectorStartLocation Value="TargetPoint" />
+    <OffsetVectorEndLocation Effect="GazloweDethLazorPrepSet" />
     <InitialEffect value="GazloweDethLazorFirinMahLazorzWarningDummy" />
     <InitialOffset Y="-$GazloweDethLazorFirinMahLazorzRange" />
   </CEffectCreatePersistent>
-  <CEffectDamage id="GazloweDethLazorFirinMahLazorzWarningDummy" />
+  <CEffectModifyUnit id="GazloweDethLazorFirinMahLazorzWarningDummy" />
+  <CEffectApplyBehavior id="GazloweDethLazorFirinMahLazorsApplyChannel">
+    <Behavior value="GazloweDethLazorFirinMahLazorsChannel" />
+  </CEffectApplyBehavior>
+  <CEffectEnumTrackedUnits id="GazloweDethLazorFirinMahLazorzTurretActivateEnumeration">
+    <BehaviorLink value="TinkerRockItTurretTrackingBehavior" />
+    <Effect value="GazloweDethLazorFirinMahLazorzInitialSet" />
+    <ValidatorArray value="GazloweHasFirinMahLazorz" />
+  </CEffectEnumTrackedUnits>
   <CEffectSet id="GazloweDethLazorFirinMahLazorzInitialSet">
-    <EffectArray value="GazloweDethLazorFirinMahLazorzInitialTargetPersistent" />
+    <Marker>
+      <MatchFlags index="Id" value="1" />
+    </Marker>
     <EffectArray value="GazloweDethLazorFirinMahLazorzBeamPersistent" />
-    <TargetLocationType value="Point" />
+    <EffectArray value="GazloweDethLazorFirinMahLazorzInitialTargetPersistent" />
   </CEffectSet>
   <CEffectCreatePersistent id="GazloweDethLazorFirinMahLazorzInitialTargetPersistent">
-    <WhichLocation Value="CasterPoint" />
+    <WhichLocation Value="TargetPoint" />
     <InitialEffect value="GazloweDethLazorFirinMahLazorzSearch" />
   </CEffectCreatePersistent>
   <CEffectCreatePersistent id="GazloweDethLazorFirinMahLazorzBeamPersistent">
-    <WhichLocation Value="CasterPoint" />
-    <OffsetVectorStartLocation Value="CasterPoint" />
-    <InitialEffect value="GazloweDethLazorFirinMahLazorzBeamDummy" />
-    <InitialOffset Y="-$GazloweDethLazorFirinMahLazorzRange" />
+    <WhichLocation Value="TargetUnit" />
+    <InitialEffect value="GazloweDethLazorFirinMahLazorzBeamTargetPersistent" />
   </CEffectCreatePersistent>
-  <CEffectDamage id="GazloweDethLazorFirinMahLazorzBeamDummy" />
+  <CEffectCreatePersistent id="GazloweDethLazorFirinMahLazorzBeamTargetPersistent">
+    <WhichLocation Value="TargetUnit" />
+    <OffsetVectorStartLocation Value="TargetPoint" />
+    <OffsetVectorEndLocation Effect="GazloweDethLazorInitialSet" Value="TargetPoint" />
+    <InitialEffect value="GazloweDethLazorFirinMahLazorzBeamDummy" />
+  </CEffectCreatePersistent>
+  <CEffectModifyUnit id="GazloweDethLazorFirinMahLazorzBeamDummy" />
   <CEffectEnumArea id="GazloweDethLazorFirinMahLazorzSearch">
     <SearchFlags index="DoActorSearch" value="1" />
     <SearchFilters value="-;Player,Ally,Neutral,ImmuneToAOE,Missile,Item,Stasis,Dead,Hidden,Invulnerable" />
@@ -2241,8 +2319,14 @@
     <RevealerParams Duration="1" ShapeExpansion="0.5">
       <RevealFlags index="Unfog" value="1" />
     </RevealerParams>
-    <ImpactLocation ProjectionMultiplier="0.001" ProjectionSourceValue="OriginPoint" ProjectionTargetValue="FocusPoint">
+    <LaunchLocation Effect="GazloweDethLazorFirinMahLazorzInitialSet" Value="TargetUnit" />
+    <ImpactLocation>
+      <ProjectionMultiplier value="0.001" />
       <ProjectionOffset Y="-$GazloweDethLazorFirinMahLazorzSearchMidPoint" />
+      <ProjectionSourceEffect value="GazloweDethLazorFirinMahLazorzInitialSet" />
+      <ProjectionSourceValue value="TargetPoint" />
+      <ProjectionTargetEffect value="GazloweDethLazorInitialSet" />
+      <ProjectionTargetValue value="FocusPoint" />
     </ImpactLocation>
   </CEffectEnumArea>
   <CEffectApplyBehavior id="GazloweOneManWreckingCrewApplyCasterBehavior">
@@ -2294,6 +2378,7 @@
   <CEffectSet id="GazloweDethLazorInitialSet">
     <EffectArray value="GazloweDethLazorInitialTargetPersistent" />
     <EffectArray value="GazloweDethLazorBeamPersistent" />
+    <EffectArray value="GazloweDethLazorFirinMahLazorzTurretActivateEnumeration" />
     <EffectArray value="GazloweOneManWreckingCrewApplyCasterBehavior" />
     <TargetLocationType value="Point" />
     <Marker>
@@ -2398,7 +2483,14 @@
   <CEffectDamage id="TinkerDethLazorFirinMahLazorzTalentDamage" parent="StormSpell">
     <Amount value="$GazloweDethLazorFirinMahLazorzDamage" />
     <SourceButtonFace value="GazloweDethLazorFirinMahLazorz" />
+    <Visibility value="Hidden" />
   </CEffectDamage>
+  <CEffectAddTrackedUnit id="GazloweDethLazorFirinMahLazorsDamagedUnitTrackedAdd" parent="StormSummonedUnitDamagedUnitTrackerAdd">
+    <TrackerUnit Effect="GazloweDethLazorFirinMahLazorzInitialSet" Value="Target" />
+  </CEffectAddTrackedUnit>
+  <CEffectCreatePersistent id="GazloweDethLazorFirinMahLazorzCreatePersistentRevealDummy" parent="StormSummonedUnitSpellDamageDealtPersistent">
+    <WhichLocation Effect="GazloweDethLazorFirinMahLazorzInitialSet" Value="TargetUnit" />
+  </CEffectCreatePersistent>
   <CEffectCreatePersistent id="GazloweSalvagerAbilityScrapInitialPersistent">
     <WhichLocation Value="CasterPoint" />
     <PeriodCount value="1" />
@@ -2579,7 +2671,6 @@
     <LaunchOffset Y="0.5" />
   </CEffectLaunchMissile>
   <CEffectSet id="RockItTurretLaunchSet">
-    <EffectArray value="GazloweRockItTurretPositiveReinforcementApplyBehavior" />
     <EffectArray value="RockItTurretWeaponLaunchMissile" />
     <EffectArray value="RockItTurretRelicSearch" />
   </CEffectSet>
@@ -2601,18 +2692,21 @@
     <SharedFlags index="ValidateWeapon" value="0" />
     <AmmoUnit value="RockItTurretRelicSideMissile" />
   </CEffectLaunchMissile>
-  <CEffectDamage id="RockItTurretWeaponRelicSideDamage" parent="StormSummonedUnitWeapon">
+  <CEffectDamage id="RockItTurretWeaponRelicSideDamage" parent="StormSpell">
     <Amount value="$GazloweRockItTurretDamage" />
     <SourceButtonFace value="TinkerRockItTurretRockItTurretXLTalent" />
-    <MultiplicativeModifierArray index="GravOBomb" Validator="GazloweHasGravOBombBasicAbilityDamageBuffCreator" Modifier="0.3" Crit="1" />
+    <MultiplicativeModifierArray index="GravOBomb" Validator="GazloweHasGravOBombBasicAbilityDamageBuff" Modifier="0.3" Crit="1" />
     <MultiplicativeModifierArray index="SuperiorSchematics" Modifier="-0.4" />
+    <Visibility value="Hidden" />
   </CEffectDamage>
-  <CEffectSwitch id="RockItTurretWeaponRelicSideImpactSwitch" parent="SummonedBasicAttackAbilityDamageMissCheck">
+  <CEffectSwitch id="RockItTurretWeaponRelicSideImpactSwitch">
+    <CaseArray Validator="GazloweRockItTurretAttackerBlindedOrTargetIsEvadingAndNotGenjiDodge" Effect="BlindMissedDummy" />
     <CaseDefault value="RockItTurretWeaponRelicSideImpactSet" />
   </CEffectSwitch>
   <CEffectSet id="RockItTurretWeaponRelicSideImpactSet">
-    <EffectArray value="StormSummonedWeaponPhysicalDamageDummy" />
     <EffectArray value="RockItTurretWeaponRelicSideDamage" />
+    <EffectArray value="GazloweRockItTurretAttackDamagedUnitTrackerAdd" />
+    <EffectArray value="GazloweRockItTurretCreatePersistentRevealDummy" />
   </CEffectSet>
   <CEffectSet id="XplodiumChargeSearchSet">
     <EffectArray value="XplodiumBombSearch" />
@@ -2630,6 +2724,8 @@
   </CEffectSet>
   <CEffectSet id="GazloweDethLazorFirinMahLazorzImpactSet">
     <EffectArray value="TinkerDethLazorFirinMahLazorzTalentDamage" />
+    <EffectArray value="GazloweDethLazorFirinMahLazorsDamagedUnitTrackedAdd" />
+    <EffectArray value="GazloweDethLazorFirinMahLazorzCreatePersistentRevealDummy" />
   </CEffectSet>
   <CEffectDamage id="DethLazorCharged1Damage" parent="StormSpell">
     <Amount value="$GazloweDethLazorDamage" />
@@ -2842,16 +2938,6 @@
     <WhichUnit Value="Source" />
     <Behavior value="GazloweGravOBomb3000Stun" />
   </CEffectApplyBehavior>
-  <CEffectSet id="TinkerWeaponSet">
-    <EffectArray value="TinkerWeaponDamage" />
-    <EffectArray value="GazloweOneManWreckingCrewRemoveCasterBehavior" />
-    <EffectArray value="GazloweReduceReuseRecycleTraitCooldownReduction" />
-    <EffectArray value="GazloweRoboGoblinDotImpactSet" />
-    <EffectArray value="GazloweRoboGoblinMechaLordApplyArmorIncrease" />
-    <EffectArray value="GazloweOverchargedCapacitorsTurretEnumeration" />
-    <EffectArray value="GazloweOverklockApplyBehavior" />
-    <EffectArray value="GazloweOverklockPercentMaxHealthDamage" />
-  </CEffectSet>
   <CEffectApplyBehavior id="RockItTurretApplySlowShotsBehavior" parent="StormSlowApply">
     <Behavior value="RockItTurretSlowAmmo" />
     <Chance value="0" />
@@ -2860,7 +2946,24 @@
     <EffectArray value="TinkerRockItTurretAddToTrackingList" />
     <EffectArray value="RockItTurretTimedLifeApplyBehavior" />
     <EffectArray value="GazloweRockItTurretCasterDeathTrackerApplyBehavior" />
+    <EffectArray value="GazloweRockItTurretAddAbilityController" />
   </CEffectSet>
+  <CEffectApplyBehavior id="GazloweRockItTurretAddAbilityController">
+    <Behavior value="GazloweRockItTurretAbilityController" />
+  </CEffectApplyBehavior>
+  <CEffectApplyBehavior id="GazloweRockItTurretAddAbilityTargetController">
+    <ValidatorArray value="GazloweRockItTurretDoesNotHaveAbilityTargetController" />
+    <Behavior value="GazloweRockItTurretAbilityTargetController" />
+  </CEffectApplyBehavior>
+  <CEffectRemoveBehavior id="GazloweRockItTurretRemoveAbilityTargetController">
+    <WhichUnit Value="Caster" />
+    <BehaviorLink value="GazloweRockItTurretAbilityTargetController" />
+    <CancelBehavior value="1" />
+  </CEffectRemoveBehavior>
+  <CEffectSet id="GazloweRockItTurretAttackSet" parent="StormSummonedUnitAddAttackTargetSet" behaviorRemoveEffect="GazloweRockItTurretRemoveAbilityTargetController" />
+  <CEffectEnumTrackedUnits id="GazloweRockItTurretEnumTarget" parent="StormSummonedUnitEnumTrackedAttackUnit">
+    <Effect value="RockItTurretLaunchSet" />
+  </CEffectEnumTrackedUnits>
   <CEffectLaunchMissile id="RockItTurretWeaponLaunchMissile">
     <ValidatorArray index="0" value="TargetNotDead" />
     <ImpactEffect value="RockItTurretWeaponSwitch" />
@@ -2869,22 +2972,32 @@
     <AmmoUnit value="RockItTurretMissile" />
     <ImpactRange value="0.5" />
   </CEffectLaunchMissile>
-  <CEffectSwitch id="RockItTurretWeaponSwitch" parent="SummonedBasicAttackAbilityDamageMissCheck">
+  <CEffectSwitch id="RockItTurretWeaponSwitch">
+    <CaseArray Validator="GazloweRockItTurretAttackerBlindedOrTargetIsEvadingAndNotGenjiDodge" Effect="BlindMissedDummy" />
     <CaseDefault value="RockItTurretWeaponSet" />
   </CEffectSwitch>
   <CEffectSet id="RockItTurretWeaponSet">
-    <EffectArray value="StormSummonedWeaponPhysicalDamageDummy" />
     <EffectArray value="RockItTurretWeaponDamage" />
     <EffectArray value="GazloweMasterBlasterTurretSlowExtend" />
+    <EffectArray value="GazloweRockItTurretPositiveReinforcementApplyBehavior" />
+    <EffectArray value="GazloweRockItTurretAttackDamagedUnitTrackerAdd" />
+    <EffectArray value="GazloweRockItTurretCreatePersistentRevealDummy" />
   </CEffectSet>
+  <CEffectAddTrackedUnit id="GazloweRockItTurretAttackDamagedUnitTrackerAdd" parent="StormSummonedUnitDamagedUnitTrackerAdd">
+    <TrackerUnit Effect="GazloweRockItTurretEnumTarget" Value="Target" />
+  </CEffectAddTrackedUnit>
+  <CEffectCreatePersistent id="GazloweRockItTurretCreatePersistentRevealDummy" parent="StormSummonedUnitPhysicalDamageDealtPersistent">
+    <WhichLocation Effect="GazloweRockItTurretEnumTarget" Value="TargetUnit" />
+  </CEffectCreatePersistent>
   <CEffectApplyBehavior id="TinkerRockItTurretEngineGunkMoveDebuffApplyBehavior" parent="StormSlowApply">
     <Chance value="0" />
     <Behavior value="RockItTurretSlowMoveDebuff" />
   </CEffectApplyBehavior>
-  <CEffectDamage id="RockItTurretWeaponDamage" parent="StormSummonedUnitWeapon">
+  <CEffectDamage id="RockItTurretWeaponDamage" parent="StormSpell">
     <Amount value="$GazloweRockItTurretDamage" />
     <SourceButtonFace value="TinkerRockItTurret" />
-    <MultiplicativeModifierArray index="GravOBomb" Validator="GazloweHasGravOBombBasicAbilityDamageBuffCreator" Modifier="0.3" Crit="1" />
+    <MultiplicativeModifierArray index="GravOBomb" Validator="GazloweHasGravOBombBasicAbilityDamageBuff" Modifier="0.3" Crit="1" />
+    <Visibility value="Hidden" />
   </CEffectDamage>
   <CEffectCreateUnit id="GazloweXplodiumChargeArkReaktorTurretCreateUnit">
     <WhichLocation Value="TargetPoint" />
@@ -2911,10 +3024,23 @@
     <Amount value="$GazloweHeroWeaponDamage" />
   </CEffectDamage>
   <CEffectSet id="TinkerWeaponDamageSwitchSet">
-    <EffectArray value="UniversalWeaponImpact" />
-    <EffectArray value="TinkerWeaponSet" />
     <EffectArray value="UniversalWeaponLaunchSet" />
+    <EffectArray value="UniversalWeaponImpact" />
+    <EffectArray value="GazloweWeaponPreImpactSet" />
+    <EffectArray value="TinkerWeaponDamage" />
+    <EffectArray value="GazloweWeaponPostImpactSet" />
     <EffectArray value="UniversalWeaponPostImpactSet" />
+  </CEffectSet>
+  <CEffectSet id="GazloweWeaponPreImpactSet">
+    <EffectArray value="GazloweReduceReuseRecycleTraitCooldownReduction" />
+    <EffectArray value="GazloweOverchargedCapacitorsTurretEnumeration" />
+    <EffectArray value="GazloweRoboGoblinDotImpactSet" />
+    <EffectArray value="GazloweOverklockPercentMaxHealthDamage" />
+  </CEffectSet>
+  <CEffectSet id="GazloweWeaponPostImpactSet">
+    <EffectArray value="GazloweOneManWreckingCrewRemoveCasterBehavior" />
+    <EffectArray value="GazloweRoboGoblinMechaLordApplyArmorIncrease" />
+    <EffectArray value="GazloweOverklockApplyBehavior" />
   </CEffectSet>
   <CHero id="Tinker">
     <AttributeId value="Tink" />
@@ -4187,9 +4313,8 @@
     <Collide index="Structure" value="1" />
     <BehaviorArray Link="ShrubProximityDetector" />
     <BehaviorArray Link="HallOfStormsKnockbackKillable" />
-    <CardLayouts>
-      <LayoutButtons Face="GazloweDethLazorFirinMahLazorz" Type="AbilCmd" AbilCmd="GazloweDethLazorFirinMahLazorz,Execute" Slot="Ability1" />
-    </CardLayouts>
+    <BehaviorArray Link="StormSummonedUnitTargetTracker" />
+    <BehaviorArray Link="StormSummonedUnitDamagedUnitTracker" />
     <DeathTime value="2" />
   </CUnit>
   <CUnit id="TinkerItsRainingScrapMissile" parent="MISSILE_INVULNERABLE" />
@@ -4264,7 +4389,6 @@
     <AbilArray Link="stop" />
     <AbilArray Link="TinkerRockItTurretAttack" />
     <AbilArray Link="TinkerRoboGoblinMechaLordTalentFocusTarget" />
-    <AbilArray Link="GazloweDethLazorFirinMahLazorz" />
     <WeaponArray Link="RockItTurret" Turret="TinkerRockItTurret" />
     <Collide index="Ground" value="0" />
     <Collide index="Structure" value="1" />
@@ -4273,10 +4397,9 @@
     <BehaviorArray Link="HallOfStormsKnockbackKillable" />
     <BehaviorArray Link="GazloweRockItTurretSuperiorSchematicsRangeBonus" />
     <BehaviorArray Link="RockitTurretXLVisualBehavior" />
+    <BehaviorArray Link="StormSummonedUnitTargetTracker" />
+    <BehaviorArray Link="StormSummonedUnitDamagedUnitTracker" />
     <Attributes index="ImmuneToFriendlyAbilities" value="1" />
-    <CardLayouts>
-      <LayoutButtons Face="GazloweDethLazorFirinMahLazorz" Type="AbilCmd" AbilCmd="GazloweDethLazorFirinMahLazorz,Execute" Slot="Ability1" />
-    </CardLayouts>
     <DeathTime value="2" />
   </CUnit>
   <CUnit id="TinkerRockItTurretPlaceholderDummy" parent="TinkerRockItTurret">
@@ -4942,6 +5065,36 @@
     <Value value="1" />
     <Behavior value="RockItTurretSlowAmmo" />
   </CValidatorUnitCompareBehaviorCount>
+  <CValidatorUnitCompareBehaviorCount id="GazloweRockItTurretAttackerBlinded">
+    <Compare value="GT" />
+    <WhichUnit Effect="GazloweRockItTurretEnumTarget" />
+    <Categories index="DebuffBlind" value="1" />
+  </CValidatorUnitCompareBehaviorCount>
+  <CValidatorCombine id="GazloweRockItTurretAttackerBlindedOrTargetIsEvadingAndNotGenjiDodge">
+    <CombineArray value="GazloweRockItTurretAttackerBlinded" />
+    <CombineArray value="TargetIsEvadingAndNotGenjiDodge" />
+  </CValidatorCombine>
+  <CValidatorUnitHasBehavior id="GazloweRockItTurretDoesNotHaveAbilityTargetController">
+    <Behavior value="GazloweRockItTurretAbilityTargetController" />
+    <Negate value="1" />
+  </CValidatorUnitHasBehavior>
+  <CValidatorUnitCompareBehaviorCount id="GazloweXplodiumChargeArkReaktorTurretAttackerBlinded">
+    <Compare value="GT" />
+    <WhichUnit Effect="GazloweXplodiumChargeArkReaktorTurretEnumTarget" />
+    <Categories index="DebuffBlind" value="1" />
+  </CValidatorUnitCompareBehaviorCount>
+  <CValidatorCombine id="GazloweXplodiumChargeArkReaktorTurretAttackerBlindedOrTargetIsEvadingAndNotGenjiDodge">
+    <CombineArray value="GazloweXplodiumChargeArkReaktorTurretAttackerBlinded" />
+    <CombineArray value="TargetIsEvadingAndNotGenjiDodge" />
+  </CValidatorCombine>
+  <CValidatorUnitHasBehavior id="GazloweXplodiumChargeArkReaktorTurretDoesNotHaveAbilityTargetController">
+    <Behavior value="GazloweXplodiumChargeArkReaktorTurretAbilityTargetController" />
+    <Negate value="1" />
+  </CValidatorUnitHasBehavior>
+  <CValidatorUnitCompareOrderCount id="GazloweIsCastingDethLazor">
+    <AbilLink value="GazloweDethLazor" />
+    <Value value="1" />
+  </CValidatorUnitCompareOrderCount>
   <CValidatorUnitCompareBehaviorCount id="HasDethLazorChargedActive">
     <WhichUnit Value="Caster" />
     <Value value="1" />
@@ -4969,7 +5122,7 @@
   <CWeaponLegacy id="GazloweXplodiumChargeArkReaktorRockItTurretWeapon">
     <Icon value="Assets\Textures\storm_temp_btn-upgrade-terran-hisecautotracking.dds" />
     <DisplayEffect value="GazloweXplodiumChargeArkReaktorRockItTurretWeaponDamage" />
-    <Effect value="GazloweXplodiumChargeArkReaktorRockItTurretWeaponLaunchSet" />
+    <Effect value="GazloweXplodiumChargeArkReaktorTurretAttackSet" />
     <TargetFilters value="Visible;Player,Ally,Missile,Stasis,Dead,Hidden,Invulnerable" />
     <Range value="$GazloweRockItTurretAttackRange" />
     <Period value="$GazloweRockItTurretAttackSpeed" />
@@ -4997,7 +5150,7 @@
   <CWeaponLegacy id="RockItTurret">
     <Icon value="Assets\Textures\storm_temp_btn-upgrade-terran-hisecautotracking.dds" />
     <DisplayEffect value="RockItTurretWeaponDamage" />
-    <Effect value="RockItTurretLaunchSet" />
+    <Effect value="GazloweRockItTurretAttackSet" />
     <TargetFilters value="Visible;Player,Ally,Missile,Stasis,Dead,Hidden,Invulnerable" />
     <Range value="$GazloweRockItTurretAttackRange" />
     <Period value="$GazloweRockItTurretAttackSpeed" />

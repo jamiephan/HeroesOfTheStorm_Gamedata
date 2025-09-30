@@ -472,7 +472,7 @@
     <HostSiteOps Ops="SOpAttachOrigin" />
     <Model value="SlowDebuff" />
   </CActorModel>
-  <CActorAction id="KelThuzadWeaponAttack" parent="RangedHeroAttackMissile" effectImpact="KelThuzadWeaponImpactSet" effectLaunch="KelThuzadWeaponLaunchMissile">
+  <CActorAction id="KelThuzadWeaponAttack" parent="RangedHeroAttackMissile" effectImpact="KelThuzadWeaponDamage" effectLaunch="KelThuzadWeaponLaunchMissile">
     <LaunchAttachQuery Methods="KelThuzadWeaponAMPattern" />
     <LaunchAssets Sound="KelThuzad_Attack_Launch" />
     <ImpactMap index="None" Model="KelThuzadAttackImpact" Sound="KelThuzad_Attack_Impact" />
@@ -1160,7 +1160,7 @@
     <On Terms="Effect.KelThuzadGlacialSpikeExpireSearch.Start" Send="Create" />
     <Layers Sound="KelThuzadGlacialSpikeExpireSound2" PlayDelay="500,500" PlayDelaySource="Actor" />
   </CActorSound>
-  <CActorAction id="KelThuzadChillingTouchAttack" parent="RangedHeroAttackMissile" effectImpact="KelThuzadChillingTouchImpactSet" effectLaunch="KelThuzadChillingTouchLaunchMissile">
+  <CActorAction id="KelThuzadChillingTouchAttack" parent="RangedHeroAttackMissile" effectImpact="KelThuzadChillingTouchDamage" effectLaunch="KelThuzadChillingTouchLaunchMissile">
     <LaunchAttachQuery Methods="KelThuzadWeaponAMPattern" />
     <ImpactMap index="None" Model="" Sound="KelThuzad_ChillingTouch_Impact" />
     <DamageSiteOps Ops="SOpAttachCenter" />
@@ -1281,6 +1281,7 @@
     <On Terms="Effect.KelThuzadFrostNovaDamage.Start; At Target" Send="Create" />
     <On Terms="Effect.KelThuzadFrostNovaRootDamage.Start; At Target" Send="Create" />
     <On Terms="Effect.KelThuzadChillingTouchDamage.Start; At Target" Send="Create" />
+    <On Terms="Effect.KelThuzadChillingTouchSplashDamage.Start; At Target" Send="Create" />
     <On Terms="Effect.KelThuzadFrozenTombDamage.Start; At Target" Send="Create" />
     <On Terms="Effect.KelThuzadFrozenTombExplosionDamage.Start; At Target" Send="Create" />
     <On Terms="Effect.KelThuzadGlacialSpikeDamage.Start; At Target" Send="Create" />
@@ -1454,7 +1455,7 @@
     <HostSiteOps Ops="SOpTargetPoint" />
     <Magnitude value="40.000000" />
     <Radius value="3.000000" />
-    <On Terms="Effect.KelThuzadChillingTouchSearch.Stop" Send="Create" />
+    <On Terms="Effect.KelThuzadChillingTouchImpactSet.Stop" Send="Create" />
     <Duration value="0.150000" />
   </CActorForceSphere>
   <CActorForceSphere id="KelThuzadGlacialSpikeForce">
@@ -2169,8 +2170,8 @@
     </AreaArray>
   </CEffectEnumArea>
   <CEffectSet id="KelThuzadWeaponLaunchMissileSet">
-    <EffectArray value="KelThuzadWeaponLaunchMissile" />
     <EffectArray value="UniversalWeaponLaunchSet" />
+    <EffectArray value="KelThuzadWeaponLaunchMissile" />
   </CEffectSet>
   <CEffectLaunchMissile id="KelThuzadWeaponLaunchMissile">
     <ValidatorArray index="0" value="TargetNotDead" />
@@ -2181,11 +2182,16 @@
   </CEffectLaunchMissile>
   <CEffectSet id="KelThuzadWeaponImpactSet">
     <EffectArray value="UniversalWeaponImpact" />
+    <EffectArray value="KelThuzadWeaponPreImpactSet" />
     <EffectArray value="KelThuzadWeaponDamage" />
-    <EffectArray value="KelThuzadHungeringColdImpactSetBasicAttack" />
-    <EffectArray value="KelThuzadIcyGraspModifyCooldownBasicAttack" />
+    <EffectArray value="KelThuzadWeaponPostImpactSet" />
     <EffectArray value="UniversalWeaponPostImpactSet" />
   </CEffectSet>
+  <CEffectSet id="KelThuzadWeaponPreImpactSet">
+    <EffectArray value="KelThuzadIcyGraspModifyCooldownBasicAttack" />
+    <EffectArray value="KelThuzadHungeringColdImpactSetBasicAttack" />
+  </CEffectSet>
+  <CEffectSet id="KelThuzadWeaponPostImpactSet" />
   <CEffectDamage id="KelThuzadWeaponDamage" parent="StormWeapon">
     <Amount value="72" />
   </CEffectDamage>
@@ -2668,6 +2674,7 @@
     <TargetLocationType value="Point" />
     <EffectArray value="KelThuzadChainsLinkCreatePushEffectAtHost" />
     <EffectArray value="KelThuzadChainsLinkCreatePushEffectAtTarget" />
+    <EffectArray value="KelThuzadChainsLinkChainLinkRefundSet" />
   </CEffectSet>
   <CEffectCreatePersistent id="KelThuzadChainsLinkCreatePushEffectAtHost">
     <ValidatorArray value="KelThuzadChainsLinkHostUnitValid" />
@@ -2683,6 +2690,7 @@
     <EffectArray value="HeroRemovePushPullDebuffs" />
     <EffectArray value="HeroRemovePreventsMovement" />
     <EffectArray value="KelThuzadChainsPullApplyNewBehavior" />
+    <EffectArray value="ApplyAbilityImpactRevealEnemyOnly" />
     <EffectArray value="KelThuzadBarbedChainsApplyArmorReduction" />
     <EffectArray value="KelThuzadStripShieldsApplyShield" />
     <EffectArray value="KelThuzadPowerOfIcecrownApply" />
@@ -3129,9 +3137,9 @@
     <TokenId value="KelThuzadAcceleratedDecayTokenCounter" />
   </CEffectModifyTokenCount>
   <CEffectSet id="KelThuzadChillingTouchLaunchSet">
+    <EffectArray value="UniversalWeaponLaunchSet" />
     <EffectArray value="KelThuzadChillingTouchActiveRemove" />
     <EffectArray value="KelThuzadChillingTouchLaunchMissile" />
-    <EffectArray value="UniversalWeaponLaunchSet" />
   </CEffectSet>
   <CEffectRemoveBehavior id="KelThuzadChillingTouchActiveRemove">
     <WhichUnit Value="Caster" />
@@ -3146,40 +3154,60 @@
   </CEffectLaunchMissile>
   <CEffectSet id="KelThuzadChillingTouchMissileImpactSet">
     <EffectArray value="KelThuzadChillingTouchMissSwitch" />
-    <EffectArray value="KelThuzadChillingTouchSpiderMinesImpactSet" />
-  </CEffectSet>
-  <CEffectSet id="KelThuzadChillingTouchSpiderMinesImpactSet">
-    <ValidatorArray value="SgtHammerSpiderMinesTargetIsSpiderMine" />
-    <ValidatorArray value="CasterNotBlindedAndTargetNotEvading" />
-    <EffectArray value="KelThuzadChillingTouchImpactSet" />
   </CEffectSet>
   <CEffectSwitch id="KelThuzadChillingTouchMissSwitch" parent="AbilDmgMissCheck">
-    <CaseDefault value="KelThuzadChillingTouchSearch" />
+    <CaseDefault value="KelThuzadChillingTouchImpactSet" />
   </CEffectSwitch>
+  <CEffectSet id="KelThuzadChillingTouchImpactSet">
+    <EffectArray value="KelThuzadChillingTouchWeaponPreImpactSet" />
+    <EffectArray value="KelThuzadChillingTouchDamage" />
+    <EffectArray value="KelThuzadChillingTouchWeaponPostImpactSet" />
+    <EffectArray value="KelThuzadChillingTouchSearch" />
+    <EffectArray value="CameraShakeLightTauntingTotemSet" />
+    <EffectArray value="UniversalWeaponPostImpactSet" />
+  </CEffectSet>
+  <CEffectSet id="KelThuzadChillingTouchWeaponPreImpactSet">
+    <EffectArray value="KelThuzadIcyGraspModifyCooldownBasicAttack" />
+    <EffectArray value="KelThuzadHungeringColdImpactSetBasicAttack" />
+  </CEffectSet>
+  <CEffectSet id="KelThuzadChillingTouchWeaponPostImpactSet">
+    <EffectArray value="KelThuzadChillingTouchApplySlow" />
+    <EffectArray value="KelThuzadPowerOfIcecrownApply" />
+  </CEffectSet>
   <CEffectEnumArea id="KelThuzadChillingTouchSearch">
+    <ExcludeArray Value="Target" />
     <SearchFilters value="-;Self,Player,Ally,Neutral,ImmuneToAOE,Missile,Item,Stasis,Dead,Hidden,Invulnerable" />
-    <AreaArray Effect="KelThuzadChillingTouchImpactSet">
+    <AreaArray Effect="KelThuzadChillingTouchSplashSwitch">
       <Radius value="3" />
     </AreaArray>
     <RevealerParams Duration="0.75" ShapeExpansion="1">
       <RevealFlags index="Unfog" value="1" />
     </RevealerParams>
   </CEffectEnumArea>
-  <CEffectSet id="KelThuzadChillingTouchImpactSet">
-    <EffectArray value="UniversalWeaponImpact" />
-    <EffectArray value="KelThuzadChillingTouchDamage" />
+  <CEffectSwitch id="KelThuzadChillingTouchSplashSwitch" parent="AbilDmgMissCheck">
+    <CaseDefault value="KelThuzadChillingTouchSplashImpactSet" />
+  </CEffectSwitch>
+  <CEffectSet id="KelThuzadChillingTouchSplashImpactSet">
+    <EffectArray value="KelThuzadChillingTouchSplashPreImpactSet" />
+    <EffectArray value="KelThuzadChillingTouchSplashDamage" />
+    <EffectArray value="KelThuzadChillingTouchSplashPostImpactSet" />
+    <EffectArray value="CameraShakeLightTauntingTotemSet" />
+    <EffectArray value="UniversalWeaponPostImpactSet" />
+  </CEffectSet>
+  <CEffectSet id="KelThuzadChillingTouchSplashPreImpactSet">
+    <EffectArray value="KelThuzadIcyGraspModifyCooldownBasicAttack" />
+    <EffectArray value="KelThuzadHungeringColdImpactSetBasicAttack" />
+  </CEffectSet>
+  <CEffectSet id="KelThuzadChillingTouchSplashPostImpactSet">
     <EffectArray value="KelThuzadChillingTouchApplySlow" />
     <EffectArray value="KelThuzadPowerOfIcecrownApply" />
-    <EffectArray value="KelThuzadHungeringColdImpactSetBasicAttack" />
-    <EffectArray value="CameraShakeLightTauntingTotemSet" />
-    <EffectArray value="KelThuzadIcyGraspModifyCooldownBasicAttack" />
-    <EffectArray value="UniversalWeaponPostImpactSet" />
   </CEffectSet>
   <CEffectDamage id="KelThuzadChillingTouchDamage" parent="StormSpell">
     <Amount value="72" />
     <MultiplicativeModifierArray index="ChillingTouch" Modifier="0.8" Crit="1" />
     <SourceButtonFace value="KelThuzadChillingTouch" />
   </CEffectDamage>
+  <CEffectDamage id="KelThuzadChillingTouchSplashDamage" parent="KelThuzadChillingTouchDamage" />
   <CEffectApplyBehavior id="KelThuzadChillingTouchApplyCooldown">
     <WhichUnit Value="Caster" />
     <Behavior value="KelThuzadChillingTouchCooldown" />
@@ -3196,7 +3224,14 @@
     <ValidatorArray value="NotStructureTarget" />
     <Behavior value="KelThuzadChillingTouchSlow" />
   </CEffectApplyBehavior>
+  <CEffectSet id="KelThuzadChainsLinkChainLinkRefundSet">
+    <ValidatorArray value="KelThuzadChainsLinkEitherHostIsValid" />
+    <ValidatorArray value="KelThuzadHasChainLink" />
+    <EffectArray value="KelThuzadChainLinkCooldownReduction" />
+    <EffectArray value="KelThuzadChainsOfKelThuzadChainLinkCreateManaHealer" />
+  </CEffectSet>
   <CEffectModifyUnit id="KelThuzadChainLinkCooldownReduction">
+    <ImpactUnit Value="Caster" />
     <Cost Abil="KelThuzadChains,Execute" CooldownOperation="Add" CooldownTimeUse="-5" />
   </CEffectModifyUnit>
   <CEffectModifyPlayer id="KelThuzadShiftingMaliceCooldownRefund">
@@ -3316,6 +3351,7 @@
     <EffectArray value="KelThuzadDeathAndDecayShadeDamageSearch" />
     <EffectArray value="KelThuzadDeathAndDecayShadeRotCreatePersistent" />
     <EffectArray value="KelThuzadDeathAndDecayShadeMissileSuicide" />
+    <EffectArray value="KelThuzadDeathAndDecayShadeCreatePersistentRevealDummy" />
     <ValidatorArray value="noMarkers" />
     <TargetLocationType value="Point" />
   </CEffectSet>
@@ -3340,11 +3376,19 @@
     <Visibility value="Hidden" />
   </CEffectDamage>
   <CEffectCreatePersistent id="KelThuzadDeathAndDecayShadeRotCreatePersistent">
-    <PeriodicEffectArray value="KelThuzadDeathAndDecayShadeRotSearch" />
+    <PeriodicEffectArray value="KelThuzadDeathAndDecayShadeRotSearchSet" />
     <PeriodicPeriodArray value="0.5" />
     <PeriodCount value="4" />
     <WhichLocation Value="SourcePoint" />
   </CEffectCreatePersistent>
+  <CEffectCreatePersistent id="KelThuzadDeathAndDecayShadeCreatePersistentRevealDummy" parent="StormSummonedUnitSpellDamageDealtPersistent">
+    <ValidatorArray value="KelThuzadDeathAndDecayShadeHasDamagedUnitsTracked" />
+    <WhichLocation Effect="KelThuzadTheDamnedReturnDeathAndDecayEnumerateTrackedUnitPersistent" Value="TargetUnit" />
+  </CEffectCreatePersistent>
+  <CEffectSet id="KelThuzadDeathAndDecayShadeRotSearchSet">
+    <EffectArray value="KelThuzadDeathAndDecayShadeRotSearch" />
+    <EffectArray value="KelThuzadDeathAndDecayShadeCreatePersistentRevealDummy" />
+  </CEffectSet>
   <CEffectEnumArea id="KelThuzadDeathAndDecayShadeRotSearch">
     <SearchFilters value="-;Player,Ally,Neutral,ImmuneToAOE,Missile,Item,Stasis,Dead,Hidden,Invulnerable" />
     <AreaArray Effect="KelThuzadDeathAndDecayShadeRotImpactSet">
@@ -3675,6 +3719,13 @@
       <Modifications>
         <Catalog value="Effect" />
         <Entry value="KelThuzadChillingTouchDamage" />
+        <Field value="Amount" />
+        <Value value="0.040000" />
+        <AffectedByOverdrive value="1" />
+      </Modifications>
+      <Modifications>
+        <Catalog value="Effect" />
+        <Entry value="KelThuzadChillingTouchSplashDamage" />
         <Field value="Amount" />
         <Value value="0.040000" />
         <AffectedByOverdrive value="1" />
@@ -4854,7 +4905,6 @@
     </CardLayouts>
     <BehaviorArray Link="KelThuzadShadeTimedLife" />
     <BehaviorArray Link="StormSummonedUnitDamagedUnitTracker" />
-    <BehaviorArray Link="StormSummonedUnitVisibilityController" />
     <Sight value="5.5" />
     <EnergyStart value="1000" />
     <EnergyMax value="1000" />
@@ -5162,6 +5212,10 @@
     <Compare value="GE" />
     <WhichUnit Value="Caster" />
   </CValidatorUnitCompareBehaviorCount>
+  <CValidatorCombine id="KelThuzadChainsLinkEitherHostIsValid">
+    <CombineArray value="KelThuzadChainsLinkHostUnitValid" />
+    <CombineArray value="KelThuzadChainsLinkTargetUnitValid" />
+  </CValidatorCombine>
   <CValidatorCombine id="KelThuzadChainsLinkHostIsValidAndTargetIsInvalid">
     <Type value="And" />
     <CombineArray value="KelThuzadChainsLinkHostUnitValid" />
@@ -5242,6 +5296,9 @@
     <Range value="0.5" />
     <Value Value="TargetUnit" />
   </CValidatorLocationCompareRange>
+  <CValidatorCompareTrackedUnitsCount id="KelThuzadDeathAndDecayShadeHasDamagedUnitsTracked" parent="StormSummonedUnitHasDamagedUnitsTracked">
+    <TrackerUnit Effect="KelThuzadTheDamnedReturnDeathAndDecayEnumerateTrackedUnitPersistent" Value="Target" />
+  </CValidatorCompareTrackedUnitsCount>
   <CValidatorUnitHasBehavior id="KelThuzadTargetHasFrostNovaRootIncludeDisabled">
     <Behavior value="KelThuzadFrostNovaRoot" />
     <IncludeDisabled value="1" />

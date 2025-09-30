@@ -390,6 +390,8 @@
     <On Terms="WeaponStart.*.AttackStart; AnimPlaying Attack Attack,Superior,04" Target="MonkAttackSuperiorRightHandFX" Send="AnimPlay Attack Attack,Superior,04" />
     <On Terms="WeaponStart.*.AttackStart; AnimPlaying Attack Spell,A" Target="MonkAttackSuperiorRightHandFX" Send="AnimPlay Attack Spell,A" />
     <On Terms="WeaponStart.*.AttackStart; AnimPlaying Attack Spell,C" Target="MonkAttackSuperiorRightHandFX" Send="AnimPlay Attack Spell,C" />
+    <On Terms="Effect.MonkWeaponDamage.Start; !AnimPlaying Attack Spell,A; At Caster" Send="Create MonkAttack" />
+    <On Terms="Effect.MonkWeaponDamage.Start; AnimPlaying Attack Spell,A; At Caster" Send="Create MonkIronFistsAttack" />
     <On Terms="ActorCreation" Send="StatusSet DeadlyReachIteration 0" />
     <On Terms="WeaponStart.*.AttackStart; ValidateUnit MonkHasDeadlyReachPrimedorCasterBehavior" Send="StatusSet DeadlyReachImpactStatus 1" />
     <On Terms="WeaponStart.*.AttackStart; !ValidateUnit MonkHasDeadlyReachPrimedorCasterBehavior" Send="StatusSet DeadlyReachImpactStatus 0" />
@@ -411,7 +413,7 @@
     <On Terms="Effect.MonkRadiantDashWayoftheHundredFistsRefreshDummy.Start; At Caster" Send="AnimPlay WotHFWindup Spell,D,Start" />
     <On Terms="AnimDone; AnimName WotHFWindup; ValidateUnit MonkHasWayoftheHundredFistsCasterBehavior" Send="AnimPlay WotHF Spell,D 0 -1.000000 0.075000" />
     <On Terms="Behavior.MonkDashWayoftheHundredFistsCasterBehavior.Off" Send="AnimClear WotHF 0.150000" />
-    <On Terms="Effect.MonkRadiantDashLaunchMonk.Start" Send="ModelMaterialApply MonkRadiantDashGlaze" />
+    <On Terms="Effect.MonkRadiantDashLaunchMonk.Start; At Caster" Send="ModelMaterialApply MonkRadiantDashGlaze" />
     <On Terms="Behavior.MonkDashWayoftheHundredFistsCasterBehavior.On" Send="TimerSet 0.250000 PunchDelay" />
     <On Terms="TimerExpired; TimerName PunchDelay; ValidateUnit MonkHasWayoftheHundredFistsCasterBehavior" Send="Create MonkRadiantDashWayoftheHundredFistsFX" />
     <On Terms="Signal.*.HundredFistTargetFound" Send="RefSetFromMsg ::actor.MonkTarget ::Sender" />
@@ -609,7 +611,9 @@
   <CActorSound id="PulledSoundHeroMonk" parent="SoundOneShot">
     <Sound value="MonkBase_VOX_Pulled" />
   </CActorSound>
-  <CActorAction id="MonkAttack" parent="MeleeHeroAttack" effectAttack="MonkWeaponDamage" />
+  <CActorAction id="MonkAttack" parent="MeleeHeroAttack" effectAttack="MonkWeaponDamage">
+    <Remove Terms="Effect.MonkWeaponDamage.Start; At Caster" Send="Create" />
+  </CActorAction>
   <CActorSound id="MonkDeadlyReachCastSound" parent="SoundOneShot">
     <On Terms="Behavior.MonkDeadlyReachCasterBehavior.On" Send="Create" />
     <Sound value="Monk_DeadlyReach_Cast" />
@@ -822,6 +826,7 @@
     <VisibleToAtCreation index="Target" value="1" />
   </CActorSound>
   <CActorAction id="MonkIronFistsAttack" parent="MeleeHeroAttack" effectAttack="MonkComboWeaponIronFistsBonusDamage">
+    <Remove Terms="Effect.MonkComboWeaponIronFistsBonusDamage.Start; At Caster" Send="Create" />
     <ImpactMap index="None" Sound="Monk_Attack_Punch_Impact" />
     <ImpactMap index="Rock" Sound="Monk_AttackImpact_Building" />
   </CActorAction>
@@ -1845,12 +1850,17 @@
   </CEffectDestroyPersistent>
   <CEffectSet id="MonkRadiantDashWayoftheHundredFistsImpactSet">
     <ValidatorArray value="TargetNotInvulnerable" />
+    <EffectArray value="UniversalWeaponImpact" />
+    <EffectArray value="MonkWayoftheHundredFistPreImpactSet" />
     <EffectArray value="MonkWeaponDamage" />
     <EffectArray value="MonkWeaponComboSwitch" />
+    <EffectArray value="MonkWayoftheHundredFistPostImpactSet" />
     <EffectArray value="CameraShakeLightCasterDummySet" />
     <EffectArray value="CameraShakeLightTauntingTotemSet" />
     <EffectArray value="UniversalWeaponPostImpactSet" />
   </CEffectSet>
+  <CEffectSet id="MonkWayoftheHundredFistPreImpactSet" />
+  <CEffectSet id="MonkWayoftheHundredFistPostImpactSet" />
   <CEffectIssueOrder id="MonkRadiantDashWayoftheHundredFistsIssuePeriodMoveOrder">
     <WhichUnit Value="Caster" />
     <Abil value="move" />
@@ -2182,12 +2192,17 @@
     <Flags index="NoFractionDealtBonus" value="1" />
   </CEffectDamage>
   <CEffectSet id="MonkWeaponImpactSet">
-    <EffectArray value="MonkWeaponDamage" />
-    <EffectArray value="MonkWeaponComboSwitch" />
-    <EffectArray value="MonkDeadlyReachInitialSet" />
     <EffectArray value="UniversalWeaponLaunchSet" />
     <EffectArray value="UniversalWeaponImpact" />
+    <EffectArray value="MonkWeaponPreImpactSet" />
+    <EffectArray value="MonkWeaponDamage" />
+    <EffectArray value="MonkWeaponComboSwitch" />
+    <EffectArray value="MonkWeaponPostImpactSet" />
     <EffectArray value="UniversalWeaponPostImpactSet" />
+  </CEffectSet>
+  <CEffectSet id="MonkWeaponPreImpactSet" />
+  <CEffectSet id="MonkWeaponPostImpactSet">
+    <EffectArray value="MonkDeadlyReachInitialSet" />
   </CEffectSet>
   <CEffectDamage id="MonkWeaponDamage" parent="StormWeapon">
     <MultiplicativeModifierArray index="MonkWayOfTheHundredFists" Validator="MonkHasWayoftheHundredFistsCasterBehavior" Modifier="-0.55" />

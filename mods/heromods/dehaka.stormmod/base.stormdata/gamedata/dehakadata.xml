@@ -11,6 +11,10 @@
   <const id="$DehakaBurrowTunnelingClawsMovespeedTotal" value="1.2" />
   <const id="$DehakaBurrowTunnelingClawsMinimumModifier" value="*($HeroBaseMovementSpeed $DehakaBurrowTunnelingClawsMovespeedTotal)" evaluateAsExpression="1" />
   <const id="$DehakaBurrowTunnelingClawsMaximumModifier" value="-($DehakaBurrowTunnelingClawsMinimumModifier $DehakaBurrowMovespeed)" evaluateAsExpression="1" />
+  <const id="$DehakaBrushstalkerCooldown" value="240" />
+  <const id="$DehakaBrushstalkerRegenGlobeReductionAmount" value="40" />
+  <const id="$DehakaBrushstalkerApexPredatorCooldown" value="120" />
+  <const id="$DehakaBrushstalkerApexPredatorTalentModAmount" value="-($DehakaBrushstalkerCooldown $DehakaBrushstalkerApexPredatorCooldown)" evaluateAsExpression="1" />
   <CAbilEffectInstant id="DehakaCancelBurrow">
     <Effect value="DehakaBurrowRemoveBehavior" />
     <Flags index="Transient" value="1" />
@@ -84,7 +88,7 @@
     <Flags index="RangeUseCasterRadius" value="0" />
     <Flags index="RequireTargetVision" value="0" />
     <Cost>
-      <Cooldown TimeUse="75" />
+      <Cooldown TimeUse="$DehakaBrushstalkerCooldown" />
     </Cost>
     <InterruptArray index="Cast" value="1" />
     <InterruptCost>
@@ -1038,7 +1042,7 @@
     <Max value="$DehakaFeedingFrenzyMaximumReductionStacks" />
     <Init value="$DehakaFeedingFrenzyMaximumReductionStacks" />
     <Face value="DehakaDragTalentFeedingFrenzyToken" />
-    <DecreaseEvents index="0" Effect="DehakaFeedingFrenzyUpdateCooldownValue" />
+    <DecreaseEvents index="0" EventId="QuestDecrease" Effect="DehakaFeedingFrenzyUpdateCooldownValue" />
   </CBehaviorTokenCounter>
   <CBehaviorTokenCounter id="DehakaDragParalyzingEnzymesTalentTokenCounter" parent="StormQuestToken">
     <Max value="5" />
@@ -1216,6 +1220,7 @@
     </Modification>
     <InitialEffect value="DehakaBurrowApplyNumbingEruptionTalentForce" />
     <PeriodicEffect value="DehakaBurrowApplyNumbingEruptionTalentForce" />
+    <FinalEffect value="DehakaBurrowApplyNumbingEruptionTalentSlow" />
   </CBehaviorBuff>
   <CBehaviorBuff id="DehakaDragMissileScan">
     <Period value="0.0625" />
@@ -1639,6 +1644,13 @@
   <CEffectSet id="DehakaBrushstalkerDummyPing">
     <TargetLocationType value="Point" />
   </CEffectSet>
+  <CEffectSet id="RegenGlobeImpactSet">
+    <EffectArray value="DehakaBrushstalkerModifyCooldownRegenGlobe" />
+  </CEffectSet>
+  <CEffectModifyUnit id="DehakaBrushstalkerModifyCooldownRegenGlobe">
+    <ImpactUnit Value="Caster" />
+    <Cost Abil="DehakaBrushstalker,Execute" CooldownOperation="Add" CooldownTimeUse="-$DehakaBrushstalkerRegenGlobeReductionAmount" />
+  </CEffectModifyUnit>
   <CEffectApplyBehavior id="DehakaBrushstalkerPackLeaderArmorApplyBehavior">
     <ValidatorArray value="DehakaHasBrushstalkerPackLeaderTalent" />
     <ValidatorArray value="SourceInShrub" />
@@ -1820,7 +1832,6 @@
   </CEffectModifyTokenCount>
   <CEffectModifyTokenCount id="DehakaEssenceCollectionDarkSwarmHeroStalkerPrimalRageTalentModifyToken" parent="BaseEffectModifyTokenCount">
     <TokenId value="DehakaEssenceCollectionPrimalRageTalentTokenCounter" />
-    <Value value="2" />
   </CEffectModifyTokenCount>
   <CEffectModifyTokenCount id="DehakaEssenceCollectionPCKillPrimalRageTalentModifyToken" parent="BaseEffectModifyTokenCount">
     <TokenId value="DehakaEssenceCollectionPrimalRageTalentTokenCounter" />
@@ -1971,11 +1982,20 @@
   <CEffectSet id="DehakaHeroWeaponImpactSet">
     <EffectArray value="UniversalWeaponLaunchSet" />
     <EffectArray value="UniversalWeaponImpact" />
+    <EffectArray value="DehakaWeaponPreImpactSet" />
     <EffectArray value="DehakaHeroWeaponDamage" />
-    <EffectArray value="DehakaEssenceCollectionEssenceClawsTalentSet" />
+    <EffectArray value="DehakaWeaponPostImpactSet" />
+    <EffectArray value="UniversalWeaponPostImpactSet" />
+  </CEffectSet>
+  <CEffectSet id="DehakaHeroWeaponDragSet" parent="DehakaHeroWeaponImpactSet">
+    <ValidatorArray value="DehakaDragWeaponCombine" />
+  </CEffectSet>
+  <CEffectSet id="DehakaWeaponPreImpactSet">
     <EffectArray value="DehakaHeroWeaponFeedingFrenzyTalentModifyCooldown" />
     <EffectArray value="DehakaDragParaylzingEnzymesSetRemainingDurationBasicAttack" />
-    <EffectArray value="UniversalWeaponPostImpactSet" />
+  </CEffectSet>
+  <CEffectSet id="DehakaWeaponPostImpactSet">
+    <EffectArray value="DehakaEssenceCollectionEssenceClawsTalentSet" />
   </CEffectSet>
   <CEffectApplyBehavior id="DehakaBurrowApplyChannelingBehavior">
     <WhichUnit Value="Caster" />
@@ -2615,16 +2635,6 @@
     <EffectArray value="ImmuneToStasisRemoveBehaviorCaster" />
     <EffectArray value="DehakaBurrowLurkerStrainTalentCreatePersistent" />
     <EffectArray value="DehakaBurrowNumbingEruptionTalentSearch" />
-  </CEffectSet>
-  <CEffectSet id="DehakaHeroWeaponDragSet">
-    <ValidatorArray value="DehakaDragWeaponCombine" />
-    <EffectArray value="UniversalWeaponLaunchSet" />
-    <EffectArray value="UniversalWeaponImpact" />
-    <EffectArray value="DehakaHeroWeaponDamage" />
-    <EffectArray value="DehakaEssenceCollectionEssenceClawsTalentSet" />
-    <EffectArray value="DehakaHeroWeaponFeedingFrenzyTalentModifyCooldown" />
-    <EffectArray value="DehakaDragParaylzingEnzymesSetRemainingDurationBasicAttack" />
-    <EffectArray value="UniversalWeaponPostImpactSet" />
   </CEffectSet>
   <CEffectSet id="DehakaDarkSwarmBehaviorInitialSet">
     <EffectArray value="DehakaDarkSwarmSearch" />
@@ -3397,7 +3407,7 @@
         <Type value="FlatModification" />
         <Entry value="DehakaBrushstalker" />
         <Field value="Cost[0].Cooldown.TimeUse" />
-        <Value value="-50.000000" />
+        <Value value="-$DehakaBrushstalkerApexPredatorTalentModAmount" />
       </Modifications>
       <Modifications>
         <Type value="FlatModification" />

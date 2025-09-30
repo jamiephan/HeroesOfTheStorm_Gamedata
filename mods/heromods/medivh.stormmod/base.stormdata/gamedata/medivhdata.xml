@@ -1453,8 +1453,11 @@
   </CBehaviorBuff>
   <CBehaviorBuff id="MedivhMysticAssaultDamageBonus">
     <Alignment value="Positive" />
+    <InfoFlags index="Hidden" value="0" />
+    <InfoIcon value="Assets\Textures\storm_ui_icon_medivh_arcanemissile.dds" />
     <Duration value="6" />
   </CBehaviorBuff>
+  <CBehaviorBuff id="MedivhMysticAssaultMissileMarker" />
   <CBehaviorBuff id="MedivhPortalRavenFamiliarTalentSlow" parent="StormSlowParent">
     <Duration value="2.5" />
     <Modification>
@@ -2205,28 +2208,42 @@
     <EffectArray value="MedivhPortalVehicleUseSet" />
   </CEffectSet>
   <CEffectSet id="MedivhWeaponLaunchMissileSet">
-    <EffectArray value="MedivhWeaponLaunchMissile" />
     <EffectArray value="UniversalWeaponLaunchSet" />
+    <EffectArray value="MedivhWeaponLaunchMissile" />
+    <EffectArray value="MedivhMysticAssaultRemoveBehavior" />
   </CEffectSet>
   <CEffectLaunchMissile id="MedivhWeaponLaunchMissile">
     <ValidatorArray index="0" value="TargetNotDead" />
+    <LaunchEffect value="MedivhWeaponMissileLaunchEffectSet" />
     <ImpactEffect value="MedivhWeaponImpactSet" />
     <SharedFlags index="TravelValidation" value="1" />
     <SharedFlags index="ValidateWeapon" value="0" />
     <AmmoUnit value="MedivhWeaponProjectile" />
     <Movers Link="MedivhWeaponMissile" />
   </CEffectLaunchMissile>
+  <CEffectSet id="MedivhWeaponMissileLaunchEffectSet">
+    <EffectArray value="MedivhMysticAssaultApplyToSource" />
+  </CEffectSet>
+  <CEffectApplyBehavior id="MedivhMysticAssaultApplyToSource">
+    <ValidatorArray value="MedivhHasMysticAssaultDamageBehavior" />
+    <WhichUnit Value="Source" />
+    <Behavior value="MedivhMysticAssaultMissileMarker" />
+  </CEffectApplyBehavior>
   <CEffectSet id="MedivhWeaponImpactSet">
     <EffectArray value="UniversalWeaponImpact" />
+    <EffectArray value="MedivhWeaponPreImpactSet" />
     <EffectArray value="MedivhWeaponDamage" />
-    <EffectArray value="MedivhMysticAssaultRemoveBehavior" />
-    <EffectArray value="MedivhTemporalFluxCooldownModifierAutoAttack" />
+    <EffectArray value="MedivhWeaponPostImpactSet" />
     <EffectArray value="UniversalWeaponPostImpactSet" />
   </CEffectSet>
+  <CEffectSet id="MedivhWeaponPreImpactSet">
+    <EffectArray value="MedivhTemporalFluxCooldownModifierAutoAttack" />
+  </CEffectSet>
+  <CEffectSet id="MedivhWeaponPostImpactSet" />
   <CEffectDamage id="MedivhWeaponDamage" parent="StormWeapon">
-    <MultiplicativeModifierArray index="MysticAssaultBonus" Validator="MedivhHasMysticAssaultDamageBehavior" Modifier="0.5" Crit="1" />
+    <MultiplicativeModifierArray index="MysticAssaultBonus" Validator="MedivhSourceHasMysticAssaultMarker" Modifier="0.5" Crit="1" />
     <Amount value="80" />
-    <LeechValidator index="Life" value="MedivhHasMysticAssaultDamageBehavior" />
+    <LeechValidator index="Life" value="MedivhSourceHasMysticAssaultMarker" />
     <LeechFraction index="Life" value="0.5" />
   </CEffectDamage>
   <CEffectSet id="MedivhForceOfWillInitialSet">
@@ -4405,6 +4422,11 @@
     <ResultNoUnit value="OKPlaceholder" />
     <Compare value="GT" />
     <Behavior value="MedivhMysticAssaultDamageBonus" />
+  </CValidatorUnitCompareBehaviorCount>
+  <CValidatorUnitCompareBehaviorCount id="MedivhSourceHasMysticAssaultMarker">
+    <WhichUnit Value="Source" />
+    <Compare value="GT" />
+    <Behavior value="MedivhMysticAssaultMissileMarker" />
   </CValidatorUnitCompareBehaviorCount>
   <CValidatorPlayerTalent id="MedivhHasMysticAssaultTalent">
     <WhichPlayer Value="Caster" />

@@ -1,5 +1,9 @@
 <?xml version="1.0" encoding="us-ascii"?>
 <Catalog>
+  <const id="$RexxarDireBeastMaxStackCount" value="10" />
+  <const id="$RexxarDireBeastBonusPerStack" value="0.15" />
+  <const id="$RexxarDireBeastMaxBonus" value="*($RexxarDireBeastBonusPerStack $RexxarDireBeastMaxStackCount)" evaluateAsExpression="1" />
+  <const id="$RexxarDireBeastCritDisplayValue" value="floor(*($RexxarDireBeastMaxStackCount 0.5))" evaluateAsExpression="1" />
   <CAbilEffectInstant id="RexxarPrimalIntimidation">
     <PrepEffect value="DismountDecloakCasterSet" />
     <Effect value="RexxarPrimalIntimidationSearch" />
@@ -138,7 +142,7 @@
     <UninterruptibleArray index="Cast" value="1" />
     <UninterruptibleArray index="Channel" value="1" />
     <CursorEffect value="RexxarMishaChargeTargetSearch" />
-    <CmdButtonArray index="Execute" DefaultButtonFace="RexxarMishaChargeRedirect" Requirements="RexxarMishaAlive">
+    <CmdButtonArray index="Execute" DefaultButtonFace="RexxarMishaChargeRedirect" UseValidator="RexxarMishaIsAlive">
       <Flags index="AllowSelfCast" value="1" />
     </CmdButtonArray>
   </CAbilEffectTarget>
@@ -256,10 +260,14 @@
     <ApplicationRule value="Add" />
     <TokenId value="RexxarHunterGathererTokenCounter" />
   </CAccumulatorToken>
-  <CAccumulatorToken id="RexxarDireBeastAccumulator" parent="BaseAccumulator">
-    <MaxAccumulation value="1.5" />
+  <CAccumulatorToken id="RexxarDireBeastTokenCountAccumulator" parent="BaseTokenAccumulator">
+    <ApplicationRule value="Add" />
     <TokenId value="RexxarDireBeastTokenCounter" />
-    <Scale value="0.15" />
+  </CAccumulatorToken>
+  <CAccumulatorToken id="RexxarDireBeastAccumulator" parent="BaseAccumulator">
+    <MaxAccumulation value="$RexxarDireBeastMaxBonus" />
+    <TokenId value="RexxarDireBeastTokenCounter" />
+    <Scale value="$RexxarDireBeastBonusPerStack" />
     <ApplicationRule value="Add" />
   </CAccumulatorToken>
   <CAccumulatorToken id="RexxarAnimalHusbandryHealthAccumulator" parent="BaseTokenAccumulator">
@@ -519,11 +527,11 @@
     <On Terms="Signal" Send="StatusSet AnimPlaying 1" />
     <ModelFlags index="AutomateGlobalLoops" value="0" />
   </CActorMissile>
-  <CActorAction id="HeroRexxarRangedAttack" parent="RangedHeroAttack" effectImpact="RexxarRangedWeaponImpactSet" effectLaunch="RexxarRangedWeaponLaunchMissile">
+  <CActorAction id="HeroRexxarRangedAttack" parent="RangedHeroAttackMissile" effectImpact="RexxarRangedWeaponImpactDummy" effectLaunch="RexxarRangedWeaponLaunchMissile">
     <ImpactMap index="None" Model="RexxarWeaponAttackImpact" Sound="Rexxar_Attack_Ranged_Impact" />
     <LaunchAttachQuery Methods="AMPatternRexxarRangedAttack" />
   </CActorAction>
-  <CActorAction id="HeroRexxarAttack" parent="MeleeHeroAttack" effectAttack="RexxarMeleeWeaponImpactSet">
+  <CActorAction id="HeroRexxarAttack" parent="MeleeHeroAttack" effectAttack="RexxarMeleeWeaponImpactDummy">
     <ImpactMap index="None" Model="RexxarWeaponAttackImpact" Sound="Rexxar_Attack_Melee_Impact" />
     <ImpactMap index="Rock" Sound="Rexxar_Attack_Melee_Impact" />
     <LaunchAttachQuery Methods="AMPatternRexxarMeleeAttack" />
@@ -1205,6 +1213,12 @@
     <UnitAddedAtMaxRule value="ReplaceOldest" />
     <TrackingValidatorArray value="TargetNotDead" />
   </CBehaviorUnitTracker>
+  <CBehaviorUnitTracker id="RexxarMishaRexxarTracker">
+    <BehaviorFlags index="Permanent" value="1" />
+    <BehaviorFlags index="EnabledWhileDead" value="1" />
+    <MaxTrackedUnits value="1" />
+    <UnitAddedAtMaxRule value="ReplaceOldest" />
+  </CBehaviorUnitTracker>
   <CBehaviorBuff id="RexxarMishaPassiveMoveSpeed" parent="CarryBehaviorParent">
     <Modification>
       <UnifiedMoveSpeedFactor value="0.15" />
@@ -1212,22 +1226,6 @@
   </CBehaviorBuff>
   <CBehaviorBuff id="RexxarUnleashtheBoarsRevealer" parent="StormReveal">
     <Duration value="5" />
-  </CBehaviorBuff>
-  <CBehaviorBuff id="RexxarBasicAttackDamageResponseController" parent="CarryBehaviorParent">
-    <Requirements value="RexxarMishaAliveUnitCount" />
-    <DamageResponse Chance="1" Handled="RexxarMishaBasicAttackDamageResponseSet2" Location="Attacker">
-      <RequireEffectArray value="RexxarWeaponDamage" />
-      <Kind index="Splash" value="0" />
-      <Kind index="Ability" value="0" />
-    </DamageResponse>
-  </CBehaviorBuff>
-  <CBehaviorBuff id="RexxarMishaBasicAttackDamageResponseController" parent="CarryBehaviorParent">
-    <Requirements value="RexxarMishaAliveUnitCount" />
-    <DamageResponse Chance="1" Handled="RexxarMishaBasicAttackDamageResponseSet" Location="Attacker">
-      <RequireEffectArray value="RexxarMishaWeaponDamage" />
-      <Kind index="Splash" value="0" />
-      <Kind index="Ability" value="0" />
-    </DamageResponse>
   </CBehaviorBuff>
   <CBehaviorTokenCounter id="RexxarHunterGathererMishaTokenCounter" parent="StormQuestToken">
     <Face value="RexxarHunterGathererToken" />
@@ -1247,8 +1245,11 @@
     <Face value="RexxarDireBeastToken" />
     <Alignment value="Positive" />
     <MinStackCountDisplayed value="0" />
-    <Max value="10" />
+    <Max value="$RexxarDireBeastMaxStackCount" />
     <SortIndex value="50" />
+  </CBehaviorTokenCounter>
+  <CBehaviorTokenCounter id="RexxarDireBeastDamageTokenCounter" parent="StormGenericToken">
+    <Max value="10" />
   </CBehaviorTokenCounter>
   <CBehaviorBuff id="RexxarAnimalHusbandryHealthBuffCarry" parent="CarryBehaviorParent">
     <Period value="1" />
@@ -1871,47 +1872,24 @@
     <BehaviorLink value="RexxarMishaFollowRexxarCarry" />
     <Count value="1" />
   </CEffectRemoveBehavior>
-  <CEffectApplyBehavior id="RexxarMishaApplyBasicAttackDamageResponseController">
-    <Behavior value="RexxarMishaBasicAttackDamageResponseController" />
-  </CEffectApplyBehavior>
-  <CEffectApplyBehavior id="RexxarMishaApplyBasicAttackDamageResponseController2">
-    <Behavior value="RexxarBasicAttackDamageResponseController" />
-  </CEffectApplyBehavior>
-  <CEffectSet id="RexxarMishaBasicAttackDamageResponseSet">
-    <ValidatorArray value="CasterNotBlindedAndTargetNotEvading" />
-    <EffectArray value="RexxarSpiritSwoopAspectoftheHawkTalentModifyBehaviorDuration" />
-    <EffectArray value="RexxarMishaChargeDireBeastTalentBasicAttackSet" />
-    <EffectArray value="RexxarMishaChargeAspectoftheBeastTalentProcSet" />
-  </CEffectSet>
-  <CEffectSet id="RexxarMishaBasicAttackDamageResponseSet2">
-    <ValidatorArray value="CasterNotBlindedAndTargetNotEvading" />
-    <EffectArray value="RexxarMishaChargeDireBeastTalentBasicAttackSet" />
-  </CEffectSet>
-  <CEffectModifyTokenCount id="RexxarMishaChargeModifyDireBeastTalentTokenCounterSource" parent="BaseEffectModifyTokenCount">
-    <WhichUnit Value="Source" />
-    <TokenId value="RexxarDireBeastTokenCounter" />
-  </CEffectModifyTokenCount>
   <CEffectSwitch id="RexxarMishaFocusTargetSwitch">
     <CaseArray Validator="TargetIsSelf" Effect="RexxarMishaFollowInitialSet" />
     <CaseDefault value="RexxarMishaFocusTargetSet" />
     <TargetLocationType value="UnitOrPoint" />
   </CEffectSwitch>
-  <CEffectModifyBehaviorBuffDuration id="RexxarSpiritSwoopAspectoftheHawkTalentModifyBehaviorDuration">
+  <CEffectEnumTrackedUnits id="RexxarMishaAspectoftheHawkEnumRexxar">
+    <ValidatorArray value="CasterNotBlindedAndTargetNotEvading" />
     <ValidatorArray value="RexxarHasAspectOfTheHawkSpiritSwoop" />
-    <ValidatorArray value="RexxarHasSpiritSwoopAspectoftheHawkTalentBuff" />
-    <WhichUnit Effect="RexxarMishaApplyBasicAttackDamageResponseController" />
+    <ValidatorArray value="RexxarMishaAspectoftheHawkTrackedUnitHasBuff" />
+    <BehaviorLink value="RexxarMishaRexxarTracker" />
+    <Effect value="RexxarSpiritSwoopAspectoftheHawkTalentModifyBehaviorDuration" />
+    <TrackedUnitFilters value="Heroic;Ally,Neutral,Enemy" />
+  </CEffectEnumTrackedUnits>
+  <CEffectModifyBehaviorBuffDuration id="RexxarSpiritSwoopAspectoftheHawkTalentModifyBehaviorDuration">
     <Behavior value="RexxarSpiritSwoopAspectOfTheHawk" />
+    <WhichUnit Value="Target" />
     <Value value="0.75" />
   </CEffectModifyBehaviorBuffDuration>
-  <CEffectApplyBehavior id="RexxarThrilloftheHuntApplyBuffCaster">
-    <WhichUnit Value="Caster" />
-    <Behavior value="RexxarThrilloftheHuntBuff" />
-    <ValidatorArray index="0" value="RexxarHasTraitThrilloftheHunt" />
-  </CEffectApplyBehavior>
-  <CEffectApplyBehavior id="RexxarThrilloftheHuntApplyBuffSource">
-    <WhichUnit Value="Source" />
-    <Behavior value="RexxarThrilloftheHuntBuff" />
-  </CEffectApplyBehavior>
   <CEffectModifyUnit id="RexxarGrizzledFortitudeModifyChargeCooldown">
     <ImpactUnit Value="Caster" />
     <Cost>
@@ -1933,43 +1911,62 @@
     <TokenId value="RexxarHunterGathererTokenCounter" />
     <Operation value="Set" />
   </CEffectModifyTokenCount>
-  <CEffectModifyTokenCount id="RexxarMishaChargeModifyDireBeastTalentTokenCounterCaster" parent="BaseEffectModifyTokenCount">
+  <CEffectEnumTrackedUnits id="RexxarDireBeastMishaEnumRexxarResetStacks">
+    <ValidatorArray value="RexxarHasDireBeastTalent" />
+    <BehaviorLink value="RexxarMishaRexxarTracker" />
+    <Effect value="RexxarMishaChargeResetDireBeastTalentTokenCounterTarget" />
+    <TrackedUnitFilters value="Heroic;Ally,Neutral,Enemy" />
+  </CEffectEnumTrackedUnits>
+  <CEffectEnumTrackedUnits id="RexxarDireBeastRexxarEnumMishaResetStacks">
+    <ValidatorArray value="RexxarHasDireBeastTalent" />
+    <BehaviorLink value="RexxarMishaTracker" />
+    <Effect value="RexxarMishaChargeResetDireBeastTalentTokenCounterTarget" />
+    <TrackedUnitFilters value="Heroic;Ally,Neutral,Enemy" />
+  </CEffectEnumTrackedUnits>
+  <CEffectSet id="RexxarDireBeastIncreaseSetRexxar">
+    <ValidatorArray value="CasterNotBlindedAndTargetNotEvading" />
+    <ValidatorArray value="RexxarHasDireBeastTalent" />
+    <ValidatorArray value="RexxarMishaIsAlive" />
+    <EffectArray value="RexxarDireBeastIncreaseTokenCountCaster" />
+  </CEffectSet>
+  <CEffectSet id="RexxarDireBeastIncreaseSetMisha">
+    <ValidatorArray value="CasterNotBlindedAndTargetNotEvading" />
+    <ValidatorArray value="RexxarHasDireBeastTalent" />
+    <EffectArray value="RexxarDireBeastIncreaseEnumRexxar" />
+  </CEffectSet>
+  <CEffectEnumTrackedUnits id="RexxarDireBeastIncreaseEnumRexxar">
+    <BehaviorLink value="RexxarMishaRexxarTracker" />
+    <Effect value="RexxarDireBeastIncreaseTokenCountTarget" />
+    <TrackedUnitFilters value="Heroic;Ally,Neutral,Enemy" />
+  </CEffectEnumTrackedUnits>
+  <CEffectModifyTokenCount id="RexxarDireBeastIncreaseTokenCountTarget" parent="BaseEffectModifyTokenCount">
+    <WhichUnit Value="Target" />
     <TokenId value="RexxarDireBeastTokenCounter" />
   </CEffectModifyTokenCount>
-  <CEffectSet id="RexxarMishaChargeDireBeastFinalSet">
+  <CEffectModifyTokenCount id="RexxarDireBeastIncreaseTokenCountCaster" parent="BaseEffectModifyTokenCount">
+    <TokenId value="RexxarDireBeastTokenCounter" />
+  </CEffectModifyTokenCount>
+  <CEffectCreatePersistent id="RexxarMishaDireBeastTransferPersistent">
+    <ValidatorArray value="RexxarHasDireBeastTalent" />
+    <ValidatorArray value="RexxarHasDireBeastToken" />
+    <WhichLocation Value="TargetUnit" />
+    <InitialEffect value="RexxarMishaChargeResetDireBeastTalentTokenCounterTarget" />
+    <PeriodCount value="0">
+      <AccumulatorArray value="RexxarDireBeastTokenCountAccumulator" />
+    </PeriodCount>
+    <PeriodicEffectArray value="RexxarDireBeastIncreaseTokenCountTarget" />
+    <PeriodicPeriodArray value="0" />
+  </CEffectCreatePersistent>
+  <CEffectSet id="RexxarMishaChargeDireBeastResetSet">
     <ValidatorArray value="RexxarHasDireBeastTalent" />
     <EffectArray value="RexxarMishaChargeResetDireBeastTalentTokenCounterCaster" />
-    <EffectArray value="RexxarMishaChargeDireBeastTalentResetTokenSearch" />
+    <EffectArray value="RexxarDireBeastResetEnumRexxar" />
   </CEffectSet>
-  <CEffectEnumArea id="RexxarMishaChargeDireBeastTalentBasicAttackSearch">
-    <ImpactLocation Value="CasterPoint" />
-    <ExcludeArray />
-    <SearchFilters value="Heroic;Ally,Neutral,Enemy" />
-    <AreaArray MaxCount="1" Effect="RexxarMishaChargeModifyRexxarAngryBearTalentTokenCounter">
-      <Radius value="100" />
-    </AreaArray>
-  </CEffectEnumArea>
-  <CEffectEnumArea id="RexxarMishaChargeDireBeastTalentResetTokenSearch">
-    <ImpactLocation Value="CasterPoint" />
-    <ExcludeArray />
-    <SearchFilters value="Heroic;Ally,Neutral,Enemy" />
-    <AreaArray MaxCount="1" Effect="RexxarMishaChargeResetDireBeastTalentTokenCounterTarget">
-      <Radius value="100" />
-    </AreaArray>
-  </CEffectEnumArea>
-  <CEffectSet id="RexxarMishaChargeDireBeastTalentBasicAttackSet">
-    <ValidatorArray value="RexxarHasDireBeastTalent" />
-    <EffectArray value="RexxarMishaChargeModifyDireBeastTalentTokenCounterCaster" />
-    <EffectArray value="RexxarMishaChargeModifyDireBeastTalentTokenCounterSource" />
-  </CEffectSet>
-  <CEffectSet id="RexxarMishaChargeAspectoftheBeastTalentProcSet">
-    <ValidatorArray value="RexxarHasAspectoftheBeastCharge" />
-    <EffectArray value="RexxarMishaChargeAspectoftheBeastTalentModifyChargeCooldownCaster" />
-  </CEffectSet>
-  <CEffectSet id="RexxarMishaChargeBehaviorFinalSet">
-    <EffectArray value="RexxarChargeBearNecessitiesFreeCastDummy" />
-    <EffectArray value="RexxarMishaChargeDireBeastFinalSet" />
-  </CEffectSet>
+  <CEffectEnumTrackedUnits id="RexxarDireBeastResetEnumRexxar">
+    <BehaviorLink value="RexxarMishaRexxarTracker" />
+    <Effect value="RexxarMishaChargeResetDireBeastTalentTokenCounterTarget" />
+    <TrackedUnitFilters value="Heroic;Ally,Neutral,Enemy" />
+  </CEffectEnumTrackedUnits>
   <CEffectModifyTokenCount id="RexxarMishaChargeResetDireBeastTalentTokenCounterCaster" parent="BaseEffectModifyTokenCount">
     <TokenId value="RexxarDireBeastTokenCounter" />
     <Operation value="Set" />
@@ -1981,14 +1978,17 @@
     <Operation value="Set" />
     <Value value="0" />
   </CEffectModifyTokenCount>
+  <CEffectSet id="RexxarMishaChargeBehaviorFinalSet">
+    <EffectArray value="RexxarChargeBearNecessitiesFreeCastDummy" />
+  </CEffectSet>
   <CEffectSet id="RexxarDeathEffectsSet">
     <EffectArray value="RexxarAnimalHusbandryResetTokenCounter" />
     <EffectArray value="RexxarMishaChargeResetDireBeastTalentTokenCounterCaster" />
-    <EffectArray value="RexxarMishaChargeDireBeastTalentResetTokenSearch" />
+    <EffectArray value="RexxarDireBeastRexxarEnumMishaResetStacks" />
   </CEffectSet>
   <CEffectSet id="RexxarMishaDeathEffectsSet">
     <EffectArray value="RexxarMishaChargeResetDireBeastTalentTokenCounterCaster" />
-    <EffectArray value="RexxarMishaChargeDireBeastTalentResetTokenSearch" />
+    <EffectArray value="RexxarDireBeastMishaEnumRexxarResetStacks" />
   </CEffectSet>
   <CEffectModifyTokenCount id="RexxarAnimalHusbandryModifyTokenCounter" parent="BaseEffectModifyTokenCount">
     <ValidatorArray value="RexxarHasAnimalHusbandryTalent" />
@@ -2130,8 +2130,9 @@
   <CEffectCreateHealer id="RexxarHungryBearMishaCreateHealer" parent="StormSelfOnlyHealingSpellPercent">
     <Chance value="0" />
     <ImpactUnit Value="Caster" />
-    <RechargeVitalFraction value="0.0468" />
+    <RechargeVitalFraction value="0.045" />
     <ValidatorArray value="CasterNotBlindedAndTargetNotEvading" />
+    <SourceButtonFace value="RexxarHungryBearTalent" />
   </CEffectCreateHealer>
   <CEffectCreateHealer id="RexxarMendPetCriticalCareCreateHealer" parent="StormSelfOnlyHealingSpell">
     <RechargeVitalRate value="178" />
@@ -2300,6 +2301,14 @@
     <WhichUnit Value="Caster" />
     <Behavior value="RexxarHardenedSkinBuff" />
   </CEffectApplyBehavior>
+  <CEffectEnumTrackedUnits id="RexxarHardendSkinEnumMisha">
+    <BehaviorLink value="RexxarMishaTracker" />
+    <Effect value="RexxarHardenedSkinApplyBuffTarget" />
+    <TrackedUnitFilters value="Heroic;Ally,Neutral,Enemy" />
+  </CEffectEnumTrackedUnits>
+  <CEffectApplyBehavior id="RexxarHardenedSkinApplyBuffTarget">
+    <Behavior value="RexxarHardenedSkinBuff" />
+  </CEffectApplyBehavior>
   <CEffectApplyBehavior id="RexxarChargeApplyBarkskinMastery">
     <Chance value="0" />
     <WhichUnit Value="Caster" />
@@ -2310,10 +2319,17 @@
     <EffectArray value="RexxarMishaChargeRedirectSearchArea" />
     <EffectArray value="RexxarChargeApplyBarkskinMastery" />
     <EffectArray value="RexxarMishaChargeRemoveManualOverrideBehavior" />
+    <EffectArray value="RexxarDireBeastMishaEnumRexxarResetStacks" />
     <TargetLocationType value="UnitOrPoint" />
   </CEffectSet>
-  <CEffectModifyUnit id="RexxarMishaChargeAspectoftheBeastTalentModifyChargeCooldownCaster">
-    <ImpactUnit Effect="RexxarMishaApplyBasicAttackDamageResponseController" Value="Caster" />
+  <CEffectEnumTrackedUnits id="RexxarMishaAspectoftheBeastEnumRexxar">
+    <ValidatorArray value="CasterNotBlindedAndTargetNotEvading" />
+    <ValidatorArray value="RexxarHasAspectoftheBeastCharge" />
+    <BehaviorLink value="RexxarMishaRexxarTracker" />
+    <Effect value="RexxarMishaChargeAspectoftheBeastTalentModifyChargeCooldown" />
+    <TrackedUnitFilters value="Heroic;Ally,Neutral,Enemy" />
+  </CEffectEnumTrackedUnits>
+  <CEffectModifyUnit id="RexxarMishaChargeAspectoftheBeastTalentModifyChargeCooldown">
     <Cost Abil="RexxarMishaChargeRedirect,Execute" CooldownOperation="Add" CooldownTimeUse="-1" />
   </CEffectModifyUnit>
   <CEffectApplyBehavior id="RexxarChargeApplyPostChargeBehavior">
@@ -2368,13 +2384,26 @@
   </CEffectEnumArea>
   <CEffectSet id="RexxarHardenedSkinCastSet">
     <EffectArray value="RexxarHardenedSkinApplyBuff" />
+    <EffectArray value="RexxarHardendSkinEnumMisha" />
   </CEffectSet>
   <CEffectSet id="RexxarThrilloftheHuntProcSet">
     <ValidatorArray value="RexxarHasTraitThrilloftheHunt" />
     <ValidatorArray value="CasterNotBlindedAndTargetNotEvading" />
     <EffectArray value="RexxarThrilloftheHuntApplyBuffCaster" />
-    <EffectArray value="RexxarThrilloftheHuntApplyBuffSource" />
+    <EffectArray value="RexxarThrilloftheHuntEnumMisha" />
   </CEffectSet>
+  <CEffectApplyBehavior id="RexxarThrilloftheHuntApplyBuffCaster">
+    <WhichUnit Value="Caster" />
+    <Behavior value="RexxarThrilloftheHuntBuff" />
+  </CEffectApplyBehavior>
+  <CEffectEnumTrackedUnits id="RexxarThrilloftheHuntEnumMisha">
+    <BehaviorLink value="RexxarMishaTracker" />
+    <Effect value="RexxarThrilloftheHuntApplyBuff" />
+    <TrackedUnitFilters value="Heroic;Ally,Neutral,Enemy" />
+  </CEffectEnumTrackedUnits>
+  <CEffectApplyBehavior id="RexxarThrilloftheHuntApplyBuff">
+    <Behavior value="RexxarThrilloftheHuntBuff" />
+  </CEffectApplyBehavior>
   <CEffectEnumArea id="RexxarMishaChargeAttackTargetSearch">
     <ImpactLocation Value="SourceUnit" />
     <SearchFilters value="Visible;Player,Ally,Neutral,Missile,Item,Stasis,Dead" />
@@ -2416,10 +2445,17 @@
   </CEffectModifyUnit>
   <CEffectSet id="RexxarMeleeWeaponImpactSet">
     <EffectArray value="UniversalWeaponLaunchSet" />
-    <EffectArray value="RexxarWeaponDamage" />
-    <EffectArray value="RexxarThrilloftheHuntProcSet" />
     <EffectArray value="UniversalWeaponImpact" />
+    <EffectArray value="RexxarMeleeWeaponImpactDummy" />
+    <EffectArray value="RexxarWeaponPreImpactSet" />
+    <EffectArray value="RexxarWeaponDamage" />
+    <EffectArray value="RexxarWeaponPostImpactSet" />
     <EffectArray value="UniversalWeaponPostImpactSet" />
+  </CEffectSet>
+  <CEffectModifyUnit id="RexxarMeleeWeaponImpactDummy" />
+  <CEffectSet id="RexxarRangedWeaponInitialSet">
+    <EffectArray value="UniversalWeaponLaunchSet" />
+    <EffectArray value="RexxarRangedWeaponLaunchMissile" />
   </CEffectSet>
   <CEffectLaunchMissile id="RexxarRangedWeaponLaunchMissile">
     <ValidatorArray index="0" value="TargetNotDead" />
@@ -2432,9 +2468,18 @@
   </CEffectLaunchMissile>
   <CEffectSet id="RexxarRangedWeaponImpactSet">
     <EffectArray value="UniversalWeaponImpact" />
+    <EffectArray value="RexxarRangedWeaponImpactDummy" />
+    <EffectArray value="RexxarWeaponPreImpactSet" />
     <EffectArray value="RexxarWeaponDamage" />
-    <EffectArray value="RexxarThrilloftheHuntProcSet" />
+    <EffectArray value="RexxarWeaponPostImpactSet" />
     <EffectArray value="UniversalWeaponPostImpactSet" />
+  </CEffectSet>
+  <CEffectModifyUnit id="RexxarRangedWeaponImpactDummy" />
+  <CEffectSet id="RexxarWeaponPreImpactSet">
+    <EffectArray value="RexxarDireBeastIncreaseSetRexxar" />
+  </CEffectSet>
+  <CEffectSet id="RexxarWeaponPostImpactSet">
+    <EffectArray value="RexxarThrilloftheHuntProcSet" />
   </CEffectSet>
   <CEffectApplyBehavior id="RexxarUnleashTheBoarsApplyMarkedDebuff">
     <Behavior value="RexxarUnleashTheBoarsMarked" />
@@ -2541,12 +2586,20 @@
   </CEffectDamage>
   <CEffectSet id="RexxarMishaWeaponImpactSet">
     <EffectArray value="UniversalWeaponLaunchSet" />
+    <EffectArray value="RexxarMishaWeaponPreImpactSet" />
     <EffectArray value="RexxarMishaWeaponDamage" />
-    <EffectArray value="RexxarMishaWeaponApplyFrenzyofKalimdorSlowDebuff" />
+    <EffectArray value="RexxarMishaWeaponPostImpactSet" />
     <EffectArray value="RexxarMishaApplyTargetPriorityBuff" />
-    <EffectArray value="RexxarHungryBearMishaCreateHealer" />
-    <EffectArray value="RexxarMishaChargeAspectoftheBeastTalentProcSet" />
     <EffectArray value="UniversalWeaponPostImpactSet" />
+  </CEffectSet>
+  <CEffectSet id="RexxarMishaWeaponPreImpactSet">
+    <EffectArray value="RexxarMishaAspectoftheBeastEnumRexxar" />
+    <EffectArray value="RexxarMishaAspectoftheHawkEnumRexxar" />
+    <EffectArray value="RexxarHungryBearMishaCreateHealer" />
+    <EffectArray value="RexxarDireBeastIncreaseSetMisha" />
+  </CEffectSet>
+  <CEffectSet id="RexxarMishaWeaponPostImpactSet">
+    <EffectArray value="RexxarMishaWeaponApplyFrenzyofKalimdorSlowDebuff" />
   </CEffectSet>
   <CEffectDamage id="RexxarMishaWeaponDamage" parent="StormWeapon">
     <Amount value="50" />
@@ -2679,11 +2732,17 @@
     <EffectArray value="MishaRemovePregameBehaviors" />
     <EffectArray value="RexxarMishaDeadRemoveSpiritBondCooldown" />
     <EffectArray value="RexxxarMishaAddMishaToTracker" />
+    <EffectArray value="RexxxarMishaAddRexxarToTracker" />
     <OrphanFromEffectChain value="1" />
   </CEffectSet>
   <CEffectAddTrackedUnit id="RexxxarMishaAddMishaToTracker">
     <BehaviorLink value="RexxarMishaTracker" />
     <TrackedUnit Value="Target" />
+  </CEffectAddTrackedUnit>
+  <CEffectAddTrackedUnit id="RexxxarMishaAddRexxarToTracker">
+    <BehaviorLink value="RexxarMishaRexxarTracker" />
+    <TrackedUnit Value="Caster" />
+    <TrackerUnit Value="Target" />
   </CEffectAddTrackedUnit>
   <CEffectSet id="RexxarMishaApplyTalentsSet">
     <EffectArray value="RexxarMishaEasyPreyAB" />
@@ -2827,7 +2886,7 @@
   <CEffectSet id="RexxarMishaChargeRedirectDummy">
     <EffectArray value="RexxarMishaChargeApplyCastCheckBehavior" />
     <EffectArray value="RexxarMishaChargeApplyBearNecessitiesSuppressionIfApplicable" />
-    <EffectArray value="RexxarMishaChargeRedirectSearch" />
+    <EffectArray value="RexxarMishaChargeRedirectEnumMisha" />
     <EffectArray value="RexxarMishaFollowCancelInitialSet" />
     <EffectArray value="RexxarChargeBearNecessitiesRemoveFreeCastBehavior" />
     <TargetLocationType value="Point" />
@@ -2851,15 +2910,15 @@
     <PeriodicEffectArray value="RexxarMishaChargeOffsetSet" />
     <PeriodicOffsetArray Y="-6.5" />
   </CEffectCreatePersistent>
-  <CEffectEnumArea id="RexxarMishaChargeRedirectSearch">
-    <SearchFilters value="Heroic;Ally,Neutral,Enemy" />
-    <AreaArray Effect="RexxarMishaChargeRedirectIssueOrder">
-      <Radius value="500" />
-    </AreaArray>
-    <ImpactLocation Value="CasterPoint" />
-    <ExcludeArray />
-    <MaxCount value="1" />
-  </CEffectEnumArea>
+  <CEffectEnumTrackedUnits id="RexxarMishaChargeRedirectEnumMisha">
+    <BehaviorLink value="RexxarMishaTracker" />
+    <Effect value="RexxarMishaChargeEnumIssueOrderSet" />
+    <TrackedUnitFilters value="Heroic;Ally,Neutral,Enemy" />
+  </CEffectEnumTrackedUnits>
+  <CEffectSet id="RexxarMishaChargeEnumIssueOrderSet">
+    <EffectArray value="RexxarMishaDireBeastTransferPersistent" />
+    <EffectArray value="RexxarMishaChargeRedirectIssueOrder" />
+  </CEffectSet>
   <CEffectApplyBehavior id="RexxarMishaChargeApplyBearNecessitiesSuppressionIfApplicable">
     <Behavior value="RexxarChargeBearNecessitiesFreeChargeSuppression" />
     <ValidatorArray index="0" value="RexxarHasBearNecessitiesFreeChargeBehavior" />
@@ -2869,7 +2928,6 @@
     <Abil value="RexxarMishaCharge" />
     <Player Value="Caster" />
     <Target Effect="RexxarMishaChargeRedirectDummy" Value="TargetPoint" />
-    <ValidatorArray value="IsMisha" />
   </CEffectIssueOrder>
   <CEffectSet id="RexxarMishaChargeFinalSet">
     <EffectArray value="RexxarMishaChargeAttackTargetSearch" />
@@ -2929,7 +2987,7 @@
   <CEffectDamage id="RexxarMishaChargeDamage" parent="StormSpell">
     <Amount value="150" />
     <MultiplicativeModifierArray index="DireBeast" Validator="RexxarHasDireBeastTalent" Accumulator="RexxarDireBeastAccumulator" />
-    <CritValidatorArray value="RexxarHasDireBeastToken" />
+    <CritValidatorArray index="0" value="RexxarMishaChargeDamageCritValidator" />
   </CEffectDamage>
   <CEffectSet id="RexxarUnleashTheBoarsInitialSet">
     <EffectArray value="RexxarUnleashTheBoarsSearch" />
@@ -3094,6 +3152,36 @@
     </AreaArray>
   </CEffectEnumArea>
   <CEffectSet id="RexxarUnleashTheBoarsForceDummy" />
+  <CEffectEnumTrackedUnits id="RexxarHearthstoneMishaEnum">
+    <ValidatorArray value="CasterIsRexxar" />
+    <BehaviorLink value="RexxarMishaTracker" />
+    <Effect value="RexxarMishaHearthstoneEnumSet" />
+    <TrackedUnitFilters value="Heroic;Ally,Neutral,Enemy" />
+  </CEffectEnumTrackedUnits>
+  <CEffectSet id="RexxarMishaHearthstoneEnumSet">
+    <EffectArray value="RexxarMishaHearthstoneCancelOrders" />
+    <EffectArray value="HallOfStormsAllyApplySet" />
+    <EffectArray value="RexxarMishaHearthstoneTeleport" />
+    <EffectArray value="RexxarMishaHearthstoneHealthCreateHealer" />
+  </CEffectSet>
+  <CEffectCancelOrder id="RexxarMishaHearthstoneCancelOrders">
+    <WhichUnit Value="Target" />
+    <Count value="40" />
+    <Flags index="Active" value="0" />
+    <Flags index="Queued" value="1" />
+  </CEffectCancelOrder>
+  <CEffectTeleport id="RexxarMishaHearthstoneTeleport">
+    <TargetLocation Effect="HearthstoneLaunchSet" Value="TargetPoint" />
+    <PlacementAround Effect="HearthstoneLaunchSet" Value="TargetPoint" />
+    <PlacementArc value="360" />
+    <PlacementRange value="350" />
+    <Range value="350" />
+    <SourceLocation Value="TargetPoint" />
+    <ClearQueuedOrders value="1" />
+  </CEffectTeleport>
+  <CEffectCreateHealer id="RexxarMishaHearthstoneHealthCreateHealer" parent="HearthstoneHealthCreateHealer">
+    <ImpactUnit Value="Target" />
+  </CEffectCreateHealer>
   <CHero id="Rexxar">
     <ProductId value="11812" />
     <AttributeId value="Rexx" />
@@ -3986,6 +4074,7 @@
     <BehaviorArray Link="HeroGenericIgnoreTowerImpactSound" />
     <BehaviorArray Link="NotManaUserDummy" />
     <BehaviorArray Link="RexxarMishaPassiveMoveSpeed" />
+    <BehaviorArray Link="RexxarMishaRexxarTracker" />
     <WeaponArray Link="MishaWeapon" />
     <CardLayouts>
       <LayoutButtons Face="Move" Type="AbilCmd" AbilCmd="move,Move" Slot="Stop" />
@@ -4062,8 +4151,19 @@
     <CombineArray value="TargetIsMinionORTargetIsMercLanerORTargetIsMercDefenderAndNotAMonster" />
   </CValidatorCombine>
   <CValidatorUnitCompareTokenCount id="RexxarHasDireBeastToken">
+    <WhichUnit Value="Caster" />
     <Compare value="GE" />
     <Value value="1" />
+    <TokenId value="RexxarDireBeastTokenCounter" />
+  </CValidatorUnitCompareTokenCount>
+  <CValidatorCombine id="RexxarMishaChargeDamageCritValidator">
+    <CombineArray value="CritAliasSpellPower" />
+    <CombineArray value="RexxarHasDireBeastDamageTokenGEHalf" />
+  </CValidatorCombine>
+  <CValidatorUnitCompareTokenCount id="RexxarHasDireBeastDamageTokenGEHalf">
+    <WhichUnit Value="Caster" />
+    <Compare value="GE" />
+    <Value value="$RexxarDireBeastCritDisplayValue" />
     <TokenId value="RexxarDireBeastTokenCounter" />
   </CValidatorUnitCompareTokenCount>
   <CValidatorUnitCompareBehaviorCount id="RexxarCasterDoesNotHaveMishaAlive">
@@ -4099,9 +4199,15 @@
     <Range value="1.5" />
     <Value Value="TargetUnit" />
   </CValidatorLocationCompareRange>
-  <CValidatorUnitCompareBehaviorCount id="RexxarHasSpiritSwoopAspectoftheHawkTalentBuff">
-    <WhichUnit Effect="RexxarMishaApplyBasicAttackDamageResponseController" Value="Caster" />
-    <Value value="1" />
+  <CValidatorCompareTrackedUnitsCount id="RexxarMishaAspectoftheHawkTrackedUnitHasBuff">
+    <Compare value="GT" />
+    <BehaviorLink value="RexxarMishaRexxarTracker" />
+    <TrackerUnit Value="Caster" />
+    <TrackedUnitFilters value="Heroic;Ally,Neutral,Enemy" />
+    <TrackedUnitValidatorArray value="RexxarTargetHasAspectoftheHawkBuff" />
+  </CValidatorCompareTrackedUnitsCount>
+  <CValidatorUnitCompareBehaviorCount id="RexxarTargetHasAspectoftheHawkBuff">
+    <Compare value="GT" />
     <Behavior value="RexxarSpiritSwoopAspectOfTheHawk" />
   </CValidatorUnitCompareBehaviorCount>
   <CValidatorPlayerTalent id="RexxarHasDireBeastTalent">
@@ -4169,6 +4275,13 @@
     <Value value="RexxarMishaAliveUnitCount" />
     <WhichUnit Value="Target" />
   </CValidatorPlayerRequirement>
+  <CValidatorCompareTrackedUnitsCount id="RexxarMishaIsAlive">
+    <Compare value="GE" />
+    <Value value="1" />
+    <BehaviorLink value="RexxarMishaTracker" />
+    <TrackerUnit Value="Caster" />
+    <TrackedUnitFilters value="Heroic;Ally,Neutral,Enemy,Dead" />
+  </CValidatorCompareTrackedUnitsCount>
   <CValidatorUnitCompareBehaviorCount id="RexxarDoesNotHaveTakingFlightSuppression">
     <WhichUnit Value="Caster" />
     <Behavior value="RexxarSpiritSwoopTakingFlightRefundSuppression" />
@@ -4451,7 +4564,7 @@
     <Range value="5.5" />
     <Period value="1.15" />
     <DamagePoint value="0.125" />
-    <Effect value="RexxarRangedWeaponLaunchMissile" />
+    <Effect value="RexxarRangedWeaponInitialSet" />
     <PreswingBeforeAttack value="0.75" />
     <PreswingBetweenAttacks value="0.25" />
     <MinimumRange value="1.5" />

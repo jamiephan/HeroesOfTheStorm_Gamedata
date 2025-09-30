@@ -1491,25 +1491,28 @@
     <Chance value="0" />
     <Behavior value="ZaryaParticleGrenadeDeepBurnTalentMarker" />
   </CEffectApplyBehavior>
-  <CEffectModifyUnit id="ZaryaParticleGrenadeDeepBurnTalentModifyUnit">
+  <CEffectModifyCatalogNumeric id="ZaryaDeepBurnImpactUpdateCatalog">
     <ValidatorArray value="CasterNotBlindedAndTargetNotEvading" />
     <ValidatorArray value="ZaryaTargetHasDeepBurnTalentMarker" />
+    <CatalogModifications Reference="Effect,ZaryaDeepBurnEnergyRestoration,RechargeVitalRate">
+      <Value value="2" />
+    </CatalogModifications>
+    <CatalogModifications Operation="Set" Reference="Effect,ZaryaDeepBurnProcSet,Chance">
+      <Value value="1" />
+    </CatalogModifications>
+  </CEffectModifyCatalogNumeric>
+  <CEffectSet id="ZaryaDeepBurnProcSet">
+    <Chance value="0" />
+    <EffectArray value="ZaryaDeepBurnEnergyRestoration" />
+    <EffectArray value="ZaryaDeepBurnResetCatalog" />
+  </CEffectSet>
+  <CEffectCreateHealer id="ZaryaDeepBurnEnergyRestoration" parent="StormManaRestoreNoFloater">
     <ImpactUnit Value="Caster" />
-    <VitalArray index="Energy">
-      <Change value="2" />
-    </VitalArray>
-    <FloaterCreation value="Suppress" />
-  </CEffectModifyUnit>
-  <CEffectModifyUnit id="ZaryaParticleGrenadeSplashDamageDeepBurnTalentModifyUnit">
-    <ValidatorArray value="CasterNotBlindedAndTargetNotEvading" />
-    <ValidatorArray value="ZaryaTargetHasDeepBurnTalentMarker" />
-    <ValidatorArray value="IsNotZaryasWeaponTarget" />
-    <ImpactUnit Value="Caster" />
-    <VitalArray index="Energy">
-      <Change value="2" />
-    </VitalArray>
-    <FloaterCreation value="Suppress" />
-  </CEffectModifyUnit>
+  </CEffectCreateHealer>
+  <CEffectModifyCatalogNumeric id="ZaryaDeepBurnResetCatalog">
+    <CatalogModifications Operation="Set" Reference="Effect,ZaryaDeepBurnEnergyRestoration,RechargeVitalRate" />
+    <CatalogModifications Operation="Set" Reference="Effect,ZaryaDeepBurnProcSet,Chance" />
+  </CEffectModifyCatalogNumeric>
   <CEffectModifyTokenCount id="ZaryaParticleGrenadeDemolitionsExpertAddToken" parent="BaseEffectModifyTokenCount">
     <ValidatorArray value="TargetIsHero" />
     <ValidatorArray value="ZaryaDoesNotHaveParticleGrenadeDemolitionsExpertComplete" />
@@ -1742,9 +1745,8 @@
   </CEffectSet>
   <CEffectSet id="ZaryaWeaponInitialSet">
     <EffectArray value="UniversalWeaponLaunchSet" />
-    <EffectArray value="ZaryaWeaponSplashInitialCreatePersistent" />
-    <EffectArray value="ZaryaWeaponTrackingCreatePersistent" />
     <EffectArray value="ZaryaWeaponCreatePersistent" />
+    <EffectArray value="ZaryaWeaponTrackingCreatePersistent" />
   </CEffectSet>
   <CEffectCreatePersistent id="ZaryaWeaponCreatePersistent">
     <WhichLocation Value="TargetUnit" />
@@ -1756,24 +1758,10 @@
     <PeriodicPeriodArray value="0.25" />
     <InitialEffect value="ZaryaWeaponImpactSet" />
   </CEffectCreatePersistent>
-  <CEffectCreatePersistent id="ZaryaWeaponSplashInitialCreatePersistent">
-    <WhichLocation Value="TargetUnit" />
-    <Flags index="Channeled" value="1" />
-    <Flags index="PersistUntilDestroyed" value="1" />
-    <InitialEffect value="ZaryaWeaponSplashOffsetCreatePersistent" />
-    <PeriodicValidator value="ZaryaWeaponCombineValidator" />
-    <PeriodicEffectArray value="ZaryaWeaponSplashOffsetCreatePersistent" />
-    <PeriodicPeriodArray value="0.0625" />
-  </CEffectCreatePersistent>
-  <CEffectCreatePersistent id="ZaryaWeaponSplashOffsetCreatePersistent">
+  <CEffectCreatePersistent id="ZaryaWeaponSplashPersistent">
     <WhichLocation Value="CasterUnit" />
-    <Marker>
-      <MatchFlags index="Id" value="1" />
-    </Marker>
-    <PeriodCount value="1" />
-    <PeriodicValidator value="ZaryaWeaponCombineValidator" />
-    <PeriodicEffectArray value="ZaryaWeaponSplashTargetSearchSwitch" />
-    <PeriodicOffsetArray Y="-7" />
+    <InitialEffect value="ZaryaWeaponSplashTargetSearchSwitch" />
+    <InitialOffset Y="-7" />
   </CEffectCreatePersistent>
   <CEffectSwitch id="ZaryaWeaponSplashTargetSearchSwitch">
     <CaseArray Validator="ZaryaWeaponToTheLimitCombine" Effect="ZaryaWeaponToTheLimitSearch" />
@@ -1814,12 +1802,18 @@
   </CEffectCreatePersistent>
   <CEffectSet id="ZaryaWeaponImpactSet">
     <EffectArray value="UniversalWeaponImpact" />
+    <EffectArray value="ZaryaWeaponPreImpactSet" />
     <EffectArray value="ZaryaWeaponDamageSwitch" />
+    <EffectArray value="ZaryaWeaponPostImpactSet" />
     <EffectArray value="ZaryaWeaponTargetApplyBehavior" />
-    <EffectArray value="ZaryaParticleGrenadeDeepBurnTalentModifyUnit" />
-    <EffectArray value="UniversalWeaponLaunchSet" />
+    <EffectArray value="ZaryaWeaponSplashPersistent" />
+    <EffectArray value="ZaryaDeepBurnProcSet" />
     <EffectArray value="UniversalWeaponPostImpactSet" />
   </CEffectSet>
+  <CEffectSet id="ZaryaWeaponPreImpactSet">
+    <EffectArray value="ZaryaDeepBurnImpactUpdateCatalog" />
+  </CEffectSet>
+  <CEffectSet id="ZaryaWeaponPostImpactSet" />
   <CEffectApplyBehavior id="ZaryaWeaponTargetApplyBehavior">
     <Behavior value="ZaryaWeaponTarget" />
   </CEffectApplyBehavior>
@@ -2022,12 +2016,16 @@
     </Amount>
   </CEffectDamage>
   <CEffectSet id="ZaryaWeaponSplashDamageSet">
-    <ValidatorArray value="ZaryaWeaponSplashDamageNotOnCooldown" />
+    <EffectArray value="UniversalWeaponImpact" />
+    <EffectArray value="ZaryaWeaponSplashPreImpactSet" />
     <EffectArray value="ZaryaWeaponSplashDamageSwitch" />
-    <EffectArray value="ZaryaParticleGrenadeSplashDamageDeepBurnTalentModifyUnit" />
-    <EffectArray value="ZaryaWeaponSplashDamageCooldownApplyBehavior" />
+    <EffectArray value="ZaryaWeaponSplashPostImpactSet" />
     <EffectArray value="UniversalWeaponPostImpactSet" />
   </CEffectSet>
+  <CEffectSet id="ZaryaWeaponSplashPreImpactSet">
+    <EffectArray value="ZaryaDeepBurnImpactUpdateCatalog" />
+  </CEffectSet>
+  <CEffectSet id="ZaryaWeaponSplashPostImpactSet" />
   <CEffectApplyBehavior id="ZaryaWeaponSplashDamageCooldownApplyBehavior">
     <Behavior value="ZaryaWeaponSplashDamageCooldown" />
   </CEffectApplyBehavior>

@@ -4,7 +4,7 @@
     <PrepEffect value="DismountDecloakCasterSet" />
     <Effect value="LiLiMistweaverCastSet" />
     <Cost>
-      <Cooldown Location="Player" TimeUse="30" />
+      <Cooldown TimeUse="30" />
     </Cost>
     <CmdButtonArray index="Execute" DefaultButtonFace="LiLiMistweaver">
       <Flags index="AllowMinimap" value="0" />
@@ -412,7 +412,7 @@
     <On Terms="ActorCreation" Send="Create HeroLiLiAttackMissileSound" />
     <On Terms="ActorDestruction" Target="HeroLiLiAttackMissileSound" Send="Destroy" />
   </CActorMissile>
-  <CActorAction id="LiLiAttack" parent="RangedHeroAttack" effectImpact="LiLiHeroWeaponImpactSet" effectLaunch="LiLiWeaponLaunchMissile">
+  <CActorAction id="LiLiAttack" parent="RangedHeroAttackMissile" effectImpact="LiLiHeroWeaponDamage" effectLaunch="LiLiWeaponLaunchMissile">
     <LaunchAssets Sound="LiLi_AttackLaunch" />
     <Missile value="HeroLiLiAttackMissile" />
     <ImpactMap index="None" Sound="LiLi_AttackImpact_Unit" />
@@ -804,6 +804,8 @@
   </CBehaviorBuff>
   <CBehaviorBuff id="LiLiCloudSerpentAbilityController" parent="CarryBehaviorParent">
     <EnableEffect value="LiLiCloudSerpentAddAbilityTargetController" />
+    <PeriodicEffect value="LiLiCloudSerpentAddAbilityTargetController" />
+    <Period value="0.0625" />
     <DisableValidatorArray value="LiLiCloudSerpentDoesNotHaveAbilityTargetController" />
   </CBehaviorBuff>
   <CBehaviorBuff id="LiLiCloudSerpentAbilityTargetController" parent="CarryBehaviorParent">
@@ -1179,6 +1181,7 @@
     <EffectArray value="LiLiCloudSerpentLightningSerpentTalentDamage" />
     <EffectArray value="LiLiCloudSerpentLightningSerpentHealingEnumerateTrackedUnit" />
     <EffectArray value="LiLiCloudSerpentDamagedUnitTrackerAdd" />
+    <EffectArray value="LiLiCloudSerpentCreatePersistentRevealDummy" />
     <EffectArray value="NewLightningSerpentHop2DelayCreatePersistent" />
   </CEffectSet>
   <CEffectLaunchMissile id="NewLightningSerpentHop1LaunchMissile">
@@ -1194,6 +1197,7 @@
     <EffectArray value="LiLiCloudSerpentLightningSerpentTalentDamage" />
     <EffectArray value="LiLiCloudSerpentLightningSerpentHealingEnumerateTrackedUnit" />
     <EffectArray value="LiLiCloudSerpentDamagedUnitTrackerAdd" />
+    <EffectArray value="LiLiCloudSerpentCreatePersistentRevealDummy" />
     <EffectArray value="NewLightningSerpentHop3DelayCreatePersistent" />
   </CEffectSet>
   <CEffectLaunchMissile id="NewLightningSerpentHop2LaunchMissile">
@@ -1209,6 +1213,7 @@
     <EffectArray value="LiLiCloudSerpentLightningSerpentTalentDamage" />
     <EffectArray value="LiLiCloudSerpentLightningSerpentHealingEnumerateTrackedUnit" />
     <EffectArray value="LiLiCloudSerpentDamagedUnitTrackerAdd" />
+    <EffectArray value="LiLiCloudSerpentCreatePersistentRevealDummy" />
   </CEffectSet>
   <CEffectLaunchMissile id="NewLightningSerpentHop3LaunchMissile">
     <ValidatorArray index="0" value="IsNotConjoinedGate" />
@@ -1318,10 +1323,11 @@
   </CEffectSet>
   <CEffectSet id="LiLiCloudSerpentWeaponImpactSet">
     <EffectArray value="CloudSerpentWeaponDamage" />
-    <EffectArray value="LiLiCloudSerpentMistweaverTalentModifyPlayerCooldown" />
+    <EffectArray value="LiLiMistweaverCloudSerpentModifyCooldown" />
     <EffectArray value="NewLightningSerpentHop1DelayCreatePersistent" />
     <EffectArray value="LiLiCloudSerpentHealingEnumerateTrackedUnit" />
     <EffectArray value="LiLiCloudSerpentDamagedUnitTrackerAdd" />
+    <EffectArray value="LiLiCloudSerpentCreatePersistentRevealDummy" />
     <Marker>
       <MatchFlags index="Id" value="1" />
     </Marker>
@@ -1399,6 +1405,7 @@
     <ValidatorArray value="SourceIsNotCloaked" />
   </CEffectSet>
   <CEffectApplyBehavior id="LiLiCloudSerpentAddAbilityTargetController">
+    <ValidatorArray value="LiLiCloudSerpentDoesNotHaveAbilityTargetController" />
     <Behavior value="LiLiCloudSerpentAbilityTargetController" />
   </CEffectApplyBehavior>
   <CEffectRemoveBehavior id="LiLiCloudSerpentRemoveAbilityTargetController">
@@ -1939,35 +1946,21 @@
     <EffectArray value="TalentCleanseApplyBehavior" />
     <EffectArray value="LiLiLetsGoCreateHealer" />
   </CEffectSet>
-  <CEffectModifyPlayer id="LiLiCloudSerpentMistweaverTalentModifyPlayerCooldown">
+  <CEffectModifyUnit id="LiLiMistweaverCloudSerpentModifyCooldown">
     <ValidatorArray value="LiLiHasMistweaverTalent" />
-    <WhichPlayer Value="Caster" />
-    <Cost Abil="LiLiMistweaver">
-      <Cooldown>
-        <Link value="Abil/LiLiMistweaver" />
-        <Location value="Player" />
-        <Operation value="Add" />
-        <TimeUse value="-1" />
-      </Cooldown>
-    </Cost>
-  </CEffectModifyPlayer>
+    <ImpactUnit Value="Caster" />
+    <Cost Abil="LiLiMistweaver,Execute" CooldownOperation="Add" CooldownTimeUse="-1" />
+  </CEffectModifyUnit>
   <CEffectSet id="LiLiMistweaverCastSet">
     <EffectArray value="LiLiMistweaverCreateSelfHealer" />
     <EffectArray value="LiLiMistweaverSearch" />
   </CEffectSet>
-  <CEffectModifyPlayer id="LiLiHeroWeaponMistweaverTalentModifyPlayerCooldown">
+  <CEffectModifyUnit id="LiLiMistweaverModifyCooldown">
     <ValidatorArray value="CasterNotBlindedAndTargetNotEvading" />
     <ValidatorArray value="LiLiHasMistweaverTalent" />
-    <WhichPlayer Value="Caster" />
-    <Cost Abil="LiLiMistweaver">
-      <Cooldown>
-        <Link value="Abil/LiLiMistweaver" />
-        <Location value="Player" />
-        <Operation value="Add" />
-        <TimeUse value="-1" />
-      </Cooldown>
-    </Cost>
-  </CEffectModifyPlayer>
+    <ImpactUnit Value="Caster" />
+    <Cost Abil="LiLiMistweaver,Execute" CooldownOperation="Add" CooldownTimeUse="-1" />
+  </CEffectModifyUnit>
   <CEffectEnumArea id="LiLiMistweaverSearch">
     <ValidatorArray value="CasterNotStasis" />
     <SearchFilters value="Heroic;Self,Neutral,Enemy,ImmuneToFriendlyAbilities,Missile,Item,Stasis,Dead,Hidden" />
@@ -1995,8 +1988,8 @@
     <Weapon Weapon="HeroLiLi" CooldownOperation="Max" CooldownAmount="0.5" />
   </CEffectModifyUnit>
   <CEffectSet id="LiLiWeaponLaunchMissileSet">
-    <EffectArray value="LiLiWeaponLaunchMissile" />
     <EffectArray value="UniversalWeaponLaunchSet" />
+    <EffectArray value="LiLiWeaponLaunchMissile" />
   </CEffectSet>
   <CEffectDamage id="LiLiCloudSerpentLightningSerpentTalentDamage" parent="StormSpell">
     <Visibility value="Hidden" />
@@ -2148,10 +2141,15 @@
   </CEffectDamage>
   <CEffectSet id="LiLiHeroWeaponImpactSet">
     <EffectArray value="UniversalWeaponImpact" />
-    <EffectArray value="LiLiHeroWeaponMistweaverTalentModifyPlayerCooldown" />
+    <EffectArray value="LiLiWeaponPreImpactSet" />
     <EffectArray value="LiLiHeroWeaponDamage" />
+    <EffectArray value="LiLiWeaponPostImpactSet" />
     <EffectArray value="UniversalWeaponPostImpactSet" />
   </CEffectSet>
+  <CEffectSet id="LiLiWeaponPreImpactSet">
+    <EffectArray value="LiLiMistweaverModifyCooldown" />
+  </CEffectSet>
+  <CEffectSet id="LiLiWeaponPostImpactSet" />
   <CEffectLaunchMissile id="LiLiWeaponLaunchMissile">
     <ValidatorArray index="0" value="TargetNotDead" />
     <ImpactEffect value="LiLiHeroWeaponImpactSet" />
@@ -3074,7 +3072,6 @@
     <BehaviorArray Link="HallOfStormsKnockbackImmunity" />
     <BehaviorArray Link="StormSummonedUnitTargetTracker" />
     <BehaviorArray Link="StormSummonedUnitDamagedUnitTracker" />
-    <BehaviorArray Link="StormSummonedUnitVisibilityController" />
     <DeathRevealDuration value="0" />
     <Collide index="Ground" value="0" />
     <Collide index="ForceField" value="0" />

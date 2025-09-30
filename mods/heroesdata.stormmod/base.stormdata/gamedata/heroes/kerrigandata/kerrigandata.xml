@@ -267,7 +267,7 @@
     <On Terms="Behavior.KerriganRavageOn.On" Send="AnimBracketStart Spell Spell,A,Start Spell,A Spell,A,End" />
     <On Terms="Behavior.KerriganRavageOn.Off; ValidateUnit CasterNotStunned" Send="AnimBracketStop Spell" />
     <On Terms="Behavior.KerriganRavageOn.Off; !ValidateUnit CasterNotStunned" Send="AnimBracketStop Spell Instant" />
-    <On Terms="Effect.KerriganRavageMeleePersistant.Start" Send="AnimPlay Spell Spell,G 0 -1.000000 -1.000000 1.000000 AsTimeScale" />
+    <On Terms="Effect.KerriganRavageMeleePersistant.Start; At Caster" Send="AnimPlay Spell Spell,G 0 -1.000000 -1.000000 1.000000 AsTimeScale" />
     <On Terms="Abil.KerriganImpalingBlades.SourceCastStart" Send="AnimPlay Spell Spell,B 0 -1.000000 -1.000000 1.000000 AsTimeScale" />
     <On Terms="Abil.KerriganImpalingBlades.SourceCastStart" Send="Create KerriganImpalingBladesCastSound" />
     <On Terms="Behavior.KerriganMaelstrom.On" Send="AnimGroupApply Ready" />
@@ -322,7 +322,7 @@
   <CActorModel id="KerriganSkinCountessPortraitAddition" parent="StormCompositePortraitAddition" />
   <CActorPortrait id="KerriganSkinUltimatePortrait" parent="StormCompositePortrait" />
   <CActorModel id="KerriganSkinUltimatePortraitAddition" parent="StormCompositePortraitAddition" />
-  <CActorAction id="HeroKerriganAttack" parent="MeleeHeroAttack" effectAttack="KerriganWeaponDamageSet">
+  <CActorAction id="HeroKerriganAttack" parent="MeleeHeroAttack" effectAttack="KerriganWeaponDamage">
     <ImpactMap index="None" Model="KerriganMissileImpact" Sound="Kerrigan_AttackImpact_Unit" />
     <ImpactMap index="Rock" Sound="Kerrigan_AttackImpact_Stone" />
   </CActorAction>
@@ -1111,15 +1111,6 @@
     <TrackingValidatorArray value="SourceNotDead" />
     <MaxTrackedUnits value="1" />
   </CBehaviorUnitTracker>
-  <CBehaviorBuff id="KerriganBladedMomentumCarryBehavior" parent="CarryBehaviorParent">
-    <DamageResponse Chance="1" Handled="KerriganBladedMomentumModifyCooldowns" Location="Attacker">
-      <ExcludeEffectArray value="SplashDamage" />
-      <ValidatorArray value="TargetNotEvading" />
-      <ValidatorArray value="TargetIsHero" />
-      <Kind index="Ability" value="0" />
-      <ProvideCategories index="Proc" value="1" />
-    </DamageResponse>
-  </CBehaviorBuff>
   <CBehaviorBuff id="KerriganUltraliskChargeDash">
     <Alignment value="Positive" />
     <RemoveValidatorArray value="CasterNotDazedOrDeadOrFearedOrPolymorphedOrRootedOrStasisOrStunnedExceptTimeStop" />
@@ -1336,7 +1327,7 @@
   <CEffectEnumArea id="KerriganUltraliskSplashWeaponDamageSearch">
     <ExcludeArray Value="Target" />
     <SearchFilters value="-;Self,Player,Ally,Neutral,ImmuneToAOE,Missile,Item,Stasis,Dead,Hidden,Invulnerable" />
-    <AreaArray Effect="KerriganUltraliskSplashWeaponImpactSet">
+    <AreaArray Effect="KerriganUltraliskWeaponSplashSwitch">
       <Radius value="2" />
     </AreaArray>
     <RevealerParams Duration="0.75" ShapeExpansion="1">
@@ -1349,10 +1340,6 @@
   <CEffectSet id="KerriganUltraliskWeaponSplashDamageSet">
     <EffectArray value="StormSummonedWeaponPhysicalDamageDummy" />
     <EffectArray value="KerriganUltraliskWeaponSplashDamage" />
-  </CEffectSet>
-  <CEffectSet id="KerriganUltraliskSplashWeaponImpactSet">
-    <ValidatorArray value="CasterNotBlindedAndTargetNotEvading" />
-    <EffectArray value="KerriganUltraliskWeaponSplashSwitch" />
   </CEffectSet>
   <CEffectApplyBehavior id="KerriganBasicAttackDamageApplyDamageDealtResponseBehavior">
     <Behavior value="KerriganBasicAttackDamageDamageDealtResponse" />
@@ -1472,7 +1459,6 @@
   </CEffectApplyBehavior>
   <CEffectSet id="KerriganUltraliskWeaponImpactSet">
     <EffectArray value="KerriganUltraliskWeaponSwitch" />
-    <EffectArray value="KerriganUltraliskSplashWeaponDamageSearch" />
   </CEffectSet>
   <CEffectSet id="KerriganImpalingBladesPainfulSpikesDamageResponseSet">
     <EffectArray value="KerriganImpalingBladesPainfulSpikesDamage" />
@@ -1805,7 +1791,9 @@
     <EffectArray value="KerriganRavageRestoreCharge" />
   </CEffectSet>
   <CEffectModifyUnit id="KerriganBladedMomentumModifyCooldowns">
-    <ValidatorArray value="TargetNotEvading" />
+    <ValidatorArray value="CasterNotBlindedAndTargetNotEvading" />
+    <ValidatorArray value="TargetIsHero" />
+    <ValidatorArray value="KerriganHasBladedMomentumTalent" />
     <ImpactUnit Value="Caster" />
     <Cost Abil="KerriganImpalingBlades,Execute" CooldownOperation="Add" CooldownTimeUse="-0.6" />
     <Cost Abil="KerriganPrimalGrasp,Execute" CooldownOperation="Add" CooldownTimeUse="-0.6" />
@@ -2166,6 +2154,7 @@
   <CEffectSet id="KerriganUltraliskWeaponDamageSet">
     <EffectArray value="StormSummonedWeaponPhysicalDamageDummy" />
     <EffectArray value="KerriganUltraliskWeaponDamage" />
+    <EffectArray value="KerriganUltraliskSplashWeaponDamageSearch" />
   </CEffectSet>
   <CEffectDamage id="KerriganUltraliskWeaponDamage" parent="StormSummonedUnitWeapon">
     <Amount value="100" />
@@ -2217,16 +2206,23 @@
     <Amount value="37" />
   </CEffectDamage>
   <CEffectSet id="KerriganWeaponDamageSet">
+    <EffectArray value="KerriganWeaponPreImpactSet" />
     <EffectArray value="KerriganWeaponDamage" />
+    <EffectArray value="KerriganWeaponPostImpactSet" />
     <EffectArray value="KerriganWeaponFuryOfTheSwarmDamageSearch" />
     <EffectArray value="KerriganAssimilationFuryOfTheSwarmRemoveBehavior" />
   </CEffectSet>
+  <CEffectSet id="KerriganWeaponPreImpactSet">
+    <EffectArray value="KerriganBladedMomentumModifyCooldowns" />
+  </CEffectSet>
+  <CEffectSet id="KerriganWeaponPostImpactSet" />
   <CEffectDamage id="KerriganWeaponDamage" parent="KerriganWeaponDamageParent">
     <Amount value="115" />
     <CritValidatorArray index="0" value="KerriganCritAliasRangedDamageORHasMaxAssimilationBladesTokens" />
   </CEffectDamage>
   <CEffectEnumArea id="KerriganWeaponFuryOfTheSwarmDamageSearch">
     <ValidatorArray value="KerriganHasFuryOfTheSwarmCarryBehavior" />
+    <ValidatorArray value="TargetNotEvading" />
     <ExcludeArray Value="Target" />
     <SearchFilters value="-;Self,Player,Ally,Neutral,ImmuneToAOE,Missile,Item,Stasis,Dead,Hidden,Invulnerable" />
     <AreaArray Effect="KerriganWeaponFuryOfTheSwarmImpactSet">
@@ -2237,9 +2233,16 @@
     </RevealerParams>
   </CEffectEnumArea>
   <CEffectSet id="KerriganWeaponFuryOfTheSwarmImpactSet">
+    <EffectArray value="UniversalWeaponImpact" />
+    <EffectArray value="KerriganWeaponFuryOfTheSwarmPreImpactSet" />
     <EffectArray value="KerriganWeaponFuryOfTheSwarmDamage" />
+    <EffectArray value="KerriganWeaponFuryOfTheSwarmPostImpactSet" />
     <EffectArray value="UniversalWeaponPostImpactSet" />
   </CEffectSet>
+  <CEffectSet id="KerriganWeaponFuryOfTheSwarmPreImpactSet">
+    <EffectArray value="KerriganBladedMomentumModifyCooldowns" />
+  </CEffectSet>
+  <CEffectSet id="KerriganWeaponFuryOfTheSwarmPostImpactSet" />
   <CEffectDamage id="KerriganWeaponFuryOfTheSwarmDamage" parent="KerriganWeaponDamageParent">
     <Amount value="115" />
     <CritValidatorArray index="0" value="KerriganCritAliasRangedDamageORHasMaxAssimilationBladesTokens" />
@@ -3150,9 +3153,6 @@
   </CTalent>
   <CTalent id="KerriganBladedMomentum">
     <Face value="KerriganBladedMomentum" />
-    <RankArray>
-      <BehaviorArray value="KerriganBladedMomentumCarryBehavior" />
-    </RankArray>
   </CTalent>
   <CTalent id="KerriganPsionicShift">
     <Face value="KerriganPsionicShift" />
@@ -3410,6 +3410,11 @@
     <WhichPlayer Value="Caster" />
     <Find value="1" />
     <Value value="KerriganAssimilationMastery" />
+  </CValidatorPlayerTalent>
+  <CValidatorPlayerTalent id="KerriganHasBladedMomentumTalent">
+    <WhichPlayer Value="Caster" />
+    <Find value="1" />
+    <Value value="KerriganBladedMomentum" />
   </CValidatorPlayerTalent>
   <CValidatorCombine id="KerriganRavageLaunchMissileRangeAndCasterCombine">
     <CombineArray value="CasterNotDazedOrDeadOrRootedOrStasisOrStunned" />

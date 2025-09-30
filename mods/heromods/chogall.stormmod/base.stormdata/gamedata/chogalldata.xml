@@ -343,7 +343,7 @@
     <On Terms="ActorCreation" Send="QueryPersistent ChoSurgingFistGuideRegionAdd StormGuideRegionRemove AgainstRadiusGame" />
   </CActorRegion>
   <CActorModel id="ChoFuelForTheFlameExplosionRing" parent="StormModelAnimationStyleOneShot">
-    <On Terms="Effect.ChoFuelForTheFlameSearch.Start; At Effect" Send="Create" />
+    <On Terms="Effect.ChoFuelForTheFlameSearchSwitch.Start; At Effect" Send="Create" />
     <On Terms="ActorCreation" Send="SetTintColor {64,0,128 1.500000}" />
     <Scale value="1.050000" />
     <HostSiteOps Ops="SOpTargetPointStationary" HoldPosition="1" HoldRotation="1" />
@@ -399,7 +399,7 @@
     <HostSiteOps Ops="SOpAttachCenter" />
     <Sound value="Cho_TwoHeadedOgre_PhysicalCast2" />
   </CActorSound>
-  <CActorAction id="ChoHammerofTwilightAttackActionActor" parent="MeleeHeroAttack" effectAttack="ChoHeroWeaponHammerofTwilightTalentMeleeImpactSet">
+  <CActorAction id="ChoHammerofTwilightAttackActionActor" parent="MeleeHeroAttack" effectAttack="ChoHammerOfTwilightImpactDummy">
     <LaunchSiteOps Ops="SOpAttachWeaponRight" />
     <ImpactMap index="None" Model="Invisible" Sound="ChoGall_TwilightHammerAttackImpact_Unit" ModelReaction="ChoAttackActionActorImpactReaction" />
     <ImpactMap index="Rock" Model="Invisible" Sound="ChoGall_TwilightHammerAttackImpact_Building" />
@@ -543,7 +543,7 @@
     <Magnitude value="50.000000" />
     <Radius value="4.500000" />
   </CActorForceSphere>
-  <CActorAction id="ChoCthunsGiftAttack" parent="RangedHeroAttack" effectImpact="ChoHeroWeaponCthunsGiftTalentRangedImpactSet" effectLaunch="ChoHeroWeaponCThunsGiftTalentLaunchMissile">
+  <CActorAction id="ChoCthunsGiftAttack" parent="RangedHeroAttackMissile" effectImpact="ChoCthunsGiftImpactDummy" effectLaunch="ChoHeroWeaponCThunsGiftTalentLaunchMissile">
     <LaunchAttachQuery Methods="AMFilterWeaponRight" />
     <LaunchAssets Model="ChoCThunsGiftBeam" />
     <Missile value="ChoCthunsGiftMissile" />
@@ -553,7 +553,7 @@
   <CActorMissile id="ChoCthunsGiftMissile" parent="GenericAttackMissile" unitName="ChoCThunsGiftMissile">
     <ModelFlags index="AutomateGlobalLoops" value="1" />
   </CActorMissile>
-  <CActorAction id="ChoAttackActionActor" parent="MeleeHeroAttack" effectAttack="ChoHeroWeaponMeleeImpactSet">
+  <CActorAction id="ChoAttackActionActor" parent="MeleeHeroAttack" effectAttack="ChoMeleeWeaponImpactDummy">
     <LaunchSiteOps Ops="SOpAttachWeaponRight" />
     <ImpactMap index="None" Model="Invisible" />
     <ImpactMap index="Rock" Model="Invisible" Sound="ChoGall_AttackImpact_Building" />
@@ -1933,8 +1933,7 @@
     <Buttons Face="ChoTalentMoltenBlock" Type="AbilCmd" AbilCmd="ChoTalentMoltenBlock,On" />
     <Buttons Face="ChoTalentMoltenBlockCancel" Type="AbilCmd" AbilCmd="ChoTalentMoltenBlock,Off" />
   </CBehaviorAbility>
-  <CBehaviorBuff id="ChoOgreHideCallousedHideTalentMoveSpeedCarry">
-    <BehaviorCategories index="Fast" value="1" />
+  <CBehaviorBuff id="ChoOgreHideCallousedHideTalentMoveSpeedCarry" parent="CarryBehaviorParent">
     <DisableValidatorArray value="ChoHasCallousedHideTalent" />
     <DisableValidatorArray value="CasterLifeLT60Percent" />
     <Modification>
@@ -1998,15 +1997,6 @@
   <CBehaviorBuff id="ChoOgreRageVisualController" parent="CarryBehaviorParent">
     <DisableValidatorArray value="ChoHasOgreHideAbilityAvailableBuff" />
     <DisableValidatorArray value="TargetNotDead" />
-  </CBehaviorBuff>
-  <CBehaviorBuff id="ChoRunedGauntletCarryBehavior" parent="CarryBehaviorParent">
-    <DisableValidatorArray value="ChoTalentHasRunedGauntlet" />
-    <DamageResponse Chance="1" Handled="ChoRunedGauntletDamageResponseSet" Location="Attacker">
-      <RequireEffectArray value="ChoHeroWeaponDamage" />
-      <ValidatorArray value="CasterNotBlindedAndTargetNotEvading" />
-      <Kind index="Splash" value="0" />
-      <Kind index="Ability" value="0" />
-    </DamageResponse>
   </CBehaviorBuff>
   <CBehaviorBuff id="GallOgreRageOgreRampageDurationBuff">
     <DisableValidatorArray value="GallHasOgreRampageTalentTarget" />
@@ -2228,6 +2218,11 @@
     <BehaviorFlags index="Permanent" value="1" />
     <Requirements value="CasterNotVisionImpared" />
   </CBehaviorConjoined>
+  <CBehaviorUnitTracker id="ChoGallConjoinedUnitTracker">
+    <BehaviorFlags index="Permanent" value="1" />
+    <BehaviorFlags index="EnabledWhileDead" value="1" />
+    <MaxTrackedUnits value="1" />
+  </CBehaviorUnitTracker>
   <CBehaviorBuff id="ChoRuneBombSlowDownController">
     <Duration value="1.8125" />
   </CBehaviorBuff>
@@ -2997,15 +2992,6 @@
     <RechargeVitalRate value="10" />
     <SourceButtonFace value="ChoEnragedRegeneration" />
   </CEffectCreateHealer>
-  <CEffectModifyUnit id="ChoRuneBombRunedGauntletTalentModifyGallCooldowns">
-    <ImpactUnit Effect="ChoGallLinkUnitsInitialSet" />
-    <Cost Abil="GallShadowboltVolley,Execute" CooldownOperation="Add">
-      <Fraction Cooldown="-0.06" />
-    </Cost>
-    <Cost Abil="GallTwistingNether,Execute" CooldownOperation="Add">
-      <Fraction Cooldown="-0.06" />
-    </Cost>
-  </CEffectModifyUnit>
   <CEffectApplyBehavior id="ChoSurgingFirstPowerSurgePostCastMoveSpeedBuffApplyBehavior">
     <ValidatorArray value="ChoTalentHasPowerSurge" />
     <WhichUnit Value="Caster" />
@@ -3098,17 +3084,6 @@
     <ImpactUnit Effect="ChoGallLinkUnitsInitialSet" />
     <Cost Abil="GallShove,Execute" CooldownOperation="Add" CooldownTimeUse="-1" />
   </CEffectModifyUnit>
-  <CEffectModifyPlayer id="ChoRuneBombRunedGauntletTalentModifyGallPlayerCooldowns">
-    <WhichPlayer Effect="ChoGallLinkUnitsInitialSet" />
-    <Cost>
-      <Cooldown>
-        <Link value="Abil/GallTwistingNether" />
-        <Location value="Player" />
-        <Operation value="Add" />
-        <TimeUse value="-0.75" />
-      </Cooldown>
-    </Cost>
-  </CEffectModifyPlayer>
   <CEffectSwitch id="ChoRuneBombRunicFeedbackTalentImpactSwitch">
     <CaseArray Validator="TargetIsHero" Effect="ChoRuneBombRunicFeedbackTalentModifyCooldownHeroTarget" />
     <CaseDefault value="ChoRuneBombRunicFeedbackTalentModifyCooldown" />
@@ -3118,19 +3093,51 @@
     <ImpactUnit Value="Caster" />
     <Cost Abil="ChoRuneBomb,Execute" CooldownOperation="Add" CooldownTimeUse="-2" />
   </CEffectModifyUnit>
-  <CEffectApplyBehavior id="ChoRunedGauntletApplyCarry">
-    <WhichUnit Effect="ChoGallLinkUnitsInitialSet" Value="Caster" />
-    <Behavior value="ChoRunedGauntletCarryBehavior" />
-  </CEffectApplyBehavior>
   <CEffectApplyBehavior id="GallShoveApplyTaskmasterTalentCarry">
     <WhichUnit Effect="ChoGallLinkUnitsInitialSet" Value="Caster" />
     <Behavior value="GallShoveTaskmasterTalentCarry" />
   </CEffectApplyBehavior>
-  <CEffectSet id="ChoRunedGauntletDamageResponseSet">
+  <CEffectSet id="ChoRunedGauntletActivateSet">
+    <ValidatorArray value="ChoCasterHasHasRunedGauntletTalent" />
+    <ValidatorArray value="CasterNotBlindedAndTargetNotEvading" />
     <EffectArray value="ChoRuneBombRunedGauntletTalentModifyChoCooldowns" />
+    <EffectArray value="ChoRunedGauntletEnumGallUnit" />
+  </CEffectSet>
+  <CEffectModifyUnit id="ChoRuneBombRunedGauntletTalentModifyChoCooldowns">
+    <ImpactUnit Value="Caster" />
+    <Cost Abil="ChoUpheaval,Execute" CooldownOperation="Add">
+      <Fraction Cooldown="-0.06" />
+    </Cost>
+    <Cost Abil="ChoHammerOfTwilight,Execute" CooldownOperation="Add">
+      <Fraction Cooldown="-0.06" />
+    </Cost>
+  </CEffectModifyUnit>
+  <CEffectEnumTrackedUnits id="ChoRunedGauntletEnumGallUnit">
+    <BehaviorLink value="ChoGallConjoinedUnitTracker" />
+    <Effect value="ChoRunedGauntletModifyGallCooldownsSet" />
+  </CEffectEnumTrackedUnits>
+  <CEffectSet id="ChoRunedGauntletModifyGallCooldownsSet">
     <EffectArray value="ChoRuneBombRunedGauntletTalentModifyGallCooldowns" />
     <EffectArray value="ChoRuneBombRunedGauntletTalentModifyGallPlayerCooldowns" />
   </CEffectSet>
+  <CEffectModifyUnit id="ChoRuneBombRunedGauntletTalentModifyGallCooldowns">
+    <Cost Abil="GallShadowboltVolley,Execute" CooldownOperation="Add">
+      <Fraction Cooldown="-0.06" />
+    </Cost>
+    <Cost Abil="GallTwistingNether,Execute" CooldownOperation="Add">
+      <Fraction Cooldown="-0.06" />
+    </Cost>
+  </CEffectModifyUnit>
+  <CEffectModifyPlayer id="ChoRuneBombRunedGauntletTalentModifyGallPlayerCooldowns">
+    <Cost>
+      <Cooldown>
+        <Link value="Abil/GallTwistingNether" />
+        <Location value="Player" />
+        <Operation value="Add" />
+        <TimeUse value="-0.75" />
+      </Cooldown>
+    </Cost>
+  </CEffectModifyPlayer>
   <CEffectModifyUnit id="ChoOgreHideModifyGallOgreRageCooldown">
     <Cost Abil="GallOgreRage,Execute">
       <Fraction Cooldown="1" />
@@ -3429,19 +3436,20 @@
   </CEffectModifyTokenCount>
   <CEffectSet id="ChoGallLinkUnitsInitialSet">
     <EffectArray value="ChoOgreHideApplyArmorBuff" />
-    <EffectArray value="ChoRunedGauntletApplyCarry" />
     <EffectArray value="GallShoveApplyTaskmasterTalentCarry" />
     <EffectArray value="GallShoveApplyShoveDisablerBehavior" />
+    <EffectArray value="ChoAddGallUnitToConjoinedTracker" />
+    <EffectArray value="GallAddChoUnitToConjoinedTracker" />
   </CEffectSet>
-  <CEffectModifyUnit id="ChoRuneBombRunedGauntletTalentModifyChoCooldowns">
-    <ImpactUnit Effect="ChoGallLinkUnitsInitialSet" Value="Caster" />
-    <Cost Abil="ChoUpheaval,Execute" CooldownOperation="Add">
-      <Fraction Cooldown="-0.06" />
-    </Cost>
-    <Cost Abil="ChoHammerOfTwilight,Execute" CooldownOperation="Add">
-      <Fraction Cooldown="-0.06" />
-    </Cost>
-  </CEffectModifyUnit>
+  <CEffectAddTrackedUnit id="ChoAddGallUnitToConjoinedTracker">
+    <BehaviorLink value="ChoGallConjoinedUnitTracker" />
+    <TrackedUnit Value="Target" />
+  </CEffectAddTrackedUnit>
+  <CEffectAddTrackedUnit id="GallAddChoUnitToConjoinedTracker">
+    <BehaviorLink value="ChoGallConjoinedUnitTracker" />
+    <TrackerUnit Value="Target" />
+    <TrackedUnit Value="Caster" />
+  </CEffectAddTrackedUnit>
   <CEffectModifyTokenCount id="ChoSurgingFistResetUppercutTalentTokenCount" parent="BaseEffectModifyTokenCount">
     <ValidatorArray value="ChoHasUppercutTalent" />
     <TokenId value="ChoUppercutTokenCounter" />
@@ -3516,22 +3524,17 @@
     <EffectArray value="GallTwistingNetherApplyFirstSecondLeadIn" />
   </CEffectSet>
   <CEffectSet id="GallShiftingNetherNetherShiftTalentChoImpactSet">
-    <ValidatorArray value="TargetisCho" />
     <EffectArray value="GallShiftingNetherNetherShiftTalentTeleport" />
   </CEffectSet>
-  <CEffectEnumArea id="GallShiftingNetherNetherShiftTalentChoSearch">
-    <LaunchLocation Value="CasterUnit" />
-    <ImpactLocation Value="CasterUnit" />
-    <SearchFilters value="Heroic;Neutral,Enemy,Hallucination" />
-    <AreaArray Effect="GallShiftingNetherNetherShiftTalentChoImpactSet">
-      <Radius value="0.5" />
-    </AreaArray>
-  </CEffectEnumArea>
+  <CEffectEnumTrackedUnits id="GallShiftingNetherEnumGallUnit">
+    <BehaviorLink value="ChoGallConjoinedUnitTracker" />
+    <Effect value="GallShiftingNetherNetherShiftTalentChoImpactSet" />
+  </CEffectEnumTrackedUnits>
   <CEffectSet id="GallShoveForceFinalSet">
     <EffectArray value="GallShoveApplyMoveSpeedSwitch" />
   </CEffectSet>
   <CEffectSet id="GallShiftingNetherNetherShiftTalentCastSet">
-    <EffectArray value="GallShiftingNetherNetherShiftTalentChoSearch" />
+    <EffectArray value="GallShiftingNetherEnumGallUnit" />
     <EffectArray value="GallShiftingNetherNetherShiftTalentInitialSet" />
     <EffectArray value="GallShiftingNetherNetherShiftTalentModifyCooldown" />
     <TargetLocationType value="Point" />
@@ -3617,6 +3620,7 @@
     <TokenId value="GallTheWillofGallTokenCounter" />
   </CEffectModifyTokenCount>
   <CEffectSet id="ChoHeroWeaponHammerofTwilightTalentMeleeImpactSet">
+    <EffectArray value="ChoHammerOfTwilightImpactDummy" />
     <EffectArray value="ChoHeroWeaponImpactSet" />
   </CEffectSet>
   <CEffectLaunchMissile id="ChoHeroWeaponCThunsGiftTalentLaunchMissile">
@@ -4009,21 +4013,26 @@
     <EffectArray value="ChoConsumingBlazeSearchArea" />
     <EffectArray value="ChoConsumingBlazeSetWeaponCooldown" />
   </CEffectSet>
-  <CEffectEnumArea id="ChoFuelForTheFlameSearch">
-    <ValidatorArray value="TargetNotInvulnerableOrBenign" />
-    <ValidatorArray value="TargetNotStasis" />
+  <CEffectSwitch id="ChoFuelForTheFlameSearchSwitch">
     <ValidatorArray value="ChoTalentHasFuelForTheFlame" />
     <ValidatorArray value="CasterNotBlindedAndTargetNotEvading" />
+    <CaseArray Validator="TargetIsBenign" Effect="ChoFuelForTheFlameSearchIncludeBenign" />
+    <CaseDefault value="ChoFuelForTheFlameSearch" />
+  </CEffectSwitch>
+  <CEffectEnumArea id="ChoFuelForTheFlameSearch">
     <ImpactLocation Value="TargetPoint" />
     <ExcludeArray Value="Target" />
-    <SearchFilters value="-;Player,Ally,Neutral,ImmuneToAOE,Missile,Stasis,Dead,Hidden,Invulnerable" />
+    <SearchFilters value="-;Player,Ally,Neutral,ImmuneToAOE,Missile,Stasis,Dead,Hidden,Invulnerable,Benign" />
     <AreaArray Effect="ChoFuelForTheFlameExplosionDamage">
       <Radius value="3.3" />
     </AreaArray>
-    <RevealerParams HeightMap="Ground" Duration="0.5" ShapeExpansion="0.5">
+    <RevealerParams Duration="0.75" ShapeExpansion="1">
       <RevealFlags index="Unfog" value="1" />
     </RevealerParams>
     <SearchFlags index="DoActorSearch" value="1" />
+  </CEffectEnumArea>
+  <CEffectEnumArea id="ChoFuelForTheFlameSearchIncludeBenign" parent="ChoFuelForTheFlameSearch">
+    <SearchFilters value="-;Player,Ally,Neutral,ImmuneToAOE,Missile,Stasis,Dead,Hidden,Invulnerable" />
   </CEffectEnumArea>
   <CEffectSwitch id="ChoConsumingBlazeApplyCasterHealerSwitch">
     <ValidatorArray value="NoDestructibleBehavior" />
@@ -5265,22 +5274,34 @@
     <Count value="1" />
   </CEffectRemoveBehavior>
   <CEffectSet id="ChoHeroWeaponImpactSet">
-    <EffectArray value="ChoFuelForTheFlameDamage" />
-    <EffectArray value="ChoHeroWeaponDamage" />
-    <EffectArray value="ChoSearedFleshSwitch" />
-    <EffectArray value="ChoFuelForTheFlameSearch" />
-    <EffectArray value="ChoConsumingBlazeBasicAttackSet" />
-    <EffectArray value="ChoHeroWeaponCthunsGiftTalentApplySlow" />
-    <EffectArray value="ChoEnragedRegenerationBasicAttackApplyHoT" />
     <EffectArray value="UniversalWeaponImpact" />
+    <EffectArray value="ChoWeaponPreImpactSet" />
+    <EffectArray value="ChoHeroWeaponDamage" />
+    <EffectArray value="ChoWeaponPostImpactSet" />
+    <EffectArray value="ChoFuelForTheFlameSearchSwitch" />
     <EffectArray value="UniversalWeaponPostImpactSet" />
   </CEffectSet>
+  <CEffectSet id="ChoWeaponPreImpactSet">
+    <EffectArray value="ChoConsumingBlazeBasicAttackSet" />
+    <EffectArray value="ChoEnragedRegenerationBasicAttackApplyHoT" />
+    <EffectArray value="ChoRunedGauntletActivateSet" />
+    <EffectArray value="ChoFuelForTheFlameDamage" />
+  </CEffectSet>
+  <CEffectSet id="ChoWeaponPostImpactSet">
+    <EffectArray value="ChoSearedFleshSwitch" />
+    <EffectArray value="ChoHeroWeaponCthunsGiftTalentApplySlow" />
+  </CEffectSet>
   <CEffectSet id="ChoHeroWeaponCthunsGiftTalentRangedImpactSet">
+    <EffectArray value="ChoCthunsGiftImpactDummy" />
     <EffectArray value="ChoHeroWeaponImpactSet" />
   </CEffectSet>
   <CEffectSet id="ChoHeroWeaponMeleeImpactSet">
+    <EffectArray value="ChoMeleeWeaponImpactDummy" />
     <EffectArray value="ChoHeroWeaponImpactSet" />
   </CEffectSet>
+  <CEffectModifyUnit id="ChoMeleeWeaponImpactDummy" />
+  <CEffectModifyUnit id="ChoHammerOfTwilightImpactDummy" />
+  <CEffectModifyUnit id="ChoCthunsGiftImpactDummy" />
   <CEffectDamage id="ChoHeroWeaponDamage" parent="StormWeapon">
     <Amount value="130" />
     <MultiplicativeModifierArray index="1" Validator="ChoTalentHasHammerOfTwilight" Modifier="0.25" />
@@ -5399,6 +5420,7 @@
   </CEffectCreatePersistent>
   <CEffectSet id="GallShoveForceInitialSet">
     <EffectArray value="HeroRemovePushPullDebuffs" />
+    <EffectArray value="HeroRemovePreventsMovement" />
     <EffectArray value="GallShoveApplyPullBehavior" />
     <EffectArray value="HeroGenericDummyInterruptDamage" />
   </CEffectSet>
@@ -6707,6 +6729,9 @@
   <CTalent id="ChoCallousedHide">
     <Face value="ChoCallousedHide" />
     <Abil value="ChoOgreHide" />
+    <RankArray>
+      <BehaviorArray value="ChoOgreHideCallousedHideTalentMoveSpeedCarry" />
+    </RankArray>
     <Trait value="1" />
   </CTalent>
   <CTalent id="ChoHourofTwilight">
@@ -7240,7 +7265,7 @@
     <BehaviorArray Link="ChoOgreHideVisualController" />
     <BehaviorArray Link="ChoOgreRageVisualController" />
     <BehaviorArray Link="HeroGenericIsFat" />
-    <BehaviorArray Link="ChoOgreHideCallousedHideTalentMoveSpeedCarry" />
+    <BehaviorArray Link="ChoGallConjoinedUnitTracker" />
     <WeaponArray Link="ChoShortRangeHeroWeapon" />
     <WeaponArray Link="ChoHeroWeapon" />
     <WeaponArray Link="ChoLongRangeHeroWeaponCthunsGift" />
@@ -7324,6 +7349,7 @@
     <BehaviorArray Link="HeroGenericMapMechanicPickupDisallowed" />
     <BehaviorArray Link="DisableDanceAndTaunt" />
     <BehaviorArray Link="GallEyeOfKilrogg" />
+    <BehaviorArray Link="ChoGallConjoinedUnitTracker" />
     <CardLayouts index="0">
       <LayoutButtons index="1" Face="Dance" Type="AbilCmd" AbilCmd="stop,Dance" Slot="Dance" />
       <LayoutButtons index="2" Face="LootSpray" Type="AbilCmd" AbilCmd="LootSpray,Execute" Slot="Spray" />
@@ -7797,6 +7823,11 @@
     <WhichPlayer Value="Target" />
   </CValidatorPlayerTalent>
   <CValidatorPlayerTalent id="ChoTalentHasRunedGauntlet">
+    <Find value="1" />
+    <Value value="ChoRunedGauntlet" />
+  </CValidatorPlayerTalent>
+  <CValidatorPlayerTalent id="ChoCasterHasHasRunedGauntletTalent">
+    <WhichPlayer Value="Caster" />
     <Find value="1" />
     <Value value="ChoRunedGauntlet" />
   </CValidatorPlayerTalent>

@@ -37,6 +37,10 @@ void libBBAY_InitVariables () {
         libBBAY_gv_mMBBCannonballsBallsSubmitMaxCurrent[init_i] = libBBAY_gv_mMBBCannonballsBallsSubmitMax_C;
     }
     libBBAY_gv_mMBBCannonballsGhostShipMissileTargetPing = c_invalidPingId;
+    libBBAY_gv_mMBBCannonballsChestOccurance = 1;
+    for (init_i = 0; init_i <= 5; init_i += 1) {
+        libBBAY_gv_mMBBCannonballsTreasureChestMaxCountPerOccurance[init_i] = 1;
+    }
     libBBAY_gv_mMBBCannonballsTreasureChestTimer = TimerCreate();
     libBBAY_gv_mMBBCannonballsTreasureChestPingTimer = TimerCreate();
     libBBAY_gv_mMBBCannonballsTreasureChestIsFirstChest = true;
@@ -53,11 +57,12 @@ void libBBAY_gf_MMBBCannonballsInitGhostshipInfo (point lp_shipLoc, point lp_bea
     libBBAY_gv_mMBBCannonballsGhostShipBeaconLoc = lp_beaconLoc;
 }
 
-void libBBAY_gf_MMBBCannonballsInitTreasureChestInfo (point lp_chestLocation1, point lp_chestLocation2) {
+void libBBAY_gf_MMBBCannonballsInitTreasureChestInfo (point lp_chestLocation1, point lp_chestLocation2, point lp_chestLocation3) {
     // Automatic Variable Declarations
     // Implementation
     libBBAY_gv_mMBBCannonballsGhostChestLocations[1] = lp_chestLocation1;
     libBBAY_gv_mMBBCannonballsGhostChestLocations[2] = lp_chestLocation2;
+    libBBAY_gv_mMBBCannonballsGhostChestLocations[3] = lp_chestLocation3;
 }
 
 int libBBAY_gf_MMBBCannonballsHeroCannonballsCount (int lp_player, unit lp_heroUnit) {
@@ -83,6 +88,26 @@ void libBBAY_gf_MMBBCannonballsAddGhostShipTargetOrder (int lp_team, int lp_town
     // Implementation
     libBBAY_gv_mMBBCannonballsGhostShipTargetTownOrdersCount[lp_team] += 1;
     libBBAY_gv_mMBBCannonballsGhostShipTargetTownOrders[lp_team][libBBAY_gv_mMBBCannonballsGhostShipTargetTownOrdersCount[lp_team]] = lp_townIndex;
+}
+
+void libBBAY_gf_InitializePatterns () {
+    // Automatic Variable Declarations
+    // Implementation
+    libBBAY_gv_chestPatterns[1][1] = 3;
+    libBBAY_gv_mMBBCannonballsTreasureChestMaxCountPerOccurance[1] = 1;
+    libBBAY_gv_chestPatterns[2][1] = 1;
+    libBBAY_gv_chestPatterns[2][2] = 3;
+    libBBAY_gv_mMBBCannonballsTreasureChestMaxCountPerOccurance[2] = 2;
+    libBBAY_gv_chestPatterns[3][1] = 2;
+    libBBAY_gv_chestPatterns[3][2] = 3;
+    libBBAY_gv_mMBBCannonballsTreasureChestMaxCountPerOccurance[3] = 2;
+    libBBAY_gv_chestPatterns[4][1] = 1;
+    libBBAY_gv_chestPatterns[4][2] = 2;
+    libBBAY_gv_mMBBCannonballsTreasureChestMaxCountPerOccurance[4] = 2;
+    libBBAY_gv_chestPatterns[5][1] = 1;
+    libBBAY_gv_chestPatterns[5][2] = 2;
+    libBBAY_gv_chestPatterns[5][3] = 3;
+    libBBAY_gv_mMBBCannonballsTreasureChestMaxCountPerOccurance[5] = 3;
 }
 
 int libBBAY_gf_MMBBCannonballsTeamCannonballsCount (int lp_team) {
@@ -115,7 +140,7 @@ int libBBAY_gf_MMBBCannonballsCurrentlyCarriedforTeam (int lp_team) {
         for (;; autoC71F869F_u -= 1) {
             lv_unit = UnitGroupUnitFromEnd(autoC71F869F_g, autoC71F869F_u);
             if (lv_unit == null) { break; }
-            if ((UnitFilterMatch(lv_unit, lv_player, UnitFilter(0, 0, (1 << c_targetFilterMissile), (1 << (c_targetFilterDead - 32)) | (1 << (c_targetFilterHidden - 32)) | (1 << (c_targetFilterHallucination - 32)))) == true)) {
+            if ((UnitFilterMatch(lv_unit, lv_player, UnitFilter(0, 0, (1 << c_targetFilterMissile), (1 << (c_targetFilterHidden - 32)) | (1 << (c_targetFilterHallucination - 32)))) == true)) {
                 lv_total += UnitBehaviorCount(lv_unit, "MapMechanicStack");
             }
 
@@ -145,9 +170,12 @@ void libBBAY_gf_MMBBCannonballsSetHeroCannonballsCount (int lp_player, unit lp_h
     lv_numCannonballs = libBBAY_gf_MMBBCannonballsHeroCannonballsCount(lp_player, lp_heroUnit);
 
     // Implementation
-    UnitBehaviorRemove(lp_heroUnit, "MapMechanicStack", lv_numCannonballs);
-    if ((lp_count > 0)) {
-        UnitBehaviorAdd(lp_heroUnit, "MapMechanicStack", lp_heroUnit, lp_count);
+    if ((lp_count < lv_numCannonballs)) {
+        UnitBehaviorRemove(lp_heroUnit, "MapMechanicStack", (lv_numCannonballs - lp_count));
+    }
+
+    if ((lp_count > lv_numCannonballs)) {
+        UnitBehaviorAdd(lp_heroUnit, "MapMechanicStack", lp_heroUnit, (lp_count - lv_numCannonballs));
     }
 
     autoBB909C5C_g = libGame_gv_players[lp_player].lv_heroUnitGroup;
@@ -636,7 +664,7 @@ void libBBAY_gf_MMBBCannonballsBattleshipShootingShakingCamera (point lp_targetL
             CameraShake(lv_itPlayer, "Medium", "Earthquake", 0.0, 0.5, 0.75);
         }
         else if ((DistanceBetweenPoints(CameraGetTarget(lv_itPlayer), lp_targetLocation) <= 30.0)) {
-            CameraShake(lv_itPlayer, "Creep", "Earthquake", 0.0, 0.5, 0.5);
+            CameraShake(lv_itPlayer, "Light", "Earthquake", 0.0, 0.5, 0.5);
         }
     }
 }
@@ -1072,11 +1100,16 @@ bool auto_libBBAY_gf_MMBBCannonballsTransmissionChestSpawningRepeatQ_TriggerFunc
     TriggerQueueEnter();
     UserDataResetType("MapVOEvent");
     lv_randomProc = RandomInt(1, 100);
-    if ((lv_randomProc > 5)) {
-        UserDataSetInt("MapVOEvent", "Blackheart - Treasure Spawn", "Value", 1, 1);
+    if ((libBBAY_gv_mMBBCannonballsChestOccurance == 2)) {
+        UserDataSetInt("MapVOEvent", "Blackheart - Treasure Second", "Value", 1, 1);
     }
     else {
-        UserDataSetInt("MapVOEvent", "Blackheart - Rare Treasure Spawn", "Value", 1, 1);
+        if ((lv_randomProc > 5)) {
+            UserDataSetInt("MapVOEvent", "Blackheart - Treasure Spawn", "Value", 1, 1);
+        }
+        else {
+            UserDataSetInt("MapVOEvent", "Blackheart - Rare Treasure Spawn", "Value", 1, 1);
+        }
     }
     ConversationDataRun("BlackheartsBay", PlayerGroupAll(), c_conversationSkipNone, false);
     libCore_gf_WaitForConversationToFinish();
@@ -1110,7 +1143,6 @@ bool libBBAY_gt_MMBBCannonballsInit_Func (bool testConds, bool runActions) {
     libMapM_gv_mapMechanicsObserverCountLabelText = StringToText("");
     TriggerEnable(libBBAY_gt_MMBBCannonballsHeroDies, true);
     TriggerEnable(libBBAY_gt_MMBBCannonballsHeroSpawned, true);
-    TriggerEnable(libBBAY_gt_MMBBCannonballsHeroRespawns, true);
     TriggerEnable(libBBAY_gt_MMBBCannonballsGatesAreOpenComplete, true);
     TriggerEnable(libBBAY_gt_MMBBCannonballsBattleshipKilledATown, true);
     TriggerEnable(libBBAY_gt_MMBBCannonballsHeroPickup, true);
@@ -1127,6 +1159,7 @@ bool libBBAY_gt_MMBBCannonballsInit_Func (bool testConds, bool runActions) {
     }
 
     ActorSend(libMapM_gv_mapMechanicControllerActor, "Signal MM1Off");
+    libBBAY_gf_InitializePatterns();
     return true;
 }
 
@@ -1257,17 +1290,17 @@ bool libBBAY_gt_MMBBCannonballsHeroDies_Func (bool testConds, bool runActions) {
         return true;
     }
 
-    libBBAY_gv_mMBBDoubloonsCollected[lv_player] -= lv_count;
+    libBBAY_gv_mMBBDoubloonsCollected[lv_player] -= (lv_count / 2);
+    libBBAY_gv_mMBBDoubloonsDropped[lv_player] += (lv_count / 2);
+    libBBAY_gf_MMBBCannonballsSetHeroCannonballsCount(lv_player, lv_deadHero, (lv_count - (lv_count / 2)));
     libBBAY_gf_MMBBUpdateHeldDoubloonDisplay();
-    libBBAY_gv_mMBBDoubloonsDropped[lv_player] += lv_count;
-    libBBAY_gf_MMBBCannonballsSetHeroCannonballsCount(lv_player, lv_deadHero, 0);
     if ((lv_count <= 0)) {
         return true;
     }
 
     lv_spawnLocation = libGame_gf_HeroKilledLocation();
     Wait(0.25, c_timeGame);
-    autoF1EB5C79_n = lv_count;
+    autoF1EB5C79_n = (lv_count / 2);
     for (autoF1EB5C79_i = 1; autoF1EB5C79_i <= autoF1EB5C79_n; autoF1EB5C79_i += 1) {
         PlayerCreateEffectPoint(libCore_gv_cOMPUTER_Neutral, "DropCannonballsPersistent", lv_spawnLocation);
     }
@@ -1279,44 +1312,6 @@ void libBBAY_gt_MMBBCannonballsHeroDies_Init () {
     libBBAY_gt_MMBBCannonballsHeroDies = TriggerCreate("libBBAY_gt_MMBBCannonballsHeroDies_Func");
     TriggerEnable(libBBAY_gt_MMBBCannonballsHeroDies, false);
     libGame_gf_HeroKilled(libBBAY_gt_MMBBCannonballsHeroDies);
-}
-
-//--------------------------------------------------------------------------------------------------
-// Trigger: MMBB Cannonballs Hero Respawns
-//--------------------------------------------------------------------------------------------------
-bool libBBAY_gt_MMBBCannonballsHeroRespawns_Func (bool testConds, bool runActions) {
-    // Variable Declarations
-    int lv_player;
-
-    // Automatic Variable Declarations
-    // Variable Initialization
-
-    // Conditions
-    if (testConds) {
-        if (!((libGame_gv_gameOver == false))) {
-            return false;
-        }
-
-        if (!((libGame_gf_UnitIsHero(EventUnit()) == true))) {
-            return false;
-        }
-    }
-
-    // Actions
-    if (!runActions) {
-        return true;
-    }
-
-    lv_player = UnitGetOwner(EventUnit());
-    libBBAY_gf_MMBBCannonballsSetHeroCannonballsCount(lv_player, EventUnit(), 0);
-    return true;
-}
-
-//--------------------------------------------------------------------------------------------------
-void libBBAY_gt_MMBBCannonballsHeroRespawns_Init () {
-    libBBAY_gt_MMBBCannonballsHeroRespawns = TriggerCreate("libBBAY_gt_MMBBCannonballsHeroRespawns_Func");
-    TriggerEnable(libBBAY_gt_MMBBCannonballsHeroRespawns, false);
-    TriggerAddEventUnitRevive(libBBAY_gt_MMBBCannonballsHeroRespawns, null);
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -1855,10 +1850,10 @@ bool libBBAY_gt_MMBBCannonballsTreasureSpawnChests_Func (bool testConds, bool ru
         return true;
     }
 
-    auto82DD6336_ae = libBBAY_gv_mMBBCannonballsTreasureChestMaxCount_C;
+    auto82DD6336_ae = libBBAY_gv_mMBBCannonballsTreasureChestMaxCountPerOccurance[libBBAY_gv_mMBBCannonballsChestOccurance];
     lv_iter = 1;
     for ( ; lv_iter <= auto82DD6336_ae ; lv_iter += 1 ) {
-        libNtve_gf_CreateUnitsAtPoint2(1, "DocksTreasureChest", c_unitCreateIgnorePlacement, libCore_gv_cOMPUTER_Hostile, libBBAY_gv_mMBBCannonballsGhostChestLocations[lv_iter], null);
+        libNtve_gf_CreateUnitsAtPoint2(1, "DocksTreasureChest", c_unitCreateIgnorePlacement, libCore_gv_cOMPUTER_Hostile, libBBAY_gv_mMBBCannonballsGhostChestLocations[libBBAY_gv_chestPatterns[libBBAY_gv_mMBBCannonballsChestOccurance][lv_iter]], null);
         libBBAY_gv_mMBBCannonballsTreasureChestChests[lv_iter] = UnitLastCreated();
         AddUnitOfInterest(UnitLastCreated(), 0.0, 0.0, "KillTreasureChest", libNtve_ge_GoalTeam_Both, 0);
         ActorCreate(ActorScopeFromUnit(libBBAY_gv_mMBBCannonballsTreasureChestChests[lv_iter]), "UI_Game_Ping_TreasureSpawn", null, null, null);
@@ -1900,6 +1895,10 @@ bool libBBAY_gt_MMBBCannonballsTreasureSpawnChests_Func (bool testConds, bool ru
         libBBAY_gf_MMBBCannonballsTransmissionChestSpawningRepeatQ(PlayerGroupAll());
     }
     libBBAY_gf_MMBBMapMechanicsBlackheartsBayShowChestsSpawnedFrame();
+    if ((libBBAY_gv_mMBBCannonballsChestOccurance <= 4)) {
+        libBBAY_gv_mMBBCannonballsChestOccurance = (libBBAY_gv_mMBBCannonballsChestOccurance + 1);
+    }
+
     return true;
 }
 
@@ -1961,7 +1960,7 @@ bool libBBAY_gt_MMBBCannonballsTreasureChestPingTimerExpires_Func (bool testCond
         return true;
     }
 
-    autoC7436380_ae = libBBAY_gv_mMBBCannonballsTreasureChestMaxCount_C;
+    autoC7436380_ae = libBBAY_gv_mMBBCannonballsTreasureChestMaxCountPerOccurance[libBBAY_gv_mMBBCannonballsChestOccurance];
     lv_iter = 1;
     for ( ; lv_iter <= autoC7436380_ae ; lv_iter += 1 ) {
         if ((UnitIsAlive(libBBAY_gv_mMBBCannonballsTreasureChestChests[lv_iter]) == true)) {
@@ -1992,6 +1991,7 @@ bool libBBAY_gt_MMBBCannonballsTreasureAChestDies_Func (bool testConds, bool run
 
     TextTagDestroy(libCore_gf_TextTagStoredForUnit(EventUnit(), 1));
     TextTagDestroy(libCore_gf_TextTagStoredForUnit(EventUnit(), 2));
+    TextTagDestroy(libCore_gf_TextTagStoredForUnit(EventUnit(), 3));
     PingDestroy(libCore_gf_PingStoredForUnit(EventUnit(), 1));
     return true;
 }
@@ -2002,6 +2002,7 @@ void libBBAY_gt_MMBBCannonballsTreasureAChestDies_Init () {
     TriggerEnable(libBBAY_gt_MMBBCannonballsTreasureAChestDies, false);
     TriggerAddEventUnitDied(libBBAY_gt_MMBBCannonballsTreasureAChestDies, UnitRefFromVariable("libBBAY_gv_mMBBCannonballsTreasureChestChests[1]"));
     TriggerAddEventUnitDied(libBBAY_gt_MMBBCannonballsTreasureAChestDies, UnitRefFromVariable("libBBAY_gv_mMBBCannonballsTreasureChestChests[2]"));
+    TriggerAddEventUnitDied(libBBAY_gt_MMBBCannonballsTreasureAChestDies, UnitRefFromVariable("libBBAY_gv_mMBBCannonballsTreasureChestChests[3]"));
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -2011,7 +2012,7 @@ bool libBBAY_gt_MMBBCannonballsTreasureChestsAreDead_Func (bool testConds, bool 
     // Automatic Variable Declarations
     // Conditions
     if (testConds) {
-        if (!(((UnitIsAlive(libBBAY_gv_mMBBCannonballsTreasureChestChests[1]) == false) && (UnitIsAlive(libBBAY_gv_mMBBCannonballsTreasureChestChests[2]) == false) && (TriggerIsEnabled(TriggerGetCurrent()) == true)))) {
+        if (!(((UnitIsAlive(libBBAY_gv_mMBBCannonballsTreasureChestChests[1]) == false) && (UnitIsAlive(libBBAY_gv_mMBBCannonballsTreasureChestChests[2]) == false) && (UnitIsAlive(libBBAY_gv_mMBBCannonballsTreasureChestChests[3]) == false) && (TriggerIsEnabled(TriggerGetCurrent()) == true)))) {
             return false;
         }
     }
@@ -2028,6 +2029,7 @@ bool libBBAY_gt_MMBBCannonballsTreasureChestsAreDead_Func (bool testConds, bool 
     libBBAY_gf_MMBBCannonballsTreasureStartTimer();
     TextTagDestroy(libCore_gf_TextTagStoredForUnit(EventUnit(), 1));
     TextTagDestroy(libCore_gf_TextTagStoredForUnit(EventUnit(), 2));
+    TextTagDestroy(libCore_gf_TextTagStoredForUnit(EventUnit(), 3));
     return true;
 }
 
@@ -2369,7 +2371,6 @@ void libBBAY_InitTriggers () {
     libBBAY_gt_MMBBCannonballsHeroSpawned_Init();
     libBBAY_gt_MMBBCannonballsHeroMapMechanicStatusSetup_Init();
     libBBAY_gt_MMBBCannonballsHeroDies_Init();
-    libBBAY_gt_MMBBCannonballsHeroRespawns_Init();
     libBBAY_gt_MMBBCannonballCreated_Init();
     libBBAY_gt_MMBBCannonballsGatesAreOpenComplete_Init();
     libBBAY_gt_MMBBCannonballsEventStart_Init();

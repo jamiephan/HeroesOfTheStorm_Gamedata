@@ -170,6 +170,13 @@
     <Scale value="0.05" />
     <UnitSource Value="Source" />
   </CAccumulatorToken>
+  <CAccumulatorToken id="TracerFocusFireTokenCountAccumulator" parent="BaseTokenAccumulator">
+    <MinAccumulation value="0" />
+    <MaxAccumulation value="20" />
+    <ApplicationRule value="Add" />
+    <TokenId value="TracerFocusFireTokenCounter" />
+    <Scale value="2" />
+  </CAccumulatorToken>
   <CActorModel id="TracerRecallAfterimagePoint" parent="StormModelAnimationStyleOneShot">
     <InheritType value="OneShot" />
     <Inherits index="Visibility" value="1" />
@@ -624,9 +631,8 @@
     <Sound value="Tracer_Ricochet_Impact" />
     <On Terms="Effect.TracerHeroWeaponRicochetTalentImpactSet.Start; At Target" Send="Create" />
   </CActorSound>
-  <CActorSound id="TracerRicochetProcSoundLockedAndLoaded" parent="SoundOneShot">
-    <On Terms="Effect.TracerHeroWeaponRicochetLockedAndLoadedTalentImpactSet.Start; At Target" Send="Create" />
-    <Sound value="Tracer_LockedandLoaded_Ricochet_Impact" />
+  <CActorSound id="TracerRicochetProcSoundLockedAndLoaded">
+    <On Terms="Effect.TracerRicochetLockedAndLoadedImpactDummy.Start; At Target" Send="Create" />
   </CActorSound>
   <CActorSound id="TracerMeleeBulletSprayCastSound" parent="SoundOneShot">
     <Sound value="Tracer_Attack_Melee_BulletSpray" />
@@ -1061,7 +1067,7 @@
   <CActorSound id="TracerWeaponLoopingTargetEndSound" parent="SoundOneShot">
     <Sound value="Tracer_Attack_Ranged_PLR_Impact_End" />
   </CActorSound>
-  <CActorAction id="TracerHeroWeaponRicochetActionActor" parent="RangedHeroAttackPoint" effectImpact="TracerHeroWeaponRicochetTalentImpactSwitch" effectLaunch="TracerHeroWeaponRicochetLaunchMissile">
+  <CActorAction id="TracerHeroWeaponRicochetActionActor" parent="RangedHeroAttackPoint" effectImpact="TracerRicochetImpactDummy" effectLaunch="TracerHeroWeaponRicochetLaunchMissile">
     <Missile value="TracerWeaponRicochetMissile" />
     <ImpactMap index="None" Model="TracerHeroWeaponRicochetImpactFX" />
   </CActorAction>
@@ -1341,7 +1347,21 @@
   </CBehaviorBuff>
   <CBehaviorBuff id="TracerFocusFireIncrementCooldown">
     <Duration value="2" />
+    <FinalEffect value="TracerFocusFireTargetResetSet" />
   </CBehaviorBuff>
+  <CBehaviorTokenCounter id="TracerFocusFireTokenCounter" parent="StormGenericToken">
+    <Alignment value="Positive" />
+    <DisplayDurationProxyBehavior value="TracerFocusFireIncrementCooldown" />
+    <StackCountAccumulator value="TracerFocusFireTokenCountAccumulator" />
+    <MinStackCountDisplayed value="0" />
+    <Max value="10" />
+  </CBehaviorTokenCounter>
+  <CBehaviorUnitTracker id="TracerFocusFireTargetTracker">
+    <BehaviorFlags index="Permanent" value="1" />
+    <BehaviorFlags index="EnabledWhileDead" value="1" />
+    <MaxTrackedUnits value="1" />
+    <UnitAddedAtMaxRule value="ReplaceOldest" />
+  </CBehaviorUnitTracker>
   <CBehaviorBuff id="TracerHeroWeaponCasterTargetFinderDisabler">
     <Modification>
       <WeaponScanValidationEnableArray value="TracerHeroWeapon" />
@@ -1732,6 +1752,9 @@
   <CButton id="TracerFocusFire" parent="StormButtonParent">
     <Icon value="Assets\Textures\storm_ui_icon_tracer_reload_b.dds" />
   </CButton>
+  <CButton id="TracerFocusFireTokenCounter" parent="StormButtonParent">
+    <Icon value="Assets\Textures\storm_ui_icon_tracer_reload_b.dds" />
+  </CButton>
   <CButton id="TracerSpatialEcho" parent="StormButtonParentTrait">
     <TooltipVitalName index="Energy" value="" />
     <Icon value="Assets\Textures\storm_ui_icon_tracer_blink_c.dds" />
@@ -1806,15 +1829,6 @@
       <Change value="6" />
     </VitalArray>
   </CEffectModifyUnit>
-  <CEffectSet id="TracerHeroWeaponTalentSet">
-    <EffectArray value="TracerPulseBombHeroWeaponAttackChargePulseRoundsMasteryIncrementPersistent" />
-    <EffectArray value="TracerHeroWeaponApplyTracerRoundsMasteryReveal" />
-    <EffectArray value="TracerHeroWeaponTelefragTalentModifyUnit" />
-    <EffectArray value="TracerHeroWeaponRicochetInitialSet" />
-    <EffectArray value="TracerHeroWeaponApplyLeechingRoundsActiveTalent" />
-    <EffectArray value="TracerHeroWeaponFocusFireMasteryApplyIncrementCooldown" />
-    <EffectArray value="TracerHeroWeaponLockedAndLoadedApplySoundDummy" />
-  </CEffectSet>
   <CEffectApplyBehavior id="TracerHeroWeaponApplyShootingCasterBehavior">
     <ValidatorArray index="0" value="TracerCasterDoesNotHaveHeroWeaponShootingCasterBehavior" />
     <WhichUnit Value="Caster" />
@@ -1855,11 +1869,25 @@
   <CEffectSet id="TracerHeroWeaponImpactSet">
     <EffectArray value="UniversalWeaponLaunchSet" />
     <EffectArray value="UniversalWeaponImpact" />
+    <EffectArray value="TracerWeaponImpactDummy" />
+    <EffectArray value="TracerWeaponPreImpactSet" />
     <EffectArray value="TracerHeroWeaponHeroDamageSwitch" />
-    <EffectArray value="TracerPulseBombHeroWeaponAttackChargeIncrementPersistent" />
     <EffectArray value="TracerHeroWeaponApplyShootingTargetBehavior" />
     <EffectArray value="TracerHeroWeaponRemoveShootingCasterBehaviorEnergy" />
-    <EffectArray value="TracerHeroWeaponTalentSet" />
+    <EffectArray value="TracerWeaponPostImpactSet" />
+    <EffectArray value="TracerHeroWeaponRicochetInitialSet" />
+  </CEffectSet>
+  <CEffectModifyUnit id="TracerWeaponImpactDummy" />
+  <CEffectSet id="TracerWeaponPreImpactSet">
+    <EffectArray value="TracerHeroWeaponLockedAndLoadedApplySoundDummy" />
+    <EffectArray value="TracerHeroWeaponTelefragTalentModifyUnit" />
+    <EffectArray value="TracerHeroWeaponApplyLeechingRoundsActiveTalent" />
+    <EffectArray value="TracerFocusFireAttackSet" />
+  </CEffectSet>
+  <CEffectSet id="TracerWeaponPostImpactSet">
+    <EffectArray value="TracerHeroWeaponApplyTracerRoundsMasteryReveal" />
+    <EffectArray value="TracerPulseBombHeroWeaponAttackChargeIncrementPersistent" />
+    <EffectArray value="TracerPulseBombHeroWeaponAttackChargePulseRoundsMasteryIncrementPersistent" />
   </CEffectSet>
   <CEffectSet id="TracerHeroWeaponPersistentInitialSet">
     <EffectArray value="TracerHeroWeaponLeftBeamDummy" />
@@ -2207,14 +2235,61 @@
     <Effect value="TracerHeroWeaponCreateTargetingPersistent" />
     <Count value="1" />
   </CEffectDestroyPersistent>
+  <CEffectSet id="TracerFocusFireAttackSet">
+    <ValidatorArray value="TracerHasFocusFireTalent" />
+    <ValidatorArray value="CasterNotBlindedAndTargetNotEvading" />
+    <EffectArray value="TracerFocusFireTargetNotTrackedSet" />
+    <EffectArray value="TracerHeroWeaponFocusFireMasteryApplyIncrementCooldown" />
+    <EffectArray value="TracerFocusFireTokenSwitch" />
+  </CEffectSet>
+  <CEffectSet id="TracerFocusFireTargetNotTrackedSet">
+    <ValidatorArray value="TracerFocusFireTargetIsNotTracked" />
+    <EffectArray value="TracerFocusFireTargetResetSet" />
+    <EffectArray value="TracerFocusFireTrackTarget" />
+  </CEffectSet>
   <CEffectApplyBehavior id="TracerHeroWeaponFocusFireMasteryApplyIncrementCooldown">
     <ValidatorArray index="0" value="TracerHasFocusFireTalent" />
     <WhichUnit Value="Caster" />
     <Behavior value="TracerFocusFireIncrementCooldown" />
   </CEffectApplyBehavior>
+  <CEffectRemoveBehavior id="TracerFocusFireRemoveIncrementCooldown">
+    <WhichUnit Value="Caster" />
+    <BehaviorLink value="TracerFocusFireIncrementCooldown" />
+  </CEffectRemoveBehavior>
+  <CEffectSet id="TracerFocusFireTargetResetSet">
+    <EffectArray value="TracerFocusFireResetTokenCount" />
+    <EffectArray value="TracerFocusFireClearTrackedUnits" />
+  </CEffectSet>
+  <CEffectModifyTokenCount id="TracerFocusFireResetTokenCount">
+    <TokenId value="TracerFocusFireTokenCounter" />
+    <Operation value="Set" />
+  </CEffectModifyTokenCount>
+  <CEffectClearTrackedUnits id="TracerFocusFireClearTrackedUnits">
+    <BehaviorLink value="TracerFocusFireTargetTracker" />
+  </CEffectClearTrackedUnits>
+  <CEffectAddTrackedUnit id="TracerFocusFireTrackTarget">
+    <BehaviorLink value="TracerFocusFireTargetTracker" />
+    <TrackedUnit Value="Target" />
+  </CEffectAddTrackedUnit>
+  <CEffectSwitch id="TracerFocusFireTokenSwitch">
+    <CaseArray Validator="TracerFocusFireLessThan9Tokens" Effect="TracerFocusFireAddTokenCounter" />
+    <CaseDefault value="TracerFocusFireProcSet" />
+  </CEffectSwitch>
+  <CEffectModifyTokenCount id="TracerFocusFireAddTokenCounter" parent="BaseEffectModifyTokenCount">
+    <TokenId value="TracerFocusFireTokenCounter" />
+  </CEffectModifyTokenCount>
+  <CEffectSet id="TracerFocusFireProcSet">
+    <EffectArray value="TracerFocusFireRemoveIncrementCooldown" />
+    <EffectArray value="TracerFocusFireTargetResetSet" />
+    <EffectArray value="TracerFocusFireWeaponImpactSwitch" />
+    <EffectArray value="UniversalWeaponPostImpactSet" />
+  </CEffectSet>
+  <CEffectSwitch id="TracerFocusFireWeaponImpactSwitch">
+    <CaseArray Validator="TargetIsHero" Effect="TracerFocusFireHeroImpactSet" />
+    <CaseDefault value="TracerFocusFireNonHeroImpactSet" />
+  </CEffectSwitch>
   <CEffectSet id="TracerFocusFireNonHeroImpactSet">
     <EffectArray value="TracerHeroWeaponFocusFireMasteryDamage" />
-    <EffectArray value="UniversalWeaponPostImpactSet" />
   </CEffectSet>
   <CEffectDamage id="TracerHeroWeaponFocusFireMasteryDamage" parent="StormWeapon">
     <Amount value="80" />
@@ -2225,7 +2300,6 @@
   </CEffectDamage>
   <CEffectSet id="TracerFocusFireHeroImpactSet">
     <EffectArray value="TracerHeroWeaponFocusFireMasteryDamageHero" />
-    <EffectArray value="UniversalWeaponPostImpactSet" />
   </CEffectSet>
   <CEffectDamage id="TracerHeroWeaponFocusFireMasteryDamageHero" parent="StormWeapon">
     <Amount value="80" />
@@ -2288,21 +2362,34 @@
     <CaseDefault value="TracerHeroWeaponRicochetTalentImpactSet" />
   </CEffectSwitch>
   <CEffectSet id="TracerHeroWeaponRicochetLockedAndLoadedTalentImpactSet">
+    <EffectArray value="UniversalWeaponImpact" />
+    <EffectArray value="TracerRicochetImpactDummy" />
+    <EffectArray value="TracerRicochetLockedAndLoadedImpactDummy" />
+    <EffectArray value="TracerRicochetPreImpactSet" />
     <EffectArray value="TracerHeroWeaponHeroRicochetDamageSwitch" />
-    <EffectArray value="TracerHeroWeaponApplyTracerRoundsMasteryReveal" />
-    <EffectArray value="TracerHeroWeaponTelefragTalentModifyUnit" />
+    <EffectArray value="TracerRicochetPostImpactSet" />
     <EffectArray value="UniversalWeaponPostImpactSet" />
   </CEffectSet>
+  <CEffectModifyUnit id="TracerRicochetLockedAndLoadedImpactDummy" />
   <CEffectCreatePersistent id="TracerHeroWeaponCreateTargetingPersistent">
     <WhichLocation Value="TargetUnit" />
     <Flags index="PersistUntilDestroyed" value="1" />
   </CEffectCreatePersistent>
   <CEffectSet id="TracerHeroWeaponRicochetTalentImpactSet">
+    <EffectArray value="UniversalWeaponImpact" />
+    <EffectArray value="TracerRicochetImpactDummy" />
+    <EffectArray value="TracerRicochetPreImpactSet" />
     <EffectArray value="TracerHeroWeaponHeroRicochetDamageSwitch" />
-    <EffectArray value="TracerHeroWeaponApplyTracerRoundsMasteryReveal" />
-    <EffectArray value="TracerHeroWeaponTelefragTalentModifyUnit" />
+    <EffectArray value="TracerRicochetPostImpactSet" />
     <EffectArray value="UniversalWeaponPostImpactSet" />
   </CEffectSet>
+  <CEffectSet id="TracerRicochetPreImpactSet">
+    <EffectArray value="TracerHeroWeaponTelefragTalentModifyUnit" />
+  </CEffectSet>
+  <CEffectSet id="TracerRicochetPostImpactSet">
+    <EffectArray value="TracerHeroWeaponApplyTracerRoundsMasteryReveal" />
+  </CEffectSet>
+  <CEffectModifyUnit id="TracerRicochetImpactDummy" />
   <CEffectCreatePersistent id="TracerBlinkOffsetPersistent">
     <InitialEffect value="TracerBlinkOffsetSet" />
   </CEffectCreatePersistent>
@@ -3145,6 +3232,8 @@
   <CEffectSet id="TracerReloadFinalSet">
     <EffectArray value="TracerReloadManaRestore" />
     <EffectArray value="TracerWeaponReloadResetCooldown" />
+    <EffectArray value="TracerFocusFireRemoveIncrementCooldown" />
+    <EffectArray value="TracerFocusFireTargetResetSet" />
   </CEffectSet>
   <CEffectModifyUnit id="TracerReloadModifyCharges">
     <ImpactUnit Value="Caster" />
@@ -4120,6 +4209,10 @@
   <CTalent id="TracerFocusFire">
     <Face value="TracerFocusFire" />
     <Abil value="TracerReload" />
+    <RankArray>
+      <BehaviorArray value="TracerFocusFireTargetTracker" />
+      <BehaviorArray value="TracerFocusFireTokenCounter" />
+    </RankArray>
     <Trait value="1" />
   </CTalent>
   <CTalent id="TracerQuantumSpike">
@@ -4584,6 +4677,16 @@
     <Find value="1" />
     <Value value="TracerFocusFire" />
   </CValidatorPlayerTalent>
+  <CValidatorIsUnitTracked id="TracerFocusFireTargetIsNotTracked">
+    <BehaviorLink value="TracerFocusFireTargetTracker" />
+    <TrackedUnit Value="Target" />
+  </CValidatorIsUnitTracked>
+  <CValidatorUnitCompareTokenCount id="TracerFocusFireLessThan9Tokens">
+    <WhichUnit Value="Caster" />
+    <Compare value="LT" />
+    <Value value="9" />
+    <TokenId value="TracerFocusFireTokenCounter" />
+  </CValidatorUnitCompareTokenCount>
   <CValidatorPlayerTalent id="TracerHasRicochetHeroWeapon">
     <WhichPlayer Value="Caster" />
     <Find value="1" />

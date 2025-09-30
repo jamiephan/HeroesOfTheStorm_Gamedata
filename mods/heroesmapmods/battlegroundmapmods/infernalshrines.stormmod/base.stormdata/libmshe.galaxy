@@ -2049,6 +2049,10 @@ bool libMSHE_gt_PunisherLeap_Func (bool testConds, bool runActions) {
     fixed lv_modifiedDistance;
 
     // Automatic Variable Declarations
+    unitgroup auto8019A886_g;
+    int auto8019A886_u;
+    unit auto8019A886_var;
+
     // Variable Initialization
 
     // Actions
@@ -2060,13 +2064,23 @@ bool libMSHE_gt_PunisherLeap_Func (bool testConds, bool runActions) {
     lv_abilityRange = (StringToFixed(CatalogFieldValueGet(c_gameCatalogActor, "MercPunisherLanerLeapRangeSplat", "Scale", EventPlayerEffectUsedUnitOwner(c_effectPlayerCaster))) + lv_barbarianRadius);
     lv_playerTargetPoint = EventPlayerEffectUsedPoint(c_effectLocationTargetPoint);
     lv_distanceFromBarbarianToPlayerTargetPoint = DistanceBetweenPoints(UnitGetPosition(EventPlayerEffectUsedUnit(c_effectUnitCaster)), lv_playerTargetPoint);
+    lv_actualTargetPoint = lv_playerTargetPoint;
+    auto8019A886_g = UnitGroupSearch(null, c_playerAny, lv_playerTargetPoint, 1.5, UnitFilter(0, 0, (1 << c_targetFilterMissile), (1 << (c_targetFilterDead - 32)) | (1 << (c_targetFilterHidden - 32))), 0);
+    auto8019A886_u = UnitGroupCount(auto8019A886_g, c_unitCountAll);
+    for (;; auto8019A886_u -= 1) {
+        auto8019A886_var = UnitGroupUnitFromEnd(auto8019A886_g, auto8019A886_u);
+        if (auto8019A886_var == null) { break; }
+        if ((UnitTypeTestFlag(UnitGetType(auto8019A886_var), c_unitFlagTownStructureGate) == true)) {
+            TriggerDebugOutput(1, StringExternal("Param/Value/lib_MSHE_C8C64EF8"), true);
+            lv_actualTargetPoint = libNtve_gf_PointOffsetTowardsPoint(UnitGetPosition(EventPlayerEffectUsedUnit(c_effectUnitCaster)), (lv_distanceFromBarbarianToPlayerTargetPoint - (lv_barbarianRadius + 0.25)), lv_playerTargetPoint);
+        }
+
+    }
     if ((lv_distanceFromBarbarianToPlayerTargetPoint > lv_abilityRange)) {
         lv_actualTargetPoint = libNtve_gf_PointOffsetTowardsPoint(UnitGetPosition(EventPlayerEffectUsedUnit(c_effectUnitCaster)), lv_abilityRange, lv_playerTargetPoint);
     }
-    else {
-        lv_actualTargetPoint = lv_playerTargetPoint;
-    }
-    lv_modifiedDistance = lv_abilityRange;
+
+    lv_modifiedDistance = lv_distanceFromBarbarianToPlayerTargetPoint;
     while ((PointPathingPassable(lv_actualTargetPoint) == false)) {
         lv_modifiedDistance -= 0.125;
         lv_actualTargetPoint = libNtve_gf_PointOffsetTowardsPoint(UnitGetPosition(EventPlayerEffectUsedUnit(c_effectUnitCaster)), lv_modifiedDistance, lv_playerTargetPoint);
@@ -2083,7 +2097,7 @@ bool libMSHE_gt_PunisherLeap_Func (bool testConds, bool runActions) {
         }
 
         if ((DistanceBetweenPoints(UnitGetPosition(EventPlayerEffectUsedUnit(c_effectUnitCaster)), lv_actualTargetPoint) <= (lv_barbarianRadius + 0.125))) {
-            libNtve_gf_UIErrorMessage(libCore_gv_playerGroupFromPlayer[EventPlayerEffectUsedUnitOwner(c_effectPlayerCaster)], StringExternal("Param/Value/lib_MSHE_D63B1DB4"), SoundLink("UI_GenericError", -1));
+            libNtve_gf_UIErrorMessage(libCore_gv_playerGroupFromPlayer[EventPlayerEffectUsedUnitOwner(c_effectPlayerCaster)], StringExternal("Param/Value/lib_MSHE_6BC67266"), SoundLink("UI_GenericError", -1));
             UnitBehaviorRemove(EventPlayerEffectUsedUnit(c_effectUnitCaster), "MercPunisherLanerLeap", 1);
             UnitAbilityReset(EventPlayerEffectUsedUnit(c_effectUnitCaster), AbilityCommand("MercPunisherLanerLeap", 0), c_spendLocationAll);
             return true;
@@ -2101,7 +2115,8 @@ bool libMSHE_gt_PunisherLeap_Func (bool testConds, bool runActions) {
 //--------------------------------------------------------------------------------------------------
 void libMSHE_gt_PunisherLeap_Init () {
     libMSHE_gt_PunisherLeap = TriggerCreate("libMSHE_gt_PunisherLeap_Func");
-    TriggerAddEventPlayerEffectUsed(libMSHE_gt_PunisherLeap, c_playerAny, "MercPunisherLanerLeapDistanceSwitch");
+    TriggerAddEventPlayerEffectUsed(libMSHE_gt_PunisherLeap, c_playerAny, "MercPunisherLanerLeapInitialSet");
+    TriggerAddEventPlayerEffectUsed(libMSHE_gt_PunisherLeap, c_playerAny, "MercPunisherLanerLeapNoMovementInitialSet");
 }
 
 //--------------------------------------------------------------------------------------------------

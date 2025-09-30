@@ -1,6 +1,12 @@
 <?xml version="1.0" encoding="us-ascii"?>
 <Catalog>
   <const id="$BrightwingPixieDustSafetyDustBonusHealing" value="0.75" />
+  <const id="$BrightwingPixieDustSafetyDustBonusDuration" value="1" />
+  <const id="$BrightwingPixieDustMovementSpeedBonus" value="0.2" />
+  <const id="$BrightwingPixieDustDuration" value="3" />
+  <const id="$BrightwingPixieDustPixieBoostMaximumBonus" value="0.3" />
+  <const id="$BrightwingPixieDustPixieBoostMultiplierPerStep" value="negate(/($BrightwingPixieDustPixieBoostMaximumBonus *($BrightwingPixieDustDuration 16)))" evaluateAsExpression="1" />
+  <const id="$BrightwingPixieDustPixieBoostMinAccumulation" value="negate($BrightwingPixieDustPixieBoostMaximumBonus)" evaluateAsExpression="1" />
   <CAbilEffectInstant id="BrightwingFaerieProtector">
     <PrepEffect value="DismountDecloakCasterSet" />
     <Effect value="BrightwingPixieDustFaerieProtectorSearch" />
@@ -215,6 +221,14 @@
     <VitalType value="Life" />
     <UnitSource Value="Target" />
   </CAccumulatorVitals>
+  <CAccumulatorTimed id="BrightwingPixieBoostAccumulator">
+    <TimestampBehavior value="BrightwingPixieBoostTimestamp" />
+    <MinAccumulation value="$BrightwingPixieDustPixieBoostMinAccumulation" />
+    <MaxAccumulation value="0" />
+    <ApplicationRule value="Add" />
+    <MultiplierPerStep value="0" />
+    <UnitSource Value="Target" />
+  </CAccumulatorTimed>
   <CActorModelMaterial id="BrightwingPhaseOutGlazeFX" parent="ModelAnimationStyleContinuous">
     <Model value="BrightwingPhaseOutGlaze" />
     <ModelFlags index="AutomateGlobalLoops" value="1" />
@@ -616,6 +630,7 @@
     <On Terms="Effect.BrightwingPhaseShiftPrepPersistent.Start; At Target" Send="Create" />
     <On Terms="Effect.BrightwingPhaseShiftPrepPersistent.Stop; FromEffectTreeDescendant" Send="Destroy" />
     <HostSiteOps Ops="SOpTargetUnit" />
+    <Macros value="RemovePolymorphMacroEffects" />
   </CActorModel>
   <CActorModel id="BlinkHealImpact" parent="StormModelAnimationStyleContinuousUnit">
     <Filter index="Enemy" value="1" />
@@ -1199,18 +1214,6 @@
     <RemoveValidatorArray value="TargetNotSpecialDeathState" />
     <Face value="BrightwingManicPixieTalent" />
   </CBehaviorBuff>
-  <CBehaviorBuff id="BrightwingPixieDustPixieBoost" parent="StormSprint">
-    <MaxStackCount value="10" />
-    <Duration value="3" />
-    <Modification>
-      <UnifiedMoveSpeedFactor value="0.05" />
-    </Modification>
-  </CBehaviorBuff>
-  <CBehaviorBuff id="BrightwingPixieDustPixieBoostController">
-    <Duration value="3" />
-    <Period value="0.5" />
-    <PeriodicEffect value="BrightwingPixieDustPixieBoostRemoveStack" />
-  </CBehaviorBuff>
   <CBehaviorBuff id="BrightwingSoothingMistRevitalizingMistBuff">
     <Duration value="6" />
     <FinalEffect value="BrightwingSoothingMistRevitalizingMistTokenRemoveBehavior" />
@@ -1334,13 +1337,22 @@
       </ArmorSet>
     </ArmorModification>
   </CBehaviorBuff>
+  <CBehaviorTimestamp id="BrightwingPixieBoostTimestamp">
+    <Flags index="UseTimeScale" value="1" />
+    <TimeScaleSource Value="Target" />
+  </CBehaviorTimestamp>
   <CBehaviorBuff id="BrightwingPixieDustMoveSpeedBuff">
     <Alignment value="Positive" />
     <InfoIcon value="Assets\Textures\storm_temp_war3_btnscatterrockets.dds" />
     <BehaviorCategories index="Fast" value="1" />
-    <Duration value="3" />
+    <Duration value="$BrightwingPixieDustDuration" />
+    <InitialEffect value="BrightwingPixieBoostApplyTimestampBehavior" />
+    <RefreshEffect value="BrightwingPixieBoostApplyTimestampBehavior" />
+    <FinalEffect value="BrightwingPixieBoostRemoveTimestampBehavior" />
     <Modification>
-      <UnifiedMoveSpeedFactor value="0.2" />
+      <UnifiedMoveSpeedFactor value="$BrightwingPixieDustMovementSpeedBonus">
+        <AccumulatorArray value="BrightwingPixieBoostAccumulator" />
+      </UnifiedMoveSpeedFactor>
     </Modification>
     <RemoveValidatorArray value="TargetNotSpecialDeathState" />
   </CBehaviorBuff>
@@ -2072,15 +2084,12 @@
     <ValidatorArray value="TargetHasPixieDust" />
     <Behavior value="BrightwingPixieDustManicPixie" />
   </CEffectApplyBehavior>
-  <CEffectApplyBehavior id="BrightwingPixieDustApplyPixieBoost">
-    <ValidatorArray index="0" value="HasBrightwingPixieBoostPixieDust" />
-    <Behavior value="BrightwingPixieDustPixieBoost" />
-    <Count value="12" />
+  <CEffectApplyBehavior id="BrightwingPixieBoostApplyTimestampBehavior">
+    <Behavior value="BrightwingPixieBoostTimestamp" />
   </CEffectApplyBehavior>
-  <CEffectApplyBehavior id="BrightwingPixieDustApplyPixieBoostController">
-    <ValidatorArray index="0" value="HasBrightwingPixieBoostPixieDust" />
-    <Behavior value="BrightwingPixieDustPixieBoostController" />
-  </CEffectApplyBehavior>
+  <CEffectRemoveBehavior id="BrightwingPixieBoostRemoveTimestampBehavior">
+    <BehaviorLink value="BrightwingPixieBoostTimestamp" />
+  </CEffectRemoveBehavior>
   <CEffectSet id="BrightwingPixieDustBouncyDustApplyBehaviorsSet1">
     <EffectArray value="PixieDustApplyBehaviorsSet" />
   </CEffectSet>
@@ -2129,11 +2138,6 @@
     <EffectArray value="PixieDustApplyBehaviorsSet" />
     <EffectArray value="BrightwingPixieDustFaerieProtectorLaunchMissile" />
   </CEffectSet>
-  <CEffectRemoveBehavior id="BrightwingPixieDustPixieBoostRemoveStack">
-    <WhichUnit Value="Source" />
-    <BehaviorLink value="BrightwingPixieDustPixieBoost" />
-    <Count value="1" />
-  </CEffectRemoveBehavior>
   <CEffectEnumArea id="BrightwingPolymorphUnstableAnomalySearchArea">
     <ValidatorArray value="HasBrightwingUnstableAnomalyPolymorph" />
     <SearchFilters value="Heroic;Player,Ally,Neutral,ImmuneToAOE,Missile,Item,Stasis,Dead,Hidden,Invulnerable" />
@@ -2187,10 +2191,15 @@
   </CEffectRemoveBehavior>
   <CEffectSet id="FaerieDragonWeaponImpactSet">
     <EffectArray value="UniversalWeaponImpact" />
+    <EffectArray value="BrightwingWeaponPreImpactSet" />
     <EffectArray value="FaerieDragonWeaponDamage" />
-    <EffectArray value="BrightwingCalmingMistMagicSpitModifyCooldown" />
+    <EffectArray value="BrightwingWeaponPostImpactSet" />
     <EffectArray value="UniversalWeaponPostImpactSet" />
   </CEffectSet>
+  <CEffectSet id="BrightwingWeaponPreImpactSet">
+    <EffectArray value="BrightwingCalmingMistMagicSpitModifyCooldown" />
+  </CEffectSet>
+  <CEffectSet id="BrightwingWeaponPostImpactSet" />
   <CEffectModifyUnit id="FaerieDragonHardenedFocusModifyCooldowns">
     <Cost Abil="FaerieDragonArcaneFlare,Execute" CooldownOperation="Add" CooldownTimeUse="-0.125" />
     <Cost Abil="FaerieDragonPixieDust,Execute" CooldownOperation="Add" CooldownTimeUse="-0.125" />
@@ -2411,11 +2420,10 @@
     <ImpactUnit Value="Caster" />
   </CEffectModifyUnit>
   <CEffectSet id="PixieDustApplyBehaviorsSet">
+    <EffectArray value="BrightwingPixieBoostRemoveTimestampBehavior" />
     <EffectArray value="BrightwingPixieDustApplyMoveSpeedBuff" />
     <EffectArray value="BrightwingPixieDustBlockApplyArmorBehavior" />
     <EffectArray value="BrightwingPixieDustShieldDustSwitch" />
-    <EffectArray value="BrightwingPixieDustApplyPixieBoostController" />
-    <EffectArray value="BrightwingPixieDustApplyPixieBoost" />
   </CEffectSet>
   <CEffectApplyBehavior id="BrightwingPixieDustApplyMoveSpeedBuff">
     <Behavior value="BrightwingPixieDustMoveSpeedBuff" />
@@ -2522,8 +2530,8 @@
     </AreaArray>
   </CEffectEnumArea>
   <CEffectSet id="FaerieDragonWeaponSet">
-    <EffectArray value="FaerieDragonWeaponLaunchMissile" />
     <EffectArray value="UniversalWeaponLaunchSet" />
+    <EffectArray value="FaerieDragonWeaponLaunchMissile" />
   </CEffectSet>
   <CEffectRemoveBehavior id="BrightwingPixieDustBlockRemoveArmorBehavior">
     <WhichUnit Value="Source" />
@@ -3266,49 +3274,28 @@
         <Catalog value="Behavior" />
         <Entry value="BrightwingPixieDustMoveSpeedBuff" />
         <Field value="Duration" />
-        <Value value="1.000000" />
+        <Value value="$BrightwingPixieDustSafetyDustBonusDuration" />
       </Modifications>
       <Modifications>
         <Type value="FlatModification" />
         <Catalog value="Behavior" />
         <Entry value="BrightwingPixieDustSpellArmorBehavior" />
         <Field value="Duration" />
-        <Value value="1.000000" />
+        <Value value="$BrightwingPixieDustSafetyDustBonusDuration" />
       </Modifications>
       <Modifications>
         <Type value="FlatModification" />
         <Catalog value="Behavior" />
         <Entry value="BrightwingPixieDustShieldDustCriticalArmorBehavior" />
         <Field value="Duration" />
-        <Value value="1.000000" />
+        <Value value="$BrightwingPixieDustSafetyDustBonusDuration" />
       </Modifications>
       <Modifications>
         <Type value="FlatModification" />
         <Catalog value="Behavior" />
         <Entry value="BrightwingPixieDustShieldDustNormalArmorBehavior" />
         <Field value="Duration" />
-        <Value value="1.000000" />
-      </Modifications>
-      <Modifications>
-        <Type value="FlatModification" />
-        <Catalog value="Behavior" />
-        <Entry value="BrightwingPixieDustPixieBoost" />
-        <Field value="Modification.UnifiedMoveSpeedFactor" />
-        <Value value="-0.009200" />
-      </Modifications>
-      <Modifications>
-        <Type value="FlatModification" />
-        <Catalog value="Behavior" />
-        <Entry value="BrightwingPixieDustPixieBoostController" />
-        <Field value="Duration" />
-        <Value value="1.000000" />
-      </Modifications>
-      <Modifications>
-        <Type value="FlatModification" />
-        <Catalog value="Behavior" />
-        <Entry value="BrightwingPixieDustPixieBoostController" />
-        <Field value="Period" />
-        <Value value="0.083300" />
+        <Value value="$BrightwingPixieDustSafetyDustBonusDuration" />
       </Modifications>
     </AbilityModificationArray>
   </CTalent>
@@ -3643,6 +3630,22 @@
   <CTalent id="BrightwingPixieBoostPixieDust">
     <Face value="BrightwingPixieBoostTalent" />
     <Abil value="FaerieDragonPixieDust" />
+    <AbilityModificationArray>
+      <Modifications>
+        <Type value="FlatModification" />
+        <Catalog value="Behavior" />
+        <Entry value="BrightwingPixieDustMoveSpeedBuff" />
+        <Field value="Modification.UnifiedMoveSpeedFactor" />
+        <Value value="$BrightwingPixieDustPixieBoostMaximumBonus" />
+      </Modifications>
+      <Modifications>
+        <Type value="FlatModification" />
+        <Catalog value="Accumulator" />
+        <Entry value="BrightwingPixieBoostAccumulator" />
+        <Field value="MultiplierPerStep" />
+        <Value value="$BrightwingPixieDustPixieBoostMultiplierPerStep" />
+      </Modifications>
+    </AbilityModificationArray>
   </CTalent>
   <CTalent id="BrightwingArcaneFlareStickyFlare">
     <Face value="BrightwingArcaneFlareStickyFlareTalent" />

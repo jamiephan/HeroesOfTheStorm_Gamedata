@@ -16,6 +16,7 @@
   <const id="$LucioCrossfadeAllTogetherBonusMovespeed" value="*($HeroBaseMovementSpeed $LucioCrossfadeAllTogetherBonusMovespeedModifier)" evaluateAsExpression="1" />
   <const id="$LucioWallrideSlipBonusMovespeedModifier" value="0.2" />
   <const id="$LucioWallrideSlipBonusMovespeed" value="*($HeroBaseMovementSpeed $LucioWallrideSlipBonusMovespeedModifier)" evaluateAsExpression="1" />
+  <const id="$LucioPartyMixSecondsForCompletion" value="480" />
   <CAbilEffectInstant id="LucioBackInTheMix">
     <Effect value="LucioBackInTheMixDummyCastSet" />
     <Flags index="ValidateButtonState" value="0" />
@@ -55,7 +56,7 @@
   </CAbilEffectTarget>
   <CAbilEffectInstant id="LucioSummerAnthem">
     <PrepEffect value="DismountDecloakCasterSet" />
-    <Effect value="LucioSummerAnthemSearchArea" />
+    <Effect value="LucioSummerAnthemCastSet" />
     <Flags index="NoDeceleration" value="1" />
     <Cost>
       <Cooldown TimeUse="60" />
@@ -196,17 +197,20 @@
     <CmdButtonArray index="Execute" DefaultButtonFace="LucioHighFive" />
     <Arc value="360" />
   </CAbilEffectTarget>
+  <CAccumulatorTrackedUnitCount id="LucioCrossfadeTrackingUIAccumulator" parent="BaseAccumulator">
+    <ApplicationRule value="Add" />
+    <TrackingBehavior value="LucioSkateCrossfadeUnitTracker" />
+    <TrackedUnitFilters value="Heroic;Self" />
+  </CAccumulatorTrackedUnitCount>
   <CAccumulatorTrackedUnitCount id="LucioCrossfadeAllTogetherMovementSpeedAccumulator" parent="BaseAccumulator">
     <ApplicationRule value="Add" />
     <Scale value="$LucioCrossfadeAllTogetherBonusMovespeed" />
-    <TrackerUnit Value="Source" />
     <TrackingBehavior value="LucioSkateCrossfadeUnitTracker" />
     <TrackedUnitFilters value="Heroic;-" />
   </CAccumulatorTrackedUnitCount>
   <CAccumulatorTrackedUnitCount id="LucioCrossfadeHousePartyAccumulator" parent="BaseAccumulator">
     <ApplicationRule value="Add" />
     <Scale value="0.08" />
-    <TrackerUnit Value="Source" />
     <TrackingBehavior value="LucioSkateCrossfadeUnitTracker" />
     <TrackedUnitFilters value="Heroic;-" />
   </CAccumulatorTrackedUnitCount>
@@ -768,16 +772,16 @@
     <Model value="LucioCrossfadePulse" />
   </CActorModel>
   <CActorModel id="LucioCrossfadeHealingBoostActive" parent="StormModelAnimationStyleContinuousUnit">
-    <On Terms="Behavior.LucioCrossfadeHealingBoost.On" Send="Create" />
+    <On Terms="Effect.LucioCrossfadeHealingBoostApplyBehavior.Start; At Target" Send="Create" />
     <On Terms="Behavior.LucioBoomboxCrossfadeHealingBoostApplier.On" Send="Create" />
-    <On Terms="Effect.LucioAmpItUpCrossfadeHealingBoostHeal.Start; At Target; IsStatus AmpItUp 0" Send="Create LucioAmpItUpCrossfadeHealingBoostTarget" />
-    <On Terms="Effect.LucioAmpItUpCrossfadeHealingBoostHeal.Start; At Target" Send="TimerKill AmpItUpChecker" />
-    <On Terms="Effect.LucioAmpItUpCrossfadeHealingBoostHeal.Start; At Target" Send="TimerSet 0.250000 AmpItUpChecker" />
-    <On Terms="Effect.LucioAmpItUpCrossfadeHealingBoostHeal.Start; At Target" Send="StatusSet AmpItUp 1" />
-    <On Terms="Effect.LucioCrossfadeHealingBoostHeal.Start; At Target; IsStatus AmpItUp 1" Target="LucioAmpItUpCrossfadeHealingBoostTarget" Send="AnimBracketStop BSD" />
-    <On Terms="Effect.LucioCrossfadeHealingBoostHeal.Start; At Target" Send="StatusSet AmpItUp 0" />
-    <On Terms="Behavior.LucioCrossfadeHealingBoost.Off" Send="AnimBracketStop BSD" />
-    <On Terms="Behavior.LucioCrossfadeHealingBoost.Off" Target="LucioAmpItUpCrossfadeHealingBoostTarget" Send="AnimBracketStop BSD" />
+    <On Terms="Effect.LucioCrossfadeHealingBoostHealSwitch.Start; At Target; ValidateCreationEffect LucioCrossfadeCasterHasAmpItUp; IsStatus AmpItUp 0" Send="Create LucioAmpItUpCrossfadeHealingBoostTarget" />
+    <On Terms="Effect.LucioCrossfadeHealingBoostHealSwitch.Start; At Target; ValidateCreationEffect LucioCrossfadeCasterHasAmpItUp" Send="TimerKill AmpItUpChecker" />
+    <On Terms="Effect.LucioCrossfadeHealingBoostHealSwitch.Start; At Target; ValidateCreationEffect LucioCrossfadeCasterHasAmpItUp" Send="TimerSet 0.250000 AmpItUpChecker" />
+    <On Terms="Effect.LucioCrossfadeHealingBoostHealSwitch.Start; At Target; ValidateCreationEffect LucioCrossfadeCasterHasAmpItUp" Send="StatusSet AmpItUp 1" />
+    <On Terms="Effect.LucioCrossfadeHealingBoostHealSwitch.Start; At Target; !ValidateCreationEffect LucioCrossfadeCasterHasAmpItUp; IsStatus AmpItUp 1" Target="LucioAmpItUpCrossfadeHealingBoostTarget" Send="AnimBracketStop BSD" />
+    <On Terms="Effect.LucioCrossfadeHealingBoostHealSwitch.Start; At Target; !ValidateCreationEffect LucioCrossfadeCasterHasAmpItUp" Send="StatusSet AmpItUp 0" />
+    <On Terms="Effect.LucioCrossfadeHealingBoostDummyRemoveFX.Start; At Target; FromEffectTreeDescendant" Send="AnimBracketStop BSD" />
+    <On Terms="Effect.LucioCrossfadeHealingBoostDummyRemoveFX.Start; At Target; FromEffectTreeDescendant" Target="LucioAmpItUpCrossfadeHealingBoostTarget" Send="AnimBracketStop BSD" />
     <On Terms="Behavior.LucioBoomboxCrossfadeHealingBoostApplier.Off" Send="AnimBracketStop BSD" />
     <On Terms="TimerExpired; TimerName AmpItUpChecker" Target="LucioAmpItUpCrossfadeHealingBoostTarget" Send="AnimBracketStop BSD" />
     <On Terms="TimerExpired; TimerName AmpItUpChecker" Send="StatusSet AmpItUp 0" />
@@ -851,7 +855,8 @@
     <On Terms="ActorCreation; !ScopeContains _YellowBladeAnim" Send="AnimPlay Rollerblades Cover,A PlayForever" />
   </CActorModel>
   <CActorSound id="LucioSummerAnthemLaunchSound" parent="SoundOneShot">
-    <On Terms="Effect.LucioSummerAnthemSearchArea.Start" Send="Create" />
+    <On Terms="Effect.LucioSummerAnthemTrackedUnitsApplySummerAnthem.Start" Send="Create" />
+    <On Terms="Effect.LucioSummerAnthemBoomboxDummy.Start; At Target" Send="Create" />
     <Sound value="Talent_SummerAnthem_Activate" />
   </CActorSound>
   <CActorModel id="LucioFeetLightLeft" parent="StormModelAnimationStyleContinuousUnit">
@@ -1014,22 +1019,20 @@
     <Sound value="Lucio_SoundBarrierShield_Impact" />
   </CActorSound>
   <CActorSound id="LucioCrossfadeHealingLoopSound" parent="SoundContinuous">
+    <Terms value="Cap 1" />
     <Filter index="All" value="1" />
     <VisibleToAtCreation index="Target" value="1" />
     <On Terms="Effect.LucioCrossfadeHealingBoostApplyBehavior.Start; At Target; ValidateEffect TargetIsSelf" Send="Create" />
-    <On Terms="Effect.LucioAmpItUpCrossfadeHealingBoostTargetRemoveHealingBoost.Start; At Target" Send="Destroy" />
-    <On Terms="Effect.LucioAmpItUpCrossfadeHealingBoostApplyBehavior.Start; At Target; ValidateEffect TargetIsSelf" Send="Create" />
-    <On Terms="Behavior.LucioCrossfadeHealingBoost.Destroy" Send="Destroy" />
+    <On Terms="Effect.LucioCrossfadeHealingBoostDummyRemoveFX.Start; At Target; FromEffectTreeDescendant" Send="Destroy" />
     <HostSiteOps Ops="SOpSourceUnit" />
     <Sound value="Lucio_CrossfadeHealing_Loop" />
   </CActorSound>
   <CActorSound id="LucioCrossfadeHealingLoopAllySound" parent="SoundContinuous">
+    <Terms value="Cap 1" />
     <Filter index="All" value="1" />
     <VisibleToAtCreation index="Target" value="1" />
     <On Terms="Effect.LucioCrossfadeHealingBoostApplyBehavior.Start; At Target; !ValidateEffect TargetIsSelf" Send="Create" />
-    <On Terms="Effect.LucioAmpItUpCrossfadeHealingBoostTargetRemoveHealingBoost.Start; At Target" Send="Destroy" />
-    <On Terms="Effect.LucioAmpItUpCrossfadeHealingBoostApplyBehavior.Start; At Target; !ValidateEffect TargetIsSelf" Send="Create" />
-    <On Terms="Behavior.LucioCrossfadeHealingBoost.Destroy" Send="Destroy" />
+    <On Terms="Effect.LucioCrossfadeHealingBoostDummyRemoveFX.Start; At Target; FromEffectTreeDescendant" Send="Destroy" />
     <HostSiteOps Ops="SOpSourceUnit" />
     <Sound value="Lucio_CrossfadeHealing_Loop_Ally" />
   </CActorSound>
@@ -1038,8 +1041,7 @@
     <Filter index="All" value="1" />
     <VisibleToAtCreation index="Target" value="1" />
     <On Terms="Effect.LucioCrossfadeSpeedBoostApplyBehavior.Start; At Target; ValidateEffect TargetIsSelf" Send="Create" />
-    <On Terms="Effect.LucioAmpItUpCrossfadeSpeedBoostTargetRemoveSpeedBoost.Start; At Target" Send="Destroy" />
-    <On Terms="Effect.LucioAmpItUpCrossfadeSpeedBoostApplyBehavior.Start; At Target; ValidateEffect TargetIsSelf" Send="Create" />
+    <On Terms="Effect.LucioCrossfadeSpeedBoostDummyRemoveFX.Start; At Target; FromEffectTreeDescendant" Send="Destroy" />
     <On Terms="Behavior.LucioCrossfadeSpeedBoost.Destroy" Send="Destroy" />
     <HostSiteOps Ops="SOpSourceUnit" />
     <Sound value="Lucio_CrossfadeSpeed_Loop" />
@@ -1058,8 +1060,7 @@
     <Filter index="All" value="1" />
     <VisibleToAtCreation index="Target" value="1" />
     <On Terms="Effect.LucioCrossfadeSpeedBoostApplyBehavior.Start; At Target; !ValidateEffect TargetIsSelf" Send="Create" />
-    <On Terms="Effect.LucioAmpItUpCrossfadeSpeedBoostTargetRemoveSpeedBoost.Start; At Target" Send="Destroy" />
-    <On Terms="Effect.LucioAmpItUpCrossfadeSpeedBoostApplyBehavior.Start; At Target; !ValidateEffect TargetIsSelf" Send="Create" />
+    <On Terms="Effect.LucioCrossfadeSpeedBoostDummyRemoveFX.Start; At Target; FromEffectTreeDescendant" Send="Destroy" />
     <On Terms="Behavior.LucioCrossfadeSpeedBoost.Destroy" Send="Destroy" />
     <HostSiteOps Ops="SOpSourceUnit" />
     <Sound value="Lucio_CrossfadeSpeed_Loop_Ally" />
@@ -1256,7 +1257,7 @@
     <Sound value="Lucio_AmptItUpBonusTrack_Impact" />
   </CActorSound>
   <CBehaviorBuff id="LucioBoomboxArmorBehavior" parent="StormArmor">
-    <RemoveValidatorArray value="LucioCrossfadeCombine" />
+    <RemoveValidatorArray value="LucioCrossfadeRangeCombineBoomboxArmor" />
     <RemoveValidatorArray value="CasterNotDead" />
     <ArmorModification>
       <AllArmorBonus value="5" />
@@ -1272,6 +1273,8 @@
   <CBehaviorUnitTracker id="LucioBoomboxUnitTracker">
     <BehaviorFlags index="Permanent" value="1" />
     <MaxTrackedUnits value="1" />
+    <UnitAddedAtMaxRule value="ReplaceOldest" />
+    <TrackingValidatorArray value="CasterNotDead" />
   </CBehaviorUnitTracker>
   <CBehaviorBuff id="LucioCrossfadePartyMixDummyButtonBehavior" parent="CarryBehaviorParent">
     <MaxStackCount value="30000" />
@@ -1379,13 +1382,33 @@
       </MoveSpeedBonus>
     </Modification>
   </CBehaviorBuff>
+  <CBehaviorBuff id="LucioCrossfadeUnitTrackerController">
+    <BehaviorFlags index="Permanent" value="1" />
+    <DisableValidatorArray value="CasterNotDeadOrStasis" />
+    <Alignment value="Positive" />
+    <Period value="0.1875" />
+    <InitialEffect value="LucioCrossfadeSearchSet" />
+    <PeriodicEffect value="LucioCrossfadeSearchSet" />
+  </CBehaviorBuff>
   <CBehaviorUnitTracker id="LucioSkateCrossfadeUnitTracker">
     <BehaviorFlags index="Permanent" value="1" />
     <BehaviorFlags index="EnabledWhileDead" value="1" />
-    <UseSharedList value="1" />
-    <SharedListPersistsForever value="1" />
-    <TrackingValidatorArray value="LucioCrossfadeCombine" />
+    <TrackingValidatorArray value="NotHidden" />
+    <TrackingValidatorArray value="LucioCrossfadeTargetHasTargetController" />
   </CBehaviorUnitTracker>
+  <CBehaviorBuff id="LucioCrossfadeTargetController">
+    <RemoveValidatorArray value="LucioCrossfadeBoostValidatorCombine" />
+    <RemoveValidatorArray value="LucioCrossfadeSearchAreaTargetNotDead" />
+    <MaxStackCount value="5" />
+    <MaxStackCountPerCaster value="1" />
+    <InitialEffect value="LucioCrossfadeAddTrackedUnit" />
+    <RefreshEffect value="LucioCrossfadeAddTrackedUnit" />
+    <FinalEffect value="LucioCrossfadeRemoveTrackedUnit" />
+    <CancelEffect value="LucioCrossfadeRemoveTrackedUnit" />
+    <Period value="0.125" />
+    <PeriodicEffect value="LucioCrossfadePeriodicSet" />
+    <TimeScaleSource Value="Caster" />
+  </CBehaviorBuff>
   <CBehaviorTokenCounter id="LucioSoundwaveSubwooferTokenCounter" parent="StormQuestToken">
     <Face value="LucioSoundwaveSubwooferQuestToken" />
     <IncreaseEvents index="0" EventId="" />
@@ -1492,43 +1515,33 @@
     <SortIndex value="20" />
   </CBehaviorTokenCounter>
   <CBehaviorBuff id="LucioCrossfadeSpeedBoost" parent="StormSprint">
-    <RemoveValidatorArray value="TargetNotSpecialDeathState" />
-    <RemoveValidatorArray value="LucioCrossfadeCombine" />
+    <RemoveValidatorArray value="LucioCrossfadeTargetIsTracked" />
     <RemoveValidatorArray value="LucioCrossfadeCasterHasSpeedBoostApplier" />
-    <RemoveValidatorArray value="SourceNotDead" />
-    <RemoveValidatorArray value="TargetIsNotImmuneToFriendlyAbilities" />
-    <RemoveValidatorArray value="TargetNotStasisExceptTimeStop" />
-    <RemoveValidatorArray value="CasterNotTimeStopped" />
-    <Period value="0.125" />
-    <PeriodicEffect value="LucioCrossfadeSpeedBoostPeriodicSet" />
+    <MaxStackCount value="5" />
+    <MaxStackCountPerCaster value="1" />
     <Modification>
       <UnifiedMoveSpeedFactor value="0.1" />
     </Modification>
-    <InitialEffect value="LucioCrossfadeAllyModifyTokenUpSpeedOn" />
-    <FinalEffect value="LucioCrossfadeAllyModifyTokenDownSpeedOff" />
     <TimeScaleSource Value="Caster" />
   </CBehaviorBuff>
   <CBehaviorBuff id="LucioCrossfadeHealingBoost">
-    <Alignment value="Positive" />
-    <RemoveValidatorArray value="TargetNotSpecialDeathState" />
-    <RemoveValidatorArray value="LucioCrossfadeCombine" />
+    <RemoveValidatorArray value="LucioCrossfadeTargetIsTracked" />
     <RemoveValidatorArray value="LucioCrossfadeCasterHasHealingBoostApplier" />
-    <RemoveValidatorArray value="SourceNotDead" />
-    <RemoveValidatorArray value="TargetIsNotImmuneToFriendlyAbilities" />
-    <RemoveValidatorArray value="TargetNotStasisExceptTimeStop" />
-    <RemoveValidatorArray value="CasterNotTimeStopped" />
+    <Alignment value="Positive" />
+    <MaxStackCount value="5" />
+    <MaxStackCountPerCaster value="1" />
     <Period value="0.125" />
-    <PeriodicEffect value="LucioCrossfadeHealingBoostPeriodicSet" />
-    <InitialEffect value="LucioCrossfadeAllyModifyTokenUpHealingOn" />
-    <FinalEffect value="LucioCrossfadeAllyModifyTokenDownHealingOff" />
+    <PeriodicEffect value="LucioCrossfadeHealingBoostHealSwitch" />
+    <CancelEffect value="LucioCrossfadeHealingBoostDummyRemoveFX" />
+    <DisableEffect value="LucioCrossfadeHealingBoostDummyRemoveFX" />
+    <FinalEffect value="LucioCrossfadeHealingBoostDummyRemoveFX" />
     <TimeScaleSource Value="Caster" />
   </CBehaviorBuff>
   <CBehaviorBuff id="LucioCrossfadeHealingBoostApplier">
     <Alignment value="Positive" />
     <DisableValidatorArray value="CasterNotDeadOrStasis" />
-    <Period value="0.1875" />
-    <InitialEffect value="LucioCrossfadeHealingBoostApplierInitialSet" />
-    <PeriodicEffect value="LucioCrossfadeHealingBoostSearchSet" />
+    <EnableEffect value="LucioCrossfadeHealingBoostApplierInitialSet" />
+    <DisableEffect value="LucioCrossfadeEnumTrackedUnitsRemoveHealingBoost" />
     <BehaviorFlags index="Permanent" value="1" />
     <RemoveValidatorArray value="CasterNotDead" />
   </CBehaviorBuff>
@@ -1537,9 +1550,10 @@
     <BehaviorFlags index="Permanent" value="1" />
     <DisableValidatorArray value="LucioCrossfadeCasterHasNoHealingBoostApplier" />
     <DisableValidatorArray value="CasterNotDeadOrStasis" />
-    <Period value="0.1875" />
-    <InitialEffect value="LucioCrossfadeSpeedBoostApplierInitialSet" />
-    <PeriodicEffect value="LucioCrossfadeSpeedBoostSearchSet" />
+    <EnableEffect value="LucioCrossfadeSpeedBoostApplierInitialSet" />
+    <CancelEffect value="LucioCrossfadeSpeedBoostDummyRemoveFX" />
+    <DisableEffect value="LucioCrossfadeSpeedBoostDummyRemoveFX" />
+    <FinalEffect value="LucioCrossfadeSpeedBoostDummyRemoveFX" />
     <Face value="LucioCrossfadeUITooltipButton" />
   </CBehaviorBuff>
   <CBehaviorBuff id="LucioCrossfadeBeatMixingDelay">
@@ -1557,22 +1571,20 @@
     <Alignment value="Positive" />
     <DisableValidatorArray value="CasterNotDeadOrStasis" />
     <DisableValidatorArray value="LucioCrossfadeCasterHasHealingBoostApplier" />
-    <Period value="0.1875" />
-    <InitialEffect value="LucioCrossfadeHealingBoostSearchArea" />
-    <PeriodicEffect value="LucioCrossfadeHealingBoostSearchArea" />
   </CBehaviorBuff>
   <CBehaviorBuff id="LucioBoomboxCrossfadeSpeedBoostApplier">
     <Alignment value="Positive" />
     <DisableValidatorArray value="CasterNotDeadOrStasis" />
     <DisableValidatorArray value="LucioCrossfadeCasterHasSpeedBoostApplier" />
-    <Period value="0.1875" />
-    <InitialEffect value="LucioCrossfadeSpeedBoostSearchArea" />
-    <PeriodicEffect value="LucioCrossfadeSpeedBoostSearchArea" />
   </CBehaviorBuff>
   <CBehaviorBuff id="LucioBoomboxAmpItUpDetector">
     <Alignment value="Positive" />
     <DisableValidatorArray value="LucioCrossfadeCasterHasAmpItUp" />
-    <InitialEffect value="LucioBoomboxCasterApplyDelayPersistent" />
+  </CBehaviorBuff>
+  <CBehaviorBuff id="LucioBoomboxLifeController">
+    <RemoveValidatorArray value="LucioBoomboxIsTracked" />
+    <Alignment value="Positive" />
+    <FinalEffect value="LucioBoomboxSuicide" />
   </CBehaviorBuff>
   <CBehaviorBuff id="LucioBoomboxCaster">
     <Alignment value="Positive" />
@@ -1670,22 +1682,6 @@
     <Alignment value="Positive" />
     <RemoveValidatorArray value="LucioCrossfadeCasterHasAmpItUp" />
   </CBehaviorBuff>
-  <CBehaviorBuff id="LucioAmpItUpCrossfadeSpeedBoostTarget" parent="StormSprint">
-    <RemoveValidatorArray value="LucioCrossfadeCasterHasAmpItUp" />
-    <RemoveValidatorArray value="TargetNotSpecialDeathState" />
-    <RemoveValidatorArray value="LucioCrossfadeCombine" />
-    <RemoveValidatorArray value="LucioCrossfadeCasterHasSpeedBoostApplier" />
-    <RemoveValidatorArray value="SourceNotDead" />
-    <Duration value="3.0625" />
-  </CBehaviorBuff>
-  <CBehaviorBuff id="LucioAmpItUpCrossfadeHealingBoostTarget">
-    <Alignment value="Positive" />
-    <RemoveValidatorArray value="LucioCrossfadeCasterHasAmpItUp" />
-    <RemoveValidatorArray value="TargetNotSpecialDeathState" />
-    <RemoveValidatorArray value="LucioCrossfadeCombine" />
-    <RemoveValidatorArray value="LucioCrossfadeCasterHasHealingBoostApplier" />
-    <RemoveValidatorArray value="SourceNotDead" />
-  </CBehaviorBuff>
   <CBehaviorTokenCounter id="LucioAmpItUpMaximumTempoQuestToken" parent="StormQuestToken">
     <AtMaxEvents index="0" EventId="QuestComplete" Effect="LucioAmpItUpMaximumTempoActiveCheckerModifyPlayerOn" />
     <Max value="5" />
@@ -1696,13 +1692,6 @@
     <AtMinEvents Effect="LucioAmpItUpSonicAmplifierModifyPlayerOff" />
     <Max value="1" />
   </CBehaviorTokenCounter>
-  <CBehaviorBuff id="LucioAmpItUpUpTheFrequencyCarry" parent="CarryBehaviorParent">
-    <DamageResponse Chance="1" Handled="LucioAmpItUpUpTheFrequencyModifyCooldown" Location="Attacker">
-      <ValidatorArray value="TargetNotEvading" />
-      <ValidatorArray value="TargetIsHero" />
-      <Kind index="Ability" value="0" />
-    </DamageResponse>
-  </CBehaviorBuff>
   <CBehaviorBuff id="LucioUpTheFrequencyAttackRangeBehavior" parent="CarryBehaviorParent">
     <DisableValidatorArray value="LucioHasWallRideSpeed" />
     <Modification>
@@ -1867,7 +1856,7 @@
   </CBehaviorBuff>
   <CBehaviorTokenCounter id="LucioCrossfadePartyMixQuestToken" parent="StormQuestToken">
     <AtMaxEvents index="0" EventId="QuestComplete" Effect="LucioCrossfadePartyMixQuestCompleteModifyPlayer" />
-    <Max value="480" />
+    <Max value="$LucioPartyMixSecondsForCompletion" />
     <IncreaseEvents index="0" EventId="" Effect="LucioCrossfadePartyMixApplyPingSuppressor" />
     <SortIndex value="10" />
   </CBehaviorTokenCounter>
@@ -1878,9 +1867,6 @@
       <Event EventId="QuestIncrease" Effect="LucioCrossfadePartyMixSet" />
     </DeltaEvents>
     <InfoFlags index="Hidden" value="1" />
-  </CBehaviorTokenCounter>
-  <CBehaviorTokenCounter id="LucioCrossfadeAllyToken" parent="StormGenericToken">
-    <Max value="20" />
   </CBehaviorTokenCounter>
   <CBehaviorTokenCounter id="LucioReverseAmpNonstopRemixToken" parent="StormGenericToken">
     <Max value="20" />
@@ -2159,16 +2145,6 @@
     <PeriodicEffectArray value="LucioAmpItUpUpToElevenModfifyBehaviorDuration" />
     <FinalEffect value="LucioAmpItUpUpToElevenResetTokens" />
   </CEffectCreatePersistent>
-  <CEffectAddTrackedUnit id="LucioBoomboxAddTrackedUnit">
-    <BehaviorLink value="LucioBoomboxUnitTracker" />
-    <TrackedUnit Value="Target" />
-  </CEffectAddTrackedUnit>
-  <CEffectApplyBehavior id="LucioBoomboxApplyArmorBehavior">
-    <Behavior value="LucioBoomboxArmorBehavior" />
-  </CEffectApplyBehavior>
-  <CEffectModifyTokenCount id="LucioBoomboxPartyMixAddToken" parent="BaseEffectModifyTokenCount">
-    <TokenId value="LucioBoomboxPartyMixToken" />
-  </CEffectModifyTokenCount>
   <CEffectApplyBehavior id="LucioCrossfadePartyMixApplyDummyButtonBehavior">
     <Behavior value="LucioCrossfadePartyMixDummyButtonBehavior" />
   </CEffectApplyBehavior>
@@ -2256,15 +2232,6 @@
       <Cooldown Link="Abil/LucioBackInTheMix" Location="Player" TimeUse="10" />
     </Cost>
   </CEffectModifyPlayer>
-  <CEffectAddTrackedUnit id="LucioCrossfadeAddTrackedUnit">
-    <BehaviorLink value="LucioSkateCrossfadeUnitTracker" />
-    <TrackedUnit Value="Target" />
-    <ValidatorArray value="LucioCrossfadeSourceIsLucio" />
-  </CEffectAddTrackedUnit>
-  <CEffectSet id="LucioCrossfadeHealingBoostSearchSet">
-    <EffectArray value="LucioCrossfadeHealingBoostSearchArea" />
-    <EffectArray value="LucioHighFiveAvailableSearchSwitch" />
-  </CEffectSet>
   <CEffectCreateHealer id="LucioHighFiveCreateHealer" parent="StormHealingParent">
     <RechargeVitalRate value="230" />
     <ValidatorArray value="TargetIsAlliedHero" />
@@ -2303,10 +2270,6 @@
     <ValidatorArray index="0" value="LucioTargetDoesNotHaveHighFiveTrackingBehavior" />
     <Behavior value="LucioHighFiveCooldownBehavior" />
   </CEffectApplyBehavior>
-  <CEffectSet id="LucioCrossfadeSpeedBoostSearchSet">
-    <EffectArray value="LucioCrossfadeSpeedBoostSearchArea" />
-    <EffectArray value="LucioHighFiveAvailableSearchSwitch" />
-  </CEffectSet>
   <CEffectApplyBehavior id="LucioHighFiveSelfBuffApplyUnstoppableBehavior">
     <WhichUnit Value="Caster" />
     <Behavior value="LucioHighFiveUnstoppable" />
@@ -2573,6 +2536,7 @@
     <Weapon Weapon="HeroLucioWeapon" CooldownOperation="Max" CooldownAmount="0.3125" />
   </CEffectModifyUnit>
   <CEffectSet id="LucioSoundwaveKnockbackSet">
+    <ValidatorArray value="TargetNotUnstoppable" />
     <EffectArray value="HeroRemovePushPullDebuffs" />
     <EffectArray value="HeroRemovePreventsMovement" />
     <EffectArray value="LucioSoundwaveKnockbackBehaviorApplySwitch" />
@@ -2650,6 +2614,12 @@
     <WhichUnit Value="Caster" />
     <Behavior value="LucioSoundwaveWeaponPersistentDestroyer" />
   </CEffectApplyBehavior>
+  <CEffectSet id="LucioCrossfadeSearchSet">
+    <EffectArray value="LucioCrossfadeSearchArea" />
+    <EffectArray value="LucioCrossfadeBoomboxEnumSearch" />
+    <EffectArray value="LucioCrossfadeSearchApplySwitch" />
+    <EffectArray value="LucioHighFiveAvailableSearchSwitch" />
+  </CEffectSet>
   <CEffectEnumArea id="LucioHighFiveAvailableSearchAreaAllies">
     <ValidatorArray value="CasterNotDead" />
     <ImpactLocation Value="TargetUnit" />
@@ -2665,103 +2635,101 @@
       <Radius value="7" />
     </AreaArray>
   </CEffectEnumArea>
-  <CEffectEnumArea id="LucioCrossfadeSpeedBoostSearchArea">
+  <CEffectEnumArea id="LucioCrossfadeSearchArea">
     <ImpactLocation Value="TargetUnit" />
-    <SearchFilters value="Heroic;Neutral,Enemy,Structure,ImmuneToFriendlyAbilities,Missile,Stasis,Dead" />
-    <AreaArray Effect="LucioCrossfadeSpeedBoostInitialSet">
+    <SearchFilters value="Heroic;Neutral,Enemy,Structure,ImmuneToFriendlyAbilities,Missile,Hidden,Stasis,Dead" />
+    <AreaArray Effect="LucioCrossfadeUnitImpactSet">
       <Radius value="7" />
     </AreaArray>
     <ValidatorArray value="CasterNotDead" />
   </CEffectEnumArea>
-  <CEffectEnumArea id="LucioCrossfadeHealingBoostSearchArea">
-    <ImpactLocation Value="TargetUnit" />
-    <SearchFilters value="Heroic;Neutral,Enemy,Structure,ImmuneToFriendlyAbilities,Missile,Stasis,Dead" />
-    <AreaArray Effect="LucioCrossfadeHealingBoostInitialSet">
-      <Radius value="7" />
-    </AreaArray>
-  </CEffectEnumArea>
-  <CEffectEnumArea id="LucioSummerAnthemSearchArea">
-    <ImpactLocation Value="TargetUnit" />
-    <SearchFilters value="Heroic;Neutral,Enemy,Structure,ImmuneToFriendlyAbilities,Missile,Stasis,Dead" />
-    <AreaArray Effect="LucioSummerAnthemApplyUnkillableBehavior">
-      <Radius value="7" />
-    </AreaArray>
-    <ValidatorArray value="LucioHasItemSummerAnthemTalent" />
-  </CEffectEnumArea>
   <CEffectSet id="LucioCrossfadeSpeedBoostApplierInitialSet">
-    <EffectArray value="LucioCrossfadeSpeedBoostSearchSet" />
-    <EffectArray value="LucioCrossfadeBeatMixingRemoveDelay" />
-    <EffectArray value="LucioCrossfadeBeatMixingRemoveShield" />
-    <EffectArray value="LucioCrossfadeBeatMixingApplyDelay" />
-    <EffectArray value="LucioAmptItUpBonusTrackRefreshAmpItUpBehavior" />
-    <EffectArray value="LucioAmptItUpBonusTrackRefreshBringItTogetherBehavior" />
-    <EffectArray value="LucioAmptItUpBonusTrackRemoveBehavior" />
+    <EffectArray value="LucioCrossfadeBeatMixingSet" />
+    <EffectArray value="LucioAmpItUpBonusTrackSet" />
   </CEffectSet>
   <CEffectSet id="LucioCrossfadeHealingBoostApplierInitialSet">
-    <EffectArray value="LucioCrossfadeHealingBoostSearchSet" />
+    <EffectArray value="LucioCrossfadeBeatMixingSet" />
+    <EffectArray value="LucioAmpItUpBonusTrackSet" />
+  </CEffectSet>
+  <CEffectSet id="LucioCrossfadeBeatMixingSet">
     <EffectArray value="LucioCrossfadeBeatMixingRemoveDelay" />
     <EffectArray value="LucioCrossfadeBeatMixingRemoveShield" />
     <EffectArray value="LucioCrossfadeBeatMixingApplyDelay" />
+  </CEffectSet>
+  <CEffectSet id="LucioAmpItUpBonusTrackSet">
     <EffectArray value="LucioAmptItUpBonusTrackRefreshAmpItUpBehavior" />
     <EffectArray value="LucioAmptItUpBonusTrackRefreshBringItTogetherBehavior" />
     <EffectArray value="LucioAmptItUpBonusTrackRemoveBehavior" />
   </CEffectSet>
-  <CEffectApplyBehavior id="LucioCrossfadeSpeedBoostApplyBehavior">
-    <Behavior value="LucioCrossfadeSpeedBoost" />
-    <ValidatorArray index="0" value="LucioCrossfadeTargetHasNoSpeedBoost" />
+  <CEffectSet id="LucioCrossfadeUnitImpactSet">
+    <EffectArray value="LucioCrossfadeApplyTargetBehavior" />
+  </CEffectSet>
+  <CEffectApplyBehavior id="LucioCrossfadeApplyTargetBehavior">
+    <ValidatorArray index="0" value="LucioCrossfadeTargetHasNoTargetController" />
     <ValidatorArray value="TargetNotSpecialDeathState" />
-    <ValidatorArray value="LucioCrossfadeCombine" />
-    <ValidatorArray value="LucioCrossfadeCasterHasNoHealingBoostApplier" />
+    <ValidatorArray value="LucioCrossfadeRangeCombine" />
+    <Behavior value="LucioCrossfadeTargetController" />
   </CEffectApplyBehavior>
+  <CEffectAddTrackedUnit id="LucioCrossfadeAddTrackedUnit">
+    <BehaviorLink value="LucioSkateCrossfadeUnitTracker" />
+    <TrackedUnit Value="Target" />
+  </CEffectAddTrackedUnit>
+  <CEffectRemoveTrackedUnit id="LucioCrossfadeRemoveTrackedUnit">
+    <BehaviorLink value="LucioSkateCrossfadeUnitTracker" />
+    <TrackedUnit Value="Target" />
+    <ValidatorArray value="LucioCrossfadeTargetIsTracked" />
+  </CEffectRemoveTrackedUnit>
+  <CEffectSet id="LucioCrossfadePeriodicSet">
+    <EffectArray value="LucioCrossfadePartyMixModifyQuestToken" />
+    <EffectArray value="LucioCrossfadePartyMixModifyManaQuestToken" />
+  </CEffectSet>
+  <CEffectModifyUnit id="LucioCrossfadeHealingBoostDummyRemoveFX" />
+  <CEffectModifyUnit id="LucioCrossfadeSpeedBoostDummyRemoveFX" />
+  <CEffectSwitch id="LucioCrossfadeSearchApplySwitch">
+    <CaseArray Validator="LucioCrossfadeCasterHasHealingBoostApplier" Effect="LucioCrossfadeEnumTrackedUnitsApplyHealingBoost" />
+    <CaseArray Validator="LucioCrossfadeCasterHasSpeedBoostApplier" Effect="LucioCrossfadeEnumTrackedUnitsApplySpeedBoost" />
+  </CEffectSwitch>
+  <CEffectEnumTrackedUnits id="LucioCrossfadeEnumTrackedUnitsApplyHealingBoost">
+    <BehaviorLink value="LucioSkateCrossfadeUnitTracker" />
+    <Effect value="LucioCrossfadeHealingBoostApplyBehavior" />
+  </CEffectEnumTrackedUnits>
+  <CEffectEnumTrackedUnits id="LucioCrossfadeEnumTrackedUnitsApplySpeedBoost">
+    <BehaviorLink value="LucioSkateCrossfadeUnitTracker" />
+    <Effect value="LucioCrossfadeSpeedBoostApplyBehavior" />
+  </CEffectEnumTrackedUnits>
+  <CEffectEnumTrackedUnits id="LucioCrossfadeEnumTrackedUnitsRemoveHealingBoost">
+    <BehaviorLink value="LucioSkateCrossfadeUnitTracker" />
+    <Effect value="LucioCrossfadeRemoveHealingBoostBuff" />
+  </CEffectEnumTrackedUnits>
+  <CEffectEnumTrackedUnits id="LucioCrossfadeEnumTrackedUnitsRemoveSpeedBoost">
+    <BehaviorLink value="LucioSkateCrossfadeUnitTracker" />
+    <Effect value="LucioCrossfadeRemoveSpeedBoostBuff" />
+  </CEffectEnumTrackedUnits>
   <CEffectApplyBehavior id="LucioCrossfadeHealingBoostApplyBehavior">
     <Behavior value="LucioCrossfadeHealingBoost" />
     <ValidatorArray index="0" value="LucioCrossfadeTargetHasNoHealingBoost" />
-    <ValidatorArray value="TargetNotSpecialDeathState" />
-    <ValidatorArray value="LucioCrossfadeCombine" />
-    <ValidatorArray value="LucioCrossfadeCasterHasHealingBoostApplier" />
   </CEffectApplyBehavior>
-  <CEffectApplyBehavior id="LucioAmpItUpCrossfadeHealingBoostApplyBehavior">
-    <ValidatorArray index="0" value="TargetNotSpecialDeathState" />
-    <ValidatorArray value="LucioCrossfadeCombine" />
-    <ValidatorArray value="LucioCrossfadeCasterHasHealingBoostApplier" />
-    <Behavior value="LucioCrossfadeHealingBoost" />
-  </CEffectApplyBehavior>
-  <CEffectApplyBehavior id="LucioAmpItUpCrossfadeSpeedBoostApplyBehavior">
-    <ValidatorArray index="0" value="TargetNotSpecialDeathState" />
-    <ValidatorArray value="LucioCrossfadeCombine" />
-    <ValidatorArray value="LucioCrossfadeCasterHasSpeedBoostApplier" />
+  <CEffectApplyBehavior id="LucioCrossfadeSpeedBoostApplyBehavior">
     <Behavior value="LucioCrossfadeSpeedBoost" />
+    <ValidatorArray index="0" value="LucioCrossfadeTargetHasNoSpeedBoost" />
   </CEffectApplyBehavior>
-  <CEffectApplyBehavior id="LucioAmpItUpCrossfadeHealingBoostTargetApplyBehavior">
-    <Behavior value="LucioAmpItUpCrossfadeHealingBoostTarget" />
-  </CEffectApplyBehavior>
+  <CEffectRemoveBehavior id="LucioCrossfadeRemoveHealingBoostBuff">
+    <BehaviorLink value="LucioCrossfadeHealingBoost" />
+    <Count value="1" />
+    <RequireCasterUnit Value="Caster" />
+    <CancelBehavior value="1" />
+  </CEffectRemoveBehavior>
+  <CEffectRemoveBehavior id="LucioCrossfadeRemoveSpeedBoostBuff">
+    <BehaviorLink value="LucioCrossfadeSpeedBoost" />
+    <Count value="1" />
+    <RequireCasterUnit Value="Caster" />
+    <CancelBehavior value="1" />
+  </CEffectRemoveBehavior>
   <CEffectCreateHealer id="LucioCrossfadeHealingBoostHeal" parent="StormHealingSpell">
     <RechargeVitalRate value="1.875" />
     <SourceButtonFace value="LucioCrossfadeActivateHealingBoost" />
     <MultiplicativeModifierArray index="HouseParty" Validator="LucioHasPassiveHousePartyTalent" Accumulator="LucioCrossfadeHousePartyAccumulator" />
   </CEffectCreateHealer>
-  <CEffectSet id="LucioCrossfadeHealingBoostInitialSet">
-    <EffectArray value="LucioCrossfadeHealingBoostApplyBehavior" />
-    <EffectArray value="LucioAmpItUpCrossfadeHealingBoostTargetInitialSet" />
-    <EffectArray value="LucioCrossfadeAddTrackedUnit" />
-  </CEffectSet>
-  <CEffectSet id="LucioCrossfadeSpeedBoostInitialSet">
-    <EffectArray value="LucioCrossfadeSpeedBoostApplyBehavior" />
-    <EffectArray value="LucioAmpItUpCrossfadeSpeedBoostTargetInitialSet" />
-    <EffectArray value="LucioAmpItUpCrossfadeSpeedBoostTargetApply" />
-    <EffectArray value="LucioCrossfadeAddTrackedUnit" />
-  </CEffectSet>
-  <CEffectSet id="LucioCrossfadeHealingBoostPeriodicSet">
-    <EffectArray value="LucioCrossfadeHealingBoostHealSwitch" />
-    <EffectArray value="LucioCrossfadePartyMixModifyQuestToken" />
-    <EffectArray value="LucioCrossfadePartyMixModifyManaQuestToken" />
-    <EffectArray value="LucioCrossfadeAddTrackedUnit" />
-  </CEffectSet>
-  <CEffectSet id="LucioCrossfadeSpeedBoostPeriodicSet">
-    <EffectArray value="LucioCrossfadePartyMixModifyQuestToken" />
-    <EffectArray value="LucioCrossfadePartyMixModifyManaQuestToken" />
-    <EffectArray value="LucioCrossfadeAddTrackedUnit" />
-  </CEffectSet>
   <CEffectApplyBehavior id="LucioCrossfadeBeatMixingApplyDelay">
     <Behavior value="LucioCrossfadeBeatMixingDelay" />
     <WhichUnit Value="Caster" />
@@ -2797,9 +2765,7 @@
   </CEffectModifyTokenCount>
   <CEffectModifyPlayer id="LucioCrossfadePartyMixQuestCompleteModifyPlayer">
     <WhichPlayer Value="Caster" />
-    <EffectArray Reference="Effect,LucioCrossfadeHealingBoostSearchArea,AreaArray[0].Radius" Value="1.4" />
-    <EffectArray Reference="Effect,LucioSummerAnthemSearchArea,AreaArray[0].Radius" Value="1.4" />
-    <EffectArray Reference="Effect,LucioCrossfadeSpeedBoostSearchArea,AreaArray[0].Radius" Value="1.4" />
+    <EffectArray Reference="Effect,LucioCrossfadeSearchArea,AreaArray[0].Radius" Value="1.4" />
     <EffectArray Reference="Actor,LucioCrossfadeHealingRange,Range" Value="1.400000" />
     <EffectArray Reference="Actor,LucioCrossfadeSpeedRange,Range" Value="1.400000" />
     <EffectArray Reference="Actor,LucioBoomboxCrossfadeHealingRange,Range" Value="1.400000" />
@@ -2809,8 +2775,6 @@
     <EffectArray Reference="Actor,LucioCrossfadePulseHeal,Scale" Value="0.200000" />
     <EffectArray Reference="Actor,LucioCrossfadePulseSpeed,Scale" Value="0.200000" />
     <EffectArray Operation="Set" Reference="Effect,LucioCrossfadePartyMixModifyQuestToken,Chance" Value="0" />
-    <EffectArray Reference="Effect,LucioAmpItUpSonicAmplifierBringItTogetherSearchArea,AreaArray[0].Radius" Value="1.4" />
-    <EffectArray Reference="Effect,LucioAmpItUpSynaesthesiaAuditivaSearchArea,AreaArray[0].Radius" Value="1.4" />
     <EffectArray Reference="Effect,LucioBoomboxArmorSearchArea,AreaArray[0].Radius" Value="1.4" />
   </CEffectModifyPlayer>
   <CEffectCreateHealer id="LucioAmpItUpCrossfadeHealingBoostHeal" parent="StormHealingSpell">
@@ -2838,28 +2802,23 @@
   <CEffectModifyPlayer id="LucioAmpItUpSpeedBoostModifyPlayerOn">
     <WhichPlayer Value="Caster" />
     <EffectArray Operation="Set" Reference="Behavior,LucioCrossfadeSpeedBoost,Modification.UnifiedMoveSpeedFactor" Value="0.3" />
-    <EffectArray Operation="Set" Reference="Effect,LucioAmpItUpCrossfadeSpeedBoostTargetApply,Chance" Value="1" />
   </CEffectModifyPlayer>
   <CEffectModifyPlayer id="LucioAmpItUpMaximumTempoModifyPlayerOn">
     <WhichPlayer Value="Caster" />
     <EffectArray Operation="Set" Reference="Behavior,LucioCrossfadeSpeedBoost,Modification.UnifiedMoveSpeedFactor" Value="0.6" />
-    <EffectArray Operation="Set" Reference="Effect,LucioAmpItUpCrossfadeSpeedBoostTargetApply,Chance" Value="1" />
   </CEffectModifyPlayer>
   <CEffectModifyPlayer id="LucioAmpItUpMaximumTempoActiveCheckerModifyPlayerOn">
     <WhichPlayer Value="Caster" />
     <EffectArray Operation="Set" Reference="Behavior,LucioCrossfadeSpeedBoost,Modification.UnifiedMoveSpeedFactor" Value="0.6" />
-    <EffectArray Operation="Set" Reference="Effect,LucioAmpItUpCrossfadeSpeedBoostTargetApply,Chance" Value="1" />
     <ValidatorArray value="LucioCrossfadeCasterHasAmpItUp" />
   </CEffectModifyPlayer>
   <CEffectModifyPlayer id="LucioAmpItUpSpeedBoostModifyPlayerOff">
     <WhichPlayer Value="Caster" />
     <EffectArray Operation="Set" Reference="Behavior,LucioCrossfadeSpeedBoost,Modification.UnifiedMoveSpeedFactor" Value="0.1" />
-    <EffectArray Operation="Set" Reference="Effect,LucioAmpItUpCrossfadeSpeedBoostTargetApply,Chance" Value="0" />
   </CEffectModifyPlayer>
   <CEffectModifyPlayer id="LucioAmpItUpSpeedBoostWeMoveTogetherModifyPlayerOff">
     <WhichPlayer Value="Caster" />
     <EffectArray Operation="Set" Reference="Behavior,LucioCrossfadeSpeedBoost,Modification.UnifiedMoveSpeedFactor" Value="0.2" />
-    <EffectArray Operation="Set" Reference="Effect,LucioAmpItUpCrossfadeSpeedBoostTargetApply,Chance" Value="0" />
   </CEffectModifyPlayer>
   <CEffectSwitch id="LucioAmpItUpSpeedBoostModifyPlayerOffSwitch">
     <CaseArray Validator="LucioHasCrossfadeSpeedBoostWeMoveTogetherTalent" Effect="LucioAmpItUpSpeedBoostWeMoveTogetherModifyPlayerOff" />
@@ -2904,6 +2863,20 @@
     <Behavior value="LucioSummerAnthemDummyFatalBuff" />
     <WhichUnit Value="Source" />
   </CEffectApplyBehavior>
+  <CEffectSet id="LucioSummerAnthemCastSet">
+    <EffectArray value="LucioSummerAnthemTrackedUnitsApplySummerAnthem" />
+    <EffectArray value="LucioSummerAnthemBoomboxEnumDummy" />
+  </CEffectSet>
+  <CEffectEnumTrackedUnits id="LucioSummerAnthemTrackedUnitsApplySummerAnthem">
+    <BehaviorLink value="LucioSkateCrossfadeUnitTracker" />
+    <Effect value="LucioSummerAnthemApplyUnkillableBehavior" />
+  </CEffectEnumTrackedUnits>
+  <CEffectEnumTrackedUnits id="LucioSummerAnthemBoomboxEnumDummy">
+    <BehaviorLink value="LucioBoomboxUnitTracker" />
+    <Effect value="LucioSummerAnthemBoomboxDummy" />
+    <TrackedUnitFilters value="-;Dead" />
+  </CEffectEnumTrackedUnits>
+  <CEffectModifyUnit id="LucioSummerAnthemBoomboxDummy" />
   <CEffectApplyBehavior id="LucioSummerAnthemApplyUnkillableBehavior">
     <Behavior value="LucioSummerAnthemUnkillableBehavior" />
   </CEffectApplyBehavior>
@@ -2914,8 +2887,7 @@
   </CEffectApplyBehavior>
   <CEffectModifyPlayer id="LucioAmpItUpSonicAmplifierModifyPlayerOn">
     <WhichPlayer Value="Caster" />
-    <EffectArray Reference="Effect,LucioCrossfadeHealingBoostSearchArea,AreaArray[0].Radius" Value="3.5" />
-    <EffectArray Reference="Effect,LucioCrossfadeSpeedBoostSearchArea,AreaArray[0].Radius" Value="3.5" />
+    <EffectArray Reference="Effect,LucioCrossfadeSearchArea,AreaArray[0].Radius" Value="3.5" />
     <EffectArray Reference="Actor,LucioCrossfadeHoverRangeSplat,Scale" Value="3.500000" />
     <EffectArray Reference="Actor,LucioCrossfadePulseHeal,Scale" Value=".500000" />
     <EffectArray Reference="Actor,LucioCrossfadePulseSpeed,Scale" Value=".500000" />
@@ -2924,8 +2896,7 @@
   </CEffectModifyPlayer>
   <CEffectModifyPlayer id="LucioAmpItUpSonicAmplifierModifyPlayerOff">
     <WhichPlayer Value="Caster" />
-    <EffectArray Operation="Subtract" Reference="Effect,LucioCrossfadeHealingBoostSearchArea,AreaArray[0].Radius" Value="3.5" />
-    <EffectArray Operation="Subtract" Reference="Effect,LucioCrossfadeSpeedBoostSearchArea,AreaArray[0].Radius" Value="3.5" />
+    <EffectArray Operation="Subtract" Reference="Effect,LucioCrossfadeSearchArea,AreaArray[0].Radius" Value="3.5" />
     <EffectArray Operation="Subtract" Reference="Actor,LucioCrossfadeHoverRangeSplat,Scale" Value="3.500000" />
     <EffectArray Operation="Subtract" Reference="Actor,LucioCrossfadePulseHeal,Scale" Value=".500000" />
     <EffectArray Operation="Subtract" Reference="Actor,LucioCrossfadePulseSpeed,Scale" Value=".500000" />
@@ -2966,38 +2937,12 @@
     <CaseDefault value="LucioCrossfadeHealingBoostHeal" />
     <ValidatorArray value="TargetLifeNotFull" />
   </CEffectSwitch>
-  <CEffectApplyBehavior id="LucioAmpItUpCrossfadeSpeedBoostTargetApply">
-    <Behavior value="LucioAmpItUpCrossfadeSpeedBoostTarget" />
-    <ValidatorArray index="0" value="LucioAmpItUpCrossfadeTargetHasNoSpeedBoostTarget" />
-    <ValidatorArray value="IsNotSelf" />
-    <Chance value="0" />
-  </CEffectApplyBehavior>
-  <CEffectSet id="LucioAmpItUpCrossfadeHealingBoostTargetInitialSet">
-    <EffectArray value="LucioAmpItUpCrossfadeHealingBoostTargetRemoveHealingBoost" />
-    <EffectArray value="LucioAmpItUpCrossfadeHealingBoostApplyBehavior" />
-    <EffectArray value="LucioAmpItUpCrossfadeHealingBoostTargetApplyBehavior" />
-    <ValidatorArray value="LucioCrossfadeAmpItUpHealingBoostTargetApplyCombine" />
-  </CEffectSet>
-  <CEffectSet id="LucioAmpItUpCrossfadeSpeedBoostTargetInitialSet">
-    <ValidatorArray value="LucioCrossfadeAmpItUpSpeedBoostTargetApplyCombine" />
-    <EffectArray value="LucioAmpItUpCrossfadeSpeedBoostTargetRemoveSpeedBoost" />
-    <EffectArray value="LucioAmpItUpCrossfadeSpeedBoostTargetRemoveSpeedBoostTarget" />
-    <EffectArray value="LucioAmpItUpCrossfadeSpeedBoostApplyBehavior" />
-    <EffectArray value="LucioAmpItUpCrossfadeSpeedBoostTargetApply" />
-  </CEffectSet>
-  <CEffectRemoveBehavior id="LucioAmpItUpCrossfadeHealingBoostTargetRemoveHealingBoost">
-    <BehaviorLink value="LucioCrossfadeHealingBoost" />
-  </CEffectRemoveBehavior>
-  <CEffectRemoveBehavior id="LucioAmpItUpCrossfadeSpeedBoostTargetRemoveSpeedBoost">
-    <BehaviorLink value="LucioCrossfadeSpeedBoost" />
-  </CEffectRemoveBehavior>
-  <CEffectRemoveBehavior id="LucioAmpItUpCrossfadeSpeedBoostTargetRemoveSpeedBoostTarget">
-    <BehaviorLink value="LucioAmpItUpCrossfadeSpeedBoostTarget" />
-  </CEffectRemoveBehavior>
   <CEffectModifyUnit id="LucioAmpItUpUpTheFrequencyModifyCooldown">
     <ImpactUnit Value="Caster" />
     <Cost Abil="LucioAmpItUp,Execute" CooldownOperation="Add" CooldownTimeUse="-0.3" />
-    <ValidatorArray value="TargetNotEvading" />
+    <ValidatorArray value="CasterNotBlindedAndTargetNotEvading" />
+    <ValidatorArray value="TargetIsHero" />
+    <ValidatorArray value="LucioHasAmpItUpUpTheFrequencyTalent" />
   </CEffectModifyUnit>
   <CEffectApplyBehavior id="LucioAmpItUpSynaesthesiaAuditivaCastTrackerApply">
     <Chance value="0" />
@@ -3264,26 +3209,6 @@
     <Value value="-1" />
     <Chance value="0" />
   </CEffectModifyTokenCount>
-  <CEffectModifyTokenCount id="LucioCrossfadeAllyModifyTokenUpSpeedOn">
-    <ValidatorArray value="IsNotSelf" />
-    <TokenId value="LucioCrossfadeAllyToken" />
-    <Value value="1" />
-  </CEffectModifyTokenCount>
-  <CEffectModifyTokenCount id="LucioCrossfadeAllyModifyTokenUpHealingOn">
-    <ValidatorArray value="IsNotSelf" />
-    <TokenId value="LucioCrossfadeAllyToken" />
-    <Value value="1" />
-  </CEffectModifyTokenCount>
-  <CEffectModifyTokenCount id="LucioCrossfadeAllyModifyTokenDownSpeedOff">
-    <ValidatorArray value="IsNotSelf" />
-    <TokenId value="LucioCrossfadeAllyToken" />
-    <Value value="-1" />
-  </CEffectModifyTokenCount>
-  <CEffectModifyTokenCount id="LucioCrossfadeAllyModifyTokenDownHealingOff">
-    <ValidatorArray value="IsNotSelf" />
-    <TokenId value="LucioCrossfadeAllyToken" />
-    <Value value="-1" />
-  </CEffectModifyTokenCount>
   <CEffectCreateUnit id="LucioBoomboxCreateUnit">
     <WhichLocation Value="TargetPoint" />
     <Origin Value="TargetPoint" />
@@ -3300,16 +3225,11 @@
   <CEffectApplyBehavior id="LucioBoomboxAmpItUpDetectorApply">
     <Behavior value="LucioBoomboxAmpItUpDetector" />
   </CEffectApplyBehavior>
-  <CEffectCreatePersistent id="LucioBoomboxCasterApplyDelayPersistent">
-    <InitialDelay value="0.0625" />
-    <InitialEffect value="LucioBoomboxCasterApply" />
-  </CEffectCreatePersistent>
-  <CEffectApplyBehavior id="LucioBoomboxCasterApply">
-    <Behavior value="LucioBoomboxCaster" />
-    <WhichUnit Value="Caster" />
+  <CEffectApplyBehavior id="LucioBoomboxApplyTargetController">
+    <Behavior value="LucioBoomboxLifeController" />
   </CEffectApplyBehavior>
   <CEffectDamage id="LucioBoomboxSuicide" parent="StormSuicideParent">
-    <ImpactLocation Effect="LucioBoomboxCasterApplyDelayPersistent" />
+    <ImpactLocation Effect="LucioBoomboxSpawnSet" Value="TargetUnit" />
   </CEffectDamage>
   <CEffectRemoveBehavior id="LucioBoomboxCasterRemove">
     <BehaviorLink value="LucioBoomboxCaster" />
@@ -3319,9 +3239,24 @@
     <EffectArray value="LucioBoomboxCrossfadeSpeedBoostApplierApply" />
     <EffectArray value="LucioBoomboxCrossfadeHealingBoostApplierApply" />
     <EffectArray value="LucioBoomboxAmpItUpDetectorApply" />
-    <EffectArray value="LucioBoomboxCasterRemove" />
     <EffectArray value="LucioBoomboxAddTrackedUnit" />
+    <EffectArray value="LucioBoomboxApplyTargetController" />
   </CEffectSet>
+  <CEffectEnumTrackedUnits id="LucioCrossfadeBoomboxEnumSearch">
+    <BehaviorLink value="LucioBoomboxUnitTracker" />
+    <Effect value="LucioCrossfadeSearchArea" />
+    <TrackedUnitFilters value="-;Dead" />
+  </CEffectEnumTrackedUnits>
+  <CEffectAddTrackedUnit id="LucioBoomboxAddTrackedUnit">
+    <BehaviorLink value="LucioBoomboxUnitTracker" />
+    <TrackedUnit Value="Target" />
+  </CEffectAddTrackedUnit>
+  <CEffectApplyBehavior id="LucioBoomboxApplyArmorBehavior">
+    <Behavior value="LucioBoomboxArmorBehavior" />
+  </CEffectApplyBehavior>
+  <CEffectModifyTokenCount id="LucioBoomboxPartyMixAddToken" parent="BaseEffectModifyTokenCount">
+    <TokenId value="LucioBoomboxPartyMixToken" />
+  </CEffectModifyTokenCount>
   <CEffectDamage id="LucioWeaponDamage" parent="StormWeapon">
     <Amount value="23" />
   </CEffectDamage>
@@ -3331,11 +3266,16 @@
   </CEffectApplyBehavior>
   <CEffectSet id="LucioWeaponSet">
     <EffectArray value="UniversalWeaponImpact" />
-    <EffectArray value="LucioSmoothMovesCreateManaHealer" />
+    <EffectArray value="LucioWeaponPreImpactSet" />
     <EffectArray value="LucioWeaponDamage" />
-    <EffectArray value="UniversalWeaponLaunchSet" />
+    <EffectArray value="LucioWeaponPostImpactSet" />
     <EffectArray value="UniversalWeaponPostImpactSet" />
   </CEffectSet>
+  <CEffectSet id="LucioWeaponPreImpactSet">
+    <EffectArray value="LucioSmoothMovesCreateManaHealer" />
+    <EffectArray value="LucioAmpItUpUpTheFrequencyModifyCooldown" />
+  </CEffectSet>
+  <CEffectSet id="LucioWeaponPostImpactSet" />
   <CEffectSet id="LucioWeaponLaunchMissileSet">
     <EffectArray value="UniversalWeaponLaunchSet" />
     <EffectArray value="LucioWeaponLaunchMissile" />
@@ -4184,19 +4124,7 @@
       <Modifications>
         <Type value="FlatModification" />
         <Catalog value="Effect" />
-        <Entry value="LucioCrossfadeHealingBoostSearchArea" />
-        <Field value="AreaArray[0].Radius" />
-      </Modifications>
-      <Modifications>
-        <Type value="FlatModification" />
-        <Catalog value="Effect" />
-        <Entry value="LucioCrossfadeSpeedBoostSearchArea" />
-        <Field value="AreaArray[0].Radius" />
-      </Modifications>
-      <Modifications>
-        <Type value="FlatModification" />
-        <Catalog value="Effect" />
-        <Entry value="LucioSummerAnthemSearchArea" />
+        <Entry value="LucioCrossfadeSearchArea" />
         <Field value="AreaArray[0].Radius" />
       </Modifications>
       <Modifications>
@@ -4238,7 +4166,7 @@
         <Value value="1.000000" />
       </Modifications>
     </AbilityModificationArray>
-    <QuestData StackBehavior="LucioCrossfadePartyMixQuestToken" TargetCount="480" />
+    <QuestData StackBehavior="LucioCrossfadePartyMixQuestToken" TargetCount="$LucioPartyMixSecondsForCompletion" />
   </CTalent>
   <CTalent id="LucioBoombox">
     <Face value="LucioBoomboxBoombox" />
@@ -4594,7 +4522,6 @@
     <Face value="LucioAmpItUpUpTheFrequency" />
     <Abil value="LucioAmpItUp" />
     <RankArray>
-      <BehaviorArray value="LucioAmpItUpUpTheFrequencyCarry" />
       <BehaviorArray value="LucioUpTheFrequencyAttackRangeBehavior" />
     </RankArray>
   </CTalent>
@@ -4608,10 +4535,10 @@
     <LifeRegenRate value="3" />
     <BehaviorArray Link="ExcellentMana" />
     <BehaviorArray Link="LucioCrossfadeSpeedBoostApplier" />
-    <BehaviorArray Link="LucioCrossfadeAllyToken" />
     <BehaviorArray Link="LucioWallRideLeftProbes" />
     <BehaviorArray Link="LucioWallRideRightProbes" />
     <BehaviorArray Link="LucioSkateCrossfadeUnitTracker" />
+    <BehaviorArray Link="LucioCrossfadeUnitTrackerController" />
     <Radius value="0.6875" />
     <InnerRadius value="0.4375" />
     <WeaponArray Link="HeroLucioWeapon" />
@@ -4660,38 +4587,46 @@
     <InnerRadius value="0.25" />
     <Sight value="7.25" />
     <BehaviorArray Link="LucioBoomboxArmorControllerBehavior" />
+    <DeathTime value="0.25" />
   </CUnit>
-  <CValidatorUnitCompareDetectRange id="LucioBoombox9RangeValidator">
+  <CValidatorIsUnitTracked id="LucioBoomboxIsTracked">
+    <Find value="1" />
+    <BehaviorLink value="LucioBoomboxUnitTracker" />
+    <TrackedUnit Value="Target" />
+  </CValidatorIsUnitTracked>
+  <CValidatorCombine id="LucioCrossfadeRangeCombineBoomboxArmor">
+    <CombineArray value="LucioCrossfadeTargetIsNearBoombox" />
+    <CombineArray value="LucioCrossfadeRangeCombinePartyMixBoombox" />
+  </CValidatorCombine>
+  <CValidatorLocationCompareRange id="LucioCrossfadeTargetIsNearBoombox">
     <Compare value="LE" />
-    <Value value="9" />
-  </CValidatorUnitCompareDetectRange>
+    <Range value="7.425" />
+    <Value Effect="LucioBoomboxArmorSearchArea" Value="TargetUnit" />
+    <WhichLocation Value="TargetUnit" />
+    <IncludeTargetRadius value="0" />
+  </CValidatorLocationCompareRange>
+  <CValidatorCombine id="LucioCrossfadeRangeCombinePartyMixBoombox">
+    <Type value="And" />
+    <CombineArray value="LucioCrossfadeTargetIsNearSearchAreaPartyMixBoombox" />
+    <CombineArray value="LucioCrossfadePartyMixQuestTokenAtMaxCreator" />
+  </CValidatorCombine>
+  <CValidatorLocationCompareRange id="LucioCrossfadeTargetIsNearSearchAreaPartyMixBoombox">
+    <Compare value="LE" />
+    <Range value="9.125" />
+    <Value Effect="LucioBoomboxArmorSearchArea" Value="TargetUnit" />
+    <WhichLocation Value="TargetUnit" />
+    <IncludeTargetRadius value="0" />
+  </CValidatorLocationCompareRange>
+  <CValidatorUnitCompareTokenCount id="LucioCrossfadePartyMixQuestTokenAtMaxCreator">
+    <Value value="$LucioPartyMixSecondsForCompletion" />
+    <TokenId value="LucioCrossfadePartyMixQuestToken" />
+    <WhichUnit Value="Creator" />
+    <Compare value="GE" />
+  </CValidatorUnitCompareTokenCount>
   <CValidatorCombine id="TargetIsAlliedHeroAndDoesNotHaveUntargetableFriendlyAbilities">
     <Type value="And" />
     <CombineArray value="TargetIsAlliedHero" />
     <CombineArray value="DoesNotHaveUntargetableByFriendlyAbilities" />
-  </CValidatorCombine>
-  <CValidatorCombine id="LucioCrossfadeBoomboxRangeCombine">
-    <CombineArray value="LucioCrossfadeTargetIsNearSource" />
-    <CombineArray value="LucioCrossfadePartyMixBoomxboxCombine" />
-  </CValidatorCombine>
-  <CValidatorCombine id="LucioCrossfadePartyMixBoomxboxCombine">
-    <Type value="And" />
-    <CombineArray value="LucioCrossfadePartyMixTargetIsNearSource" />
-    <CombineArray value="LucioCrossfadePartyMixQuestTokenAtMax" />
-  </CValidatorCombine>
-  <CValidatorLocationCompareRange id="LucioCrossfadePartyMixTargetIsNearSource">
-    <WhichLocation Value="TargetUnit" />
-    <Compare value="LE" />
-    <Range value="9.125" />
-    <Value Value="SourceUnit" />
-    <IncludeTargetRadius value="0" />
-  </CValidatorLocationCompareRange>
-  <CValidatorCombine id="LucioCrossfadeRangeCombine">
-    <CombineArray value="LucioCrossfadeTargetIsNearCaster" />
-    <CombineArray value="LucioCrossfadePartyMixCombine" />
-  </CValidatorCombine>
-  <CValidatorCombine id="LucioCrossfadeTargetNearSourceCombine">
-    <CombineArray value="LucioCrossfadeTargetIsNearSource" />
   </CValidatorCombine>
   <CValidatorUnitCompareTokenCount id="LucioAmpItUpUpToElevenHasReservoir">
     <WhichUnit Value="Caster" />
@@ -4949,28 +4884,6 @@
     <CombineArray value="LucioHasVisionOfTargetUnit" />
     <CombineArray value="LucioCasterHasNoSoundwaveWeaponPersistentDestroyer" />
   </CValidatorCombine>
-  <CValidatorLocationCompareRange id="LucioCrossfadeTargetIsNearCaster">
-    <Compare value="LE" />
-    <Range value="7.425" />
-    <WhichLocation Value="TargetUnit" />
-    <IncludeTargetRadius value="0" />
-  </CValidatorLocationCompareRange>
-  <CValidatorCombine id="LucioCrossfadeBoomboxCombine">
-    <Type value="And" />
-    <CombineArray value="LucioCrossfadeBoomboxRangeCombine" />
-    <CombineArray value="LucioCrossfadeSourceIsBoombox" />
-  </CValidatorCombine>
-  <CValidatorCombine id="LucioCrossfadeCombine">
-    <CombineArray value="LucioCrossfadeRangeCombine" />
-    <CombineArray value="LucioCrossfadeBoomboxCombine" />
-  </CValidatorCombine>
-  <CValidatorLocationCompareRange id="LucioCrossfadeTargetIsNearSource">
-    <Compare value="LE" />
-    <Range value="7.425" />
-    <Value Value="SourceUnit" />
-    <WhichLocation Value="TargetUnit" />
-    <IncludeTargetRadius value="0" />
-  </CValidatorLocationCompareRange>
   <CValidatorLocationCompareRange id="LucioCrossfadeEnemyTargetIsNearCaster">
     <Compare value="LE" />
     <Range value="6.25" />
@@ -4994,16 +4907,11 @@
     <TokenId value="LucioAmpItUpSonicAmplifierToken" />
   </CValidatorUnitCompareTokenCount>
   <CValidatorUnitCompareTokenCount id="LucioCrossfadePartyMixQuestTokenAtMax">
-    <Value value="480" />
+    <Value value="$LucioPartyMixSecondsForCompletion" />
     <TokenId value="LucioCrossfadePartyMixQuestToken" />
     <WhichUnit Value="Caster" />
     <Compare value="GE" />
   </CValidatorUnitCompareTokenCount>
-  <CValidatorCombine id="LucioCrossfadePartyMixCombine">
-    <CombineArray value="LucioCrossfadePartyMixTargetIsNearCaster" />
-    <CombineArray value="LucioCrossfadePartyMixQuestTokenAtMax" />
-    <Type value="And" />
-  </CValidatorCombine>
   <CValidatorCombine id="LucioCrossfadeAmpItUpSonicAmplifierCombine">
     <CombineArray value="LucioCrossfadeAmpItUpSonicAmplifierTargetIsNearCaster" />
     <CombineArray value="LucioAmpItUpSonicAmplifierActive" />
@@ -5033,44 +4941,79 @@
     <Behavior value="LucioCrossfadeSpeedBoostApplier" />
     <Value value="1" />
   </CValidatorUnitCompareBehaviorCount>
+  <CValidatorIsUnitTracked id="LucioCrossfadeTargetIsNotTracked">
+    <BehaviorLink value="LucioSkateCrossfadeUnitTracker" />
+    <TrackedUnit Value="Target" />
+  </CValidatorIsUnitTracked>
+  <CValidatorIsUnitTracked id="LucioCrossfadeTargetIsTracked">
+    <Find value="1" />
+    <BehaviorLink value="LucioSkateCrossfadeUnitTracker" />
+    <TrackedUnit Value="Target" />
+  </CValidatorIsUnitTracked>
+  <CValidatorCombine id="LucioCrossfadeBoostValidatorCombine">
+    <Type value="And" />
+    <CombineArray value="LucioCrossfadeRangeCombine" />
+    <CombineArray value="TargetNotDeadAndNoSpecialDeathState" />
+    <CombineArray value="TargetIsNotImmuneToFriendlyAbilities" />
+    <CombineArray value="TargetNotStasisExceptTimeStop" />
+    <CombineArray value="CasterNotTimeStopped" />
+    <CombineArray value="SourceNotDead" />
+    <CombineArray value="NotHidden" />
+  </CValidatorCombine>
+  <CValidatorCombine id="LucioCrossfadeRangeCombine">
+    <CombineArray value="LucioCrossfadeTargetIsNearSearchArea" />
+    <CombineArray value="LucioCrossfadeRangeCombinePartyMix" />
+  </CValidatorCombine>
+  <CValidatorLocationCompareRange id="LucioCrossfadeTargetIsNearSearchArea">
+    <Compare value="LE" />
+    <Range value="7.425" />
+    <Value Effect="LucioCrossfadeSearchArea" Value="TargetUnit" />
+    <WhichLocation Value="TargetUnit" />
+    <IncludeTargetRadius value="0" />
+  </CValidatorLocationCompareRange>
+  <CValidatorCombine id="LucioCrossfadeRangeCombinePartyMix">
+    <Type value="And" />
+    <CombineArray value="LucioCrossfadeTargetIsNearSearchAreaPartyMix" />
+    <CombineArray value="LucioCrossfadePartyMixQuestTokenAtMax" />
+  </CValidatorCombine>
+  <CValidatorLocationCompareRange id="LucioCrossfadeTargetIsNearSearchAreaPartyMix">
+    <Compare value="LE" />
+    <Range value="9.125" />
+    <Value Effect="LucioCrossfadeSearchArea" Value="TargetUnit" />
+    <WhichLocation Value="TargetUnit" />
+    <IncludeTargetRadius value="0" />
+  </CValidatorLocationCompareRange>
+  <CValidatorUnitFilters id="LucioCrossfadeSearchAreaTargetNotDead">
+    <WhichUnit Effect="LucioCrossfadeSearchArea" />
+    <Filters value="-;Dead" />
+  </CValidatorUnitFilters>
+  <CValidatorUnitCompareBehaviorCount id="LucioCrossfadeTargetHasTargetController">
+    <Value value="1" />
+    <Behavior value="LucioCrossfadeTargetController" />
+    <RequireCasterUnit Value="Caster" />
+  </CValidatorUnitCompareBehaviorCount>
+  <CValidatorUnitCompareBehaviorCount id="LucioCrossfadeTargetHasNoTargetController">
+    <Behavior value="LucioCrossfadeTargetController" />
+    <RequireCasterUnit Value="Caster" />
+  </CValidatorUnitCompareBehaviorCount>
+  <CValidatorUnitCompareBehaviorCount id="LucioCrossfadeTargetHasHealingBoost">
+    <Value value="1" />
+    <Behavior value="LucioCrossfadeHealingBoost" />
+    <RequireCasterUnit Value="Caster" />
+  </CValidatorUnitCompareBehaviorCount>
   <CValidatorUnitCompareBehaviorCount id="LucioCrossfadeTargetHasNoHealingBoost">
     <Behavior value="LucioCrossfadeHealingBoost" />
+    <RequireCasterUnit Value="Caster" />
   </CValidatorUnitCompareBehaviorCount>
   <CValidatorUnitCompareBehaviorCount id="LucioCrossfadeTargetHasNoSpeedBoost">
     <Behavior value="LucioCrossfadeSpeedBoost" />
+    <RequireCasterUnit Value="Caster" />
   </CValidatorUnitCompareBehaviorCount>
   <CValidatorUnitCompareBehaviorCount id="LucioCrossfadeTargetHasSpeedBoost">
     <Value value="1" />
     <Behavior value="LucioCrossfadeSpeedBoost" />
+    <RequireCasterUnit Value="Caster" />
   </CValidatorUnitCompareBehaviorCount>
-  <CValidatorUnitCompareBehaviorCount id="LucioAmpItUpCrossfadeHealingBoostInitialSetTargetHasCrossfadeNotFromCaster">
-    <Value value="1" />
-    <Behavior value="LucioCrossfadeHealingBoost" />
-    <ExcludeCasterUnit Value="Caster" />
-  </CValidatorUnitCompareBehaviorCount>
-  <CValidatorUnitCompareBehaviorCount id="LucioAmpItUpCrossfadeSpeedBoostInitialSetTargetHasCrossfadeNotFromCaster">
-    <Value value="1" />
-    <Behavior value="LucioCrossfadeSpeedBoost" />
-    <ExcludeCasterUnit Value="Caster" />
-  </CValidatorUnitCompareBehaviorCount>
-  <CValidatorCombine id="LucioCrossfadeAmpItUpHealingBoostTargetApplyCombine">
-    <Type value="And" />
-    <CombineArray value="TargetNotSpecialDeathState" />
-    <CombineArray value="LucioCrossfadeCombine" />
-    <CombineArray value="LucioCrossfadeCasterHasHealingBoostApplier" />
-    <CombineArray value="LucioCrossfadeCasterHasAmpItUp" />
-    <CombineArray value="LucioAmpItUpCrossfadeTargetHasNoHealingBoostTarget" />
-    <CombineArray value="LucioAmpItUpCrossfadeHealingBoostInitialSetTargetHasCrossfadeNotFromCaster" />
-  </CValidatorCombine>
-  <CValidatorCombine id="LucioCrossfadeAmpItUpSpeedBoostTargetApplyCombine">
-    <Type value="And" />
-    <CombineArray value="TargetNotSpecialDeathState" />
-    <CombineArray value="LucioCrossfadeCombine" />
-    <CombineArray value="LucioCrossfadeCasterHasSpeedBoostApplier" />
-    <CombineArray value="LucioCrossfadeCasterHasAmpItUp" />
-    <CombineArray value="LucioAmpItUpCrossfadeTargetHasNoSpeedBoostTarget" />
-    <CombineArray value="LucioAmpItUpCrossfadeSpeedBoostInitialSetTargetHasCrossfadeNotFromCaster" />
-  </CValidatorCombine>
   <CValidatorUnitCompareBehaviorCount id="LucioCrossfadeCasterHasAmpItUp">
     <WhichUnit Value="Caster" />
     <Behavior value="LucioAmpItUp" />
@@ -5084,12 +5027,6 @@
     <WhichUnit Value="Source" />
     <Value value="1" />
     <Behavior value="LucioBoomboxAmpItUpDetector" />
-  </CValidatorUnitCompareBehaviorCount>
-  <CValidatorUnitCompareBehaviorCount id="LucioAmpItUpCrossfadeTargetHasNoHealingBoostTarget">
-    <Behavior value="LucioAmpItUpCrossfadeHealingBoostTarget" />
-  </CValidatorUnitCompareBehaviorCount>
-  <CValidatorUnitCompareBehaviorCount id="LucioAmpItUpCrossfadeTargetHasNoSpeedBoostTarget">
-    <Behavior value="LucioAmpItUpCrossfadeSpeedBoostTarget" />
   </CValidatorUnitCompareBehaviorCount>
   <CValidatorUnitCompareTokenCount id="LucioAmpItUpMaximumTempoAtMax">
     <Value value="5" />
@@ -5302,10 +5239,6 @@
     <WhichLocation Value="TargetUnit" />
     <WhichPlayer Value="Caster" />
   </CValidatorLocationVision>
-  <CValidatorUnitType id="LucioCrossfadeSourceIsBoombox">
-    <WhichUnit Value="Source" />
-    <Value value="LucioBoombox" />
-  </CValidatorUnitType>
   <CValidatorUnitType id="LucioCrossfadeSourceIsLucio">
     <WhichUnit Value="Source" />
     <Value value="HeroLucio" />
@@ -5334,37 +5267,6 @@
     <CombineArray value="LucioHasWallRideRight" />
     <CombineArray value="LucioHasNoWeaponRangeController" />
   </CValidatorCombine>
-  <CValidatorUnitCompareTokenCount id="LucioCrossfadeTokenCount0">
-    <TokenId value="LucioCrossfadeAllyToken" />
-  </CValidatorUnitCompareTokenCount>
-  <CValidatorUnitCompareTokenCount id="LucioCrossfadeTokenCount1">
-    <Value value="1" />
-    <TokenId value="LucioCrossfadeAllyToken" />
-  </CValidatorUnitCompareTokenCount>
-  <CValidatorUnitCompareTokenCount id="LucioCrossfadeTokenCount2">
-    <Value value="2" />
-    <TokenId value="LucioCrossfadeAllyToken" />
-  </CValidatorUnitCompareTokenCount>
-  <CValidatorUnitCompareTokenCount id="LucioCrossfadeTokenCount3">
-    <Value value="3" />
-    <TokenId value="LucioCrossfadeAllyToken" />
-  </CValidatorUnitCompareTokenCount>
-  <CValidatorUnitCompareTokenCount id="LucioCrossfadeTokenCount4">
-    <Value value="4" />
-    <TokenId value="LucioCrossfadeAllyToken" />
-  </CValidatorUnitCompareTokenCount>
-  <CValidatorUnitCompareTokenCount id="LucioCrossfadeTokenCount5">
-    <Value value="5" />
-    <TokenId value="LucioCrossfadeAllyToken" />
-  </CValidatorUnitCompareTokenCount>
-  <CValidatorUnitCompareTokenCount id="LucioCrossfadeTokenCount6">
-    <Value value="6" />
-    <TokenId value="LucioCrossfadeAllyToken" />
-  </CValidatorUnitCompareTokenCount>
-  <CValidatorUnitCompareTokenCount id="LucioCrossfadeTokenCount7">
-    <Value value="7" />
-    <TokenId value="LucioCrossfadeAllyToken" />
-  </CValidatorUnitCompareTokenCount>
   <CValidatorUnitCompareTokenCount id="LucioReverseAmpTokenCount0">
     <TokenId value="LucioReverseAmpNonstopRemixToken" />
   </CValidatorUnitCompareTokenCount>

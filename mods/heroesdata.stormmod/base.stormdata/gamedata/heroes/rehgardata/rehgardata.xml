@@ -513,7 +513,7 @@
     <On Terms="Signal.*.Orc; IsActorLocalPlayer" Target="::PortraitGameSelf" Send="Signal Orc" />
     <On Terms="Behavior.RehgarGhostWolfBuff.On; IsActorLocalPlayer" Target="::PortraitGameSelf" Send="Signal GhostWolf" />
     <On Terms="TimerExpired; TimerName GhostWolfEnd; IsActorLocalPlayer" Target="::PortraitGameSelf" Send="Signal Orc" />
-    <On Terms="Effect.RehgarGhostWolfLungeLaunchMissile.Start" Send="AnimPlay Charge Spell,F DontResetOnUnhide -1.000000 -1.000000 1.000000 AsTimeScale" />
+    <On Terms="Effect.RehgarGhostWolfLungeLaunchMissile.Start; At Caster" Send="AnimPlay Charge Spell,F DontResetOnUnhide -1.000000 -1.000000 1.000000 AsTimeScale" />
     <On Terms="TimerExpired; TimerName GhostWolfEnd; AnimPlaying Charge" Send="AnimClear Charge" />
     <On Terms="TimerExpired; TimerName GhostWolfEnd; AnimPlaying Channel Spell,Channel; !ValidateUnit HearthstoneCasterDoesNotHaveHearthstoneOrder" Send="AnimPlay Channel Channel,Hearth PlayForever 0.000000 -1.000000 1.000000 AsTimeScale" />
     <On Terms="Abil.RehgarChainHeal.SourceCastStart; AnimPlaying StandMorphStart" Send="AnimClear StandMorphStart 0.000000" />
@@ -859,7 +859,6 @@
   </CActorModel>
   <CActorModel id="RehgarGhostWolfLungeFX" parent="StormModelAnimationStyleOneShotUnit">
     <On Terms="Effect.RehgarGhostWolfLungeLaunchMissile.Start" Send="Create" />
-    <HostSiteOps Ops="SOpAttachOrigin" />
   </CActorModel>
   <CActorAction id="RehgarGhostWolfAttack" parent="MeleeHeroAttack" effectAttack="RehgarGhostWolfDamageDummy">
     <LaunchAssets Sound="Rehgar_GhostWolf_Attack_Launch" />
@@ -1222,14 +1221,6 @@
   <CBehaviorTokenCounter id="RehgarLightningShieldRisingStormTokenCounter" parent="StormGenericToken">
     <Max value="15" />
   </CBehaviorTokenCounter>
-  <CBehaviorBuff id="RehgarGhostWolfBloodAndThunderLungeController" parent="CarryBehaviorParent">
-    <DisableValidatorArray value="HasGhostWolf" />
-    <DamageResponse Chance="1" Handled="RehgarGhostWolfBloodAndThunderTalentProcSet" Location="Attacker">
-      <ValidatorArray value="TargetNotEvading" />
-      <Kind index="Ability" value="0" />
-      <ProvideCategories index="Proc" value="1" />
-    </DamageResponse>
-  </CBehaviorBuff>
   <CBehaviorBuff id="RehgarBloodlustBasicAttackBuff">
     <InfoIcon value="Assets\Textures\storm_ui_icon_rehgar_bloodlust.dds" />
     <BehaviorCategories index="BuffAutoattackDPS" value="1" />
@@ -1854,6 +1845,9 @@
     <Behavior value="RehgarPurgeBuff" />
   </CEffectApplyBehavior>
   <CEffectSet id="RehgarGhostWolfBloodAndThunderTalentProcSet">
+    <ValidatorArray value="HasGhostWolfCaster" />
+    <ValidatorArray value="CasterNotBlindedAndTargetNotEvading" />
+    <ValidatorArray value="RehgarGhostWolfBloodAndThunderCasterHasTalent" />
     <EffectArray value="RehgarGhostWolfBloodAndThunderTalentManaRestore" />
     <EffectArray value="RehgarGhostWolfBloodAndThunderModifyUnitCooldown" />
   </CEffectSet>
@@ -2030,7 +2024,7 @@
   <CEffectCreateHealer id="RehgarGhostWolfHungerOfTheWolfCasterHealer" parent="StormSelfOnlyHealingSpellPercent">
     <ValidatorArray value="TargetIsHero" />
     <ValidatorArray value="HasGhostWolfCaster" />
-    <ValidatorArray value="CasterNotBlindedTargetNotEvading" />
+    <ValidatorArray value="CasterNotBlindedAndTargetNotEvading" />
     <Chance value="0" />
     <ImpactUnit Value="Caster" />
     <RechargeVitalFraction value="0.06" />
@@ -2039,7 +2033,7 @@
   <CEffectDamage id="RehgarGhostWolfHungerOfTheWolfDamage" parent="StormSpellPercentDamage">
     <ValidatorArray value="TargetIsHero" />
     <ValidatorArray value="HasGhostWolfCaster" />
-    <ValidatorArray value="CasterNotBlindedTargetNotEvading" />
+    <ValidatorArray value="CasterNotBlindedAndTargetNotEvading" />
     <Chance value="0" />
     <ImpactLocation Value="TargetUnit" />
     <VitalFractionMax index="Life" value="0.06" />
@@ -2445,7 +2439,6 @@
     <LeechFraction index="Life" value="0.2" />
   </CEffectDamage>
   <CEffectDamage id="RehgarLightningShieldElectricChargeTalentDamage" parent="RehgarLightningShieldDamage">
-    <LeechValidator index="Life" value="AlwaysReturnsFalse" />
     <LeechFraction index="Life" value="0.4" />
   </CEffectDamage>
   <CEffectModifyUnit id="RehgarLightningShieldLeechProcDummy">
@@ -2461,9 +2454,7 @@
     <Flags index="IgnoreBehaviorDealtMultipliers" value="1" />
   </CEffectCreateHealer>
   <CEffectModifyCatalogNumeric id="RehgarElectricChargeResetCreateHealer">
-    <CatalogModifications Operation="Set" Reference="Effect,RehgarElectricChargeCreateHealer,RechargeVitalRate">
-      <Value value="0" />
-    </CatalogModifications>
+    <CatalogModifications Operation="Set" Reference="Effect,RehgarElectricChargeCreateHealer,RechargeVitalRate" />
   </CEffectModifyCatalogNumeric>
   <CEffectSet id="RehgarLightningShieldSearchSet">
     <EffectArray value="RehgarLightningShieldSearch" />
@@ -2491,14 +2482,20 @@
   <CEffectSet id="RehgarWeaponSet">
     <EffectArray value="UniversalWeaponImpact" />
     <EffectArray value="RehgarGhostWolfDamageDummy" />
-    <EffectArray value="RehgarGhostWolfHungerOfTheWolfDamage" />
-    <EffectArray value="RehgarGhostWolfHungerOfTheWolfCasterHealer" />
     <EffectArray value="RehgarDamageDummy" />
+    <EffectArray value="RehgarWeaponPreImpactSet" />
     <EffectArray value="RehgarWeaponDamage" />
+    <EffectArray value="RehgarWeaponPostImpactSet" />
     <EffectArray value="DecloakCasterSet" />
     <EffectArray value="RehgarGhostWolfRemoveBehavior" />
     <EffectArray value="UniversalWeaponPostImpactSet" />
   </CEffectSet>
+  <CEffectSet id="RehgarWeaponPreImpactSet">
+    <EffectArray value="RehgarGhostWolfBloodAndThunderTalentProcSet" />
+    <EffectArray value="RehgarGhostWolfHungerOfTheWolfCasterHealer" />
+    <EffectArray value="RehgarGhostWolfHungerOfTheWolfDamage" />
+  </CEffectSet>
+  <CEffectSet id="RehgarWeaponPostImpactSet" />
   <CEffectSet id="RehgarDismountDecloakCasterSet">
     <EffectArray value="RehgarGhostWolfRemoveBehavior" />
     <EffectArray value="DismountDecloakCasterSet" />
@@ -3017,10 +3014,6 @@
   <CTalent id="RehgarBloodAndThunder">
     <Face value="RehgarBloodAndThunder" />
     <Abil value="RehgarGhostWolfActivate" />
-    <RankArray>
-      <BehaviorArray value="RehgarGhostWolfBloodAndThunderLungeController" />
-    </RankArray>
-    <AbilityModificationArray />
   </CTalent>
   <CTalent id="RehgarEarthlivingEnchant">
     <Face value="RehgarEarthlivingEnchant" />
@@ -3627,6 +3620,11 @@
   </CValidatorPlayerTalent>
   <CValidatorPlayerTalent id="RehgarGhostWolfBloodAndThunderHasTalent">
     <Find value="1" />
+    <Value value="RehgarBloodAndThunder" />
+  </CValidatorPlayerTalent>
+  <CValidatorPlayerTalent id="RehgarGhostWolfBloodAndThunderCasterHasTalent">
+    <Find value="1" />
+    <WhichPlayer Value="Caster" />
     <Value value="RehgarBloodAndThunder" />
   </CValidatorPlayerTalent>
   <CValidatorPlayerTalent id="RehgarGhostWolfHungerOfTheWolfHasTalent">
