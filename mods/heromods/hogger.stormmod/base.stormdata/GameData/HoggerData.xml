@@ -1,5 +1,11 @@
 <?xml version="1.0" encoding="us-ascii"?>
 <Catalog>
+  <const id="$HoggerEzThroDynamiteRange" value="6.75" />
+  <const id="$HoggerKablooieRangeModifier" value="0.25" />
+  <const id="$HoggerKablooieRangeIncrease" value="*($HoggerEzThroDynamiteRange $HoggerKablooieRangeModifier)" evaluateAsExpression="1" />
+  <const id="$HoggerLootHoardRange" value="8.75" />
+  <const id="$HoggerBruteForceRangeModifier" value="0.25" />
+  <const id="$HoggerBruteForceRangeIncrease" value="*($HoggerLootHoardRange $HoggerBruteForceRangeModifier)" evaluateAsExpression="1" />
   <CAbilEffectInstant id="HoggerCancelHoggWild">
     <Effect value="HoggerCancelHoggWildInitialSet" />
     <Flags index="AllowMovingSuppressed" value="1" />
@@ -39,7 +45,7 @@
     <Cost>
       <Cooldown TimeUse="8" />
     </Cost>
-    <Range value="6" />
+    <Range value="$HoggerEzThroDynamiteRange" />
     <RangeSlop value="5" />
     <CastIntroTime value="0.125" />
     <UninterruptibleArray index="Cast" value="1" />
@@ -52,9 +58,8 @@
     <Flags index="ClearLastAttackTargetOutOfRange" value="1" />
     <Flags index="ClearLastMoveTarget" value="1" />
     <Flags index="RequireTargetVision" value="0" />
+    <Flags index="RangeUseCasterRadius" value="0" />
     <PrepEffect value="DismountDecloakCasterSet" />
-    <MinimumRange value="0.5" />
-    <CursorRangeFlags index="ClampMin" value="1" />
     <Arc value="360" />
   </CAbilEffectTarget>
   <CAbilEffectTarget id="HoggerNoControl">
@@ -89,11 +94,12 @@
     <PrepEffect value="DismountDecloakCasterSet" />
     <Effect value="HoggerRiverpawLootHoardInitialSet" />
     <Flags index="RequireTargetVision" value="0" />
+    <Flags index="RangeUseCasterRadius" value="0" />
     <Cost>
       <Cooldown TimeUse="20" />
     </Cost>
     <Placeholder value="HoggerRiverpawLootHoard" />
-    <Range value="8" />
+    <Range value="$HoggerLootHoardRange" />
     <RangeSlop value="5" />
     <MinimumRange value="1.25" />
     <Arc value="360" />
@@ -502,6 +508,7 @@
     <On Terms="Behavior.HoggerEzThroDynamiteTimedLife.On" Send="AnimPlay Birth Birth 0 0.000000 0.000000 1.000000 AsTimeScale" />
   </CActorUnit>
   <CActorAction id="HoggerEzThroDynamiteAction" parent="GenericAttackPointStorm" effectImpact="HoggerEzThroDynamiteSpawnSet" effectLaunch="HoggerEzThroDynamiteLaunchMissile">
+    <On Terms="Effect.HoggerEzThroDynamiteLaunchMissileLaunchOffset.Start; At Caster" Send="Create" />
     <LaunchSiteOps Ops="SOpAttachHead" />
     <Missile value="HoggerEzThroDynamiteMissile" />
   </CActorAction>
@@ -673,7 +680,7 @@
     <ModelFlags index="AlwaysVisibleToCreator" value="1" />
   </CActorModel>
   <CActorSplat id="HoggerLootHoardRangeSplat" parent="StormRangeSplat">
-    <Scale value="8.500000" />
+    <Scale value="$HoggerLootHoardRange" />
   </CActorSplat>
   <CActorModel id="HoggerHoardapultCursorSplat" parent="StormModelAnimationStyleContinuous">
     <Aliases value="_GuideVisual" />
@@ -712,6 +719,7 @@
   </CActorSound>
   <CActorSound id="HoggerEzThroDynamiteLaunchSound" parent="SoundOneShot">
     <On Terms="Effect.HoggerEzThroDynamiteLaunchMissile.Start; At Caster" Send="Create" />
+    <On Terms="Effect.HoggerEzThroDynamiteLaunchMissileLaunchOffset.Start; At Caster" Send="Create" />
   </CActorSound>
   <CActorSound id="HoggerEzThroDynamiteGroundImpactSound" parent="SoundOneShot">
     <Sound value="HoggerEzThroDynamiteGround_FuseBurn" />
@@ -882,7 +890,7 @@
   </CActorModel>
   <CActorRange id="HoggerEzThroDynamiteRange" parent="StormRangeAbilPlusSplat" abil="HoggerEzThroDynamite" />
   <CActorSplat id="HoggerEzThroDynamiteRangeSplat" parent="StormRangeSplat">
-    <Scale value="6.500000" />
+    <Scale value="$HoggerEzThroDynamiteRange" />
   </CActorSplat>
   <CActorSound id="HoggerHoardapultCastVoX" parent="SoundOneShot">
     <On Terms="Abil.HoggerHoardapult.SourcePrepStart" Send="Create" />
@@ -2217,7 +2225,7 @@
   </CEffectModifyUnit>
   <CEffectSet id="HoggerEzThroDynamiteLaunchSet">
     <EffectArray value="MakePrecursor" />
-    <EffectArray value="HoggerEzThroDynamiteLaunchMissile" />
+    <EffectArray value="HoggerEzThroDynamiteLaunchMissileSwitch" />
   </CEffectSet>
   <CEffectSet id="HoggerEzThroDynamiteSecretStashSpawnSet">
     <EffectArray value="HoggerEzThroDynamiteDenseBlastingPowderTalentApplyTimedLife" />
@@ -2360,7 +2368,7 @@
     <SearchFlags index="CenterAtLaunch" value="1" />
   </CEffectEnumArea>
   <CEffectCreatePersistent id="HoggerEzThroDynamiteStaggeringBlowDirectHitWarningPersistent">
-    <WhichLocation Effect="HoggerEzThroDynamiteLaunchMissile" />
+    <WhichLocation Effect="HoggerEzThroDynamiteLaunchMissileSwitch" />
     <TimeScaleSource Value="Caster" />
     <PeriodCount value="8" />
     <PeriodicValidator value="SourceNotDead" />
@@ -2444,7 +2452,7 @@
     <Amount value="180" />
   </CEffectDamage>
   <CEffectCreatePersistent id="HoggerEzThroDynamiteDirectHitWarningPersistent">
-    <WhichLocation Effect="HoggerEzThroDynamiteLaunchMissile" />
+    <WhichLocation Effect="HoggerEzThroDynamiteLaunchMissileSwitch" />
     <TimeScaleSource Value="Caster" />
     <PeriodCount value="8" />
     <PeriodicValidator value="SourceNotDead" />
@@ -3198,11 +3206,18 @@
     <EffectArray value="HoggerEzThroDynamiteJourneymanCookingTalentApplicationSet" />
     <EffectArray value="HoggerFurzerkerApplyStack" />
   </CEffectSet>
+  <CEffectSwitch id="HoggerEzThroDynamiteLaunchMissileSwitch">
+    <CaseArray Validator="HoggerEzThroDynamiteMinimumDistanceCast" Effect="HoggerEzThroDynamiteLaunchMissileLaunchOffset" />
+    <CaseDefault value="HoggerEzThroDynamiteLaunchMissile" />
+  </CEffectSwitch>
   <CEffectLaunchMissile id="HoggerEzThroDynamiteLaunchMissile">
     <ImpactEffect value="HoggerEzThroDynamiteSpawnSet" />
     <AmmoUnit value="HoggerEzThroDynamiteMissile" />
     <Movers Link="HoggerEzThroDynamiteFarMover" />
     <LaunchEffect value="HoggerEzThroDynamiteDirectHitWarningPersistent" />
+  </CEffectLaunchMissile>
+  <CEffectLaunchMissile id="HoggerEzThroDynamiteLaunchMissileLaunchOffset" parent="HoggerEzThroDynamiteLaunchMissile">
+    <LaunchOffset Y="0.5" />
   </CEffectLaunchMissile>
   <CEffectSet id="HoggerEzThroDynamiteGroundImpactSet">
     <EffectArray value="HoggerEzThroDynamiteCreateUnit" />
@@ -4629,14 +4644,14 @@
         <Type value="FlatModification" />
         <Entry value="HoggerEzThroDynamite" />
         <Field value="Range" />
-        <Value value="1.500000" />
+        <Value value="$HoggerKablooieRangeIncrease" />
       </Modifications>
       <Modifications>
         <Type value="FlatModification" />
         <Catalog value="Actor" />
         <Entry value="HoggerEzThroDynamiteRangeSplat" />
         <Field value="Scale" />
-        <Value value="1.500000" />
+        <Value value="$HoggerKablooieRangeIncrease" />
       </Modifications>
       <Modifications>
         <Type value="FlatModification" />
@@ -4772,13 +4787,13 @@
         <Catalog value="Actor" />
         <Entry value="HoggerLootHoardRangeSplat" />
         <Field value="Scale" />
-        <Value value="1.600000" />
+        <Value value="$HoggerBruteForceRangeIncrease" />
       </Modifications>
       <Modifications>
         <Type value="FlatModification" />
         <Entry value="HoggerLootHoard" />
         <Field value="Range" />
-        <Value value="1.600000" />
+        <Value value="$HoggerBruteForceRangeIncrease" />
       </Modifications>
     </AbilityModificationArray>
     <QuestData StackBehavior="HoggerStaggeringBlowBruteForceTalentTokenCounter" TargetCount="150" IgnoreTargetCount="0" />
@@ -5453,6 +5468,10 @@
   <CValidatorUnitState id="HoggerStaggeringBlowInContactWithPathingBlocker" parent="UnitIsInContactWithPathingBlocker">
     <WhichUnit Effect="HoggerStaggeringBlowSearchImpactSet" Value="Target" />
   </CValidatorUnitState>
+  <CValidatorLocationCompareRange id="HoggerEzThroDynamiteMinimumDistanceCast">
+    <Compare value="LT" />
+    <Range value="0.5" />
+  </CValidatorLocationCompareRange>
   <CValidatorLocationEnumArea id="HoggerEzThroDynamiteDirectHit">
     <AreaArray Compare="GT" Count="0">
       <Radius value="0.75" />

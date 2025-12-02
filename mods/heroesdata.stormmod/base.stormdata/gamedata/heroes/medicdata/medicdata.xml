@@ -1,5 +1,16 @@
 <?xml version="1.0" encoding="us-ascii"?>
 <Catalog>
+  <const id="$MedicUnitRadius" value="0.75" />
+  <const id="$MedicHealingBeamRange" value="6.5" />
+  <const id="$MedicHealingBeamRangeNegativeSlop" value="0.5" />
+  <const id="$MedicHealingBeamRangeSlop" value="1.75" />
+  <const id="$MedicHealingBeamActiveActorRange" value="-(-(+($MedicHealingBeamRange $MedicHealingBeamRangeSlop) $MedicUnitRadius) 0.375)" evaluateAsExpression="1" />
+  <const id="$MedicExtendedCareRangeModifier" value="0.3" />
+  <const id="$MedicExtendedCareRangeIncrease" value="*($MedicHealingBeamRange $MedicExtendedCareRangeModifier)" evaluateAsExpression="1" />
+  <const id="$MedicHealingBeamChannelRange" value="+($MedicHealingBeamRange $MedicHealingBeamRangeSlop)" evaluateAsExpression="1" />
+  <const id="$MedicHealingBeamChannelRangeExtendedCare" value="+(+($MedicHealingBeamRange $MedicHealingBeamRangeSlop) $MedicExtendedCareRangeIncrease)" evaluateAsExpression="1" />
+  <const id="$MedicHealingBeamChannelSoundRange" value="-($MedicHealingBeamRange $MedicHealingBeamRangeNegativeSlop)" evaluateAsExpression="1" />
+  <const id="$MedicHealingBeamChannelSoundRangeExtendedCare" value="-(+($MedicHealingBeamRange $MedicExtendedCareRangeIncrease) $MedicHealingBeamRangeNegativeSlop)" evaluateAsExpression="1" />
   <CAbilEffectInstant id="MedicTraumaTriggerAbility">
     <Effect value="MedicTraumaTriggerDummyEffect" />
     <Flags index="ValidateButtonState" value="0" />
@@ -45,11 +56,12 @@
   <CAbilEffectTarget id="MedicRedirectHealingBeam">
     <Effect value="MedicRedirectHealingBeamSwitch" />
     <Flags index="RequireTargetVision" value="0" />
+    <Flags index="RangeUseCasterRadius" value="0" />
     <Cost>
       <Cooldown TimeUse="0.5" />
     </Cost>
     <TargetFilters value="-;Neutral,Enemy,Structure,ImmuneToFriendlyAbilities,Missile,Stasis,Dead,Hidden" />
-    <Range value="5.5" />
+    <Range value="$MedicHealingBeamRange" />
     <Arc value="360" />
     <CmdButtonArray index="Execute" DefaultButtonFace="MedicRedirectHealingBeam" ShowValidator="MedicHealingBeamHasUnitTracked" UseValidator="MedicHealingBeamHasUnitTracked" />
     <BailEffect index="Approach" value="MedicRedirectHealingBeamIssueOrder" />
@@ -167,11 +179,12 @@
     <PrepEffect value="DismountDecloakCasterSet" />
     <Effect value="MedicHealingBeamCastSet" />
     <Flags index="RequireTargetVision" value="0" />
+    <Flags index="RangeUseCasterRadius" value="0" />
     <Cost>
       <Cooldown TimeUse="0.5" />
     </Cost>
     <TargetFilters value="-;Self,Neutral,Enemy,Structure,ImmuneToFriendlyAbilities,Missile,Stasis,Dead,Hidden" />
-    <Range value="5.5" />
+    <Range value="$MedicHealingBeamRange" />
     <ShowProgressArray index="Cast" value="1" />
     <ShowProgressArray index="Channel" value="1" />
     <UninterruptibleArray index="Cast" value="1" />
@@ -815,7 +828,7 @@
     <Inherits index="TeamColor" value="1" />
     <On Terms="Behavior.MedicCastingHealingBeamBuff.On" Send="Create" />
     <On Terms="Behavior.MedicCastingHealingBeamBuff.Off" Send="Destroy" />
-    <Range value="7.000000" />
+    <Range value="$MedicHealingBeamActiveActorRange" />
     <Icon value="Assets\Textures\storm_fx_medic_base_healingbeam_range.dds" />
     <IconArcLength value="5.000000" />
   </CActorRange>
@@ -991,7 +1004,7 @@
     <On Terms="Abil.MedicMedSchoolTargeted.ButtonHoverOff" Send="StatusDecrement RangeAbilVis" />
   </CActorRange>
   <CActorSplat id="MedicHealingBeamRangeSplat" parent="StormRangeSplat">
-    <Scale value="6.500000" />
+    <Scale value="$MedicHealingBeamRange" />
   </CActorSplat>
   <CActorMissile id="MedicDisplacementGrenadeMissile" parent="StormMissileWithDeathEarly" unitName="MedicDisplacementGrenadeMissile">
     <On Terms="ActorCreation" Send="Create MedicDisplacementGrenadeTravelSound" />
@@ -1059,8 +1072,8 @@
     <VisibleToAtCreation index="Source" value="1" />
     <VisibleToAtCreation index="Target" value="1" />
     <Inherits index="Visibility" value="0" />
-    <On Terms="Effect.MedicHealingBeamPersistentDummySet.Start; ValidateEffect MedicHealingBeamTargetNotInRangeSoundHook; At Caster" Send="Create" />
-    <On Terms="Effect.MedicHealingBeamPersistentDummySet.Start; ValidateEffect MedicHealingBeamTargetInRangeSoundHook" Send="Destroy" />
+    <On Terms="Effect.MedicHealingBeamPersistentDummySet.Start; ValidateEffect MedicHealingBeamTargetNotInRangeSoundHookCombine; At Caster" Send="Create" />
+    <On Terms="Effect.MedicHealingBeamPersistentDummySet.Start; ValidateEffect MedicHealingBeamTargetInRangeSoundHookCombine" Send="Destroy" />
     <On Terms="Effect.MedicHealingBeamCreatePersistent.Stop" Send="Destroy" />
     <Sound value="Medic_HealingBeam_Disc_Loop" />
   </CActorSound>
@@ -3670,34 +3683,34 @@
         <Type value="FlatModification" />
         <Entry value="MedicHealingBeam" />
         <Field value="Range" />
-        <Value value="1.650000" />
+        <Value value="$MedicExtendedCareRangeIncrease" />
       </Modifications>
       <Modifications>
         <Type value="FlatModification" />
         <Catalog value="Actor" />
         <Entry value="MedicHealingBeamRangeSplat" />
         <Field value="Scale" />
-        <Value value="1.650000" />
+        <Value value="$MedicExtendedCareRangeIncrease" />
       </Modifications>
       <Modifications>
         <Type value="FlatModification" />
         <Catalog value="Actor" />
         <Entry value="MedicHealingBeamActiveRange" />
         <Field value="Range" />
-        <Value value="2.650000" />
+        <Value value="$MedicExtendedCareRangeIncrease" />
       </Modifications>
       <Modifications>
         <Type value="FlatModification" />
         <Catalog value="Actor" />
         <Entry value="MedicHealingBeamAllyActiveRange" />
         <Field value="Range" />
-        <Value value="2.650000" />
+        <Value value="$MedicExtendedCareRangeIncrease" />
       </Modifications>
       <Modifications>
         <Type value="FlatModification" />
         <Entry value="MedicRedirectHealingBeam" />
         <Field value="Range" />
-        <Value value="1.650000" />
+        <Value value="$MedicExtendedCareRangeIncrease" />
       </Modifications>
       <Modifications>
         <Type value="FlatModification" />
@@ -3970,8 +3983,8 @@
       <LayoutButtons Face="MedicCancelHealingBeam" Type="AbilCmd" AbilCmd="MedicCancelHealingBeam,Execute" Slot="Trait" />
       <LayoutButtons Face="MedicCaduceusReactor" Type="Passive" AbilCmd="MedicCaduceusReactor,Execute" Slot="Trait" />
     </CardLayouts>
-    <Radius value="0.75" />
-    <InnerRadius value="0.75" />
+    <Radius value="$MedicUnitRadius" />
+    <InnerRadius value="$MedicUnitRadius" />
     <AIThinkTree value="AI/Medic.aitree" />
     <AIEvalFactor value="1.3" />
     <AIBaseThreat value="0.85" />
@@ -4164,7 +4177,8 @@
   <CValidatorLocationCompareRange id="MedicHealingBeamTargetInRangeExtendedCareTalent">
     <WhichLocation Effect="MedicHealingBeamCreatePersistent" Value="TargetUnit" />
     <Compare value="LE" />
-    <Range value="9.75" />
+    <Range value="$MedicHealingBeamChannelRangeExtendedCare" />
+    <Value Value="CasterPoint" />
   </CValidatorLocationCompareRange>
   <CValidatorCombine id="MedicHealingBeamTargetInRangeCombine">
     <CombineArray value="MedicHealingBeamTargetInRange" />
@@ -4182,7 +4196,8 @@
   <CValidatorLocationCompareRange id="MedicHealingBeamTargetNotInRangeExtendedCareTalent">
     <WhichLocation Effect="MedicHealingBeamCreatePersistent" Value="TargetUnit" />
     <Compare value="GT" />
-    <Range value="9.75" />
+    <Range value="$MedicHealingBeamChannelRangeExtendedCare" />
+    <Value Value="CasterPoint" />
   </CValidatorLocationCompareRange>
   <CValidatorCombine id="MedicCaduceusReactorActivationCombine">
     <CombineArray value="CasterLifeNotFull" />
@@ -4198,6 +4213,10 @@
   <CValidatorPlayerTalent id="MedicHasExtendedCareTalent">
     <WhichPlayer Value="Caster" />
     <Find value="1" />
+    <Value value="MedicExtendedCare" />
+  </CValidatorPlayerTalent>
+  <CValidatorPlayerTalent id="MedicDoesNotHaveExtendedCareTalent">
+    <WhichPlayer Value="Caster" />
     <Value value="MedicExtendedCare" />
   </CValidatorPlayerTalent>
   <CValidatorPlayerTalent id="MedicHasProlongedSafeguardTalent">
@@ -4506,22 +4525,61 @@
   <CValidatorLocationCompareRange id="MedicHealingBeamTargetInRange">
     <WhichLocation Effect="MedicHealingBeamCreatePersistent" Value="TargetUnit" />
     <Compare value="LE" />
-    <Range value="7.5" />
+    <Range value="$MedicHealingBeamChannelRange" />
+    <Value Value="CasterPoint" />
   </CValidatorLocationCompareRange>
   <CValidatorLocationCompareRange id="MedicHealingBeamTargetNotInRange">
     <WhichLocation Effect="MedicHealingBeamCreatePersistent" Value="TargetUnit" />
     <Compare value="GT" />
-    <Range value="7.5" />
+    <Range value="$MedicHealingBeamChannelRange" />
+    <Value Value="CasterPoint" />
   </CValidatorLocationCompareRange>
+  <CValidatorCombine id="MedicHealingBeamTargetInRangeSoundHookCombine">
+    <CombineArray value="MedicHealingBeamTargetInRangeSoundHook" />
+    <CombineArray value="MedicHealingBeamTargetInRangeExtendedCareTalentSoundHookCombine" />
+  </CValidatorCombine>
   <CValidatorLocationCompareRange id="MedicHealingBeamTargetInRangeSoundHook">
     <WhichLocation Value="TargetUnit" />
     <Compare value="LE" />
-    <Range value="5" />
+    <Range value="$MedicHealingBeamChannelSoundRange" />
+    <Value Value="CasterPoint" />
   </CValidatorLocationCompareRange>
+  <CValidatorCombine id="MedicHealingBeamTargetInRangeExtendedCareTalentSoundHookCombine">
+    <Type value="And" />
+    <CombineArray value="MedicHealingBeamTargetInRangeSoundHookExtendedCareTalent" />
+    <CombineArray value="MedicHasExtendedCareTalent" />
+  </CValidatorCombine>
+  <CValidatorLocationCompareRange id="MedicHealingBeamTargetInRangeSoundHookExtendedCareTalent">
+    <WhichLocation Value="TargetUnit" />
+    <Compare value="LE" />
+    <Range value="$MedicHealingBeamChannelSoundRangeExtendedCare" />
+    <Value Value="CasterPoint" />
+  </CValidatorLocationCompareRange>
+  <CValidatorCombine id="MedicHealingBeamTargetNotInRangeSoundHookCombine">
+    <CombineArray value="MedicHealingBeamTargetNotInRangeWithoutExtendedCareTalentSoundHookCombine" />
+    <CombineArray value="MedicHealingBeamTargetNotInRangeWithExtendedCareTalentSoundHookCombine" />
+  </CValidatorCombine>
+  <CValidatorCombine id="MedicHealingBeamTargetNotInRangeWithoutExtendedCareTalentSoundHookCombine">
+    <Type value="And" />
+    <CombineArray value="MedicHealingBeamTargetNotInRangeSoundHook" />
+    <CombineArray value="MedicDoesNotHaveExtendedCareTalent" />
+  </CValidatorCombine>
+  <CValidatorCombine id="MedicHealingBeamTargetNotInRangeWithExtendedCareTalentSoundHookCombine">
+    <Type value="And" />
+    <CombineArray value="MedicHealingBeamTargetInRangeSoundHookExtendedCareTalent" />
+    <CombineArray value="MedicHasExtendedCareTalent" />
+  </CValidatorCombine>
   <CValidatorLocationCompareRange id="MedicHealingBeamTargetNotInRangeSoundHook">
     <WhichLocation Value="TargetUnit" />
     <Compare value="GT" />
-    <Range value="5" />
+    <Range value="$MedicHealingBeamChannelSoundRange" />
+    <Value Value="CasterPoint" />
+  </CValidatorLocationCompareRange>
+  <CValidatorLocationCompareRange id="MedicHealingBeamTargetNotInRangeSoundHookExtendedCareTalent">
+    <WhichLocation Value="TargetUnit" />
+    <Compare value="GT" />
+    <Range value="$MedicHealingBeamChannelSoundRangeExtendedCare" />
+    <Value Value="CasterPoint" />
   </CValidatorLocationCompareRange>
   <CValidatorLocationCompareRange id="MedicHealingBeamTargetNotAtExcessiveRange">
     <WhichLocation Effect="MedicHealingBeamCreatePersistent" Value="TargetUnit" />

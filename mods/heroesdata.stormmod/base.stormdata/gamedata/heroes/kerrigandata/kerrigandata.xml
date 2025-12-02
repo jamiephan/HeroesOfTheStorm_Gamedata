@@ -1,6 +1,17 @@
 <?xml version="1.0" encoding="us-ascii"?>
 <Catalog>
+  <const id="$KerriganRavageBaselineQuestFirstMilestoneStacks" value="75" />
+  <const id="$KerriganRavageBaselineQuestMaxStacks" value="125" />
+  <const id="$KerriganRavageBaselineQuestFirstMilestoneBonusDamage" value="125" />
+  <const id="$KerriganRavageBaselineQuestCompleteBonusDamage" value="200" />
   <const id="$KerriganMaelstromRange" value="4.5" />
+  <CAbilEffectInstant id="AssimilationActivate">
+    <Effect value="AssimilationActivateSet" />
+    <Cost>
+      <Cooldown TimeUse="4" />
+    </Cost>
+    <CmdButtonArray index="Execute" DefaultButtonFace="KerriganAssimilation" />
+  </CAbilEffectInstant>
   <CAbilEffectInstant id="KerriganChrysalisCancel">
     <PrepEffect value="DismountDecloakCasterSet" />
     <Effect value="KerriganChrysalisCancelRemoveBehaviorSet" />
@@ -89,7 +100,7 @@
     <Flags index="RequireTargetVision" value="0" />
     <Cost>
       <Vital index="Energy" value="65" />
-      <Cooldown TimeUse="10" />
+      <Cooldown TimeUse="8" />
     </Cost>
     <Range value="500" />
     <Arc value="360" />
@@ -150,7 +161,7 @@
     <Flags index="RequireTargetVision" value="0" />
     <Cost>
       <Vital index="Energy" value="80" />
-      <Cooldown TimeUse="12" />
+      <Cooldown TimeUse="9" />
     </Cost>
     <Range value="6" />
     <RangeSlop value="5" />
@@ -173,8 +184,10 @@
     <Scale value="0.1" />
   </CAccumulatorToken>
   <CAccumulatorToken id="KerriganRavageSharpenedBladesDamageAccumulator" parent="BaseTokenAccumulator">
+    <MinAccumulation value="0" />
+    <MaxAccumulation value="5000" />
+    <TokenId value="KerriganSharpenedBladesDamageTokenCounter" />
     <ApplicationRule value="Add" />
-    <TokenId value="KerriganRavageSharpenedBladesTokenCounter" />
   </CAccumulatorToken>
   <CActorSound id="KerriganUltraliskAttackImpactSound" parent="SoundOneShot">
     <Sound value="Kerrigan_Ultralisk_AttackImpact" />
@@ -742,6 +755,18 @@
   <CActorSound id="KerriganChrysalisLaunchSound" parent="SoundContinuous">
     <Sound value="Kerrigan_Chrysalis_Launch" />
   </CActorSound>
+  <CBehaviorBuff id="AssimilationNoShieldPeriod">
+    <Duration value="3" />
+  </CBehaviorBuff>
+  <CBehaviorBuff id="KerriganRavagingFerocity">
+    <Duration value="3" />
+    <Modification>
+      <AdditiveAttackSpeedFactor value="0.25" />
+    </Modification>
+  </CBehaviorBuff>
+  <CBehaviorBuff id="AssimilationDamageBoost">
+    <Duration value="3" />
+  </CBehaviorBuff>
   <CBehaviorBuff id="KerriganSummonUltraliskTorrasqueBonusHealthBehavior">
     <Alignment value="Positive" />
     <BehaviorFlags index="Permanent" value="1" />
@@ -825,7 +850,7 @@
     <MinStackCountDisplayed value="0" />
     <Max value="65535" />
   </CBehaviorTokenCounter>
-  <CBehaviorBuff id="KerriganRavageSharpenedBladesQuestComplete" parent="CarryBehaviorParent" />
+  <CBehaviorBuff id="KerriganRavageSharpenedBladesQuestMilestone" parent="CarryBehaviorParent" />
   <CBehaviorBuff id="KerriganUnbridledEnergyIncreasedDamage" parent="StormDamageIncrease">
     <Alignment value="Positive" />
     <InfoFlags index="Hidden" value="0" />
@@ -925,7 +950,7 @@
   <CBehaviorBuff id="KerriganRavageBoundlessFuryCarryBehavior">
     <BehaviorFlags index="Permanent" value="1" />
     <BehaviorFlags index="EnabledWhileDead" value="1" />
-    <Duration value="10" />
+    <Duration value="12" />
     <RemoveValidatorArray value="TargetNotDeadAndNoSpecialDeathState" />
   </CBehaviorBuff>
   <CBehaviorBuff id="KerriganImpalingBladesKineticFulminationCarry" parent="CarryBehaviorParent">
@@ -951,9 +976,15 @@
   </CBehaviorBuff>
   <CBehaviorTokenCounter id="KerriganRavageSharpenedBladesTokenCounter" parent="StormQuestToken">
     <InfoIcon value="Assets\Textures\storm_ui_icon_kerrigan_ravage.dds" />
-    <Max value="75" />
-    <AtMaxEvents index="0" EventId="QuestComplete" Effect="KerriganRavageSharpenedBladesQuestCompleteApplyBehavior" />
+    <Max value="$KerriganRavageBaselineQuestMaxStacks" />
+    <AtMaxEvents index="0" EventId="QuestComplete" Effect="KerriganSharpenedBladesQuestCompleteGrantSet" />
     <SortIndex value="10" />
+    <ConditionalEvents Compare="GE" CompareValue="$KerriganRavageBaselineQuestFirstMilestoneStacks">
+      <Event Effect="KerriganSharpenedBladesFirstMilestoneGrantSet" />
+    </ConditionalEvents>
+  </CBehaviorTokenCounter>
+  <CBehaviorTokenCounter id="KerriganSharpenedBladesDamageTokenCounter" parent="StormGenericToken">
+    <Max value="5000" />
   </CBehaviorTokenCounter>
   <CBehaviorBuff id="KerriganRavageSharpenedBladesFatalResponse" parent="CarryBehaviorParent">
     <Duration value="1.5" />
@@ -1083,7 +1114,7 @@
     <ExpireEffect value="" />
   </CBehaviorBuff>
   <CBehaviorBuff id="KerriganImpalingBlades" parent="StormStun">
-    <Duration value="1" />
+    <Duration value="0.75" />
   </CBehaviorBuff>
   <CBehaviorBuff id="KerriganMaelstrom">
     <Alignment value="Positive" />
@@ -1214,7 +1245,7 @@
   <CButton id="KerriganSummonUltraliskTorrasqueTalent" parent="StormButtonParent">
     <Icon value="Assets\Textures\storm_ui_icon_kerrigan_ultralisk.dds" />
   </CButton>
-  <CButton id="KerriganRavageSharpenedBlades" parent="StormButtonParent">
+  <CButton id="KerriganRavageRavagingFerocity" parent="StormButtonParent">
     <Icon value="Assets\Textures\storm_ui_icon_kerrigan_ravage.dds" />
   </CButton>
   <CButton id="KerriganMaelstromOmegastormTalent" parent="StormButtonParent">
@@ -1234,7 +1265,7 @@
   <CButton id="KerriganRavage" parent="StormButtonParent">
     <Icon value="Assets\Textures\storm_ui_icon_kerrigan_ravage.dds" />
     <TooltipAppender Validator="KerriganRavageHasSiphoningImpactTalent" Face="KerriganRavageSiphoningImpact" />
-    <TooltipAppender Validator="KerriganHasSharpenedBladesTalent" Face="KerriganRavageSharpenedBlades" />
+    <TooltipAppender Validator="KerriganHasRavagingFerocityTalent" Face="KerriganRavageRavagingFerocity" />
     <TooltipAppender Validator="KerriganRavageHasQueenOfBladesTalent" Face="KerriganRavageQueenOfBlades" />
     <TooltipAppender Validator="KerriganRavageHasBoundlessFuryTalent" Face="KerriganRavageBoundlessFury" />
     <TooltipAppender Validator="KerriganRavageHasMountingPotencyTalent" Face="KerriganRavageMountingPotency" />
@@ -1273,6 +1304,43 @@
     <Color value="255,179,0,179" />
     <Unit value="HeroKerrigan" />
   </CCharacter>
+  <CEffectModifyPlayer id="KerriganRavageQuestCompleteModifyPlayer">
+    <Marker Link="Effect/ThrallChainLightningEchooftheElementsTalent2ndQuestModifyPlayer" />
+    <EffectArray Reference="Effect,KerriganRavageDamage,FlatModifierArray[SharpenedBladeComplete].Modifier" Value="200" />
+  </CEffectModifyPlayer>
+  <CEffectApplyBehavior id="ApplyRavagingFerocityApplyBehavior">
+    <Marker Link="Effect/ApplyAssimilationDamageBoostApplyBehavior" />
+    <Chance value="0" />
+    <WhichUnit Value="Caster" />
+    <Behavior value="KerriganRavagingFerocity" />
+  </CEffectApplyBehavior>
+  <CEffectModifyTokenCount id="KerriganRavageSharpenedBladesModifyTokenCountDeath" parent="BaseEffectModifyTokenCount">
+    <Marker Link="Effect/KerriganRavageSharpenedBladesModifyTokenCountMinions" />
+    <EffectCategory index="Quest" value="1" />
+    <CollationId value="KerriganRavageSharpenedBladesModifyTokenCountMinions" />
+    <TokenId value="KerriganRavageSharpenedBladesTokenCounter" />
+    <Value value="-10" />
+  </CEffectModifyTokenCount>
+  <CEffectApplyBehavior id="ApplyAssimilationDamageBoostApplyBehavior">
+    <ValidatorArray index="0" removed="1" />
+    <WhichUnit Value="Caster" />
+    <Behavior value="AssimilationDamageBoost" />
+  </CEffectApplyBehavior>
+  <CEffectApplyBehavior id="AssimilationActivateApplyBehavior">
+    <WhichUnit Value="Caster" />
+    <Behavior value="AssimilationNoShieldPeriod" />
+  </CEffectApplyBehavior>
+  <CEffectSet id="AssimilationActivateSet">
+    <Marker Link="Effect/KerriganAssimilationBladesSet" />
+    <EffectArray value="ApplyAssimilationDamageBoostApplyBehavior" />
+    <EffectArray value="AssimilationActivateApplyBehavior" />
+  </CEffectSet>
+  <CEffectRemoveBehavior id="KerriganAssimilationRemoveBehavior">
+    <ValidatorArray index="0" value="KerriganChrysalisRemoveBehaviorTargetFilters" />
+    <Marker Link="Effect/KerriganChrysalisRemoveBehavior" />
+    <WhichUnit Value="Caster" />
+    <BehaviorLink value="AssimilationDamageBoost" />
+  </CEffectRemoveBehavior>
   <CEffectApplyBehavior id="KerriganSummonUltraliskTorrasqueBonusHealthApplyBehavior">
     <Behavior value="KerriganSummonUltraliskTorrasqueBonusHealthBehavior" />
   </CEffectApplyBehavior>
@@ -1451,11 +1519,11 @@
     <ValidatorArray value="TargetIsHero" />
     <Chance value="0" />
     <Behavior value="KerriganMaelstrom" />
-    <Value value="0.25" />
+    <Value value="0.4" />
   </CEffectModifyBehaviorBuffDuration>
   <CEffectApplyBehavior id="KerriganRavageSharpenedBladesQuestCompleteApplyBehavior">
     <WhichUnit Value="Caster" />
-    <Behavior value="KerriganRavageSharpenedBladesQuestComplete" />
+    <Behavior value="KerriganRavageSharpenedBladesQuestMilestone" />
   </CEffectApplyBehavior>
   <CEffectSet id="KerriganUltraliskWeaponImpactSet">
     <EffectArray value="KerriganUltraliskWeaponSwitch" />
@@ -1491,7 +1559,7 @@
   </CEffectApplyBehavior>
   <CEffectCreateHealer id="KerriganChrysalisCreateHealer" parent="StormSelfOnlyHealingSpellPercent">
     <ImpactUnit Value="Caster" />
-    <RechargeVitalFraction value="0.0124" />
+    <RechargeVitalFraction value="0.01" />
   </CEffectCreateHealer>
   <CEffectSet id="KerriganChrysalisInitialBehaviorSet">
     <EffectArray value="KerriganChrysalisCreateHealer" />
@@ -1591,10 +1659,9 @@
     <Chance value="0" />
   </CEffectApplyBehavior>
   <CEffectApplyBehavior id="KerriganRavageSharpenedBladesApplyBehavior">
-    <Chance value="0" />
     <Behavior value="KerriganRavageSharpenedBladesFatalResponse" />
     <ValidatorArray index="0" value="TargetIsMinionNotMercLanerORTargetIsHero" />
-    <ValidatorArray value="KerriganHasNotCompletedSharpenedBlades" />
+    <ValidatorArray value="KerriganHasLTSharpenedBladesMaxStacks" />
     <ValidatorArray value="TargetNotHallucinationOrSummoned" />
     <ValidatorArray value="SylvanasTargetUnPossessed" />
   </CEffectApplyBehavior>
@@ -1611,11 +1678,24 @@
     <EffectCategory index="Quest" value="1" />
     <TokenId value="KerriganRavageSharpenedBladesTokenCounter" />
   </CEffectModifyTokenCount>
+  <CEffectSet id="KerriganSharpenedBladesFirstMilestoneGrantSet">
+    <EffectArray value="KerriganSharpenedBladesAddFirstMilestoneDamageTokens" />
+  </CEffectSet>
+  <CEffectModifyTokenCount id="KerriganSharpenedBladesAddFirstMilestoneDamageTokens" parent="BaseEffectModifyTokenCount">
+    <TokenId value="KerriganSharpenedBladesDamageTokenCounter" />
+    <Value value="$KerriganRavageBaselineQuestFirstMilestoneBonusDamage" />
+  </CEffectModifyTokenCount>
+  <CEffectSet id="KerriganSharpenedBladesQuestCompleteGrantSet">
+    <EffectArray value="KerriganSharpenedBladesAddQuestCompleteDamageTokens" />
+  </CEffectSet>
+  <CEffectModifyTokenCount id="KerriganSharpenedBladesAddQuestCompleteDamageTokens" parent="BaseEffectModifyTokenCount">
+    <TokenId value="KerriganSharpenedBladesDamageTokenCounter" />
+    <Value value="$KerriganRavageBaselineQuestCompleteBonusDamage" />
+  </CEffectModifyTokenCount>
   <CEffectApplyBehavior id="KerriganAssimilationFuryOfTheSwarmApplyBehavior">
     <Chance value="0" />
     <WhichUnit Value="Caster" />
     <Behavior value="KerriganAssimilationFuryOfTheSwarmCarryBehavior" />
-    <Count value="2" />
   </CEffectApplyBehavior>
   <CEffectRemoveBehavior id="KerriganAssimilationFuryOfTheSwarmRemoveBehavior">
     <Chance value="0" />
@@ -1649,10 +1729,9 @@
   </CEffectCreateHealer>
   <CEffectDamage id="KerriganWeaponDamageParent" parent="StormWeapon">
     <MultiplicativeModifierArray index="AssimilationBlades" Validator="KerriganHasAssimilationBladesTalent" Accumulator="KerriganAssimilationBladesDamageAccumulator" />
-    <LeechFraction index="Shields" value="0.1" />
+    <LeechFraction index="Shields" value="0.2" />
     <LeechShieldsTargetBehaviorBuff value="KerriganAssimilationShield" />
     <LeechMultiplicativeModifierArray index="Hero" Validator="TargetIsHero" Modifier="1" />
-    <LeechFlatModifierArray index="FuryOfTheSwarm" Validator="KerriganHasFuryOfTheSwarmTalent" Modifier="0.1" />
     <LeechFlatModifierArray index="VolatilePower" Validator="KerriganAssimilationHasVolatilePowerTalent" Modifier="0.1" />
     <LeechScoreArray index="0" removed="1" />
   </CEffectDamage>
@@ -1769,8 +1848,9 @@
     <Behavior value="KerriganUltraliskStun" />
   </CEffectApplyBehavior>
   <CEffectDamage id="KerriganUltraliskChargeDamage" parent="KerriganAbilityDamageParent">
-    <Amount value="250" />
+    <Amount value="225" />
     <LeechRecipientArray index="0" Value="Creator" />
+    <LeechValidator index="Shields" value="KerriganEligibleForShields" />
   </CEffectDamage>
   <CEffectApplyBehavior id="KerriganAssimilationApplyBehavior">
     <WhichUnit Value="Caster" />
@@ -1778,7 +1858,8 @@
   </CEffectApplyBehavior>
   <CEffectDamage id="KerriganImpalingBladesPainfulSpikesDamage" parent="KerriganAbilityDamageParent">
     <ImpactLocation Value="SourceUnitOrPoint" />
-    <Amount value="70" />
+    <Amount value="60" />
+    <LeechValidator index="Shields" value="KerriganEligibleForShields" />
   </CEffectDamage>
   <CEffectModifyUnit id="KerriganRavageRestoreCharge">
     <ImpactUnit Value="Caster" />
@@ -1811,6 +1892,7 @@
   <CEffectDamage id="KerriganPsionicShiftDamage" parent="KerriganAbilityDamageParent">
     <Amount value="50" />
     <LeechFlatModifierArray index="PsionicShift" Modifier="3" />
+    <LeechValidator index="Shields" value="KerriganEligibleForShields" />
   </CEffectDamage>
   <CEffectEnumArea id="KerriganPsionicShiftSearch">
     <ImpactLocation Value="CasterUnit" />
@@ -1878,7 +1960,8 @@
     <Behavior value="KerriganPrimalGraspExplosion" />
   </CEffectApplyBehavior>
   <CEffectDamage id="KerriganPrimalGraspExplosionDamage" parent="KerriganAbilityDamageParent">
-    <Amount value="195" />
+    <Amount value="160" />
+    <LeechValidator index="Shields" value="KerriganEligibleForShields" />
   </CEffectDamage>
   <CEffectModifyUnit id="KerriganMaelstromModifyWeaponCooldown">
     <ImpactUnit Value="Caster" />
@@ -1963,6 +2046,7 @@
     <EffectArray value="KerriganRavageApplyFatalDamageResponseBehavior" />
     <EffectArray value="KerriganRavageResetAttackTargetModifyUnit" />
     <EffectArray value="KerriganAssimilationFuryOfTheSwarmApplyBehavior" />
+    <EffectArray value="ApplyRavagingFerocityApplyBehavior" />
   </CEffectSet>
   <CEffectSet id="KerriganRavageRemoveBehaviorSet">
     <EffectArray value="KerriganRavageRemoveBehavior" />
@@ -1995,7 +2079,8 @@
     <CaseDefault value="KerriganRavageLaunchMissile" />
   </CEffectSwitch>
   <CEffectDamage id="KerriganPrimalGraspPullDamage" parent="KerriganAbilityDamageParent">
-    <Amount value="25" />
+    <Amount value="40" />
+    <LeechValidator index="Shields" value="KerriganEligibleForShields" />
   </CEffectDamage>
   <CEffectCreatePersistent id="KerriganPrimalGraspCreatePersistentReveal">
     <ExpireDelay value="1" />
@@ -2097,10 +2182,10 @@
   </CEffectCreatePersistent>
   <CEffectDamage id="KerriganRavageDamage" parent="KerriganAbilityDamageParent">
     <ImpactLocation Effect="KerriganRavageCreatePersistent" Value="TargetUnit" />
-    <Amount value="130" />
-    <FlatModifierArray index="SharpenedBlades" Accumulator="KerriganRavageSharpenedBladesDamageAccumulator" />
-    <FlatModifierArray index="SharpenedBladeComplete" Validator="KerriganHasCompletedSharpenedBlades" Modifier="50" />
+    <Amount value="115" />
+    <FlatModifierArray index="SharpenedBlades" Validator="KerriganHasGT0SharpenedBladesDamageToken" Accumulator="KerriganRavageSharpenedBladesDamageAccumulator" />
     <MultiplicativeModifierArray index="QueenOfBlades" Validator="KerriganHasQueenOfBladesTalentAndTargetIsMinionOrTargetIsMercLanerOrTargetIsMercDefenderAndNotAMonster" Modifier="1" Crit="1" />
+    <LeechValidator index="Shields" value="KerriganEligibleForShields" />
   </CEffectDamage>
   <CEffectSet id="KerriganRavageImpactSet">
     <ValidatorArray value="KerriganRavageImpactDistance" />
@@ -2165,6 +2250,7 @@
     <LeechRecipientArray index="0" Value="Creator" />
     <MultiplicativeModifierArray index="TorrasqueBonusDamage" Validator="KerriganHasTorrasque" Modifier="0.2" />
     <LeechScoreArray index="0" removed="1" />
+    <LeechValidator index="Shields" value="KerriganEligibleForShields" />
   </CEffectDamage>
   <CEffectCreatePersistent id="KerriganMaelstromCreatePersistent">
     <WhichLocation Value="CasterUnit" />
@@ -2201,27 +2287,36 @@
   </CEffectEnumArea>
   <CEffectDamage id="KerriganUltraliskWeaponSplashDamage" parent="KerriganUltraliskWeaponDamage">
     <Amount value="50" />
+    <LeechValidator index="Shields" value="" />
   </CEffectDamage>
   <CEffectDamage id="KerriganMaelstromDamage" parent="KerriganAbilityDamageParent">
     <Amount value="37" />
+    <LeechValidator index="Shields" value="KerriganEligibleForShields" />
   </CEffectDamage>
   <CEffectSet id="KerriganWeaponDamageSet">
     <EffectArray value="KerriganWeaponPreImpactSet" />
     <EffectArray value="KerriganWeaponDamage" />
     <EffectArray value="KerriganWeaponPostImpactSet" />
-    <EffectArray value="KerriganWeaponFuryOfTheSwarmDamageSearch" />
-    <EffectArray value="KerriganAssimilationFuryOfTheSwarmRemoveBehavior" />
+    <EffectArray value="KerriganFuryOfTheSwarmSearchSet" />
   </CEffectSet>
   <CEffectSet id="KerriganWeaponPreImpactSet">
     <EffectArray value="KerriganBladedMomentumModifyCooldowns" />
   </CEffectSet>
-  <CEffectSet id="KerriganWeaponPostImpactSet" />
+  <CEffectSet id="KerriganWeaponPostImpactSet">
+    <EffectArray value="KerriganAssimilationRemoveBehavior" />
+  </CEffectSet>
   <CEffectDamage id="KerriganWeaponDamage" parent="KerriganWeaponDamageParent">
     <Amount value="115" />
     <CritValidatorArray index="0" value="KerriganCritAliasRangedDamageORHasMaxAssimilationBladesTokens" />
+    <MultiplicativeModifierArray index="AssimilationBuff" Validator="KerriganHasAssimilationDamageBehavior" Modifier="1" />
+    <LeechValidator index="Shields" value="KerriganEligibleForShields" />
   </CEffectDamage>
-  <CEffectEnumArea id="KerriganWeaponFuryOfTheSwarmDamageSearch">
+  <CEffectSet id="KerriganFuryOfTheSwarmSearchSet">
     <ValidatorArray value="KerriganHasFuryOfTheSwarmCarryBehavior" />
+    <EffectArray value="KerriganWeaponFuryOfTheSwarmDamageSearch" />
+    <EffectArray value="KerriganAssimilationFuryOfTheSwarmRemoveBehavior" />
+  </CEffectSet>
+  <CEffectEnumArea id="KerriganWeaponFuryOfTheSwarmDamageSearch">
     <ValidatorArray value="TargetNotEvading" />
     <ExcludeArray Value="Target" />
     <SearchFilters value="-;Self,Player,Ally,Neutral,ImmuneToAOE,Missile,Item,Stasis,Dead,Hidden,Invulnerable" />
@@ -2251,7 +2346,7 @@
     <ExpireEffect value="KerriganImpalingBladesSearchSet" />
     <PeriodCount value="4" />
     <PeriodicPeriodArray value="0.25" />
-    <RevealRadius value="1.5" />
+    <RevealRadius value="1.65" />
     <RevealFlags index="Unfog" value="1" />
     <AINotifySettings AreaEffect="KerriganImpalingBladesSearch">
       <Flags index="HurtsEnemy" value="1" />
@@ -2267,7 +2362,7 @@
     <ImpactLocation Value="TargetPoint" />
     <SearchFilters value="-;Player,Ally,Neutral,ImmuneToAOE,Missile,Item,Stasis,Dead,Hidden,Invulnerable" />
     <AreaArray Effect="KerriganImpalingBladesSet">
-      <Radius value="1.5" />
+      <Radius value="1.65" />
     </AreaArray>
   </CEffectEnumArea>
   <CEffectSet id="KerriganImpalingBladesSet">
@@ -2280,8 +2375,9 @@
     <EffectArray value="ApplyAbilityImpactReveal" />
   </CEffectSet>
   <CEffectDamage id="KerriganImpalingBladesDamage" parent="KerriganAbilityDamageParent">
-    <Amount value="165" />
+    <Amount value="150" />
     <MultiplicativeModifierArray index="KineticFulmination" Validator="KerriganImpalingBladesHasGT0KineticFulminationTokens" Accumulator="KerriganImpalingBladesKineticFulminationDamageAccumulator" Crit="1" />
+    <LeechValidator index="Shields" value="KerriganEligibleForShields" />
   </CEffectDamage>
   <CEffectApplyBehavior id="KerriganImpalingBladesApplyBehavior">
     <Behavior value="KerriganImpalingBlades" />
@@ -2535,6 +2631,20 @@
         <Catalog value="Unit" />
         <Entry value="KerriganChrysalis" />
         <Field value="LifeMax" />
+        <Value value="0.040000" />
+        <AffectedByOverdrive value="1" />
+      </Modifications>
+      <Modifications>
+        <Catalog value="Validator" />
+        <Entry value="KerriganHasMinimumShieldsforAssimilation" />
+        <Field value="Value" />
+        <Value value="0.040000" />
+        <AffectedByOverdrive value="1" />
+      </Modifications>
+      <Modifications>
+        <Catalog value="Effect" />
+        <Entry value="AssimilationActivateDamageSelf" />
+        <Field value="Amount" />
         <Value value="0.040000" />
         <AffectedByOverdrive value="1" />
       </Modifications>
@@ -2969,7 +3079,7 @@
         <Type value="FlatModification" />
         <Entry value="KerriganRavage" />
         <Field value="Cost.Charge.TimeUse" />
-        <Value value="-3.000000" />
+        <Value value="-4.000000" />
       </Modifications>
     </AbilityModificationArray>
   </CTalent>
@@ -3044,21 +3154,17 @@
     <Trait value="1" />
   </CTalent>
   <CTalent id="KerriganRavageSharpenedBlades">
-    <Face value="KerriganRavageSharpenedBlades" />
+    <Face value="KerriganRavageRavagingFerocity" />
     <Abil value="KerriganRavage" />
-    <RankArray>
-      <BehaviorArray value="KerriganRavageSharpenedBladesTokenCounter" />
-    </RankArray>
     <AbilityModificationArray>
       <Modifications>
         <Type value="FlatModification" />
         <Catalog value="Effect" />
-        <Entry value="KerriganRavageSharpenedBladesApplyBehavior" />
+        <Entry value="ApplyRavagingFerocityApplyBehavior" />
         <Field value="Chance" />
         <Value value="1.000000" />
       </Modifications>
     </AbilityModificationArray>
-    <QuestData StackBehavior="KerriganRavageSharpenedBladesTokenCounter" />
   </CTalent>
   <CTalent id="KerriganOmegastormMaelstrom">
     <Face value="KerriganMaelstromOmegastormTalent" />
@@ -3166,8 +3272,8 @@
     <PushPriority value="0" />
     <Attributes index="ImmuneToSkillshots" value="0" />
     <Attributes index="IgnoredByTowerAI" value="1" />
-    <LifeStart value="750" />
-    <LifeMax value="750" />
+    <LifeStart value="650" />
+    <LifeMax value="650" />
     <Sight value="8" />
     <AttackTargetPriority value="10" />
     <BehaviorArray index="0" Link="KerriganChrysalisUnitTrackerUI" />
@@ -3225,6 +3331,7 @@
     <AbilArray Link="KerriganSummonUltralisk" />
     <AbilArray Link="KerriganRavageWeaponCooldown" />
     <AbilArray Link="KerriganSummonUltraliskIssueOrder" />
+    <AbilArray Link="AssimilationActivate" />
     <CardLayouts index="0">
       <LayoutButtons Face="KerriganUltraliskIssueAttackOrder" Type="AbilCmd" AbilCmd="KerriganSummonUltraliskIssueOrder,Execute" Slot="Heroic" />
       <LayoutButtons Face="KerriganSummonUltralisk" Type="AbilCmd" AbilCmd="KerriganSummonUltralisk,Execute" Slot="Heroic" />
@@ -3233,11 +3340,13 @@
       <LayoutButtons Face="KerriganRavage" Type="AbilCmd" AbilCmd="KerriganRavage,Execute" Slot="Ability1" />
       <LayoutButtons Face="KerriganImpalingBlades" Type="AbilCmd" AbilCmd="KerriganImpalingBlades,Execute" Slot="Ability2" />
       <LayoutButtons Face="KerriganPrimalGrasp" Type="AbilCmd" AbilCmd="KerriganPrimalGrasp,Execute" Slot="Ability3" />
-      <LayoutButtons Face="KerriganAssimilation" Type="Passive" Slot="Trait" />
+      <LayoutButtons Face="KerriganAssimilation" Type="Passive" AbilCmd="AssimilationActivate,Execute" Slot="Trait" />
     </CardLayouts>
     <BehaviorArray Link="ExcellentMana" />
     <BehaviorArray Link="KerriganAbilityDamageDamageDealtResponse" />
     <BehaviorArray Link="KerriganBasicAttackDamageDamageDealtResponse" />
+    <BehaviorArray Link="KerriganRavageSharpenedBladesTokenCounter" />
+    <BehaviorArray Link="KerriganSharpenedBladesDamageTokenCounter" />
     <WeaponArray Link="HeroKerrigan" />
     <Radius value="0.6875" />
     <Gender value="Female" />
@@ -3267,6 +3376,20 @@
   <CUnit id="KerriganMissile" parent="MISSILE_INVULNERABLE">
     <Mover value="HeroMissileSpeed22Ribbon" />
   </CUnit>
+  <CValidatorUnitCompareBehaviorCount id="KerriganHasRavagingFerocityBehavior">
+    <WhichUnit Value="Caster" />
+    <Compare value="GT" />
+    <Behavior value="KerriganRavagingFerocity" />
+  </CValidatorUnitCompareBehaviorCount>
+  <CValidatorUnitCompareBehaviorCount id="KerriganEligibleForShields">
+    <WhichUnit Value="Caster" />
+    <Behavior value="AssimilationNoShieldPeriod" />
+  </CValidatorUnitCompareBehaviorCount>
+  <CValidatorUnitCompareBehaviorCount id="KerriganHasAssimilationDamageBehavior">
+    <WhichUnit Value="Caster" />
+    <Compare value="GT" />
+    <Behavior value="AssimilationDamageBoost" />
+  </CValidatorUnitCompareBehaviorCount>
   <CValidatorUnitCompareBehaviorCount id="KerriganDoesNotHaveChrysalisBehavior">
     <WhichUnit Value="Caster" />
     <Behavior value="KerriganChrysalisStasis" />
@@ -3307,6 +3430,7 @@
   <CValidatorCombine id="KerriganCritAliasRangedDamageORHasMaxAssimilationBladesTokens">
     <CombineArray value="CritAliasRangedDamage" />
     <CombineArray value="KerriganHasMaxAssimilationBladesTokens" />
+    <CombineArray value="KerriganHasAssimilationDamageBehavior" />
   </CValidatorCombine>
   <CValidatorUnitCompareTokenCount id="KerriganHasMaxAssimilationBladesTokens">
     <WhichUnit Value="Caster" />
@@ -3328,15 +3452,26 @@
     <Find value="1" />
     <Value value="KerriganAssimilationAssimilationBlades" />
   </CValidatorPlayerTalent>
-  <CValidatorUnitCompareBehaviorCount id="KerriganHasCompletedSharpenedBlades">
+  <CValidatorUnitCompareBehaviorCount id="KerriganHasObtainedMilestoneSharpenedBlades">
     <WhichUnit Value="Caster" />
     <Compare value="GT" />
-    <Behavior value="KerriganRavageSharpenedBladesQuestComplete" />
+    <Behavior value="KerriganRavageSharpenedBladesQuestMilestone" />
   </CValidatorUnitCompareBehaviorCount>
   <CValidatorUnitCompareBehaviorCount id="KerriganHasNotCompletedSharpenedBlades">
     <WhichUnit Value="Caster" />
-    <Behavior value="KerriganRavageSharpenedBladesQuestComplete" />
+    <Behavior value="KerriganRavageSharpenedBladesQuestMilestone" />
   </CValidatorUnitCompareBehaviorCount>
+  <CValidatorUnitCompareTokenCount id="KerriganHasGT0SharpenedBladesDamageToken">
+    <WhichUnit Value="Caster" />
+    <Compare value="GT" />
+    <TokenId value="KerriganSharpenedBladesDamageTokenCounter" />
+  </CValidatorUnitCompareTokenCount>
+  <CValidatorUnitCompareTokenCount id="KerriganHasLTSharpenedBladesMaxStacks">
+    <WhichUnit Value="Caster" />
+    <Compare value="LT" />
+    <Value value="$KerriganRavageBaselineQuestMaxStacks" />
+    <TokenId value="KerriganRavageSharpenedBladesTokenCounter" />
+  </CValidatorUnitCompareTokenCount>
   <CValidatorUnitCompareBehaviorCount id="KerriganImpalingBladesSourceHasPainfulSpikesDamageResponseBehaviorFromCaster">
     <WhichUnit Value="Source" />
     <Compare value="GT" />
@@ -3482,7 +3617,7 @@
     <Compare value="GT" />
     <Behavior value="KerriganAssimilationShield" />
   </CValidatorUnitCompareBehaviorCount>
-  <CValidatorPlayerTalent id="KerriganHasSharpenedBladesTalent">
+  <CValidatorPlayerTalent id="KerriganHasRavagingFerocityTalent">
     <WhichPlayer Value="Caster" />
     <Find value="1" />
     <Value value="KerriganRavageSharpenedBlades" />

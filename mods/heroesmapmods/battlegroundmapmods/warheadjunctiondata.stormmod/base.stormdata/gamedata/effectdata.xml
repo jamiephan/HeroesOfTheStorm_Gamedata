@@ -60,17 +60,17 @@
         <EffectArray value="NukeChannelCreatePersistent"/>
     </CEffectSet>
     <CEffectCreatePersistent id="NukeChannelCreatePersistent">
-		<InitialEffect value="DismountDecloakCasterSet"/>
-		<PeriodCount value="20"/>
-		<PeriodicValidator value="CasterNotDazedOrDeadOrSilencedOrSpecialDeathStateOrStasisOrStunnedExceptTimeStopped"/>
-		<PeriodicEffectArray value="DismountDecloakCasterSet"/>
-		<PeriodicPeriodArray value="0.125"/>
-		<TimeScaleSource Value="Caster"/>
-	</CEffectCreatePersistent>
-	<CEffectSet id="CoreNukeChannelInitialSet">
-		<EffectArray value="CoreNukeChannelCreatePersistent"/>
-	</CEffectSet>
-	<CEffectCreatePersistent id="CoreNukeChannelCreatePersistent">	
+        <InitialEffect value="DismountDecloakCasterSet"/>
+        <PeriodCount value="20"/>
+        <PeriodicValidator value="CasterNotDazedOrDeadOrSilencedOrSpecialDeathStateOrStasisOrStunnedExceptTimeStopped"/>
+        <PeriodicEffectArray value="DismountDecloakCasterSet"/>
+        <PeriodicPeriodArray value="0.125"/>
+        <TimeScaleSource Value="Caster"/>
+    </CEffectCreatePersistent>
+    <CEffectSet id="CoreNukeChannelInitialSet">
+        <EffectArray value="CoreNukeChannelCreatePersistent"/>
+    </CEffectSet>
+    <CEffectCreatePersistent id="CoreNukeChannelCreatePersistent">
         <InitialEffect value="DismountDecloakCasterSet"/>
         <PeriodCount value="12"/>
         <PeriodicValidator value="CasterNotDazedOrDeadOrSilencedOrSpecialDeathStateOrStasisOrStunnedExceptTimeStopped"/>
@@ -93,9 +93,9 @@
         <Behavior value="CallingDownNuke"/>
     </CEffectApplyBehavior>
     <CEffectSwitch id="NukeOuterImpactDamageSwitch">
-		<CaseArray Validator="IsStructureTarget" Effect="MapMechanicNukeStructureImpactSet"/>
-		<CaseArray Effect="NukeOuterImpactDamage"/>
-	</CEffectSwitch>
+        <CaseArray Validator="IsStructureTarget" Effect="MapMechanicNukeStructureImpactSet"/>
+        <CaseArray Effect="NukeOuterImpactDamage"/>
+    </CEffectSwitch>
     <CEffectSwitch id="NukeBurningDamageSwitch">
         <CaseArray Validator="TargetIsHero" Effect="NukeBurningHeroDamage"/>
         <CaseArray Validator="TargetNotHero" Effect="NukeBurningDamage"/>
@@ -125,17 +125,33 @@
         <EffectArray value="NukeImpactSearchArea"/>
         <TargetLocationType value="Point"/>
     </CEffectSet>
-	<CEffectDamage id="NukeOuterImpactDamage" parent="StormSpellPercentDamage">
-		<Amount value="1000"/>
-		<FlatModifierArray index="PercentDamage" Accumulator="WarheadJunctionTargetMaxHealthAccumulator"/>
-	</CEffectDamage>
-	<CEffectDamage id="NukeOuterImpactDamageStructure" parent="StormSpellPercentDamage">
-		<Amount value="1000"/>
-		<FlatModifierArray index="PercentDamage" Accumulator="WarheadJunctionTargetMaxHealthStructureAccumulator"/>
-	</CEffectDamage>
-	<CEffectDamage id="NukeStructureBurnPeriodicDamage" parent="StormSpellDotPercentDamage">
-		<FlatModifierArray index="PercentDamage" Accumulator="WarheadJunctionTargetMaxHealthDoTAccumulator"/>
-	</CEffectDamage>
+    <CEffectDamage id="NukeOuterImpactDamage" parent="StormSpellPercentDamage">
+        <Amount value="1750"/>
+    </CEffectDamage>
+    <CEffectDamage id="NukeOuterImpactDamageStructure" parent="StormDamage">
+        <MultiplicativeModifierArray index="FortKeepOrCore" Validator="TargetUnitTypeIsFortKeepOrCore" Modifier="1"/>
+        <Flags index="NoFractionDealtBonus" value="1"/>
+        <Kind value="Ability"/>
+        <KindSplash value="Ability"/>
+        <Amount value="1750"/>
+        <Aliases value="PercentDamage"/>
+        <ResponseExclusionFlags index="Proc" value="1"/>
+        <ArmorMitigationRule value="None"/>
+    </CEffectDamage>
+    <CEffectDamage id="NukeStructureBurnPeriodicDamage" parent="StormDamage">
+        <ResponseFlags index="Acquire" value="0"/>
+        <MultiplicativeModifierArray index="FortKeepOrCore" Validator="TargetUnitTypeIsFortKeepOrCore" Modifier="1"/>
+        <Visibility value="Hidden"/>
+        <Flags index="NoFractionDealtBonus" value="1"/>
+        <Flags index="NoDamageTimerReset" value="1"/>
+        <Kind value="Ability"/>
+        <KindSplash value="Ability"/>
+        <Amount value="60"/>
+        <Aliases value="PercentDamage"/>
+        <ResponseExclusionFlags index="Enhancement" value="1"/>
+        <ResponseExclusionFlags index="Proc" value="1"/>
+        <ArmorMitigationRule value="None"/>
+    </CEffectDamage>
     <CEffectDamage id="NukeOuterImpactHeroDamage" parent="StormSpellPercentDamage">
         <VitalFractionMax index="Life" value="0.3"/>
     </CEffectDamage>
@@ -815,20 +831,20 @@
     <CEffectRemoveBehavior id="CaptureMacGuffinTwoDismountRehgar">
         <Chance value="0"/>
     </CEffectRemoveBehavior>
-	<CEffectSet id="MapMechanicNukeStructureImpactSet">
-		<EffectArray value="MapMechanicNukeApplyBurning"/>
-		<EffectArray value="NukeOuterImpactDamageStructure"/>
-	</CEffectSet>
-	<CEffectApplyBehavior id="MapMechanicNukeApplyBurning">
-		<Behavior value="NukeStructureBurnDamage"/>
-	</CEffectApplyBehavior>
-	<CEffectModifyBehaviorBuffDuration id="NukeStructureBurnRefreshDuration">
-		<WhichUnit Effect="MapMechanicNukeApplyBurning" Value="Target"/>
-		<Operation value="Max"/>
-		<Behavior value="NukeStructureBurnDamage"/>
-		<Value value="5"/>
-	</CEffectModifyBehaviorBuffDuration>
-	<CEffectCreatePersistent id="NukeBuildingBurningRevealCreatePersistent">
+    <CEffectSet id="MapMechanicNukeStructureImpactSet">
+        <EffectArray value="MapMechanicNukeApplyBurning"/>
+        <EffectArray value="NukeOuterImpactDamageStructure"/>
+    </CEffectSet>
+    <CEffectApplyBehavior id="MapMechanicNukeApplyBurning">
+        <Behavior value="NukeStructureBurnDamage"/>
+    </CEffectApplyBehavior>
+    <CEffectModifyBehaviorBuffDuration id="NukeStructureBurnRefreshDuration">
+        <WhichUnit Effect="MapMechanicNukeApplyBurning" Value="Target"/>
+        <Operation value="Max"/>
+        <Behavior value="NukeStructureBurnDamage"/>
+        <Value value="5"/>
+    </CEffectModifyBehaviorBuffDuration>
+    <CEffectCreatePersistent id="NukeBuildingBurningRevealCreatePersistent">
         <ExpireDelay value="1"/>
         <RevealRadius value="0.75"/>
         <RevealFlags index="Unfog" value="1"/>
@@ -838,6 +854,8 @@
         <VitalFractionMax index="Life" value="0.008"/>
         <ResponseExclusionFlags index="Proc" value="1"/>
         <ArmorMitigationRule value="None"/>
+        <MultiplicativeModifierArray index="FortKeepOrCore" Validator="TargetUnitTypeIsFortKeepOrCore" Modifier="1"/>
+        <Amount value="60"/>
     </CEffectDamage>
     <CModel id="WaygateEntrance" parent="Unit">
         <Model value="Assets\Buildings\Storm_Building_WinterCrest_Waypoint_Entrance\Storm_Building_WinterCrest_Waypoint_Entrance.m3"/>

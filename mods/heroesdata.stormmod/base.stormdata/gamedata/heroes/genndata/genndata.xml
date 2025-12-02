@@ -1,5 +1,13 @@
 <?xml version="1.0" encoding="us-ascii"?>
 <Catalog>
+  <const id="$GreymaneDarkflightRange" value="6.75" />
+  <const id="$GreymaneDisengageRange" value="6" />
+  <const id="$GreymaneDisengageDashDuration" value="0.4375" />
+  <const id="$GreymaneDisengageDashSpeed" value="/($GreymaneDisengageRange +($GreymaneDisengageDashDuration 0.0625))" evaluateAsExpression="1" />
+  <const id="$GreymaneRunningWildRangeModifier" value="0.35" />
+  <const id="$GreymaneRunningWildRangeIncreaseDarkflight" value="*($GreymaneDarkflightRange $GreymaneRunningWildRangeModifier)" evaluateAsExpression="1" />
+  <const id="$GreymaneRunningWildRangeIncreaseDisengage" value="*($GreymaneDisengageRange $GreymaneRunningWildRangeModifier)" evaluateAsExpression="1" />
+  <const id="$GreymaneRunningWildSpeedIncreaseDisengage" value="*($GreymaneDisengageDashSpeed $GreymaneRunningWildRangeModifier)" evaluateAsExpression="1" />
   <CAbilEffectTarget id="GreymaneGilneanCocktail">
     <PrepEffect value="AbilityUseResponseSetDismountDecloakSuppressTurning" />
     <Effect value="GreymaneGilneanCocktailInitialSet" />
@@ -60,12 +68,13 @@
     <Effect value="GreymaneDarkflightCastSet" />
     <Flags index="ClearLastAttackTargetOutOfRange" value="1" />
     <Flags index="ClearLastMoveTarget" value="1" />
+    <Flags index="RangeUseCasterRadius" value="0" />
     <Cost>
       <Vital index="Energy" value="10" />
       <Cooldown TimeUse="5" />
     </Cost>
     <TargetFilters value="-;Player,Ally,Neutral,Missile,Item,Stasis,Dead,Hidden,Invulnerable" />
-    <Range value="6" />
+    <Range value="$GreymaneDarkflightRange" />
     <Arc value="360" />
     <SetLastTarget value="Attack" />
     <CmdButtonArray index="Execute" DefaultButtonFace="GreymaneDarkflight" />
@@ -909,7 +918,7 @@
   </CActorSound>
   <CActorRange id="GreymaneDarkflightRange" parent="StormRangeAbilPlusSplat" abil="GreymaneDarkflight" />
   <CActorSplat id="GreymaneDarkflightRangeSplat" parent="StormRangeSplat">
-    <Scale value="6.700000" />
+    <Scale value="$GreymaneDarkflightRange" />
   </CActorSplat>
   <CActorModel id="GreymaneDarkflightImpact" parent="StormModelAnimationStyleOneShotUnit">
     <On Terms="ActorCreation" Send="Create GreymaneDarkflightImpactSound" />
@@ -921,7 +930,7 @@
     <SoundFlags index="UpdateVisibility" value="0" />
   </CActorSound>
   <CActorQuad id="GreymaneDisengageGuide" parent="StormGuideVisualQuadDownClosestFantasy" abil="GreymaneDisengage">
-    <Height value="6.000000" />
+    <Height value="$GreymaneDisengageRange" />
     <Width value="1.000000" />
   </CActorQuad>
   <CActorSound id="GreymaneDisengageCastSound" parent="SoundOneShot">
@@ -1152,8 +1161,8 @@
       <ModifyFlags index="OrdersUninterruptible" value="1" />
       <StateFlags index="SuppressCollision" value="1" />
       <StateFlags index="LineMovement" value="1" />
-      <MoveSpeedMaximum value="12" />
-      <MoveSpeedMinimum value="12" />
+      <MoveSpeedMaximum value="$GreymaneDisengageDashSpeed" />
+      <MoveSpeedMinimum value="$GreymaneDisengageDashSpeed" />
       <AbilLinkEnableArray value="GreymaneDisengage" />
     </Modification>
   </CBehaviorBuff>
@@ -2322,12 +2331,12 @@
     <InitialEffect value="GreymaneDisengageOffsetPersistent2" />
     <PeriodCount value="1" />
     <PeriodicEffectArray value="GreymaneDisengageOffsetPersistent2" />
-    <PeriodicOffsetArray Y="-6" />
+    <PeriodicOffsetArray Y="-$GreymaneDisengageRange" />
   </CEffectCreatePersistent>
   <CEffectCreatePersistent id="GreymaneDisengageOffsetPersistent2">
     <TimeScaleSource Value="Caster" />
     <InitialEffect value="GreymaneDisengageRollSet" />
-    <ExpireDelay value="0.4" />
+    <ExpireDelay value="$GreymaneDisengageDashDuration" />
     <FinalEffect value="GreymaneDisengageImpactSet" />
   </CEffectCreatePersistent>
   <CEffectSet id="GreymaneDisengageRollSet">
@@ -3462,48 +3471,48 @@
         <Type value="FlatModification" />
         <Entry value="GreymaneDarkflight" />
         <Field value="Range[0]" />
-        <Value value="2.000000" />
+        <Value value="$GreymaneRunningWildRangeIncreaseDarkflight" />
       </Modifications>
       <Modifications>
         <Type value="FlatModification" />
         <Catalog value="Actor" />
         <Entry value="GreymaneDarkflightRangeSplat" />
         <Field value="Scale" />
-        <Value value="2.050000" />
+        <Value value="$GreymaneRunningWildRangeIncreaseDarkflight" />
       </Modifications>
       <Modifications>
         <Type value="FlatModification" />
         <Catalog value="Effect" />
         <Entry value="GreymaneDisengageOffsetPersistent1" />
         <Field value="PeriodicOffsetArray[0]" />
-        <Value value="-2.000000" />
+        <Value value="-$GreymaneRunningWildRangeIncreaseDisengage" />
       </Modifications>
       <Modifications>
         <Type value="FlatModification" />
         <Catalog value="Behavior" />
         <Entry value="GreymaneDisengageRoll" />
         <Field value="Modification.MoveSpeedMinimum" />
-        <Value value="4.000000" />
+        <Value value="$GreymaneRunningWildSpeedIncreaseDisengage" />
       </Modifications>
       <Modifications>
         <Type value="FlatModification" />
         <Catalog value="Behavior" />
         <Entry value="GreymaneDisengageRoll" />
         <Field value="Modification.MoveSpeedMaximum" />
-        <Value value="4.000000" />
+        <Value value="$GreymaneRunningWildSpeedIncreaseDisengage" />
       </Modifications>
       <Modifications>
         <Type value="FlatModification" />
         <Catalog value="Actor" />
         <Entry value="GreymaneDisengageGuide" />
         <Field value="Height" />
-        <Value value="2.000000" />
+        <Value value="$GreymaneRunningWildRangeIncreaseDisengage" />
       </Modifications>
       <Modifications>
         <Type value="FlatModification" />
         <Entry value="GreymaneDisengage" />
         <Field value="MoveLocation.ProjectionDistanceScale" />
-        <Value value="2.000000" />
+        <Value value="$GreymaneRunningWildRangeIncreaseDisengage" />
       </Modifications>
       <Modifications>
         <Type value="FlatModification" />

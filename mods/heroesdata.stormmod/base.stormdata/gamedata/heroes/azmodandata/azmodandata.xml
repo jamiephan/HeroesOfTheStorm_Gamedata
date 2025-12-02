@@ -1,10 +1,13 @@
 <?xml version="1.0" encoding="us-ascii"?>
 <Catalog>
-  <const id="$AzmodanAllShallBurnCastRange" value="6" />
+  <const id="$AzmodanUnitRadius" value="1.1875" />
+  <const id="$AzmodanAllShallBurnCastRange" value="7.5" />
   <const id="$AzmodanAllShallBurnChannelSlop" value="2.25" />
+  <const id="$AzmodanAllShallBurnActiveActorRange" value="-(-(+($AzmodanAllShallBurnCastRange $AzmodanAllShallBurnChannelSlop) $AzmodanUnitRadius) 0.4375)" evaluateAsExpression="1" />
   <const id="$AzmodanAllShallBurnChannelRange" value="+($AzmodanAllShallBurnCastRange $AzmodanAllShallBurnChannelSlop)" evaluateAsExpression="1" />
   <const id="$AzmodanAllShallBurnChannelRangeGreed" value="+($AzmodanAllShallBurnChannelRange $AzmodanAllShallBurnGreedBonusRange)" evaluateAsExpression="1" />
-  <const id="$AzmodanAllShallBurnGreedBonusRange" value="1.5" />
+  <const id="$AzmodanAllShallBurnGreedRangeModifier" value="0.25" />
+  <const id="$AzmodanAllShallBurnGreedBonusRange" value="*($AzmodanAllShallBurnCastRange $AzmodanAllShallBurnGreedRangeModifier)" evaluateAsExpression="1" />
   <const id="$AzmodanGreedBonusNonHeroDamageModifier" value="0.15" />
   <const id="$AzmodanPrideAnnihilationStacksRequired" value="400" />
   <const id="$AzmodanPrideBonusDamage" value="125" />
@@ -35,6 +38,7 @@
     <Arc value="360" />
     <UninterruptibleArray index="Cast" value="1" />
     <Flags index="ClearLastMoveTarget" value="1" />
+    <Flags index="RangeUseCasterRadius" value="0" />
   </CAbilEffectTarget>
   <CAbilEffectInstant id="AzmodanAllShallBurnCancel">
     <Effect value="AzmodanAllShallBurnPersistentFinalSet" />
@@ -699,7 +703,7 @@
   </CActorSound>
   <CActorRange id="AzmodanAllShallBurnRange" parent="StormRangeAbilPlusSplat" abil="AzmodanAllShallBurn" />
   <CActorSplat id="AzmodanAllShallBurnRangeSplat" parent="StormRangeSplat">
-    <Scale value="7.250000" />
+    <Scale value="$AzmodanAllShallBurnCastRange" />
   </CActorSplat>
   <CActorSound id="AzmodanAllShallBurnTargetLoopSound" parent="SoundContinuous">
     <On Terms="Effect.AzmodanAllShallBurnCreatePersistent.Start; At Target" Send="Create" />
@@ -756,7 +760,7 @@
     <Inherits index="TeamColor" value="1" />
     <On Terms="Effect.AzmodanAllShallBurnCreatePersistent.Start; At Caster" Send="Create" />
     <On Terms="Behavior.AzmodanAllShallBurnChannel.Off" Send="Destroy" />
-    <Range value="7.750000" />
+    <Range value="$AzmodanAllShallBurnActiveActorRange" />
     <Icon value="Assets\Textures\storm_fx_azmodan_base_marchofsin_range.dds" />
     <IconArcLength value="5.000000" />
   </CActorRange>
@@ -3975,7 +3979,7 @@
       <LayoutButtons Face="AzmodanSummonDemonWarrior" Type="AbilCmd" AbilCmd="AzmodanSummonDemonWarrior,Execute" Slot="Ability2" />
       <LayoutButtons Face="AzmodanDemonLieutenant" Type="AbilCmd" AbilCmd="AzmodanDemonLieutenant,Execute" Slot="Trait" />
     </CardLayouts>
-    <Radius value="1.1875" />
+    <Radius value="$AzmodanUnitRadius" />
     <InnerRadius value="0.9375" />
     <AIThinkTree value="AI/Azmodan.aitree" />
     <AIEvalFactor value="1.1" />
@@ -3996,7 +4000,7 @@
     <CombineArray value="AzmodanAllShallBurnRangeValidatorGreed" />
   </CValidatorCombine>
   <CValidatorLocationCompareRange id="AzmodanAllShallBurnRangeValidatorGreed">
-    <WhichLocation Value="TargetUnit" />
+    <Value Value="CasterPoint" />
     <Compare value="LE" />
     <Range value="$AzmodanAllShallBurnChannelRangeGreed" />
   </CValidatorLocationCompareRange>
@@ -4318,6 +4322,7 @@
     <Value value="AzmodanDemonicInvasionDemonGrunt" />
   </CValidatorUnitType>
   <CValidatorLocationCompareRange id="AzmodanAllShallBurnRangeValidator">
+    <Value Value="CasterPoint" />
     <WhichLocation Value="TargetUnit" />
     <Compare value="LE" />
     <Range value="$AzmodanAllShallBurnChannelRange" />

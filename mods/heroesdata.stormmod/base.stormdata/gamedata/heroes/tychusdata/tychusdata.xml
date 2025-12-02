@@ -1,8 +1,20 @@
 <?xml version="1.0" encoding="us-ascii"?>
 <Catalog>
+  <const id="$TychusUnitRadius" value="0.8125" />
+  <const id="$TychusOverkillDuration" value="4" />
+  <const id="$TychusOverkillRange" value="7.5" />
+  <const id="$TychusOverkillRangeSlop" value="0.5" />
+  <const id="$TychusOverkillActiveActorRange" value="-(-(+($TychusOverkillRange $TychusOverkillRangeSlop) $TychusUnitRadius) 0.4375)" evaluateAsExpression="1" />
+  <const id="$TychusOverkillChannelRange" value="+($TychusOverkillRange $TychusOverkillRangeSlop)" evaluateAsExpression="1" />
+  <const id="$TychusSprayNPrayRangeModifier" value="0.25" />
+  <const id="$TychusOverkillChannelRangeSprayNPray" value="+(+($TychusOverkillRange $TychusOverkillRangeSlop) $TychusSprayNPrayRangeIncrease)" evaluateAsExpression="1" />
+  <const id="$TychusGrenadeRange" value="8.75" />
+  <const id="$TychusQuarterbackRangeModifier" value="0.45" />
+  <const id="$TychusQuarterbackRangeIncrease" value="*($TychusGrenadeRange $TychusQuarterbackRangeModifier)" evaluateAsExpression="1" />
+  <const id="$TychusSprayNPrayRangeIncrease" value="*($TychusOverkillRange $TychusSprayNPrayRangeModifier)" evaluateAsExpression="1" />
   <CAbilEffectInstant id="CancelOverkill">
-    <CmdButtonArray index="Execute" AutoQueueId="" DefaultButtonFace="TychusOverkillCancel" Requirements="TychusOverkillTargetedActive" />
-    <Effect value="OverkillCancelSet" />
+    <CmdButtonArray index="Execute" AutoQueueId="" DefaultButtonFace="TychusOverkillCancel" ShowValidator="TychusCasterHasOverkillActive" />
+    <Effect value="TychusOverkillCancelSet" />
     <Cost>
       <Cooldown TimeUse="1" />
     </Cost>
@@ -22,7 +34,7 @@
       </Charge>
       <Cooldown Link="Abil/TychusRunAndGun" TimeUse="0.5" />
     </Cost>
-    <CmdButtonArray index="Execute" DefaultButtonFace="TychusRunandGun" Requirements="TychusNotInOdinAndOverkillActive">
+    <CmdButtonArray index="Execute" DefaultButtonFace="TychusRunandGun" ShowValidator="TychusCasterNotInOdinAndHasOverkillActive">
       <Flags index="AllowSelfCast" value="0" />
     </CmdButtonArray>
     <MoveLocation ProjectionDistanceScale="4" />
@@ -112,43 +124,35 @@
     </CmdButtonArray>
   </CAbilEffectTarget>
   <CAbilEffectTarget id="TychusOverkillTargeted">
-    <OrderArray index="0" Model="Assets\UI\Feedback\WayPointConfirm\WayPointConfirm.m3" LineTexture="Assets\Textures\Storm_WayPointLine.dds" />
-    <SharedFlags index="TargetSnapToUnitRadius" value="1" />
-    <Effect value="OverkillTargetedInitialSet" />
-    <Arc value="360" />
-    <Flags index="BestUnit" value="0" />
+    <PrepEffect value="DismountDecloakCasterSet" />
+    <Effect value="TychusOverkillInitialSet" />
+    <CursorEffect value="TychusOverkillSearchGuideDummy" />
     <Flags index="ClearLastAttackTargetOutOfRange" value="1" />
     <Flags index="ClearLastMoveTarget" value="1" />
     <Flags index="RangeUseCasterRadius" value="0" />
+    <SharedFlags index="TargetSnapToUnitRadius" value="1" />
     <Cost>
       <Vital index="Energy" value="60" />
-      <Charge Link="Abil/TychusOverkill" />
       <Cooldown TimeUse="12" />
     </Cost>
-    <TargetFilters value="Visible;Player,Ally,Neutral,ImmuneToAOE,Missile,Stasis,Dead,Hidden" />
-    <Range value="7.5" />
-    <CmdButtonArray index="Execute" DefaultButtonFace="TychusOverkill" Requirements="NoTychusOdin" />
-    <CursorEffect value="OverkillTargetedSearch" />
-    <PrepEffect value="DismountDecloakCasterSet" />
+    <Arc value="360" />
+    <Range value="$TychusOverkillRange" />
+    <TargetFilters value="Visible;Player,Ally,Neutral,ImmuneToAOE,Missile,Item,Stasis,Dead,Hidden,Invulnerable" />
+    <CmdButtonArray index="Execute" DefaultButtonFace="TychusOverkill" ShowValidator="TychusCasterNoOdin" />
   </CAbilEffectTarget>
   <CAbilEffectTarget id="OverkillTargetedRetarget">
-    <OrderArray index="0" Model="Assets\UI\Feedback\WayPointConfirm\WayPointConfirm.m3" LineTexture="Assets\Textures\Storm_WayPointLine.dds" />
-    <SharedFlags index="TargetSnapToUnitRadius" value="1" />
-    <Effect value="OverkillTargetedRetargetDestroyPersistentSet" />
-    <Flags index="BestUnit" value="0" />
+    <Effect value="TychusOverkillRetargetInitialSet" />
+    <CursorEffect value="TychusOverkillSearchGuideDummy" />
     <Flags index="ClearLastAttackTargetOutOfRange" value="1" />
     <Flags index="ClearLastMoveTarget" value="1" />
-    <Flags index="RangeUseCasterRadius" value="0" />
+    <Flags index="RequireTargetVision" value="0" />
     <Cost>
-      <Charge Link="Abil/TychusOverkill" />
-      <Cooldown Link="Abil/TychusOverkillRetarget" TimeUse="0.5" />
+      <Cooldown TimeUse="0.5" />
     </Cost>
-    <TargetFilters value="Visible;Player,Ally,Neutral,ImmuneToAOE,Missile,Stasis,Dead,Hidden" />
-    <Range value="7.5" />
-    <CursorEffect value="OverkillTargetedSearch" />
-    <CmdButtonArray index="Execute" DefaultButtonFace="TychusOverkillRetarget" Requirements="TychusOverkillTargetedActive" />
     <Arc value="360" />
-    <ParentAbil value="TychusOverkillTargeted" />
+    <Range value="500" />
+    <CmdButtonArray index="Execute" DefaultButtonFace="TychusOverkillRetarget" ShowValidator="TychusOverkillHasTrackedTarget" UseValidator="TychusCasterHasOverkillActive" />
+    <ParentAbil value="TychusOverkill" />
   </CAbilEffectTarget>
   <CAbilEffectTarget id="TychusDrakkenLaserDrillIssueOrder">
     <Effect value="LaserDrillAttackOrderCreatePersistent" />
@@ -184,11 +188,12 @@
     <Effect value="GrenadeInitialSet" />
     <Flags index="ClearLastMoveTarget" value="1" />
     <Flags index="RequireTargetVision" value="0" />
+    <Flags index="RangeUseCasterRadius" value="0" />
     <Cost>
       <Vital index="Energy" value="50" />
       <Cooldown TimeUse="10" />
     </Cost>
-    <Range value="8" />
+    <Range value="$TychusGrenadeRange" />
     <FinishTime value="0.225" />
     <UninterruptibleArray index="Cast" value="1" />
     <UninterruptibleArray index="Channel" value="1" />
@@ -256,10 +261,10 @@
     <On Terms="Behavior.TychusMinigunActive.On" Send="StatusIncrement Minigun" />
     <On Terms="Behavior.TychusMinigunActive.Off" Send="TimerSet 0.125000 TychusMinigunActiveOff" />
     <On Terms="TimerExpired; TimerName TychusMinigunActiveOff" Send="StatusDecrement Minigun" />
-    <On Terms="Behavior.TychusOverkillTargetedActive.On" Send="StatusIncrement Minigun" />
-    <On Terms="Behavior.TychusOverkillTargetedActive.On" Send="AnimGroupApply Cover" />
-    <On Terms="Behavior.TychusOverkillTargetedActive.Off" Send="TimerSet 0.125000 TychusMinigunActiveOff" />
-    <On Terms="Behavior.TychusOverkillTargetedActive.Off" Send="AnimGroupRemove Cover" />
+    <On Terms="Behavior.TychusOverkillActive.On" Send="StatusIncrement Minigun" />
+    <On Terms="Behavior.TychusOverkillActive.On" Send="AnimGroupApply Cover" />
+    <On Terms="Behavior.TychusOverkillActive.Off" Send="TimerSet 0.125000 TychusMinigunActiveOff" />
+    <On Terms="Behavior.TychusOverkillActive.Off" Send="AnimGroupRemove Cover" />
     <On Terms="TimerExpired; TimerName TychusOverkillTargetedActiveOff" Send="StatusDecrement Minigun" />
     <On Terms="Behavior.RunAndGun.On" Send="StatusIncrement Minigun" />
     <On Terms="Behavior.RunAndGun.Off" Send="TimerSet 0.125000 RunAndGunOff" />
@@ -304,19 +309,19 @@
     <On Terms="TimerExpired; TimerName GrenadeLaunchMissileStop; IsStatus OverkillActive 1; !ValidateUnit Mounted" Send="HostSiteOpsSet ::Host {SOpBasicScopeFollow SOpOverkillForwardGuide}" />
     <On Terms="TimerExpired; TimerName GrenadeLaunchMissileStop; IsStatus OverkillActive 1" Target="TychusOverkillTargetedLaunchModel" Send="SetOpacity 1.000000 0.250000" />
     <On Terms="TimerExpired; TimerName GrenadeLaunchMissileStop; IsStatus OverkillActive 0; !ValidateUnit Mounted" Send="HostSiteOpsSet ::Host SOpBasicScopeFollow" />
-    <On Terms="Behavior.TychusOverkillTargetedActive.On" Send="AnimPlay SpellOverkill Spell,H PlayForever -1.000000 -1.000000 1.000000 AsTimeScale" />
-    <On Terms="Behavior.TychusOverkillTargetedActive.On" Send="AnimGroupApply Ready" />
-    <On Terms="Behavior.TychusOverkillTargetedActive.On" Send="TimerSet 15.000000 StandReadyOutroDuration" />
-    <On Terms="Behavior.TychusOverkillTargetedActive.On" Send="StatusSet OverkillActive 1" />
-    <On Terms="Behavior.TychusOverkillTargetedActive.Off" Send="StatusSet OverkillActive 0" />
-    <On Terms="Behavior.TychusOverkillTargetedActive.Off" Send="AnimClear SpellOverkill" />
-    <On Terms="Behavior.TychusOverkillTargetedActive.On" Send="AnimBracketStart OverkillSpin Work" />
-    <On Terms="Behavior.TychusOverkillTargetedActive.Off" Send="AnimBracketStop OverkillSpin" />
+    <On Terms="Behavior.TychusOverkillActive.On" Send="AnimPlay SpellOverkill Spell,H PlayForever -1.000000 -1.000000 1.000000 AsTimeScale" />
+    <On Terms="Behavior.TychusOverkillActive.On" Send="AnimGroupApply Ready" />
+    <On Terms="Behavior.TychusOverkillActive.On" Send="TimerSet 15.000000 StandReadyOutroDuration" />
+    <On Terms="Behavior.TychusOverkillActive.On" Send="StatusSet OverkillActive 1" />
+    <On Terms="Behavior.TychusOverkillActive.Off" Send="StatusSet OverkillActive 0" />
+    <On Terms="Behavior.TychusOverkillActive.Off" Send="AnimClear SpellOverkill" />
+    <On Terms="Behavior.TychusOverkillActive.On" Send="AnimBracketStart OverkillSpin Work" />
+    <On Terms="Behavior.TychusOverkillActive.Off" Send="AnimBracketStop OverkillSpin" />
     <On Terms="Signal.*.OverkillTargetDummyCreated" Send="RefSetFromMsg ::actor.OverkillTarget ::Sender" />
     <On Terms="Signal.*.OverkillTargetDummyCreated" Send="HostSiteOpsSet ::Host {SOpBasicScopeFollow SOpOverkillForwardGuide}" />
-    <On Terms="StatusOn.*.TimeStopPaused; ValidateUnit HasOverkillActive" Send="HostSiteOpsSet ::Host {SOpBasicScopeFollow SOpOverkillForwardGuide} 1 1" />
-    <On Terms="StatusOff.*.TimeStopPaused; ValidateUnit HasOverkillActive" Send="HostSiteOpsSet ::Host {SOpBasicScopeFollow SOpOverkillForwardGuide}" />
-    <On Terms="Behavior.TychusOverkillTargetedActive.Off; !ValidateUnit Mounted" Send="HostSiteOpsSet ::Host SOpBasicScopeFollow" />
+    <On Terms="StatusOn.*.TimeStopPaused; ValidateUnit TychusCasterHasOverkillActive" Send="HostSiteOpsSet ::Host {SOpBasicScopeFollow SOpOverkillForwardGuide} 1 1" />
+    <On Terms="StatusOff.*.TimeStopPaused; ValidateUnit TychusCasterHasOverkillActive" Send="HostSiteOpsSet ::Host {SOpBasicScopeFollow SOpOverkillForwardGuide}" />
+    <On Terms="Behavior.TychusOverkillActive.Off; !ValidateUnit Mounted" Send="HostSiteOpsSet ::Host SOpBasicScopeFollow" />
     <On Terms="Effect.TychusOverkillTargetedFinalSet.Start; !ValidateUnit Mounted" Send="HostSiteOpsSet ::Host SOpBasicScopeFollow" />
     <On Terms="Behavior.TychusOdinStartupDelay.Off; ValidateUnit TychusHasOdinAndNotDead" Send="ModelSwap TychusOdin" />
     <On Terms="Behavior.TychusOdinStartupDelay.Off; ValidateUnit TychusHasOdinAndNotDead" Send="AnimSetTime ::Baseline" />
@@ -372,8 +377,7 @@
   </CActorSiteOpForward>
   <CActorModel id="OverkillTargetDummy">
     <Model value="Invisible" />
-    <On Terms="Effect.OverkillTargetedInitialPersistent.Start; At Target" Send="Create" />
-    <On Terms="Effect.OverkillTargetedRetargetInitialPersistent.Start; At Target" Send="Create" />
+    <On Terms="Effect.TychusOverkillAddTargetToUnitTracker.Start; At Target" Send="Create" />
     <On Terms="ActorCreation" Send="RefSetFromRequest ::actor.OverkillCaster _Unit Caster Find" />
     <On Terms="ActorCreation" Target="::actor.OverkillCaster" Send="Signal OverkillTargetDummyCreated" />
     <On Terms="ActorCreation" Send="TimerSet 10.000000 DelayDestroy" />
@@ -479,18 +483,21 @@
   </CActorSiteOpForward>
   <CActorRange id="TychusSprayNPray" parent="StormRangeAbilPlusSplat" abil="TychusOverkillTargeted" />
   <CActorSplat id="TychusSprayNPraySplat" parent="StormRangeSplat">
-    <Scale value="8.080000" />
+    <Scale value="$TychusOverkillRange" />
   </CActorSplat>
   <CActorRange id="TychusOverkillActiveRange" parent="StormTurretRange">
-    <On Terms="Behavior.TychusOverkillTargetedActive.On" Send="Create" />
-    <On Terms="Behavior.TychusOverkillTargetedActive.Off" Send="Destroy" />
-    <Range value="6.600000" />
+    <On Terms="Behavior.TychusOverkillActive.On" Send="Create" />
+    <On Terms="Behavior.TychusOverkillActive.Off" Send="Destroy" />
+    <Range value="$TychusOverkillActiveActorRange" />
     <Filter index="All" value="1" />
     <Icon value="Assets\Textures\storm_fx_tychus_base_laserdrill_range.dds" />
     <Inherits index="TeamColor" value="1" />
     <IconArcLength value="4.500000" />
     <VisibleTo index="Self" value="1" />
   </CActorRange>
+  <CActorUnit id="TychusOverkillTargetDummy" parent="StormUnitBase" unitName="TychusOverkillTargetDummy">
+    <Model value="Invisible" />
+  </CActorUnit>
   <CActorRange id="TychusOdinRagnarokTargetedRange" parent="RangeAbil" abil="TychusOdinRagnarokMissilesTargeted">
     <Flags index="SuppressSaveLoad" value="0" />
     <Inherits index="TeamColor" value="1" />
@@ -650,7 +657,7 @@
   </CActorSound>
   <CActorRange id="TychusFragGrenadeRange" parent="StormRangeAbilPlusSplat" abil="TychusGrenade" />
   <CActorSplat id="TychusFragGrenadeRangeSplat" parent="StormRangeSplat">
-    <Scale value="9.250000" />
+    <Scale value="$TychusGrenadeRange" />
   </CActorSplat>
   <CActorMissile id="TychusGrenadeAttackMissile" parent="StormMissileWithDeath" unitName="TychusGrenadeMissile">
     <Remove Terms="UnitBirth" Send="AnimBracketStart Lifetime Birth Stand" />
@@ -795,8 +802,8 @@
   </CActorQuad>
   <CActorSound id="TychusOverkillTargetedLoop" parent="SoundContinuous">
     <Aliases value="_TimeStopAffectedActor" />
-    <On Terms="Behavior.TychusOverkillTargetedActive.On" Send="Create" />
-    <On Terms="Behavior.TychusOverkillTargetedActive.Off" Send="Destroy" />
+    <On Terms="Behavior.TychusOverkillActive.On" Send="Create" />
+    <On Terms="Behavior.TychusOverkillActive.Off" Send="Destroy" />
     <On Terms="StatusOn.*.TimeStopPaused" Send="SoundSetPaused 1" />
     <On Terms="StatusOff.*.TimeStopPaused" Send="SoundSetPaused" />
     <Sound value="Tychus_Overkill_Loop" />
@@ -804,9 +811,9 @@
   </CActorSound>
   <CActorModel id="TychusOverkillTargetedLaunchModel" parent="StormModelAnimationStyleContinuousUnit">
     <Aliases value="_TimeStopAffectedActor" />
-    <On Terms="Behavior.TychusOverkillTargetedActive.On" Send="Create" />
-    <On Terms="Behavior.TychusOverkillTargetedActive.Off" Send="AnimBracketStop BSD" />
-    <On Terms="Behavior.TychusOverkillTargetedActive.Off; ValidateUnit TargetIsPolymorphed" Send="Destroy Immediate" />
+    <On Terms="Behavior.TychusOverkillActive.On" Send="Create" />
+    <On Terms="Behavior.TychusOverkillActive.Off" Send="AnimBracketStop BSD" />
+    <On Terms="Behavior.TychusOverkillActive.Off; ValidateUnit TargetIsPolymorphed" Send="Destroy Immediate" />
     <On Terms="StatusOn.*.TimeStopPaused" Send="SetOpacity 0.000000 0.000000 VoidPrison" />
     <On Terms="StatusOn.*.TimeStopPaused" Send="AnimSetPausedAll" />
     <On Terms="StatusOn.*.TimeStopPaused" Send="AnimSetTime BSD" />
@@ -816,17 +823,17 @@
   </CActorModel>
   <CActorModel id="TychusOverkillGunModel" parent="StormModelAnimationStyleContinuousUnit">
     <HostSiteOps Ops="SOpAttachWeapon02" />
-    <On Terms="Behavior.TychusOverkillTargetedActive.On" Send="Create" />
-    <On Terms="Behavior.TychusOverkillTargetedActive.Off" Send="AnimBracketStop BSD" />
-    <On Terms="Behavior.TychusOverkillTargetedActive.Off; ValidateUnit TargetIsPolymorphed" Send="Destroy Immediate" />
+    <On Terms="Behavior.TychusOverkillActive.On" Send="Create" />
+    <On Terms="Behavior.TychusOverkillActive.Off" Send="AnimBracketStop BSD" />
+    <On Terms="Behavior.TychusOverkillActive.Off; ValidateUnit TargetIsPolymorphed" Send="Destroy Immediate" />
     <Model value="TychusOverkillGun" />
   </CActorModel>
   <CActorModel id="TychusOverkillGroundImpactGuideA" parent="StormModelAnimationStyleContinuousUnit">
     <Aliases value="_TimeStopAffectedActor" />
     <Model value="Invisible" />
     <HostSiteOps Ops="SOpTOKARange SOpShadow" />
-    <On Terms="Behavior.TychusOverkillTargetedActive.On" Send="Create" />
-    <On Terms="Behavior.TychusOverkillTargetedActive.Off" Send="AnimBracketStop BSD" />
+    <On Terms="Behavior.TychusOverkillActive.On" Send="Create" />
+    <On Terms="Behavior.TychusOverkillActive.Off" Send="AnimBracketStop BSD" />
     <On Terms="StatusOn.*.TimeStopPaused" Send="TimerKill OverKillImpactModel" />
     <On Terms="StatusOff.*.TimeStopPaused" Send="TimerSet 0.100000 OverKillImpactModel" />
     <On Terms="ActorCreation" Send="TimerSet 0.100000 OverKillImpactModel" />
@@ -843,8 +850,8 @@
     <Aliases value="_TimeStopAffectedActor" />
     <Model value="Invisible" />
     <HostSiteOps Ops="SOpTOKBRange SOpShadow" />
-    <On Terms="Behavior.TychusOverkillTargetedActive.On" Send="Create" />
-    <On Terms="Behavior.TychusOverkillTargetedActive.Off" Send="AnimBracketStop BSD" />
+    <On Terms="Behavior.TychusOverkillActive.On" Send="Create" />
+    <On Terms="Behavior.TychusOverkillActive.Off" Send="AnimBracketStop BSD" />
     <On Terms="StatusOn.*.TimeStopPaused" Send="TimerKill OverKillImpactModel" />
     <On Terms="StatusOff.*.TimeStopPaused" Send="TimerSet 0.100000 OverKillImpactModel" />
     <On Terms="ActorCreation" Send="TimerSet 0.100000 OverKillImpactModel" />
@@ -868,9 +875,9 @@
   </CActorSound>
   <CActorSound id="TychusOverkillEndSound" parent="SoundOneShot">
     <Sound value="Tychus_Overkill_End" />
-    <On Terms="Behavior.TychusOverkillTargetedActive.Off" Send="Create" />
+    <On Terms="Behavior.TychusOverkillActive.Off" Send="Create" />
   </CActorSound>
-  <CActorAction id="TychusOverkillMainAction" parent="RangedMinionAttackParent" effectAttack="OverkillTargetedMainTargetDamage">
+  <CActorAction id="TychusOverkillMainAction" parent="RangedMinionAttackParent" effectAttack="TychusOverkillPrimaryTargetDamage">
     <LaunchAssets Model="" Sound="" />
     <ImpactMap index="None" Model="TychusOverkillUnitImpactModel" Sound="Tychus_Overkill_Impact_Unit" />
     <ImpactModel value="TychusOverkillUnitImpactModel" />
@@ -882,14 +889,14 @@
     <ImpactModel value="TychusOverkillUnitImpactModel" />
     <ImpactSound value="TychusOverkillUnitImpactSound" />
   </CActorAction>
-  <CActorAction id="TychusOverkillAction" parent="RangedMinionAttackParent" effectAttack="OverkillTargetedDamage">
+  <CActorAction id="TychusOverkillAction" parent="RangedMinionAttackParent" effectAttack="TychusOverkillSecondaryTargetDamage">
     <LaunchAssets Model="" Sound="" />
     <ImpactMap index="None" Model="TychusOverkillUnitImpactModel" Sound="Tychus_Overkill_Impact_Unit" />
     <ImpactModel value="TychusOverkillUnitImpactModel" />
     <ImpactSound value="TychusOverkillUnitImpactSound" />
   </CActorAction>
   <CActorForceConeRoundedEnd id="TychusOverkillForce">
-    <On Terms="Effect.OverkillAreaDamage.Stop; At Caster" Send="Create" />
+    <On Terms="Effect.TychusOverkillTargetImpactPersistent.Stop; At Caster" Send="Create" />
     <Host Subject="TychusOverkillGunModel" />
     <HostSiteOps Ops="SOpAttachOrigin" HoldPosition="1" />
     <Duration value="0.150000" />
@@ -1102,13 +1109,64 @@
   <CBehaviorBuff id="TychusInTheRhythmQuestIncreaseInProgress">
     <Duration value="0.75" />
   </CBehaviorBuff>
-  <CBehaviorBuff id="OverkillTargetedDeathCheck">
-    <MaxStackCount value="65535" />
+  <CBehaviorBuff id="TychusOverkillActive">
+    <BehaviorCategories index="Restorable" value="1" />
+    <RemoveValidatorArray value="CasterNotDeadOrSilencedOrStasisOrStunnedExceptTimeStop" />
+    <RemoveValidatorArray value="HearthstoneCasterDoesNotHaveHearthstoneOrder" />
+    <RemoveValidatorArray value="NoOdin" />
+    <Duration value="$TychusOverkillDuration" />
+    <FinalEffect value="TychusOverkillClearTrackedUnit" />
+    <Modification>
+      <ModifyFlags index="SuppressTurning" value="1" />
+      <StateFlags index="SuppressCloak" value="1" />
+      <AbilLinkDisableArray value="CaptureMacGuffin" />
+      <AbilLinkDisableArray value="CaptureMacGuffinTwo" />
+      <WeaponDisableArray value="TychusOdin" />
+      <WeaponDisableArray value="TychusMiniGunRampingSpeedWeapon" />
+    </Modification>
+    <InfoFlags index="AlwaysUseGameText" value="1" />
+  </CBehaviorBuff>
+  <CBehaviorUnitTracker id="TychusOverkillTargetTracker">
+    <BehaviorFlags index="Permanent" value="1" />
+    <BehaviorFlags index="EnabledWhileDead" value="1" />
+    <TrackingValidatorArray value="CasterNotDeadOrSilencedOrStasisOrStunnedExceptTimeStop" />
+    <TrackingValidatorArray value="HearthstoneCasterDoesNotHaveHearthstoneOrder" />
+    <TrackingValidatorArray value="NoOdin" />
+    <MaxTrackedUnits value="1" />
+    <UnitAddedAtMaxRule value="ReplaceOldest" />
+  </CBehaviorUnitTracker>
+  <CBehaviorBuff id="TychusOverkillPrimaryTargetGlobalCD">
+    <TimeScaleSource Value="Global" />
+    <Duration value="0.0625" />
+  </CBehaviorBuff>
+  <CBehaviorBuff id="TychusOverkillTargetMarker">
+    <RemoveValidatorArray value="TychusOverkillTargetIsTracked" />
+    <Duration value="$TychusOverkillDuration" />
+  </CBehaviorBuff>
+  <CBehaviorBuff id="TychusOverkillDeathMonitor">
+    <MaxStackCount value="10" />
     <MaxStackCountPerCaster value="1" />
     <Duration value="0.26" />
     <Modification>
-      <DeathResponse Chance="1" Effect="OverkillTargetedDeadTargetRetargetSwitch" />
+      <DeathResponse Chance="1" Effect="TychusOverkillFindNewTargetSwitchAroundTarget" />
     </Modification>
+  </CBehaviorBuff>
+  <CBehaviorBuff id="TychusOverkillValidTargetFound">
+    <Alignment value="Positive" />
+    <BehaviorFlags index="Permanent" value="1" />
+    <BehaviorFlags index="EnabledWhileDead" value="1" />
+    <Duration value="0.0625" />
+  </CBehaviorBuff>
+  <CBehaviorBuff id="TychusOverkillDummyUnitController" parent="StormTimedLife">
+    <Alignment value="Positive" />
+    <BehaviorFlags index="Permanent" value="1" />
+    <DisplayDuration index="Self" value="0" />
+    <DisplayDuration index="Ally" value="0" />
+    <DisplayDuration index="Enemy" value="0" />
+    <RemoveValidatorArray value="TychusOverkillTargetIsTracked" />
+    <Duration value="$TychusOverkillDuration" />
+    <FinalEffect value="TychusOverkillDummyKill" />
+    <TimeScaleSource Value="Caster" />
   </CBehaviorBuff>
   <CBehaviorBuff id="TychusRelentlessSoldierArmorIncrease" parent="StormArmor">
     <BehaviorCategories index="BuffResistant" value="1" />
@@ -1169,22 +1227,6 @@
       <Kind index="Basic" value="0" />
     </DamageResponse>
   </CBehaviorBuff>
-  <CBehaviorBuff id="TychusOverkillTargetedActive">
-    <BehaviorCategories index="Restorable" value="1" />
-    <RemoveValidatorArray value="CasterNotDeadOrSilencedOrStasisOrStunnedExceptTimeStop" />
-    <RemoveValidatorArray value="HearthstoneCasterDoesNotHaveHearthstoneOrder" />
-    <RemoveValidatorArray value="NoOdin" />
-    <Duration value="4" />
-    <Modification>
-      <ModifyFlags index="SuppressTurning" value="1" />
-      <StateFlags index="SuppressCloak" value="1" />
-      <AbilLinkDisableArray value="CaptureMacGuffin" />
-      <AbilLinkDisableArray value="CaptureMacGuffinTwo" />
-      <WeaponDisableArray value="TychusOdin" />
-      <WeaponDisableArray value="TychusMiniGunRampingSpeedWeapon" />
-    </Modification>
-    <InfoFlags index="AlwaysUseGameText" value="1" />
-  </CBehaviorBuff>
   <CBehaviorBuff id="LaserDrillTimedLife" parent="StormTimedLife">
     <Duration value="22" />
     <FinalEffect value="LaserDrillRemoveActiveBehavior" />
@@ -1228,7 +1270,7 @@
     <Alignment value="Positive" />
   </CBehaviorBuff>
   <CBehaviorBuff id="TychusOverkillSprayNPraySlow" parent="StormSlowParent">
-    <RemoveValidatorArray value="HasOverkillActive" />
+    <RemoveValidatorArray value="TychusCasterHasOverkillActive" />
     <Duration value="0.3125" />
     <Modification>
       <UnifiedMoveSpeedFactor value="-0.25" />
@@ -1632,10 +1674,6 @@
     <EffectArray value="RunAndGunPersistent" />
     <EffectArray value="TychusBobAndWeaveAttackRangeBuffApply" />
   </CEffectSet>
-  <CEffectCreatePersistent id="OverkillTargetedMainTargetDamagePersistentTargeter">
-    <WhichLocation Effect="OverkillTargetedInitialPersistent" Value="TargetUnit" />
-    <InitialEffect value="TychusOverkillMainTargetDamageSet" />
-  </CEffectCreatePersistent>
   <CEffectModifyPlayer id="TychusMasterAssassinQuestCompleteModifyPlayer">
     <EffectArray Reference="Behavior,TychusMasterAssassinAttackSpeed,Modification.AdditiveAttackSpeedFactor" Value="0.15" />
   </CEffectModifyPlayer>
@@ -1669,27 +1707,6 @@
     <EffectArray value="HeroRemovePushPullDebuffs" />
     <EffectArray value="GrenadeApplyPushBehavior" />
   </CEffectSet>
-  <CEffectEnumArea id="OverkillTargetedOutofRangeRetargetSearch">
-    <ValidatorArray value="HasOverkillAmmo" />
-    <ImpactLocation Value="CasterUnit" />
-    <SearchFilters value="Visible;Player,Ally,Neutral,ImmuneToAOE,Missile,Item,Stasis,Dead,Hidden,Invulnerable,Benign" />
-    <TargetSorts>
-      <SortArray value="TSDistanceToTarget" />
-      <SortArray value="TSNotStructure" />
-    </TargetSorts>
-    <AreaArray Effect="OverkillTargetedRetargetDestroyPersistentSet">
-      <Radius value="8" />
-    </AreaArray>
-    <MaxCount value="1" />
-  </CEffectEnumArea>
-  <CEffectSwitch id="OverkillTargetedOutofRangeTargetRetargetSwitch">
-    <CaseArray Validator="OverkillOutofRangeRetargetInRange" Effect="OverkillTargetedOutofRangeRetargetSearch" />
-    <CaseDefault value="OverkillCancelSet" />
-  </CEffectSwitch>
-  <CEffectRemoveBehavior id="TychusAbilityUseRemoveTychusOverkill">
-    <WhichUnit Value="Caster" />
-    <BehaviorLink value="TychusOverkillTargetedActive" />
-  </CEffectRemoveBehavior>
   <CEffectSet id="MiniGunWeaponImpactSet">
     <EffectArray value="UniversalWeaponImpact" />
     <EffectArray value="TychusMinigunWeaponPreImpactSet" />
@@ -1707,86 +1724,6 @@
     <EffectArray value="TychusOdinAnnihilateDamage" />
     <EffectArray value="ApplyAbilityImpactReveal" />
   </CEffectSet>
-  <CEffectIssueOrder id="TychusOverkillTargetedIssueAttackOrder">
-    <WhichUnit Value="Caster" />
-    <Abil value="attack" />
-    <CmdFlags index="Queued" value="1" />
-    <Target Effect="OverkillTargetedInitialPersistent" Value="TargetUnit" />
-    <ValidatorArray value="OverkillProximityAttackCombine" />
-    <ValidatorArray value="CasterHasNoOrders" />
-  </CEffectIssueOrder>
-  <CEffectSet id="TychusOverkillTargetedFinalSet">
-    <EffectArray value="OverkillTargetedRemoveDeathCheckBehavior" />
-    <EffectArray value="TychusOverkillTargetedIssueAttackOrder" />
-    <EffectArray value="TychusOverkillModifyCooldown" />
-  </CEffectSet>
-  <CEffectCreatePersistent id="TychusOverkillTargetedMainTargetCreatePersistent">
-    <WhichLocation Value="TargetUnit" />
-    <ExpireDelay value="0.5" />
-  </CEffectCreatePersistent>
-  <CEffectSet id="TychusOverkillTargetedMainTargetSet">
-    <EffectArray value="OverkillTargetedMainTargetDamagePersistentTargeter" />
-    <EffectArray value="TychusOverkillTargetedMainTargetCreatePersistent" />
-  </CEffectSet>
-  <CEffectRemoveBehavior id="OverkillTargetedRemoveDeathCheckBehavior">
-    <WhichUnit Effect="OverkillTargetedInitialPersistent" />
-    <BehaviorLink value="OverkillTargetedDeathCheck" />
-  </CEffectRemoveBehavior>
-  <CEffectApplyBehavior id="OverkillTargetedRetargetApplyDeathCheckBehavior">
-    <Behavior value="OverkillTargetedDeathCheck" />
-  </CEffectApplyBehavior>
-  <CEffectEnumArea id="OverkillTargetedStasisedTargetRetargetSearch">
-    <ValidatorArray value="HasOverkillActive" />
-    <ImpactLocation Effect="OverkillTargetedInitialPersistent" Value="TargetPoint" />
-    <SearchFilters value="Visible;Player,Ally,Neutral,ImmuneToAOE,Missile,Item,Stasis,Dead,Hidden,Invulnerable,Benign" />
-    <TargetSorts>
-      <SortArray value="TSDistanceToTarget" />
-      <SortArray value="TSNotStructure" />
-    </TargetSorts>
-    <AreaArray Effect="OverkillTargetedRetargetDestroyPersistentSet">
-      <Radius value="8" />
-    </AreaArray>
-    <MaxCount value="1" />
-  </CEffectEnumArea>
-  <CEffectSwitch id="OverkillTargetedStasisedTargetRetargetSwitch">
-    <CaseArray Validator="OverkillStasisRetargetInRange" Effect="OverkillTargetedStasisedTargetRetargetSearch" />
-    <CaseDefault value="OverkillCancelSet" />
-  </CEffectSwitch>
-  <CEffectEnumArea id="OverkillTargetedDeadTargetRetargetSearch">
-    <ImpactLocation Value="SourceUnitOrPoint" />
-    <SearchFilters value="Visible;Player,Ally,Neutral,ImmuneToAOE,Missile,Item,Stasis,Dead,Hidden,Invulnerable,Benign" />
-    <TargetSorts>
-      <SortArray value="TSDistanceToTarget" />
-      <SortArray value="TSNotStructure" />
-    </TargetSorts>
-    <AreaArray Effect="OverkillTargetedRetargetDestroyPersistentSet">
-      <Radius value="8" />
-    </AreaArray>
-    <MaxCount value="1" />
-    <ValidatorArray value="HasOverkillActive" />
-  </CEffectEnumArea>
-  <CEffectApplyBehavior id="OverkillTargetedPeriodicApplyDeathCheckBehavior">
-    <WhichUnit Effect="OverkillTargetedInitialPersistent" />
-    <Behavior value="OverkillTargetedDeathCheck" />
-  </CEffectApplyBehavior>
-  <CEffectSwitch id="OverkillTargetedDeadTargetRetargetSwitch">
-    <CaseArray Validator="OverkillDeadRetargetInRange" Effect="OverkillTargetedDeadTargetRetargetSearch" />
-    <CaseDefault value="OverkillCancelSet" />
-  </CEffectSwitch>
-  <CEffectSet id="TychusOverkillEndWindupSet">
-    <EffectArray value="TychusRampingMiniGunWeaponMaxSpeedSwitch" />
-  </CEffectSet>
-  <CEffectSwitch id="OverkillTargetedDamageCheckSwitch">
-    <CaseArray Validator="OverkillTargetisDead" Effect="OverkillTargetedStasisedTargetRetargetSwitch" />
-    <CaseArray Validator="OverkillTargetinStasis" Effect="OverkillTargetedStasisedTargetRetargetSwitch" />
-    <CaseArray Validator="OverkillTargetTooFarAway" Effect="OverkillTargetedOutofRangeTargetRetargetSwitch" />
-    <CaseDefault value="TychusOverkillTargetedMainTargetSet" />
-  </CEffectSwitch>
-  <CEffectSwitch id="TychusOverkillRetargetSwitch">
-    <CaseArray Validator="OverkillTargetisDead" Effect="OverkillTargetedStasisedTargetRetargetSwitch" />
-    <CaseArray Validator="OverkillTargetinStasis" Effect="OverkillTargetedStasisedTargetRetargetSwitch" />
-    <CaseArray Validator="OverkillTargetTooFarAway" Effect="OverkillTargetedOutofRangeTargetRetargetSwitch" />
-  </CEffectSwitch>
   <CEffectCreatePersistent id="TychusOdinRagnarokMissilesNuclearBlastCreatePersistent">
     <InitialEffect value="TychusOdinRagnarokMissilesNuclearBlastCastVisionSearch" />
     <FinalEffect value="TychusOdinRagnarokMissilesNuclearBlastSearchArea" />
@@ -2009,121 +1946,269 @@
   <CEffectCreateHealer id="TychusMinigunThatsTheStuffTalentCreateHealer" parent="StormSelfOnlyHealingSpellPercent">
     <SourceButtonFace value="TychusThatsTheStuff" />
   </CEffectCreateHealer>
-  <CEffectSet id="OverkillTargetedInitialSet">
-    <EffectArray value="OverkillTargetedApplyActiveBehavior" />
-    <EffectArray value="OverkillModifyCancelCooldown" />
-    <EffectArray value="OverkillTargetedInitialPersistent" />
-    <ValidatorArray value="TargetNotInvulnerable" />
+  <CEffectSet id="TychusOverkillInitialSet">
+    <EffectArray value="TychusOverkillTrackTargetSet" />
+    <EffectArray value="TychusOverkillApplyActiveBehavior" />
+    <EffectArray value="TychusOverkillChannelPersistent" />
   </CEffectSet>
-  <CEffectApplyBehavior id="OverkillTargetedApplyActiveBehavior">
-    <WhichUnit Value="Caster" />
-    <Behavior value="TychusOverkillTargetedActive" />
+  <CEffectSet id="TychusOverkillCancelSet">
+    <EffectArray value="TychusOverkillRemoveActiveBehavior" />
+    <EffectArray value="TychusOverkillClearTrackedUnit" />
+  </CEffectSet>
+  <CEffectSet id="TychusOverkillTrackTargetSet">
+    <EffectArray value="TychusOverkillAddTargetToUnitTracker" />
+    <EffectArray value="TychusOverkillAddTargetMarker" />
+  </CEffectSet>
+  <CEffectAddTrackedUnit id="TychusOverkillAddTargetToUnitTracker">
+    <BehaviorLink value="TychusOverkillTargetTracker" />
+    <TrackedUnit Value="Target" />
+  </CEffectAddTrackedUnit>
+  <CEffectApplyBehavior id="TychusOverkillAddTargetMarker">
+    <Behavior value="TychusOverkillTargetMarker" />
   </CEffectApplyBehavior>
-  <CEffectModifyUnit id="OverkillModifyCancelCooldown">
-    <ImpactUnit Value="Caster" />
-    <Cost Abil="CancelOverkill,Execute" CooldownOperation="Add" CooldownTimeUse="1">
-      <Player Value="Caster" />
-    </Cost>
-  </CEffectModifyUnit>
-  <CEffectCreatePersistent id="OverkillTargetedInitialPersistent">
-    <WhichLocation Value="TargetUnit" />
-    <OffsetVectorEndLocation Value="TargetUnit" />
-    <InitialEffect value="OverkillTargetedCreatePersistent" />
-    <ValidatorArray value="TargetNotDead" />
-  </CEffectCreatePersistent>
-  <CEffectCreatePersistent id="OverkillTargetedCreatePersistent">
+  <CEffectApplyBehavior id="TychusOverkillApplyActiveBehavior">
+    <WhichUnit Value="Caster" />
+    <Behavior value="TychusOverkillActive" />
+  </CEffectApplyBehavior>
+  <CEffectRemoveBehavior id="TychusOverkillRemoveActiveBehavior">
+    <WhichUnit Value="Caster" />
+    <BehaviorLink value="TychusOverkillActive" />
+  </CEffectRemoveBehavior>
+  <CEffectClearTrackedUnits id="TychusOverkillClearTrackedUnit">
+    <BehaviorLink value="TychusOverkillTargetTracker" />
+  </CEffectClearTrackedUnits>
+  <CEffectCreatePersistent id="TychusOverkillChannelPersistent">
     <WhichLocation Value="CasterUnit" />
-    <OffsetVectorEndLocation Value="TargetUnit" />
     <Flags index="PersistUntilDestroyed" value="1" />
-    <PeriodicValidator value="HasOverkillActive" />
+    <PeriodicValidator value="TychusCasterHasOverkillActive" />
     <PeriodicEffectArray value="TychusOverkillRetargetSwitch" />
     <PeriodicEffectArray value="TychusOverkillRetargetSwitch" />
     <PeriodicEffectArray value="TychusOverkillRetargetSwitch" />
     <PeriodicEffectArray value="TychusOverkillRetargetSwitch" />
-    <PeriodicEffectArray value="OverkillTargetedSearchSet" />
+    <PeriodicEffectArray value="TychusOverkillEnumOverkillTarget" />
     <PeriodicPeriodArray value="0.0625" />
     <PeriodicPeriodArray value="0.0625" />
     <PeriodicPeriodArray value="0.0625" />
     <PeriodicPeriodArray value="0.0625" />
     <PeriodicPeriodArray value="0" />
-    <FinalEffect value="TychusOverkillTargetedFinalSet" />
+    <FinalEffect value="TychusOverkillEnumTrackedTargetFinalSet" />
     <TimeScaleSource Value="Caster" />
   </CEffectCreatePersistent>
-  <CEffectSet id="OverkillTargetedSearchSet">
-    <EffectArray value="OverkillTargetedPeriodicApplyDeathCheckBehavior" />
-    <EffectArray value="OverkillTargetedRemoveAmmoBehavior" />
-    <EffectArray value="OverkillTargetedSearch" />
-    <EffectArray value="OverkillTargetedDamageCheckSwitch" />
-    <EffectArray value="TychusOverkillSprayNPraySlowSearch" />
+  <CEffectSwitch id="TychusOverkillRetargetSwitch">
+    <ValidatorArray value="TychusOverkillTrackedTargetIsNotDummy" />
+    <CaseArray Validator="TychusOverkillDoesNotHaveTargetsTracked" Effect="TychusOverkillFindNewTargetSwitch" />
+    <CaseArray Validator="TychusOverkillTrackedUnitIsNotValid" Effect="TychusOverkillEnumTargetFindTarget" />
+    <CaseArray Validator="TychusOverkillTargetTooFarAwayUnitCount" Effect="TychusOverkillFindNewTargetSwitch" />
+  </CEffectSwitch>
+  <CEffectEnumTrackedUnits id="TychusOverkillEnumOverkillTarget">
+    <BehaviorLink value="TychusOverkillTargetTracker" />
+    <Effect value="TychusOverkillTargetImpactPersistent" />
+  </CEffectEnumTrackedUnits>
+  <CEffectCreatePersistent id="TychusOverkillTargetImpactPersistent">
+    <WhichLocation Value="TargetUnit" />
+    <OffsetVectorEndLocation Value="TargetUnit" />
+    <InitialEffect value="TychusOverkillTargetedSearchSet" />
+  </CEffectCreatePersistent>
+  <CEffectSet id="TychusOverkillTargetedSearchSet">
+    <EffectArray value="TychusOverkillApplyDeathMonitorBehavior" />
+    <EffectArray value="TychusOverkillTargetedSearch" />
   </CEffectSet>
-  <CEffectDamage id="OverkillTargetedMainTargetDamage" parent="StormSpell">
-    <ValidatorArray value="OverkillTargetNotInvulnerable" />
-    <ValidatorArray value="SprayNPrayCheckCombine" />
-    <ImpactLocation Effect="OverkillTargetedInitialPersistent" Value="TargetUnit" />
-    <Amount value="46" />
-    <SeenAs value="Abil" />
-    <MultiplicativeModifierArray index="ArmorPiercingRounds" Validator="TychusTargetHasGE1OverkillArmorPiercingRoundsTargetTokenCounter" Accumulator="TychusOverkillArmorPiercingRoundsDamageAccumulator" Crit="1" />
-  </CEffectDamage>
-  <CEffectEnumArea id="OverkillTargetedSearch">
-    <ImpactLocation Effect="OverkillTargetedInitialPersistent" />
+  <CEffectApplyBehavior id="TychusOverkillApplyDeathMonitorBehavior">
+    <ValidatorArray value="TychusOverkillUnitIsNotTargetDummy" />
+    <Behavior value="TychusOverkillDeathMonitor" />
+  </CEffectApplyBehavior>
+  <CEffectEnumArea id="TychusOverkillTargetedSearch">
     <SearchFilters value="-;Player,Ally,Neutral,ImmuneToAOE,Item,Stasis,Dead,Invulnerable" />
-    <AreaArray Arc="45" Effect="OverkillTargetedImpactSet">
-      <Radius value="8" />
+    <AreaArray Arc="45" Effect="TychusOverkillImpactSwitch">
+      <Radius value="$TychusOverkillChannelRange" />
     </AreaArray>
+    <TargetSorts>
+      <SortArray value="TychusOverkillPrimaryTarget" />
+      <SortArray value="TSHeroic" />
+      <SortArray value="TSDistance" />
+    </TargetSorts>
     <SearchFlags index="CenterAtLaunch" value="1" />
     <SearchFlags index="OffsetAreaByAngle" value="0" />
-    <ExcludeArray Effect="OverkillTargetedCreatePersistent" Value="Target" />
-    <RevealerParams Duration="0.5">
+    <RevealerParams Duration="0.75">
       <RevealFlags index="Unfog" value="1" />
     </RevealerParams>
   </CEffectEnumArea>
-  <CEffectSet id="OverkillTargetedImpactSet">
-    <EffectArray value="OverkillTargetedDamage" />
+  <CEffectSwitch id="TychusOverkillImpactSwitch">
+    <ValidatorArray value="TychusOverkillUnitIsNotTargetDummy" />
+    <CaseArray Validator="TychusOverkillTargetNotTrackedAndCasterDoesNotHavePrimaryTargetGlobalCD" Effect="TychusOverkillMainTargetImpactSet" />
+    <CaseDefault value="TychusOverkillSecondaryTargetImpactSet" />
+  </CEffectSwitch>
+  <CEffectSet id="TychusOverkillMainTargetImpactSet">
+    <EffectArray value="TychusOverkillApplyPrimaryTargetCooldown" />
+    <EffectArray value="TychusOverkillPrimaryTargetDamage" />
     <EffectArray value="ApplyAbilityImpactReveal" />
     <EffectArray value="TychusArmorPiercingRoundsDamageDebuffApplyBehavior" />
     <EffectArray value="TychusOverkillArmorPiercingRoundsTargetIncreaseTokenCount" />
+    <EffectArray value="TychusOverkillApplySprayNPraySlowBehavior" />
   </CEffectSet>
-  <CEffectDamage id="OverkillTargetedDamage" parent="StormSpell">
-    <Amount value="23" />
-    <SeenAs value="Abil" />
+  <CEffectApplyBehavior id="TychusOverkillApplyPrimaryTargetCooldown">
+    <WhichUnit Value="Caster" />
+    <Behavior value="TychusOverkillPrimaryTargetGlobalCD" />
+  </CEffectApplyBehavior>
+  <CEffectDamage id="TychusOverkillPrimaryTargetDamage" parent="StormSpell">
+    <Amount value="46" />
     <MultiplicativeModifierArray index="ArmorPiercingRounds" Validator="TychusTargetHasGE1OverkillArmorPiercingRoundsTargetTokenCounter" Accumulator="TychusOverkillArmorPiercingRoundsDamageAccumulator" Crit="1" />
   </CEffectDamage>
-  <CEffectEnumArea id="TychusOverkillSprayNPraySlowSearch">
-    <Chance value="0" />
-    <ImpactLocation Effect="OverkillTargetedInitialPersistent" />
-    <SearchFilters value="-;Player,Ally,Neutral,ImmuneToAOE,Item,Stasis,Dead,Invulnerable" />
-    <AreaArray Arc="45" Effect="TychusOverkillApplySprayNPraySlowBehavior">
-      <Radius value="10" />
-    </AreaArray>
-    <SearchFlags index="CenterAtLaunch" value="1" />
-    <SearchFlags index="OffsetAreaByAngle" value="0" />
-  </CEffectEnumArea>
-  <CEffectApplyBehavior id="TychusOverkillApplySprayNPraySlowBehavior">
-    <ValidatorArray index="0" value="TargetNotUnstoppable" />
+  <CEffectSet id="TychusOverkillSecondaryTargetImpactSet">
+    <EffectArray value="TychusOverkillSecondaryTargetDamage" />
+    <EffectArray value="ApplyAbilityImpactReveal" />
+    <EffectArray value="TychusArmorPiercingRoundsDamageDebuffApplyBehavior" />
+    <EffectArray value="TychusOverkillArmorPiercingRoundsTargetIncreaseTokenCount" />
+    <EffectArray value="TychusOverkillApplySprayNPraySlowBehavior" />
+    <EffectArray value="TychusOverkillTrackTargetPrimaryIsDummy" />
+  </CEffectSet>
+  <CEffectDamage id="TychusOverkillSecondaryTargetDamage" parent="StormSpell">
+    <Amount value="23" />
+    <MultiplicativeModifierArray index="ArmorPiercingRounds" Validator="TychusTargetHasGE1OverkillArmorPiercingRoundsTargetTokenCounter" Accumulator="TychusOverkillArmorPiercingRoundsDamageAccumulator" Crit="1" />
+  </CEffectDamage>
+  <CEffectSet id="TychusOverkillTrackTargetPrimaryIsDummy">
+    <ValidatorArray value="TychusOverkillTrackedTargetIsDummy" />
+    <EffectArray value="TychusOverkillTrackTargetSet" />
+  </CEffectSet>
+  <CEffectApplyBehavior id="TychusOverkillApplySprayNPraySlowBehavior" parent="StormSlowApply">
     <Behavior value="TychusOverkillSprayNPraySlow" />
   </CEffectApplyBehavior>
-  <CEffectSet id="OverkillTargetedRetargetDestroyPersistentSet">
-    <EffectArray value="OverkillTargetedDestroyBasePersistent" />
-    <EffectArray value="OverkillTargetedRetargetApplyDeathCheckBehavior" />
-    <ValidatorArray value="TargetNotInvulnerable" />
+  <CEffectEnumTrackedUnits id="TychusOverkillEnumTargetFindTarget">
+    <BehaviorLink value="TychusOverkillTargetTracker" />
+    <Effect value="TychusOverkillFindNewTargetSwitchAroundTarget" />
+  </CEffectEnumTrackedUnits>
+  <CEffectSwitch id="TychusOverkillFindNewTargetSwitch">
+    <CaseArray Validator="TychusOverkillValidTargetsInRange" Effect="TychusOverkillFindNewTarget" />
+    <CaseDefault value="TychusOverkillCreateDummyUnitTargetPoint" />
+  </CEffectSwitch>
+  <CEffectSwitch id="TychusOverkillFindNewTargetSwitchAroundTarget">
+    <CaseArray Validator="TychusOverkillValidTargetInRangeAroundTarget" Effect="TychusOverkillFindNewTargetAroundTarget" />
+    <CaseArray Validator="TychusOverkillValidTargetsInRange" Effect="TychusOverkillFindNewTarget" />
+    <CaseDefault value="TychusOverkillCreateDummyUnitTargetPoint" />
+  </CEffectSwitch>
+  <CEffectEnumArea id="TychusOverkillFindNewTarget">
+    <ValidatorArray value="TychusCasterHasOverkillActive" />
+    <ImpactLocation Value="CasterUnit" />
+    <SearchFilters value="Visible;Player,Ally,Neutral,ImmuneToAOE,Missile,Item,Stasis,Dead,Hidden,Invulnerable,Benign" />
+    <TargetSorts>
+      <SortArray value="TSNotStructure" />
+    </TargetSorts>
+    <AreaArray Effect="TychusOverkillTrackTargetSet">
+      <Radius value="$TychusOverkillChannelRangeSprayNPray" />
+    </AreaArray>
+    <MaxCount value="1" />
+  </CEffectEnumArea>
+  <CEffectEnumArea id="TychusOverkillFindNewTargetAroundTarget" parent="TychusOverkillFindNewTarget">
+    <ImpactLocation Effect="TychusOverkillFindNewTargetSwitchAroundTarget" Value="TargetPoint" />
+    <TargetSorts>
+      <SortArray value="TSDistanceFromOverkillSwitchTarget" />
+    </TargetSorts>
+    <ExcludeArray Effect="TychusOverkillFindNewTargetSwitchAroundTarget" Value="Target" />
+    <RevealerParams Duration="5" ShapeExpansion="1">
+      <RevealFlags index="Unfog" value="1" />
+    </RevealerParams>
+  </CEffectEnumArea>
+  <CEffectEnumTrackedUnits id="TychusOverkillEnumTrackedTargetFinalSet">
+    <BehaviorLink value="TychusOverkillTargetTracker" />
+    <Effect value="TychusOverkillTargetedFinalSet" />
+  </CEffectEnumTrackedUnits>
+  <CEffectSet id="TychusOverkillTargetedFinalSet">
+    <EffectArray value="TychusOverkillTargetedRemoveDeathCheckBehavior" />
+    <EffectArray value="TychusOverkillTargetedIssueAttackOrder" />
+    <EffectArray value="TychusOverkillModifyCooldown" />
   </CEffectSet>
-  <CEffectDestroyPersistent id="OverkillTargetedDestroyBasePersistent">
-    <Effect value="OverkillTargetedCreatePersistent" />
-    <Count value="1" />
-  </CEffectDestroyPersistent>
-  <CEffectCreatePersistent id="OverkillTargetedRetargetInitialPersistent">
-    <WhichLocation Value="TargetUnit" />
-    <OffsetVectorEndLocation Value="TargetUnit" />
-    <InitialEffect value="OverkillTargetedInitialPersistent" />
-  </CEffectCreatePersistent>
-  <CEffectSet id="OverkillCancelSet">
-    <EffectArray value="OverkillTargetedDestroyBasePersistent" />
-    <EffectArray value="TychusOverkillRemoveActiveBehavior" />
-  </CEffectSet>
-  <CEffectRemoveBehavior id="TychusOverkillRemoveActiveBehavior">
-    <WhichUnit Value="Caster" />
-    <BehaviorLink value="TychusOverkillTargetedActive" />
+  <CEffectRemoveBehavior id="TychusOverkillTargetedRemoveDeathCheckBehavior">
+    <RequireCasterUnit Value="Caster" />
+    <BehaviorLink value="TychusOverkillDeathMonitor" />
   </CEffectRemoveBehavior>
+  <CEffectIssueOrder id="TychusOverkillTargetedIssueAttackOrder">
+    <WhichUnit Value="Caster" />
+    <Abil value="attack" />
+    <CmdFlags index="Queued" value="1" />
+    <Target Effect="TychusOverkillTargetedFinalSet" Value="TargetUnit" />
+    <ValidatorArray value="OverkillProximityAttackCombine" />
+    <ValidatorArray value="CasterHasNoOrders" />
+  </CEffectIssueOrder>
+  <CEffectModifyUnit id="TychusOverkillModifyCooldown">
+    <ImpactUnit Value="Caster" />
+    <Cost Abil="TychusOverkillTargeted,Execute" CooldownOperation="Set">
+      <Fraction Cooldown="1" />
+    </Cost>
+  </CEffectModifyUnit>
+  <CEffectSet id="TychusOverkillRetargetInitialSet">
+    <EffectArray value="TychusOverkillRetargetUnitTargetSet" />
+    <EffectArray value="TychusOverkillRetargetFindTargetArc" />
+    <EffectArray value="TychusOverkillCreateDummyUnit" />
+    <TargetLocationType value="UnitOrPoint" />
+  </CEffectSet>
+  <CEffectSet id="TychusOverkillRetargetUnitTargetSet">
+    <ValidatorArray value="TychusOverkillRetargetTargetFilter" />
+    <EffectArray value="TychusOverkillTrackTargetSet" />
+    <EffectArray value="TychusOverkillApplyDeathMonitorBehavior" />
+    <EffectArray value="TychusOverkillValidTargetApplyBehavior" />
+  </CEffectSet>
+  <CEffectEnumArea id="TychusOverkillRetargetFindTargetArc">
+    <ValidatorArray value="TychusDoesNotHavingValidOverkillTargetRetargetFound" />
+    <SearchFilters value="Visible;Player,Ally,Neutral,ImmuneToAOE,Missile,Item,Stasis,Dead,Hidden,Invulnerable" />
+    <AreaArray MaxCount="1" Effect="TychusOverkillRetargetTargetArcImpactSet">
+      <Radius value="2.5" />
+    </AreaArray>
+    <TargetSorts>
+      <SortArray value="TSDistanceToTarget" />
+    </TargetSorts>
+  </CEffectEnumArea>
+  <CEffectSet id="TychusOverkillRetargetTargetArcImpactSet">
+    <EffectArray value="TychusOverkillTrackTargetSet" />
+    <EffectArray value="TychusOverkillApplyDeathMonitorBehavior" />
+    <EffectArray value="TychusOverkillValidTargetApplyBehavior" />
+  </CEffectSet>
+  <CEffectApplyBehavior id="TychusOverkillValidTargetApplyBehavior">
+    <WhichUnit Value="Caster" />
+    <Behavior value="TychusOverkillValidTargetFound" />
+  </CEffectApplyBehavior>
+  <CEffectCreateUnit id="TychusOverkillCreateDummyUnitTargetPoint">
+    <SpawnEffect value="TychusOverkillDummySpawnSet" />
+    <SpawnUnit value="TychusOverkillTargetDummy" />
+    <CreateFlags index="Placement" value="0" />
+    <WhichLocation Value="TargetPoint" />
+    <Origin Value="TargetPoint" />
+  </CEffectCreateUnit>
+  <CEffectCreateUnit id="TychusOverkillCreateDummyUnit">
+    <ValidatorArray value="TychusDoesNotHavingValidOverkillTargetRetargetFound" />
+    <SpawnEffect value="TychusOverkillDummySpawnSet" />
+    <SpawnUnit value="TychusOverkillTargetDummy" />
+    <CreateFlags index="Placement" value="0" />
+    <WhichLocation>
+      <Value value="OriginPoint" />
+      <Effect value="TychusOverkillRetargetInitialSet" />
+      <ProjectionMultiplier value="1" />
+      <ProjectionSourceEffect value="TychusOverkillRetargetInitialSet" />
+      <ProjectionSourceValue value="OriginPoint" />
+      <ProjectionTargetEffect value="TychusOverkillRetargetInitialSet" />
+      <ProjectionTargetValue value="TargetPoint" />
+      <UsesLineDash value="1" />
+      <LineDashType value="AllowedInUnpathable" />
+      <ProjectionDistanceScale value="10" />
+    </WhichLocation>
+    <Origin Value="TargetPoint" />
+  </CEffectCreateUnit>
+  <CEffectSet id="TychusOverkillDummySpawnSet">
+    <EffectArray value="TychusOverkillTrackTargetSet" />
+    <EffectArray value="TychusOverkillDummyApplyKinetic" />
+    <EffectArray value="TychusOverkillApplyDummyUnitController" />
+  </CEffectSet>
+  <CEffectApplyBehavior id="TychusOverkillApplyDummyUnitController">
+    <Behavior value="TychusOverkillDummyUnitController" />
+  </CEffectApplyBehavior>
+  <CEffectDamage id="TychusOverkillDummyKill">
+    <Flags index="Kill" value="1" />
+    <Flags index="NoKillCredit" value="1" />
+    <Death value="Timeout" />
+    <FloaterCreation value="Suppress" />
+  </CEffectDamage>
+  <CEffectApplyKinetic id="TychusOverkillDummyApplyKinetic">
+    <Kinetic value="TychusOverkillDummyFollowKinetic" />
+  </CEffectApplyKinetic>
   <CEffectEnumArea id="OdinWeaponSplashSearch">
     <ExcludeArray Effect="OdinWeaponImpactSet" Value="Target" />
     <SearchFilters value="-;Player,Ally,Neutral,ImmuneToAOE,Missile,Item,Dead,Hidden,Invulnerable" />
@@ -2353,7 +2438,7 @@
     <ImpactUnit Value="Caster" />
   </CEffectModifyUnit>
   <CEffectSet id="TychusOdinSet">
-    <EffectArray value="OverkillRemoveCasterBehavior" />
+    <EffectArray value="TychusOverkillRemoveActiveBehavior" />
     <EffectArray value="TychusOdinIssueorder" />
     <EffectArray value="TychusOdinApplyBehavior" />
     <EffectArray value="TychusOdinApplyStartupDelay" />
@@ -2626,18 +2711,6 @@
     <Flags index="NoBehaviorResponse" value="1" />
     <Flags index="NoDamageTimerReset" value="1" />
   </CEffectDamage>
-  <CEffectSet id="TychusOverkillMainTargetDamageSet">
-    <ValidatorArray value="SprayNPrayCheckCombine" />
-    <EffectArray value="OverkillTargetedMainTargetDamage" />
-    <EffectArray value="TychusArmorPiercingRoundsDamageDebuffApplyBehavior" />
-    <EffectArray value="TychusOverkillArmorPiercingRoundsTargetIncreaseTokenCount" />
-  </CEffectSet>
-  <CEffectModifyUnit id="TychusOverkillModifyCooldown">
-    <ImpactUnit Value="Caster" />
-    <Cost Abil="TychusOverkillTargeted,Execute" CooldownOperation="Set">
-      <Fraction Cooldown="1" />
-    </Cost>
-  </CEffectModifyUnit>
   <CEffectApplyBehavior id="TychusRunAndGunDashApplyMovementSpeedBuff">
     <ValidatorArray index="0" value="TychusHasRunAndGunDash" />
     <WhichUnit Value="Caster" />
@@ -2822,14 +2895,14 @@
     <LevelScalingArray Ability="TychusOverkillTargeted">
       <Modifications>
         <Catalog value="Effect" />
-        <Entry value="OverkillTargetedDamage" />
+        <Entry value="TychusOverkillPrimaryTargetDamage" />
         <Field value="Amount" />
         <Value value="0.040000" />
         <AffectedByOverdrive value="1" />
       </Modifications>
       <Modifications>
         <Catalog value="Effect" />
-        <Entry value="OverkillTargetedMainTargetDamage" />
+        <Entry value="TychusOverkillSecondaryTargetDamage" />
         <Field value="Amount" />
         <Value value="0.040000" />
         <AffectedByOverdrive value="1" />
@@ -2989,6 +3062,10 @@
     <ProductId value="73019" />
     <HyperlinkId value="TychusMasteryRingRank3" />
   </CHeroMastery>
+  <CKineticFollow id="TychusOverkillDummyFollowKinetic">
+    <Duration value="$TychusOverkillDuration" />
+    <Follow value="Position" />
+  </CKineticFollow>
   <CMoverMissile id="TychusRangedMissileLeftShort">
     <MotionPhases>
       <Driver value="Throw" />
@@ -3405,37 +3482,44 @@
     <Face value="TychusOverkillSprayNPrayTalent" />
     <AbilityModificationArray>
       <Modifications>
-        <Type value="MultiplyLevelModification" />
+        <Type value="FlatModification" />
         <Catalog value="Effect" />
-        <Entry value="OverkillTargetedSearch" />
+        <Entry value="TychusOverkillTargetedSearch" />
         <Field value="AreaArray[0].Radius" />
-        <Value value="1.250000" />
+        <Value value="$TychusSprayNPrayRangeIncrease" />
       </Modifications>
       <Modifications>
-        <Type value="MultiplyLevelModification" />
+        <Type value="FlatModification" />
+        <Catalog value="Effect" />
+        <Entry value="TychusOverkillSearchGuideDummy" />
+        <Field value="AreaArray[0].Radius" />
+        <Value value="$TychusSprayNPrayRangeIncrease" />
+      </Modifications>
+      <Modifications>
+        <Type value="FlatModification" />
         <Entry value="TychusOverkillTargeted" />
         <Field value="Range[0]" />
-        <Value value="1.250000" />
+        <Value value="$TychusSprayNPrayRangeIncrease" />
       </Modifications>
       <Modifications>
-        <Type value="MultiplyLevelModification" />
+        <Type value="FlatModification" />
         <Entry value="OverkillTargetedRetarget" />
         <Field value="Range[0]" />
-        <Value value="1.250000" />
+        <Value value="$TychusSprayNPrayRangeIncrease" />
       </Modifications>
       <Modifications>
-        <Type value="MultiplyLevelModification" />
+        <Type value="FlatModification" />
         <Catalog value="Actor" />
         <Entry value="TychusSprayNPraySplat" />
         <Field value="Scale" />
-        <Value value="1.250000" />
+        <Value value="$TychusSprayNPrayRangeIncrease" />
       </Modifications>
       <Modifications>
         <Type value="FlatModification" />
         <Catalog value="Actor" />
         <Entry value="TychusOverkillActiveRange" />
         <Field value="Range" />
-        <Value value="2.020000" />
+        <Value value="$TychusSprayNPrayRangeIncrease" />
       </Modifications>
       <Modifications>
         <Type value="StringReplacement" />
@@ -3443,13 +3527,6 @@
         <Entry value="TychusOverkillTargetedLaunchModel" />
         <Field value="Scale" />
         <StringReplacement value="1.250000,1.500000,1.000000" />
-      </Modifications>
-      <Modifications>
-        <Type value="FlatModification" />
-        <Catalog value="Effect" />
-        <Entry value="TychusOverkillSprayNPraySlowSearch" />
-        <Field value="Chance" />
-        <Value value="1.000000" />
       </Modifications>
     </AbilityModificationArray>
     <Abil value="TychusOverkillTargeted" />
@@ -3615,14 +3692,14 @@
         <Type value="FlatModification" />
         <Entry value="TychusGrenade" />
         <Field value="Range[0]" />
-        <Value value="4.000000" />
+        <Value value="$TychusQuarterbackRangeIncrease" />
       </Modifications>
       <Modifications>
         <Type value="FlatModification" />
         <Catalog value="Actor" />
         <Entry value="TychusFragGrenadeRangeSplat" />
         <Field value="Scale" />
-        <Value value="4.000000" />
+        <Value value="$TychusQuarterbackRangeIncrease" />
       </Modifications>
     </AbilityModificationArray>
     <Abil value="TychusGrenade" />
@@ -3790,6 +3867,14 @@
     <Face value="TychusMeltingPoint" />
     <Abil value="TychusGrenade" />
   </CTalent>
+  <CTargetSortDistance id="TSDistanceFromOverkillSwitchTarget">
+    <WhichLocation Effect="TychusOverkillFindNewTargetSwitchAroundTarget" Value="TargetUnit" />
+  </CTargetSortDistance>
+  <CTargetSortBehaviorCount id="TychusOverkillPrimaryTarget">
+    <WhichUnit Value="Target" />
+    <Behavior value="TychusOverkillTargetMarker" />
+    <Value value="1" />
+  </CTargetSortBehaviorCount>
   <CTurret id="TychusLaserDrillTurret" parent="FreeRotate">
     <Idle value="Spin" />
     <YawIdleRate value="-24.961" />
@@ -3821,6 +3906,7 @@
     <AbilArray Link="TychusMinigunActive" />
     <BehaviorArray Link="TychusNoOdin" />
     <BehaviorArray Link="TychusDirtyFighting" />
+    <BehaviorArray Link="TychusOverkillTargetTracker" />
     <BehaviorArray Link="ExcellentMana" />
     <BehaviorArray Link="UsesLargeBlobShadow" />
     <WeaponArray Link="TychusMiniGunRampingSpeedWeapon" />
@@ -3839,8 +3925,8 @@
       <LayoutButtons Face="TychusMinigun" Type="Passive" Requirements="TychusHasMinigunPrimedOrActive" Slot="Trait" />
       <LayoutButtons Face="TychusMinigunActive" Type="AbilCmd" AbilCmd="TychusMinigunActive,Execute" Requirements="NoTychusOdin" Slot="Trait" />
     </CardLayouts>
-    <Radius value="0.8125" />
-    <InnerRadius value="0.8125" />
+    <Radius value="$TychusUnitRadius" />
+    <InnerRadius value="$TychusUnitRadius" />
     <Fidget DelayMax="21" DelayMin="16" />
     <AIThinkTree value="AI/Tychus.aitree" />
     <AIEvalFactor value="1.2" />
@@ -3886,6 +3972,19 @@
     <Acceleration value="0" />
   </CUnit>
   <CUnit id="TychusOdinRagnarokMissile" parent="MISSILE_INVULNERABLE" />
+  <CUnit id="TychusOverkillTargetDummy" parent="StormSummonFigment">
+    <PlaneArray index="Air" value="1" />
+    <FlagArray index="Turnable" value="0" />
+    <FlagArray index="Uncommandable" value="1" />
+    <FlagArray index="Unselectable" value="1" />
+    <FlagArray index="Untargetable" value="1" />
+    <FlagArray index="Invulnerable" value="1" />
+    <FlagArray index="Unstoppable" value="1" />
+    <Attributes index="ImmuneToAOE" value="1" />
+    <Attributes index="ImmuneToSkillshots" value="1" />
+    <Attributes index="ImmuneToFriendlyAbilities" value="1" />
+    <BehaviorArray Link="HallOfStormsKnockbackImmunity" />
+  </CUnit>
   <CValidatorCombine id="TychusFragGrenadeMeltingPointTargetValidationCombine">
     <Type value="And" />
     <CombineArray value="TychusHasMeltingPointTalent" />
@@ -3915,7 +4014,7 @@
   <CValidatorUnitCompareBehaviorCount id="TychusSourceHasTychusOverkillTargetedActiveBehaviorArmorPiercingRounds">
     <WhichUnit Value="Source" />
     <Value value="1" />
-    <Behavior value="TychusOverkillTargetedActive" />
+    <Behavior value="TychusOverkillActive" />
   </CValidatorUnitCompareBehaviorCount>
   <CValidatorUnitCompareBehaviorCount id="TychusTargetDoesNotHaveOverkillArmorPiercingRoundsTargetTokenCounter">
     <Behavior value="TychusOverkillArmorPiercingRoundsTargetTokenCounter" />
@@ -3924,14 +4023,10 @@
     <WhichUnit Value="Caster" />
     <Behavior value="RunAndGun" />
   </CValidatorUnitCompareBehaviorCount>
-  <CValidatorCombine id="SprayNPrayCheckCombine">
-    <CombineArray value="OverkillTargetWithinNormalRange" />
-    <CombineArray value="OverkillWithinImprovedRangeCombine" />
-  </CValidatorCombine>
   <CValidatorLocationEnumArea id="OverkillMountedHeroProximity">
     <WhichLocation Value="CasterUnit" />
     <AreaArray Compare="GT" Count="0">
-      <Radius value="7.5" />
+      <Radius value="$TychusOverkillRange" />
     </AreaArray>
     <SearchFlags index="ExtendByUnitRadius" value="1" />
     <SearchFilters value="Heroic,Visible;Player,Ally,Neutral,ImmuneToAOE,Structure,Missile,Item,Stasis,Dead,Hidden,Invulnerable,Benign" />
@@ -3939,7 +4034,7 @@
   <CValidatorLocationEnumArea id="OverkillProximity">
     <WhichLocation Value="CasterUnit" />
     <AreaArray Compare="GT" Count="0">
-      <Radius value="7.5" />
+      <Radius value="$TychusOverkillRange" />
     </AreaArray>
     <SearchFlags index="ExtendByUnitRadius" value="1" />
     <SearchFilters value="Visible;Player,Ally,ImmuneToAOE,Structure,Missile,Item,Stasis,Dead,Hidden,Invulnerable,Benign" />
@@ -3948,15 +4043,6 @@
     <CombineArray value="OverkillProximity" />
     <CombineArray value="OverkillMountedHeroProximity" />
   </CValidatorCombine>
-  <CValidatorCombine id="OverkillWithinImprovedRangeCombine">
-    <Type value="And" />
-    <CombineArray value="HasTychusOverkillSprayNPray" />
-    <CombineArray value="OverkillTargetWithinImprovedRange" />
-  </CValidatorCombine>
-  <CValidatorUnitFilters id="OverkillTargetNotInvulnerable">
-    <WhichUnit Effect="OverkillTargetedInitialPersistent" />
-    <Filters value="-;Invulnerable" />
-  </CValidatorUnitFilters>
   <CValidatorUnitCompareBehaviorCount id="SourceHasOdin">
     <WhichUnit Value="Source" />
     <Value value="1" />
@@ -4016,77 +4102,23 @@
     <Value value="1" />
     <Behavior value="GrenadePushTarget" />
   </CValidatorUnitCompareBehaviorCount>
-  <CValidatorLocationEnumArea id="OverkillOutofRangeRetargetInRange">
-    <WhichLocation Effect="OverkillTargetedInitialPersistent" Value="CasterUnit" />
-    <AreaArray Compare="GT" Count="0">
-      <Radius value="7" />
-    </AreaArray>
-    <SearchFilters value="Visible;Player,Ally,Neutral,ImmuneToAOE,Missile,Item,Stasis,Dead,Hidden,Invulnerable,Benign" />
-  </CValidatorLocationEnumArea>
-  <CValidatorLocationCompareRange id="OverkillTargetTooFarAway">
-    <WhichLocation Effect="OverkillTargetedCreatePersistent" Value="TargetUnit" />
-    <Compare value="GE" />
-    <Range value="30" />
-    <Value Effect="OverkillTargetedCreatePersistent" Value="SourceUnit" />
-  </CValidatorLocationCompareRange>
   <CValidatorPlayerTalent id="HasTychusOverkillSprayNPray">
     <WhichPlayer Value="Caster" />
     <Find value="1" />
     <Value value="TychusMasterySprayNPray" />
   </CValidatorPlayerTalent>
-  <CValidatorLocationCompareRange id="OverkillTargetWithinImprovedRange">
-    <WhichLocation Effect="OverkillTargetedCreatePersistent" Value="TargetUnit" />
-    <Compare value="LE" />
-    <Range value="8.5" />
-    <Value Effect="OverkillTargetedCreatePersistent" Value="SourceUnit" />
-  </CValidatorLocationCompareRange>
-  <CValidatorLocationEnumArea id="OverkillDeadRetargetInRange">
-    <AreaArray Compare="GT" Count="0">
-      <Radius value="7" />
-    </AreaArray>
-    <SearchFilters value="Visible;Player,Ally,Neutral,ImmuneToAOE,Missile,Item,Stasis,Dead,Hidden,Invulnerable,Benign" />
-  </CValidatorLocationEnumArea>
-  <CValidatorLocationEnumArea id="OverkillStasisRetargetInRange">
-    <WhichLocation Effect="OverkillTargetedInitialPersistent" />
-    <AreaArray Compare="GT" Count="0">
-      <Radius value="7" />
-    </AreaArray>
-    <SearchFilters value="Visible;Player,Ally,Neutral,ImmuneToAOE,Missile,Item,Stasis,Dead,Hidden,Invulnerable,Benign" />
-  </CValidatorLocationEnumArea>
-  <CValidatorUnitFilters id="OverkillTargetisDead">
-    <WhichUnit Effect="OverkillTargetedInitialPersistent" />
-    <Filters value="Dead;-" />
-  </CValidatorUnitFilters>
   <CValidatorCombine id="TychusHasOdinAndNotDead">
     <Type value="And" />
     <CombineArray value="CasterNotDead" />
     <CombineArray value="CasterHasOdin" />
   </CValidatorCombine>
-  <CValidatorUnitFilters id="OverkillTargetinStasis">
-    <WhichUnit Effect="OverkillTargetedInitialPersistent" />
-    <Filters value="Stasis;-" />
-  </CValidatorUnitFilters>
-  <CValidatorUnitFilters id="OverkillTargetInvulnerable">
-    <WhichUnit Effect="OverkillTargetedInitialPersistent" />
-    <Filters value="Invulnerable;-" />
-  </CValidatorUnitFilters>
-  <CValidatorCombine id="OverkillTargetinStasisorInvulnerableCombine">
-    <CombineArray value="OverkillTargetinStasis" />
-    <CombineArray value="OverkillTargetInvulnerable" />
-  </CValidatorCombine>
   <CValidatorCombine id="HasOverkillorMinigunActive">
     <CombineArray value="HasMinigunActive" />
     <CombineArray value="HasOverkillActive" />
   </CValidatorCombine>
-  <CValidatorLocationCompareRange id="OverkillTargetWithinNormalRange">
-    <WhichLocation Effect="OverkillTargetedCreatePersistent" Value="TargetUnit" />
-    <Compare value="LE" />
-    <Range value="6.65" />
-    <Value Effect="OverkillTargetedCreatePersistent" Value="SourceUnit" />
-  </CValidatorLocationCompareRange>
   <CValidatorUnitCompareBehaviorCount id="NoOverkillTargetedActive">
     <WhichUnit Value="Caster" />
-    <Behavior value="TychusOverkillTargetedActive" />
+    <Behavior value="TychusOverkillActive" />
   </CValidatorUnitCompareBehaviorCount>
   <CValidatorUnitCompareBehaviorCount id="HasMinigunActive">
     <WhichUnit Value="Caster" />
@@ -4102,7 +4134,7 @@
   <CValidatorUnitCompareBehaviorCount id="HasOverkillActive">
     <WhichUnit Value="Caster" />
     <Value value="1" />
-    <Behavior value="TychusOverkillTargetedActive" />
+    <Behavior value="TychusOverkillActive" />
   </CValidatorUnitCompareBehaviorCount>
   <CValidatorPlayerTalent id="HasTychusOverkillArmorPiercingRounds">
     <WhichPlayer Value="Caster" />
@@ -4209,6 +4241,15 @@
   <CValidatorUnitCompareBehaviorCount id="NoOdin">
     <Behavior value="TychusOdin" />
   </CValidatorUnitCompareBehaviorCount>
+  <CValidatorCombine id="TychusCasterNotInOdinAndHasOverkillActive">
+    <Type value="And" />
+    <CombineArray value="TychusCasterNoOdin" />
+    <CombineArray value="TychusCasterHasOverkillActive" />
+  </CValidatorCombine>
+  <CValidatorUnitCompareBehaviorCount id="TychusCasterNoOdin">
+    <WhichUnit Value="Caster" />
+    <Behavior value="TychusOdin" />
+  </CValidatorUnitCompareBehaviorCount>
   <CValidatorUnitCompareBehaviorCount id="NoSuppressiveFire">
     <Behavior value="OverkillCaster" />
   </CValidatorUnitCompareBehaviorCount>
@@ -4295,6 +4336,170 @@
     <Find value="1" />
     <Value value="TychusMeltingPoint" />
   </CValidatorPlayerTalent>
+  <CValidatorUnitCompareBehaviorCount id="TychusCasterHasOverkillActive">
+    <WhichUnit Value="Caster" />
+    <Value value="1" />
+    <Behavior value="TychusOverkillActive" />
+  </CValidatorUnitCompareBehaviorCount>
+  <CValidatorUnitFilters id="TychusOverkillRetargetTargetFilter">
+    <Filters value="Visible;Player,Ally,Neutral,ImmuneToAOE,Missile,Item,Stasis,Dead,Hidden,Invulnerable" />
+  </CValidatorUnitFilters>
+  <CValidatorUnitCompareBehaviorCount id="TychusDoesNotHavingValidOverkillTargetRetargetFound">
+    <WhichUnit Value="Caster" />
+    <Behavior value="TychusOverkillValidTargetFound" />
+  </CValidatorUnitCompareBehaviorCount>
+  <CValidatorCompareTrackedUnitsCount id="TychusOverkillTrackedTargetIsDummy">
+    <BehaviorLink value="TychusOverkillTargetTracker" />
+    <TrackedUnitValidatorArray value="TychusOverkillUnitIsNotTargetDummy" />
+  </CValidatorCompareTrackedUnitsCount>
+  <CValidatorCompareTrackedUnitsCount id="TychusOverkillTrackedTargetIsNotDummy">
+    <BehaviorLink value="TychusOverkillTargetTracker" />
+    <Compare value="GT" />
+    <TrackedUnitValidatorArray value="TychusOverkillUnitIsNotTargetDummy" />
+  </CValidatorCompareTrackedUnitsCount>
+  <CValidatorUnitType id="TychusOverkillUnitIsNotTargetDummy">
+    <Value value="TychusOverkillTargetDummy" />
+    <Find value="0" />
+  </CValidatorUnitType>
+  <CValidatorCompareTrackedUnitsCount id="TychusOverkillTrackedUnitIsNotValid">
+    <BehaviorLink value="TychusOverkillTargetTracker" />
+    <TrackedUnitValidatorArray value="TychusOverkillValidTargetCombine" />
+  </CValidatorCompareTrackedUnitsCount>
+  <CValidatorCombine id="TychusOverkillValidTargetCombine">
+    <Type value="And" />
+    <CombineArray value="TargetNotInvulnerable" />
+    <CombineArray value="TargetNotStasis" />
+    <CombineArray value="TargetNotDead" />
+    <CombineArray value="TargetNotSpecialDeathState" />
+  </CValidatorCombine>
+  <CValidatorCompareTrackedUnitsCount id="TychusOverkillTargetTooFarAwayUnitCount">
+    <Compare value="GT" />
+    <BehaviorLink value="TychusOverkillTargetTracker" />
+    <TrackedUnitValidatorArray value="TychusOverkillTargetTooFarAway" />
+  </CValidatorCompareTrackedUnitsCount>
+  <CValidatorLocationCompareRange id="TychusOverkillTargetTooFarAway">
+    <Compare value="GE" />
+    <Range value="30" />
+    <Value Value="CasterPoint" />
+  </CValidatorLocationCompareRange>
+  <CValidatorLocationEnumArea id="TychusOverkillValidTargetsInRange">
+    <WhichLocation Value="CasterUnit" />
+    <AreaArray Compare="GT" Count="0">
+      <Radius value="$TychusOverkillChannelRangeSprayNPray" />
+    </AreaArray>
+    <SearchFilters value="Visible;Player,Ally,Neutral,ImmuneToAOE,Missile,Item,Stasis,Dead,Hidden,Invulnerable,Benign" />
+  </CValidatorLocationEnumArea>
+  <CValidatorLocationEnumArea id="TychusOverkillValidTargetInRangeAroundTarget">
+    <AreaArray Compare="GT" Count="0">
+      <Radius value="$TychusOverkillChannelRangeSprayNPray" />
+    </AreaArray>
+    <SearchFilters value="Visible;Player,Ally,Neutral,ImmuneToAOE,Missile,Item,Stasis,Dead,Hidden,Invulnerable,Benign" />
+    <ExcludeArray Value="Target" />
+  </CValidatorLocationEnumArea>
+  <CValidatorCompareTrackedUnitsCount id="TychusOverkillHasTrackedTarget">
+    <Compare value="GT" />
+    <BehaviorLink value="TychusOverkillTargetTracker" />
+  </CValidatorCompareTrackedUnitsCount>
+  <CValidatorCompareTrackedUnitsCount id="TychusOverkillDoesNotHaveTargetsTracked">
+    <BehaviorLink value="TychusOverkillTargetTracker" />
+    <CValidatorUnitCompareBehaviorCount id="TychusCasterHasOverkillActive">
+      <WhichUnit Value="Caster" />
+      <Value value="1" />
+      <Behavior value="TychusOverkillActive" />
+    </CValidatorUnitCompareBehaviorCount>
+    <CValidatorUnitFilters id="TychusOverkillRetargetTargetFilter">
+      <Filters value="Visible;Player,Ally,Neutral,ImmuneToAOE,Missile,Item,Stasis,Dead,Hidden,Invulnerable" />
+    </CValidatorUnitFilters>
+    <CValidatorUnitCompareBehaviorCount id="TychusDoesNotHavingValidOverkillTargetRetargetFound">
+      <WhichUnit Value="Caster" />
+      <Behavior value="TychusOverkillValidTargetFound" />
+    </CValidatorUnitCompareBehaviorCount>
+    <CValidatorCompareTrackedUnitsCount id="TychusOverkillTrackedTargetIsDummy">
+      <BehaviorLink value="TychusOverkillTargetTracker" />
+      <TrackedUnitValidatorArray value="TychusOverkillUnitIsNotTargetDummy" />
+    </CValidatorCompareTrackedUnitsCount>
+    <CValidatorCompareTrackedUnitsCount id="TychusOverkillTrackedTargetIsNotDummy">
+      <BehaviorLink value="TychusOverkillTargetTracker" />
+      <Compare value="GT" />
+      <TrackedUnitValidatorArray value="TychusOverkillUnitIsNotTargetDummy" />
+    </CValidatorCompareTrackedUnitsCount>
+    <CValidatorUnitType id="TychusOverkillUnitIsNotTargetDummy">
+      <Value value="TychusOverkillTargetDummy" />
+      <Find value="0" />
+    </CValidatorUnitType>
+    <CValidatorCompareTrackedUnitsCount id="TychusOverkillTrackedUnitIsNotValid">
+      <BehaviorLink value="TychusOverkillTargetTracker" />
+      <TrackedUnitValidatorArray value="TychusOverkillValidTargetCombine" />
+    </CValidatorCompareTrackedUnitsCount>
+    <CValidatorCombine id="TychusOverkillValidTargetCombine">
+      <Type value="And" />
+      <CombineArray value="TargetNotInvulnerable" />
+      <CombineArray value="TargetNotStasis" />
+      <CombineArray value="TargetNotDead" />
+      <CombineArray value="TargetNotSpecialDeathState" />
+    </CValidatorCombine>
+    <CValidatorCompareTrackedUnitsCount id="TychusOverkillTargetTooFarAwayUnitCount">
+      <Compare value="GT" />
+      <BehaviorLink value="TychusOverkillTargetTracker" />
+      <TrackedUnitValidatorArray value="TychusOverkillTargetTooFarAway" />
+    </CValidatorCompareTrackedUnitsCount>
+    <CValidatorLocationCompareRange id="TychusOverkillTargetTooFarAway">
+      <Compare value="GE" />
+      <Range value="30" />
+      <Value Value="CasterPoint" />
+    </CValidatorLocationCompareRange>
+    <CValidatorLocationEnumArea id="TychusOverkillValidTargetsInRange">
+      <WhichLocation Value="CasterUnit" />
+      <AreaArray Compare="GT" Count="0">
+        <Radius value="$TychusOverkillChannelRangeSprayNPray" />
+      </AreaArray>
+      <SearchFilters value="Visible;Player,Ally,Neutral,ImmuneToAOE,Missile,Item,Stasis,Dead,Hidden,Invulnerable,Benign" />
+    </CValidatorLocationEnumArea>
+    <CValidatorLocationEnumArea id="TychusOverkillValidTargetInRangeAroundTarget">
+      <AreaArray Compare="GT" Count="0">
+        <Radius value="$TychusOverkillChannelRangeSprayNPray" />
+      </AreaArray>
+      <SearchFilters value="Visible;Player,Ally,Neutral,ImmuneToAOE,Missile,Item,Stasis,Dead,Hidden,Invulnerable,Benign" />
+      <ExcludeArray Value="Target" />
+    </CValidatorLocationEnumArea>
+    <CValidatorCompareTrackedUnitsCount id="TychusOverkillHasTrackedTarget">
+      <Compare value="GT" />
+      <BehaviorLink value="TychusOverkillTargetTracker" />
+    </CValidatorCompareTrackedUnitsCount>
+    <CValidatorCompareTrackedUnitsCount id="TychusOverkillDoesNotHaveTargetsTracked">
+      <BehaviorLink value="TychusOverkillTargetTracker" />
+    </CValidatorCompareTrackedUnitsCount>
+    <CValidatorIsUnitTracked id="TychusOverkillTargetIsTracked">
+      <BehaviorLink value="TychusOverkillTargetTracker" />
+      <TrackedUnit Value="Target" />
+      <Find value="1" />
+    </CValidatorIsUnitTracked>
+    <CValidatorCombine id="TychusOverkillTargetNotTrackedAndCasterDoesNotHavePrimaryTargetGlobalCD">
+      <Type value="And" />
+      <CombineArray value="TychusOverkillTargetIsTracked" />
+      <CombineArray value="TychusOverkillCasterDoesNotHavePrimaryTargetGlobalCD" />
+    </CValidatorCombine>
+    <CValidatorUnitHasBehavior id="TychusOverkillCasterDoesNotHavePrimaryTargetGlobalCD">
+      <WhichUnit Value="Caster" />
+      <Behavior value="TychusOverkillPrimaryTargetGlobalCD" />
+      <Negate value="1" />
+    </CValidatorUnitHasBehavior>
+  </CValidatorCompareTrackedUnitsCount>
+  <CValidatorIsUnitTracked id="TychusOverkillTargetIsTracked">
+    <BehaviorLink value="TychusOverkillTargetTracker" />
+    <TrackedUnit Value="Target" />
+    <Find value="1" />
+  </CValidatorIsUnitTracked>
+  <CValidatorCombine id="TychusOverkillTargetNotTrackedAndCasterDoesNotHavePrimaryTargetGlobalCD">
+    <Type value="And" />
+    <CombineArray value="TychusOverkillTargetIsTracked" />
+    <CombineArray value="TychusOverkillCasterDoesNotHavePrimaryTargetGlobalCD" />
+  </CValidatorCombine>
+  <CValidatorUnitHasBehavior id="TychusOverkillCasterDoesNotHavePrimaryTargetGlobalCD">
+    <WhichUnit Value="Caster" />
+    <Behavior value="TychusOverkillPrimaryTargetGlobalCD" />
+    <Negate value="1" />
+  </CValidatorUnitHasBehavior>
   <CWeaponLegacy id="HeroTychusOverkillWeaponTargeted">
     <Options index="Disabled" value="1" />
     <Options index="HoldFileInShrubs" value="1" />

@@ -1,5 +1,13 @@
 <?xml version="1.0" encoding="us-ascii"?>
 <Catalog>
+  <const id="$SylvanasUnrelentingTormentDamageModifier" value="0.2" />
+  <const id="$SylvanasLifeDrainLeechModifier" value="0.15" />
+  <const id="$SylvanasBlackArrowsPinnacleLeechValue" value="0.25" />
+  <const id="$SylvanasBlackArrowsPinnacleLeechDataModifier" value="-($SylvanasBlackArrowsPinnacleLeechValue $SylvanasLifeDrainLeechModifier)" evaluateAsExpression="1" />
+  <CAbilEffectInstant id="SylvanasBlackArrowsPassive">
+    <Flags index="Transient" value="1" />
+    <CmdButtonArray index="Execute" DefaultButtonFace="SylvanasBlackArrowsPassive" PreemptLevel="-1" />
+  </CAbilEffectInstant>
   <CAbilEffectTarget id="SylvanasMindControlMissile">
     <Activity value="Abil/Sylvanas/MindControlActivity" />
     <PrepEffect value="DismountDecloakCasterSet" />
@@ -19,10 +27,10 @@
   <CAbilEffectInstant id="SylvanasBlackArrowsActive">
     <Effect value="SylvanasBlackArrowsActiveDurationApplyBehavior" />
     <Flags index="TransientPreferred" value="1" />
+    <CmdButtonArray index="Execute" DefaultButtonFace="SylvanasBlackArrows" ShowValidator="SylvanasHasHauntingArrows" UseValidator="SylvanasHasHauntingArrowsTalentAndDoesNotHaveBlackArrowsActive" />
     <Cost>
-      <Cooldown TimeUse="40" />
+      <Cooldown TimeUse="90" />
     </Cost>
-    <CmdButtonArray index="Execute" DefaultButtonFace="SylvanasBlackArrows" />
   </CAbilEffectInstant>
   <CAbilEffectInstant id="SylvanasMindControlCancel">
     <Effect value="SylvanasMindControlRemoveCasterBehavior" />
@@ -203,11 +211,12 @@
     <Flags index="RangeUseCasterRadius" value="0" />
     <Cost>
       <Charge>
-        <CountMax value="3" />
-        <CountStart value="3" />
+        <CountMax value="4" />
+        <CountStart value="4" />
         <CountUse value="1" />
-        <TimeUse value="12" />
+        <TimeUse value="25" />
       </Charge>
+      <Cooldown TimeUse="2" />
     </Cost>
     <TargetFilters value="-;Player,Ally,Neutral,Creep,Structure,Heroic,User1,Missile,Item,Stasis,Dead,Hidden,Invulnerable,MapCreature" />
     <Range value="10" />
@@ -254,7 +263,7 @@
     <MaxAccumulation value="9001" />
     <ApplicationRule value="Add" />
     <TokenId value="SylvanasShadowDaggerUnfurlingShadowsQuestToken" />
-    <Scale value="0.005" />
+    <Scale value="0" />
   </CAccumulatorToken>
   <CActorSound id="SylanasWitheringFireLessThan3StacksOfBlackArrowsLaunchSound" parent="SoundOneShot">
     <On Terms="Effect.SylvanasWitheringFireLaunchMissile.Start; At Caster; ValidateUnit SylvanasTargetHasLessThan3StacksOfBlackArrowsStackingBehavior 0 {} 1" Send="Create" />
@@ -1023,6 +1032,9 @@
     <On Terms="Behavior.SylvanasMindControlTarget.On" Send="Create" />
     <Sound value="Sylvanas_MindControl_Banshee" />
   </CActorSound>
+  <CBehaviorBuff id="SylvanasUnfurlingShadowsQuestComplete" parent="CarryBehaviorParent" />
+  <CBehaviorBuff id="SylvanasUnfurlingShadowsQuestMilestone" parent="CarryBehaviorParent" />
+  <CBehaviorBuff id="SylvanasHauntingArrows" parent="CarryBehaviorParent" />
   <CBehaviorBuff id="SylvanasShadowDaggerColdEmbraceArmorSpreadDecrease" parent="StormArmor">
     <BehaviorCategories index="DebuffVulnerable" value="1" />
     <Duration value="2.5" />
@@ -1049,6 +1061,9 @@
     <DisplayDuration index="Enemy" value="1" />
     <DisplayPriority value="1" />
     <Duration value="10" />
+    <Period value="0.125" />
+    <PeriodicEffect value="SylvanasBlackArrowsSetCooldown" />
+    <FinalEffect value="SylvanasBlackArrowsSetCooldown" />
   </CBehaviorBuff>
   <CBehaviorBuff id="SylvanasMindControlDarkLadysCallVisionReduction">
     <DisplayDuration index="Self" value="1" />
@@ -1126,7 +1141,11 @@
     <BehaviorFlags index="EnabledWhileDead" value="1" />
   </CBehaviorUnitTracker>
   <CBehaviorTokenCounter id="SylvanasShadowDaggerUnfurlingShadowsQuestToken" parent="StormQuestToken">
-    <Max value="9001" />
+    <Max value="400" />
+    <ConditionalEvents Compare="GE" CompareValue="250">
+      <Event EventId="QuestMilestone" Effect="SylvanasShadowDaggerUnfurlingShadowsApplyMilestoneBehavior" />
+    </ConditionalEvents>
+    <AtMaxEvents index="0" EventId="QuestComplete" Effect="SylvanasShadowDaggerUnfurlingShadowsApplyQuestCompleteBehavior" />
   </CBehaviorTokenCounter>
   <CBehaviorBuff id="SylvanasBlackArrowsStackingBehavior" parent="StormStackingComboMarker">
     <BehaviorFlags index="Permanent" value="1" />
@@ -1255,7 +1274,7 @@
   <CBehaviorBuff id="SylvanasFreeHauntingWaveWindrunnerTalent">
     <Alignment value="Positive" />
     <BehaviorCategories index="Restorable" value="1" />
-    <Duration value="5" />
+    <Duration value="4" />
     <InfoIcon value="Assets\Textures\storm_temp_war3_btnattackground.dds" />
     <FinalEffect value="SylvanasHauntingWaveApplyWindrunnerTalentSlop" />
     <InfoFlags index="AlwaysUseGameText" value="1" />
@@ -1385,6 +1404,20 @@
       <AllArmorBonus value="-25" />
     </ArmorModification>
   </CBehaviorBuff>
+  <CButton id="SylvanasBlackArrowsHauntingArrowsTalent" parent="StormButtonParent">
+    <Icon value="Assets\Textures\storm_ui_icon_sylvanas_blackarrows_b.dds" />
+  </CButton>
+  <CButton id="SylvanasBlackArrowsPassive" parent="StormButtonParentTrait">
+    <TooltipAppender Validator="HasSylvanasOverwhelmingAffliction" Face="SylvanasBlackArrowsOverwhelmingAfflictionTalent" />
+    <TooltipAppender Validator="SylvanasHasMercenaryQueen" Face="SylvanasMercenaryQueenTalent" />
+    <TooltipAppender Validator="SylvanasHasHauntingArrows" Face="SylvanasBlackArrowsHauntingArrowsTalent" />
+    <TooltipAppender Validator="HasSylvanasTalentRemorseless" Face="SylvanasRemorselessTalent" />
+    <TooltipAppender Validator="HasSylvanasLifeDrain" Face="SylvanasBlackArrowsLifeDrainTalent" />
+    <TooltipFlags index="ShowHotkey" value="0" />
+    <TooltipFlags index="ShowUsage" value="0" />
+    <Icon value="Assets\Textures\storm_ui_icon_sylvanas_blackarrows.dds" />
+    <UseHotkeyLabel value="0" />
+  </CButton>
   <CButton id="SylvanasMindControlMissile" parent="StormButtonParent">
     <TooltipAppender Validator="HasSylvanasDarkLadysCallMindControl" Face="SylvanasDarkLadysCallMindControlTalent" />
     <Icon value="Assets\Textures\storm_ui_icon_sylvanas_mindcontrol.dds" />
@@ -1407,7 +1440,7 @@
     <HotkeyAlias value="SylvanasMightOfTheBansheeQueenWitheringFireTalent" />
   </CButton>
   <CButton id="SylvanasShadowDaggerUnfurlingShadowsQuestToken" parent="StormButtonParent">
-    <Icon value="Assets\Textures\storm_ui_icon_sylvanas_shadowdagger.dds" />
+    <Icon value="Assets\Textures\storm_ui_icon_sylvanas_blackarrows.dds" />
     <HotkeyAlias value="SylvanasShadowDaggerUnfurlingShadows" />
   </CButton>
   <CButton id="SylvanasShadowDaggerUnfurlingShadows" parent="StormButtonParent">
@@ -1516,9 +1549,11 @@
     <Icon value="Assets\Textures\storm_ui_icon_sylvanas_hauntingwave.dds" />
     <HotkeyAlias value="SylvanasHauntingWaveSoulReaverTalent" />
   </CButton>
-  <CButton id="SylvanasBlackArrows" parent="StormButtonParentTrait">
+  <CButton id="SylvanasBlackArrows" parent="StormButtonParent">
     <TooltipAppender Validator="HasSylvanasOverwhelmingAffliction" Face="SylvanasBlackArrowsOverwhelmingAfflictionTalent" />
     <TooltipAppender Validator="SylvanasHasMercenaryQueen" Face="SylvanasMercenaryQueenTalent" />
+    <TooltipAppender Validator="SylvanasHasHauntingArrows" Face="SylvanasBlackArrowsHauntingArrowsTalent" />
+    <TooltipAppender Validator="HasSylvanasTalentRemorseless" Face="SylvanasRemorselessTalent" />
     <TooltipAppender Validator="HasSylvanasLifeDrain" Face="SylvanasBlackArrowsLifeDrainTalent" />
     <Icon value="Assets\Textures\storm_ui_icon_sylvanas_blackarrows.dds" />
   </CButton>
@@ -1569,6 +1604,46 @@
     <Variations Model="HeroSylvanasPortraitAddition" Actor="HeroSylvanasPortraitAddition" />
     <Unit value="HeroSylvanas" />
   </CCharacter>
+  <CEffectApplyBehavior id="SylvanasShadowDaggerUnfurlingShadowsApplyQuestCompleteBehavior">
+    <WhichUnit Value="Caster" />
+    <Behavior value="SylvanasUnfurlingShadowsQuestComplete" />
+  </CEffectApplyBehavior>
+  <CEffectApplyBehavior id="SylvanasShadowDaggerUnfurlingShadowsApplyMilestoneBehavior">
+    <WhichUnit Value="Caster" />
+    <Behavior value="SylvanasUnfurlingShadowsQuestMilestone" />
+  </CEffectApplyBehavior>
+  <CEffectSwitch id="SylvanasLostSoulModifyCooldownSwitch">
+    <ValidatorArray value="SylvanasTargetHas3StacksOfBlackArrowsStackingBehaviorAndTargetIsValidUnitType" />
+    <ValidatorArray value="CasterNotBlindedAndTargetNotEvading" />
+    <ValidatorArray value="HasSylvanasShadowDaggerLostSoul" />
+    <CaseArray Validator="TargetIsHero" Effect="SylvanasShadowDaggerLostSoulModifyCooldownHero" />
+    <CaseDefault value="SylvanasShadowDaggerLostSoulModifyCooldown" />
+  </CEffectSwitch>
+  <CEffectModifyUnit id="SylvanasShadowDaggerLostSoulModifyCooldown">
+    <ImpactUnit Value="Caster" />
+    <Cost Abil="SylvanasShadowDagger,Execute" CooldownOperation="Add" CooldownTimeUse="-0.75" />
+  </CEffectModifyUnit>
+  <CEffectModifyUnit id="SylvanasShadowDaggerLostSoulModifyCooldownHero">
+    <ImpactUnit Value="Caster" />
+    <Cost Abil="SylvanasShadowDagger,Execute" CooldownOperation="Add" CooldownTimeUse="-1.5" />
+  </CEffectModifyUnit>
+  <CEffectModifyUnit id="SylvanasBlackArrowsSetCooldown">
+    <Cost Abil="SylvanasBlackArrowsActive,Execute" CooldownOperation="Set">
+      <Fraction Cooldown="1" />
+    </Cost>
+  </CEffectModifyUnit>
+  <CEffectModifyTokenCount id="ShadowDaggerUnfurlingShadowsReduceTokenCountDeath" parent="BaseEffectModifyTokenCount">
+    <EffectCategory index="Quest" value="1" />
+    <TokenId value="SylvanasShadowDaggerUnfurlingShadowsQuestToken" />
+    <Value value="0.6" />
+    <Operation value="Multiply" />
+  </CEffectModifyTokenCount>
+  <CEffectModifyUnit id="BlackArrowsAttackReduceCooldown">
+    <ValidatorArray value="TargetIsEnemyStructureAndNotTownWall" />
+    <ValidatorArray value="SylvanasDoesNotHaveBlackArrowsActiveSelfDurationBuff" />
+    <ImpactUnit Value="Caster" />
+    <Cost Abil="SylvanasBlackArrowsActive,Execute" CooldownOperation="Add" CooldownTimeUse="-3" />
+  </CEffectModifyUnit>
   <CEffectSet id="SylvanasBlackArrowsWitheringFireWitheringBarrageDebuffSet">
     <ValidatorArray value="HasSylvanasWitheringFireWitheringBarrage" />
     <EffectArray value="SylvanasWitheringFireWitheringBarrageAppliesBlackArrowsApplyBehavior" />
@@ -1814,15 +1889,19 @@
     <MultiplicativeModifierArray index="MercenaryQueenBonusDamage" Validator="SylvanasHasMercenaryQueenAndTargetIsMercLanerOrDefenderAndTargetHas3StacksofBlackArrowsStackingBehavior" Modifier="0.3" Crit="1" />
     <ImpactLocation Value="TargetUnit" />
     <Amount value="39" />
-    <LeechValidator index="Life" value="SylvanasHasLifeDrainTalentAnd3StacksOfBlackArrows" />
-    <LeechFraction index="Life" value="0.15" />
-    <LeechMultiplicativeModifierArray index="LifeDrainLifeStealHero" Validator="SylvanasHasLifeDrainTalentAnd3StacksOfBlackArrowsAndTargetIsHero" Modifier="1" Crit="1" />
+    <LeechValidator index="Life" value="SylvanasDamageLeechCombine" />
+    <LeechFraction index="Life" value="$SylvanasLifeDrainLeechModifier" />
+    <LeechFlatModifierArray index="LifeDrainWithPinnacle" Validator="SylvanasHasLifeDrainAndPinnacleComplete" Modifier="$SylvanasLifeDrainLeechModifier" />
+    <LeechFlatModifierArray index="LifeDrainHero" Validator="SylvanasLifeDrainTargetIsHeroLeechCombine" Modifier="$SylvanasLifeDrainLeechModifier" />
+    <LeechFlatModifierArray index="BlackArrowsPinnacle" Validator="SylvanasBlackArrowsLeechPinnacleCombine" Modifier="$SylvanasBlackArrowsPinnacleLeechDataModifier" />
+    <LeechFlatModifierArray index="BlackArrowsPinnacleHero" Validator="SylvanasBlackArrowsLeechPinnacleCombineHero" Modifier="$SylvanasBlackArrowsPinnacleLeechValue" />
     <SourceButtonFace value="SylvanasRemorselessTalent" />
   </CEffectDamage>
   <CEffectSet id="SylvanasWitheringFireImpactSetRemorseless">
     <ValidatorArray value="TargetNotDeadOrStasis" />
     <ValidatorArray value="TargetNotInvulnerable" />
     <EffectArray value="SylvanasWitheringFireDamageRemorseless" />
+    <EffectArray value="SylvanasShadowDaggerUnfurlingShadowsModifyTokenCount" />
     <EffectArray value="SylvanasBlackArrowsApplyStackingBehaviorRemorseless" />
     <EffectArray value="SylvanasBlackArrowsApplyOverwhelmingAfflictionTalentSlowDebuff" />
     <EffectArray value="StylvanasBlackArrowsMercMinionOrStructureStunApplyBehavior" />
@@ -1916,6 +1995,7 @@
     <EffectArray value="SylvanasBlackArrowsApplyStackingBehavior" />
     <EffectArray value="SylvanasBlackArrowsApplyOverwhelmingAfflictionTalentSlowDebuff" />
     <EffectArray value="StylvanasBlackArrowsMercMinionOrStructureStunApplyBehavior" />
+    <EffectArray value="BlackArrowsAttackReduceCooldown" />
   </CEffectSet>
   <CEffectRemoveBehavior id="SylvanasBlackArrowsOverwhelmingAfflictionRemoveBehavior">
     <BehaviorLink value="SylvanasBlackArrowsOverwhelmingAfflictionSlow" />
@@ -1928,12 +2008,19 @@
     <VitalFractionMax index="Life" value="0.01" />
   </CEffectDamage>
   <CEffectModifyTokenCount id="SylvanasShadowDaggerUnfurlingShadowsModifyTokenCount" parent="BaseEffectModifyTokenCount">
-    <ValidatorArray value="HasSylvanasUnfurlingShadows" />
-    <ValidatorArray value="SylvanasTargetHas3StacksOfBlackArrowsStackingBehavior" />
-    <ValidatorArray value="TargetIsHero" />
+    <ValidatorArray value="SylvanasTargetHas3StacksOfBlackArrowsStackingBehaviorAndTargetIsValidUnitType" />
     <EffectCategory index="Quest" value="1" />
     <TokenId value="SylvanasShadowDaggerUnfurlingShadowsQuestToken" />
   </CEffectModifyTokenCount>
+  <CEffectModifyTokenCount id="SylvanasShadowDaggerUnfurlingShadowsModifyTokenCountBasicAttack" parent="SylvanasShadowDaggerUnfurlingShadowsModifyTokenCount">
+    <ValidatorArray value="CasterNotBlindedAndTargetNotEvading" />
+  </CEffectModifyTokenCount>
+  <CEffectModifyUnit id="SylvanasLifeDrainLeechModifierReference">
+    <XP value="$SylvanasLifeDrainLeechModifier" />
+  </CEffectModifyUnit>
+  <CEffectModifyUnit id="SylvanasBlackArrowsLeechModifierReference">
+    <XP value="$SylvanasBlackArrowsPinnacleLeechValue" />
+  </CEffectModifyUnit>
   <CEffectCreatePersistent id="SylvanasWitheringFireConsumeAllCharges">
     <WhichLocation Value="CasterUnit" />
     <TimeScaleSource Value="Caster" />
@@ -1968,13 +2055,6 @@
     <VitalArray index="Energy">
       <Change value="5" />
     </VitalArray>
-  </CEffectModifyUnit>
-  <CEffectModifyUnit id="SylvanasShadowDaggerLostSoulModifyCooldown">
-    <ValidatorArray value="SylvanasTargetHas3StacksOfBlackArrowsStackingBehaviorAndTargetIsHero" />
-    <ValidatorArray value="CasterNotBlindedAndTargetNotEvading" />
-    <Chance value="0" />
-    <ImpactUnit Value="Caster" />
-    <Cost Abil="SylvanasShadowDagger,Execute" CooldownOperation="Add" CooldownTimeUse="-1.75" />
   </CEffectModifyUnit>
   <CEffectSet id="SylvanasHauntingWaveDreadfulWakeTalentProcSet">
     <ValidatorArray value="DoesNotHaveImmuneToBlackArrowDarkLadysAdvanceTalent" />
@@ -2091,13 +2171,17 @@
   <CEffectDamage id="SylvanasShadowDaggerInitialDamage" parent="StormSpell">
     <Marker Link="Effect/SylvanasShadowDaggerDoTDamage" />
     <Amount value="30" />
-    <MultiplicativeModifierArray index="BlackArrowsBonusDamage" Validator="SylvanasTargetHas3StacksOfBlackArrowsStackingBehavior" Modifier="0.25" Crit="1" />
-    <MultiplicativeModifierArray index="UnfurlingShadowsDamage" Accumulator="SylvanasShadowDaggerUnfurlingShadowsAccumulator" />
+    <MultiplicativeModifierArray index="BlackArrowsBonusDamage" Validator="SylvanasTargetHas3StacksOfBlackArrowsStackingBehavior" Modifier="0.15" Crit="1" />
+    <MultiplicativeModifierArray index="UnfurlingShadowsDamage" Validator="HasUnfurlingMilestoneAnd3StacksOfBlackArrows" Modifier="0.35" />
     <MultiplicativeModifierArray index="MercenaryQueenBonusDamage" Validator="SylvanasHasMercenaryQueenAndTargetIsMercLanerOrDefenderAndTargetHas3StacksofBlackArrowsStackingBehavior" Modifier="0.3" Crit="1" />
     <MultiplicativeModifierArray index="LostSoul" Validator="HasSylvanasShadowDaggerLostSoul" Modifier="0.1" />
-    <LeechValidator index="Life" value="SylvanasHasLifeDrainTalentAnd3StacksOfBlackArrows" />
-    <LeechFraction index="Life" value="0.15" />
-    <LeechMultiplicativeModifierArray index="LifeDrainLifeStealHero" Validator="SylvanasHasLifeDrainTalentAnd3StacksOfBlackArrowsAndTargetIsHero" Modifier="1" Crit="1" />
+    <MultiplicativeModifierArray index="UnrelentingTorment" Validator="HasSylvanasUnfurlingShadows" Modifier="$SylvanasUnrelentingTormentDamageModifier" />
+    <LeechValidator index="Life" value="SylvanasDamageLeechCombine" />
+    <LeechFraction index="Life" value="$SylvanasLifeDrainLeechModifier" />
+    <LeechFlatModifierArray index="LifeDrainWithPinnacle" Validator="SylvanasHasLifeDrainAndPinnacleComplete" Modifier="$SylvanasLifeDrainLeechModifier" />
+    <LeechFlatModifierArray index="LifeDrainHero" Validator="SylvanasLifeDrainTargetIsHeroLeechCombine" Modifier="$SylvanasLifeDrainLeechModifier" />
+    <LeechFlatModifierArray index="BlackArrowsPinnacle" Validator="SylvanasBlackArrowsLeechPinnacleCombine" Modifier="$SylvanasBlackArrowsPinnacleLeechDataModifier" />
+    <LeechFlatModifierArray index="BlackArrowsPinnacleHero" Validator="SylvanasBlackArrowsLeechPinnacleCombineHero" Modifier="$SylvanasBlackArrowsPinnacleLeechValue" />
   </CEffectDamage>
   <CEffectModifyUnit id="SylvanasShadowDaggerSpiritShotsTalentModifyUnit">
     <Chance value="0" />
@@ -2153,8 +2237,12 @@
     <Amount value="130" />
     <MultiplicativeModifierArray index="BlackArrowsBonusDamage" Validator="SylvanasTargetHas3StacksOfBlackArrowsStackingBehavior" Modifier="0.25" Crit="1" />
     <MultiplicativeModifierArray index="MercenaryQueenBonusDamage" Validator="SylvanasHasMercenaryQueenAndTargetIsMercLanerOrDefenderAndTargetHas3StacksofBlackArrowsStackingBehavior" Modifier="0.3" Crit="1" />
-    <LeechValidator index="Life" value="SylvanasHasLifeDrainTalentAnd3StacksOfBlackArrows" />
-    <LeechFraction index="Life" value="0.15" />
+    <LeechValidator index="Life" value="SylvanasDamageLeechCombine" />
+    <LeechFraction index="Life" value="$SylvanasLifeDrainLeechModifier" />
+    <LeechFlatModifierArray index="LifeDrainWithPinnacle" Validator="SylvanasHasLifeDrainAndPinnacleComplete" Modifier="$SylvanasLifeDrainLeechModifier" />
+    <LeechFlatModifierArray index="LifeDrainHero" Validator="SylvanasLifeDrainTargetIsHeroLeechCombine" Modifier="$SylvanasLifeDrainLeechModifier" />
+    <LeechFlatModifierArray index="BlackArrowsPinnacle" Validator="SylvanasBlackArrowsLeechPinnacleCombine" Modifier="$SylvanasBlackArrowsPinnacleLeechDataModifier" />
+    <LeechFlatModifierArray index="BlackArrowsPinnacleHero" Validator="SylvanasBlackArrowsLeechPinnacleCombineHero" Modifier="$SylvanasBlackArrowsPinnacleLeechValue" />
   </CEffectDamage>
   <CEffectEnumArea id="SylvanasBlackArrowUnstablePoisonTalentSearch">
     <ImpactLocation Value="SourceUnitOrPoint" />
@@ -2260,11 +2348,13 @@
     <EffectArray value="UniversalWeaponPostImpactSet" />
   </CEffectSet>
   <CEffectSet id="SylvanasWeaponPreImpactSet">
-    <EffectArray value="SylvanasShadowDaggerLostSoulModifyCooldown" />
+    <EffectArray value="SylvanasLostSoulModifyCooldownSwitch" />
     <EffectArray value="SylvanasWitheringFireEvasiveFireBasicAttackBuffRefresh" />
     <EffectArray value="SylvanasBlackArrowsWeaponDamageOverwhelmingAfflictionPercentBonusDamage" />
   </CEffectSet>
-  <CEffectSet id="SylvanasWeaponPostImpactSet" />
+  <CEffectSet id="SylvanasWeaponPostImpactSet">
+    <EffectArray value="SylvanasShadowDaggerUnfurlingShadowsModifyTokenCountBasicAttack" />
+  </CEffectSet>
   <CEffectSet id="SylvanasWeaponBlackArrowsApplySet">
     <ValidatorArray value="CasterNotBlindedAndTargetNotEvading" />
     <EffectArray value="SylvanasBlackArrowsDebuffSet" />
@@ -2282,11 +2372,15 @@
   </CEffectSet>
   <CEffectDamage id="SylvanasWeaponDamage" parent="StormWeapon">
     <Amount value="81" />
-    <MultiplicativeModifierArray index="BlackArrowsBonusDamage" Validator="SylvanasTargetHas3StacksOfBlackArrowsStackingBehavior" Modifier="0.25" Crit="1" />
+    <MultiplicativeModifierArray index="BlackArrowsBonusDamage" Validator="SylvanasTargetHas3StacksOfBlackArrowsStackingBehavior" Modifier="0.15" Crit="1" />
+    <MultiplicativeModifierArray index="BlackArrowBonusDamageQuestMilestone" Validator="HasUnfurlingMilestoneAnd3StacksOfBlackArrows" Modifier="0.35" Crit="1" />
     <MultiplicativeModifierArray index="MercenaryQueenBonusDamage" Validator="SylvanasHasMercenaryQueenAndTargetIsMercLanerOrDefenderAndTargetHas3StacksofBlackArrowsStackingBehavior" Modifier="0.3" Crit="1" />
-    <LeechValidator index="Life" value="SylvanasHasLifeDrainTalentAnd3StacksOfBlackArrows" />
-    <LeechFraction index="Life" value="0.15" />
-    <LeechMultiplicativeModifierArray index="LifeDrainLifeStealHero" Validator="SylvanasHasLifeDrainTalentAnd3StacksOfBlackArrowsAndTargetIsHero" Modifier="1" Crit="1" />
+    <LeechValidator index="Life" value="SylvanasDamageLeechCombine" />
+    <LeechFraction index="Life" value="$SylvanasLifeDrainLeechModifier" />
+    <LeechFlatModifierArray index="LifeDrainWithPinnacle" Validator="SylvanasHasLifeDrainAndPinnacleComplete" Modifier="$SylvanasLifeDrainLeechModifier" />
+    <LeechFlatModifierArray index="LifeDrainHero" Validator="SylvanasLifeDrainTargetIsHeroLeechCombine" Modifier="$SylvanasLifeDrainLeechModifier" />
+    <LeechFlatModifierArray index="BlackArrowsPinnacle" Validator="SylvanasBlackArrowsLeechPinnacleCombine" Modifier="$SylvanasBlackArrowsPinnacleLeechDataModifier" />
+    <LeechFlatModifierArray index="BlackArrowsPinnacleHero" Validator="SylvanasBlackArrowsLeechPinnacleCombineHero" Modifier="$SylvanasBlackArrowsPinnacleLeechValue" />
   </CEffectDamage>
   <CEffectDamage id="SylvanasWeaponWitheringFireDamage" parent="StormWeapon">
     <Amount value="40" />
@@ -2402,6 +2496,7 @@
     <ValidatorArray value="TargetIsEnemy" />
     <EffectArray value="SylvanasWitheringFireBarbedShotUnitTrackerSwitch" />
     <EffectArray value="SylvanasWitheringFireDamage" />
+    <EffectArray value="SylvanasShadowDaggerUnfurlingShadowsModifyTokenCount" />
     <EffectArray value="SylvanasBlackArrowsWitheringFireWitheringBarrageDebuffSet" />
     <EffectArray value="SylvanasWitheringFireApplyEvasiveFireSpeedupBehavior" />
     <EffectArray value="SylvanasWitheringFireWitheringBarrageModifyCooldown" />
@@ -2412,12 +2507,16 @@
   <CEffectDamage id="SylvanasWitheringFireDamage" parent="StormSpell">
     <Amount value="39" />
     <ImpactLocation Value="TargetUnit" />
-    <MultiplicativeModifierArray index="BlackArrowsBonusDamage" Validator="SylvanasTargetHas3StacksOfBlackArrowsStackingBehavior" Modifier="0.25" Crit="1" />
-    <MultiplicativeModifierArray index="BarbedShotBonusDamage" Validator="SylvanasHasBarbedShotTalentAndCasterHas5BarbedShotTokens" Modifier="3.5" Crit="1" />
+    <MultiplicativeModifierArray index="BlackArrowsBonusDamage" Validator="SylvanasTargetHas3StacksOfBlackArrowsStackingBehavior" Modifier="0.15" Crit="1" />
+    <MultiplicativeModifierArray index="UnfurlingShadowsDamage" Validator="HasUnfurlingMilestoneAnd3StacksOfBlackArrows" Modifier="0.35" />
+    <MultiplicativeModifierArray index="BarbedShotBonusDamage" Validator="SylvanasHasBarbedShotTalentAndCasterHas5BarbedShotTokens" Modifier="4" Crit="1" />
     <MultiplicativeModifierArray index="MercenaryQueenBonusDamage" Validator="SylvanasHasMercenaryQueenAndTargetIsMercLanerOrDefenderAndTargetHas3StacksofBlackArrowsStackingBehavior" Modifier="0.3" Crit="1" />
-    <LeechValidator index="Life" value="SylvanasHasLifeDrainTalentAnd3StacksOfBlackArrows" />
-    <LeechFraction index="Life" value="0.15" />
-    <LeechMultiplicativeModifierArray index="LifeDrainLifeStealHero" Validator="SylvanasHasLifeDrainTalentAnd3StacksOfBlackArrowsAndTargetIsHero" Modifier="1" Crit="1" />
+    <LeechValidator index="Life" value="SylvanasDamageLeechCombine" />
+    <LeechFraction index="Life" value="$SylvanasLifeDrainLeechModifier" />
+    <LeechFlatModifierArray index="LifeDrainWithPinnacle" Validator="SylvanasHasLifeDrainAndPinnacleComplete" Modifier="$SylvanasLifeDrainLeechModifier" />
+    <LeechFlatModifierArray index="LifeDrainHero" Validator="SylvanasLifeDrainTargetIsHeroLeechCombine" Modifier="$SylvanasLifeDrainLeechModifier" />
+    <LeechFlatModifierArray index="BlackArrowsPinnacle" Validator="SylvanasBlackArrowsLeechPinnacleCombine" Modifier="$SylvanasBlackArrowsPinnacleLeechDataModifier" />
+    <LeechFlatModifierArray index="BlackArrowsPinnacleHero" Validator="SylvanasBlackArrowsLeechPinnacleCombineHero" Modifier="$SylvanasBlackArrowsPinnacleLeechValue" />
   </CEffectDamage>
   <CEffectApplyBehavior id="SylvanasWitheringFireApplyEvasiveFireSpeedupBehavior">
     <Chance value="0" />
@@ -2483,6 +2582,7 @@
   </CEffectEnumArea>
   <CEffectSet id="SylvanasHauntingWaveImpactSet">
     <EffectArray value="SylvanasHauntingWaveDamage" />
+    <EffectArray value="SylvanasShadowDaggerUnfurlingShadowsModifyTokenCount" />
     <EffectArray value="SylvanasBlackArrowsHauntingWaveFesteringWoundsDebuffSet" />
     <EffectArray value="HauntingWaveApplyBansheeScreamTalentDebuff" />
     <EffectArray value="SylvanasHauntingWaveSoulReaverTalentModifyUnit" />
@@ -2492,12 +2592,16 @@
   </CEffectSet>
   <CEffectDamage id="SylvanasHauntingWaveDamage" parent="StormSpell">
     <Amount value="114" />
-    <MultiplicativeModifierArray index="BlackArrowsBonusDamage" Validator="SylvanasTargetHas3StacksOfBlackArrowsStackingBehavior" Modifier="0.25" Crit="1" />
+    <MultiplicativeModifierArray index="BlackArrowsBonusDamage" Validator="SylvanasTargetHas3StacksOfBlackArrowsStackingBehavior" Modifier="0.15" Crit="1" />
+    <MultiplicativeModifierArray index="UnfurlingShadowsDamage" Validator="HasUnfurlingMilestoneAnd3StacksOfBlackArrows" Modifier="0.35" />
     <MultiplicativeModifierArray index="FesteringWoundsBonusDamage" Validator="SylvanasHasFesteringWounds" Modifier="0.15" Crit="1" />
     <MultiplicativeModifierArray index="MercenaryQueenBonusDamage" Validator="SylvanasHasMercenaryQueenAndTargetIsMercLanerOrDefenderAndTargetHas3StacksofBlackArrowsStackingBehavior" Modifier="0.3" Crit="1" />
-    <LeechValidator index="Life" value="SylvanasHasLifeDrainTalentAnd3StacksOfBlackArrows" />
-    <LeechFraction index="Life" value="0.15" />
-    <LeechMultiplicativeModifierArray index="LifeDrainLifeStealHero" Validator="SylvanasHasLifeDrainTalentAnd3StacksOfBlackArrowsAndTargetIsHero" Modifier="1" Crit="1" />
+    <LeechValidator index="Life" value="SylvanasDamageLeechCombine" />
+    <LeechFraction index="Life" value="$SylvanasLifeDrainLeechModifier" />
+    <LeechFlatModifierArray index="LifeDrainWithPinnacle" Validator="SylvanasHasLifeDrainAndPinnacleComplete" Modifier="$SylvanasLifeDrainLeechModifier" />
+    <LeechFlatModifierArray index="LifeDrainHero" Validator="SylvanasLifeDrainTargetIsHeroLeechCombine" Modifier="$SylvanasLifeDrainLeechModifier" />
+    <LeechFlatModifierArray index="BlackArrowsPinnacle" Validator="SylvanasBlackArrowsLeechPinnacleCombine" Modifier="$SylvanasBlackArrowsPinnacleLeechDataModifier" />
+    <LeechFlatModifierArray index="BlackArrowsPinnacleHero" Validator="SylvanasBlackArrowsLeechPinnacleCombineHero" Modifier="$SylvanasBlackArrowsPinnacleLeechValue" />
   </CEffectDamage>
   <CEffectEnumArea id="SylvanasHauntingWaveDummyVisualGuide">
     <ImpactLocation Value="TargetPoint" />
@@ -2710,6 +2814,7 @@
     <EffectArray value="SylvanasWailingArrowDamage" />
     <EffectArray value="SylvanasWailingArrowApplySilence" />
     <EffectArray value="ApplyAbilityImpactReveal" />
+    <EffectArray value="SylvanasShadowDaggerUnfurlingShadowsModifyTokenCount" />
     <ValidatorArray value="noMarkers" />
   </CEffectSet>
   <CEffectDestroyPersistent id="SylvanasWailingArrowMissileScanDestroyPersistent">
@@ -2753,12 +2858,14 @@
   <CEffectSet id="SylvanasWailingArrowActivateImpactSet">
     <EffectArray value="SylvanasWailingArrowApplyTargetBehavior" />
     <EffectArray value="SylvanasWailingArrowDamage" />
+    <EffectArray value="SylvanasShadowDaggerUnfurlingShadowsModifyTokenCount" />
     <EffectArray value="ApplyAbilityImpactReveal" />
     <EffectArray value="StylvanasBlackArrowsMercMinionOrStructureStunApplyBehavior" />
   </CEffectSet>
   <CEffectSet id="SylvanasWailingArrowDeafeningBlastActivateImpactSet">
     <EffectArray value="SylvanasWailingArrowDeafeningBlastDamage" />
     <EffectArray value="SylvanasWailingArrowDeafeningBlastApplyTargetBehavior" />
+    <EffectArray value="SylvanasShadowDaggerUnfurlingShadowsModifyTokenCount" />
     <EffectArray value="ApplyAbilityImpactReveal" />
     <EffectArray value="StylvanasBlackArrowsMercMinionOrStructureStunApplyBehavior" />
   </CEffectSet>
@@ -2772,23 +2879,31 @@
     <ImpactLocation Value="TargetUnit" />
     <Amount value="228" />
     <SourceButtonFace value="SylvanasWailingArrow" />
-    <MultiplicativeModifierArray index="BlackArrowsBonusDamage" Validator="SylvanasTargetHas3StacksOfBlackArrowsStackingBehavior" Modifier="0.25" Crit="1" />
+    <MultiplicativeModifierArray index="BlackArrowsBonusDamage" Validator="SylvanasTargetHas3StacksOfBlackArrowsStackingBehavior" Modifier="0.15" Crit="1" />
+    <MultiplicativeModifierArray index="UnfurlingShadowsDamage" Validator="HasUnfurlingMilestoneAnd3StacksOfBlackArrows" Modifier="0.35" />
     <MultiplicativeModifierArray index="MercenaryQueenBonusDamage" Validator="SylvanasHasMercenaryQueenAndTargetIsMercLanerOrDefenderAndTargetHas3StacksofBlackArrowsStackingBehavior" Modifier="0.3" Crit="1" />
-    <LeechValidator index="Life" value="SylvanasHasLifeDrainTalentAnd3StacksOfBlackArrows" />
-    <LeechFraction index="Life" value="0.15" />
-    <LeechMultiplicativeModifierArray index="LifeDrainLifeStealHero" Validator="SylvanasHasLifeDrainTalentAnd3StacksOfBlackArrowsAndTargetIsHero" Modifier="1" Crit="1" />
+    <LeechValidator index="Life" value="SylvanasDamageLeechCombine" />
+    <LeechFraction index="Life" value="$SylvanasLifeDrainLeechModifier" />
+    <LeechFlatModifierArray index="LifeDrainWithPinnacle" Validator="SylvanasHasLifeDrainAndPinnacleComplete" Modifier="$SylvanasLifeDrainLeechModifier" />
+    <LeechFlatModifierArray index="LifeDrainHero" Validator="SylvanasLifeDrainTargetIsHeroLeechCombine" Modifier="$SylvanasLifeDrainLeechModifier" />
+    <LeechFlatModifierArray index="BlackArrowsPinnacle" Validator="SylvanasBlackArrowsLeechPinnacleCombine" Modifier="$SylvanasBlackArrowsPinnacleLeechDataModifier" />
+    <LeechFlatModifierArray index="BlackArrowsPinnacleHero" Validator="SylvanasBlackArrowsLeechPinnacleCombineHero" Modifier="$SylvanasBlackArrowsPinnacleLeechValue" />
   </CEffectDamage>
   <CEffectDamage id="SylvanasWailingArrowDeafeningBlastDamage" parent="StormSpell">
     <ImpactLocation Value="TargetUnit" />
     <Amount value="228" />
     <Flags index="Crit" value="1" />
     <SourceButtonFace value="SylvanasWailingArrow" />
-    <MultiplicativeModifierArray index="BlackArrowsBonusDamage" Validator="SylvanasTargetHas3StacksOfBlackArrowsStackingBehavior" Modifier="0.25" Crit="1" />
+    <MultiplicativeModifierArray index="BlackArrowsBonusDamage" Validator="SylvanasTargetHas3StacksOfBlackArrowsStackingBehavior" Modifier="0.15" Crit="1" />
+    <MultiplicativeModifierArray index="UnfurlingShadowsDamage" Validator="HasUnfurlingMilestoneAnd3StacksOfBlackArrows" Modifier="0.35" />
     <MultiplicativeModifierArray index="DeafeningBlastBonusDamage" Modifier="0.5" Crit="1" />
     <MultiplicativeModifierArray index="MercenaryQueenBonusDamage" Validator="SylvanasHasMercenaryQueenAndTargetIsMercLanerOrDefenderAndTargetHas3StacksofBlackArrowsStackingBehavior" Modifier="0.3" Crit="1" />
-    <LeechValidator index="Life" value="SylvanasHasLifeDrainTalentAnd3StacksOfBlackArrows" />
-    <LeechFraction index="Life" value="0.15" />
-    <LeechMultiplicativeModifierArray index="LifeDrainLifeStealHero" Validator="SylvanasHasLifeDrainTalentAnd3StacksOfBlackArrowsAndTargetIsHero" Modifier="1" Crit="1" />
+    <LeechValidator index="Life" value="SylvanasDamageLeechCombine" />
+    <LeechFraction index="Life" value="$SylvanasLifeDrainLeechModifier" />
+    <LeechFlatModifierArray index="LifeDrainWithPinnacle" Validator="SylvanasHasLifeDrainAndPinnacleComplete" Modifier="$SylvanasLifeDrainLeechModifier" />
+    <LeechFlatModifierArray index="LifeDrainHero" Validator="SylvanasLifeDrainTargetIsHeroLeechCombine" Modifier="$SylvanasLifeDrainLeechModifier" />
+    <LeechFlatModifierArray index="BlackArrowsPinnacle" Validator="SylvanasBlackArrowsLeechPinnacleCombine" Modifier="$SylvanasBlackArrowsPinnacleLeechDataModifier" />
+    <LeechFlatModifierArray index="BlackArrowsPinnacleHero" Validator="SylvanasBlackArrowsLeechPinnacleCombineHero" Modifier="$SylvanasBlackArrowsPinnacleLeechValue" />
   </CEffectDamage>
   <CEffectApplyBehavior id="SylvanasWailingArrowApplyTargetBehavior">
     <Behavior value="SylvanasWailingArrowTarget" />
@@ -2932,14 +3047,18 @@
     <Behavior value="SylvanasShadowDaggerTargetEnemy" />
   </CEffectApplyBehavior>
   <CEffectDamage id="SylvanasShadowDaggerDoTDamage" parent="StormSpellDot">
-    <MultiplicativeModifierArray index="BlackArrowsBonusDamage" Validator="SylvanasTargetHas3StacksOfBlackArrowsStackingBehavior" Modifier="0.25" Crit="1" />
-    <MultiplicativeModifierArray index="UnfurlingShadowsDamage" Accumulator="SylvanasShadowDaggerUnfurlingShadowsAccumulator" />
+    <MultiplicativeModifierArray index="BlackArrowsBonusDamage" Validator="SylvanasTargetHas3StacksOfBlackArrowsStackingBehavior" Modifier="0.15" Crit="1" />
+    <MultiplicativeModifierArray index="UnfurlingShadowsDamage" Validator="HasUnfurlingMilestoneAnd3StacksOfBlackArrows" Modifier="0.35" />
     <MultiplicativeModifierArray index="MercenaryQueenBonusDamage" Validator="SylvanasHasMercenaryQueenAndTargetIsMercLanerOrDefenderAndTargetHas3StacksofBlackArrowsStackingBehavior" Modifier="0.3" Crit="1" />
     <MultiplicativeModifierArray index="LostSoul" Validator="HasSylvanasShadowDaggerLostSoul" Modifier="0.1" />
+    <MultiplicativeModifierArray index="UnrelentingTorment" Validator="HasSylvanasUnfurlingShadows" Modifier="$SylvanasUnrelentingTormentDamageModifier" />
     <Amount value="30" />
-    <LeechValidator index="Life" value="SylvanasHasLifeDrainTalentAnd3StacksOfBlackArrows" />
-    <LeechFraction index="Life" value="0.15" />
-    <LeechMultiplicativeModifierArray index="LifeDrainLifeStealHero" Validator="SylvanasHasLifeDrainTalentAnd3StacksOfBlackArrowsAndTargetIsHero" Modifier="1" Crit="1" />
+    <LeechValidator index="Life" value="SylvanasDamageLeechCombine" />
+    <LeechFraction index="Life" value="$SylvanasLifeDrainLeechModifier" />
+    <LeechFlatModifierArray index="LifeDrainWithPinnacle" Validator="SylvanasHasLifeDrainAndPinnacleComplete" Modifier="$SylvanasLifeDrainLeechModifier" />
+    <LeechFlatModifierArray index="LifeDrainHero" Validator="SylvanasLifeDrainTargetIsHeroLeechCombine" Modifier="$SylvanasLifeDrainLeechModifier" />
+    <LeechFlatModifierArray index="BlackArrowsPinnacle" Validator="SylvanasBlackArrowsLeechPinnacleCombine" Modifier="$SylvanasBlackArrowsPinnacleLeechDataModifier" />
+    <LeechFlatModifierArray index="BlackArrowsPinnacleHero" Validator="SylvanasBlackArrowsLeechPinnacleCombineHero" Modifier="$SylvanasBlackArrowsPinnacleLeechValue" />
   </CEffectDamage>
   <CEffectApplyBehavior id="SylvanasShadowDaggerApplyTargetEnemyDamageBehavior">
     <Behavior value="SylvanasShadowDaggerTargetEnemyDamage" />
@@ -3016,7 +3135,7 @@
     <TalentTreeArray Talent="SylvanasTalentOverwhelmingAffliction" Tier="1" Column="3" />
     <TalentTreeArray Talent="SylvanasTalentUnstablePoison" Tier="2" Column="1" />
     <TalentTreeArray Talent="SylvanasTalentMercenaryQueen" Tier="2" Column="2" />
-    <TalentTreeArray Talent="SylvanasHeroicAbilityPossession" Tier="2" Column="3" />
+    <TalentTreeArray Talent="SylvanasHauntingArrows" Tier="2" Column="3" />
     <TalentTreeArray Talent="SylvanasTalentWitheringFireBarbedShot" Tier="3" Column="1" />
     <TalentTreeArray Talent="SylvanasTalentLostSoul" Tier="3" Column="2" />
     <TalentTreeArray Talent="SylvanasTalentFesteringWounds" Tier="3" Column="3" />
@@ -3056,7 +3175,7 @@
     </TalentAIBuildsArray>
     <TalentAIBuildsArray ChanceToPick="16">
       <TalentsArray value="SylvanasTalentOverwhelmingAffliction" />
-      <TalentsArray value="SylvanasHeroicAbilityPossession" />
+      <TalentsArray value="SylvanasHauntingArrows" />
       <TalentsArray value="SylvanasTalentWitheringFireBarbedShot" />
       <TalentsArray value="SylvanasMindControl" />
       <TalentsArray value="SylvanasTalentRemorseless" />
@@ -3065,7 +3184,7 @@
     </TalentAIBuildsArray>
     <TalentAIBuildsArray ChanceToPick="16">
       <TalentsArray value="SylvanasTalentMightOfTheBansheeQueen" />
-      <TalentsArray value="SylvanasHeroicAbilityPossession" />
+      <TalentsArray value="SylvanasHauntingArrows" />
       <TalentsArray value="SylvanasTalentWitheringFireBarbedShot" />
       <TalentsArray value="SylvanasMindControl" />
       <TalentsArray value="SylvanasTalentWindrunnerHauntingWave" />
@@ -3219,11 +3338,11 @@
       <Flags index="Heroic" value="1" />
     </HeroAbilArray>
     <HeroAbilArray Abil="SylvanasPossession" Button="SylvanasPossession">
-      <Flags index="AffectedByCooldownReduction" value="1" />
-    </HeroAbilArray>
-    <HeroAbilArray Abil="SylvanasBlackArrowsActive" Button="SylvanasBlackArrows">
       <Flags index="ShowInHeroSelect" value="1" />
       <Flags index="AffectedByCooldownReduction" value="1" />
+    </HeroAbilArray>
+    <HeroAbilArray Button="SylvanasBlackArrows">
+      <Flags index="ShowInHeroSelect" value="1" />
       <Flags index="Trait" value="1" />
     </HeroAbilArray>
     <HeroAbilArray Abil="SylvanasHauntingWaveWindrunnerTalent" />
@@ -3413,6 +3532,13 @@
       <YawPitchRoll value="MAX" />
     </MotionPhases>
   </CMoverMissile>
+  <CRequirement id="SylvanasHasHauntingArrows">
+    <NodeArray index="Show" Link="AndCountBehaviorSylvanasHauntingArrowsCompleteOnlyAtUnit1" />
+  </CRequirement>
+  <CRequirement id="SylvanasHasBlackArrowCasterBehavior">
+    <NodeArray index="Use" Link="AndEqCountBehaviorSylvanasBlackArrowsActiveSelfDurationBuffCompleteOnlyAtUnit0" />
+    <NodeArray index="Show" Link="AndCountBehaviorSylvanasHauntingArrowsCompleteOnlyAtUnit1" />
+  </CRequirement>
   <CRequirement id="SylvanasHasWailingArrowCasterBehavior">
     <NodeArray index="Show" Link="EqCountBehaviorSylvanasWailingArrowCasterInProgressOrBetterAtUnit1" />
   </CRequirement>
@@ -3436,6 +3562,25 @@
   <CRequirement id="SylvanasDoesNotHaveWindrunnerProc">
     <NodeArray index="Show" Link="EqCountBehaviorSylvanasFreeHauntingWaveWindrunnerTalentCompleteOnlyAtUnit0" />
   </CRequirement>
+  <CRequirementAnd id="AndCountBehaviorSylvanasHauntingArrowsCompleteOnlyAtUnit1">
+    <OperandArray value="CountBehaviorSylvanasHauntingArrowsCompleteOnlyAtUnit" />
+    <OperandArray value="1" />
+  </CRequirementAnd>
+  <CRequirementCountBehavior id="CountBehaviorSylvanasHauntingArrowsCompleteOnlyAtUnit">
+    <Flags index="TechTreeCheat" value="0" />
+    <Count Link="SylvanasHauntingArrows" State="CompleteOnlyAtUnit" />
+  </CRequirementCountBehavior>
+  <CRequirementAnd id="AndEqCountBehaviorSylvanasBlackArrowsActiveSelfDurationBuffCompleteOnlyAtUnit0">
+    <OperandArray value="EqCountBehaviorSylvanasBlackArrowsActiveSelfDurationBuffCompleteOnlyAtUnit0" />
+  </CRequirementAnd>
+  <CRequirementCountBehavior id="CountBehaviorSylvanasBlackArrowsActiveSelfDurationBuffCompleteOnlyAtUnit">
+    <Flags index="TechTreeCheat" value="0" />
+    <Count Link="SylvanasBlackArrowsActiveSelfDurationBuff" State="CompleteOnlyAtUnit" />
+  </CRequirementCountBehavior>
+  <CRequirementEq id="EqCountBehaviorSylvanasBlackArrowsActiveSelfDurationBuffCompleteOnlyAtUnit0">
+    <OperandArray index="0" value="CountBehaviorSylvanasBlackArrowsActiveSelfDurationBuffCompleteOnlyAtUnit" />
+    <OperandArray index="1" value="0" />
+  </CRequirementEq>
   <CRequirementCountBehavior id="CountBehaviorSylvanasHauntingWaveWindrunnerTalentSlopCompleteOnlyAtUnit">
     <Flags index="TechTreeCheat" value="0" />
     <Count Link="SylvanasHauntingWaveWindrunnerTalentSlop" State="CompleteOnlyAtUnit" />
@@ -3615,10 +3760,22 @@
   <CTalent id="SylvanasUnfurlingShadowsShadowDagger">
     <Face value="SylvanasShadowDaggerUnfurlingShadows" />
     <Abil value="SylvanasShadowDagger" />
-    <RankArray>
-      <BehaviorArray value="SylvanasShadowDaggerUnfurlingShadowsQuestToken" />
-    </RankArray>
-    <QuestData StackBehavior="SylvanasShadowDaggerUnfurlingShadowsQuestToken" />
+    <AbilityModificationArray>
+      <Modifications>
+        <Type value="FlatModification" />
+        <Catalog value="Behavior" />
+        <Entry value="SylvanasShadowDaggerTargetEnemyDamage" />
+        <Field value="Duration" />
+        <Value value="1.000000" />
+      </Modifications>
+      <Modifications>
+        <Type value="FlatModification" />
+        <Catalog value="Behavior" />
+        <Entry value="SylvanasShadowDaggerDummyBuffSpreadBehavior" />
+        <Field value="Duration" />
+        <Value value="1.000000" />
+      </Modifications>
+    </AbilityModificationArray>
   </CTalent>
   <CTalent id="SylvanasDreadfulWake">
     <Face value="SylvanasDreadfulWake" />
@@ -3663,13 +3820,9 @@
     </RankArray>
     <Active value="1" />
   </CTalent>
-  <CTalent id="SylvanasHeroicAbilityPossession">
-    <Face value="SylvanasPossession" />
-    <RankArray>
-      <BehaviorArray value="SylvanasPossessionItem" />
-      <BehaviorArray value="SylvanasPossessionCatapultValidTargetController" />
-    </RankArray>
-    <Abil value="SylvanasPossession" />
+  <CTalent id="SylvanasHauntingArrows">
+    <Face value="SylvanasBlackArrowsHauntingArrowsTalent" />
+    <Abil value="SylvanasBlackArrowsActive" />
     <Active value="1" />
   </CTalent>
   <CTalent id="SylvanasTalentWitheringFireBarbedShot">
@@ -3861,15 +4014,6 @@
   <CTalent id="SylvanasTalentLostSoul">
     <Face value="SylvanasShadowDaggerLostSoulTalent" />
     <Abil value="SylvanasShadowDagger" />
-    <AbilityModificationArray>
-      <Modifications>
-        <Type value="FlatModification" />
-        <Catalog value="Effect" />
-        <Entry value="SylvanasShadowDaggerLostSoulModifyCooldown" />
-        <Field value="Chance" />
-        <Value value="1.000000" />
-      </Modifications>
-    </AbilityModificationArray>
   </CTalent>
   <CTalent id="SylvanasTalentUnstablePoison">
     <Face value="SylvanasBlackArrowsUnstablePoisonTalent" />
@@ -3992,6 +4136,7 @@
     <AbilArray Link="SylvanasHauntingWaveActivateWindrunnerTalent" />
     <AbilArray Link="SylvanasMindControlMissile" />
     <AbilArray Link="SylvanasMindControlCancel" />
+    <AbilArray Link="SylvanasPossession" />
     <WeaponArray Link="SylvanasHeroWeapon" />
     <CardLayouts index="0">
       <LayoutButtons Face="SylvanasWailingArrowActivate" Type="AbilCmd" AbilCmd="SylvanasWailingArrowActivate,Execute" Slot="Heroic" />
@@ -4004,7 +4149,9 @@
       <LayoutButtons Face="SylvanasHauntingWaveFree" Type="AbilCmd" AbilCmd="SylvanasHauntingWaveWindrunnerTalent,Execute" Slot="Ability3" />
       <LayoutButtons Face="SylvanasHauntingWave" Type="AbilCmd" AbilCmd="SylvanasHauntingWave,Execute" Slot="Ability3" />
       <LayoutButtons Face="SylvanasBlackArrows" Type="AbilCmd" AbilCmd="SylvanasBlackArrowsActive,Execute" Slot="Trait" />
+      <LayoutButtons Face="SylvanasBlackArrowsPassive" Type="Passive" Slot="Trait" />
       <LayoutButtons Face="SylvanasShadowDagger" Type="AbilCmd" AbilCmd="SylvanasShadowDagger,Execute" Slot="Ability2" />
+      <LayoutButtons />
     </CardLayouts>
     <Radius value="0.625" />
     <InnerRadius value="0.625" />
@@ -4012,6 +4159,9 @@
     <BehaviorArray Link="ExcellentMana" />
     <BehaviorArray Link="SylvanasWitheringFireValidityBehavior" />
     <BehaviorArray Link="SylvanasWitheringFireWitheringBarrageValidityBehavior" />
+    <BehaviorArray Link="SylvanasPossessionItem" />
+    <BehaviorArray Link="SylvanasPossessionCatapultValidTargetController" />
+    <BehaviorArray Link="SylvanasShadowDaggerUnfurlingShadowsQuestToken" />
     <AIEvalFactor value="1.1" />
     <InitializerFunction value="libGDHL_gf_HeroSylvanasIncrementHeroCountFunction" />
     <DestructionFunction value="libGDHL_gf_HeroSylvanasDecrementHeroCountFunction" />
@@ -4044,6 +4194,79 @@
   <CUnit id="SylvanasSkeletonAttackMissile" parent="MISSILE_INVULNERABLE">
     <Mover value="HeroMissileSpeed22Ribbon" />
   </CUnit>
+  <CValidatorCombine id="SylvanasBlackArrowsLeechPinnacleCombineHero">
+    <Type value="And" />
+    <CombineArray value="SylvanasBlackArrowsLeechPinnacleCombine" />
+    <CombineArray value="TargetIsHeroAndNotStasis" />
+  </CValidatorCombine>
+  <CValidatorCombine id="SylvanasDamageLeechCombine">
+    <Type value="And" />
+    <CombineArray value="SylvanasHasCompletedUnfurlingShadowsQuestOrHasLifeDrainTalent" />
+    <CombineArray value="SylvanasTargetHas3StacksOfBlackArrowsStackingBehavior" />
+  </CValidatorCombine>
+  <CValidatorCombine id="SylvanasHasCompletedUnfurlingShadowsQuestOrHasLifeDrainTalent">
+    <CombineArray value="SylvanasHasCompletedUnfurlingShadows" />
+    <CombineArray value="HasSylvanasLifeDrain" />
+  </CValidatorCombine>
+  <CValidatorCombine id="SylvanasHasLifeDrainAndPinnacleComplete">
+    <Type value="And" />
+    <CombineArray value="SylvanasDamageLeechCombine" />
+    <CombineArray value="HasSylvanasLifeDrain" />
+    <CombineArray value="SylvanasHasCompletedUnfurlingShadows" />
+  </CValidatorCombine>
+  <CValidatorCombine id="SylvanasLifeDrainTargetIsHeroLeechCombine">
+    <Type value="And" />
+    <CombineArray value="SylvanasDamageLeechCombine" />
+    <CombineArray value="HasSylvanasLifeDrain" />
+    <CombineArray value="TargetIsHero" />
+  </CValidatorCombine>
+  <CValidatorCombine id="SylvanasBlackArrowsLeechPinnacleCombine">
+    <Type value="And" />
+    <CombineArray value="SylvanasDamageLeechCombine" />
+    <CombineArray value="SylvanasHasCompletedUnfurlingShadows" />
+  </CValidatorCombine>
+  <CValidatorCombine id="HasUnfurlingCompleteORLifeDrain">
+    <CombineArray value="SylvanasHasObtainedMilestoneUnfurlingShadows" />
+    <CombineArray value="HasSylvanasLifeDrain" />
+  </CValidatorCombine>
+  <CValidatorCombine id="HasUnfurlingCompleteAnd3StacksOfBlackArrows">
+    <Type value="And" />
+    <CombineArray value="SylvanasHasCompletedUnfurlingShadows" />
+    <CombineArray value="SylvanasTargetHas3StacksOfBlackArrowsStackingBehavior" />
+  </CValidatorCombine>
+  <CValidatorCombine id="HasUnfurlingMilestoneAnd3StacksOfBlackArrows">
+    <Type value="And" />
+    <CombineArray value="SylvanasHasObtainedMilestoneUnfurlingShadows" />
+    <CombineArray value="SylvanasTargetHas3StacksOfBlackArrowsStackingBehavior" />
+  </CValidatorCombine>
+  <CValidatorUnitCompareBehaviorCount id="SylvanasHasCompletedUnfurlingShadows">
+    <WhichUnit Value="Caster" />
+    <Compare value="GT" />
+    <Behavior value="SylvanasUnfurlingShadowsQuestComplete" />
+  </CValidatorUnitCompareBehaviorCount>
+  <CValidatorUnitCompareBehaviorCount id="SylvanasHasObtainedMilestoneUnfurlingShadows">
+    <WhichUnit Value="Caster" />
+    <Compare value="GT" />
+    <Behavior value="SylvanasUnfurlingShadowsQuestMilestone" />
+  </CValidatorUnitCompareBehaviorCount>
+  <CValidatorCombine id="SylvanasBlackArrowsMilestoneCombine">
+    <CombineArray value="SylvanasHasLifeDrainTalentAnd3StacksOfBlackArrows" />
+    <CombineArray value="SylvanasHasObtainedMilestoneBlackArrowsQuest" />
+  </CValidatorCombine>
+  <CValidatorCombine id="SylvanasBlackArrowsCompleteCombine">
+    <CombineArray value="SylvanasHasLifeDrainTalentAnd3StacksOfBlackArrows" />
+    <CombineArray value="SylvanasHasCompletedBlackArrows" />
+  </CValidatorCombine>
+  <CValidatorCombine id="SylvanasTargetHas3StacksOfBlackArrowsStackingBehaviorAndTargetIsHero">
+    <Type value="And" />
+    <CombineArray value="SylvanasTargetHas3StacksOfBlackArrowsStackingBehavior" />
+    <CombineArray value="TargetIsHero" />
+  </CValidatorCombine>
+  <CValidatorPlayerTalent id="SylvanasHasHauntingArrows">
+    <WhichPlayer Value="Caster" />
+    <Find value="1" />
+    <Value value="SylvanasHauntingArrows" />
+  </CValidatorPlayerTalent>
   <CValidatorCombine id="SylvanasHasMercenaryQueenAndWitheringBarrageTalents">
     <Type value="And" />
     <CombineArray value="SylvanasHasMercenaryQueen" />
@@ -4110,9 +4333,18 @@
     <CombineArray value="TargetIsVisible" />
     <CombineArray value="NotSummonedUnit" />
   </CValidatorCombine>
+  <CValidatorCombine id="SylvanasHasHauntingArrowsTalentAndDoesNotHaveBlackArrowsActive">
+    <Type value="And" />
+    <CombineArray value="SylvanasHasHauntingArrows" />
+    <CombineArray value="SylvanasDoesNotHaveBlackArrowsActiveSelfDurationBuff" />
+  </CValidatorCombine>
   <CValidatorUnitCompareBehaviorCount id="SylvanasHasBlackArrowsActiveSelfDurationBuff">
     <WhichUnit Value="Caster" />
     <Value value="1" />
+    <Behavior value="SylvanasBlackArrowsActiveSelfDurationBuff" />
+  </CValidatorUnitCompareBehaviorCount>
+  <CValidatorUnitCompareBehaviorCount id="SylvanasDoesNotHaveBlackArrowsActiveSelfDurationBuff">
+    <WhichUnit Value="Caster" />
     <Behavior value="SylvanasBlackArrowsActiveSelfDurationBuff" />
   </CValidatorUnitCompareBehaviorCount>
   <CValidatorCombine id="SylvanasMindControlMissilePeriodicValidator">
@@ -4176,20 +4408,25 @@
     <CombineArray value="TargetIsHero" />
     <CombineArray value="SylvanasTargetHas3StacksOfBlackArrowsStackingBehavior" />
   </CValidatorCombine>
+  <CValidatorCombine id="SylvanasTargetHas3StacksOfBlackArrowsStackingBehaviorAndTargetIsNotMinionOrHero">
+    <Type value="And" />
+    <CombineArray value="SylvanasTargetHas3StacksOfBlackArrowsStackingBehavior" />
+    <CombineArray value="IsNotMinionAndNotSummoned" />
+    <CombineArray value="TargetNotMerc" />
+  </CValidatorCombine>
   <CValidatorUnitCompareBehaviorCount id="SylvanasShadowDaggerHasUnyieldingBlightMarkerBehavior">
     <WhichUnit Value="Caster" />
     <Value value="1" />
     <Behavior value="SylvanasShadowDaggerUnyieldingBlightMarkerBehavior" />
   </CValidatorUnitCompareBehaviorCount>
-  <CValidatorCombine id="SylvanasTargetHas3StacksOfBlackArrowsStackingBehaviorAndTargetIsHero">
-    <Type value="And" />
-    <CombineArray value="SylvanasTargetHas3StacksOfBlackArrowsStackingBehavior" />
-    <CombineArray value="TargetIsHero" />
-  </CValidatorCombine>
   <CValidatorCombine id="SylvanasHas3StacksofBlackArrowsAndTargetIsMercMinionOrStructure">
     <Type value="And" />
     <CombineArray value="SylvanasTargetHas3StacksOfBlackArrowsStackingBehavior" />
     <CombineArray value="IsMercMinionorStructureANDNotMapBoss" />
+  </CValidatorCombine>
+  <CValidatorCombine id="SylvanasBlackArrowsQuestTargetIsValidUnitType">
+    <CombineArray value="TargetIsHero" />
+    <CombineArray value="TargetIsEnemyStructureAndNotTownWall" />
   </CValidatorCombine>
   <CValidatorIsUnitTracked id="SylvanasWitheringFireTargetIsInBarbedShotUnitTracker">
     <Find value="1" />
@@ -4615,6 +4852,15 @@
     <Find value="1" />
     <Value value="SylvanasTalentLostSoul" />
   </CValidatorPlayerTalent>
+  <CValidatorCombine id="SylvanasTargetHas3StacksOfBlackArrowsStackingBehaviorAndTargetIsValidUnitType">
+    <Type value="And" />
+    <CombineArray value="SylvanasTargetHas3StacksOfBlackArrowsStackingBehavior" />
+    <CombineArray value="SylvanasLostSoulTargetValidUnitType" />
+  </CValidatorCombine>
+  <CValidatorCombine id="SylvanasLostSoulTargetValidUnitType">
+    <CombineArray value="TargetIsHero" />
+    <CombineArray value="TargetIsEnemyStructureAndNotTownWall" />
+  </CValidatorCombine>
   <CValidatorUnitCompareBehaviorCount id="HasWailingArrowActivateBehavior">
     <WhichUnit Value="Caster" />
     <Value value="1" />
