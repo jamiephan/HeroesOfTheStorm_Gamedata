@@ -67,6 +67,7 @@ void libHZUL_gf_HeroZuljinIncrementHeroCountFunction () {
         TriggerEnable(libHZUL_gt_HeroZuljinAmaniResilienceOff, true);
         TriggerEnable(libHZUL_gt_HeroZuljinYouWantAxeScoreValue, true);
         TriggerEnable(libHZUL_gt_HeroZuljinYouWantAxeScoreValueReset, true);
+        TriggerEnable(libHZUL_gt_HeroZuljinYouWantAxeDeathReduction, true);
     }
 
 }
@@ -99,6 +100,7 @@ void libHZUL_gf_HeroZuljinDecrementHeroCountFunction () {
         TriggerEnable(libHZUL_gt_HeroZuljinAmaniResilienceOff, false);
         TriggerEnable(libHZUL_gt_HeroZuljinYouWantAxeScoreValue, false);
         TriggerEnable(libHZUL_gt_HeroZuljinYouWantAxeScoreValueReset, false);
+        TriggerEnable(libHZUL_gt_HeroZuljinYouWantAxeDeathReduction, false);
     }
 
 }
@@ -299,6 +301,7 @@ void libHZUL_gt_HeroZuljinYouWantAxeScoreValue_Init () {
     TriggerEnable(libHZUL_gt_HeroZuljinYouWantAxeScoreValue, false);
     TriggerAddEventPlayerEffectUsed(libHZUL_gt_HeroZuljinYouWantAxeScoreValue, c_playerAny, "ZuljinYouWantAxeQuestIncrementMiniProgressToken");
     TriggerAddEventPlayerEffectUsed(libHZUL_gt_HeroZuljinYouWantAxeScoreValue, c_playerAny, "ZuljinTwinCleaveWrongPlaceWrongTimeModifyToken");
+    TriggerAddEventPlayerEffectUsed(libHZUL_gt_HeroZuljinYouWantAxeScoreValue, c_playerAny, "YouWantAxeQuestDecreaseDeath");
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -373,6 +376,54 @@ void libHZUL_gt_HeroZuljinBerserkerSetLifeTo1_Init () {
     libHZUL_gt_HeroZuljinBerserkerSetLifeTo1 = TriggerCreate("libHZUL_gt_HeroZuljinBerserkerSetLifeTo1_Func");
     TriggerEnable(libHZUL_gt_HeroZuljinBerserkerSetLifeTo1, false);
     TriggerAddEventPlayerEffectUsed(libHZUL_gt_HeroZuljinBerserkerSetLifeTo1, c_playerAny, "ZuljinBerserkerSetLifeTo1DummySet");
+}
+
+//--------------------------------------------------------------------------------------------------
+// Trigger: Trigger: Hero - Zul'jin - You Want Axe Death Reduction
+//--------------------------------------------------------------------------------------------------
+bool libHZUL_gt_HeroZuljinYouWantAxeDeathReduction_Func (bool testConds, bool runActions) {
+    // Variable Declarations
+    unit lv_heroKilledUnit;
+    fixed lv_youWantAxeMainStacks;
+    fixed lv_youWantAxeMiniStacks;
+    int lv_firstMilestoneValue;
+    int lv_secondMilestoneValue;
+    int lv_reductionPerDeath;
+
+    // Automatic Variable Declarations
+    // Variable Initialization
+    lv_heroKilledUnit = libGame_gf_HeroKilledUnit();
+    lv_firstMilestoneValue = CatalogFieldValueGetAsInt(c_gameCatalogBehavior, "ZuljinYouWantAxeQuestMainToken", "ConditionalEvents[" + IntToString(0) + "].CompareValue", c_playerAny);
+    lv_secondMilestoneValue = CatalogFieldValueGetAsInt(c_gameCatalogBehavior, "ZuljinYouWantAxeQuestMainToken", "ConditionalEvents[" + IntToString(1) + "].CompareValue", c_playerAny);
+    lv_reductionPerDeath = AbsI(CatalogFieldValueGetAsInt(c_gameCatalogEffect, "YouWantAxeQuestDecreaseDeath", "Value", c_playerAny));
+
+    // Conditions
+    if (testConds) {
+        if (!((UnitGetType(lv_heroKilledUnit) == "HeroZuljin"))) {
+            return false;
+        }
+    }
+
+    // Actions
+    if (!runActions) {
+        return true;
+    }
+
+    lv_youWantAxeMainStacks = UnitGetTokenCount(lv_heroKilledUnit, "ZuljinYouWantAxeQuestMainToken");
+    lv_youWantAxeMiniStacks = UnitGetTokenCount(lv_heroKilledUnit, "ZuljinYouWantAxeQuestMiniProgressToken");
+    if ((((lv_youWantAxeMainStacks >= 0) && (lv_youWantAxeMainStacks <= (0 + (lv_reductionPerDeath - 1)))))) {
+        UnitCreateEffectUnit(lv_heroKilledUnit, "ZuljinYouWantAxeQuestResetMiniProgressToken", lv_heroKilledUnit);
+    }
+
+    UnitCreateEffectUnit(lv_heroKilledUnit, "YouWantAxeQuestDecreaseDeath", lv_heroKilledUnit);
+    return true;
+}
+
+//--------------------------------------------------------------------------------------------------
+void libHZUL_gt_HeroZuljinYouWantAxeDeathReduction_Init () {
+    libHZUL_gt_HeroZuljinYouWantAxeDeathReduction = TriggerCreate("libHZUL_gt_HeroZuljinYouWantAxeDeathReduction_Func");
+    TriggerEnable(libHZUL_gt_HeroZuljinYouWantAxeDeathReduction, false);
+    libGame_gf_HeroKilled(libHZUL_gt_HeroZuljinYouWantAxeDeathReduction);
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -1016,6 +1067,7 @@ void libHZUL_InitTriggers () {
     libHZUL_gt_HeroZuljinYouWantAxeScoreValue_Init();
     libHZUL_gt_HeroZuljinYouWantAxeScoreValueReset_Init();
     libHZUL_gt_HeroZuljinBerserkerSetLifeTo1_Init();
+    libHZUL_gt_HeroZuljinYouWantAxeDeathReduction_Init();
     libHZUL_gt_HeroZuljinGuillotineCastModifyDamage_Init();
     libHZUL_gt_HeroZuljinGuillotineTalentSelected_Init();
     libHZUL_gt_HeroZuljinGuillotineVODeadKill_Init();
