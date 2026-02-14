@@ -6,6 +6,11 @@
   <const id="$ArthasDeathCoilRange" value="7" />
   <const id="$ArthasDeathlordRangeModifier" value="0.25" />
   <const id="$ArthasDeathlordRangeIncrease" value="*($ArthasDeathCoilRange $ArthasDeathlordRangeModifier)" evaluateAsExpression="1" />
+  <const id="$ArthasArmyOfTheDeadGhoulHealth" value="1200" />
+  <const id="$ArthasArmyOfTheDeadGhoulDecayDuration" value="20" />
+  <const id="$ArthasArmyOfTheDeadGhoulDecayRate" value="/($ArthasArmyOfTheDeadGhoulHealth $ArthasArmyOfTheDeadGhoulDecayDuration)" evaluateAsExpression="1" />
+  <const id="$ArthasLegionofNorthrendGhoulDecayRateMultiplier" value="0.35" />
+  <const id="$ArthasLegionofNorthrendGhoulLifeDecayModifier" value="*($ArthasArmyOfTheDeadGhoulDecayRate $ArthasLegionofNorthrendGhoulDecayRateMultiplier)" evaluateAsExpression="1" />
   <CAbilEffectInstant id="ArthasAntiMagicShell">
     <PrepEffect value="DismountDecloakCasterSet" />
     <Effect value="ArthasAntiMagicShellApplySpellShieldBehavior" />
@@ -912,8 +917,14 @@
     </Modification>
   </CBehaviorBuff>
   <CBehaviorBuff id="ArthasArmyOfTheDeadGhoulTimedLife" parent="StormTimedLife">
-    <Duration value="15" />
+    <Duration value="-1" />
     <InitialEffect value="ArthasArmyOfTheDeadApplyGhoulRootBehavior" />
+  </CBehaviorBuff>
+  <CBehaviorBuff id="ArthasGhoulLegionofNorthrendLifeRegenModifier">
+    <DisableValidatorArray value="ArthasHasArmyoftheDeadLegionofNorthrend" />
+    <Modification>
+      <VitalRegenArray index="Life" value="$ArthasLegionofNorthrendGhoulLifeDecayModifier" />
+    </Modification>
   </CBehaviorBuff>
   <CBehaviorBuff id="ArthasHowlingBlastRoot" parent="StormRoot">
     <Duration value="1.25" />
@@ -2067,6 +2078,13 @@
       <Modifications>
         <Catalog value="Unit" />
         <Entry value="ArthasArmyOfTheDeadGhoul" />
+        <Field value="LifeRegenRate" />
+        <Value value="0.040000" />
+        <AffectedByOverdrive value="1" />
+      </Modifications>
+      <Modifications>
+        <Catalog value="Unit" />
+        <Entry value="ArthasArmyOfTheDeadGhoul" />
         <Field value="LifeStart" />
         <Value value="0.040000" />
         <AffectedByOverdrive value="1" />
@@ -2085,6 +2103,13 @@
         <Field value="RechargeVitalRate" />
         <Value value="0.040000" />
         <AffectedByAbilityPower value="1" />
+        <AffectedByOverdrive value="1" />
+      </Modifications>
+      <Modifications>
+        <Catalog value="Behavior" />
+        <Entry value="ArthasGhoulLegionofNorthrendLifeRegenModifier" />
+        <Field value="Modification.VitalRegenArray[Life]" />
+        <Value value="0.040000" />
         <AffectedByOverdrive value="1" />
       </Modifications>
     </LevelScalingArray>
@@ -2655,13 +2680,6 @@
         <Entry value="ArthasArmyDeadCast" />
         <StringReplacement value="Arthas_ArmyDead_Legion_Cast" />
       </Modifications>
-      <Modifications>
-        <Type value="FlatModification" />
-        <Catalog value="Behavior" />
-        <Entry value="ArthasArmyOfTheDeadGhoulTimedLife" />
-        <Field value="Duration" />
-        <Value value="5.000000" />
-      </Modifications>
     </AbilityModificationArray>
   </CTalent>
   <CTalent id="ArthasMasteryEmbraceDeathDeathCoil">
@@ -2788,8 +2806,8 @@
     <HeroPlaystyleFlags index="RoleTank" value="1" />
   </CUnit>
   <CUnit id="ArthasArmyOfTheDeadGhoul" parent="StormSummonActive">
-    <LifeStart value="1060" />
-    <LifeMax value="1060" />
+    <LifeStart value="$ArthasArmyOfTheDeadGhoulHealth" />
+    <LifeMax value="$ArthasArmyOfTheDeadGhoulHealth" />
     <Speed value="5" />
     <Sight value="7" />
     <AbilArray Link="stop" />
@@ -2797,6 +2815,7 @@
     <AbilArray Link="move" />
     <BehaviorArray Link="ArthasArmyOfTheDeadGhoulTimedLife" />
     <BehaviorArray Link="HeroicSummon" />
+    <BehaviorArray Link="ArthasGhoulLegionofNorthrendLifeRegenModifier" />
     <WeaponArray Link="ArthasArmyOfTheDeadGhoulWeapon" />
     <CardLayouts>
       <LayoutButtons Face="Move" Type="AbilCmd" AbilCmd="move,Move" Slot="Stop" />
@@ -2808,6 +2827,7 @@
     <Radius value="0.6875" />
     <InnerRadius value="0.6875" />
     <AIThinkTree value="AI/SummonedMinion.aitree" />
+    <LifeRegenRate value="-$ArthasArmyOfTheDeadGhoulDecayRate" />
   </CUnit>
   <CUnit id="ArthasArmyOfTheDeadGhoulHealMissile" parent="MISSILE_INVULNERABLE">
     <Mover value="ArthasGhoulHealMissile" />

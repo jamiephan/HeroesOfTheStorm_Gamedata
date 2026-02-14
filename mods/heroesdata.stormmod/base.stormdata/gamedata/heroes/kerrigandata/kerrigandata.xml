@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="us-ascii"?>
 <Catalog>
-  <const id="$KerriganRavageBaselineQuestFirstMilestoneStacks" value="85" />
-  <const id="$KerriganRavageBaselineQuestMaxStacks" value="150" />
+  <const id="$KerriganRavageBaselineQuestFirstMilestoneStacks" value="100" />
+  <const id="$KerriganRavageBaselineQuestMaxStacks" value="250" />
   <const id="$KerriganRavageBaselineQuestFirstMilestoneBonusDamage" value="125" />
   <const id="$KerriganRavageBaselineQuestCompleteBonusDamage" value="200" />
   <const id="$KerriganMaelstromRange" value="4.5" />
@@ -755,6 +755,13 @@
   <CActorSound id="KerriganChrysalisLaunchSound" parent="SoundContinuous">
     <Sound value="Kerrigan_Chrysalis_Launch" />
   </CActorSound>
+  <CBehaviorBuff id="KerriganKillCredit">
+    <BehaviorFlags index="Permanent" value="1" />
+    <BehaviorFlags index="EnabledWhileDead" value="1" />
+    <Duration value="-1" />
+    <Period value="0.5" />
+    <PeriodicEffect value="KerriganKillCreditSearch" />
+  </CBehaviorBuff>
   <CBehaviorBuff id="AssimilationNoShieldPeriod">
     <Duration value="3" />
   </CBehaviorBuff>
@@ -987,7 +994,7 @@
     <Max value="5000" />
   </CBehaviorTokenCounter>
   <CBehaviorBuff id="KerriganRavageSharpenedBladesFatalResponse" parent="CarryBehaviorParent">
-    <Duration value="1.5" />
+    <Duration value="0.6" />
     <DamageResponse>
       <Chance value="1" />
       <Handled value="KerriganRavageSharpenedBladesModifyTokenCountSwitch" />
@@ -1004,13 +1011,16 @@
     </DamageResponse>
   </CBehaviorBuff>
   <CBehaviorBuff id="KerriganRavageFatalDamageResponse" parent="CarryBehaviorParent">
-    <Duration value="1.5" />
+    <Duration value="0.75" />
     <DamageResponse>
       <Chance value="1" />
       <Handled value="KerriganRavageFatalSet" />
       <Priority value="15" />
       <Fatal value="1" />
     </DamageResponse>
+    <Modification>
+      <DeathResponse Chance="1" Effect="KerriganRavageFatalSet" />
+    </Modification>
   </CBehaviorBuff>
   <CBehaviorBuff id="KerriganPrimalGraspTargetFound">
     <Duration value="0.1875" />
@@ -1039,7 +1049,7 @@
   <CBehaviorBuff id="KerriganRavageDeathRefundBehavior">
     <BehaviorFlags index="Permanent" value="1" />
     <BehaviorFlags index="EnabledWhileDead" value="1" />
-    <Duration value="1.5" />
+    <Duration value="0.75" />
   </CBehaviorBuff>
   <CBehaviorBuff id="KerriganPrimalGrasp" parent="PushPullParent">
     <Duration value="0.3125" />
@@ -1109,7 +1119,7 @@
     <DisableValidatorArray value="TargetNotInDevouringMaw" />
   </CBehaviorBuff>
   <CBehaviorBuff id="KerriganUltraliskTimedLife" parent="StormTimedLife">
-    <Duration value="20" />
+    <Duration value="-1" />
     <FinalEffect value="KerriganSummonUltraliskTimedLifeFinalSet" />
     <ExpireEffect value="" />
   </CBehaviorBuff>
@@ -1304,6 +1314,21 @@
     <Color value="255,179,0,179" />
     <Unit value="HeroKerrigan" />
   </CCharacter>
+  <CEffectModifyTokenCount id="KerriganRavageSharpenedBladesModifyTokenCountHeroes2" parent="BaseEffectModifyTokenCount">
+    <Marker Link="Effect/KerriganRavageSharpenedBladesModifyTokenCountHeroes" />
+    <EffectCategory index="Quest" value="1" />
+    <CollationId value="KerriganRavageSharpenedBladesModifyTokenCountHeroes" />
+    <ContextUnit Value="Source" />
+    <TokenId value="KerriganRavageSharpenedBladesTokenCounter" />
+    <Value value="14" />
+  </CEffectModifyTokenCount>
+  <CEffectEnumArea id="KerriganKillCreditSearch">
+    <SearchFilters value="-;Player,Ally,Neutral,Missile,Item,Stasis,Dead,Hidden,Invulnerable" />
+    <AreaArray Effect="KerriganRavageSharpenedBladesApplyBehavior">
+      <Radius value="3" />
+    </AreaArray>
+    <ImpactLocation Value="CasterPoint" />
+  </CEffectEnumArea>
   <CEffectModifyPlayer id="KerriganRavageQuestCompleteModifyPlayer">
     <Marker Link="Effect/ThrallChainLightningEchooftheElementsTalent2ndQuestModifyPlayer" />
     <EffectArray Reference="Effect,KerriganRavageDamage,FlatModifierArray[SharpenedBladeComplete].Modifier" Value="200" />
@@ -1669,14 +1694,17 @@
     <EffectCategory index="Quest" value="1" />
     <TokenId value="KerriganRavageSharpenedBladesTokenCounter" />
     <Value value="7" />
+    <ContextUnit Value="Source" />
   </CEffectModifyTokenCount>
   <CEffectSwitch id="KerriganRavageSharpenedBladesModifyTokenCountSwitch">
+    <CaseArray Validator="KerriganHasMilestoneAndSourceIsHero" Effect="KerriganRavageSharpenedBladesModifyTokenCountHeroes2" />
     <CaseArray Validator="SourceIsHero" Effect="KerriganRavageSharpenedBladesModifyTokenCountHeroes" />
     <CaseDefault value="KerriganRavageSharpenedBladesModifyTokenCountMinions" />
   </CEffectSwitch>
   <CEffectModifyTokenCount id="KerriganRavageSharpenedBladesModifyTokenCountMinions" parent="BaseEffectModifyTokenCount">
     <EffectCategory index="Quest" value="1" />
     <TokenId value="KerriganRavageSharpenedBladesTokenCounter" />
+    <ContextUnit Value="Source" />
   </CEffectModifyTokenCount>
   <CEffectSet id="KerriganSharpenedBladesFirstMilestoneGrantSet">
     <EffectArray value="KerriganSharpenedBladesAddFirstMilestoneDamageTokens" />
@@ -1868,9 +1896,15 @@
     </Cost>
   </CEffectModifyUnit>
   <CEffectSet id="KerriganRavageFatalSet">
+    <ValidatorArray value="KerriganRavageSourceHasFatalBehavior" />
     <EffectArray value="KerriganRavageManaReturn" />
     <EffectArray value="KerriganRavageRestoreCharge" />
+    <EffectArray value="KerriganRavageRemoveFatalResponse" />
   </CEffectSet>
+  <CEffectRemoveBehavior id="KerriganRavageRemoveFatalResponse">
+    <WhichUnit Value="Source" />
+    <BehaviorLink value="KerriganRavageFatalDamageResponse" />
+  </CEffectRemoveBehavior>
   <CEffectModifyUnit id="KerriganBladedMomentumModifyCooldowns">
     <ValidatorArray value="CasterNotBlindedAndTargetNotEvading" />
     <ValidatorArray value="TargetIsHero" />
@@ -2747,6 +2781,13 @@
       <Modifications>
         <Catalog value="Unit" />
         <Entry value="KerriganUltralisk" />
+        <Field value="LifeRegenRate" />
+        <Value value="0.040000" />
+        <AffectedByOverdrive value="1" />
+      </Modifications>
+      <Modifications>
+        <Catalog value="Unit" />
+        <Entry value="KerriganUltralisk" />
         <Field value="LifeStart" />
         <Value value="0.040000" />
         <AffectedByOverdrive value="1" />
@@ -3317,6 +3358,7 @@
     <HotkeyCategory value="Unit/Category/ZergUnits" />
     <TauntDuration index="Cheer" value="5" />
     <TauntDuration index="Dance" value="5" />
+    <LifeRegenRate value="-45" />
   </CUnit>
   <CUnit id="HeroKerrigan" parent="StormHeroMounted">
     <LifeStart value="1764" />
@@ -3347,6 +3389,7 @@
     <BehaviorArray Link="KerriganBasicAttackDamageDamageDealtResponse" />
     <BehaviorArray Link="KerriganRavageSharpenedBladesTokenCounter" />
     <BehaviorArray Link="KerriganSharpenedBladesDamageTokenCounter" />
+    <BehaviorArray Link="KerriganKillCredit" />
     <WeaponArray Link="HeroKerrigan" />
     <Radius value="0.6875" />
     <Gender value="Female" />
@@ -3376,6 +3419,17 @@
   <CUnit id="KerriganMissile" parent="MISSILE_INVULNERABLE">
     <Mover value="HeroMissileSpeed22Ribbon" />
   </CUnit>
+  <CValidatorUnitCompareTokenCount id="KerriganHasMilestone">
+    <WhichUnit Value="Caster" />
+    <Compare value="GE" />
+    <Value value="100" />
+    <TokenId value="KerriganRavageSharpenedBladesTokenCounter" />
+  </CValidatorUnitCompareTokenCount>
+  <CValidatorCombine id="KerriganHasMilestoneAndSourceIsHero">
+    <Type value="And" />
+    <CombineArray value="KerriganHasMilestone" />
+    <CombineArray value="SourceIsHero" />
+  </CValidatorCombine>
   <CValidatorUnitCompareBehaviorCount id="KerriganHasRavagingFerocityBehavior">
     <WhichUnit Value="Caster" />
     <Compare value="GT" />
@@ -3683,6 +3737,10 @@
     <Compare value="GE" />
     <Range value="20" />
   </CValidatorLocationCompareRange>
+  <CValidatorUnitHasBehavior id="KerriganRavageSourceHasFatalBehavior">
+    <WhichUnit Value="Source" />
+    <Behavior value="KerriganRavageFatalDamageResponse" />
+  </CValidatorUnitHasBehavior>
   <CWeaponLegacy id="HeroKerrigan" parent="StormHeroFastWeapon">
     <Icon value="Assets\Textures\storm_temp_btn-upgrade-zerg-meleeattacks-level3.dds" />
     <DisplayEffect value="KerriganWeaponDamage" />

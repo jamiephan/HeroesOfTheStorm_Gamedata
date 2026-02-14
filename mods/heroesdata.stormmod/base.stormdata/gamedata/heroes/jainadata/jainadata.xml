@@ -4,8 +4,27 @@
   <const id="$JainaStormFrontRangeModifier" value="0.75" />
   <const id="$JainaStormFrontRangeIncrease" value="*($JainaBlizzardRange $JainaStormFrontRangeModifier)" evaluateAsExpression="1" />
   <const id="$JainaSummonWaterElementalRange" value="8.5" />
-  <const id="$JainaWintermuteRangeModifier" value="0.5" />
+  <const id="$JainaWaterElementalHealth" value="958" />
+  <const id="$JainaWaterElementalDecayDuration" value="32" />
+  <const id="$JainaWaterElementalLifeDecayRate" value="/($JainaWaterElementalHealth $JainaWaterElementalDecayDuration)" evaluateAsExpression="1" />
+  <const id="$JainaWintermuteRangeModifier" value="0.4" />
   <const id="$JainaWintermuteRangeIncrease" value="*($JainaSummonWaterElementalRange $JainaWintermuteRangeModifier)" evaluateAsExpression="1" />
+  <CAbilEffectInstant id="JainaIceBlockCancel">
+    <Effect value="JainaIceBlockRemoveBehaviorsSet" />
+    <Cost>
+      <Cooldown TimeUse="0.5" />
+    </Cost>
+    <Flags index="Transient" value="1" />
+    <CmdButtonArray index="Execute" DefaultButtonFace="JainaImprovedIceBlockCancel" />
+  </CAbilEffectInstant>
+  <CAbilEffectInstant id="JainaIceBlockActivate">
+    <PrepEffect value="DismountDecloakCasterSet" />
+    <Effect value="JainaImprovedIceBlockCastSet" />
+    <Cost>
+      <Cooldown TimeUse="40" />
+    </Cost>
+    <CmdButtonArray index="Execute" DefaultButtonFace="JainaImprovedIceBlockHotbar" />
+  </CAbilEffectInstant>
   <CAbilEffectTarget id="JainaFrigidTransmission">
     <PrepEffect value="DismountDecloakCasterSet" />
     <Effect value="JainaFrigidTransmissionSet" />
@@ -40,34 +59,12 @@
     <CmdButtonArray index="Execute" DefaultButtonFace="JainaIcyVeinsHotbar" Requirements="HeroHasNoDeadBehavior" />
     <SharedFlags index="AllowQuickCastCustomization" value="0" />
   </CAbilEffectInstant>
-  <CAbilBehavior id="ImprovedIceBlock">
-    <OrderArray index="0" Color="255,0,255,0" Model="Assets\UI\Feedback\WayPointConfirm\WayPointConfirm.m3" LineTexture="Assets\Textures\Storm_WayPointLine.dds" />
-    <Flags index="Toggle" value="1" />
-    <Flags index="Transient" value="1" />
-    <BehaviorArray value="JainaImprovedIceBlock" />
-    <CmdButtonArray index="On" DefaultButtonFace="JainaImprovedIceBlockHotbar">
-      <Flags index="ToSelection" value="1" />
-    </CmdButtonArray>
-    <CmdButtonArray index="Off" DefaultButtonFace="JainaImprovedCancelIceBlock">
-      <Flags index="ToSelection" value="1" />
-    </CmdButtonArray>
-    <Cost>
-      <Cooldown Location="Player" TimeUse="0.5" />
-    </Cost>
-    <ExpireCost>
-      <Cooldown Location="Player" TimeUse="40" />
-    </ExpireCost>
-    <OffCost>
-      <Cooldown Location="Player" TimeUse="40" />
-    </OffCost>
-    <ValidatorArray value="CasterNotDead" />
-  </CAbilBehavior>
   <CAbilEffectTarget id="JainaBlizzard">
     <Effect value="JainaBlizzardBasePersistentSet" />
     <Flags index="ClearLastAttackTargetOutOfRange" value="1" />
     <Flags index="ClearLastMoveTarget" value="1" />
-    <Flags index="RequireTargetVision" value="0" />
     <Flags index="RangeUseCasterRadius" value="0" />
+    <Flags index="RequireTargetVision" value="0" />
     <Cost>
       <Vital index="Energy" value="90" />
       <Cooldown TimeUse="15" />
@@ -181,7 +178,7 @@
     <UninterruptibleArray index="Cast" value="1" />
     <UninterruptibleArray index="Channel" value="1" />
     <UninterruptibleArray index="Finish" value="1" />
-    <CursorEffect value="JainaFrostboltMissileScan" />
+    <CursorEffect value="JainaFrostboltMissileSearch" />
     <CmdButtonArray index="Execute" DefaultButtonFace="JainaFrostbolt">
       <Flags index="AllowSelfCast" value="0" />
     </CmdButtonArray>
@@ -189,7 +186,7 @@
     <Arc value="360" />
   </CAbilEffectTarget>
   <CAbilEffectTarget id="JainaWaterElementalFrostbolt">
-    <Effect value="JainaFrostboltRefactorLaunchMissile" />
+    <Effect value="JainaFrostboltLaunchMissile" />
     <Flags index="ClearLastAttackTargetOutOfRange" value="1" />
     <Flags index="ClearLastMoveTarget" value="1" />
     <Flags index="RequireTargetVision" value="0" />
@@ -206,8 +203,8 @@
     <Flags index="BestUnit" value="0" />
     <Flags index="ClearLastAttackTargetOutOfRange" value="1" />
     <Flags index="ClearLastMoveTarget" value="1" />
-    <Flags index="RequireTargetVision" value="0" />
     <Flags index="RangeUseCasterRadius" value="0" />
+    <Flags index="RequireTargetVision" value="0" />
     <Cost>
       <Vital index="Energy" value="60" />
       <Cooldown TimeUse="60" />
@@ -450,9 +447,9 @@
     <Model value="JainaMissile" />
     <DeathArray index="Normal" ModelLink="JainaMissile" />
   </CActorMissile>
-  <CActorMissile id="JainaFrostboltRefactorMissile" parent="StormMissileWithDeathEarly" unitName="JainaFrostboltRefactorMissile" />
-  <CActorAction id="JainaFrostboltRefactorAction" parent="RangedHeroAttackPoint" effectLaunch="JainaFrostboltRefactorLaunchMissile">
-    <Missile value="JainaFrostboltRefactorMissile" />
+  <CActorMissile id="JainaFrostboltMissile" parent="StormMissileWithDeathEarly" unitName="JainaFrostboltMissile" />
+  <CActorAction id="JainaFrostboltAction" parent="RangedHeroAttackPoint" effectLaunch="JainaFrostboltLaunchMissile">
+    <Missile value="JainaFrostboltMissile" />
     <ImpactPointSiteOps Ops="SOpTargetPointStationary SOpShadow JainaFrostboltVolleyOffset" />
     <LaunchSiteOps Ops="SOpForwardTargetUnit SOpOffsetLaunch" />
   </CActorAction>
@@ -546,25 +543,13 @@
     <HostSiteOps Ops="SOpTargetUnit SOpAttachChest" />
     <Model value="Invisible" />
   </CActorModel>
-  <CActorMissile id="JainaFrostboltVolleyMissile" parent="StormMissileWithDeathEarly" unitName="JainaFrostboltMissile" />
-  <CActorMissile id="JainaFrostboltVolleyIceLanceMissile" parent="StormMissileWithDeathEarly" unitName="JainaFrostboltWintersReachMissile">
-    <Model value="JainaFrostboltIceLanceMissile" />
-  </CActorMissile>
-  <CActorAction id="JainaFrostboltVolleyAttack" parent="GenericAttackPointStorm" effectImpact="JainaFrostboltImpactSet" effectLaunch="JainaFrostboltLaunchMissile">
-    <LaunchAssets Model="" Sound="" />
-    <ImpactMap index="None" Model="" Sound="" />
-    <Missile value="JainaFrostboltVolleyMissile" />
-    <ImpactPointSiteOps Ops="SOpTargetPointStationary SOpShadow JainaFrostboltVolleyOffset" />
-    <LaunchSiteOps Ops="SOpForwardTargetUnit SOpOffsetLaunch" />
-    <ForceCommencementFrom value="JainaFrostboltLaunchMissile" />
-  </CActorAction>
   <CActorModel id="JainaFrostboltVolleyAttackLaunch" parent="StormModelAnimationStyleOneShotUnit">
     <On Terms="Abil.JainaFrostbolt.SourceCastStart" Send="Create" />
     <HostSiteOps Ops="SOpAttachWeapon00" />
     <Model value="JainaFrostboltLaunch" />
   </CActorModel>
   <CActorSound id="JainaFrostboltLaunchSound" parent="SoundOneShot">
-    <On Terms="Effect.JainaFrostboltRefactorLaunchMissile.Start" Send="Create" />
+    <On Terms="Effect.JainaFrostboltLaunchMissile.Start" Send="Create" />
     <Host Subject="_Missile" />
     <Sound value="Jaina_Frostbolt_Volley_Launch" />
     <Layers Sound="Jaina_Frostbolt_Volley_Activate" />
@@ -574,13 +559,6 @@
     <Host Subject="_Unit" />
     <Sound value="Jaina_Frostbolt_Volley_Activate" />
   </CActorSound>
-  <CActorAction id="JainaFrostboltVolleyIceLanceAttack" parent="GenericAttackPointStorm" effectImpact="JainaFrostboltImpactSet" effectLaunch="JainaFrostboltLaunchWintersReachMissile">
-    <LaunchAssets Model="JainaFrostboltLaunch" Sound="" />
-    <Missile value="JainaFrostboltVolleyIceLanceMissile" />
-    <ImpactPointSiteOps Ops="SOpTargetPointStationary SOpShadow JainaFrostboltVolleyOffset" />
-    <ImpactMap index="None" Model="" Sound="" />
-    <LaunchSiteOps Ops="SOpForwardTargetUnit SOpOffsetLaunch" />
-  </CActorAction>
   <CActorQuad id="JainaFrostboltGuide" parent="StormGuideVisualQuadDownClosestFantasy" abil="JainaFrostbolt">
     <Height value="11.000000" />
     <Width value="1.000000" />
@@ -589,9 +567,6 @@
     <LocalOffset Z="1.500000" />
   </CActorSiteOpLocalOffset>
   <CActorAction id="JainaFrostboltImpactAction" parent="RangedHeroAttack" effectAttack="JainaFrostboltImpactSet">
-    <ImpactMap index="None" Model="JainaFrostboltImpact" Sound="Jaina_Frostbolt_Volley_Impact" />
-  </CActorAction>
-  <CActorAction id="JainaFrostboltRefactorImpactAction" parent="RangedHeroAttack" effectAttack="JainaFrostboltRefactorImpactSet">
     <ImpactMap index="None" Model="JainaFrostboltImpact" Sound="Jaina_Frostbolt_Volley_Impact" />
   </CActorAction>
   <CActorRange id="JainaBlizzardRange" parent="StormRangeAbilPlusSplat" abil="JainaBlizzard" />
@@ -809,6 +784,12 @@
     <On Terms="Behavior.JainaImprovedIceBlock.Destroy" Send="Create JainaImprovedIceBlockOffSound" />
     <On Terms="Behavior.JainaImprovedIceBlock.Destroy" Send="AnimBracketStop BSD 0 1.000000 AsTimeScale" />
     <On Terms="Behavior.JainaImprovedIceBlock.Destroy" Send="HostSiteOpsSet ::Host SOpShadow 1 1" />
+    <On Terms="Behavior.JainaIceCold.Create" Send="Create" />
+    <On Terms="Behavior.JainaIceCold.Create" Target="::Main" Send="SetTintColor {81,159,255 1.500000} 1.000000" />
+    <On Terms="Behavior.JainaIceCold.Destroy" Target="::Main" Send="ClearTintColor 1.000000" />
+    <On Terms="Behavior.JainaIceCold.Destroy" Send="Create JainaImprovedIceBlockOffSound" />
+    <On Terms="Behavior.JainaIceCold.Destroy" Send="AnimBracketStop BSD 0 1.000000 AsTimeScale" />
+    <On Terms="Behavior.JainaIceCold.Destroy" Send="HostSiteOpsSet ::Host SOpShadow 1 1" />
     <Host Subject="_Unit" />
     <HostSiteOps Ops="SOpShadow" HoldRotation="1" />
     <AutoScaleFactor value="1.000000" />
@@ -822,6 +803,44 @@
     <On Terms="Behavior.JainaImprovedIceBlock.Off; ValidateUnit TargetNotTimeStopped" Send="Destroy" />
   </CActorSimple>
   <CActorPortrait id="JainaClausPortrait" parent="StormCompositePortrait" />
+  <CBehaviorBuff id="IceColdCarryBehavior" parent="CarryBehaviorParent">
+    <RemoveValidatorArray value="JainaHas30000FrostbiteTokens" />
+  </CBehaviorBuff>
+  <CBehaviorBuff id="JainaIceCold" parent="StormStasisIceBlock">
+    <Cost>
+      <Charge Link="Behavior/JainaImprovedIceBlock" />
+      <Cooldown Link="Behavior/JainaImprovedIceBlock" />
+    </Cost>
+    <InfoFlags index="AlwaysUseGameText" value="1" />
+    <BehaviorCategories index="Restorable" value="1" />
+    <BehaviorCategories index="Protected" value="1" />
+    <BehaviorCategories index="DebuffStasis" value="0" />
+    <Duration value="2.5" />
+    <InitialEffect value="JainaImprovedIceBlockInitialSet" />
+    <FinalEffect value="JainaImprovedIceBlockExpirationSet" />
+    <Modification>
+      <ModifyFlags index="DisableAbils" value="0" />
+      <ModifyFlags index="SuppressMoving" value="0" />
+      <ModifyFlags index="SuppressTurning" value="0" />
+      <StateFlags index="Benign" value="0" />
+      <StateFlags index="Stasis" value="0" />
+      <StateFlags index="UnitAttrOnImmuneToAOE" value="0" />
+      <StateFlags index="UnitAttrOnImmuneToSkillshots" value="0" />
+      <StateFlags index="SuppressAttack" value="0" />
+    </Modification>
+    <DamageResponse>
+      <Cost>
+        <Charge Link="Behavior/JainaImprovedIceBlock" />
+        <Cooldown Link="Behavior/JainaImprovedIceBlock" />
+      </Cost>
+    </DamageResponse>
+    <HealResponse>
+      <Cost>
+        <Charge Link="Behavior/JainaImprovedIceBlock" />
+        <Cooldown Link="Behavior/JainaImprovedIceBlock" />
+      </Cost>
+    </HealResponse>
+  </CBehaviorBuff>
   <CBehaviorBuff id="JainaConeOfColdIceFloesCleanupTimer" parent="CarryBehaviorParent">
     <Duration value="0.625" />
     <FinalEffect value="JainaConeOfColdIceFloesResetTokens" />
@@ -886,11 +905,20 @@
   </CBehaviorBuff>
   <CBehaviorTokenCounter id="JainaFrostbiteTokenCounter" parent="StormQuestToken">
     <Face value="JainaFrostbiteToken" />
-    <AtMaxEvents index="0" EventId="QuestComplete" Effect="JainaFrostbiteApplyCompletionCarry" />
-    <AtMaxEvents Effect="JainaFrostbiteApplyQuestCompletionCarry" />
-    <Max value="12000" />
+    <AtMaxEvents Effect="ApplyIceColdCarry" />
+    <Max value="30000" />
     <TerminateEvents Effect="JainaFrostbiteIceBlockResetCooldown" />
     <InfoFlags index="Hidden" value="1" />
+    <ConditionalEvents Compare="GE" CompareValue="12000">
+      <Event EventId="QuestMilestone" Effect="JainaFrostbiteApplyCompletionCarry" />
+    </ConditionalEvents>
+    <ConditionalEvents Compare="GE" CompareValue="12000">
+      <Event Effect="JainaFrostbiteApplyQuestCompletionCarry" />
+    </ConditionalEvents>
+    <ConditionalEvents Compare="GE" CompareValue="12000">
+      <Event Effect="JainaIceBlockApplyButtonFlash" />
+    </ConditionalEvents>
+    <ConditionalEvents Compare="GE" CompareValue="30000" />
   </CBehaviorTokenCounter>
   <CBehaviorTokenCounter id="JainaFrostboltPierceCounter" parent="StormGenericToken">
     <Max value="2" />
@@ -930,7 +958,7 @@
     </Modification>
   </CBehaviorBuff>
   <CBehaviorBuff id="JainaConeOfColdNumbingBlastRoot" parent="StormRoot">
-    <Duration value="1" />
+    <Duration value="0.75" />
   </CBehaviorBuff>
   <CBehaviorBuff id="JainaFrostbiteFrostArmorController" parent="CarryBehaviorParent">
     <DamageResponse Chance="1" Handled="JainaFrostArmorChillProcSet" Priority="96">
@@ -1023,7 +1051,7 @@
     <InitialEffect value="JainaImprovedIceBlockInitialSet" />
     <FinalEffect value="JainaImprovedIceBlockExpirationSet" />
     <Modification>
-      <AbilLinkEnableArray value="ImprovedIceBlock" />
+      <AbilLinkEnableArray value="JainaIceBlockCancel" />
       <AbilLinkEnableArray value="JainaCommandWaterElemental" />
     </Modification>
     <InfoFlags index="AlwaysUseGameText" value="1" />
@@ -1046,7 +1074,7 @@
     <DisableValidatorArray value="WaterElementalStatusEnumerateArea" />
   </CBehaviorBuff>
   <CBehaviorBuff id="JainaWaterElementalTimedLife" parent="StormTimedLife">
-    <Duration value="20" />
+    <Duration value="-1" />
     <ExpireEffect value="StormSuicide" />
   </CBehaviorBuff>
   <CBehaviorBuff id="JainaConeofColdNorthernExposureArmorDecrease" parent="StormArmor">
@@ -1057,11 +1085,19 @@
     </ArmorModification>
   </CBehaviorBuff>
   <CBehaviorAbility id="ImprovedIceBlock">
-    <Buttons Face="JainaImprovedIceBlockCancel" Type="AbilCmd" AbilCmd="ImprovedIceBlock,Off" />
-    <Buttons Face="JainaImprovedIceBlockHotbar" Type="AbilCmd" AbilCmd="ImprovedIceBlock,On" />
+    <Buttons Face="JainaIceColdCancel" Type="AbilCmd" AbilCmd="JainaIceBlockCancel,Execute" ShowValidator="JainaCasterHasIceColdActive" />
+    <Buttons Face="JainaImprovedIceBlockCancel" Type="AbilCmd" AbilCmd="JainaIceBlockCancel,Execute" ShowValidator="JainaCasterHasImprovedIceBlockActive" />
+    <Buttons Face="JainaIceColdHotbar" Type="AbilCmd" AbilCmd="JainaIceBlockActivate,Execute" ShowValidator="HasIceColdCarry" />
+    <Buttons Face="JainaImprovedIceBlockHotbar" Type="AbilCmd" AbilCmd="JainaIceBlockActivate,Execute" />
     <ButtonOverrideDataFrame value="Jaina/JainaIceBlockButtonOverlayFrame" />
     <DisableValidatorArray value="JainaHasFrostbiteCompletionCarry" />
   </CBehaviorAbility>
+  <CButton id="JainaIceColdHotbar" parent="StormButtonParent">
+    <Icon value="Assets\Textures\storm_ui_icon_talent_iceblock.dds" />
+  </CButton>
+  <CButton id="JainaIceColdCancel" parent="StormButtonParent">
+    <Icon value="Assets\Textures\hud_btn_bg_ability_cancel.dds" />
+  </CButton>
   <CButton id="JainaFingersOfFrost" parent="StormButtonParent">
     <Icon value="Assets\Textures\storm_ui_icon_talent_conjurerspursuit.dds" />
   </CButton>
@@ -1096,7 +1132,7 @@
     <TooltipCooldownOverrideText value="Improved Ice Block Cooldown" />
     <Icon value="Assets\Textures\storm_ui_icon_talent_iceblock.dds" />
     <HotkeyAlias value="GenericRewindHotbar" />
-    <TooltipAppender Validator="JainaHasLT15000FrostbiteTokens" Text="Button/TooltipAppender/GenericLockedUntilQuestComplete" />
+    <TooltipAppender Validator="JainaDoesNotHaveFrostbiteCompletionCarry" Text="Button/TooltipAppender/GenericLockedUntilQuestComplete" />
   </CButton>
   <CButton id="JainaFrostbiteDeepChillTalent" parent="StormButtonParent">
     <Icon value="Assets\Textures\storm_ui_icon_jaina_frostbite.dds" />
@@ -1213,6 +1249,15 @@
     <Variations Model="JainaPortrait" Actor="JainaPortrait" />
     <Unit value="HeroJaina" />
   </CCharacter>
+  <CEffectRemoveBehavior id="RemoveImprovedIceBlockItem">
+    <BehaviorLink value="ImprovedIceBlock" />
+    <Count value="1" />
+    <WhichUnit Value="Caster" />
+  </CEffectRemoveBehavior>
+  <CEffectApplyBehavior id="ApplyIceColdCarry">
+    <Behavior value="IceColdCarryBehavior" />
+    <WhichUnit Value="Source" />
+  </CEffectApplyBehavior>
   <CEffectSwitch id="JainaConeOfColdIceFloesSwitch">
     <CaseArray Validator="JainaTargetHasChilledDamageBonus" Effect="JainaConeOfColdIceFloesAdd2Tokens" />
     <CaseDefault value="JainaConeOfColdIceFloesAddToken" />
@@ -1236,9 +1281,6 @@
     <Operation value="Set" />
     <Value value="0" />
   </CEffectModifyTokenCount>
-  <CEffectSet id="JainaFrostBoltFrostShardsSuicideSet">
-    <EffectArray value="JainaFrostboltFrostShardsSuicide" />
-  </CEffectSet>
   <CEffectModifyTokenCount id="JainaFrostBoltFrostShardsAddToken" parent="BaseEffectModifyTokenCount">
     <TokenId value="JainaFrostBoltFrostShardsTokenCounter" />
   </CEffectModifyTokenCount>
@@ -1291,6 +1333,41 @@
     <ValidatorArray value="JainaHasFrostbiteCompletionCarry" />
     <Behavior value="JainaIceBlockUsedCarry" />
   </CEffectApplyBehavior>
+  <CEffectSet id="JainaImprovedIceBlockCastSet">
+    <ValidatorArray value="JainaCasterDoesNotHaveImprovedIceBlockOrIceColdActive" />
+    <EffectArray value="JainaIceBlockActivateSwitch" />
+    <EffectArray value="JainaIceBlockApplyCancelCoolup" />
+  </CEffectSet>
+  <CEffectModifyUnit id="JainaIceBlockApplyCancelCoolup">
+    <ImpactUnit Value="Caster" />
+    <Cost Abil="JainaIceBlockCancel,Execute" CooldownOperation="Set">
+      <Fraction Cooldown="1" />
+    </Cost>
+  </CEffectModifyUnit>
+  <CEffectSwitch id="JainaIceBlockActivateSwitch">
+    <CaseArray Validator="HasIceColdCarry" Effect="JainaIceColdApplyBehavior" />
+    <CaseDefault value="JainaImprovedIceBlockApplyBehavior" />
+  </CEffectSwitch>
+  <CEffectApplyBehavior id="JainaImprovedIceBlockApplyBehavior">
+    <WhichUnit Value="Caster" />
+    <Behavior value="JainaImprovedIceBlock" />
+  </CEffectApplyBehavior>
+  <CEffectApplyBehavior id="JainaIceColdApplyBehavior">
+    <WhichUnit Value="Caster" />
+    <Behavior value="JainaIceCold" />
+  </CEffectApplyBehavior>
+  <CEffectSet id="JainaIceBlockRemoveBehaviorsSet">
+    <EffectArray value="JainaImprovedIceBlockRemoveBehavior" />
+    <EffectArray value="JainaImprovedIceBlockIceColdRemoveBehavior" />
+  </CEffectSet>
+  <CEffectRemoveBehavior id="JainaImprovedIceBlockRemoveBehavior">
+    <WhichUnit Value="Caster" />
+    <BehaviorLink value="JainaImprovedIceBlock" />
+  </CEffectRemoveBehavior>
+  <CEffectRemoveBehavior id="JainaImprovedIceBlockIceColdRemoveBehavior">
+    <WhichUnit Value="Caster" />
+    <BehaviorLink value="JainaIceCold" />
+  </CEffectRemoveBehavior>
   <CEffectSet id="JainaImprovedIceBlockInitialSet">
     <EffectArray value="StormStasisIceBlockInitialSet" />
     <EffectArray value="JainaIceBlockRemoveButtonFlash" />
@@ -1473,19 +1550,10 @@
     <EffectArray value="JainaFrostboltIceLanceRestoreMana" />
   </CEffectSet>
   <CEffectSet id="JainaFrostboltInitialSet">
-    <EffectArray value="JainaFrostboltRefactorLaunchMissile" />
+    <EffectArray value="JainaFrostboltLaunchMissile" />
     <EffectArray value="JainaModifyAttack" />
     <TargetLocationType value="Point" />
   </CEffectSet>
-  <CEffectCreatePersistent id="JainaFrostboltMissileScanPersistentExpander">
-    <WhichLocation Value="SourcePoint" />
-    <OffsetVectorStartLocation Value="OriginPoint" />
-    <PeriodCount value="2" />
-    <PeriodicEffectArray value="JainaFrostboltMissileScan" />
-    <PeriodicOffsetArray Y="0.4" />
-    <PeriodicOffsetArray Y="-1.2" />
-    <PeriodicPeriodArray value="0" />
-  </CEffectCreatePersistent>
   <CEffectCreatePersistent id="JainaBlizzardIceRingPersistentStormFront">
     <Flags index="RandomOffset" value="1" />
     <InitialDelay value="0.1625" />
@@ -1565,12 +1633,6 @@
     <PeriodicPeriodArray value="0" />
     <OffsetRandMode value="Shuffle" />
   </CEffectCreatePersistent>
-  <CEffectDestroyPersistent id="JainaFrostboltScanDestroyExpanderPersistent">
-    <WhichLocation Value="SourcePoint" />
-    <Effect value="JainaFrostboltMissileScanPersistentExpander" />
-    <Count value="1" />
-    <Radius value="0.5" />
-  </CEffectDestroyPersistent>
   <CEffectModifyUnit id="JainaModifyAttack">
     <ImpactUnit Value="Caster" />
     <Weapon Weapon="HeroJaina" CooldownOperation="Max" CooldownFraction="0.5" />
@@ -1659,7 +1721,7 @@
     <DamageModifierSource Value="Creator" />
   </CEffectDamage>
   <CEffectDamage id="JainaWaterElementalBlizzardDamage" parent="StormSpell">
-    <Amount value="71" />
+    <Amount value="57" />
     <DamageModifierSource Value="Creator" />
   </CEffectDamage>
   <CEffectCreatePersistent id="JainaWaterElementalBlizzardDummyPersistent">
@@ -1683,7 +1745,7 @@
     <RevealFlags index="Unfog" value="1" />
   </CEffectCreatePersistent>
   <CEffectDamage id="JainaWaterElementalConeOfColdDamage" parent="StormSpell">
-    <Amount value="110" />
+    <Amount value="88" />
     <DamageModifierSource Value="Creator" />
   </CEffectDamage>
   <CEffectDamage id="JainaWaterElementalConeOfColdDamageChilled" parent="StormSpell">
@@ -1694,10 +1756,10 @@
     <DamageModifierSource Value="Creator" />
   </CEffectDamage>
   <CEffectDamage id="JainaWaterElementalFrostboltDamage" parent="StormSpell">
-    <Amount value="92" />
+    <Amount value="74" />
     <DamageModifierSource Value="Creator" />
   </CEffectDamage>
-  <CEffectLaunchMissile id="JainaFrostboltRefactorLaunchMissile">
+  <CEffectLaunchMissile id="JainaFrostboltLaunchMissile">
     <Marker>
       <MatchFlags index="Id" value="1" />
     </Marker>
@@ -1713,9 +1775,9 @@
     </ImpactLocation>
     <LaunchEffect value="JainaFrostboltLaunchMissileSet" />
     <SharedFlags index="DynamicSearchArea" value="1" />
-    <Movers Link="JainaFrostboltRefactorMissile" />
-    <AmmoUnit value="JainaFrostboltRefactorMissile" />
-    <SearchEffect value="JainaFrostboltRefactorSearch" />
+    <Movers Link="JainaFrostboltMissile" />
+    <AmmoUnit value="JainaFrostboltMissile" />
+    <SearchEffect value="JainaFrostboltMissileSearch" />
   </CEffectLaunchMissile>
   <CEffectSet id="JainaFrostboltLaunchMissileSet">
     <EffectArray value="JainaFrostboltApplyPierceCounter" />
@@ -1724,8 +1786,8 @@
     <WhichUnit Value="Source" />
     <Behavior value="JainaFrostboltPierceCounter" />
   </CEffectApplyBehavior>
-  <CEffectEnumArea id="JainaFrostboltRefactorSearch">
-    <AreaArray MaxCount="1" Effect="JainaFrostboltRefactorImpactSet">
+  <CEffectEnumArea id="JainaFrostboltMissileSearch">
+    <AreaArray MaxCount="1" Effect="JainaFrostboltImpactSet">
       <RectangleWidth value="1" />
       <RectangleHeight value="1.6" />
     </AreaArray>
@@ -1735,16 +1797,16 @@
     </RevealerParams>
     <SearchFlags index="DoActorSearch" value="1" />
   </CEffectEnumArea>
-  <CEffectSet id="JainaFrostboltRefactorImpactSet">
+  <CEffectSet id="JainaFrostboltImpactSet">
     <EffectArray value="ApplyAbilityImpactReveal" />
     <EffectArray value="JainaFrostboltDamageSwitch" />
     <EffectArray value="JainaFrostbiteApplyChilledBehaviorSet" />
-    <EffectArray value="JainaFrostboltSuicideRefactor" />
+    <EffectArray value="JainaFrostboltSuicide" />
     <EffectArray value="JainaFrostboltReducePierceCounter" />
     <ValidatorArray value="noMarkers" />
     <ValidatorArray value="SourceNotDead" />
   </CEffectSet>
-  <CEffectDamage id="JainaFrostboltSuicideRefactor" parent="StormSuicideParent">
+  <CEffectDamage id="JainaFrostboltSuicide" parent="StormSuicideParent">
     <ValidatorArray value="JainaFrostBoltHasNoPierceLeft" />
   </CEffectDamage>
   <CEffectModifyTokenCount id="JainaFrostboltReducePierceCounter">
@@ -1752,18 +1814,6 @@
     <Value value="-1" />
     <WhichUnit Value="Source" />
   </CEffectModifyTokenCount>
-  <CEffectSwitch id="JainaFrostboltLaunchMissileSwitch">
-    <CaseArray Validator="JainaHasFostboltWintersReach" Effect="JainaFrostboltLaunchWintersReachMissile" />
-    <CaseDefault value="JainaFrostboltLaunchMissile" />
-  </CEffectSwitch>
-  <CEffectLaunchMissileAdvanced id="JainaFrostboltLaunchWintersReachMissile">
-    <ImpactLocation Value="TargetPoint" />
-    <LaunchOffset Y="-1.5" />
-    <LaunchEffect value="JainaFrostboltMissileScanPersistent" />
-    <ImpactEffect value="JainaFrostboltImpactDummy" />
-    <AmmoUnit value="JainaFrostboltWintersReachMissile" />
-    <ImpactOffset Y="1.5" />
-  </CEffectLaunchMissileAdvanced>
   <CEffectSet id="JainaIceBarrierDummy" />
   <CEffectDamage id="JainaWaterElementalFrostboltDamageChilled" parent="StormSpell">
     <MultiplicativeModifierArray index="JainaChilledBonusDamage" Validator="JainaTargetHasChilledDamageBonus" Modifier="0.5" />
@@ -1866,15 +1916,12 @@
   </CEffectSet>
   <CEffectModifyUnit id="JainaFrostboltIceLanceModifyCooldown">
     <ImpactUnit Value="Caster" />
-    <Cost Abil="JainaFrostbolt,Execute" CooldownOperation="Add" CooldownTimeUse="-1.5" />
+    <Cost Abil="JainaFrostbolt,Execute" CooldownOperation="Add" CooldownTimeUse="-2" />
   </CEffectModifyUnit>
   <CEffectCreateHealer id="JainaFrostboltIceLanceRestoreMana" parent="StormManaRestore">
     <ImpactUnit Value="Caster" />
     <RechargeVitalRate value="10" />
   </CEffectCreateHealer>
-  <CEffectDamage id="JainaFrostboltFrostShardsSuicide" parent="StormSuicideParent">
-    <ValidatorArray value="JainaHas2TokensofFrostShards" />
-  </CEffectDamage>
   <CEffectModifyPlayer id="JainaFrostbiteIceBlockResetCooldown">
     <Cost Abil="ImprovedIceBlock">
       <Cooldown>
@@ -1892,7 +1939,13 @@
   <CEffectSet id="JainaImprovedIceBlockExpirationSet">
     <EffectArray value="HeroGenericCleanseRemoveCCBehaviorCategoriesExpandedTarget" />
     <EffectArray value="JainaImprovedIceBlockExpirationChillSearch" />
+    <EffectArray value="JainaImprovedIceBlockSetCooldown" />
   </CEffectSet>
+  <CEffectModifyUnit id="JainaImprovedIceBlockSetCooldown">
+    <Cost Abil="JainaIceBlockActivate,Execute" CooldownOperation="Set">
+      <Fraction Cooldown="1" />
+    </Cost>
+  </CEffectModifyUnit>
   <CEffectCreatePersistent id="JainaCommandWaterElementalCreatePersistent">
     <WhichLocation Value="TargetUnitOrPoint" />
   </CEffectCreatePersistent>
@@ -1915,13 +1968,6 @@
     <SearchFlags index="CenterAtLaunch" value="1" />
     <SearchFlags index="OffsetAreaByAngle" value="0" />
   </CEffectEnumArea>
-  <CEffectDestroyPersistent id="JainaFrostboltFrostShardsScanDestroyPersistent">
-    <ValidatorArray value="JainaSourceHasFrostShardsImpactMarkerSource" />
-    <WhichLocation Value="SourcePoint" />
-    <Effect value="JainaFrostboltMissileScanPersistent" />
-    <Count value="1" />
-    <Radius value="0.5" />
-  </CEffectDestroyPersistent>
   <CEffectSet id="JainaHeroWeaponImpactSet">
     <EffectArray value="UniversalWeaponImpact" />
     <EffectArray value="JainaWeaponPreImpactSet" />
@@ -1969,82 +2015,6 @@
     <EffectArray value="JainaFrostbiteApplyChilledSlowBehavior" />
     <EffectArray value="AbilityImpactRevealDummyDamage" />
   </CEffectSet>
-  <CEffectCreatePersistent id="JainaFrostboltCreatePersistent">
-    <WhichLocation Value="CasterPoint" />
-    <PeriodCount value="1" />
-    <PeriodicEffectArray value="JainaFrostboltLaunchMissileSwitch" />
-    <PeriodicOffsetArray Y="-10.5" />
-  </CEffectCreatePersistent>
-  <CEffectLaunchMissileAdvanced id="JainaFrostboltLaunchMissile">
-    <ImpactLocation Value="TargetPoint" />
-    <LaunchOffset Y="-1.5" />
-    <LaunchEffect value="JainaFrostboltMissileScanPersistent" />
-    <ImpactEffect value="JainaFrostboltImpactDummy" />
-    <AmmoUnit value="JainaFrostboltMissile" />
-    <ImpactOffset Y="1.5" />
-  </CEffectLaunchMissileAdvanced>
-  <CEffectSet id="JainaFrostboltImpactDummy">
-    <EffectArray value="JainaFrostboltScanDestroyPersistent" />
-    <EffectArray value="StormSuicide" />
-  </CEffectSet>
-  <CEffectEnumArea id="JainaFrostboltInitialMissileScan">
-    <LaunchLocation Effect="JainaFrostboltCreatePersistent" Value="OriginPoint" />
-    <SearchFilters value="-;Player,Ally,Neutral,ImmuneToSkillshots,Missile,Item,Stasis,Dead,Hidden,Invulnerable" />
-    <AreaArray MaxCount="1" Effect="JainaFrostboltImpactSet">
-      <RectangleWidth value="1" />
-      <RectangleHeight value="2.5" />
-    </AreaArray>
-    <RevealerParams Duration="0.5" ShapeExpansion="1">
-      <RevealFlags index="Unfog" value="1" />
-    </RevealerParams>
-  </CEffectEnumArea>
-  <CEffectCreatePersistent id="JainaFrostboltMissileScanPersistent">
-    <Marker>
-      <MatchFlags index="Id" value="1" />
-    </Marker>
-    <WhichLocation Value="SourceUnit" />
-    <PeriodicEffectArray value="JainaFrostboltInitialMissileScan" />
-    <PeriodicEffectArray value="JainaFrostboltMissileScanPersistentExpander" />
-    <PeriodicEffectArray value="JainaFrostboltMissileScanPersistentExpander" />
-    <PeriodicEffectArray value="JainaFrostboltMissileScanPersistentExpander" />
-    <PeriodicEffectArray value="JainaFrostboltMissileScanPersistentExpander" />
-    <PeriodicEffectArray value="JainaFrostboltMissileScanPersistentExpander" />
-    <PeriodicEffectArray value="JainaFrostboltMissileScanPersistentExpander" />
-    <PeriodicEffectArray value="JainaFrostboltMissileScanPersistentExpander" />
-    <PeriodicEffectArray value="JainaFrostboltMissileScanPersistentExpander" />
-    <PeriodicEffectArray value="JainaFrostboltMissileScanPersistentExpander" />
-    <PeriodicEffectArray value="JainaFrostboltMissileScanPersistentExpander" />
-    <PeriodicEffectArray value="JainaFrostboltMissileScanPersistentExpander" />
-    <PeriodicEffectArray value="JainaFrostboltMissileScanPersistentExpander" />
-    <PeriodicEffectArray value="JainaFrostboltMissileScanPersistentExpander" />
-    <PeriodicEffectArray value="JainaFrostboltMissileScanPersistentExpander" />
-    <PeriodicEffectArray value="JainaFrostboltMissileScanPersistentExpander" />
-    <PeriodicPeriodArray value="0.0625" />
-    <InitialOffset Y="-2.25" />
-    <PeriodCount value="16" />
-  </CEffectCreatePersistent>
-  <CEffectEnumArea id="JainaFrostboltMissileScan">
-    <LaunchLocation Effect="JainaFrostboltCreatePersistent" Value="OriginPoint" />
-    <SearchFilters value="-;Player,Ally,Neutral,ImmuneToSkillshots,Missile,Item,Stasis,Dead,Hidden,Invulnerable" />
-    <AreaArray MaxCount="1" Effect="JainaFrostboltImpactSet">
-      <RectangleWidth value="1" />
-      <RectangleHeight value="1.6" />
-    </AreaArray>
-    <RevealerParams Duration="0.5" ShapeExpansion="1">
-      <RevealFlags index="Unfog" value="1" />
-    </RevealerParams>
-  </CEffectEnumArea>
-  <CEffectSet id="JainaFrostboltImpactSet">
-    <EffectArray value="JainaFrostboltDamageSwitch" />
-    <EffectArray value="JainaFrostboltScanDestroyPersistent" />
-    <EffectArray value="JainaFrostboltScanDestroyExpanderPersistent" />
-    <EffectArray value="JainaFrostboltFrostShardsScanDestroyPersistent" />
-    <EffectArray value="JainaFrostbiteApplyChilledBehaviorSet" />
-    <EffectArray value="JainaFrostboltSuicide" />
-    <EffectArray value="JainaFrostBoltFrostShardsSuicideSet" />
-    <EffectArray value="JainaFrostBoltFrostShardsAddToken" />
-    <ValidatorArray value="noMarkers" />
-  </CEffectSet>
   <CEffectCreatePersistent id="JainaBlizzardBasePersistent">
     <Marker>
       <MatchFlags index="Id" value="1" />
@@ -2066,12 +2036,6 @@
       <Flags index="HurtsEnemy" value="1" />
     </AINotifySettings>
   </CEffectCreatePersistent>
-  <CEffectDestroyPersistent id="JainaFrostboltScanDestroyPersistent">
-    <WhichLocation Value="SourcePoint" />
-    <Effect value="JainaFrostboltMissileScanPersistent" />
-    <Count value="1" />
-    <Radius value="0.5" />
-  </CEffectDestroyPersistent>
   <CEffectSwitch id="JainaFrostboltDamageSwitch">
     <CaseArray Validator="WaterElementalChilledCombine" Effect="JainaWaterElementalFrostboltDamageChilled" />
     <CaseArray Validator="WaterElementalNotChilledCombine" Effect="JainaWaterElementalFrostboltDamage" />
@@ -2245,7 +2209,6 @@
   <CEffectApplyBehavior id="JainaSummonWaterElementalApplyBehavior">
     <Behavior value="JainaWaterElementalTimedLife" />
   </CEffectApplyBehavior>
-  <CEffectDamage id="JainaFrostboltSuicide" parent="StormSuicideParent" />
   <CEffectSet id="JainaRingOfFrostChilledDamageSet">
     <EffectArray value="JainaRingOfFrostImpactDamageChilled" />
     <EffectArray value="JainaArcaneIntellectAbilityDamageManaRestore" />
@@ -2627,6 +2590,13 @@
         <AffectedByOverdrive value="1" />
       </Modifications>
       <Modifications>
+        <Catalog value="Unit" />
+        <Entry value="JainaWaterElemental" />
+        <Field value="LifeRegenRate" />
+        <Value value="0.040000" />
+        <AffectedByOverdrive value="1" />
+      </Modifications>
+      <Modifications>
         <Catalog value="Effect" />
         <Entry value="JainaWaterElementalWeaponDamage" />
         <Field value="Amount" />
@@ -2861,33 +2831,11 @@
     <Model value="Assets\Effects\Storm_FX_Jaina_Base_FrigidTransmission_Out\Storm_FX_Jaina_Base_FrigidTransmission_Out.m3" />
     <Priority value="16" />
   </CModel>
-  <CMoverMissile id="JainaFrostboltWintersReachMissile">
-    <MotionPhases>
-      <Driver value="Guidance" />
-      <Speed value="19.5" />
-      <MaxSpeed value="19.5" />
-      <IgnoresClearanceChecks value="1" />
-      <ThrowBandYaw value="-360,-360,-360,-360" />
-      <ThrowBandPitch value="-360,-360,-360,-360" />
-      <YawPitchRoll value="5759.6484" />
-    </MotionPhases>
-  </CMoverMissile>
   <CMoverMissile id="JainaIceLanceVolleyMissile">
     <MotionPhases>
       <Driver value="Guidance" />
       <Speed value="26" />
       <MaxSpeed value="26" />
-      <IgnoresClearanceChecks value="1" />
-      <ThrowBandYaw value="-360,-360,-360,-360" />
-      <ThrowBandPitch value="-360,-360,-360,-360" />
-      <YawPitchRoll value="5759.6484" />
-    </MotionPhases>
-  </CMoverMissile>
-  <CMoverMissile id="JainaFrostboltMissile">
-    <MotionPhases>
-      <Driver value="Guidance" />
-      <Speed value="15" />
-      <MaxSpeed value="15" />
       <IgnoresClearanceChecks value="1" />
       <ThrowBandYaw value="-360,-360,-360,-360" />
       <ThrowBandPitch value="-360,-360,-360,-360" />
@@ -2914,7 +2862,7 @@
       <YawPitchRoll value="5759.6484" />
     </MotionPhases>
   </CMoverMissile>
-  <CMoverMissile id="JainaFrostboltRefactorMissile">
+  <CMoverMissile id="JainaFrostboltMissile">
     <MotionPhases>
       <Driver value="Guidance" />
       <Speed value="15" />
@@ -2925,7 +2873,7 @@
       <YawPitchRoll value="5759.6484" />
     </MotionPhases>
   </CMoverMissile>
-  <CMoverMissile id="JainaFrostboltRefactorWintersReachMissile">
+  <CMoverMissile id="JainaFrostboltWintersReachMissile">
     <MotionPhases>
       <Driver value="Guidance" />
       <Speed value="19.5" />
@@ -3286,7 +3234,7 @@
       <Modifications>
         <Type value="FlatModification" />
         <Catalog value="Effect" />
-        <Entry value="JainaFrostboltRefactorSearch" />
+        <Entry value="JainaFrostboltMissileSearch" />
         <Field value="AreaArray[0].MaxCount" />
         <FieldIsInteger value="1" />
         <Value value="2.000000" />
@@ -3309,17 +3257,10 @@
     <AbilityModificationArray>
       <Modifications>
         <Type value="FlatModification" />
-        <Catalog value="Effect" />
-        <Entry value="JainaFrostboltCreatePersistent" />
-        <Field value="PeriodicOffsetArray[0]" />
-        <Value value="-3.000000" />
-      </Modifications>
-      <Modifications>
-        <Type value="FlatModification" />
         <Catalog value="Actor" />
         <Entry value="JainaFrostboltGuide" />
         <Field value="Height" />
-        <Value value="3.000000" />
+        <Value value="3.150000" />
       </Modifications>
       <Modifications>
         <Type value="FlatModification" />
@@ -3329,22 +3270,15 @@
         <Value value="3.000000" />
       </Modifications>
       <Modifications>
-        <Type value="FlatModification" />
-        <Catalog value="Effect" />
-        <Entry value="JainaFrostboltMissileScan" />
-        <Field value="AreaArray[0].RectangleHeight" />
-        <Value value="0.400000" />
-      </Modifications>
-      <Modifications>
         <Type value="CatalogReplacement" />
         <Catalog value="Mover" />
-        <Entry value="JainaFrostboltRefactorMissile" />
-        <StringReplacement value="JainaFrostboltRefactorWintersReachMissile" />
+        <Entry value="JainaFrostboltMissile" />
+        <StringReplacement value="JainaFrostboltWintersReachMissile" />
       </Modifications>
       <Modifications>
         <Type value="FlatModification" />
         <Catalog value="Effect" />
-        <Entry value="JainaFrostboltRefactorLaunchMissile" />
+        <Entry value="JainaFrostboltLaunchMissile" />
         <Field value="ImpactLocation.ProjectionDistanceScale" />
         <Value value="3.150000" />
       </Modifications>
@@ -3497,8 +3431,6 @@
     <EffectArray index="Death" value="JainaIceBlockApplyUsedCarry" />
   </CUnit>
   <CUnit id="JainaFrostboltMissile" parent="MISSILE_INVULNERABLE" />
-  <CUnit id="JainaFrostboltWintersReachMissile" parent="MISSILE_INVULNERABLE" />
-  <CUnit id="JainaFrostboltRefactorMissile" parent="MISSILE_INVULNERABLE" />
   <CUnit id="JainaAttackMissile" parent="MISSILE_INVULNERABLE">
     <Mover value="JainaAttackMissileMover" />
   </CUnit>
@@ -3507,9 +3439,8 @@
   </CUnit>
   <CUnit id="JainaWaterElemental" parent="StormSummonActive">
     <FlagArray index="AIForceTactical" value="1" />
-    <LifeStart value="958" />
-    <LifeMax value="958" />
-    <LifeRegenDelay value="2" />
+    <LifeStart value="$JainaWaterElementalHealth" />
+    <LifeMax value="$JainaWaterElementalHealth" />
     <Speed value="5.1992" />
     <Sight value="7" />
     <AbilArray Link="stop" />
@@ -3540,7 +3471,21 @@
     <SubgroupPriority value="14" />
     <OverlapIndex value="Hero" />
     <AcquireLeashRadius value="15" />
+    <LifeRegenRate value="-$JainaWaterElementalLifeDecayRate" />
   </CUnit>
+  <CValidatorUnitCompareTokenCount id="JainaNotHas30000FrostbiteTokens">
+    <Compare value="LT" />
+    <Value value="30000" />
+    <TokenId value="JainaFrostbiteTokenCounter" />
+  </CValidatorUnitCompareTokenCount>
+  <CValidatorUnitCompareBehaviorCount id="NotHaveIceColdCarry">
+    <Compare value="LE" />
+    <Behavior value="IceColdCarryBehavior" />
+  </CValidatorUnitCompareBehaviorCount>
+  <CValidatorUnitCompareBehaviorCount id="HasIceColdCarry">
+    <Compare value="GT" />
+    <Behavior value="IceColdCarryBehavior" />
+  </CValidatorUnitCompareBehaviorCount>
   <CValidatorUnitCompareTokenCount id="JainaHas2TokensofFrostShards">
     <Value value="2" />
     <TokenId value="JainaFrostBoltFrostShardsTokenCounter" />
@@ -3621,9 +3566,9 @@
     <CombineArray value="JainaTargetHasChilledDamageBonus" />
     <CombineArray value="TargetIsHero" />
   </CValidatorCombine>
-  <CValidatorUnitCompareTokenCount id="JainaHasLT15000FrostbiteTokens">
-    <Compare value="LT" />
-    <Value value="15000" />
+  <CValidatorUnitCompareTokenCount id="JainaHas30000FrostbiteTokens">
+    <Compare value="GE" />
+    <Value value="30000" />
     <TokenId value="JainaFrostbiteTokenCounter" />
   </CValidatorUnitCompareTokenCount>
   <CValidatorPlayerTalent id="SourceHasJainaFrostArmor">
@@ -3693,6 +3638,29 @@
   <CValidatorUnitCompareBehaviorCount id="JainaTargetHasImprovedIceBlockActive">
     <Value value="1" />
     <Behavior value="JainaImprovedIceBlock" />
+  </CValidatorUnitCompareBehaviorCount>
+  <CValidatorUnitCompareBehaviorCount id="JainaCasterHasImprovedIceBlockActive">
+    <WhichUnit Value="Caster" />
+    <Value value="1" />
+    <Behavior value="JainaImprovedIceBlock" />
+  </CValidatorUnitCompareBehaviorCount>
+  <CValidatorUnitCompareBehaviorCount id="JainaCasterHasIceColdActive">
+    <WhichUnit Value="Caster" />
+    <Value value="1" />
+    <Behavior value="JainaIceCold" />
+  </CValidatorUnitCompareBehaviorCount>
+  <CValidatorCombine id="JainaCasterDoesNotHaveImprovedIceBlockOrIceColdActive">
+    <Type value="And" />
+    <CombineArray value="JainaCasterDoesNotHaveImprovedIceBlockActive" />
+    <CombineArray value="JainaCasterDoesNotHaveIceColdActive" />
+  </CValidatorCombine>
+  <CValidatorUnitCompareBehaviorCount id="JainaCasterDoesNotHaveImprovedIceBlockActive">
+    <WhichUnit Value="Caster" />
+    <Behavior value="JainaImprovedIceBlock" />
+  </CValidatorUnitCompareBehaviorCount>
+  <CValidatorUnitCompareBehaviorCount id="JainaCasterDoesNotHaveIceColdActive">
+    <WhichUnit Value="Caster" />
+    <Behavior value="JainaIceCold" />
   </CValidatorUnitCompareBehaviorCount>
   <CValidatorCombine id="JainaHasRingOfFrostColdSnapRootCombine">
     <Type value="And" />

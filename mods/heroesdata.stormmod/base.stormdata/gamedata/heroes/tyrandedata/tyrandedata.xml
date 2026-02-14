@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="us-ascii"?>
 <Catalog>
+  <const id="$TyrandeLunarFlareRange" value="10.5" />
   <const id="$TyrandeHuntersMarkRange" value="6.5" />
+  <const id="$TyrandeLunarBlazeRangeModifier" value="0.3" />
+  <const id="$TyrandeLunarBlazeRangeIncrease" value="*($TyrandeLunarFlareRange $TyrandeLunarBlazeRangeModifier)" evaluateAsExpression="1" />
   <const id="$TyrandeHuntressFuryRangeModifier" value="0.25" />
   <const id="$TyrandeHuntressFuryRangeIncrease" value="*($TyrandeHuntersMarkRange $TyrandeHuntressFuryRangeModifier)" evaluateAsExpression="1" />
   <CAbilEffectTarget id="TyrandeHuntersMark">
@@ -37,7 +40,7 @@
     <Flags index="ClearLastMoveTarget" value="1" />
     <Flags index="RequireTargetVision" value="0" />
     <Cost>
-      <Vital index="Energy" value="75" />
+      <Vital index="Energy" value="85" />
       <Cooldown TimeUse="80" />
     </Cost>
     <Range value="9" />
@@ -65,8 +68,15 @@
     <Flags index="RequireTargetVision" value="0" />
     <Flags index="TargetVectorLock" value="1" />
     <Cost>
-      <Vital index="Energy" value="50" />
-      <Cooldown TimeUse="15" />
+      <Vital index="Energy" value="55" />
+      <Charge>
+        <CountMax value="1" />
+        <CountStart value="1" />
+        <CountUse value="1" />
+        <HideCount value="1" />
+        <TimeUse value="15" />
+      </Charge>
+      <Cooldown TimeUse="0.5" />
     </Cost>
     <Range value="500" />
     <CursorEffect value="SentinelShotMissileSearch" />
@@ -84,7 +94,7 @@
   <CAbilEffectInstant id="TyrandeShadowstalk">
     <Effect value="TyrandeShadowstalkEnumerateTrackedUnits" />
     <Cost>
-      <Vital index="Energy" value="75" />
+      <Vital index="Energy" value="85" />
       <Cooldown TimeUse="90" />
     </Cost>
     <CmdButtonArray index="Execute" DefaultButtonFace="TyrandeShadowstalk" Requirements="Ultimate1Unlocked" />
@@ -116,12 +126,13 @@
   <CAbilEffectTarget id="TyrandeLunarFlare">
     <Effect value="LunarFlareInitialPersistent" />
     <Flags index="ClearLastMoveTarget" value="1" />
+    <Flags index="RangeUseCasterRadius" value="0" />
     <Flags index="RequireTargetVision" value="0" />
     <Cost>
-      <Vital index="Energy" value="60" />
+      <Vital index="Energy" value="65" />
       <Cooldown TimeUse="13" />
     </Cost>
-    <Range value="10" />
+    <Range value="$TyrandeLunarFlareRange" />
     <RangeSlop value="5" />
     <CastIntroTime value="0.1" />
     <CursorEffect value="LunarFlareImpactSearchArea" />
@@ -151,7 +162,7 @@
   <CAccumulatorToken id="TyrandeLunarFlareLunarBlazeDamageAccumulator" parent="BaseAccumulator">
     <ApplicationRule value="Add" />
     <TokenId value="TyrandeLunarFlareLunarBlazeTokenCounter" />
-    <Scale value="0.05" />
+    <Scale value="0.04" />
   </CAccumulatorToken>
   <CAccumulatorDistanceUnitTraveled id="TyrandeSentinelShotRangerAccumulator" parent="BaseAccumulator">
     <MaxAccumulation value="2.5" />
@@ -439,7 +450,7 @@
     <Scale value="7.750000" />
   </CActorSplat>
   <CActorSplat id="TyrandeLunarFlareRangeSplat" parent="StormRangeSplat">
-    <Scale value="10.312500" />
+    <Scale value="$TyrandeLunarFlareRange" />
   </CActorSplat>
   <CActorSound id="TyrandeLunarFlareFlybySound" parent="SoundContinuous">
     <Sound value="Tyrande_SearingArrow_FlyBy" />
@@ -660,6 +671,19 @@
     <On Terms="Effect.TyrandeHeroWeaponHuntressFuryTalentMissileImpactSet.Start; At Target" Send="Create" />
     <Sound value="Tyrande_HuntressFury_AttackImpact" />
   </CActorSound>
+  <CBehaviorBuff id="TyrandeSpellPowerBuff" parent="StormDamageIncrease">
+    <Face value="TyrandeSpellPowerBuff" />
+    <Alignment value="Positive" />
+    <InfoFlags index="Hidden" value="0" />
+    <BehaviorCategories index="BuffAbilityPower" value="1" />
+    <Duration value="10" />
+    <Modification>
+      <HealDealtAdditiveMultiplier index="Life" value="0.2" />
+      <HealDealtAdditiveMultiplier index="Shields" value="0.2" />
+      <DamageDealtFraction index="Ability" value="0.2" />
+    </Modification>
+    <DisplayDuration index="Self" value="1" />
+  </CBehaviorBuff>
   <CBehaviorBuff id="TyrandeSentinelShotFirstHeroHitDummyBehavior">
     <BehaviorFlags index="EnabledWhileDead" value="1" />
   </CBehaviorBuff>
@@ -704,7 +728,16 @@
   </CBehaviorUnitTracker>
   <CBehaviorTokenCounter id="TyrandeLunarFlareLunarBlazeTokenCounter" parent="StormQuestToken">
     <Face value="TyrandeLunarFlareLunarBlazeTalentToken" />
-    <Max value="30" />
+    <Max value="45" />
+    <ConditionalEvents Compare="GE" CompareValue="10">
+      <Event EventId="QuestMilestone" Effect="LunarFlareQuestRangeUpgrade" />
+    </ConditionalEvents>
+    <ConditionalEvents Compare="GE" CompareValue="20">
+      <Event EventId="QuestMilestone" Effect="LunarFlareQuestPierceUpgrade" />
+    </ConditionalEvents>
+    <AtMinEvents index="0" EventId="QuestReset" Effect="LunarFlareQuestReset" />
+    <AtMaxEvents index="0" EventId="QuestComplete" Effect="TyrandeQuestCompletionSet" />
+    <InitEvents Effect="LunarFlareQuestReset" />
   </CBehaviorTokenCounter>
   <CBehaviorBuff id="TyrandeLightOfEluneQuickeningBlessingSelfMovespeed" parent="CarryBehaviorParent">
     <BehaviorCategories index="Fast" value="1" />
@@ -955,6 +988,13 @@
     </ArmorModification>
     <InitialEffect value="TyrandeHuntersMarkApplyHuntressFuryBehavior" />
   </CBehaviorBuff>
+  <CButton id="ElunesFury" parent="StormButtonParent">
+    <Icon value="Assets\Textures\storm_ui_icon_tyrande_lunarflare.dds" />
+    <HotkeyAlias value="TyrandeSentinelEmpowerTalent" />
+  </CButton>
+  <CButton id="TyrandeSpellPowerBuff" parent="StormButtonParent">
+    <Icon value="Assets\Textures\storm_ui_icon_tyrande_lunarflare.dds" />
+  </CButton>
   <CButton id="TyrandeDarnassianArcheryBuffBar" parent="StormButtonParent">
     <Icon value="Assets\Textures\storm_ui_icon_talent_autoattack_damage.dds" />
     <HotkeyAlias value="TyrandeDarnassianArchery" />
@@ -983,7 +1023,7 @@
     <Icon value="Assets\Textures\storm_ui_icon_tyrande_shadowstalk.dds" />
   </CButton>
   <CButton id="TyrandeShootingStarTalentToken" parent="StormButtonParent">
-    <Icon value="Assets\Textures\storm_ui_icon_talent_autoattack_range.dds" />
+    <Icon value="Assets\Textures\storm_ui_icon_tyrande_lunarflare.dds" />
     <HotkeyAlias value="TyrandeSentinelPierceToken" />
   </CButton>
   <CButton id="TyrandeShootingStar" parent="StormButtonParent">
@@ -1022,7 +1062,10 @@
     <Icon value="Assets\Textures\storm_ui_icon_talent_autoattack_slow.dds" />
   </CButton>
   <CButton id="TyrandeLunarFlareShootingStarTalent" parent="StormButtonParent">
-    <Icon value="Assets\Textures\storm_ui_icon_tyrande_lunarflare.dds" />
+    <Icon value="Assets\Textures\storm_ui_icon_tyrande_sentinel.dds" />
+  </CButton>
+  <CButton id="TyrandeCommanderofSentinels" parent="StormButtonParent">
+    <Icon value="Assets\Textures\storm_ui_icon_tyrande_sentinel.dds" />
   </CButton>
   <CButton id="TyrandeSentinelEmpowerTalent" parent="StormButtonParent">
     <Icon value="Assets\Textures\storm_ui_icon_tyrande_sentinel.dds" />
@@ -1040,10 +1083,12 @@
     <Icon value="Assets\Textures\storm_ui_icon_tyrande_lunarflare.dds" />
   </CButton>
   <CButton id="TyrandeSentinel" parent="StormButtonParent">
+    <TooltipCooldownOverrideText value="Button/CooldownOverride/TyrandeSentinel" />
     <Icon value="Assets\Textures\storm_ui_icon_tyrande_sentinel.dds" />
     <TooltipAppender Validator="HasTyrandeSentinelRanger" Face="TyrandeSentinelRangerTalent" />
     <TooltipAppender Validator="TyrandeHasHarshMoonlightTalent" Face="TyrandeHarshMoonlight" />
     <TooltipAppender Validator="TyrandeHasEmpowerTalent" Face="TyrandeSentinelEmpowerTalent" />
+    <TooltipAppender Validator="TyrandeHasCommanderofSentinelsTalent" Face="TyrandeCommanderofSentinels" />
   </CButton>
   <CButton id="TyrandeShadowstalk" parent="StormButtonParent">
     <Icon value="Assets\Textures\storm_ui_icon_tyrande_shadowstalk.dds" />
@@ -1078,6 +1123,45 @@
     <Variations Model="TyrandePortrait" Actor="TyrandePortrait" />
     <Unit value="HeroTyrande" />
   </CCharacter>
+  <CEffectCreateHealer id="LunarFlareRestoreMana" parent="StormManaRestore">
+    <ImpactUnit Value="Caster" />
+    <RechargeVitalRate value="25" />
+  </CEffectCreateHealer>
+  <CEffectApplyBehavior id="LunarBlazeApplySpellPower">
+    <WhichUnit Value="Caster" />
+    <Behavior value="TyrandeSpellPowerBuff" />
+    <ValidatorArray index="0" value="TargetIsHeroNotSummoned" />
+    <Chance value="0" />
+  </CEffectApplyBehavior>
+  <CEffectApplyBehavior id="LunarFlareShootingStarQuestCompleteApplyBehavior">
+    <WhichUnit Value="Caster" />
+    <Behavior value="TyrandeShootingStarTalentTokenCounter" />
+  </CEffectApplyBehavior>
+  <CEffectSet id="TyrandeQuestCompletionSet">
+    <Marker Link="Effect/QuestShootingStarModifyPlayer" />
+    <EffectArray value="LunarFlareShootingStarQuestCompleteApplyBehavior" />
+    <EffectArray value="QuestShootingStarModifyPlayer" />
+  </CEffectSet>
+  <CEffectModifyPlayer id="LunarFlareQuestRangeUpgrade">
+    <EffectArray Reference="Abil,TyrandeLunarFlare,Range" Value="$TyrandeLunarBlazeRangeIncrease" />
+    <EffectArray Reference="Actor,TyrandeLunarFlareRangeSplat,Scale" Value="$TyrandeLunarBlazeRangeIncrease" />
+    <EffectArray Reference="Effect,TyrandeShootingStarProcSearch,AreaArray[0].Radius" Value="$TyrandeLunarBlazeRangeIncrease" />
+  </CEffectModifyPlayer>
+  <CEffectModifyPlayer id="LunarFlareQuestPierceUpgrade">
+    <EffectArray Reference="Effect,SentinelShotMissileSearch,AreaArray[0].MaxCount" Value="1" />
+  </CEffectModifyPlayer>
+  <CEffectModifyPlayer id="QuestShootingStarModifyPlayer">
+    <EffectArray Operation="Set" Reference="Effect,LunarFlareShootingStarApplyBehaviorCounter,Chance" Value="1" />
+    <EffectArray Operation="Set" Reference="Effect,LunarFlareShootingStarSet,Chance" Value="1" />
+  </CEffectModifyPlayer>
+  <CEffectModifyPlayer id="LunarFlareQuestReset">
+    <EffectArray Operation="Set" Reference="Abil,TyrandeLunarFlare,Range" Value="$TyrandeLunarFlareRange" />
+    <EffectArray Operation="Set" Reference="Actor,TyrandeLunarFlareRangeSplat,Scale" Value="$TyrandeLunarFlareRange" />
+    <EffectArray Operation="Set" Reference="Effect,TyrandeShootingStarProcSearch,AreaArray[0].Radius" Value="$TyrandeLunarFlareRange" />
+    <EffectArray Operation="Set" Reference="Effect,SentinelShotMissileSearch,AreaArray[0].MaxCount" Value="1" />
+    <EffectArray Operation="Set" Reference="Effect,LunarFlareShootingStarApplyBehaviorCounter,Chance" Value="0" />
+    <EffectArray Operation="Set" Reference="Effect,LunarFlareShootingStarSet,Chance" Value="0" />
+  </CEffectModifyPlayer>
   <CEffectSwitch id="TyrandeBasicAttackSelfHealSwitch">
     <ValidatorArray value="CasterNotBlindedAndTargetNotEvading" />
     <CaseArray Validator="TyrandeTargetHasHuntersMark" Effect="TyrandeHuntersMarkMarkedHeal" />
@@ -1336,12 +1420,12 @@
   <CEffectModifyUnit id="TyrandeSentinelSetCooldown">
     <ValidatorArray value="SourceNotHallucination" />
     <ImpactUnit Value="Caster" />
-    <Cost Abil="TyrandeSentinelShot,Execute" ChargeTimeUse="-1.5" CooldownOperation="Set" />
+    <Cost Abil="TyrandeSentinelShot,Execute" ChargeCountUse="-1" CooldownOperation="Add" />
   </CEffectModifyUnit>
   <CEffectModifyUnit id="TyrandeLightofEluneMoonlitArrowsTalentModifyCooldown">
     <ValidatorArray value="CasterNotBlindedAndTargetNotEvading" />
     <ImpactUnit Value="Caster" />
-    <Cost Abil="TyrandeLightofElune,Execute" ChargeTimeUse="-2.25" CooldownOperation="Add" />
+    <Cost Abil="TyrandeLightofElune,Execute" ChargeTimeUse="-2" CooldownOperation="Add" />
   </CEffectModifyUnit>
   <CEffectSwitch id="TyrandeLightofEluneModifyCooldownSwitch">
     <ValidatorArray value="CasterNotBlindedAndTargetNotEvading" />
@@ -1383,7 +1467,7 @@
   <CEffectApplyBehavior id="TyrandeSentinelApplyPierceBuff">
     <WhichUnit Value="Source" />
     <Behavior value="TyrandeSentinelPierceBuff" />
-    <ValidatorArray index="0" value="HasTyrandeSentinelRanger" />
+    <ValidatorArray index="0" value="HasPierceQuestComplete" />
   </CEffectApplyBehavior>
   <CEffectRemoveBehavior id="TyrandeSentinelRemovePierceBuff">
     <WhichUnit Value="Source" />
@@ -1403,7 +1487,7 @@
   </CEffectCancelOrder>
   <CEffectModifyTokenCount id="TyrandeShootingStarModifyTokenCount" parent="BaseEffectModifyTokenCount">
     <ValidatorArray value="CasterNotBlindedAndTargetNotEvading" />
-    <ValidatorArray value="TyrandeHasShootingStarTalent" />
+    <ValidatorArray value="HasShootingStarQuestComplete" />
     <TokenId value="TyrandeShootingStarTalentTokenCounter" />
   </CEffectModifyTokenCount>
   <CEffectEnumArea id="TyrandeShootingStarProcSearch">
@@ -1413,7 +1497,7 @@
       <SortArray value="TSRandom" />
     </TargetSorts>
     <AreaArray MaxCount="1" Effect="LunarFlareInitialPersistent">
-      <Radius value="10" />
+      <Radius value="$TyrandeLunarFlareRange" />
     </AreaArray>
   </CEffectEnumArea>
   <CEffectSet id="TyrandeShootingStarProcSet">
@@ -1741,7 +1825,7 @@
     <EffectArray value="TyrandeIcebladeArrowsSwitch" />
   </CEffectSet>
   <CEffectEnumArea id="TrueshotBowAuraSearch">
-    <SearchFilters value="Heroic;Player,Neutral,Enemy,NoMinionAggro,Structure,ImmuneToFriendlyAbilities,Worker,Missile,Item,Stasis,Dead,Hidden,Summoned" />
+    <SearchFilters value="Heroic;Neutral,Enemy,NoMinionAggro,Structure,ImmuneToFriendlyAbilities,Worker,Missile,Item,Stasis,Dead,Hidden,Summoned" />
     <AreaArray Effect="TrueshotBowAuraApplyBehavior">
       <Radius value="7" />
     </AreaArray>
@@ -1781,11 +1865,13 @@
     <EffectArray value="TyrandeLightofEluneAbilityModifyCooldown" />
     <EffectArray value="LunarFlareShootingStarSet" />
     <EffectArray value="TyrandeLunarFlareLunarBlazeAddToken" />
+    <EffectArray value="LunarBlazeApplySpellPower" />
+    <EffectArray value="LunarFlareRestoreMana" />
     <EffectArray value="CameraShakeLightTauntingTotemSet" />
   </CEffectSet>
   <CEffectDamage id="LunarFlareDamage" parent="StormSpell">
     <Amount value="150" />
-    <MultiplicativeModifierArray index="LunarBlaze" Validator="HasTyrandeLunarFlareLunarBlaze" Accumulator="TyrandeLunarFlareLunarBlazeDamageAccumulator" />
+    <MultiplicativeModifierArray index="LunarBlaze" Accumulator="TyrandeLunarFlareLunarBlazeDamageAccumulator" />
   </CEffectDamage>
   <CEffectApplyBehavior id="StarfallApplySlow">
     <Behavior value="StarfallSlow" />
@@ -1840,6 +1926,7 @@
     </HeroAbilArray>
     <HeroAbilArray Abil="TyrandeSentinelShot" Button="TyrandeSentinel">
       <Flags index="ShowInHeroSelect" value="1" />
+      <Flags index="UsesCharges" value="1" />
       <Flags index="AffectedByCooldownReduction" value="1" />
     </HeroAbilArray>
     <HeroAbilArray Abil="TyrandeLunarFlare" Button="TyrandeLunarFlare">
@@ -1890,12 +1977,12 @@
     <VOArray index="VOPing_OnMyWay" value="Tyrande_VOPing_OnMyWay" />
     <VOArray index="VOPing_Retreat" value="Tyrande_VOPing_Retreat" />
     <TalentTreeArray Talent="TyrandeRanger" Tier="1" Column="1" />
-    <TalentTreeArray Talent="TyrandeMasteryLunarBlaze" Tier="1" Column="2" />
+    <TalentTreeArray Talent="TyrandeMoonlitArrows" Tier="1" Column="2" />
     <TalentTreeArray Talent="TyrandeTrueshotAura" Tier="1" Column="3" />
     <TalentTreeArray Talent="TyrandeLightOfEluneEverlastingLight" Tier="2" Column="1" />
     <TalentTreeArray Talent="TyrandeMarkofMending" Tier="2" Column="2" />
     <TalentTreeArray Talent="TyrandeElunesChosen" Tier="2" Column="3" />
-    <TalentTreeArray Talent="TyrandeMoonlitArrows" Tier="3" Column="1" />
+    <TalentTreeArray Talent="ElunesGift" Tier="3" Column="1" />
     <TalentTreeArray Talent="TyrandeKaldoreiResistance" Tier="3" Column="2" />
     <TalentTreeArray Talent="TyrandeHuntressFury" Tier="3" Column="3" />
     <TalentTreeArray Talent="TyrandeHeroicAbilityShadowstalk" Tier="4" Column="1" />
@@ -1912,7 +1999,7 @@
     <TalentTreeArray Talent="TyrandeMasteryStarfallCelestialWrath" Tier="7" Column="2">
       <PrerequisiteTalentArray value="TyrandeHeroicAbilityStarfall" />
     </TalentTreeArray>
-    <TalentTreeArray Talent="TyrandeShootingStar" Tier="7" Column="3" />
+    <TalentTreeArray Talent="TyrandeCommanderofSentinels" Tier="7" Column="3" />
     <TalentTreeArray Talent="TyrandeIcebladeArrows" Tier="7" Column="4" />
     <VariationIcon value="Assets\Textures\UI_Glues_Swatch_Blue_Green.dds" />
     <Difficulty value="Hard" />
@@ -2027,10 +2114,10 @@
       <TalentsArray value="TyrandeHeroicAbilityShadowstalk" />
       <TalentsArray value="TyrandeHarshMoonlight" />
       <TalentsArray value="TyrandeEmpower" />
-      <TalentsArray value="TyrandeShootingStar" />
+      <TalentsArray value="TyrandeCommanderofSentinels" />
     </TalentAIBuildsArray>
     <TalentAIBuildsArray ChanceToPick="16">
-      <TalentsArray value="TyrandeMasteryLunarBlaze" />
+      <TalentsArray value="TyrandeMoonlitArrows" />
       <TalentsArray value="TyrandeLightOfEluneEverlastingLight" />
       <TalentsArray value="TyrandeKaldoreiResistance" />
       <TalentsArray value="TyrandeHeroicAbilityStarfall" />
@@ -2050,23 +2137,23 @@
     <TalentAIBuildsArray ChanceToPick="16">
       <TalentsArray value="TyrandeRanger" />
       <TalentsArray value="TyrandeLightOfEluneEverlastingLight" />
-      <TalentsArray value="TyrandeMoonlitArrows" />
+      <TalentsArray value="ElunesGift" />
       <TalentsArray value="TyrandeHeroicAbilityShadowstalk" />
       <TalentsArray value="TyrandeHarshMoonlight" />
       <TalentsArray value="TyrandeEmpower" />
-      <TalentsArray value="TyrandeShootingStar" />
+      <TalentsArray value="TyrandeCommanderofSentinels" />
     </TalentAIBuildsArray>
     <TalentAIBuildsArray AIOnly="1" ChanceToPick="16">
       <TalentsArray value="TyrandeTrueshotAura" />
       <TalentsArray value="TyrandeElunesChosen" />
-      <TalentsArray value="TyrandeMoonlitArrows" />
+      <TalentsArray value="ElunesGift" />
       <TalentsArray value="TyrandeHeroicAbilityStarfall" />
       <TalentsArray value="TyrandeMasteryLightofEluneQuickeningBlessing" />
       <TalentsArray value="TyrandeDarnassianArchery" />
       <TalentsArray value="TyrandeMasteryStarfallCelestialWrath" />
     </TalentAIBuildsArray>
     <TalentAIBuildsArray AIOnly="1" ChanceToPick="16">
-      <TalentsArray value="TyrandeMasteryLunarBlaze" />
+      <TalentsArray value="TyrandeMoonlitArrows" />
       <TalentsArray value="TyrandeMarkofMending" />
       <TalentsArray value="TyrandeKaldoreiResistance" />
       <TalentsArray value="TyrandeHeroicAbilityShadowstalk" />
@@ -2162,6 +2249,19 @@
   <CRewardHeroMastery id="TyrandeMasteryRing3">
     <License value="52249" />
   </CRewardHeroMastery>
+  <CTalent id="ElunesGift">
+    <Face value="ElunesFury" />
+    <Abil value="TyrandeLunarFlare" />
+    <AbilityModificationArray>
+      <Modifications>
+        <Type value="FlatModification" />
+        <Catalog value="Effect" />
+        <Entry value="LunarBlazeApplySpellPower" />
+        <Field value="Chance" />
+        <Value value="1.000000" />
+      </Modifications>
+    </AbilityModificationArray>
+  </CTalent>
   <CTalent id="TyrandeLightOfEluneEverlastingLight">
     <Face value="TyrandeLightOfEluneEverlastingLight" />
     <Abil value="TyrandeLightofElune" />
@@ -2303,25 +2403,24 @@
     <Face value="TyrandeLightOfEluneOverflowingLightTalent" />
     <Abil value="TyrandeLightofElune" />
   </CTalent>
-  <CTalent id="TyrandeMasteryLunarFlareShootingStar">
+  <CTalent id="TyrandeCommanderofSentinels">
+    <Face value="TyrandeCommanderofSentinels" />
+    <Abil value="TyrandeSentinelShot" />
     <AbilityModificationArray>
       <Modifications>
         <Type value="FlatModification" />
-        <Catalog value="Effect" />
-        <Entry value="LunarFlareShootingStarSet" />
-        <Field value="Chance" />
+        <Entry value="TyrandeSentinelShot" />
+        <Field value="Cost.Charge.CountMax" />
         <Value value="1.000000" />
       </Modifications>
       <Modifications>
         <Type value="FlatModification" />
-        <Catalog value="Effect" />
-        <Entry value="LunarFlareShootingStarApplyBehaviorCounter" />
-        <Field value="Chance" />
-        <Value value="1.000000" />
+        <Entry value="TyrandeSentinelShot" />
+        <Field value="Cost.Charge.HideCount" />
+        <FieldIsInteger value="1" />
+        <Value value="-1.000000" />
       </Modifications>
     </AbilityModificationArray>
-    <Face value="TyrandeLunarFlareShootingStarTalent" />
-    <Abil value="TyrandeLunarFlare" />
   </CTalent>
   <CTalent id="TyrandeEmpower">
     <Face value="TyrandeSentinelEmpowerTalent" />
@@ -2337,7 +2436,7 @@
       <Modifications>
         <Type value="FlatModification" />
         <Entry value="TyrandeSentinelShot" />
-        <Field value="Cost.Cooldown.TimeUse" />
+        <Field value="Cost.Charge.TimeUse" />
         <Value value="-3.000000" />
       </Modifications>
     </AbilityModificationArray>
@@ -2372,7 +2471,6 @@
     <Face value="TyrandeHuntersMarkTrueshotAuraTalent" />
     <Abil value="TyrandeTrueshotAura" />
     <RankArray>
-      <BehaviorArray value="TyrandeTrueshotAuraSelfBuff" />
       <BehaviorArray value="TyrandeTrueshotAuraItem" />
     </RankArray>
     <Active value="1" />
@@ -2402,14 +2500,6 @@
         <Entry value="SentinelShotGuideVisual" />
         <Field value="Width" />
         <Value value="1.250000" />
-      </Modifications>
-      <Modifications>
-        <Type value="FlatModification" />
-        <Catalog value="Effect" />
-        <Entry value="SentinelShotMissileSearch" />
-        <Field value="AreaArray[0].MaxCount" />
-        <FieldIsInteger value="1" />
-        <Value value="1.000000" />
       </Modifications>
     </AbilityModificationArray>
   </CTalent>
@@ -2470,6 +2560,7 @@
     <LifeMax value="1511" />
     <LifeRegenRate value="3.1484" />
     <BehaviorArray Link="ExcellentMana" />
+    <BehaviorArray Link="TyrandeLunarFlareLunarBlazeTokenCounter" />
     <WeaponArray Link="TyrandeHeroWeapon" />
     <CardLayouts index="0">
       <LayoutButtons Face="TyrandeShadowstalk" Type="AbilCmd" AbilCmd="TyrandeShadowstalk,Execute" Slot="Heroic" />
@@ -2503,6 +2594,18 @@
   <CUnit id="TyrandeMissile" parent="MISSILE_INVULNERABLE">
     <Mover value="HeroMissileSpeed25" />
   </CUnit>
+  <CValidatorUnitCompareTokenCount id="HasPierceQuestComplete">
+    <Compare value="GE" />
+    <Value value="20" />
+    <TokenId value="TyrandeLunarFlareLunarBlazeTokenCounter" />
+    <WhichUnit Value="Caster" />
+  </CValidatorUnitCompareTokenCount>
+  <CValidatorUnitCompareTokenCount id="HasShootingStarQuestComplete">
+    <Compare value="GE" />
+    <Value value="45" />
+    <TokenId value="TyrandeLunarFlareLunarBlazeTokenCounter" />
+    <WhichUnit Value="Caster" />
+  </CValidatorUnitCompareTokenCount>
   <CValidatorUnitCompareBehaviorCount id="TyrandeTargetDoesNotHaveTrueshotAuraAllyBuff">
     <Behavior value="TyrandeTrueshotAuraAllyBuff" />
   </CValidatorUnitCompareBehaviorCount>
@@ -2700,10 +2803,10 @@
     <Find value="1" />
     <Value value="TyrandeOverflowingLight" />
   </CValidatorPlayerTalent>
-  <CValidatorPlayerTalent id="HasTyrandeLunarFlareShootingStar">
+  <CValidatorPlayerTalent id="TyrandeHasCommanderofSentinelsTalent">
     <WhichPlayer Value="Caster" />
     <Find value="1" />
-    <Value value="TyrandeMasteryLunarFlareShootingStar" />
+    <Value value="TyrandeCommanderofSentinels" />
   </CValidatorPlayerTalent>
   <CValidatorPlayerTalent id="HasTyrandeSentinelRanger">
     <WhichPlayer Value="Caster" />

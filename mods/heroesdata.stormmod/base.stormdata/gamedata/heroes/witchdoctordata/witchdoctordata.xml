@@ -1,5 +1,15 @@
 <?xml version="1.0" encoding="us-ascii"?>
 <Catalog>
+  <const id="$WitchDoctorZombieWallHealth" value="225" />
+  <const id="$WitchDoctorZombieWallDeadRushHealth" value="300" />
+  <const id="$WitchDoctorZombieWallDeadRushDecayDuration" value="3" />
+  <const id="$WitchDoctorZombieWallDeadRushLifeDecayRate" value="/($WitchDoctorZombieWallDeadRushHealth $WitchDoctorZombieWallDeadRushDecayDuration)" evaluateAsExpression="1" />
+  <const id="$WitchDoctorRingOfPoisonBonusZombieWallDuration" value="1" />
+  <const id="$WitchDoctorDeadRushRingOfPoisonDecayRateMultiplier" value="-(1 /($WitchDoctorZombieWallDeadRushDecayDuration +($WitchDoctorZombieWallDeadRushDecayDuration $WitchDoctorRingOfPoisonBonusZombieWallDuration)))" evaluateAsExpression="1" />
+  <const id="$WitchDoctorDeadRushRingOfPoisonLifeDecayModifier" value="*($WitchDoctorZombieWallDeadRushLifeDecayRate $WitchDoctorDeadRushRingOfPoisonDecayRateMultiplier)" evaluateAsExpression="1" />
+  <const id="$WitchDoctorGargantuanHealth" value="2000" />
+  <const id="$WitchDoctorGargantuanDecayDuration" value="29" />
+  <const id="$WitchDoctorGargantuanLifeDecayRate" value="/($WitchDoctorGargantuanHealth $WitchDoctorGargantuanDecayDuration)" evaluateAsExpression="1" />
   <CAbilEffectInstant id="WitchDoctorBadMedicine">
     <PrepEffect value="DismountDecloakCasterSet" />
     <Effect value="WitchDoctorBadMedicineCastSet" />
@@ -1156,7 +1166,7 @@
     <RemoveValidatorArray value="WitchDoctorHasGargantuanActiveBehavior" />
     <BehaviorFlags index="Permanent" value="1" />
     <BehaviorFlags index="EnabledWhileDead" value="1" />
-    <Duration value="20" />
+    <Duration value="60" />
   </CBehaviorBuff>
   <CBehaviorBuff id="WitchDoctorSoulHarvestDamageCarry" parent="StormDamageIncrease">
     <Tooltip value="" />
@@ -1432,8 +1442,15 @@
     <DisplayDuration index="Self" value="0" />
     <DisplayDuration index="Ally" value="0" />
     <DisplayDuration index="Enemy" value="0" />
-    <Duration value="3" />
+    <Duration value="-1" />
     <InitialEffect value="WitchDoctorZombieWallDeadRushApplyBehaviorSource" />
+  </CBehaviorBuff>
+  <CBehaviorBuff id="WitchDoctorDeadRushRingOfPoisonLifeRegenModifier">
+    <DisableValidatorArray value="WitchDoctorHasRingOfPoison" />
+    <Modification>
+      <VitalRegenArray index="Life" value="$WitchDoctorDeadRushRingOfPoisonLifeDecayModifier" />
+      <VitalRegenArray index="Energy" value="$WitchDoctorDeadRushRingOfPoisonDecayRateMultiplier" />
+    </Modification>
   </CBehaviorBuff>
   <CBehaviorBuff id="WitchDoctorCorpseSpidersTimedLife" parent="StormTimedLife">
     <Duration value="4" />
@@ -1456,7 +1473,7 @@
     <DisplayDuration index="Self" value="1" />
     <DisplayDuration index="Ally" value="1" />
     <DisplayDuration index="Enemy" value="1" />
-    <Duration value="20" />
+    <Duration value="-1" />
     <ExpireEffect value="SuicideTimeout" />
     <Modification>
       <StateFlags index="Hallucination" value="1" />
@@ -3591,7 +3608,21 @@
       <Modifications>
         <Catalog value="Unit" />
         <Entry value="WitchDoctorZombieWallDeadRushTalentUnit" />
+        <Field value="LifeRegenRate" />
+        <Value value="0.040000" />
+        <AffectedByOverdrive value="1" />
+      </Modifications>
+      <Modifications>
+        <Catalog value="Unit" />
+        <Entry value="WitchDoctorZombieWallDeadRushTalentUnit" />
         <Field value="LifeStart" />
+        <Value value="0.040000" />
+        <AffectedByOverdrive value="1" />
+      </Modifications>
+      <Modifications>
+        <Catalog value="Behavior" />
+        <Entry value="WitchDoctorDeadRushRingOfPoisonLifeRegenModifier" />
+        <Field value="Modification.VitalRegenArray[Life]" />
         <Value value="0.040000" />
         <AffectedByOverdrive value="1" />
       </Modifications>
@@ -3659,6 +3690,13 @@
         <Catalog value="Unit" />
         <Entry value="WitchDoctorGargantuan" />
         <Field value="LifeMax" />
+        <Value value="0.040000" />
+        <AffectedByOverdrive value="1" />
+      </Modifications>
+      <Modifications>
+        <Catalog value="Unit" />
+        <Entry value="WitchDoctorGargantuan" />
+        <Field value="LifeRegenRate" />
         <Value value="0.040000" />
         <AffectedByOverdrive value="1" />
       </Modifications>
@@ -4104,21 +4142,14 @@
         <Catalog value="Behavior" />
         <Entry value="WitchDoctorZombieWallTimedLife" />
         <Field value="Duration" />
-        <Value value="1.000000" />
-      </Modifications>
-      <Modifications>
-        <Type value="FlatModification" />
-        <Catalog value="Behavior" />
-        <Entry value="WitchDoctorZombieWallDeadRushTalentTimedLife" />
-        <Field value="Duration" />
-        <Value value="1.000000" />
+        <Value value="$WitchDoctorRingOfPoisonBonusZombieWallDuration" />
       </Modifications>
       <Modifications>
         <Type value="FlatModification" />
         <Catalog value="Effect" />
         <Entry value="WitchDoctorZombieWallPersistent" />
         <Field value="ExpireDelay" />
-        <Value value="1.000000" />
+        <Value value="$WitchDoctorRingOfPoisonBonusZombieWallDuration" />
       </Modifications>
     </AbilityModificationArray>
   </CTalent>
@@ -4507,8 +4538,8 @@
   <CUnit id="WitchDoctorGargantuan" parent="StormSummonActive">
     <Collide index="Ground" value="0" />
     <Collide index="Colossus" value="1" />
-    <LifeStart value="2000" />
-    <LifeMax value="2000" />
+    <LifeStart value="$WitchDoctorGargantuanHealth" />
+    <LifeMax value="$WitchDoctorGargantuanHealth" />
     <Speed value="4" />
     <Sight value="9" />
     <AbilArray Link="stop" />
@@ -4536,6 +4567,7 @@
     <HotkeyCategory value="Unit/Category/ZergUnits" />
     <TauntDuration index="Cheer" value="5" />
     <TauntDuration index="Dance" value="5" />
+    <LifeRegenRate value="-$WitchDoctorGargantuanLifeDecayRate" />
   </CUnit>
   <CUnit id="WitchDoctorCorpseSpider" parent="StormSummonFigment">
     <FlagArray index="Unselectable" value="1" />
@@ -4672,8 +4704,8 @@
     <FlagArray index="ForceCollisionCheck" value="1" />
     <Collide index="Burrow" value="1" />
     <Collide index="Ground" value="0" />
-    <LifeStart value="225" />
-    <LifeMax value="225" />
+    <LifeStart value="$WitchDoctorZombieWallHealth" />
+    <LifeMax value="$WitchDoctorZombieWallHealth" />
     <Speed value="0" />
     <StationaryTurningRate value="1007.9296" />
     <TurningRate value="1007.9296" />
@@ -4704,8 +4736,8 @@
   </CUnit>
   <CUnit id="WitchDoctorZombieWallDeadRushTalentUnit" parent="StormSummonActive">
     <Description value="Button/Tooltip/Ghoul" />
-    <LifeStart value="225" />
-    <LifeMax value="225" />
+    <LifeStart value="$WitchDoctorZombieWallDeadRushHealth" />
+    <LifeMax value="$WitchDoctorZombieWallDeadRushHealth" />
     <Speed value="5" />
     <Sight value="7" />
     <AbilArray Link="stop" />
@@ -4715,6 +4747,7 @@
     <BehaviorArray Link="ZombieWallStatusBarController" />
     <BehaviorArray Link="StormSummonedUnitTargetTracker" />
     <BehaviorArray Link="StormSummonedUnitDamagedUnitTracker" />
+    <BehaviorArray Link="WitchDoctorDeadRushRingOfPoisonLifeRegenModifier" />
     <WeaponArray Link="WitchDoctorZombieWeapon" />
     <CardLayouts>
       <LayoutButtons Face="Move" Type="AbilCmd" AbilCmd="move,Move" Slot="Stop" />
@@ -4726,6 +4759,7 @@
     <SubgroupPriority value="14" />
     <AIThinkTree value="AI/SummonedMinion.aitree" />
     <HotkeyCategory value="Unit/Category/ZergUnits" />
+    <LifeRegenRate value="-$WitchDoctorZombieWallDeadRushLifeDecayRate" />
   </CUnit>
   <CUpgrade id="WitchDoctorPlagueofToadsPandemicTalentCompletion" />
   <CValidatorUnitCompareTokenCount id="WitchDoctorHasGTE5StacksVoodooRitual">

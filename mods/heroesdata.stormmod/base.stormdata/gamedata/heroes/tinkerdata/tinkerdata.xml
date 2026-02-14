@@ -21,7 +21,9 @@
   <const id="$GazloweRockItTurretHealth" value="510" />
   <const id="$GazloweRockItTurretCooldown" value="1" />
   <const id="$GazloweRockItTurretCost" value="4" />
-  <const id="$GazloweRockItTurretDuration" value="15" />
+  <const id="$GazloweRockItTurretDuration" value="-1" />
+  <const id="$GazloweRockitTurretDecayDuration" value="17" />
+  <const id="$GazloweRockitTurretLifeDecayRate" value="/($GazloweRockItTurretHealth $GazloweRockitTurretDecayDuration)" evaluateAsExpression="1" />
   <const id="$GazloweRockItTurretAttackRange" value="6" />
   <const id="$GazloweRockItTurretAttackSpeed" value="1" />
   <const id="$GazloweRockItTurretPlacementRange" value="3" />
@@ -411,12 +413,12 @@
     <On Terms="ActorCreation" Send="Create TinkerDethLazorFirinMahLazorzTalentLaunchSound" />
     <On Terms="ActorCreation" Send="AnimGroupApply B" />
     <On Terms="ActorCreation" Send="AnimPlay Birth Birth" />
+    <On Terms="ActorCreation" Send="TimerSet $GazloweDethLazorCastTime Destroy" />
+    <On Terms="TimerExpired; TimerName Destroy" Send="Destroy" />
     <HostLaunchSiteOps Ops="SOpTargetUnit SOpAttachWeapon SOpAttachCenter" />
     <HostImpactSiteOps Ops="SOpTargetUnit SOpGazloweDethLazorFirinMahLazorCastForward GazloewDethLazorFirinMahLazorzRangeOffset SOpMoveUpByDot5" />
     <Model value="TinkerDethLazorFirinMahLazorzTalentBeam" />
     <ModelFlags index="AllowHitTest" value="0" />
-    <On Terms="ActorCreation" Send="TimerSet $GazloweDethLazorCastTime Destroy" />
-    <On Terms="TimerExpired; TimerName Destroy" Send="Destroy" />
   </CActorBeamSimple>
   <CActorModel id="GazloweDethLazorFirinMahLazorsCastOffsetDummy">
     <On Terms="Effect.GazloweDethLazorInitialSet.Start; At Effect" Send="Create" />
@@ -2209,13 +2211,12 @@
     <ValidatorArray value="GazloweHasBigGameHunter" />
     <ValidatorArray value="GazloweTargetIsHeroOrMercOrMonsterOrCreepCombine" />
   </CEffectModifyBehaviorBuffDuration>
-  <CEffectModifyBehaviorBuffDuration id="GazloweOverchargedCapacitorsTurretDurationIncrease">
-    <Behavior value="RockItTurretTimedLife" />
-    <Value value="$GazloweRockItTurretOverchargedCapacitorsDurationIncreaseValue" />
+  <CEffectCreateHealer id="GazloweOverchargedCapacitorsTurretDurationIncrease">
     <ValidatorArray value="CasterNotBlindedAndTargetNotEvading" />
     <ValidatorArray value="GazloweHasOverchargedCapacitors" />
-    <WhichUnit Value="Target" />
-  </CEffectModifyBehaviorBuffDuration>
+    <FloaterCreation value="Suppress" />
+    <RechargeVitalFraction value="0.08" />
+  </CEffectCreateHealer>
   <CEffectApplyBehavior id="GazloweReduceReuseRecycleTraitScrapRegenerationApplyCooldown">
     <WhichUnit Value="Caster" />
     <Behavior value="GazloweReduceReuseRecycleTraitScrapRegenerationCooldown" />
@@ -2294,7 +2295,6 @@
     <EffectArray value="GazloweDethLazorFirinMahLazorzInitialTargetPersistent" />
   </CEffectSet>
   <CEffectCreatePersistent id="GazloweDethLazorFirinMahLazorzInitialTargetPersistent">
-    <WhichLocation Value="TargetPoint" />
     <InitialEffect value="GazloweDethLazorFirinMahLazorzSearch" />
   </CEffectCreatePersistent>
   <CEffectCreatePersistent id="GazloweDethLazorFirinMahLazorzBeamPersistent">
@@ -2304,7 +2304,7 @@
   <CEffectCreatePersistent id="GazloweDethLazorFirinMahLazorzBeamTargetPersistent">
     <WhichLocation Value="TargetUnit" />
     <OffsetVectorStartLocation Value="TargetPoint" />
-    <OffsetVectorEndLocation Effect="GazloweDethLazorInitialSet" Value="TargetPoint" />
+    <OffsetVectorEndLocation Effect="GazloweDethLazorInitialSet" />
     <InitialEffect value="GazloweDethLazorFirinMahLazorzBeamDummy" />
   </CEffectCreatePersistent>
   <CEffectModifyUnit id="GazloweDethLazorFirinMahLazorzBeamDummy" />
@@ -2324,11 +2324,11 @@
     <LaunchLocation Effect="GazloweDethLazorFirinMahLazorzInitialSet" Value="TargetUnit" />
     <ImpactLocation>
       <ProjectionMultiplier value="0.001" />
-      <ProjectionOffset Y="-$GazloweDethLazorFirinMahLazorzSearchMidPoint" />
       <ProjectionSourceEffect value="GazloweDethLazorFirinMahLazorzInitialSet" />
       <ProjectionSourceValue value="TargetPoint" />
       <ProjectionTargetEffect value="GazloweDethLazorInitialSet" />
       <ProjectionTargetValue value="FocusPoint" />
+      <ProjectionOffset Y="-$GazloweDethLazorFirinMahLazorzSearchMidPoint" />
     </ImpactLocation>
   </CEffectEnumArea>
   <CEffectApplyBehavior id="GazloweOneManWreckingCrewApplyCasterBehavior">
@@ -3281,6 +3281,13 @@
         <Catalog value="Unit" />
         <Entry value="TinkerRockItTurret" />
         <Field value="LifeMax" />
+        <Value value="0.050000" />
+        <AffectedByOverdrive value="1" />
+      </Modifications>
+      <Modifications>
+        <Catalog value="Unit" />
+        <Entry value="TinkerRockItTurret" />
+        <Field value="LifeRegenRate" />
         <Value value="0.050000" />
         <AffectedByOverdrive value="1" />
       </Modifications>
@@ -4318,6 +4325,7 @@
     <BehaviorArray Link="StormSummonedUnitTargetTracker" />
     <BehaviorArray Link="StormSummonedUnitDamagedUnitTracker" />
     <DeathTime value="2" />
+    <LifeRegenRate value="-$GazloweRockitTurretLifeDecayRate" />
   </CUnit>
   <CUnit id="TinkerItsRainingScrapMissile" parent="MISSILE_INVULNERABLE" />
   <CUnit id="RockItTurretRelicSideMissile" parent="MISSILE_INVULNERABLE">
@@ -4403,12 +4411,11 @@
     <BehaviorArray Link="StormSummonedUnitDamagedUnitTracker" />
     <Attributes index="ImmuneToFriendlyAbilities" value="1" />
     <DeathTime value="2" />
+    <LifeRegenRate value="-$GazloweRockitTurretLifeDecayRate" />
   </CUnit>
   <CUnit id="TinkerRockItTurretPlaceholderDummy" parent="TinkerRockItTurret">
     <Name value="Unit/Name/TinkerRockItTurretPlaceholderDummy" />
     <Mover value="Fly" />
-    <AbilArray index="4" removed="1" />
-    <CardLayouts index="0" removed="1" />
     <DeathTime value="0" />
   </CUnit>
   <CUnit id="RockItTurretMissile" parent="MISSILE_INVULNERABLE" />
