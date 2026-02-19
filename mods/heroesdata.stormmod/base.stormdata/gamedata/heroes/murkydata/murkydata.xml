@@ -23,7 +23,7 @@
     <Flags index="RequireTargetVision" value="0" />
     <Cost>
       <Charge Link="Abil/MurkyMarchoftheMurlocs" />
-      <Cooldown Link="Abil/MurkyMarchoftheMurlocs" TimeUse="110" />
+      <Cooldown Link="Abil/MurkyMarchoftheMurlocs" TimeUse="100" />
     </Cost>
     <InterruptArray index="Cast" value="1" />
     <InterruptCost>
@@ -88,7 +88,7 @@
     <Flags index="RequireTargetVision" value="0" />
     <Flags index="TargetVectorLock" value="1" />
     <Cost>
-      <Cooldown TimeUse="110" />
+      <Cooldown TimeUse="100" />
     </Cost>
     <InterruptArray index="Cast" value="1" />
     <InterruptCost>
@@ -187,7 +187,7 @@
     <ApplicationRule value="Add" />
     <VitalType value="Life" />
     <ModificationType value="PerUnit" />
-    <Ratio value="0.35" />
+    <Ratio value="0.5" />
     <ClampToMaxVitalForFractionalDamage value="1" />
   </CAccumulatorVitals>
   <CAccumulatorVitals id="MurkyEggShellSpawnAmountAccumulator" parent="BaseVitalAccumulator">
@@ -574,7 +574,8 @@
   <CActorUnit id="MurkyPufferfish" parent="StormMinionStandard" unitName="MurkyPufferfish">
     <Flags index="VisionTestCenterOnly" value="1" />
     <On Terms="ActorCreation" Send="AnimPlay Spell Spell,B PlayForever" />
-    <On Terms="Behavior.MurkyPufferfishTimedLife.On" Send="AnimPlay Work Stand,Work PlayForever -1.000000 -1.000000 1.550000 AsTimeScaleAbsolute" />
+    <On Terms="Behavior.MurkyPufferfishTimedLife.On; !ValidatePlayer MurkyHasBigTunaKahunaTalent" Send="AnimPlay Work Stand,Work PlayForever -1.000000 -1.000000 1.550000 AsTimeScaleAbsolute" />
+    <On Terms="Behavior.MurkyPufferfishTimedLife.On; ValidatePlayer MurkyHasBigTunaKahunaTalent" Send="AnimPlay Work Stand,Work PlayForever -1.000000 -1.000000 3.400000 AsTimeScaleAbsolute" />
     <On Terms="Behavior.MurkyPufferfishTimedLife.On" Send="AnimClear Spell" />
     <On Terms="Behavior.MurkyPufferfishTimedLife.On" Send="Create Murky_Pufferfish_Impact" />
     <On Terms="UnitDeath" Target="Murky_Pufferfish_Impact" Send="Destroy" />
@@ -925,6 +926,12 @@
     <Model value="MurkyMarchoftheMurlocsImpactMurloc" />
   </CActorModel>
   <CActorModel id="HeroMurkyDeathRagdoll" parent="StormHeroDeathRagdoll" />
+  <CBehaviorBuff id="MurkyReviveShield" parent="StormShield">
+    <Duration value="15" />
+    <DamageResponse>
+      <ModifyLimitVitalMaxFractionArray index="Life" value="0.35" />
+    </DamageResponse>
+  </CBehaviorBuff>
   <CBehaviorBuff id="SlimeFatalResponse">
     <Alignment value="Negative" />
     <InfoIcon value="Assets\Textures\storm_ui_icon_Murky_Slime.dds" />
@@ -942,7 +949,7 @@
   </CBehaviorBuff>
   <CBehaviorTokenCounter id="PuffedUpTokenCounter" parent="StormQuestToken">
     <Face value="MurkyPufferfishPuffedUpToken" />
-    <SortIndex value="200" />
+    <SortIndex value="1" />
     <TokenId value="MurkyPuffedUpTokenCounter" />
     <ConditionalEvents Compare="GE" CompareValue="200">
       <Event EventId="QuestMilestone" />
@@ -1008,7 +1015,6 @@
     <InfoFlags index="Hidden" value="0" />
     <Period value="0.0625" />
     <PeriodicEffect value="MurkyMarchoftheMurlocsRemoveNeverEndingMurlocsTalentChanneling" />
-    <FinalEffect value="MurkyMarchoftheMurlocsDestroyInvisibleDummyLevel20Upgraded" />
     <Modification>
       <ModifyFlags index="SuppressTurning" value="1" />
       <AbilLinkDisableArray value="MurkySlime" />
@@ -1021,7 +1027,9 @@
   <CBehaviorBuff id="MurkyBigTunaKahunaCarry" parent="CarryBehaviorParent">
     <Modification>
       <VitalMaxFractionArray index="Life" value="0.5" />
+      <VitalRegenMultiplier index="Life" value="0.5" />
     </Modification>
+    <BehaviorFlags index="EnabledWhileDead" value="0" />
   </CBehaviorBuff>
   <CBehaviorBuff id="MurkyPufferfishCompressedAirTalentMarker">
     <Duration value="0.0625" />
@@ -1055,9 +1063,9 @@
   </CBehaviorBuff>
   <CBehaviorBuff id="MurkyEggShellShield" parent="StormShield">
     <DamageResponse SuppressModifyLimitOnCreation="1">
-      <ModifyLimitVitalMaxFractionArray index="Life" value="0.35" />
+      <ModifyLimitVitalMaxFractionArray index="Life" value="0.5" />
     </DamageResponse>
-    <Duration value="10" />
+    <Duration value="-1" />
   </CBehaviorBuff>
   <CBehaviorBuff id="MurkyFishEyeMountSpeed" parent="StormSprint">
     <InfoFlags index="Hidden" value="0" />
@@ -1097,7 +1105,7 @@
       <SightBonus value="18" />
       <VitalMaxAdditiveMultiplierArray index="Life" value="1" />
       <VitalMaxAdditiveMultiplierArray index="Shields" value="1" />
-      <VitalRegenMultiplier index="Shields" value="1" />
+      <VitalRegenMultiplier index="Life" value="1" />
     </Modification>
     <DisableValidatorArray value="MurkyHasFishEyeTalent" />
     <Period value="0.125" />
@@ -1527,9 +1535,12 @@
     <Color value="255,0,193,193" />
     <Unit value="HeroMurky" />
   </CCharacter>
+  <CEffectApplyBehavior id="MurkyReviveShieldApplyShieldBuff">
+    <Behavior value="MurkyReviveShield" />
+  </CEffectApplyBehavior>
   <CEffectApplyBehavior id="SlimeApplyDamageResponse" parent="StormSlowApply">
     <ValidatorArray index="0" value="TargetNotDead" />
-    <ValidatorArray index="1" removed="1" />
+    <ValidatorArray index="1" value="TargetIsNotTownWall" />
     <Behavior value="SlimeFatalResponse" />
   </CEffectApplyBehavior>
   <CEffectSet id="MurkySlimePuffedUpTokenIncreaseSet">
@@ -3089,8 +3100,8 @@
     <TalentTreeArray Talent="MurkyMasteryAndASharkToo" Tier="7" Column="2">
       <PrerequisiteTalentArray value="MurkyHeroicAbilityOctoGrab" />
     </TalentTreeArray>
-    <TalentTreeArray Talent="MurkyFasterFish" Tier="7" Column="3" />
-    <TalentTreeArray Talent="MurkyMakingInky" Tier="7" Column="4" />
+    <TalentTreeArray Talent="MurkyMakingInky" Tier="7" Column="3" />
+    <TalentTreeArray Talent="MurkyFasterFish" Tier="7" Column="4" />
     <VariationIcon value="Assets\Textures\UI_Glues_Swatch_Green_Bright.dds" />
     <Difficulty value="Hard" />
     <HeroTierAchievementId value="5216701565559488307" />
@@ -3596,7 +3607,7 @@
   </CShapeArc>
   <CTalent id="MurkyFasterFish">
     <Face value="MurkyBigTunaKahuna" />
-    <Abil value="MurkyRespawnEgg" />
+    <Abil value="MurkyPufferfish" />
     <AbilityModificationArray>
       <Modifications>
         <Type value="FlatModification" />
@@ -3659,7 +3670,7 @@
   </CTalent>
   <CTalent id="MurkyShellGame">
     <Face value="MurkyEggHuntTalent" />
-    <Abil value="MurkyEggHunt" />
+    <Abil value="MurkyRespawnEgg" />
     <AbilityModificationArray>
       <Modifications>
         <Type value="FlatModification" />
@@ -3675,7 +3686,6 @@
         <Value value="15.000000" />
       </Modifications>
     </AbilityModificationArray>
-    <Active value="1" />
   </CTalent>
   <CTalent id="MurkyFishTank">
     <Face value="MurkyFishTank" />

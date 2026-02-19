@@ -696,7 +696,7 @@
     <Face value="MuradinPerfectStormResetCooldown" />
     <Alignment value="Positive" />
     <InfoFlags index="Hidden" value="0" />
-    <Duration value="10" />
+    <Duration value="8.5" />
   </CBehaviorBuff>
   <CBehaviorBuff id="HaymakerCasterCCInteruption">
     <Alignment value="Positive" />
@@ -748,6 +748,9 @@
     <InitEvents Effect="MuradinStormBoltPiercingResetCatalog" />
     <Max value="25" />
   </CBehaviorTokenCounter>
+  <CBehaviorBuff id="MuradinDwarfTossBlock" parent="TalentBucketBlock">
+    <MaxStackCount value="3" />
+  </CBehaviorBuff>
   <CBehaviorBuff id="MuradinBronzebeardRage">
     <Face value="MuradinBronzebeardRage" />
     <Alignment value="Positive" />
@@ -791,7 +794,7 @@
     <Aliases value="RangedDamageCrit" />
     <Duration value="3" />
     <Modification>
-      <DamageDealtFraction index="Basic" value="0.5" />
+      <DamageDealtFraction index="Basic" value="0.4" />
     </Modification>
   </CBehaviorBuff>
   <CBehaviorBuff id="MuradinDwarfTossArmorIncrease" parent="StormArmor">
@@ -1003,8 +1006,8 @@
     </Modification>
   </CBehaviorBuff>
   <CBehaviorTokenCounter id="MuradinStormboltPerfectStormQuestToken" parent="StormQuestToken">
-    <Max value="200" />
-    <ConditionalEvents Compare="GE" CompareValue="50">
+    <Max value="160" />
+    <ConditionalEvents Compare="GE" CompareValue="40">
       <Event EventId="QuestMilestone" Effect="MuradinStormBoltPiercingModifyCatalog" />
     </ConditionalEvents>
     <AtMaxEvents index="0" EventId="QuestComplete" Effect="MuradinStormBoltPiercingQuestComplete" />
@@ -1153,12 +1156,20 @@
     </Variations>
     <Unit value="HeroMuradin" />
   </CCharacter>
+  <CEffectCreateHealer id="MuradinPerfectStormManaRestore" parent="StormSelfOnlyHealingSpell">
+    <ValidatorArray value="HasMuradinStormhammerPerfectStorm" />
+    <ImpactUnit Value="Caster" />
+    <FloaterCreation value="Force" />
+    <RechargeVital value="Energy" />
+    <RechargeVitalRate value="25" />
+  </CEffectCreateHealer>
   <CEffectSet id="StormBoltKillSet">
     <ValidatorArray value="MuradinPerfectStormSourceHasKillBonusBehavior" />
     <ValidatorArray value="PerfectStormResetNotOnCooldown" />
     <EffectArray value="MuradinStormboltPerfectStormKillCDReset" />
     <EffectArray value="StormBoltApplySelfCooldown" />
     <EffectArray value="MuradinPerfectStormRemoveKillBonusBehavior" />
+    <EffectArray value="MuradinPerfectStormManaRestore" />
   </CEffectSet>
   <CEffectApplyBehavior id="StormBoltApplySelfCooldown">
     <Behavior value="PerfectStormResetCooldown" />
@@ -1208,7 +1219,7 @@
     <Value value="2" />
   </CEffectModifyTokenCount>
   <CEffectCreateHealer id="MuradinStormBoltQuestCompleteCreateManaHealer" parent="StormManaRestore">
-    <ValidatorArray value="MuradinHasGTE50StormBoltTokens" />
+    <ValidatorArray value="MuradinHasGTE40StormBoltTokens" />
     <ValidatorArray value="CasterNotBlindedAndTargetNotEvading" />
     <ImpactUnit Value="Caster" />
     <RechargeVitalRate value="3" />
@@ -1216,7 +1227,7 @@
   <CEffectApplyBehavior id="MuradinDwarfTossDwarfBlockTalentApplyBehavior">
     <Chance value="0" />
     <WhichUnit Value="Caster" />
-    <Behavior value="TalentBucketBlock" />
+    <Behavior value="MuradinDwarfTossBlock" />
     <Count value="3" />
     <Flags index="UseDuration" value="1" />
   </CEffectApplyBehavior>
@@ -1324,7 +1335,7 @@
   </CEffectApplyBehavior>
   <CEffectModifyTokenCount id="MuradinStormboltItsHammerTimeModifyTokenCount" parent="BaseEffectModifyTokenCount">
     <ValidatorArray value="TargetIsHero" />
-    <ValidatorArray value="MuradinHasLT50StormBoltTokens" />
+    <ValidatorArray value="MuradinHasLT40StormBoltTokens" />
     <EffectCategory index="Quest" value="1" />
     <TokenId value="MuradinItsHammerTimeTokenCounter" />
   </CEffectModifyTokenCount>
@@ -1335,7 +1346,7 @@
   </CEffectModifyTokenCount>
   <CEffectModifyTokenCount id="MuradinStormboltItsHammerTimeInstantReset" parent="BaseEffectModifyTokenCount">
     <ValidatorArray value="TargetIsHero" />
-    <ValidatorArray value="MuradinHasLT50StormBoltTokens" />
+    <ValidatorArray value="MuradinHasLT40StormBoltTokens" />
     <EffectCategory index="Quest" value="1" />
     <TokenId value="MuradinItsHammerTimeTokenCounter" />
     <Value value="0" />
@@ -1360,7 +1371,12 @@
   </CEffectSwitch>
   <CEffectModifyUnit id="MuradinDwarfTossNoLaunchRefund">
     <ImpactUnit Value="Caster" />
-    <Cost Abil="MuradinDwarfToss,Execute" ChargeCountUse="-1" CooldownOperation="Add" />
+    <Cost>
+      <Abil value="MuradinDwarfToss,Execute" />
+      <ChargeCountUse value="-1" />
+      <CooldownOperation value="Add" />
+      <CooldownTimeUse value="-1" />
+    </Cost>
     <VitalArray index="Energy">
       <Change value="55" />
     </VitalArray>
@@ -1632,7 +1648,7 @@
     <ValidatorArray value="HasMuradinThunderclapHealingStatic" />
     <SourceButtonFace value="MuradinThunderclapHealingStaticTalent" />
     <ImpactUnit Value="Caster" />
-    <RechargeVitalFraction value="0.05">
+    <RechargeVitalFraction value="0.06">
       <AccumulatorArray value="MuradinHealingStaticHeroHitCounterAccumulator" />
     </RechargeVitalFraction>
   </CEffectCreateHealer>
@@ -2099,7 +2115,7 @@
   </CEffectEnumArea>
   <CEffectModifyUnit id="MuradinHeroWeaponItsHammerTimeStormBoltModifyCooldown">
     <ValidatorArray value="CasterNotBlindedAndTargetNotEvading" />
-    <ValidatorArray value="MuradinHasGTE50StormBoltTokens" />
+    <ValidatorArray value="MuradinHasGTE40StormBoltTokens" />
     <ImpactUnit Value="Caster" />
     <Cost Abil="MuradinStormBolt,Execute" CooldownOperation="Add" CooldownTimeUse="-0.5" />
   </CEffectModifyUnit>
@@ -2720,6 +2736,14 @@
   <CTalent id="MuradinMasteryStormhammerSledgehammer">
     <Face value="MuradinStormboltSledgehammerTalent" />
     <Abil value="MuradinStormBolt" />
+    <AbilityModificationArray>
+      <Modifications>
+        <Type value="FlatModification" />
+        <Entry value="MuradinStormBolt" />
+        <Field value="Cost[0].Cooldown.TimeUse" />
+        <Value value="-1.500000" />
+      </Modifications>
+    </AbilityModificationArray>
   </CTalent>
   <CTalent id="MuradinMasteryDwarfTossDwarfLaunch">
     <Face value="MuradinDwarfTossDwarfLaunchTalent" />
@@ -2887,7 +2911,7 @@
   <CValidatorUnitCompareTokenCount id="MuradinHasStormboltPinnacle">
     <WhichUnit Value="Caster" />
     <Compare value="LT" />
-    <Value value="200" />
+    <Value value="160" />
     <TokenId value="MuradinStormboltPerfectStormQuestToken" />
   </CValidatorUnitCompareTokenCount>
   <CValidatorCombine id="TargetNotSlowedOrRootedNotStunned">
@@ -2939,15 +2963,15 @@
     <Find value="1" />
     <Value value="MuradinBronzebeardRage" />
   </CValidatorPlayerTalent>
-  <CValidatorUnitCompareTokenCount id="MuradinHasGTE50StormBoltTokens">
+  <CValidatorUnitCompareTokenCount id="MuradinHasGTE40StormBoltTokens">
     <Compare value="GE" />
-    <Value value="50" />
+    <Value value="40" />
     <TokenId value="MuradinStormboltPerfectStormQuestToken" />
   </CValidatorUnitCompareTokenCount>
-  <CValidatorUnitCompareTokenCount id="MuradinHasLT50StormBoltTokens">
+  <CValidatorUnitCompareTokenCount id="MuradinHasLT40StormBoltTokens">
     <WhichUnit Value="Caster" />
     <Compare value="LT" />
-    <Value value="50" />
+    <Value value="40" />
     <TokenId value="MuradinStormboltPerfectStormQuestToken" />
   </CValidatorUnitCompareTokenCount>
   <CValidatorUnitCompareBehaviorCount id="MuradinHasItsHammerTimeTokenCounter">
