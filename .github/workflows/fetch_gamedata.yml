@@ -1,184 +1,165 @@
 name: Automatically Fetch Game Data Files
 on:
   schedule:
-    - cron: "0 0 * * *"
+    - cron: "0 */4 * * *"
   workflow_dispatch:
 jobs:
   auto-fetch-gamedata:
     name: Automatically Fetch Game Data Files
-    runs-on: windows-2019
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v6
       - name: Check game version
+        id: check-version
+        shell: bash
         run: |
-          if (Test-Path "./mods/core.stormmod/base.stormdata/buildid.txt") {
-            # Because the Content-Type is application/octet-stream, iwr automatically output as byte array
-            # So need to convert it back to string
-            $region = "us"
+          region_output=""
+          build_id_output=""
+          version_string_output=""
 
-            $response = Invoke-WebRequest "http://us.patch.battle.net:1119/hero/versions" -UseBasicParsing
-            $response = [System.Text.Encoding]::UTF8.GetString($response.Content)
-            $response = $response -split "\n" | Select-String -Pattern '^#' -NotMatch
-            $header = $response[0]
-            # remove first line header
-            $null, $configs = $response
+          # Find buildid.txt case-insensitively (including entire path)
+          buildid_file=$(find "$GITHUB_WORKSPACE" -maxdepth 4 -ipath "*/mods/core.stormmod/base.stormdata/buildid.txt" -type f | head -n 1)
 
-            $buildIdIndex = -1
-            $regionIndex = -1
+          if [ -n "$buildid_file" ] && [ -f "$buildid_file" ]; then
+            region="us"
+
+            # Fetch version information
+            response=$(curl -s "http://us.patch.battle.net:1119/hero/versions")
             
-            for ($i = 0; $i -lt ($header -split "\|").Count; $i++) {
-              $key = ($header -split "\|")[$i]
+            # Remove comment lines and get header
+            response=$(echo "$response" | grep -v '^#')
+            header=$(echo "$response" | head -n 1)
+            configs=$(echo "$response" | tail -n +2)
 
-              if ($key.ToLower() -like "region!*") {
-                $regionIndex = $i
-              }
-              if ($key.ToLower() -like "buildid!*") {
-                $buildIdIndex = $i
-              }
-            }
+            buildIdIndex=-1
+            regionIndex=-1
+            versionStringIndex=-1
+            
+            # Find column indices
+            IFS='|' read -ra columns <<< "$header"
+            for i in "${!columns[@]}"; do
+              key="${columns[$i]}"
+              key_lower=$(echo "$key" | tr '[:upper:]' '[:lower:]')
+              
+              if [[ "$key_lower" == region!* ]]; then
+                regionIndex=$i
+              fi
+              if [[ "$key_lower" == buildid!* ]]; then
+                buildIdIndex=$i
+              fi
+              if [[ "$key_lower" == versionsname!* ]]; then
+                versionStringIndex=$i
+              fi
+            done
 
-            # Loops each config (region)
-            foreach ($config in $configs) {
-              $regionExtracted = ($config -split "\|")[$regionIndex]
-              if ($regionExtracted -eq $region) {
-                $buildIdExtracted = ($config -split "\|")[$buildIdIndex]
-                $modsBuild = Get-Content "./mods/core.stormmod/base.stormdata/buildid.txt"
-                Write-Output "$regionExtracted, buildidtxt: $modsBuild, uptsream: B$buildIdExtracted"
-                if ($modsBuild -eq ("B" + $buildIdExtracted)) {
-                  Write-Error -Message "Current Gamedata is up to date. Abort." -ErrorAction Stop
-                  break
-                }
-              }
-            }
-          }
-      - name: Download and Install Battle.net
-        run: |
-          $ErrorView = 'NormalView'
-          Write-Output $(Invoke-WebRequest "https://ipinfo.io/json").Content
-          Invoke-WebRequest -Uri "https://us.battle.net/download/getInstaller?os=win&installer=Battle.net-Setup.exe" -OutFile "C:\Battle.net-Setup.exe"
-          Cscript.exe "./.github/workflows/install_bnet.vbs" //nologo
-          Get-Process | Where {$_.MainWindowTitle} | Select-Object ProcessName, MainWindowTitle
-      - name: Installing Heroes Of the Storm
-        run: |
-          Invoke-WebRequest -Uri "https://github.com/jamiephan/Battle.Net-Installer/releases/latest/download/BNetInstaller.exe" -OutFile "C:\BNetInstaller.exe"
-          & "C:\BNetInstaller.exe" --prod "hero" --lang "enus" --dir "C:/hero"
-      - name: Setup WSL
-        uses: Vampire/setup-wsl@v1
+            # Loop through each config (region)
+            while IFS= read -r config; do
+              IFS='|' read -ra fields <<< "$config"
+              regionExtracted="${fields[$regionIndex]}"
+              
+              if [[ "$regionExtracted" == "$region" ]]; then
+
+                buildIdExtracted="${fields[$buildIdIndex]}"
+                versionStringExtracted="${fields[$versionStringIndex]}"
+                modsBuild=$(cat "$buildid_file")
+
+                echo "Extracted Region: $regionExtracted"
+                echo "Extracted Version String: $versionStringExtracted"
+                echo "Extracted Build ID: B$buildIdExtracted"
+                echo "Current Mods Build: $modsBuild"
+                
+                region_output="$regionExtracted"
+                build_id_output="$buildIdExtracted"
+                version_string_output="$versionStringExtracted"
+
+                if [[ "$modsBuild" == "B$buildIdExtracted" ]]; then
+                  echo "Error: Current Gamedata is up to date. Abort." >&2
+                  exit 1
+                fi
+                break
+              fi
+            done <<< "$configs"
+          else
+            echo "Error: Build ID file not found" >&2
+            exit 1
+          fi
+
+          echo "Github Action Output:"
+          echo "region=${region_output}"
+          echo "build_id=${build_id_output}"
+          echo "version_string=${version_string_output}"
+
+          echo "region=${region_output}" >> "$GITHUB_OUTPUT"
+          echo "build_id=${build_id_output}" >> "$GITHUB_OUTPUT"
+          echo "version_string=${version_string_output}" >> "$GITHUB_OUTPUT"
+      - uses: actions/setup-node@v6
         with:
-          distribution: Debian
-          additional-packages: cmake libbz2-dev zlib1g-dev python build-essential curl git
-          use-cache: true
-          set-as-default: true
-          update: true
-      - name: Installing storm-extract
-        shell: wsl-bash_Debian {0}
-        run: |
-          git config --global http.sslverify false
-          git clone https://github.com/nydus/storm-extract /storm-extract
-          cd /storm-extract
-          git submodule init
-          git submodule update
-          mkdir build
-          cd build
-          cmake ..
-          make
-          cp /storm-extract/build/bin/storm-extract /usr/bin/storm-extract
-          cp /storm-extract/build/bin/libcasc.so.1 /usr/lib/libcasc.so.1
-
-      - name: Delete the mods folder
-        run: |
-          if (Test-Path "./mods") { Remove-Item "./mods" -Recurse -Force; }
-      - name: Extracting Game files
-        shell: wsl-bash_Debian {0}
-        run: |
-          storm-extract -i "/mnt/c/hero/HeroesData" -o "." -v -t "xml" -x
-          storm-extract -i "/mnt/c/hero/HeroesData" -o "." -v -t "txt" -x
-          storm-extract -i "/mnt/c/hero/HeroesData" -o "." -v -t "galaxy" -x
-          storm-extract -i "/mnt/c/hero/HeroesData" -o "." -v -t "StormLayout" -x
-          storm-extract -i "/mnt/c/hero/HeroesData" -o "." -v -t "StormHotkeys" -x
-          storm-extract -i "/mnt/c/hero/HeroesData" -o "." -v -t "StormStyle" -x
-          storm-extract -i "/mnt/c/hero/HeroesData" -o "." -v -t "StormCutscene" -x
-          storm-extract -i "/mnt/c/hero/HeroesData" -o "." -v -t "StormComponents" -x
-          storm-extract -i "/mnt/c/hero/HeroesData" -o "." -v -t "StormLocale" -x
-
+          node-version: 22
+      - run: npm ci
+      - run: npm run extract
       - name: Generate XSD File
+        shell: bash
         run: |
+          gameVersion="${{ steps.check-version.outputs.version_string }}"
+
+          if [ -z "$gameVersion" ]; then
+            echo "Error: version_string output is empty, cannot generate XSD." >&2
+            exit 1
+          fi
+
           # Check if tree is not clean
-          if($(&git status --porcelain) -ne $null) {
-            $buildVersionIdx = 12 # Default
-            $currIdx = 0
-            $buildInfoContent = $(Get-Content "C:/hero/.build.info")
-            $buildInfoHeader = $buildInfoContent[0]
-            $buildInfoFirstEntry = $buildInfoContent[1]
+          if [ -n "$(git status --porcelain)" ]; then
+            echo "Game Version: $gameVersion"
 
-            $buildInfoHeader -split "|", 0, "SimpleMatch" | ForEach-Object {
-                if ($_ -like "Version*") {
-                    Write-Output "build.info version index:$currIdx = $_"
-                    Set-Variable -Name "buildVersionIdx" -Value $currIdx
-                }
-                $currIdx++
-            }
-
-            $gameVersion = ($buildInfoFirstEntry -split "|", 0, "SimpleMatch")[$buildVersionIdx]
-
-            Write-Output "Game Version: $gameVersion"
-
-            New-Item -Path "./_temp_" -ItemType "Directory" | Out-Null
-            if (-Not (Test-Path "./xsd")) {
-              New-Item -Path "./xsd" -ItemType "Directory" | Out-Null
-            }
-            Write-Output "Copying XML files to temp"
-            Get-ChildItem -Path "./mods" -Filter *.xml -Recurse -File | ForEach-Object {
-              $filePath = $_.FullName
-              $filePathHash = $(Get-FileHash -Path $filePath -Algorithm "md5").Hash
-              Copy-Item -Path $filePath "./_temp_/$filePathHash.xml"  -Force
-            }
-            Write-Output "Generating XDS File"
-            &java -jar "./trang.jar" -I xml -O xsd "./_temp_/*.xml" "./xsd/$gameVersion.xsd"
+            mkdir -p "./_temp_"
+            mkdir -p "./xsd"
+            
+            echo "Copying XML files to temp"
+            find "./mods" -type f -name "*.xml" | while read -r filePath; do
+              filePathHash=$(md5sum "$filePath" | awk '{print $1}')
+              cp "$filePath" "./_temp_/${filePathHash}.xml"
+            done
+            
+            echo "Generating XSD File"
+            java -jar "./trang.jar" -I xml -O xsd ./_temp_/*.xml "./xsd/$gameVersion.xsd"
             
             # Replace latest.xsd
-            if (Test-Path "./xsd/latest.xsd") {
-              Remove-Item "./xsd/latest.xsd" -Recurse -Force
-            }
-            &java -jar "./trang.jar" -I xml -O xsd "./_temp_/*.xml" "./xsd/latest.xsd"
-          }
+            if [ -f "./xsd/latest.xsd" ]; then
+              rm -f "./xsd/latest.xsd"
+            fi
+            java -jar "./trang.jar" -I xml -O xsd ./_temp_/*.xml "./xsd/latest.xsd"
+          fi
       - name: Push Changes to Github
+        shell: bash
         run: |
+          gameVersion="${{ steps.check-version.outputs.version_string }}"
+
+          if [ -z "$gameVersion" ]; then
+            echo "Error: version_string output is empty, cannot push changes." >&2
+            exit 1
+          fi
+
           # Check if tree is not clean
-          if($(&git status --porcelain) -ne $null) {
-            $buildVersionIdx = 0 # Default
-            $currIdx = 0
-            $buildInfoContent = $(Get-Content "C:/hero/.build.info")
-            $buildInfoHeader = $buildInfoContent[0]
-            $buildInfoFirstEntry = $buildInfoContent[1]
+          if [ -n "$(git status --porcelain)" ]; then
+            echo "Game Version: $gameVersion"
 
-            $buildInfoHeader -split "|", 0, "SimpleMatch" | ForEach-Object {
-                if ($_ -like "Version*") {
-                    Write-Output "build.info version index:$currIdx = $_"
-                    Set-Variable -Name "buildVersionIdx" -Value $currIdx
-                }
-                $currIdx++
-            }
-
-            $gameVersion = ($buildInfoFirstEntry -split "|", 0, "SimpleMatch")[$buildVersionIdx]
-            Write-Output "Game Version: $gameVersion"
-            
             git config --global user.name 'Jamie Phan'
             git config --global user.email '9488815+jamiephan@users.noreply.github.com'
-            
+
             git add "./mods"
             git add "./xsd"
             git commit -m "Updated Files to $gameVersion"
 
-            $commitHash = $(&git log --format="%H" -n 1)
-            &git tag -a "v$gameVersion" "$commitHash" -m "Game Version: $gameVersion"
+            commitHash=$(git log --format="%H" -n 1)
+            git tag -a "v$gameVersion" "$commitHash" -m "Game Version: $gameVersion"
 
-            Add-Content "./VERSIONS.md" -Value "`n- $gameVersion`: [``Commit``](https://github.com/jamiephan/HeroesOfTheStorm_Gamedata/commit/$commitHash) | [``Tag``](https://github.com/jamiephan/HeroesOfTheStorm_Gamedata/releases/tag/v$gameVersion)  | [``XSD``](./xsd/$gameVersion.xsd)"
+            echo "" >> "./VERSIONS.md"
+            echo "- $gameVersion: [\`Commit\`](https://github.com/jamiephan/HeroesOfTheStorm_Gamedata/commit/$commitHash) | [\`Tag\`](https://github.com/jamiephan/HeroesOfTheStorm_Gamedata/releases/tag/v$gameVersion) | [\`XSD\`](./xsd/$gameVersion.xsd)" >> "./VERSIONS.md"
             git add "./VERSIONS.md"
             git commit -m "Updated VERSION.md with $gameVersion"
             git push
             git push --tags
-          } else {
-            Write-Output "No changes have been made to git. No updates were found"
-          }
+          else
+            echo "No changes have been made to git. No updates were found"
+          fi
