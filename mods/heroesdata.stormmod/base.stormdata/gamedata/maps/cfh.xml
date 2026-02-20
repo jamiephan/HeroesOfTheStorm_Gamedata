@@ -1,0 +1,483 @@
+<?xml version="1.0" encoding="us-ascii"?>
+<Catalog>
+  <const id="$TownArmorActiveArmor" value="35" />
+  <const id="$TownArmorArmorCooldown" value="4" />
+  <const id="$TownArmorArmorDuration" value="4" />
+  <const id="$TownArmorPassiveOffCooldownArmor" value="0" />
+  <const id="$TownArmorPassiveOnCooldownArmor" value="0" />
+  <const id="$TownArmorRangeFort" value="5.4" />
+  <const id="$TownArmorRangeKeep" value="6.8" />
+  <const id="$TownArmorRangeCore" value="8.2" />
+  <const id="$TownArmorRangeSlop" value="5.5" />
+  <const id="$TownArmorRangeFortSlop" value="+($TownArmorRangeFort $TownArmorRangeSlop)" evaluateAsExpression="1" />
+  <const id="$TownArmorRangeKeepSlop" value="+($TownArmorRangeKeep $TownArmorRangeSlop)" evaluateAsExpression="1" />
+  <const id="$TownArmorRangeCoreSlop" value="+($TownArmorRangeCore $TownArmorRangeSlop)" evaluateAsExpression="1" />
+  <CAccumulatorToken id="TownCFHPersistentArmorAccumulator" parent="BaseTokenAccumulator">
+    <MinAccumulation value="$TownArmorPassiveOnCooldownArmor" />
+    <MaxAccumulation value="$TownArmorPassiveOffCooldownArmor" />
+    <Scale value="$TownArmorPassiveOffCooldownArmor" />
+    <ApplicationRule value="Add" />
+    <TokenId value="TownCFHArmorTokenCounter" />
+  </CAccumulatorToken>
+  <CActorModel id="CFHArmorRange" parent="StormModelAnimationStyleContinuous">
+    <FogVisibility value="Dimmed" />
+    <Inherits index="TeamColor" value="1" />
+    <Remove Terms="ActorCreation" Send="AnimBracketStart BSD Birth Stand Death" />
+    <On Terms="Behavior.TownArmorAuraController.On" Send="Create" />
+    <On Terms="Behavior.TownArmorAuraController.Off" Send="AnimBracketStop BSDCustom" />
+    <On Terms="ActorCreation" Send="AnimBracketStart BSDCustom {} Stand Death ClosingFull" />
+    <On Terms="AnimBracketState.*.AfterClosing; !AnimBracketExitReason ModelSwap; AnimName BSDCustom" Send="Destroy" />
+    <On Terms="Behavior.TownArmorAuraController.On" Send="SetOpacity 0.225000" />
+    <On Terms="UnitDeath" Send="Destroy Immediate" />
+    <On Terms="ActorCreation; ValidateUnitType IsCore" Send="SetScale 1.500000 0.000000 BuildingScale" />
+    <On Terms="ActorCreation; ValidateUnitType TargetIsTownTownHallL2" Send="SetScale 1.000000 0.000000 BuildingScale" />
+    <On Terms="ActorCreation; ValidateUnitType TargetIsTownTownHallL3" Send="SetScale 1.200000 0.000000 BuildingScale" />
+    <Model value="MonkSevenSidedStrikeWarningModel" />
+  </CActorModel>
+  <CActorModel id="CFHTargetAcquiredAlertHero" parent="StormModelAnimationStyleContinuousUnit">
+    <HostSiteOps Ops="SOpAttachOverhead SOpMoveUpBy1" HoldRotation="1" />
+    <Model value="MurkyRevealedModel" />
+    <Scale value="0.750000" />
+    <Inherits index="Visibility" value="0" />
+  </CActorModel>
+  <CActorModel id="CFHTargetAcquiredAlertTower" parent="StormModelAnimationStyleContinuousUnit">
+    <HostSiteOps Ops="SOpAttachOverhead" HoldRotation="1" />
+    <Model value="MurkyRevealedModel" />
+    <Scale value="0.750000" />
+    <Inherits index="Visibility" value="0" />
+  </CActorModel>
+  <CActorBeamSimple id="TownArmorBeam" parent="BeamSimpleAnimationStyleOneShot">
+    <On Terms="Effect.TownAddArmorBuffToTarget.Start" Send="Create" />
+    <On Terms="ActorCreation" Send="SetTintColor 90,130,255" />
+    <HostLaunchSiteOps Ops="SOpCasterUnit SOpAttachWeapon" />
+    <HostImpactSiteOps Ops="SOpSourceUnit SOpAttachCenter" />
+    <Model value="MedicHolyShockBeam" />
+  </CActorBeamSimple>
+  <CActorSound id="TownArmorArmorBuffLaunchSound" parent="SoundOneShot">
+    <On Terms="Effect.TownAddArmorBuffToTarget.Start; At Source" Send="Create" />
+    <Sound value="Zarya_PersonalBarrier_DefensiveShielding_Launch" />
+  </CActorSound>
+  <CActorModel id="TownArmorShieldFX" parent="StormModelAnimationStyleContinuousUnit">
+    <On Terms="Behavior.TownArmorArmorBuff.On; ValidateUnit TargetNotDead" Send="Create" />
+    <On Terms="Behavior.TownArmorArmorBuff.Off" Send="AnimBracketStop BSD" />
+    <On Terms="ActorCreation" Send="SetTintColor 90,130,255" />
+    <Model value="ZaryaShieldAllyBuff" />
+    <HostSiteOps Ops="SOpAttachCenterSoft" />
+    <AutoScaleFactor value="1.000000" />
+    <Scale value="0.850000" />
+  </CActorModel>
+  <CActorModel id="TownArmorBuff" parent="StormModelAnimationStyleOneShotUnit">
+    <Flags index="SuppressSaveLoad" value="0" />
+    <On Terms="Behavior.TownArmorArmorBuff.On; ValidateUnit TargetNotDead" Send="Create" />
+    <On Terms="Behavior.TownArmorArmorBuff.Off" Send="Destroy" />
+    <HostSiteOps Ops="SOpAttachCenterSoft" />
+    <Model value="FrostArmorBuff" />
+    <ModelFlags index="AllowHitTest" value="1" />
+  </CActorModel>
+  <CBehaviorBuff id="TowerCFHDamageResponse">
+    <BuffFlags index="RefreshStack" value="1" />
+    <Duration value="0.125" />
+    <DamageResponse Chance="1" Handled="TowerCFHApplySet" Location="Attacker">
+      <ValidatorArray value="TargetIsEnemyHero" />
+      <Kind index="Basic" value="0" />
+      <ProvideCategories index="Enhancement" value="1" />
+    </DamageResponse>
+    <MaxStackCount value="0" />
+    <MaxStackCountPerCaster value="1" />
+    <DisableValidatorArray value="CasterNotOrderPaused" />
+  </CBehaviorBuff>
+  <CBehaviorBuff id="TowerCFHDamageResponseBasicAttack">
+    <BuffFlags index="RefreshStack" value="1" />
+    <Duration value="0.125" />
+    <DamageResponse Chance="1" Handled="TowerCFHApplySet" Location="Attacker">
+      <ValidatorArray value="TargetIsEnemyHero" />
+      <ValidatorArray value="TargetNotEvading" />
+      <Kind index="Splash" value="0" />
+      <Kind index="Ability" value="0" />
+      <ProvideCategories index="Enhancement" value="1" />
+    </DamageResponse>
+    <MaxStackCount value="0" />
+    <MaxStackCountPerCaster value="1" />
+    <DisableValidatorArray value="CasterNotOrderPaused" />
+  </CBehaviorBuff>
+  <CBehaviorBuff id="TowerCFHFocusedTarget">
+    <RemoveValidatorArray value="TowerCFHFocusedUnitTrackedSource" />
+    <MaxStackCount value="0" />
+    <MaxStackCountPerCaster value="1" />
+    <FinalEffect value="TowerCFHFocusedTargetRemovedDummyEffect" />
+  </CBehaviorBuff>
+  <CBehaviorUnitTracker id="TowerCFHFocusedTargetTracker">
+    <TrackingValidatorArray value="CasterIsAttackingUnit" />
+    <MaxTrackedUnits value="1" />
+  </CBehaviorUnitTracker>
+  <CBehaviorBuff id="TowerTargetingMarker">
+    <FinalEffect value="TowerCFHRemoveFromTargetedList" />
+  </CBehaviorBuff>
+  <CBehaviorBuff id="TownArmorAuraController">
+    <DisableValidatorArray value="TowerCFHTownCasterActiveCombine" />
+  </CBehaviorBuff>
+  <CBehaviorBuff id="TowerCFHArmorDamageResponse">
+    <RemoveValidatorArray value="TowerCFHWithinRangeRemoveCombine" />
+    <RemoveValidatorArray value="TowerCFHTownCasterActiveCombine" />
+    <ArmorModification StackCount="1">
+      <ArmorSet index="Hero">
+        <ArmorMitigationTable index="Basic" value="0">
+          <AccumulatorArray value="TownCFHPersistentArmorAccumulator" />
+        </ArmorMitigationTable>
+        <ArmorMitigationTable index="Ability" value="0">
+          <AccumulatorArray value="TownCFHPersistentArmorAccumulator" />
+        </ArmorMitigationTable>
+      </ArmorSet>
+      <ArmorSet index="Summon">
+        <ArmorMitigationTable index="Basic" value="0">
+          <AccumulatorArray value="TownCFHPersistentArmorAccumulator" />
+        </ArmorMitigationTable>
+        <ArmorMitigationTable index="Ability" value="0">
+          <AccumulatorArray value="TownCFHPersistentArmorAccumulator" />
+        </ArmorMitigationTable>
+      </ArmorSet>
+    </ArmorModification>
+    <DamageResponse>
+      <Chance value="1" />
+      <Handled value="TownAddArmorApplySet" />
+      <ValidateEffectAliasesOp value="ExcludeHasAny" />
+      <Priority value="65" />
+      <ValidateEffectAliases value="PercentDamage" />
+      <ValidatorArray value="CasterDoesNotHaveArmorAddCooldown" />
+      <UnitDamageType index="Merc" value="0" />
+      <UnitDamageType index="Monster" value="0" />
+      <UnitDamageType index="Structure" value="0" />
+      <UnitDamageType index="Minion" value="0" />
+    </DamageResponse>
+  </CBehaviorBuff>
+  <CBehaviorBuff id="TowerCFHArmorDamageResponse2" parent="TowerCFHArmorDamageResponse" />
+  <CBehaviorBuff id="TowerCFHArmorDamageResponse3" parent="TowerCFHArmorDamageResponse" />
+  <CBehaviorTokenCounter id="TownCFHArmorTokenCounter" parent="StormGenericToken">
+    <Max value="1" />
+    <Init value="1" />
+  </CBehaviorTokenCounter>
+  <CBehaviorBuff id="TownArmorAddCooldown">
+    <Duration value="$TownArmorArmorCooldown" />
+    <InitialEffect value="TownArmorSetPersistentArmorTokenDisabled" />
+    <FinalEffect value="TownArmorSetPersistentArmorTokenEnabled" />
+    <Modification>
+      <BehaviorLinkDisableArray value="TownArmorAuraController" />
+    </Modification>
+  </CBehaviorBuff>
+  <CBehaviorBuff id="CFHArmorGrantDisabled">
+    <Modification>
+      <BehaviorLinkDisableArray value="TownArmorAuraController" />
+    </Modification>
+  </CBehaviorBuff>
+  <CBehaviorBuff id="TownArmorArmorBuff" parent="StormArmor">
+    <Alignment value="Positive" />
+    <BehaviorCategories index="BuffResistant" value="1" />
+    <Duration value="$TownArmorArmorDuration" />
+    <RemoveValidatorArray value="TowerCFHWithinRangeRemoveCombine" />
+    <RemoveValidatorArray value="TownNoHeroNearby" />
+    <ArmorModification>
+      <AllArmorBonus value="$TownArmorActiveArmor" />
+    </ArmorModification>
+    <DamageResponse TargetFilters="-;Ally">
+      <Kind index="Splash" value="0" />
+      <Kind index="Ability" value="0" />
+      <UnitDamageType index="Merc" value="0" />
+      <UnitDamageType index="Monster" value="0" />
+      <UnitDamageType index="Summon" value="0" />
+      <UnitDamageType index="Structure" value="0" />
+      <UnitDamageType index="Minion" value="0" />
+    </DamageResponse>
+  </CBehaviorBuff>
+  <CBehaviorBuff id="TownArmorTargetAttackedSlow" parent="StormSlowParent">
+    <Duration value="4" />
+    <Modification>
+      <UnifiedMoveSpeedFactor value="-0.2" />
+    </Modification>
+  </CBehaviorBuff>
+  <CBehaviorBuff id="TowerCFHUpdateNearbyHeroes">
+    <Period value="0.0625" />
+    <InitialEffect value="TowerArmorApplySet" />
+    <PeriodicEffect value="TowerCFHUpdateNearbyHeroListSet" />
+  </CBehaviorBuff>
+  <CEffectSet id="TowerCFHFocusedTargetRemovedDummyEffect" />
+  <CEffectRemoveTrackedUnit id="TowerCFHRemoveFromTargetedList">
+    <BehaviorLink value="TowerCFHFocusedTargetTracker" />
+    <TrackedUnit Value="Source" />
+  </CEffectRemoveTrackedUnit>
+  <CEffectApplyBehavior id="TowerCFHApplyDamageResponse">
+    <ValidatorArray value="TowerCFHWithinRange" />
+    <Behavior value="TowerCFHDamageResponse" />
+  </CEffectApplyBehavior>
+  <CEffectApplyBehavior id="TowerCFHApplyDamageResponseBasicAttack">
+    <ValidatorArray value="TowerCFHWithinRange" />
+    <Behavior value="TowerCFHDamageResponseBasicAttack" />
+  </CEffectApplyBehavior>
+  <CEffectApplyBehavior id="TowerCFHApplyFocusedTarget">
+    <WhichUnit Value="Source" />
+    <Behavior value="TowerCFHFocusedTarget" />
+  </CEffectApplyBehavior>
+  <CEffectAddTrackedUnit id="TowerCFHAddToFocusList">
+    <BehaviorLink value="TowerCFHFocusedTargetTracker" />
+    <TrackedUnit Value="Source" />
+  </CEffectAddTrackedUnit>
+  <CEffectIssueOrder id="TowerCFHIssueAttackOrder">
+    <WhichUnit Value="Caster" />
+    <Abil value="attack" />
+    <Target Value="SourceUnit" />
+    <CmdFlags index="Preempt" value="1" />
+  </CEffectIssueOrder>
+  <CEffectSet id="TowerCFHUpdateNearbyHeroListSet">
+    <EffectArray value="TowerCFHUpdateNearbyHeroList" />
+    <EffectArray value="TowerCFHUpdateNearbyAlliedHeroList" />
+  </CEffectSet>
+  <CEffectEnumTrackedUnits id="TowerCFHUpdateNearbyHeroList">
+    <ValidatorArray value="TowerCFHFocusedUnitListCountis0" />
+    <Marker>
+      <MatchFlags index="Id" value="1" />
+    </Marker>
+    <Chance value="0" />
+    <BehaviorLink value="AllHeroicUnitsTrackingBehavior" />
+    <Effect value="TowerCFHApplyDamageResponseSet" />
+    <TrackedUnitFilters value="Heroic,Visible;Player,Ally,Neutral,Item,Invulnerable,AITargetableStructure,IgnoredByTowerAI" />
+  </CEffectEnumTrackedUnits>
+  <CEffectSet id="TowerCFHApplyDamageResponseSet">
+    <EffectArray value="TowerCFHApplyDamageResponse" />
+    <EffectArray value="TowerCFHApplyDamageResponseBasicAttack" />
+  </CEffectSet>
+  <CEffectSet id="TowerCFHApplySet">
+    <EffectArray value="TowerCFHIssueAttackOrder" />
+    <EffectArray value="TowerCFHAddToFocusList" />
+    <EffectArray value="TowerCFHApplyFocusedTarget" />
+    <ValidatorArray value="TowerCFHWithinRange" />
+    <ValidatorArray value="TowerCFHFocusedUnitListCountis0" />
+  </CEffectSet>
+  <CEffectDamage id="TowerCFHHeroDamageFromSummonedUnitDummy" parent="StormSummonedUnitWeapon">
+    <FloaterCreation value="Suppress" />
+    <Amount value="0.001" />
+    <Flags index="NoScaledDealtBonus" value="1" />
+    <Flags index="NoDamageTimerReset" value="1" />
+  </CEffectDamage>
+  <CEffectEnumTrackedUnits id="TowerCFHUpdateNearbyAlliedHeroList">
+    <ValidatorArray value="CFHCasterHasAuraController" />
+    <ValidatorArray value="CasterDoesNotHaveArmorAddCooldown" />
+    <Marker>
+      <MatchFlags index="Id" value="1" />
+    </Marker>
+    <BehaviorLink value="AllHeroicUnitsTrackingBehavior" />
+    <Effect value="TowerCFHApplyAlliedDamageResponseSet" />
+    <TrackedUnitFilters value="Heroic;Player,Neutral,Enemy,ImmuneToFriendlyAbilities,Item,Dead,Invulnerable" />
+  </CEffectEnumTrackedUnits>
+  <CEffectSet id="TowerCFHApplyAlliedDamageResponseSet">
+    <ValidatorArray value="TowerCFHTownCasterActiveCombine" />
+    <ValidatorArray value="TowerCFHWithinRangeApplicationCombine" />
+    <ValidatorArray value="TowerCFHTargetDoesNotHaveArmorResponseAnyRequireCaster" />
+    <EffectArray value="TowerCFHApplyArmorDamageResponse" />
+  </CEffectSet>
+  <CEffectSwitch id="TowerCFHApplyArmorResponseSwitch">
+    <CaseArray Validator="TowerCFHTargetDoesNotHaveArmorResponseAnyCaster" Effect="TowerCFHApplyArmorDamageResponse" />
+    <CaseArray Validator="TowerCFHTargetDoesNotHaveArmorResponseAnyCaster2" Effect="TowerCFHApplyArmorDamageResponse2" />
+    <CaseArray Validator="TowerCFHTargetDoesNotHaveArmorResponseAnyCaster3" Effect="TowerCFHApplyArmorDamageResponse3" />
+  </CEffectSwitch>
+  <CEffectApplyBehavior id="TowerCFHApplyArmorDamageResponse">
+    <Behavior value="TowerCFHArmorDamageResponse" />
+  </CEffectApplyBehavior>
+  <CEffectApplyBehavior id="TowerCFHApplyArmorDamageResponse2">
+    <Behavior value="TowerCFHArmorDamageResponse2" />
+  </CEffectApplyBehavior>
+  <CEffectApplyBehavior id="TowerCFHApplyArmorDamageResponse3">
+    <Behavior value="TowerCFHArmorDamageResponse3" />
+  </CEffectApplyBehavior>
+  <CEffectSet id="TownAddArmorApplySet">
+    <ValidatorArray value="SourceDoesNotHaveTownArmor" />
+    <ValidatorArray value="TowerCFHTownCasterActiveCombine" />
+    <ValidatorArray value="CasterDoesNotHaveArmorAddCooldown" />
+    <EffectArray value="TownAddArmorCooldownToCaster" />
+    <EffectArray value="TownAddArmorBuffToTarget" />
+  </CEffectSet>
+  <CEffectApplyBehavior id="TownAddArmorCooldownToCaster">
+    <WhichUnit Value="Caster" />
+    <Behavior value="TownArmorAddCooldown" />
+  </CEffectApplyBehavior>
+  <CEffectModifyTokenCount id="TownArmorSetPersistentArmorTokenDisabled" parent="BaseEffectModifyTokenCount">
+    <TokenId value="TownCFHArmorTokenCounter" />
+    <Operation value="Set" />
+    <Value value="0" />
+  </CEffectModifyTokenCount>
+  <CEffectModifyTokenCount id="TownArmorSetPersistentArmorTokenEnabled" parent="BaseEffectModifyTokenCount">
+    <TokenId value="TownCFHArmorTokenCounter" />
+    <Operation value="Set" />
+  </CEffectModifyTokenCount>
+  <CEffectSet id="TowerArmorApplySet">
+    <EffectArray value="TownArmorApplyTokenCounterInitial" />
+    <EffectArray value="TownArmorApplyAuraVisibilityControllerPersistent" />
+  </CEffectSet>
+  <CEffectApplyBehavior id="TownArmorApplyTokenCounterInitial">
+    <Behavior value="TownCFHArmorTokenCounter" />
+  </CEffectApplyBehavior>
+  <CEffectCreatePersistent id="TownArmorApplyAuraVisibilityControllerPersistent">
+    <WhichLocation Value="CasterUnit" />
+    <InitialDelay value="0.0625" />
+    <InitialEffect value="TownArmorApplyAuraVisibilityController" />
+  </CEffectCreatePersistent>
+  <CEffectApplyBehavior id="TownArmorApplyAuraVisibilityController">
+    <Behavior value="TownArmorAuraController" />
+  </CEffectApplyBehavior>
+  <CEffectApplyBehavior id="CFHArmorGrantApplyDisableForForceUpdate">
+    <Behavior value="CFHArmorGrantDisabled" />
+    <Flags index="UseDuration" value="1" />
+    <Duration value="0.0625" />
+  </CEffectApplyBehavior>
+  <CEffectApplyBehavior id="TownAddArmorBuffToTarget">
+    <WhichUnit Effect="TowerCFHApplyAlliedDamageResponseSet" />
+    <Behavior value="TownArmorArmorBuff" />
+  </CEffectApplyBehavior>
+  <CEffectApplyBehavior id="TownArmorApplySlowToAttacker" parent="StormSlowApply">
+    <ValidatorArray value="TargetNotDead" />
+    <ValidatorArray value="NotAlly" />
+    <Behavior value="TownArmorTargetAttackedSlow" />
+  </CEffectApplyBehavior>
+  <CModel id="CFHTargetAcquiredAlert" parent="PersistentSpellFX">
+    <Model value="Assets\Effects\Storm_Effect_Murky_Base_Reveal\Storm_Effect_Murky_Base_Reveal.m3" />
+  </CModel>
+  <CValidatorUnitHasBehavior id="TargetDoesNotHaveShredCooldown">
+    <Behavior value="TownRampingArmorShredCooldown" />
+    <Negate value="1" />
+  </CValidatorUnitHasBehavior>
+  <CValidatorLocationCompareRange id="TowerCFHWithinRange">
+    <Compare value="LE" />
+    <Range value="7.5" />
+  </CValidatorLocationCompareRange>
+  <CValidatorCompareTrackedUnitsCount id="TowerCFHFocusedUnitListCountis0">
+    <BehaviorLink value="TowerCFHFocusedTargetTracker" />
+  </CValidatorCompareTrackedUnitsCount>
+  <CValidatorIsUnitTracked id="TowerCFHFocusedUnitTrackedSource">
+    <Find value="1" />
+    <BehaviorLink value="TowerCFHFocusedTargetTracker" />
+    <TrackedUnit Value="Source" />
+  </CValidatorIsUnitTracked>
+  <CValidatorIsUnitTracked id="TowerCFHFocusedUnitTrackedTarget">
+    <Find value="1" />
+    <BehaviorLink value="TowerCFHFocusedTargetTracker" />
+    <TrackedUnit Value="Target" />
+  </CValidatorIsUnitTracked>
+  <CValidatorCombine id="TowerCFHTownCasterActiveCombine">
+    <Type value="And" />
+    <CombineArray value="CasterNotStunned" />
+    <CombineArray value="CasterNotDead" />
+    <CombineArray value="CasterNotStasis" />
+  </CValidatorCombine>
+  <CValidatorCombine id="TowerCFHTargetDoesNotHaveArmorResponseAnyRequireCaster">
+    <Type value="And" />
+    <CombineArray value="TowerCFHTargetDoesNotHaveArmorResponse" />
+    <CombineArray value="TowerCFHTargetDoesNotHaveArmorResponse2" />
+    <CombineArray value="TowerCFHTargetDoesNotHaveArmorResponse3" />
+  </CValidatorCombine>
+  <CValidatorUnitCompareBehaviorCount id="TowerCFHTargetDoesNotHaveArmorResponse">
+    <Behavior value="TowerCFHArmorDamageResponse" />
+    <RequireCasterUnit Value="Caster" />
+  </CValidatorUnitCompareBehaviorCount>
+  <CValidatorUnitCompareBehaviorCount id="TowerCFHTargetDoesNotHaveArmorResponse2">
+    <Behavior value="TowerCFHArmorDamageResponse2" />
+    <RequireCasterUnit Value="Caster" />
+  </CValidatorUnitCompareBehaviorCount>
+  <CValidatorUnitCompareBehaviorCount id="TowerCFHTargetDoesNotHaveArmorResponse3">
+    <Behavior value="TowerCFHArmorDamageResponse3" />
+    <RequireCasterUnit Value="Caster" />
+  </CValidatorUnitCompareBehaviorCount>
+  <CValidatorUnitHasBehavior id="TowerCFHTargetDoesNotHaveArmorResponseAnyCaster">
+    <Negate value="1" />
+    <Behavior value="TowerCFHArmorDamageResponse" />
+  </CValidatorUnitHasBehavior>
+  <CValidatorUnitHasBehavior id="TowerCFHTargetDoesNotHaveArmorResponseAnyCaster2">
+    <Negate value="1" />
+    <Behavior value="TowerCFHArmorDamageResponse2" />
+  </CValidatorUnitHasBehavior>
+  <CValidatorUnitHasBehavior id="TowerCFHTargetDoesNotHaveArmorResponseAnyCaster3">
+    <Negate value="1" />
+    <Behavior value="TowerCFHArmorDamageResponse3" />
+  </CValidatorUnitHasBehavior>
+  <CValidatorCombine id="TowerCFHWithinRangeApplicationCombine">
+    <CombineArray value="TowerCFHWithinRangeArmorApplicationFort" />
+    <CombineArray value="TowerCFHWithinRangeArmorApplicationKeep" />
+    <CombineArray value="TowerCFHWithinRangeArmorApplicationKingsCore" />
+  </CValidatorCombine>
+  <CValidatorCombine id="TowerCFHWithinRangeArmorApplicationFort">
+    <Type value="And" />
+    <CombineArray value="TowerCFHWithinRangeArmorFort" />
+    <CombineArray value="CasterIsTownTownHallL2" />
+  </CValidatorCombine>
+  <CValidatorCombine id="TowerCFHWithinRangeArmorApplicationKeep">
+    <Type value="And" />
+    <CombineArray value="TowerCFHWithinRangeArmorKeep" />
+    <CombineArray value="CasterIsTownTownHallL3" />
+  </CValidatorCombine>
+  <CValidatorCombine id="TowerCFHWithinRangeArmorApplicationKingsCore">
+    <Type value="And" />
+    <CombineArray value="TowerCFHWithinRangeArmorCore" />
+    <CombineArray value="CasterIsCore" />
+  </CValidatorCombine>
+  <CValidatorLocationCompareRange id="TowerCFHWithinRangeArmorFort">
+    <Compare value="LE" />
+    <Range value="$TownArmorRangeFort" />
+    <Value Value="CasterPoint" />
+  </CValidatorLocationCompareRange>
+  <CValidatorLocationCompareRange id="TowerCFHWithinRangeArmorKeep">
+    <Compare value="LE" />
+    <Range value="$TownArmorRangeKeep" />
+    <Value Value="CasterPoint" />
+  </CValidatorLocationCompareRange>
+  <CValidatorLocationCompareRange id="TowerCFHWithinRangeArmorCore">
+    <Compare value="LE" />
+    <Range value="$TownArmorRangeCore" />
+    <Value Value="CasterPoint" />
+  </CValidatorLocationCompareRange>
+  <CValidatorCombine id="TowerCFHWithinRangeRemoveCombine">
+    <CombineArray value="TowerCFHWithinRangeArmorRemoveFort" />
+    <CombineArray value="TowerCFHWithinRangeArmorRemoveKeep" />
+    <CombineArray value="TowerCFHWithinRangeArmorRemoveKingsCore" />
+  </CValidatorCombine>
+  <CValidatorCombine id="TowerCFHWithinRangeArmorRemoveFort">
+    <Type value="And" />
+    <CombineArray value="TowerCFHWithinRangeFortSlop" />
+    <CombineArray value="CasterIsTownTownHallL2" />
+  </CValidatorCombine>
+  <CValidatorCombine id="TowerCFHWithinRangeArmorRemoveKeep">
+    <Type value="And" />
+    <CombineArray value="TowerCFHWithinRangeKeepSlop" />
+    <CombineArray value="CasterIsTownTownHallL3" />
+  </CValidatorCombine>
+  <CValidatorCombine id="TowerCFHWithinRangeArmorRemoveKingsCore">
+    <Type value="And" />
+    <CombineArray value="TowerCFHWithinRangeCoreSlop" />
+    <CombineArray value="CasterIsCore" />
+  </CValidatorCombine>
+  <CValidatorLocationCompareRange id="TowerCFHWithinRangeFortSlop">
+    <Compare value="LE" />
+    <Range value="$TownArmorRangeFortSlop" />
+    <Value Value="CasterPoint" />
+  </CValidatorLocationCompareRange>
+  <CValidatorLocationCompareRange id="TowerCFHWithinRangeKeepSlop">
+    <Compare value="LE" />
+    <Range value="$TownArmorRangeKeepSlop" />
+    <Value Value="CasterPoint" />
+  </CValidatorLocationCompareRange>
+  <CValidatorLocationCompareRange id="TowerCFHWithinRangeCoreSlop">
+    <Compare value="LE" />
+    <Range value="$TownArmorRangeCoreSlop" />
+    <Value Value="CasterPoint" />
+  </CValidatorLocationCompareRange>
+  <CValidatorUnitHasBehavior id="CasterDoesNotHaveArmorAddCooldown">
+    <Behavior value="TownArmorAddCooldown" />
+    <WhichUnit Value="Caster" />
+    <Negate value="1" />
+  </CValidatorUnitHasBehavior>
+  <CValidatorUnitHasBehavior id="CFHCasterHasAuraController">
+    <WhichUnit Value="Caster" />
+    <Behavior value="TownArmorAuraController" />
+  </CValidatorUnitHasBehavior>
+  <CValidatorUnitHasBehavior id="SourceDoesNotHaveTownArmor">
+    <Behavior value="TownArmorArmorBuff" />
+    <WhichUnit Value="Source" />
+    <Negate value="1" />
+  </CValidatorUnitHasBehavior>
+</Catalog>
