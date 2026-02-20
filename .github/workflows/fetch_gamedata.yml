@@ -10,6 +10,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v6
+      - name: Ignore git case
+        run: git config core.ignorecase false
       - name: Check game version
         id: check-version
         shell: bash
@@ -18,7 +20,10 @@ jobs:
           build_id_output=""
           version_string_output=""
 
-          if [ -f "$GITHUB_WORKSPACE/mods/core.stormmod/base.stormdata/buildid.txt" ]; then
+          # Find buildid.txt case-insensitively (including entire path)
+          buildid_file=$(find "$GITHUB_WORKSPACE" -maxdepth 4 -ipath "*/mods/core.stormmod/base.stormdata/buildid.txt" -type f | head -n 1)
+
+          if [ -n "$buildid_file" ] && [ -f "$buildid_file" ]; then
             region="us"
 
             # Fetch version information
@@ -59,7 +64,7 @@ jobs:
 
                 buildIdExtracted="${fields[$buildIdIndex]}"
                 versionStringExtracted="${fields[$versionStringIndex]}"
-                modsBuild=$(cat "$GITHUB_WORKSPACE/mods/core.stormmod/base.stormdata/buildid.txt")
+                modsBuild=$(cat "$buildid_file")
 
                 echo "Extracted Region: $regionExtracted"
                 echo "Extracted Version String: $versionStringExtracted"
@@ -78,7 +83,7 @@ jobs:
               fi
             done <<< "$configs"
           else
-            echo "Error: Build ID file not found at $GITHUB_WORKSPACE/mods/core.stormmod/base.stormdata/buildid.txt" >&2
+            echo "Error: Build ID file not found" >&2
             exit 1
           fi
 
