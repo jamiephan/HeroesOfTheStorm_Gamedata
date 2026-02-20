@@ -11,7 +11,13 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
       - name: Check game version
+        id: check-version
+        shell: bash
         run: |
+          region_output=""
+          build_id_output=""
+          version_string_output=""
+
           if [ -f "./mods/core.stormmod/base.stormdata/buildid.txt" ]; then
             region="us"
 
@@ -25,6 +31,7 @@ jobs:
 
             buildIdIndex=-1
             regionIndex=-1
+            versionStringIndex=-1
             
             # Find column indices
             IFS='|' read -ra columns <<< "$header"
@@ -38,6 +45,9 @@ jobs:
               if [[ "$key_lower" == buildid!* ]]; then
                 buildIdIndex=$i
               fi
+              if [[ "$key_lower" == versionname!* ]]; then
+                versionStringIndex=$i
+              fi
             done
 
             # Loop through each config (region)
@@ -47,17 +57,28 @@ jobs:
               
               if [ "$regionExtracted" = "$region" ]; then
                 buildIdExtracted="${fields[$buildIdIndex]}"
+                versionStringExtracted="${fields[$versionStringIndex]}"
                 modsBuild=$(cat "./mods/core.stormmod/base.stormdata/buildid.txt")
-                echo "$regionExtracted, buildidtxt: $modsBuild, upstream: B$buildIdExtracted"
+                echo "$regionExtracted, buildidtxt: $modsBuild, upstream: B$buildIdExtracted, version: $versionStringExtracted"
                 
+                region_output="$regionExtracted"
+                build_id_output="$buildIdExtracted"
+                version_string_output="$versionStringExtracted"
+
                 if [ "$modsBuild" = "B$buildIdExtracted" ]; then
                   echo "Error: Current Gamedata is up to date. Abort." >&2
                   exit 1
                 fi
+
+
                 break
               fi
             done <<< "$configs"
           fi
+
+          echo "region=${region_output}" >> "$GITHUB_OUTPUT"
+          echo "build_id=${build_id_output}" >> "$GITHUB_OUTPUT"
+          echo "version_string=${version_string_output}" >> "$GITHUB_OUTPUT"
       - name: Delete the mods folder
         run: |
           if [ -d "./mods" ]; then
@@ -71,28 +92,15 @@ jobs:
       - name: Generate XSD File
         shell: bash
         run: |
+          gameVersion="${{ steps.check-version.outputs.version_string }}"
+
+          if [ -z "$gameVersion" ]; then
+            echo "Error: version_string output is empty, cannot generate XSD." >&2
+            exit 1
+          fi
+
           # Check if tree is not clean
           if [ -n "$(git status --porcelain)" ]; then
-            buildVersionIdx=12  # Default
-            currIdx=0
-            
-            buildInfoContent=$(cat "$HOME/hero/.build.info")
-            buildInfoHeader=$(echo "$buildInfoContent" | head -n 1)
-            buildInfoFirstEntry=$(echo "$buildInfoContent" | sed -n '2p')
-
-            # Find version column index
-            IFS='|' read -ra headerFields <<< "$buildInfoHeader"
-            for i in "${!headerFields[@]}"; do
-              field="${headerFields[$i]}"
-              if [[ "$field" == Version* ]]; then
-                echo "build.info version index:$i = $field"
-                buildVersionIdx=$i
-              fi
-            done
-
-            IFS='|' read -ra entryFields <<< "$buildInfoFirstEntry"
-            gameVersion="${entryFields[$buildVersionIdx]}"
-
             echo "Game Version: $gameVersion"
 
             mkdir -p "./_temp_"
@@ -116,33 +124,20 @@ jobs:
       - name: Push Changes to Github
         shell: bash
         run: |
+          gameVersion="${{ steps.check-version.outputs.version_string }}"
+
+          if [ -z "$gameVersion" ]; then
+            echo "Error: version_string output is empty, cannot push changes." >&2
+            exit 1
+          fi
+
           # Check if tree is not clean
           if [ -n "$(git status --porcelain)" ]; then
-            buildVersionIdx=0  # Default
-            currIdx=0
-            
-            buildInfoContent=$(cat "$HOME/hero/.build.info")
-            buildInfoHeader=$(echo "$buildInfoContent" | head -n 1)
-            buildInfoFirstEntry=$(echo "$buildInfoContent" | sed -n '2p')
-
-            # Find version column index
-            IFS='|' read -ra headerFields <<< "$buildInfoHeader"
-            for i in "${!headerFields[@]}"; do
-              field="${headerFields[$i]}"
-              if [[ "$field" == Version* ]]; then
-                echo "build.info version index:$i = $field"
-                buildVersionIdx=$i
-              fi
-            done
-
-            IFS='|' read -ra entryFields <<< "$buildInfoFirstEntry"
-            gameVersion="${entryFields[$buildVersionIdx]}"
-            
             echo "Game Version: $gameVersion"
-            
+
             git config --global user.name 'Jamie Phan'
             git config --global user.email '9488815+jamiephan@users.noreply.github.com'
-            
+
             git add "./mods"
             git add "./xsd"
             git commit -m "Updated Files to $gameVersion"
