@@ -45,7 +45,7 @@ jobs:
               if [[ "$key_lower" == buildid!* ]]; then
                 buildIdIndex=$i
               fi
-              if [[ "$key_lower" == versionname!* ]]; then
+              if [[ "$key_lower" == versionsname!* ]]; then
                 versionStringIndex=$i
               fi
             done
@@ -55,17 +55,22 @@ jobs:
               IFS='|' read -ra fields <<< "$config"
               regionExtracted="${fields[$regionIndex]}"
               
-              if [ "$regionExtracted" = "$region" ]; then
+              if [[ "$regionExtracted" == "$region" ]]; then
+
                 buildIdExtracted="${fields[$buildIdIndex]}"
                 versionStringExtracted="${fields[$versionStringIndex]}"
                 modsBuild=$(cat "./mods/core.stormmod/base.stormdata/buildid.txt")
-                echo "$regionExtracted, buildidtxt: $modsBuild, upstream: B$buildIdExtracted, version: $versionStringExtracted"
+
+                echo "Extracted Region: $regionExtracted"
+                echo "Extracted Version String: $versionStringExtracted"
+                echo "Extracted Build ID: B$buildIdExtracted"
+                echo "Current Mods Build: $modsBuild"
                 
                 region_output="$regionExtracted"
                 build_id_output="$buildIdExtracted"
                 version_string_output="$versionStringExtracted"
 
-                if [ "$modsBuild" = "B$buildIdExtracted" ]; then
+                if [[ "$modsBuild" == "B$buildIdExtracted" ]]; then
                   echo "Error: Current Gamedata is up to date. Abort." >&2
                   exit 1
                 fi
@@ -75,6 +80,11 @@ jobs:
               fi
             done <<< "$configs"
           fi
+
+          echo "Github Action Output:"
+          echo "region=${region_output}"
+          echo "build_id=${build_id_output}"
+          echo "version_string=${version_string_output}"
 
           echo "region=${region_output}" >> "$GITHUB_OUTPUT"
           echo "build_id=${build_id_output}" >> "$GITHUB_OUTPUT"
