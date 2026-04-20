@@ -4,8 +4,10 @@
   <const id="$GuldanDrainLifeRange" value="7" />
   <const id="$GuldanDrainLifeRangeSlop" value="3.5" />
   <const id="$GuldanDrainLifeActiveActorRange" value="-(-(+($GuldanDrainLifeRange $GuldanDrainLifeRangeSlop) $GuldanUnitRadius) 0.4375)" evaluateAsExpression="1" />
+  <const id="$GuldanDrainLifeValidatorRange" value="+($GuldanDrainLifeRange $GuldanDrainLifeRangeSlop)" evaluateAsExpression="1" />
   <const id="$GuldanChaoticEnergyRangeModifier" value="0.25" />
   <const id="$GuldanChaoticEnergyRangeIncrease" value="*($GuldanDrainLifeRange $GuldanChaoticEnergyRangeModifier)" evaluateAsExpression="1" />
+  <const id="$GuldanDrainLifeChaoticEnergyValidatorRange" value="+($GuldanDrainLifeValidatorRange $GuldanChaoticEnergyRangeIncrease)" evaluateAsExpression="1" />
   <CAbilEffectInstant id="GuldanLifeTapFree">
     <Effect value="GuldanLifeTapCastSet" />
     <Cost>
@@ -60,7 +62,7 @@
     </Cost>
     <TargetFilters value="Visible;Self,Player,Ally,ImmuneToAOE,Structure,User1,Missile,Item,Stasis,Dead,Hidden,Invulnerable" />
     <Range value="$GuldanDrainLifeRange" />
-    <RangeSlop value="3.5" />
+    <RangeSlop value="$GuldanDrainLifeRangeSlop" />
     <CmdButtonArray index="Execute" DefaultButtonFace="GuldanDrainLife">
       <Flags index="AllowMinimap" value="1" />
       <Flags index="AllowSelfCast" value="0" />
@@ -3266,6 +3268,7 @@
   <CValidatorCombine id="GuldanDrainLifePeriodicValidator">
     <Type value="And" />
     <CombineArray value="GuldanHasDrainLifeChannelBehavior" />
+    <CombineArray value="GuldanDrainLifeTargetInRangeCombine" />
     <CombineArray value="CasterNotDeadOrSilencedOrStasisOrStunned" />
     <CombineArray value="TargetNotInvulnerable" />
     <CombineArray value="TargetNotDead" />
@@ -3353,6 +3356,27 @@
     <Value value="1" />
     <Behavior value="GuldanDrainLifeChannel" />
   </CValidatorUnitCompareBehaviorCount>
+  <CValidatorCombine id="GuldanDrainLifeTargetInRangeCombine">
+    <CombineArray value="GuldanDrainLifeTargetInRange" />
+    <CombineArray value="GuldanDrainLifeTargetInRangeAndHasChaoticEnergy" />
+  </CValidatorCombine>
+  <CValidatorCombine id="GuldanDrainLifeTargetInRangeAndHasChaoticEnergy">
+    <Type value="And" />
+    <CombineArray value="GuldanHasChaoticEnergyTalent" />
+    <CombineArray value="GuldanDrainLifeTargetInRangeChaoticEnergy" />
+  </CValidatorCombine>
+  <CValidatorLocationCompareRange id="GuldanDrainLifeTargetInRange">
+    <WhichLocation Value="CasterPoint" />
+    <Compare value="LE" />
+    <Range value="$GuldanDrainLifeValidatorRange" />
+    <Value Effect="GuldanDrainLifeChannelCreatePersistent" Value="TargetUnit" />
+  </CValidatorLocationCompareRange>
+  <CValidatorLocationCompareRange id="GuldanDrainLifeTargetInRangeChaoticEnergy">
+    <WhichLocation Value="CasterPoint" />
+    <Compare value="LE" />
+    <Range value="$GuldanDrainLifeChaoticEnergyValidatorRange" />
+    <Value Effect="GuldanDrainLifeChannelCreatePersistent" Value="TargetUnit" />
+  </CValidatorLocationCompareRange>
   <CValidatorUnitHasBehavior id="GuldanDrainLifeHealthFunnelSourceHasDeathResponse">
     <WhichUnit Value="Source" />
     <Behavior value="GuldanDrainLifeHealthFunnelDeathResponse" />

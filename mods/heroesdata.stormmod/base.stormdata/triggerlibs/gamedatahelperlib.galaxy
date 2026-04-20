@@ -39,6 +39,7 @@ void libGDHL_InitVariables () {
 
     libGDHL_InitVariables_completed = true;
 
+    libGDHL_gv_updateOnAnyVisibilityChangeUnitGroup = UnitGroupEmpty();
     libGDHL_gv_gPU2020EventEnabled = true;
     libGDHL_gv_gPU2020TimerDurationMod = 6.0;
     libGDHL_gv_gPU2020Phase1Threshold = 0.01;
@@ -793,6 +794,10 @@ void libGDHL_gf_HeroArthasIncrementHeroCountFunction () {
         TriggerEnable(libGDHL_gt_HeroArthasArmyoftheDeadMinionAITakeoverTransport, true);
         TriggerEnable(libGDHL_gt_HeroArthasArmyoftheDeadPortGhouls, true);
         TriggerEnable(libGDHL_gt_HeroArthasArmyoftheDeadGhoulSpawned, true);
+        TriggerEnable(libGDHL_gt_HeroArthasArmyoftheDeadNPCDeathProc, true);
+        TriggerEnable(libGDHL_gt_HeroArthasArmyoftheDeadTakedownDeathProc, true);
+        TriggerEnable(libGDHL_gt_HeroArthasArmyoftheDeadLegionofNorthrendTalentSpawn, true);
+        TriggerEnable(libGDHL_gt_HeroArthasDeathPactTalentTakedownTokenProc, true);
     }
 
 }
@@ -811,6 +816,10 @@ void libGDHL_gf_HeroArthasDecrementHeroCountFunction () {
         TriggerEnable(libGDHL_gt_HeroArthasArmyoftheDeadMinionAITakeoverTransport, false);
         TriggerEnable(libGDHL_gt_HeroArthasArmyoftheDeadPortGhouls, false);
         TriggerEnable(libGDHL_gt_HeroArthasArmyoftheDeadGhoulSpawned, false);
+        TriggerEnable(libGDHL_gt_HeroArthasArmyoftheDeadNPCDeathProc, false);
+        TriggerEnable(libGDHL_gt_HeroArthasArmyoftheDeadTakedownDeathProc, false);
+        TriggerEnable(libGDHL_gt_HeroArthasArmyoftheDeadLegionofNorthrendTalentSpawn, false);
+        TriggerEnable(libGDHL_gt_HeroArthasDeathPactTalentTakedownTokenProc, false);
     }
 
 }
@@ -1287,8 +1296,6 @@ void libGDHL_gf_HeroFalstadIncrementHeroCountFunction () {
     if ((libGDHL_gv_heroFalstadTriggerRegistrationVariable == 1)) {
         TriggerEnable(libGDHL_gt_HeroFalstadFlightCameraHeightRestore, true);
         TriggerEnable(libGDHL_gt_HeroFalstadFlightPing, true);
-        TriggerEnable(libGDHL_gt_HeroFalstadFrequentFlyerHeroTakedown, true);
-        TriggerEnable(libGDHL_gt_HeroFalstadFrequentFlyerNPCKill, true);
         TriggerEnable(libGDHL_gt_HeroFalstadDishonorableDischargeHeroKillRefreshCooldown, true);
     }
 
@@ -1305,8 +1312,6 @@ void libGDHL_gf_HeroFalstadDecrementHeroCountFunction () {
     if ((libGDHL_gv_heroFalstadTriggerRegistrationVariable == 0)) {
         TriggerEnable(libGDHL_gt_HeroFalstadFlightCameraHeightRestore, false);
         TriggerEnable(libGDHL_gt_HeroFalstadFlightPing, false);
-        TriggerEnable(libGDHL_gt_HeroFalstadFrequentFlyerHeroTakedown, false);
-        TriggerEnable(libGDHL_gt_HeroFalstadFrequentFlyerNPCKill, false);
         TriggerEnable(libGDHL_gt_HeroFalstadDishonorableDischargeHeroKillRefreshCooldown, false);
     }
 
@@ -6651,6 +6656,106 @@ void libGDHL_gt_HeroArthasAntiMagicShellHeal_Init () {
 }
 
 //--------------------------------------------------------------------------------------------------
+// Trigger: Hero - Arthas - Army of the Dead - Legion of Northrend Talent Spawn
+//--------------------------------------------------------------------------------------------------
+bool libGDHL_gt_HeroArthasArmyoftheDeadLegionofNorthrendTalentSpawn_Func (bool testConds, bool runActions) {
+    // Variable Declarations
+    unit lv_unit;
+    int lv_player;
+
+    // Automatic Variable Declarations
+    // Variable Initialization
+    lv_unit = EventPlayerEffectUsedUnit(c_effectUnitTarget);
+    lv_player = UnitGetOwner(lv_unit);
+
+    // Conditions
+    if (testConds) {
+        if (!((PlayerHasTalent(lv_player, "ArthasMasteryLegionOfNorthrendArmyoftheDead") == true))) {
+            return false;
+        }
+    }
+
+    // Actions
+    if (!runActions) {
+        return true;
+    }
+
+    libGame_gf_CalculateSpawnedMinionGoalPoints(lv_player, UnitGetPosition(lv_unit));
+    libAIAI_gf_MinionAIStartMinionAI(-1, lv_unit, libGame_gv_spawnedMinionLane, libGame_gv_spawnedMinionFirstWaypointIndex, false, true, false, 0, false);
+    return true;
+}
+
+//--------------------------------------------------------------------------------------------------
+void libGDHL_gt_HeroArthasArmyoftheDeadLegionofNorthrendTalentSpawn_Init () {
+    libGDHL_gt_HeroArthasArmyoftheDeadLegionofNorthrendTalentSpawn = TriggerCreate("libGDHL_gt_HeroArthasArmyoftheDeadLegionofNorthrendTalentSpawn_Func");
+    TriggerEnable(libGDHL_gt_HeroArthasArmyoftheDeadLegionofNorthrendTalentSpawn, false);
+    TriggerAddEventPlayerEffectUsed(libGDHL_gt_HeroArthasArmyoftheDeadLegionofNorthrendTalentSpawn, c_playerAny, "ArthasArmyoftheDeadLegionofNorthrendTalentSpawnSet");
+}
+
+//--------------------------------------------------------------------------------------------------
+// Trigger: Hero - Arthas - Army of the Dead - NPC Death Proc
+//--------------------------------------------------------------------------------------------------
+bool libGDHL_gt_HeroArthasArmyoftheDeadNPCDeathProc_Func (bool testConds, bool runActions) {
+    // Variable Declarations
+    int lv_killingPlayer;
+    unit lv_minion;
+
+    // Automatic Variable Declarations
+    // Variable Initialization
+
+    // Actions
+    if (!runActions) {
+        return true;
+    }
+
+    lv_killingPlayer = libGame_gf_HeroParticipatedInNPCTakedownKillingPlayer();
+    lv_minion = libGame_gf_HeroParticipatedInNPCTakedownMinion();
+    if ((PlayerHasTalent(lv_killingPlayer, "ArthasHeroicAbilityArmyoftheDead") == true) && (UnitTypeTestAttribute(UnitGetType(lv_minion), c_unitAttributeSummoned) == false) && (UnitTypeTestAttribute(UnitGetType(lv_minion), c_unitAttributeStructure) == false) && (UnitTypeTestAttribute(UnitGetType(lv_minion), c_unitAttributeCreep) == false) && ((UnitTypeTestAttribute(UnitGetType(lv_minion), c_unitAttributeMerc) == true) || (UnitTypeTestAttribute(UnitGetType(lv_minion), c_unitAttributeMinion) == true))) {
+        UnitCreateEffectUnit(libGame_gv_players[lv_killingPlayer].lv_heroUnit, "ArthasArmyoftheDeadNPCDeathModifyChargeCooldown", libGame_gv_players[lv_killingPlayer].lv_heroUnit);
+    }
+
+    return true;
+}
+
+//--------------------------------------------------------------------------------------------------
+void libGDHL_gt_HeroArthasArmyoftheDeadNPCDeathProc_Init () {
+    libGDHL_gt_HeroArthasArmyoftheDeadNPCDeathProc = TriggerCreate("libGDHL_gt_HeroArthasArmyoftheDeadNPCDeathProc_Func");
+    TriggerEnable(libGDHL_gt_HeroArthasArmyoftheDeadNPCDeathProc, false);
+    libGame_gf_HeroParticipatedInNPCTakedown(libGDHL_gt_HeroArthasArmyoftheDeadNPCDeathProc);
+}
+
+//--------------------------------------------------------------------------------------------------
+// Trigger: Hero - Arthas - Army of the Dead - Takedown Death Proc
+//--------------------------------------------------------------------------------------------------
+bool libGDHL_gt_HeroArthasArmyoftheDeadTakedownDeathProc_Func (bool testConds, bool runActions) {
+    // Variable Declarations
+    int lv_killingPlayer;
+    unit lv_minion;
+
+    // Automatic Variable Declarations
+    // Variable Initialization
+
+    // Actions
+    if (!runActions) {
+        return true;
+    }
+
+    lv_killingPlayer = libGame_gf_HeroParticipatedInTakedownKillingPlayer();
+    if ((PlayerHasTalent(lv_killingPlayer, "ArthasHeroicAbilityArmyoftheDead") == true)) {
+        UnitCreateEffectUnit(libGame_gv_players[lv_killingPlayer].lv_heroUnit, "ArthasArmyoftheDeadTakedownModifyChargeCooldown", libGame_gv_players[lv_killingPlayer].lv_heroUnit);
+    }
+
+    return true;
+}
+
+//--------------------------------------------------------------------------------------------------
+void libGDHL_gt_HeroArthasArmyoftheDeadTakedownDeathProc_Init () {
+    libGDHL_gt_HeroArthasArmyoftheDeadTakedownDeathProc = TriggerCreate("libGDHL_gt_HeroArthasArmyoftheDeadTakedownDeathProc_Func");
+    TriggerEnable(libGDHL_gt_HeroArthasArmyoftheDeadTakedownDeathProc, false);
+    libGame_gf_HeroParticipatedInTakedown(libGDHL_gt_HeroArthasArmyoftheDeadTakedownDeathProc);
+}
+
+//--------------------------------------------------------------------------------------------------
 // Trigger: Hero - Arthas - Army of the Dead - Minion AI Takeover (Death)
 //--------------------------------------------------------------------------------------------------
 bool libGDHL_gt_HeroArthasArmyoftheDeadMinionAITakeoverDeath_Func (bool testConds, bool runActions) {
@@ -6836,6 +6941,37 @@ void libGDHL_gt_HeroArthasArmyoftheDeadGhoulSpawned_Init () {
     libGDHL_gt_HeroArthasArmyoftheDeadGhoulSpawned = TriggerCreate("libGDHL_gt_HeroArthasArmyoftheDeadGhoulSpawned_Func");
     TriggerEnable(libGDHL_gt_HeroArthasArmyoftheDeadGhoulSpawned, false);
     TriggerAddEventUnitCreated(libGDHL_gt_HeroArthasArmyoftheDeadGhoulSpawned, null, "ArthasGhoulMagazine", null);
+}
+
+//--------------------------------------------------------------------------------------------------
+// Trigger: Hero - Arthas - Death Pact Talent - Takedown Token Proc 
+//--------------------------------------------------------------------------------------------------
+bool libGDHL_gt_HeroArthasDeathPactTalentTakedownTokenProc_Func (bool testConds, bool runActions) {
+    // Variable Declarations
+    int lv_killingPlayer;
+    unit lv_minion;
+
+    // Automatic Variable Declarations
+    // Variable Initialization
+
+    // Actions
+    if (!runActions) {
+        return true;
+    }
+
+    lv_killingPlayer = libGame_gf_HeroParticipatedInTakedownKillingPlayer();
+    if ((PlayerHasTalent(lv_killingPlayer, "ArthasDeathPact") == true)) {
+        UnitCreateEffectUnit(libGame_gv_players[lv_killingPlayer].lv_heroUnit, "ArthasFrostmourneHungersDeathPactTalentTakedownModifyTokens", libGame_gv_players[lv_killingPlayer].lv_heroUnit);
+    }
+
+    return true;
+}
+
+//--------------------------------------------------------------------------------------------------
+void libGDHL_gt_HeroArthasDeathPactTalentTakedownTokenProc_Init () {
+    libGDHL_gt_HeroArthasDeathPactTalentTakedownTokenProc = TriggerCreate("libGDHL_gt_HeroArthasDeathPactTalentTakedownTokenProc_Func");
+    TriggerEnable(libGDHL_gt_HeroArthasDeathPactTalentTakedownTokenProc, false);
+    libGame_gf_HeroParticipatedInTakedown(libGDHL_gt_HeroArthasDeathPactTalentTakedownTokenProc);
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -10436,87 +10572,6 @@ void libGDHL_gt_HeroFalstadFlightCameraHeightRestore_Init () {
 }
 
 //--------------------------------------------------------------------------------------------------
-// Trigger: Hero - Falstad - Frequent Flyer - Hero Takedown
-//--------------------------------------------------------------------------------------------------
-bool libGDHL_gt_HeroFalstadFrequentFlyerHeroTakedown_Func (bool testConds, bool runActions) {
-    // Variable Declarations
-    int lv_localPlayer;
-    unit lv_falstad;
-
-    // Automatic Variable Declarations
-    // Variable Initialization
-    lv_localPlayer = libGame_gf_HeroParticipatedInTakedownKillingPlayer();
-
-    // Conditions
-    if (testConds) {
-        if (!((PlayerHasTalent(lv_localPlayer, "FalstadTailwindFrequentFlyer") == true))) {
-            return false;
-        }
-    }
-
-    // Actions
-    if (!runActions) {
-        return true;
-    }
-
-    lv_falstad = libGame_gv_players[lv_localPlayer].lv_heroUnit;
-    UnitCreateEffectUnit(lv_falstad, "FalstadFrequentFlyerHeroKillIncreaseQuestToken", lv_falstad);
-    return true;
-}
-
-//--------------------------------------------------------------------------------------------------
-void libGDHL_gt_HeroFalstadFrequentFlyerHeroTakedown_Init () {
-    libGDHL_gt_HeroFalstadFrequentFlyerHeroTakedown = TriggerCreate("libGDHL_gt_HeroFalstadFrequentFlyerHeroTakedown_Func");
-    TriggerEnable(libGDHL_gt_HeroFalstadFrequentFlyerHeroTakedown, false);
-    libGame_gf_HeroParticipatedInTakedown(libGDHL_gt_HeroFalstadFrequentFlyerHeroTakedown);
-}
-
-//--------------------------------------------------------------------------------------------------
-// Trigger: Hero - Falstad - Frequent Flyer - NPC Kill
-//--------------------------------------------------------------------------------------------------
-bool libGDHL_gt_HeroFalstadFrequentFlyerNPCKill_Func (bool testConds, bool runActions) {
-    // Variable Declarations
-    int lv_killingPlayer;
-    unit lv_killingHero;
-    unit lv_minion;
-
-    // Automatic Variable Declarations
-    // Variable Initialization
-    lv_killingPlayer = libGame_gf_HeroParticipatedInNPCTakedownKillingPlayer();
-    lv_killingHero = libGame_gv_players[lv_killingPlayer].lv_heroUnit;
-    lv_minion = libGame_gf_HeroParticipatedInNPCTakedownMinion();
-
-    // Conditions
-    if (testConds) {
-        if (!((PlayerHasTalent(lv_killingPlayer, "FalstadTailwindFrequentFlyer") == true))) {
-            return false;
-        }
-    }
-
-    // Actions
-    if (!runActions) {
-        return true;
-    }
-
-    if (((UnitTypeTestAttribute(UnitGetType(lv_minion), c_unitAttributeSummoned) == true) || (UnitTypeTestAttribute(UnitGetType(lv_minion), c_unitAttributeUser1) == true) || (UnitTypeTestAttribute(UnitGetType(lv_minion), c_unitAttributeMapBoss) == true))) {
-        return true;
-    }
-
-    if ((UnitTypeTestAttribute(UnitGetType(lv_minion), c_unitAttributeMinion) == true) && (UnitFilterMatch(lv_minion, lv_killingPlayer, UnitFilter(0, 0, (1 << c_targetFilterCreep) | (1 << c_targetFilterMerc), 0)) == true)) {
-        UnitCreateEffectUnit(lv_killingHero, "FalstadFrequentFlyerMinionKillIncreaseQuestToken", lv_killingHero);
-    }
-
-    return true;
-}
-
-//--------------------------------------------------------------------------------------------------
-void libGDHL_gt_HeroFalstadFrequentFlyerNPCKill_Init () {
-    libGDHL_gt_HeroFalstadFrequentFlyerNPCKill = TriggerCreate("libGDHL_gt_HeroFalstadFrequentFlyerNPCKill_Func");
-    TriggerEnable(libGDHL_gt_HeroFalstadFrequentFlyerNPCKill, false);
-    libGame_gf_HeroParticipatedInNPCTakedown(libGDHL_gt_HeroFalstadFrequentFlyerNPCKill);
-}
-
-//--------------------------------------------------------------------------------------------------
 // Trigger: Hero - Falstad - Wingman Variables
 //--------------------------------------------------------------------------------------------------
 bool libGDHL_gt_HeroFalstadWingmanVariables_Func (bool testConds, bool runActions) {
@@ -11397,6 +11452,10 @@ bool libGDHL_gt_HeroKaelthasPhoenixSpawnSelection_Func (bool testConds, bool run
     libGDHL_gv_kaelthas_PhoenixUnit[lv_player] = lv_unit;
     if ((libGame_gv_players[lv_player].lv_activeVehicle == null)) {
         UnitSelect(lv_unit, lv_player, true);
+    }
+
+    if ((libAIAI_gf_HeroAIIsAIEnabledForPlayer(lv_player) == true)) {
+        UnitCreateAIThinkTree(lv_unit);
     }
 
     return true;
@@ -26834,10 +26893,14 @@ void libGDHL_InitTriggers () {
     libGDHL_gt_HeroArtanisSpearofAdunPurifierBeamUnitCreated_Init();
     libGDHL_gt_HeroArtanisSpearofAdunPurifierBeamRedirectTarget2ElectricBoogaloo_Init();
     libGDHL_gt_HeroArthasAntiMagicShellHeal_Init();
+    libGDHL_gt_HeroArthasArmyoftheDeadLegionofNorthrendTalentSpawn_Init();
+    libGDHL_gt_HeroArthasArmyoftheDeadNPCDeathProc_Init();
+    libGDHL_gt_HeroArthasArmyoftheDeadTakedownDeathProc_Init();
     libGDHL_gt_HeroArthasArmyoftheDeadMinionAITakeoverDeath_Init();
     libGDHL_gt_HeroArthasArmyoftheDeadMinionAITakeoverTransport_Init();
     libGDHL_gt_HeroArthasArmyoftheDeadPortGhouls_Init();
     libGDHL_gt_HeroArthasArmyoftheDeadGhoulSpawned_Init();
+    libGDHL_gt_HeroArthasDeathPactTalentTakedownTokenProc_Init();
     libGDHL_gt_HeroAnubarakBurrowChargeSuppressCollision_Init();
     libGDHL_gt_HeroAnubarakBurrowChargeMaxRange_Init();
     libGDHL_gt_HeroAnubarakBurrowChargeCancel_Init();
@@ -26921,8 +26984,6 @@ void libGDHL_InitTriggers () {
     libGDHL_gt_HeroFalstadDishonorableDischargeHeroKillRefreshCooldown_Init();
     libGDHL_gt_HeroFalstadFlightPing_Init();
     libGDHL_gt_HeroFalstadFlightCameraHeightRestore_Init();
-    libGDHL_gt_HeroFalstadFrequentFlyerHeroTakedown_Init();
-    libGDHL_gt_HeroFalstadFrequentFlyerNPCKill_Init();
     libGDHL_gt_HeroFalstadWingmanVariables_Init();
     libGDHL_gt_HeroIllidanApplyFotBCooldownonInventoryUse_Init();
     libGDHL_gt_HeroIllidanMetamorphosisAvatarApplyHealthBuff_Init();

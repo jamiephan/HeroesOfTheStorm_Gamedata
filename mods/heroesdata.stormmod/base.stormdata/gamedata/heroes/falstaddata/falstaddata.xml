@@ -960,6 +960,22 @@
   <CActorSound id="PulledSoundHeroFalstad" parent="SoundOneShot">
     <Sound value="Falstad_VOX_Pulled" />
   </CActorSound>
+  <CBehaviorBuff id="FrequentFlyerFatalResponse" parent="CarryBehaviorParent">
+    <Duration value="0.6" />
+    <DamageResponse>
+      <Chance value="1" />
+      <Handled value="FalstadFrequentFlyerModifyTokenCountSwitch" />
+      <Priority value="15" />
+      <Fatal value="1" />
+    </DamageResponse>
+  </CBehaviorBuff>
+  <CBehaviorBuff id="FalstadFrequentFlyerKillCreditAura">
+    <BehaviorFlags index="Permanent" value="1" />
+    <BehaviorFlags index="EnabledWhileDead" value="1" />
+    <Duration value="-1" />
+    <Period value="0.5" />
+    <PeriodicEffect value="FalstadKillCreditSearch" />
+  </CBehaviorBuff>
   <CBehaviorBuff id="FalstadDishonorableDischargeStun" parent="StormStun">
     <Duration value="1.25" />
   </CBehaviorBuff>
@@ -1556,6 +1572,20 @@
     <Age value="40" />
     <Unit value="HeroFalstad" />
   </CCharacter>
+  <CEffectApplyBehavior id="ApplyKillCreditBuffFrequentFlyer">
+    <Behavior value="FrequentFlyerFatalResponse" />
+  </CEffectApplyBehavior>
+  <CEffectEnumArea id="FalstadKillCreditSearch">
+    <ImpactLocation Value="CasterPoint" />
+    <SearchFilters value="-;Player,Ally,Neutral,Missile,Item,Stasis,Dead,Hidden,Invulnerable" />
+    <AreaArray Effect="ApplyKillCreditBuffFrequentFlyer">
+      <Radius value="8.5" />
+    </AreaArray>
+  </CEffectEnumArea>
+  <CEffectSwitch id="FalstadFrequentFlyerModifyTokenCountSwitch">
+    <CaseArray Validator="SourceIsHero" Effect="FalstadFrequentFlyerHeroKillIncreaseQuestToken" />
+    <CaseArray Validator="SourceIsMinionAndNotMercOrMapBossOrStructureOrSummon" Effect="FalstadFrequentFlyerMinionKillIncreaseQuestToken" />
+  </CEffectSwitch>
   <CEffectModifyTokenCount id="DishonorableDischargeAddTokenHeroKill" parent="BaseEffectModifyTokenCount">
     <ContextUnit Value="Caster" />
     <TokenId value="FalstadDishonorableDischargeToken" />
@@ -1754,11 +1784,13 @@
     <EffectCategory index="Quest" value="1" />
     <TokenId value="FalstadFrequentFlyerAccumulator" />
     <Value value="5" />
+    <ContextUnit Value="Source" />
   </CEffectModifyTokenCount>
   <CEffectModifyTokenCount id="FalstadFrequentFlyerMinionKillIncreaseQuestToken" parent="BaseEffectModifyTokenCount">
     <EffectCategory index="Quest" value="1" />
     <CollationId value="FalstadFrequentFlyerHeroKillIncreaseQuestToken" />
     <TokenId value="FalstadFrequentFlyerAccumulator" />
+    <ContextUnit Value="Source" />
   </CEffectModifyTokenCount>
   <CEffectApplyBehavior id="HammerangBOOMerangApplyArmorBehavior">
     <ValidatorArray index="0" value="HasFalstadBoomerang" />
@@ -2115,6 +2147,7 @@
   <CEffectSet id="FalstadLightningRodImpactSet">
     <ValidatorArray value="FalstadTargetHasLightningRodConductor" />
     <EffectArray value="ApplyAbilityImpactReveal" />
+    <EffectArray value="ApplyKillCreditBuffFrequentFlyer" />
     <EffectArray value="LightningRodApplyDishonorableDischargeDamageResponse" />
     <EffectArray value="FalstadLightningRodDamage" />
     <EffectArray value="FalstadLightningRodApplyThunderstrikesDelay" />
@@ -2562,6 +2595,7 @@
     <EffectArray value="FalstadHammerangBOOMerangActiveSet" />
   </CEffectSet>
   <CEffectSet id="FalstadHinterlandBlastDamageSet">
+    <EffectArray value="ApplyKillCreditBuffFrequentFlyer" />
     <EffectArray value="HinterlandBlastDamage" />
     <EffectArray value="CameraShakeLightTauntingTotemSet" />
     <EffectArray value="FalstadHinterlandBlastModifyCooldown" />
@@ -2595,6 +2629,7 @@
   </CEffectCreatePersistent>
   <CEffectSet id="HammerangReturnImpactSet">
     <ValidatorArray value="noMarkers" />
+    <EffectArray value="ApplyKillCreditBuffFrequentFlyer" />
     <EffectArray value="HammerangApplyBehavior" />
     <EffectArray value="HammerangReturnDamageSet" />
     <EffectArray value="HammerangRelicRemove1stHitBehavior" />
@@ -2777,6 +2812,7 @@
     </RevealerParams>
   </CEffectEnumArea>
   <CEffectSet id="HammerangImpactSet">
+    <EffectArray value="ApplyKillCreditBuffFrequentFlyer" />
     <EffectArray value="HammerangDamageSet" />
     <EffectArray value="HammerangApplyBehavior" />
     <EffectArray value="FalstadHammerangGatheringStormCreateManaHealer" />
@@ -3305,6 +3341,7 @@
     <RankArray>
       <BehaviorArray value="FalstadFrequentFlyer" />
       <BehaviorArray value="FalstadFrequentFlyerTokenCounter" />
+      <BehaviorArray value="FalstadFrequentFlyerKillCreditAura" />
     </RankArray>
     <QuestData StackBehavior="FalstadFrequentFlyerTokenCounter" />
     <AbilityModificationArray>

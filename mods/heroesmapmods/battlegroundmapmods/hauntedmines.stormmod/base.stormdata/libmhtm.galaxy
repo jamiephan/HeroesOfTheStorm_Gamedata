@@ -4,6 +4,7 @@ include "TriggerLibs/GameLib"
 include "TriggerLibs/MapMechanicsLib"
 include "TriggerLibs/AILib"
 include "TriggerLibs/UILib"
+include "TriggerLibs/StartingExperienceLib"
 include "TriggerLibs/SoundLib"
 include "TriggerLibs/GameDataHelperLib"
 
@@ -20,6 +21,7 @@ void libMHtM_InitLibraries () {
     libMapM_InitVariables();
     libAIAI_InitVariables();
     libUIUI_InitVariables();
+    libStEx_InitVariables();
     libSond_InitVariables();
     libGDHL_InitVariables();
 }
@@ -285,11 +287,21 @@ void libMHtM_gf_MMUnderworldChangePlaneForUnit (unit lp_heroUnit, int lp_groundP
 
     if ((libCore_gf_IntegerStoredForUnit(lp_heroUnit, 1) == libMHtM_ge_MMHM_GroundPlane_AboveGround)) {
         libCore_gf_StoreIntegerForUnit(lp_heroUnit, 1, (libMHtM_ge_MMHM_GroundPlane_UnderGround));
-        UnitBehaviorAdd(lp_heroUnit, "HeroGenericAbnormalPlaneState", lp_heroUnit, 1);
+        if ((UnitTypeTestAttribute(UnitGetType(lp_heroUnit), c_unitAttributeSummoned) == false) && (UnitGetType(lp_heroUnit) != "RexxarMisha")) {
+            UnitBehaviorAdd(lp_heroUnit, "HeroGenericAbnormalPlaneState", lp_heroUnit, 1);
+        }
+        else {
+            UnitBehaviorAdd(lp_heroUnit, "AbnormalPlaneStateSummon", lp_heroUnit, 1);
+        }
+        if (((UnitGetType(lp_heroUnit) == "HeroMedivhRaven") || (UnitGetType(lp_heroUnit) == "HeroMedivh"))) {
+            UnitBehaviorAdd(lp_heroUnit, "AbnormalPlaneStateSummon", lp_heroUnit, 1);
+        }
+
     }
     else {
         libCore_gf_StoreIntegerForUnit(lp_heroUnit, 1, (libMHtM_ge_MMHM_GroundPlane_AboveGround));
         UnitBehaviorRemove(lp_heroUnit, "HeroGenericAbnormalPlaneState", 1);
+        UnitBehaviorRemove(lp_heroUnit, "AbnormalPlaneStateSummon", 1);
     }
     libMHtM_gf_MMUnderworldUpdateHeroUnitLighting(lp_heroUnit);
     libGame_gf_SendEventMapHauntedMinesPlayerChangesPlane(UnitGetOwner(lp_heroUnit), lp_heroUnit);
@@ -385,9 +397,20 @@ int libMHtM_gf_MMUnderworldSkullCollected () {
 }
 
 bool libMHtM_gf_MMUnderworldCleared () {
+    // Variable Declarations
+    int lv_skullsCollectedTeam1;
+    int lv_skullsCollectedTeam2;
+
     // Automatic Variable Declarations
+    // Variable Initialization
+
     // Implementation
-    return (libMHtM_gv_mMUnderworldSkullTotal <= libMHtM_gf_MMUnderworldSkullCollected());
+    if (((libMHtM_gv_mMUnderworldSkullCollected[1] >= libMHtM_gv_mMUnderworldTotalSkulls_C) || (libMHtM_gv_mMUnderworldSkullCollected[2] >= libMHtM_gv_mMUnderworldTotalSkulls_C))) {
+        return true;
+    }
+    else {
+        return false;
+    }
 }
 
 trigger auto_libMHtM_gf_MMUnderworldSpawnMonsters_Trigger = null;
@@ -955,7 +978,7 @@ void libMHtM_gf_MMUnderworldObjectiveUIUpdateText () {
     // Implementation
     libUIUI_gf_MapMechanicsHauntedMinesSetSkullCountForTeam(libMHtM_gv_mMUnderworldSkullCollected[libGame_gv_teamOrderIndex_C], libGame_gv_teamOrderIndex_C);
     libUIUI_gf_MapMechanicsHauntedMinesSetSkullCountForTeam(libMHtM_gv_mMUnderworldSkullCollected[libGame_gv_teamChaosIndex_C], libGame_gv_teamChaosIndex_C);
-    libUIUI_gf_MapMechanicsHauntedMinesSetSkullsRemaining((libMHtM_gv_mMUnderworldTotalSkulls_C - libMHtM_gv_mMUnderworldSkullCollected[libGame_gv_teamOrderIndex_C] - libMHtM_gv_mMUnderworldSkullCollected[libGame_gv_teamChaosIndex_C]));
+    libUIUI_gf_MapMechanicsHauntedMinesSetSkullsRemaining((libMHtM_gv_mMUnderworldTotalSkulls_C));
 }
 
 trigger auto_libMHtM_gf_MMUnderworldTransmissionUnderworldOpeningFirstQ_Trigger = null;
@@ -1559,13 +1582,32 @@ void libMHtM_gt_MMHMPingGatesWhileEventinProgress_Init () {
 bool libMHtM_gt_MMHMMinesCleared_Func (bool testConds, bool runActions) {
     // Variable Declarations
     int lv_itGroupIndex;
+    int lv_itMinionIndex;
     unit lv_itMinion;
     unit lv_itSkull;
     unit lv_itGate;
     unit lv_itBush;
+    int lv_groupIndex;
 
     // Automatic Variable Declarations
+    unitgroup auto82DC5F7D_g;
+    int auto82DC5F7D_u;
+    unit auto82DC5F7D_var;
+    unitgroup auto322A7020_g;
+    int auto322A7020_u;
+    unit auto322A7020_var;
+    unitgroup autoDB787FA6_g;
+    int autoDB787FA6_u;
+    unit autoDB787FA6_var;
+    unitgroup auto778AFD3F_g;
+    int auto778AFD3F_u;
+    unit auto778AFD3F_var;
+    unitgroup auto58350EEC_g;
+    int auto58350EEC_u;
+    unit auto58350EEC_var;
+
     // Variable Initialization
+    lv_groupIndex = libStEx_ge_QueryDialogResult__None;
 
     // Actions
     if (!runActions) {
@@ -1575,9 +1617,50 @@ bool libMHtM_gt_MMHMMinesCleared_Func (bool testConds, bool runActions) {
     libNtve_gf_SetDialogItemText(libUIUI_gv_mapMechanicsPanel.lv_hauntedMinesMineOpenLabel, StringExternal("Param/Value/lib_MHtM_0F3305CC"), PlayerGroupAll());
     libMHtM_gf_MMUnderworldTransmissionUnderworldClearedQ();
     libGame_gf_SendEventMapHauntedMinesCleared();
+    UnitRemove(libMHtM_gv_mMUnderworldBossIconUnit);
+    auto82DC5F7D_g = UnitGroup("ItemUnderworldPowerup", c_playerAny, RegionEntireMap(), UnitFilter(0, 0, (1 << c_targetFilterMissile), (1 << (c_targetFilterDead - 32)) | (1 << (c_targetFilterHidden - 32))), 0);
+    auto82DC5F7D_u = UnitGroupCount(auto82DC5F7D_g, c_unitCountAll);
+    for (;; auto82DC5F7D_u -= 1) {
+        auto82DC5F7D_var = UnitGroupUnitFromEnd(auto82DC5F7D_g, auto82DC5F7D_u);
+        if (auto82DC5F7D_var == null) { break; }
+        UnitRemove(auto82DC5F7D_var);
+    }
+    auto322A7020_g = UnitGroup("ItemUnderworldPowerup", c_playerAny, RegionEntireMap(), UnitFilter(0, 0, (1 << c_targetFilterMissile), (1 << (c_targetFilterDead - 32)) | (1 << (c_targetFilterHidden - 32))), 0);
+    auto322A7020_u = UnitGroupCount(auto322A7020_g, c_unitCountAll);
+    for (;; auto322A7020_u -= 1) {
+        auto322A7020_var = UnitGroupUnitFromEnd(auto322A7020_g, auto322A7020_u);
+        if (auto322A7020_var == null) { break; }
+        UnitRemove(auto322A7020_var);
+    }
+    autoDB787FA6_g = UnitGroup("UnderworldBoss", c_playerAny, RegionEntireMap(), UnitFilter(0, 0, (1 << c_targetFilterMissile), (1 << (c_targetFilterDead - 32)) | (1 << (c_targetFilterHidden - 32))), 0);
+    autoDB787FA6_u = UnitGroupCount(autoDB787FA6_g, c_unitCountAll);
+    for (;; autoDB787FA6_u -= 1) {
+        autoDB787FA6_var = UnitGroupUnitFromEnd(autoDB787FA6_g, autoDB787FA6_u);
+        if (autoDB787FA6_var == null) { break; }
+        UnitKill(autoDB787FA6_var);
+    }
+    auto778AFD3F_g = UnitGroup("UnderworldMinion", c_playerAny, RegionEntireMap(), UnitFilter(0, 0, (1 << c_targetFilterMissile), (1 << (c_targetFilterDead - 32)) | (1 << (c_targetFilterHidden - 32))), 0);
+    auto778AFD3F_u = UnitGroupCount(auto778AFD3F_g, c_unitCountAll);
+    for (;; auto778AFD3F_u -= 1) {
+        auto778AFD3F_var = UnitGroupUnitFromEnd(auto778AFD3F_g, auto778AFD3F_u);
+        if (auto778AFD3F_var == null) { break; }
+        UnitKill(auto778AFD3F_var);
+        lv_groupIndex = libMHtM_gf_MMUnderworldMineMinionGroupIndex(auto778AFD3F_var);
+        UnitRemove(libMHtM_gv_mMUnderworldMinionGroups[lv_groupIndex].lv_iconUnit);
+    }
+    auto58350EEC_g = UnitGroup("UnderworldRangedMinion", c_playerAny, RegionEntireMap(), UnitFilter(0, 0, (1 << c_targetFilterMissile), (1 << (c_targetFilterDead - 32)) | (1 << (c_targetFilterHidden - 32))), 0);
+    auto58350EEC_u = UnitGroupCount(auto58350EEC_g, c_unitCountAll);
+    for (;; auto58350EEC_u -= 1) {
+        auto58350EEC_var = UnitGroupUnitFromEnd(auto58350EEC_g, auto58350EEC_u);
+        if (auto58350EEC_var == null) { break; }
+        UnitKill(auto58350EEC_var);
+        lv_groupIndex = libMHtM_gf_MMUnderworldMineMinionGroupIndex(auto58350EEC_var);
+        UnitRemove(libMHtM_gv_mMUnderworldMinionGroups[lv_groupIndex].lv_iconUnit);
+    }
     Wait(3.0, c_timeGame);
     libMHtM_gv_mMUnderworldOpened = false;
     libMHtM_gv_mMUnderworldBossSummonEventCounter += 1;
+    UnitKill(libMHtM_gv_mMUnderworldBoss);
     libMHtM_gf_MMUnderworldSummonBoss();
     while (!(((UnitIsAlive(libMHtM_gv_mMUnderworldSummonedBoss[1]) == true) || (UnitIsAlive(libMHtM_gv_mMUnderworldSummonedBoss[2]) == true)))) {
         Wait(1.0, c_timeGame);
@@ -1862,6 +1945,14 @@ bool libMHtM_gt_MMHMMonsterDies_Func (bool testConds, bool runActions) {
 
     // Conditions
     if (testConds) {
+        if (!((libMHtM_gv_mMUnderworldSkullCollected[1] < libMHtM_gv_mMUnderworldTotalSkulls_C))) {
+            return false;
+        }
+
+        if (!((libMHtM_gv_mMUnderworldSkullCollected[2] < libMHtM_gv_mMUnderworldTotalSkulls_C))) {
+            return false;
+        }
+
         if (!(((UnitGetType(lv_dyingMonster) == "UnderworldMinion") || (UnitGetType(lv_dyingMonster) == "UnderworldRangedMinion") || (UnitGetType(lv_dyingMonster) == "UnderworldBoss")))) {
             return false;
         }
@@ -2033,6 +2124,7 @@ bool libMHtM_gt_MMHMSkullPickup_Func (bool testConds, bool runActions) {
     int lv_collectingPlayer;
     playergroup lv_textTagPlayers;
     int lv_alliedSkullCount;
+    int lv_alliedSkullCount2;
     int lv_team;
 
     // Automatic Variable Declarations
@@ -2048,6 +2140,7 @@ bool libMHtM_gt_MMHMSkullPickup_Func (bool testConds, bool runActions) {
     }
 
     libMHtM_gv_mMUnderworldSkullCollected[libGame_gf_TeamNumberOfPlayer(lv_collectingPlayer)] += 1;
+    libMHtM_gv_mMUnderworldSkullCollected[libGame_gf_TeamNumberOfPlayer(lv_collectingPlayer)] = MinI(libMHtM_gv_mMUnderworldSkullCollected[libGame_gf_TeamNumberOfPlayer(lv_collectingPlayer)], libMHtM_gv_mMUnderworldTotalSkulls_C);
     lv_alliedSkullCount = libMHtM_gv_mMUnderworldSkullCollected[libGame_gf_TeamNumberOfPlayer(lv_collectingPlayer)];
     SoundPlayAtPointForPlayer(SoundLink("UI_Game_Skull_Pickup", -1), c_maxPlayers, PlayerGroupAll(), lv_collectingUnitPosition, 0.5, 100.0, 0.0);
     libNtve_gf_AddPlayerGroupToPlayerGroup(libGame_gf_AlliedPlayerGroupOfPlayer(lv_collectingPlayer), lv_textTagPlayers);

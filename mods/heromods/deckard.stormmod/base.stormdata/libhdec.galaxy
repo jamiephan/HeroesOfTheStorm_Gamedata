@@ -1,6 +1,7 @@
 include "TriggerLibs/NativeLib"
 include "TriggerLibs/HeroesLib"
 include "TriggerLibs/GameLib"
+include "TriggerLibs/GameDataHelperLib"
 
 include "LibHDEC_h"
 
@@ -12,6 +13,7 @@ void libHDEC_InitLibraries () {
     libNtve_InitVariables();
     libCore_InitVariables();
     libGame_InitVariables();
+    libGDHL_InitVariables();
 }
 
 // Variable Initialization
@@ -38,6 +40,7 @@ void libHDEC_gf_HeroDeckardIncrementHeroCountFunction () {
     libHDEC_gv_heroDeckardTriggerRegistrationVariable += 1;
     if ((libHDEC_gv_heroDeckardTriggerRegistrationVariable == 1)) {
         TriggerEnable(libHDEC_gt_HeroDeckardAncientBlessingsAoEProcHandler, true);
+        TriggerEnable(libHDEC_gt_DeckardHealingPotionCreatedAddUnitToVisibilityUnitGroup, true);
     }
 
 }
@@ -52,11 +55,41 @@ void libHDEC_gf_HeroDeckardDecrementHeroCountFunction () {
 
     if ((libHDEC_gv_heroDeckardTriggerRegistrationVariable == 0)) {
         TriggerEnable(libHDEC_gt_HeroDeckardAncientBlessingsAoEProcHandler, false);
+        TriggerEnable(libHDEC_gt_DeckardHealingPotionCreatedAddUnitToVisibilityUnitGroup, false);
     }
 
 }
 
 // Triggers
+//--------------------------------------------------------------------------------------------------
+// Trigger: Deckard - Healing Potion Created - Add Unit To Visibility Unit Group
+//--------------------------------------------------------------------------------------------------
+bool libHDEC_gt_DeckardHealingPotionCreatedAddUnitToVisibilityUnitGroup_Func (bool testConds, bool runActions) {
+    // Automatic Variable Declarations
+    // Conditions
+    if (testConds) {
+        if (!(((UnitGetType(EventUnitCreatedUnit()) == "DeckardHealingPotion") || (UnitGetType(EventUnitCreatedUnit()) == "DeckardLesserHealingPotion")))) {
+            return false;
+        }
+    }
+
+    // Actions
+    if (!runActions) {
+        return true;
+    }
+
+    UnitGroupAdd(libGDHL_gv_updateOnAnyVisibilityChangeUnitGroup, EventUnitCreatedUnit());
+    return true;
+}
+
+//--------------------------------------------------------------------------------------------------
+void libHDEC_gt_DeckardHealingPotionCreatedAddUnitToVisibilityUnitGroup_Init () {
+    libHDEC_gt_DeckardHealingPotionCreatedAddUnitToVisibilityUnitGroup = TriggerCreate("libHDEC_gt_DeckardHealingPotionCreatedAddUnitToVisibilityUnitGroup_Func");
+    TriggerEnable(libHDEC_gt_DeckardHealingPotionCreatedAddUnitToVisibilityUnitGroup, false);
+    TriggerAddEventUnitCreated(libHDEC_gt_DeckardHealingPotionCreatedAddUnitToVisibilityUnitGroup, null, "DeckardHealingPotion", null);
+    TriggerAddEventUnitCreated(libHDEC_gt_DeckardHealingPotionCreatedAddUnitToVisibilityUnitGroup, null, "DeckardHoradricCube", null);
+}
+
 //--------------------------------------------------------------------------------------------------
 // Trigger: Hero - Deckard - Ancient Blessings - AoE Proc Handler
 //--------------------------------------------------------------------------------------------------
@@ -84,6 +117,7 @@ void libHDEC_gt_HeroDeckardAncientBlessingsAoEProcHandler_Init () {
 }
 
 void libHDEC_InitTriggers () {
+    libHDEC_gt_DeckardHealingPotionCreatedAddUnitToVisibilityUnitGroup_Init();
     libHDEC_gt_HeroDeckardAncientBlessingsAoEProcHandler_Init();
 }
 

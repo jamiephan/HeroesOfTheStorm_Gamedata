@@ -1579,7 +1579,7 @@
     <BehaviorFlags index="EnabledWhileDead" value="1" />
   </CBehaviorUnitTracker>
   <CBehaviorTokenCounter id="RagnarosLivingMeteorMoltenPowerTalentTokenCounter" parent="StormGenericToken">
-    <AtMaxEvents Effect="RagnarosLivingMeteorMoltenPowerTalentProcModifyUnit" />
+    <AtMaxEvents Effect="RagnarosMoltenPowerProcSet" />
     <Max value="5" />
     <Face value="RagnarosLivingMeteorMoltenPower" />
   </CBehaviorTokenCounter>
@@ -1765,6 +1765,12 @@
     <Max value="75" />
     <SortIndex value="10" />
   </CBehaviorTokenCounter>
+  <CBehaviorUnitTracker id="RagnarosLivingMeteorMeteorTracker">
+    <BehaviorFlags index="Permanent" value="1" />
+    <BehaviorFlags index="EnabledWhileDead" value="1" />
+    <MaxTrackedUnits value="1" />
+    <UnitAddedAtMaxRule value="ReplaceOldest" />
+  </CBehaviorUnitTracker>
   <CBehaviorBuff id="RagnarosLivingMeteorTimedLife" parent="StormTimedLife">
     <Duration value="1.75" />
     <ExpireEffect value="RagnarosLivingMeteorExpireEffectSet" />
@@ -2145,25 +2151,29 @@
       <RevealFlags index="Unfog" value="1" />
     </RevealerParams>
   </CEffectEnumArea>
-  <CEffectModifyTokenCount id="RagnarosLivingMeteorMoltenPowerTalentAddToken" parent="BaseEffectModifyTokenCount">
+  <CEffectApplyBehavior id="RagnarosMoltenPowerApplyTokenCounterSource">
+    <WhichUnit Value="Source" />
+    <Behavior value="RagnarosLivingMeteorMoltenPowerTalentTokenCounter" />
+    <ValidatorArray index="0" value="RagnarosLivingMeteorMoltenPowerHasTalent" />
+  </CEffectApplyBehavior>
+  <CEffectModifyTokenCount id="RagnarosMoltenPowerTalentAddTokenSource" parent="BaseEffectModifyTokenCount">
+    <ValidatorArray value="RagnarosLivingMeteorMoltenPowerHasTalent" />
     <ValidatorArray value="TargetIsHero" />
-    <Chance value="0" />
+    <WhichUnit Value="Source" />
     <TokenId value="RagnarosLivingMeteorMoltenPowerTalentTokenCounter" />
   </CEffectModifyTokenCount>
-  <CEffectModifyTokenCount id="RagnarosLivingMeteorMoltenPowerTalentResetToken" parent="BaseEffectModifyTokenCount">
-    <Chance value="0" />
-    <CollationId value="RagnarosLivingMeteorMoltenPowerTalentAddToken" />
-    <TokenId value="RagnarosLivingMeteorMoltenPowerTalentTokenCounter" />
-    <Operation value="Set" />
-    <Value value="0" />
-  </CEffectModifyTokenCount>
-  <CEffectModifyUnit id="RagnarosLivingMeteorMoltenPowerTalentProcModifyUnit">
+  <CEffectSet id="RagnarosMoltenPowerProcSet">
+    <EffectArray value="RagnarosMoltenPowerModifyUnit" />
+    <EffectArray value="RagnarosMoltenPowerManaRestore" />
+  </CEffectSet>
+  <CEffectModifyUnit id="RagnarosMoltenPowerModifyUnit">
+    <ImpactUnit Value="Caster" />
     <Cost Abil="RagnarosLivingMeteor,Execute" CooldownOperation="Add" CooldownTimeUse="-7" />
-    <VitalArray index="Energy">
-      <Change value="30" />
-    </VitalArray>
-    <FloaterCreation value="Force" />
   </CEffectModifyUnit>
+  <CEffectCreateHealer id="RagnarosMoltenPowerManaRestore" parent="StormManaRestore">
+    <ImpactUnit Value="Caster" />
+    <RechargeVitalRate value="30" />
+  </CEffectCreateHealer>
   <CEffectModifyTokenCount id="RagnarosLivingMeteorShiftingMeteorTalentApplyDamageToken" parent="BaseEffectModifyTokenCount">
     <WhichUnit Value="Target" />
     <TokenId value="RagnarosLivingMeteorShiftingMeteorDamageTokenCounter" />
@@ -2414,7 +2424,6 @@
   <CEffectSet id="RagnarosLivingMeteorFinalEffectSet">
     <EffectArray value="RagnarosLivingMeteorShiftingMeteorRemoveController" />
     <EffectArray value="RagnarosLivingMeteorMeteorBombOffsetPersistent" />
-    <EffectArray value="RagnarosLivingMeteorMoltenPowerTalentResetToken" />
   </CEffectSet>
   <CEffectSet id="RagnarosLivingMeteorPrepSet">
     <EffectArray value="DismountDecloakCasterSetInstantSetFacing" />
@@ -2879,17 +2888,14 @@
     <InitialEffect value="RagnarosLivingMeteorShiftingMeteorCastSet" />
   </CEffectCreatePersistent>
   <CEffectSet id="RagnarosLivingMeteorShiftingMeteorCastSet">
-    <EffectArray value="RagnarosLivingMeteorShiftingMeteorFindMissileSearch" />
+    <EffectArray value="RagnarosShiftingMeteorEnumMeteor" />
     <EffectArray value="RagnarosLivingMeteorShiftingMeteorRemoveController" />
     <TargetLocationType value="Point" />
   </CEffectSet>
-  <CEffectEnumArea id="RagnarosLivingMeteorShiftingMeteorFindMissileSearch">
-    <LaunchLocation Value="CasterPoint" />
-    <SearchFilters value="Missile;Ally,Neutral,Enemy,ImmuneToAOE,Structure,User1,Item,Stasis,Dead,MapBoss" />
-    <AreaArray Effect="RagnarosLivingMeteorShiftingMeteorMissileFoundPersistent">
-      <Radius value="40" />
-    </AreaArray>
-  </CEffectEnumArea>
+  <CEffectEnumTrackedUnits id="RagnarosShiftingMeteorEnumMeteor">
+    <BehaviorLink value="RagnarosLivingMeteorMeteorTracker" />
+    <Effect value="RagnarosLivingMeteorShiftingMeteorMissileFoundPersistent" />
+  </CEffectEnumTrackedUnits>
   <CEffectCreatePersistent id="RagnarosLivingMeteorShiftingMeteorMissileFoundPersistent">
     <ValidatorArray value="RagnarosTargetIsLivingMeteorMissile" />
     <OffsetVectorStartLocation Value="TargetUnit" />
@@ -2914,7 +2920,7 @@
     <EffectArray value="RagnarosBlisteringAttacksModifyCooldownDuration" />
     <EffectArray value="RagnarosLivingMeteorMoltenPowerApplyBehavior" />
     <EffectArray value="RagnarosLivingMeteorFireWardApplyBehavior" />
-    <EffectArray value="RagnarosLivingMeteorMoltenPowerTalentAddToken" />
+    <EffectArray value="RagnarosMoltenPowerTalentAddTokenSource" />
     <EffectArray value="RagnarosLivingMeteorPeriodicDamage" />
     <EffectArray value="RagnarosLivingMeteorShiftingMeteorTalentImpactSet" />
     <EffectArray value="ApplyAbilityImpactReveal" />
@@ -2935,8 +2941,7 @@
       <MatchFlags index="Id" value="1" />
     </Marker>
     <InitialDelay value="0.125" />
-    <PeriodCount value="2" />
-    <PeriodicEffectArray value="RagnarosLivingMeteorLandingSearch" />
+    <PeriodCount value="1" />
     <PeriodicEffectArray value="RagnarosLivingMeteorLaunchMissile" />
   </CEffectCreatePersistent>
   <CEffectSet id="RagnarosSulfurasSmashEpicenterImpactSet">
@@ -2972,7 +2977,7 @@
     <EffectArray value="RagnarosBlisteringAttacksModifyCooldownDuration" />
     <EffectArray value="RagnarosLivingMeteorMoltenPowerApplyBehavior" />
     <EffectArray value="RagnarosLivingMeteorFireWardApplyBehavior" />
-    <EffectArray value="RagnarosLivingMeteorMoltenPowerTalentAddToken" />
+    <EffectArray value="RagnarosMoltenPowerTalentAddTokenSource" />
     <EffectArray value="RagnarosLivingMeteorLandingDamage" />
     <EffectArray value="RagnarosLivingMeteorShiftingMeteorTalentImpactSet" />
     <EffectArray value="ApplyAbilityImpactReveal" />
@@ -3012,8 +3017,11 @@
     <Amount value="126" />
   </CEffectDamage>
   <CEffectSet id="RagnarosLivingMeteorSpawnSet">
+    <EffectArray value="RagnarosMoltenPowerApplyTokenCounterSource" />
     <EffectArray value="RagnarosLivingMeteorMoltenPowerTransferDamageBuff" />
+    <EffectArray value="RagnarosLivingMeteorLandingSearch" />
     <EffectArray value="RagnarosLivingMeteorApplyTimedLifeBehavior" />
+    <EffectArray value="RagnarosLivingMeteorAddTrackedMeteor" />
   </CEffectSet>
   <CEffectEnumArea id="RagnarosSulfurasSmashEpicenterSearchArea">
     <ImpactLocation Value="TargetPoint" />
@@ -3029,6 +3037,10 @@
     <WhichUnit Value="Source" />
     <Behavior value="RagnarosLivingMeteorTimedLife" />
   </CEffectApplyBehavior>
+  <CEffectAddTrackedUnit id="RagnarosLivingMeteorAddTrackedMeteor">
+    <BehaviorLink value="RagnarosLivingMeteorMeteorTracker" />
+    <TrackedUnit Value="Source" />
+  </CEffectAddTrackedUnit>
   <CEffectDamage id="RagnarosLavaWaveDamage" parent="StormSpell">
     <Amount value="60" />
     <AttributeFactor index="Heroic" value="1" />
@@ -3904,26 +3916,7 @@
   </CTalent>
   <CTalent id="RagnarosLivingMeteorMoltenPower">
     <Abil value="RagnarosLivingMeteor" />
-    <AbilityModificationArray>
-      <Modifications>
-        <Type value="FlatModification" />
-        <Catalog value="Effect" />
-        <Entry value="RagnarosLivingMeteorMoltenPowerTalentAddToken" />
-        <Field value="Chance" />
-        <Value value="1.000000" />
-      </Modifications>
-      <Modifications>
-        <Type value="FlatModification" />
-        <Catalog value="Effect" />
-        <Entry value="RagnarosLivingMeteorMoltenPowerTalentResetToken" />
-        <Field value="Chance" />
-        <Value value="1.000000" />
-      </Modifications>
-    </AbilityModificationArray>
     <Face value="RagnarosLivingMeteorMoltenPower" />
-    <RankArray>
-      <BehaviorArray value="RagnarosLivingMeteorMoltenPowerTalentTokenCounter" />
-    </RankArray>
   </CTalent>
   <CTalent id="RagnarosLivingMeteorPyrocasticFlow">
     <Face value="RagnarosPyrocasticFlow" />
@@ -4201,6 +4194,7 @@
     <AIEvalFactor value="1.2" />
     <BehaviorArray Link="ExcellentMana" />
     <BehaviorArray Link="RagnarosMountTrailBehavior" />
+    <BehaviorArray Link="RagnarosLivingMeteorMeteorTracker" />
     <InitializerFunction value="libHMaj_gf_HeroRagnarosIncrementHeroCountFunction" />
     <DestructionFunction value="libHMaj_gf_HeroRagnarosDecrementHeroCountFunction" />
     <HeroPlaystyleFlags index="EnergyImportant" value="1" />
@@ -4285,25 +4279,58 @@
   <CValidatorCombine id="AbilBarHealthBarPortraitGlow">
     <CombineArray value="RagnarosMoltenCoreDuration" />
   </CValidatorCombine>
-  <CValidatorUnitCompareTokenCount id="RagnarosHas1MoltenPowerToken">
+  <CValidatorCompareTrackedUnitsCount id="RagnarosLivingMeteorHasNoLivingMeteorTracked">
+    <BehaviorLink value="RagnarosLivingMeteorMeteorTracker" />
+  </CValidatorCompareTrackedUnitsCount>
+  <CValidatorCompareTrackedUnitsCount id="RagnarosLivingMeteorHas1MoltenPowerTokenCounter">
+    <Compare value="GT" />
+    <BehaviorLink value="RagnarosLivingMeteorMeteorTracker" />
+    <TrackedUnitValidatorArray value="RagnarosTargetHas1MoltenPowerToken" />
+  </CValidatorCompareTrackedUnitsCount>
+  <CValidatorCompareTrackedUnitsCount id="RagnarosLivingMeteorHas2MoltenPowerTokenCounter">
+    <Compare value="GT" />
+    <BehaviorLink value="RagnarosLivingMeteorMeteorTracker" />
+    <TrackedUnitValidatorArray value="RagnarosTargetHas2MoltenPowerTokens" />
+  </CValidatorCompareTrackedUnitsCount>
+  <CValidatorCompareTrackedUnitsCount id="RagnarosLivingMeteorHas3MoltenPowerTokenCounter">
+    <Compare value="GT" />
+    <BehaviorLink value="RagnarosLivingMeteorMeteorTracker" />
+    <TrackedUnitValidatorArray value="RagnarosTargetHas3MoltenPowerTokens" />
+  </CValidatorCompareTrackedUnitsCount>
+  <CValidatorCompareTrackedUnitsCount id="RagnarosLivingMeteorHas4MoltenPowerTokenCounter">
+    <Compare value="GT" />
+    <BehaviorLink value="RagnarosLivingMeteorMeteorTracker" />
+    <TrackedUnitValidatorArray value="RagnarosTargetHas4MoltenPowerTokens" />
+  </CValidatorCompareTrackedUnitsCount>
+  <CValidatorCompareTrackedUnitsCount id="RagnarosLivingMeteorHas5MoltenPowerTokenCounter">
+    <Compare value="GT" />
+    <BehaviorLink value="RagnarosLivingMeteorMeteorTracker" />
+    <TrackedUnitValidatorArray value="RagnarosTargetHas5MoltenPowerTokens" />
+  </CValidatorCompareTrackedUnitsCount>
+  <CValidatorUnitCompareTokenCount id="RagnarosTargetHas1MoltenPowerToken">
     <Value value="1" />
     <TokenId value="RagnarosLivingMeteorMoltenPowerTalentTokenCounter" />
+    <WhichUnit Value="Target" />
   </CValidatorUnitCompareTokenCount>
-  <CValidatorUnitCompareTokenCount id="RagnarosHas2MoltenPowerTokens">
+  <CValidatorUnitCompareTokenCount id="RagnarosTargetHas2MoltenPowerTokens">
     <Value value="2" />
     <TokenId value="RagnarosLivingMeteorMoltenPowerTalentTokenCounter" />
+    <WhichUnit Value="Target" />
   </CValidatorUnitCompareTokenCount>
-  <CValidatorUnitCompareTokenCount id="RagnarosHas3MoltenPowerTokens">
+  <CValidatorUnitCompareTokenCount id="RagnarosTargetHas3MoltenPowerTokens">
     <Value value="3" />
     <TokenId value="RagnarosLivingMeteorMoltenPowerTalentTokenCounter" />
+    <WhichUnit Value="Target" />
   </CValidatorUnitCompareTokenCount>
-  <CValidatorUnitCompareTokenCount id="RagnarosHas4MoltenPowerTokens">
+  <CValidatorUnitCompareTokenCount id="RagnarosTargetHas4MoltenPowerTokens">
     <Value value="4" />
     <TokenId value="RagnarosLivingMeteorMoltenPowerTalentTokenCounter" />
+    <WhichUnit Value="Target" />
   </CValidatorUnitCompareTokenCount>
-  <CValidatorUnitCompareTokenCount id="RagnarosHas5MoltenPowerTokens">
+  <CValidatorUnitCompareTokenCount id="RagnarosTargetHas5MoltenPowerTokens">
     <Value value="5" />
     <TokenId value="RagnarosLivingMeteorMoltenPowerTalentTokenCounter" />
+    <WhichUnit Value="Target" />
   </CValidatorUnitCompareTokenCount>
   <CValidatorIsUnitTracked id="RagnarosTargetIsBeingMeteorBombInnerRadiusTracked">
     <Find value="1" />

@@ -1,16 +1,25 @@
 <?xml version="1.0" encoding="us-ascii"?>
 <Catalog>
+  <const id="$ArthasDeathCoilRange" value="8" />
+  <const id="$ArthasGorefiendsGraspRangeModifier" value="0.4" />
+  <const id="$ArthasGorefiendsGraspRangeIncrease" value="*($ArthasDeathCoilRange $ArthasGorefiendsGraspRangeModifier)" evaluateAsExpression="1" />
   <const id="$ArthasHowlingBlastRange" value="10" />
   <const id="$ArthasFrostPresenceRangeModifier" value="0.2" />
   <const id="$ArthasFrostPresenceRangeIncrease" value="*($ArthasHowlingBlastRange $ArthasFrostPresenceRangeModifier)" evaluateAsExpression="1" />
-  <const id="$ArthasDeathCoilRange" value="7" />
-  <const id="$ArthasDeathlordRangeModifier" value="0.25" />
-  <const id="$ArthasDeathlordRangeIncrease" value="*($ArthasDeathCoilRange $ArthasDeathlordRangeModifier)" evaluateAsExpression="1" />
   <const id="$ArthasArmyOfTheDeadGhoulHealth" value="1200" />
   <const id="$ArthasArmyOfTheDeadGhoulDecayDuration" value="20" />
   <const id="$ArthasArmyOfTheDeadGhoulDecayRate" value="/($ArthasArmyOfTheDeadGhoulHealth $ArthasArmyOfTheDeadGhoulDecayDuration)" evaluateAsExpression="1" />
-  <const id="$ArthasLegionofNorthrendGhoulDecayRateMultiplier" value="0.35" />
-  <const id="$ArthasLegionofNorthrendGhoulLifeDecayModifier" value="*($ArthasArmyOfTheDeadGhoulDecayRate $ArthasLegionofNorthrendGhoulDecayRateMultiplier)" evaluateAsExpression="1" />
+  <CAbilEffectInstant id="ArthasPathofFrost">
+    <Effect value="ArthasPathofFrostCastSet" />
+    <Flags index="ClearLastAttackTargetOutOfRange" value="1" />
+    <Flags index="RequireTargetVision" value="0" />
+    <Flags index="Transient" value="1" />
+    <Cost>
+      <Cooldown TimeUse="60" />
+    </Cost>
+    <CmdButtonArray index="Execute" DefaultButtonFace="ArthasPathofFrost" />
+    <UninterruptibleArray index="Cast" value="1" />
+  </CAbilEffectInstant>
   <CAbilEffectInstant id="ArthasAntiMagicShell">
     <PrepEffect value="DismountDecloakCasterSet" />
     <Effect value="ArthasAntiMagicShellApplySpellShieldBehavior" />
@@ -24,7 +33,7 @@
     <Flags index="ClearLastMoveTarget" value="1" />
     <Flags index="RangeUseCasterRadius" value="0" />
     <Cost>
-      <Vital index="Energy" value="50" />
+      <Vital index="Energy" value="40" />
       <Cooldown TimeUse="9" />
     </Cost>
     <TargetFilters value="-;Ally,Missile,Item,Stasis,Dead,Hidden" />
@@ -57,7 +66,7 @@
   <CAbilEffectInstant id="ArthasFrostmourneHungers">
     <Effect value="ArthasFrostmourneHungersInitialSet" />
     <Cost>
-      <Cooldown TimeUse="10" />
+      <Cooldown TimeUse="12" />
     </Cost>
     <CmdButtonArray index="Execute" DefaultButtonFace="ArthasFrostmourneHungers" />
     <Flags index="TransientPreferred" value="1" />
@@ -75,10 +84,17 @@
     <Flags index="ClearLastMoveTarget" value="1" />
     <Effect value="ArthasArmyOfTheDeadSpawnPersistent" />
     <Cost>
-      <Vital index="Energy" value="80" />
-      <Cooldown TimeUse="80" />
+      <Charge>
+        <CountMax value="6" />
+        <CountStart value="6" />
+        <CountUse value="6" />
+        <Link value="Abil/ArthasArmyOfTheDeadCharge" />
+        <TimeUse value="18" />
+      </Charge>
+      <Cooldown TimeUse="5" />
+      <CostEventEffectArray index="ChargeRegen" value="ArthasArmyoftheDeadChargeIncrementSet" />
     </Cost>
-    <CmdButtonArray index="Execute" DefaultButtonFace="ArthasArmyOfTheDead" Requirements="Ultimate1Unlocked" />
+    <CmdButtonArray index="Execute" DefaultButtonFace="ArthasArmyOfTheDead" Requirements="Ultimate1Unlocked" UseValidator="ArthasHasGTE1ChargeArmyOfTheDead" />
     <UninterruptibleArray index="Cast" value="1" />
     <UninterruptibleArray index="Channel" value="1" />
     <UninterruptibleArray index="Finish" value="1" />
@@ -102,7 +118,7 @@
     </InfoArray>
     <Alert value="" />
     <EffectArray index="Death" value="ArthasArmyOfTheDeadReleaseMagazine" />
-    <EffectArray index="Launch" value="ArmyOfTheDeadApplyEnableGhoulSlowBehavior" />
+    <EffectArray index="Launch" value="ArthasArmyoftheDeadAddTrackedUnit" />
     <ExternalAngle value="29.9926" />
     <ExternalAngle value="270" />
     <ExternalAngle value="209.9926" />
@@ -163,13 +179,14 @@
     <Effect value="ArthasArmyOfTheDeadHealSearch" />
     <Flags index="Transient" value="1" />
     <Cost>
+      <Vital index="Energy" value="15" />
       <Cooldown TimeUse="2" />
     </Cost>
     <FinishTime value="0.15" />
     <UninterruptibleArray index="Cast" value="1" />
     <UninterruptibleArray index="Channel" value="1" />
     <UninterruptibleArray index="Finish" value="1" />
-    <CmdButtonArray index="Execute" DefaultButtonFace="ArthasArmyOfTheDeadSacrifice" Requirements="HasGhouls" />
+    <CmdButtonArray index="Execute" DefaultButtonFace="ArthasArmyOfTheDeadSacrifice" ShowValidator="ArthasHasGTE1ArmyoftheDeadGhoulTracked" UseValidator="ArthasHasGTE1ArmyoftheDeadGhoulTracked" />
     <ParentAbil value="ArthasArmyOfTheDead" />
   </CAbilEffectInstant>
   <CAbilEffectInstant id="ArthasFrozenTempest">
@@ -186,7 +203,7 @@
   <CAbilEffectTarget id="ArthasHowlingBlast">
     <Effect value="ArthasHowlingBlastCreatePersistent" />
     <Cost>
-      <Vital index="Energy" value="60" />
+      <Vital index="Energy" value="50" />
       <Cooldown TimeUse="10" />
     </Cost>
     <Range value="$ArthasHowlingBlastRange" />
@@ -194,8 +211,8 @@
     <CmdButtonArray index="Execute" DefaultButtonFace="ArthasHowlingBlast" />
     <CursorEffect value="ArthasHowlingBlastSearch" />
     <Flags index="ClearLastMoveTarget" value="1" />
-    <Flags index="RequireTargetVision" value="0" />
     <Flags index="RangeUseCasterRadius" value="0" />
+    <Flags index="RequireTargetVision" value="0" />
     <UninterruptibleArray index="Cast" value="1" />
     <UninterruptibleArray index="Channel" value="1" />
     <UninterruptibleArray index="Finish" value="1" />
@@ -203,16 +220,27 @@
     <Arc value="360" />
     <PrepEffect value="DismountDecloakCasterSet" />
   </CAbilEffectTarget>
-  <CAccumulatorVitals id="ArthasEmbraceDeathVitalAccumulator" parent="BaseVitalAccumulator">
-    <MaxAccumulation value="1" />
+  <CAccumulatorToken id="ArthasDeathchillTalentDamageAccumulator" parent="BaseTokenAccumulator">
+    <ApplicationRule value="Add" />
+    <TokenId value="ArthasFrostmourneHungersTokenCounter" />
+    <Scale value="2" />
+  </CAccumulatorToken>
+  <CAccumulatorToken id="ArthasFrostmourneHungersRuneTapTalentHealthAccumulator" parent="BaseTokenAccumulator">
+    <MaxAccumulation value="10000" />
+    <ApplicationRule value="Add" />
+    <TokenId value="ArthasFrostmourneHungersTokenCounter" />
+    <Scale value="10" />
+  </CAccumulatorToken>
+  <CAccumulatorVitals id="ArthasDeathlordTalentVitalAccumulator" parent="BaseVitalAccumulator">
+    <MaxAccumulation value="0.5" />
+    <Ratio value="0.5" />
     <Missing value="1" />
     <VitalType value="Life" />
   </CAccumulatorVitals>
-  <CAccumulatorToken id="ArthasFrostmourneHungersEternalHungerDamageAccumulator" parent="BaseTokenAccumulator">
-    <MaxAccumulation value="5000" />
+  <CAccumulatorToken id="ArthasFrostmourneHungersDamageAccumulator" parent="BaseTokenAccumulator">
+    <MaxAccumulation value="10000" />
     <ApplicationRule value="Add" />
-    <TokenId value="ArthasFrostmourneHungersEternalHungerQuestToken" />
-    <Scale value="4" />
+    <TokenId value="ArthasFrostmourneHungersTokenCounter" />
   </CAccumulatorToken>
   <CAccumulatorToken id="ArthasFrozenWastesTokenAccumulator" parent="BaseTokenAccumulator">
     <MaxAccumulation value="150" />
@@ -220,11 +248,10 @@
     <TokenId value="ArthasFrozenTempestFrozenWastesQuestToken" />
   </CAccumulatorToken>
   <CAccumulatorToken id="ArthasFrozenTempestBitingColdTalentAccumulator" parent="BaseAccumulator">
-    <MaxAccumulation value="0.5" />
+    <MaxAccumulation value="0.75" />
     <TokenId value="ArthasBitingColdTokenCounter" />
-    <Scale value="0.0625" />
+    <Scale value="0.075" />
     <UnitSource Value="Target" />
-    <ApplicationRule value="Add" />
   </CAccumulatorToken>
   <CAccumulatorToken id="ArthasFrostmourneHungersEternalHungerManaAccumulator" parent="BaseTokenAccumulator">
     <MaxAccumulation value="40" />
@@ -232,6 +259,47 @@
     <TokenId value="ArthasFrostmourneHungersEternalHungerQuestToken" />
     <Scale value="4" />
   </CAccumulatorToken>
+  <CActorSound id="ArthasPathofFrostLoopSound" parent="SoundContinuous">
+    <On Terms="Behavior.ArthasPathofFrostTimedBehavior.On" Send="Create" />
+    <On Terms="Behavior.ArthasPathofFrostTimedBehavior.Off" Send="Destroy" />
+    <On Terms="ActorCreation" Send="SoundSetOffset 1000" />
+    <Host Subject="_Unit" />
+  </CActorSound>
+  <CActorSound id="ArthasPathofFrostSlowProcSound" parent="SoundOneShot">
+    <On Terms="Effect.ArthasPathofFrostSearch.Start; At Effect" Send="Create" />
+  </CActorSound>
+  <CActorSound id="ArthasPathofFrostSlowImpactSound" parent="SoundOneShot">
+    <On Terms="Effect.ArthasPathofFrostSearchImpactSet.Start; At Target" Send="Create" />
+  </CActorSound>
+  <CActorModel id="ArthasPathofFrostSlowProcFX" parent="StormModelAnimationStyleOneShot">
+    <On Terms="Effect.ArthasPathofFrostSearch.Start; At Caster" Send="Create" />
+    <Host Subject="_Unit" />
+    <HostSiteOps Ops="SOpShadow" HoldPosition="1" HoldRotation="1" />
+  </CActorModel>
+  <CActorModel id="ArthasPathofFrostGroundFX" parent="StormModelAnimationStyleOneShot">
+    <On Terms="Effect.ArthasPathofFrostPeriodicSet.Start; At Caster" Send="Create" />
+    <Host Subject="_Unit" />
+    <HostSiteOps Ops="SOpShadow SOpRotationRandomFull" HoldRotation="1" />
+  </CActorModel>
+  <CActorModelMaterial id="ArthasPathofFrostGlaze" parent="BuffContinuous">
+    <Remove Terms="ActorCreation" Send="AnimBracketStart BSD Birth Stand Death" />
+    <On Terms="ActorCreation" Send="AnimBracketStart BSD Birth Stand Death 0 1.000000 AsTimeScale" />
+    <On Terms="ActorCreation" Send="SetTintColor {0,0,160 2.000000}" />
+    <ModelFlags index="AutomateGlobalLoops" value="1" />
+  </CActorModelMaterial>
+  <CActorSound id="ArthasArmyOfTheDeadCastSoundVox2" parent="SoundOneShot">
+    <On Terms="Effect.ArthasArmyoftheDeadLegionofNorthrendTalentCreateUnit.Start; At Target" Send="Create" />
+    <Sound value="Arthas_ArmyDead_LegionSummonVox" />
+  </CActorSound>
+  <CActorModel id="ArthasFrostmourneHungersFrostStrikeTalentImpact" parent="StormModelAnimationStyleOneShotUnit">
+    <On Terms="Effect.ArthasFrostmourneHungersFrostStrikeTalentFXDummy.Start; At Target" Send="Create" />
+    <On Terms="ActorCreation" Send="Create ArthasFrostmourneHungersImpactSound" />
+    <HostSiteOps Ops="SOpAttachCenter SOpRotationRandomDisc" HoldRotation="1" />
+  </CActorModel>
+  <CActorModel id="ArthasFrostmourneHungersFrostStrikeTalentAoEImpactFX" parent="StormModelAnimationStyleOneShotUnit">
+    <On Terms="Effect.ArthasFrostmourneHungersFrostStrikeTalentSearchImpactSet.Start; At Target" Send="Create" />
+    <HostSiteOps Ops="SOpAttachCenter" HoldRotation="1" />
+  </CActorModel>
   <CActorSound id="PulledSoundHeroLichKing" parent="SoundOneShot">
     <Sound value="LichKing_VOX_Pulled" />
   </CActorSound>
@@ -271,7 +339,7 @@
     <On Terms="ActorCreation" Send="Create ArthasAntiMagicShellLaunchSound" />
     <HostSiteOps Ops="SOpAttachCenter" HoldRotation="1" />
   </CActorModel>
-  <CActorModel id="ArthasFrozenTempestRemorselessWinterRootFX" parent="StormModelRoot" effect="ArthasFrozenTempestRemorselessWinterApplyRootBehavior" behavior="ArthasFrozenTempestRemorselessWinterRoot">
+  <CActorModel id="ArthasFrozenTempestRemorselessWinterRootFX" parent="StormModelRoot" behavior="ArthasFrozenTempestRemorselessWinterRoot" effect="ArthasFrozenTempestRemorselessWinterApplyRootBehavior">
     <On Terms="ActorCreation" Send="Create ArthasFrozenTempestRemorselessWinterRootLaunchSound" />
     <On Terms="Behavior.ArthasFrozenTempestRemorselessWinterRoot.Destroy" Send="Create ArthasFrozenTempestRemorselessWinterRootEndSound" />
     <HostSiteOps Ops="SOpAttachOrigin" />
@@ -314,7 +382,7 @@
     <Sound value="LichKing_VOX_CastingA" />
   </CActorSound>
   <CActorModel id="ArthasFrostmourneHungersImpact" parent="StormModelAnimationStyleOneShotUnit">
-    <On Terms="Effect.ArthasFrostmourneHungersAttackSet.Start; At Target; ValidateEffect CasterNotBlindedAndTargetNotEvading" Send="Create" />
+    <On Terms="Effect.ArthasFrostmourneHungersFXSwitch.Start; At Target" Send="Create" />
     <On Terms="ActorCreation" Send="Create ArthasFrostmourneHungersImpactSound" />
     <HostSiteOps Ops="SOpAttachCenter SOpRotationRandomDisc" HoldRotation="1" />
   </CActorModel>
@@ -338,6 +406,9 @@
     <On Terms="Behavior.ArthasIceboundFortitudeCasterBehavior.On" Send="ModelMaterialApply ArthasIceboundFortitudeGlaze" />
     <On Terms="Behavior.ArthasIceboundFortitudeCasterBehavior.Off" Target="ArthasIceboundFortitudeGlaze" Send="AnimBracketStop BSD 0 3.000000 AsTimeScale" />
     <On Terms="UnitMovementUpdate.*.Walk; AnimPlaying StandWork" Send="AnimClear StandWork" />
+    <On Terms="Behavior.ArthasPathofFrostMount.On" Send="TimerSet 0.062500 PathofFrostGlaze" />
+    <On Terms="TimerExpired; TimerName PathofFrostGlaze" Target="_Mount" Send="ModelMaterialApply ArthasPathofFrostGlaze" />
+    <On Terms="Behavior.ArthasPathofFrostMount.Off" Target="ArthasPathofFrostGlaze" Send="AnimBracketStop BSD 0 3.000000 AsTimeScale" />
     <DeathArray index="Normal" SoundLink="LichKing_Death" />
     <AbilSoundArray AbilCmd="ArthasDeathCoil,Execute" Sound="StormNoSound" />
     <AbilSoundArray AbilCmd="ArthasArmyOfTheDead,Execute" Sound="LichKing_Ultimate2Used" />
@@ -471,7 +542,7 @@
     <HostEndSiteOps Ops="SOpTargetPoint SOpHigherBy3" />
     <Radius value="2.500000" />
   </CActorForceCylinder>
-  <CActorModel id="ArthasHowlingBlastImpact" parent="StormModelRoot" effect="ArthasHowlingBlastApplyBehavior" behavior="ArthasHowlingBlastRoot">
+  <CActorModel id="ArthasHowlingBlastImpact" parent="StormModelRoot" behavior="ArthasHowlingBlastRoot" effect="ArthasHowlingBlastRootSwitch">
     <HostSiteOps Ops="SOpAttachOriginSoft" HoldRotation="1" />
   </CActorModel>
   <CActorSound id="ArthasHowlingBlastImpactSound" parent="HeroAttackImpactSoundOneShot">
@@ -573,7 +644,7 @@
     <On Terms="Behavior.ArthasSummonSindragosaHeroRoot.On" Send="Create" />
     <Sound value="Arthas_HowlingBlast_Impact" />
   </CActorSound>
-  <CActorModel id="ArthasSummonSindragosaRootImpact" parent="StormModelRoot" effect="ArthasSummonSindragosaApplyHeroRoot" behavior="ArthasSummonSindragosaHeroRoot">
+  <CActorModel id="ArthasSummonSindragosaRootImpact" parent="StormModelRoot" behavior="ArthasSummonSindragosaHeroRoot" effect="ArthasSummonSindragosaApplyHeroRoot">
     <HostSiteOps Ops="SOpAttachOriginSoft" HoldRotation="1" />
     <Model value="ArthasHowlingBlastImpact" />
   </CActorModel>
@@ -674,6 +745,94 @@
   <CActorModelMaterial id="ReplacementArthas3" parent="ModelAnimationStyleContinuous">
     <MaterialType value="Replacement" />
   </CActorModelMaterial>
+  <CBehaviorBuff id="ArthasFrostmourneHungersDeathPactTalentBuff">
+    <Duration value="0.0625" />
+    <InitialEffect value="ArthasFrostmourneHungersDeathPactTalentModifyTokens" />
+  </CBehaviorBuff>
+  <CBehaviorBuff id="ArthasRimeHealCarry" parent="CarryBehaviorParent">
+    <DisableValidatorArray value="CasterIsStunnedOrRootedOrSlowed" />
+    <Period value="0.25" />
+    <PeriodicEffect value="ArthasRimeHeal" />
+  </CBehaviorBuff>
+  <CBehaviorBuff id="ArthasPathofFrostSlow" parent="StormSlowParent">
+    <Duration value="2" />
+    <Modification>
+      <UnifiedMoveSpeedFactor value="-0.3" />
+    </Modification>
+  </CBehaviorBuff>
+  <CBehaviorAbility id="ArthasPathofFrostAbility">
+    <Buttons Face="ArthasPathofFrost" Type="AbilCmd" AbilCmd="ArthasPathofFrost,Execute" UseValidator="CasterNotRooted" />
+  </CBehaviorAbility>
+  <CBehaviorBuff id="ArthasPathofFrostMountedController">
+    <RemoveValidatorArray value="Mounted" />
+    <Duration value="5" />
+    <CancelEffect value="ArthasPathofFrostRemoveTimedBehavior" />
+    <Period value="0.375" />
+    <PeriodCount value="14" />
+    <PeriodicEffect value="ArthasPathofFrostPeriodicSet" />
+  </CBehaviorBuff>
+  <CBehaviorBuff id="ArthasPathofFrostTimedBehavior" parent="CarryBehaviorParent">
+    <BehaviorCategories index="Restorable" value="1" />
+    <BehaviorCategories index="Fast" value="1" />
+    <DisplayDuration index="Self" value="1" />
+    <DisplayDuration index="Ally" value="1" />
+    <DisplayDuration index="Enemy" value="1" />
+    <Duration value="5" />
+    <Period value="0.0625" />
+    <PeriodCount value="1" />
+    <PeriodicEffect value="ArthasPathofFrostApplyMountedController" />
+    <FinalEffect value="ArthasPathofFrostTimedFinalSet" />
+    <Modification>
+      <UnifiedMoveSpeedFactor value="0.4" />
+    </Modification>
+  </CBehaviorBuff>
+  <CBehaviorUnitTracker id="ArthasArmyoftheDeadUnitTracker">
+    <BehaviorFlags index="Permanent" value="1" />
+    <BehaviorFlags index="EnabledWhileDead" value="1" />
+    <MaxTrackedUnits value="6" />
+  </CBehaviorUnitTracker>
+  <CBehaviorBuff id="ArthasDeathCoilGorefiendsGraspTalentPushPull" parent="PushPullParent">
+    <Duration value="0.25" />
+    <Modification>
+      <StateFlags index="OrdersPaused" value="1" />
+      <MoveSpeedMaximum value="18" />
+      <MoveSpeedMinimum value="18" />
+    </Modification>
+  </CBehaviorBuff>
+  <CBehaviorBuff id="ArthasFrozenTempestBoreanWindsTalentBuff" parent="StormSprint">
+    <Duration value="0.3125" />
+    <Modification>
+      <UnifiedMoveSpeedFactor value="0.1" />
+    </Modification>
+  </CBehaviorBuff>
+  <CBehaviorBuff id="ArthasFrozenTempestBoreanWindsTalentCarry" parent="CarryBehaviorParent">
+    <DisableValidatorArray value="ArthasDoesNotHaveBoreanWindsTalentCoolup" />
+    <DisableValidatorArray value="ArthasHasFrozenTempestActive" />
+    <Period value="0.25" />
+    <Modification>
+      <UnifiedMoveSpeedFactor value="0.1" />
+    </Modification>
+  </CBehaviorBuff>
+  <CBehaviorBuff id="ArthasFrozenTempestBoreanWindsTalentCoolup">
+    <RemoveValidatorArray value="ArthasHasFrozenTempestActive" />
+    <Duration value="2" />
+  </CBehaviorBuff>
+  <CBehaviorBuff id="ArthasDeathCoilFrostPresenceTalentSlow" parent="StormSlowParent">
+    <Duration value="0.75" />
+    <Modification>
+      <UnifiedMoveSpeedFactor value="-0.5" />
+    </Modification>
+  </CBehaviorBuff>
+  <CBehaviorBuff id="ArthasFrostmourneHungersMinionDebuff">
+    <RemoveValidatorArray value="TargetNotDead" />
+    <Duration value="1.5" />
+    <DamageResponse>
+      <Chance value="1" />
+      <Handled value="ArthasFrostmourneHungersAddQuestTokenMinion" />
+      <Priority value="15" />
+      <Fatal value="1" />
+    </DamageResponse>
+  </CBehaviorBuff>
   <CBehaviorAbility id="ArthasIceboundFortitudeItem">
     <Buttons Face="ArthasIceboundFortitudeTalent" Type="AbilCmd" AbilCmd="ArthasIceboundFortitude,Execute" />
   </CBehaviorAbility>
@@ -683,13 +842,13 @@
   <CBehaviorTokenCounter id="ArthasFrostPresenceTokenCounter" parent="StormQuestToken">
     <Face value="ArthasFrostPresenceToken" />
     <SortIndex value="10" />
-    <ConditionalEvents Compare="GE" CompareValue="5">
+    <ConditionalEvents Compare="GE" CompareValue="15">
       <Event EventId="QuestMilestone" Effect="ArthasHowlingBlastFrostPresenceTalentTier1CompletionModifyPlayer" />
     </ConditionalEvents>
-    <ConditionalEvents Compare="GE" CompareValue="10">
-      <Event EventId="QuestMilestone" Effect="ArthasHowlingBlastFrostPresenceTalentTier2CompletionModifyPlayer" />
+    <ConditionalEvents Compare="GE" CompareValue="30">
+      <Event Effect="ArthasHowlingBlastFrostPresenceTalentTier2CompletionModifyPlayer" />
     </ConditionalEvents>
-    <Max value="20" />
+    <Max value="30" />
   </CBehaviorTokenCounter>
   <CBehaviorBuff id="ArthasFrozenTempestBitingColdMarker">
     <BuffFlags index="RefreshStack" value="1" />
@@ -700,10 +859,10 @@
     <Alignment value="Positive" />
     <BuffFlags index="RefreshStack" value="1" />
     <InfoFlags index="Hidden" value="0" />
-    <Face value="ArthasIcyTalons" />
+    <Face value="ArthasIcyTalonsBuff" />
     <SortIndex value="20" />
     <MaxStackCount value="20" />
-    <Duration value="1.5" />
+    <Duration value="2" />
     <Modification>
       <AdditiveAttackSpeedFactor value="0.03" />
     </Modification>
@@ -731,10 +890,9 @@
     <BehaviorCategories index="Protected" value="0" />
     <BuffFlags index="RemoveDamageResponseExhausted" value="0" />
     <Duration value="4" />
-    <DamageResponse Priority="97">
+    <DamageResponse Priority="97" RecordBehaviorShieldDamage="1">
       <Kind index="Splash" value="0" />
       <Kind index="Basic" value="0" />
-      <RecordBehaviorShieldDamage value="1" />
     </DamageResponse>
   </CBehaviorBuff>
   <CBehaviorBuff id="ArthasDeathsAdvancePassive" parent="StormSprint">
@@ -752,13 +910,10 @@
       <UnifiedMoveSpeedFactor value="0.3" />
     </Modification>
   </CBehaviorBuff>
-  <CBehaviorTokenCounter id="ArthasFrostmourneHungersEternalHungerQuestToken" parent="StormQuestToken">
-    <Max value="65535" />
-    <Face value="ArthasEternalHungerQuestTokenFrostmourneHungersTalent" />
-    <ConditionalEvents Compare="GE" CompareValue="10">
-      <Event EventId="QuestComplete" />
-    </ConditionalEvents>
+  <CBehaviorTokenCounter id="ArthasFrostmourneHungersTokenCounter" parent="StormQuestToken">
+    <Face value="ArthasFrostmourneHungersToken" />
     <SortIndex value="10" />
+    <Max value="65535" />
   </CBehaviorTokenCounter>
   <CBehaviorBuff id="ArthasFrozenTempestAttackSpeedSlow" parent="StormDamageReductionAttackSpeedSlow">
     <BuffFlags index="RefreshStack" value="1" />
@@ -769,7 +924,7 @@
     </Modification>
   </CBehaviorBuff>
   <CBehaviorBuff id="ArthasFrozenTempestRemorselessWinterImmunity">
-    <Duration value="10" />
+    <Duration value="8" />
   </CBehaviorBuff>
   <CBehaviorBuff id="ArthasFrozenTempestRemorselessWinterRoot" parent="StormRoot">
     <Duration value="1.25" />
@@ -778,7 +933,7 @@
   <CBehaviorBuff id="ArthasFrozenTempestRemorselessWinterTargetStacks">
     <BuffFlags index="RefreshStack" value="1" />
     <Duration value="2" />
-    <MaxStackCount value="6" />
+    <MaxStackCount value="5" />
   </CBehaviorBuff>
   <CBehaviorBuff id="ArthasIceboundFortitudeCasterBehavior" parent="StormArmor">
     <BehaviorCategories index="BuffResistant" value="1" />
@@ -801,6 +956,7 @@
       <Chance value="1" />
       <Handled value="ArthasRimeRemoveSet" />
       <TargetFilters value="Heroic;Structure" />
+      <ValidateEffectAliasesOp value="ExcludeHasAny" />
       <Priority value="55" />
       <Cost>
         <Charge>
@@ -810,10 +966,9 @@
           <TimeUse value="5" />
         </Charge>
       </Cost>
+      <ValidateEffectAliases value="IgnorePositiveArmor" />
       <Kind index="Ability" value="0" />
       <ProvideCategories index="Proc" value="1" />
-      <ValidateEffectAliasesOp value="ExcludeHasAny" />
-      <ValidateEffectAliases value="IgnorePositiveArmor" />
     </DamageResponse>
   </CBehaviorBuff>
   <CBehaviorBuff id="ArthasRimeChargedArmorBehavior" parent="StormArmor">
@@ -844,13 +999,6 @@
     <FinalEffect value="ArthasFrostmourneHungersSetCooldown" />
     <ExpireEffect value="ArthasFrostmourneHungersSetCooldown" />
   </CBehaviorBuff>
-  <CBehaviorBuff id="ArthasFrostmourneFeedsFrostmourneHungersFreeCast">
-    <Alignment value="Positive" />
-    <InfoFlags index="AlwaysUseGameText" value="1" />
-    <BehaviorCategories index="Restorable" value="1" />
-    <DisplayPriority value="2" />
-    <Duration value="4" />
-  </CBehaviorBuff>
   <CBehaviorBuff id="ArthasSummonSindragosaDummyDelay">
     <Duration value="1" />
   </CBehaviorBuff>
@@ -870,6 +1018,11 @@
       <ValidatorArray value="TargetNotEvading" />
       <Kind index="Ability" value="0" />
     </DamageResponse>
+    <Modification>
+      <VitalMaxArray index="Life" value="0">
+        <AccumulatorArray value="ArthasFrostmourneHungersRuneTapTalentHealthAccumulator" />
+      </VitalMaxArray>
+    </Modification>
   </CBehaviorBuff>
   <CBehaviorBuff id="ArthasRuneTapStacks">
     <BehaviorFlags index="Permanent" value="1" />
@@ -892,13 +1045,10 @@
     </Modification>
   </CBehaviorBuff>
   <CBehaviorBuff id="ArthasFrostmourneHungersFrostStrikeSlow" parent="StormSlowParent">
-    <Duration value="1.5" />
+    <Duration value="2" />
     <Modification>
-      <UnifiedMoveSpeedFactor value="-0.5" />
+      <UnifiedMoveSpeedFactor value="-0.2" />
     </Modification>
-  </CBehaviorBuff>
-  <CBehaviorBuff id="ArthasFrostmourneHungersFrostStrikeSilence" parent="StormSilence">
-    <Duration value="1" />
   </CBehaviorBuff>
   <CBehaviorBuff id="ArthasSummonSindragosaStructureDebuff" parent="StormStructureDisable">
     <Duration value="20" />
@@ -920,12 +1070,6 @@
     <Duration value="-1" />
     <InitialEffect value="ArthasArmyOfTheDeadApplyGhoulRootBehavior" />
   </CBehaviorBuff>
-  <CBehaviorBuff id="ArthasGhoulLegionofNorthrendLifeRegenModifier">
-    <DisableValidatorArray value="ArthasHasArmyoftheDeadLegionofNorthrend" />
-    <Modification>
-      <VitalRegenArray index="Life" value="$ArthasLegionofNorthrendGhoulLifeDecayModifier" />
-    </Modification>
-  </CBehaviorBuff>
   <CBehaviorBuff id="ArthasHowlingBlastRoot" parent="StormRoot">
     <Duration value="1.25" />
   </CBehaviorBuff>
@@ -936,7 +1080,6 @@
     <DisplayDuration index="Ally" value="1" />
     <DisableValidatorArray value="CasterNotStasis" />
     <RemoveValidatorArray value="TargetHasEnergy" />
-    <RemoveValidatorArray value="HasNoEyeoftheStorm" />
     <RemoveValidatorArray value="CasterNotDead" />
     <RemoveValidatorArray value="NotMounted" />
     <RemoveValidatorArray value="NotMountedCaboose" />
@@ -946,16 +1089,37 @@
     <FinalEffect value="ArthasFrozenTempestModifyCooldown" />
     <Modification>
       <StateFlags index="SuppressCloak" value="1" />
-      <VitalRegenArray index="Energy" value="-11" />
+      <VitalRegenArray index="Energy" value="-13" />
     </Modification>
   </CBehaviorBuff>
+  <CButton id="ArthasDeathPact" parent="StormButtonParent">
+    <Icon value="Assets\Textures\storm_ui_icon_Arthas_FrostmourneHungers_Off.dds" />
+  </CButton>
+  <CButton id="ArthasPathofFrost" parent="StormButtonParent">
+    <Icon value="Assets\Textures\storm_ui_icon_malthael_onpalehorse.dds" />
+    <HotkeyAlias value="ArthasFrostmourneFeedsFrostmourneHungersTalents" />
+  </CButton>
+  <CButton id="ArthasGorefiendsGrasp" parent="StormButtonParent">
+    <Icon value="Assets\Textures\storm_ui_icon_arthas_deathcoil.dds" />
+  </CButton>
+  <CButton id="ArthasDeathchill" parent="StormButtonParent">
+    <Icon value="Assets\Textures\storm_ui_icon_Arthas_HowlingBlast.dds" />
+  </CButton>
+  <CButton id="ArthasBoreanWinds" parent="StormButtonParent">
+    <Icon value="Assets\Textures\storm_ui_icon_arthas_frosentempest.dds" />
+    <HotkeyAlias value="ArthasBitingColdFrozenTempestTalent" />
+  </CButton>
   <CButton id="ArthasAntiMagicShellTalent">
     <Icon value="Assets\Textures\storm_temp_war3_btnantimagicshell.dds" />
     <SimpleDisplayText value="Button/Simple/ArthasAntiMagicShellTalent" />
     <TooltipFlags index="ShowRequirements" value="0" />
   </CButton>
   <CButton id="ArthasIcyTalons" parent="StormButtonParent">
-    <Icon value="Assets\Textures\storm_ui_icon_arthas_frosentempest_a.dds" />
+    <Icon value="Assets\Textures\storm_ui_icon_arthas_frosentempest.dds" />
+    <HotkeyAlias value="ArthasBitingColdFrozenTempestTalent" />
+  </CButton>
+  <CButton id="ArthasIcyTalonsBuff" parent="StormButtonParent">
+    <Icon value="Assets\Textures\storm_ui_icon_arthas_frosentempest.dds" />
     <HotkeyAlias value="ArthasBitingColdFrozenTempestTalent" />
   </CButton>
   <CButton id="ArthasDeathsAdvanceTalent">
@@ -963,12 +1127,15 @@
     <SimpleDisplayText value="Button/Simple/ArthasDeathsAdvanceTalent" />
     <TooltipFlags index="ShowRequirements" value="0" />
   </CButton>
-  <CButton id="ArthasEternalHungerQuestTokenFrostmourneHungersTalent">
+  <CButton id="ArthasFrostmourneHungersToken">
     <Icon value="Assets\Textures\storm_ui_icon_Arthas_FrostmourneHungers_Off.dds" />
+    <SimpleDisplayText value="Button/Tooltip/ArthasFrostmourneHungersTokenSimple" />
+    <TooltipAppender Validator="ArthasHasRuneTapTalent" Text="Arthas/FrostmourneHungersRuneTapTalentAppender" />
+    <TooltipAppender Validator="ArthasHasDeathchillTalent" Text="Arthas/FrostmourneHungersDeathChillTalentAppender" />
   </CButton>
   <CButton id="ArthasFrozenWastesQuestTokenFrozenTempestTalent">
     <Icon value="Assets\Textures\storm_ui_icon_arthas_frosentempest.dds" />
-    <HotkeyAlias value="ArthasEternalHungerQuestTokenFrostmourneHungersTalent" />
+    <HotkeyAlias value="ArthasFrostmourneHungersToken" />
   </CButton>
   <CButton id="ArthasShatteredArmor" parent="StormButtonParent">
     <Icon value="Assets\Textures\storm_ui_icon_Arthas_HowlingBlast.dds" />
@@ -1018,6 +1185,7 @@
     <TooltipAppender Validator="ArthasHasEternalHunger" Face="ArthasEternalHungerFrostmourneHungersTalent" />
     <TooltipAppender Validator="ArthasHasFrostmourneHungersFrostStrike" Face="ArthasFrostStrikeFrostmourneHungersTalent" />
     <TooltipAppender Validator="ArthasHasFrostmourneHungersFrostmourneFeeds" Face="ArthasFrostmourneFeedsFrostmourneHungersTalents" />
+    <TooltipAppender Validator="ArthasHasDeathPactTalent" Face="ArthasDeathPact" />
     <Icon value="Assets\Textures\storm_ui_icon_Arthas_FrostmourneHungers_Off.dds" />
   </CButton>
   <CButton id="ArthasFrozenWastesFrozenTempestTalent" parent="StormButtonParent">
@@ -1040,6 +1208,7 @@
   </CButton>
   <CButton id="ArthasFrozenTempest" parent="StormButtonParent">
     <Icon value="Assets\Textures\storm_ui_icon_Arthas_FrosenTempest.dds" />
+    <TooltipAppender Validator="ArthasHasBoreanWindsTalent" Face="ArthasBoreanWinds" />
     <TooltipAppender Validator="ArthasHasFrozenTempestFrozenWastes" Face="ArthasFrozenWastesFrozenTempestTalent" />
     <TooltipAppender Validator="ArthasHasIcyTalonsTalent" Face="ArthasIcyTalons" />
     <TooltipAppender Validator="ArthasHasFrozenTempestBitingCold" Face="ArthasBitingColdFrozenTempestTalent" />
@@ -1054,7 +1223,6 @@
     <TooltipAppender Validator="ArthasHasIcyTalonsTalent" Face="ArthasIcyTalons" />
     <TooltipAppender Validator="ArthasHasFrozenTempestBitingCold" Face="ArthasBitingColdFrozenTempestTalent" />
     <TooltipAppender Validator="ArthasHasFrozenTempestRemorselessWinter" Face="ArthasRemorselessWinterFrozenTempestTalent" />
-    <TooltipAppender Validator="ArthasHasDeathsAdvance" Face="ArthasDeathsAdvanceTalent" />
   </CButton>
   <CButton id="ArthasSummonSindragosa" parent="StormButtonParent">
     <Icon value="Assets\Textures\storm_ui_icon_Arthas_SummonSindragosa.dds" />
@@ -1062,13 +1230,16 @@
   </CButton>
   <CButton id="ArthasDeathCoil" parent="StormButtonParent">
     <Icon value="Assets\Textures\storm_ui_icon_Arthas_DeathCoil.dds" />
+    <TooltipAppender Validator="ArthasHasHowlingBlastFrostPresence" Face="ArthasFrostPresenceHowlingBlastTalent" />
     <TooltipAppender Validator="ArthasHasDeathCoilDeathlord" Face="ArthasDeathlord" />
     <TooltipAppender Validator="ArthasHasDeathCoilImmortalCoil" Face="ArthasImmortalCoilDeathCoilTalent" />
     <TooltipAppender Validator="ArthasHasDeathCoilEmbraceDeath" Face="ArthasEmbraceDeathDeathCoilTalent" />
+    <TooltipAppender Validator="ArthasHasDeathPactTalent" Face="ArthasGorefiendsGrasp" />
   </CButton>
   <CButton id="ArthasArmyOfTheDead" parent="StormButtonParent">
     <Icon value="Assets\Textures\storm_ui_icon_Arthas_ArmyOfTheDead.dds" />
     <TooltipAppender Validator="ArthasHasArmyoftheDeadLegionofNorthrend" Face="ArthasLegionOfNorthrendArmyOfTheDeadTalent" />
+    <TooltipCooldownOverrideText value="Abil/ArthasArmyoftheDeadCooldownOverride" />
   </CButton>
   <CButton id="ArthasArmyOfTheDeadSacrifice" parent="StormButtonParent">
     <Icon value="Assets\Textures\storm_ui_icon_Arthas_Sacrifice.dds" />
@@ -1078,6 +1249,7 @@
     <Icon value="Assets\Textures\storm_ui_icon_Arthas_HowlingBlast.dds" />
     <TooltipAppender Validator="ArthasHasHowlingBlastFrostPresence" Face="ArthasFrostPresenceHowlingBlastTalent" />
     <TooltipAppender Validator="ArthasHasShatteredArmor" Face="ArthasShatteredArmor" />
+    <TooltipAppender Validator="ArthasHasDeathchillTalent" Face="ArthasDeathchill" />
   </CButton>
   <CButton id="ArthasFrostPresenceToken" parent="StormButtonParent">
     <Icon value="Assets\Textures\storm_ui_icon_arthas_howlingblast.dds" />
@@ -1092,8 +1264,263 @@
     <Race value="Unknown" />
     <Unit value="HeroArthas" />
   </CCharacter>
-  <CEffectModifyUnit id="ArthasFrostmourneHungersImpactModifyWeaponCooldown">
+  <CEffectModifyTokenCount id="ArthasFrostmourneHungersDeathPactTalentModifyTokens" parent="BaseEffectModifyTokenCount">
+    <TokenId value="ArthasFrostmourneHungersTokenCounter" />
+    <Operation value="Multiply" />
+    <Value value="2" />
+  </CEffectModifyTokenCount>
+  <CEffectModifyTokenCount id="ArthasFrostmourneHungersDeathPactTalentTakedownModifyTokens" parent="BaseEffectModifyTokenCount">
+    <CollationId value="ArthasFrostmourneHungersDeathPactTalentModifyTokens" />
+    <TokenId value="ArthasFrostmourneHungersTokenCounter" />
+    <Value value="2" />
+  </CEffectModifyTokenCount>
+  <CEffectDamage id="ArthasPathofFrostDamage" parent="StormSpell">
+    <Amount value="66" />
+  </CEffectDamage>
+  <CEffectCreateHealer id="ArthasRimeHeal" parent="StormSelfOnlyHealingSpell">
+    <RechargeVitalRate value="6" />
+  </CEffectCreateHealer>
+  <CEffectApplyBehavior id="ArthasPathofFrostApplySlow" parent="StormSlowApply">
+    <Behavior value="ArthasPathofFrostSlow" />
+  </CEffectApplyBehavior>
+  <CEffectSet id="ArthasPathofFrostTimedFinalSet">
+    <EffectArray value="MountRemoveMountBehaviorSet" />
+    <EffectArray value="ArthasPathofFrostRemoveMountController" />
+    <EffectArray value="ArthasPathofFrostSearch" />
+  </CEffectSet>
+  <CEffectSet id="ArthasPathofFrostPeriodicSet" />
+  <CEffectEnumArea id="ArthasPathofFrostSearch">
+    <SearchFilters value="-;Self,Player,Ally,ImmuneToAOE,Structure,User1,Missile,Item,Stasis,Dead,Invulnerable" />
+    <AreaArray Effect="ArthasPathofFrostSearchImpactSet">
+      <Radius value="4" />
+    </AreaArray>
+    <SearchFlags index="ExtendByUnitRadius" value="1" />
+  </CEffectEnumArea>
+  <CEffectSet id="ArthasPathofFrostSearchImpactSet">
+    <EffectArray value="ArthasPathofFrostDamage" />
+    <EffectArray value="ArthasPathofFrostApplySlow" />
+  </CEffectSet>
+  <CEffectApplyBehavior id="ArthasPathofFrostApplyMountedController">
+    <WhichUnit Value="Caster" />
+    <Behavior value="ArthasPathofFrostMountedController" />
+  </CEffectApplyBehavior>
+  <CEffectRemoveBehavior id="ArthasPathofFrostRemoveTimedBehavior">
+    <BehaviorLink value="ArthasPathofFrostTimedBehavior" />
+    <Count value="1" />
+  </CEffectRemoveBehavior>
+  <CEffectRemoveBehavior id="ArthasPathofFrostRemoveMountController">
+    <BehaviorLink value="ArthasPathofFrostMountedController" />
+    <Count value="1" />
+  </CEffectRemoveBehavior>
+  <CEffectApplyBehavior id="ArthasPathofFrostApplyTimedBehavior">
+    <WhichUnit Value="Caster" />
+    <Behavior value="ArthasPathofFrostTimedBehavior" />
+  </CEffectApplyBehavior>
+  <CEffectSet id="ArthasPathofFrostCastSet">
+    <EffectArray value="ArthasPathofFrostApplyTimedBehavior" />
+    <EffectArray value="HeroGenericMountAbilityInitialSetNoCombatValidator" />
+    <ValidatorArray value="CasterNotRooted" />
+  </CEffectSet>
+  <CEffectModifyUnit id="ArthasArmyoftheDeadCooldownResetModifyChargeCooldown">
+    <ImpactUnit Value="Caster" />
+    <Cost Abil="ArthasArmyOfTheDead,Execute" ChargeTimeUse="-18" CooldownOperation="Add" />
+  </CEffectModifyUnit>
+  <CEffectCreatePersistent id="ArthasArmyoftheDeadCooldownResetPersistent">
+    <WhichLocation Value="TargetUnit" />
+    <PeriodCount value="6" />
+    <PeriodicEffectArray value="ArthasArmyoftheDeadCooldownResetModifyChargeCooldown" />
+    <PeriodicPeriodArray value="0" />
+  </CEffectCreatePersistent>
+  <CEffectAddTrackedUnit id="ArthasArmyoftheDeadAddTrackedUnit">
+    <BehaviorLink value="ArthasArmyoftheDeadUnitTracker" />
+    <TrackedUnit Value="Target" />
+  </CEffectAddTrackedUnit>
+  <CEffectCreateUnit id="ArthasArmyoftheDeadLegionofNorthrendTalentCreateUnit">
+    <Chance value="0" />
+    <WhichLocation Value="CasterPoint" />
+    <SpawnEffect value="ArthasArmyoftheDeadLegionofNorthrendTalentSpawnSet" />
+    <SpawnUnit value="ArthasArmyOfTheDeadGhoul" />
+  </CEffectCreateUnit>
+  <CEffectSet id="ArthasArmyoftheDeadChargeIncrementSet">
+    <EffectArray value="ArthasArmyoftheDeadModifyChargeCost" />
+  </CEffectSet>
+  <CEffectSet id="ArthasArmyoftheDeadLegionofNorthrendTalentSpawnSet" />
+  <CEffectModifyUnit id="ArthasRimeBlockChargeModifyCooldown">
+    <ImpactUnit Value="Source" />
+    <Cost Abil="ArthasHowlingBlast,Execute" CooldownOperation="Add" CooldownTimeUse="-1" />
+  </CEffectModifyUnit>
+  <CEffectModifyUnit id="ArthasArmyoftheDeadNPCDeathModifyChargeCooldown">
+    <ImpactUnit Value="Caster" />
+    <Cost Abil="ArthasArmyOfTheDead,Execute" ChargeTimeUse="-1" CooldownOperation="Add" />
+  </CEffectModifyUnit>
+  <CEffectModifyUnit id="ArthasArmyoftheDeadTakedownModifyChargeCooldown">
+    <ImpactUnit Value="Caster" />
+    <Cost Abil="ArthasArmyOfTheDead,Execute" ChargeTimeUse="-6" CooldownOperation="Add" />
+  </CEffectModifyUnit>
+  <CEffectModifyPlayer id="ArthasArmyoftheDeadModifyChargeCost">
+    <EffectArray Reference="Abil,ArthasArmyOfTheDead,Cost.Charge.CountUse" Value="1" />
+    <EffectArray Reference="Effect,ArthasArmyOfTheDeadSpawnPersistent,PeriodCount" Value="1" />
+  </CEffectModifyPlayer>
+  <CEffectModifyPlayer id="ArthasArmyoftheDeadResetChargeCost">
+    <EffectArray Operation="Set" Reference="Abil,ArthasArmyOfTheDead,Cost.Charge.CountUse" Value="0" />
+    <EffectArray Operation="Set" Reference="Effect,ArthasArmyOfTheDeadSpawnPersistent,PeriodCount" Value="0" />
+  </CEffectModifyPlayer>
+  <CEffectModifyUnit id="ArthasArmyoftheDeadRemoveCharge">
+    <ImpactUnit Value="Caster" />
+    <Cost Abil="ArthasArmyOfTheDead,Execute" ChargeCountUse="1" CooldownOperation="Add" />
+  </CEffectModifyUnit>
+  <CEffectSet id="ArthasArmyoftheDeadSpawnPersistentInitialSet">
+    <EffectArray value="ArthasArmyoftheDeadModifySacrificeCooldown" />
+    <EffectArray value="ArthasArmyoftheDeadResetChargeCost" />
+  </CEffectSet>
+  <CEffectSet id="ArthasArmyoftheDeadSpawnPersistentSet">
+    <EffectArray value="ArthasArmyOfTheDeadCreateGhoul" />
+    <EffectArray value="ArthasArmyoftheDeadLegionofNorthrendTalentCreateUnit" />
+  </CEffectSet>
+  <CEffectApplyBehavior id="ArthasDeathCoilGorefiendsGraspTalentApplyPushPull">
+    <Behavior value="ArthasDeathCoilGorefiendsGraspTalentPushPull" />
+  </CEffectApplyBehavior>
+  <CEffectSet id="ArthasDeathCoilGorefiendsGraspTalentPersistentInitialSet">
+    <EffectArray value="HeroRemovePushPullDebuffs" />
+    <EffectArray value="ArthasDeathCoilGorefiendsGraspTalentApplyPushPull" />
+  </CEffectSet>
+  <CEffectCreatePersistent id="ArthasDeathCoilGorefiendsGraspTalentPushPullPersistent">
+    <ValidatorArray value="TargetIsHero" />
+    <ValidatorArray value="TargetNotUnstoppable" />
+    <Chance value="0" />
+    <WhichLocation Value="TargetUnit" />
+    <TimeScaleSource Value="Target" />
+    <InitialEffect value="ArthasDeathCoilGorefiendsGraspTalentPersistentInitialSet" />
+    <PeriodCount value="3" />
+    <PeriodicValidator value="ArthasGorefiendsGraspTalentPeriodicValidatorCombine" />
+    <PeriodicEffectArray value="ArthasDeathCoilGorefiendsGraspTalentApplyForce" />
+    <PeriodicPeriodArray value="0.0625" />
+  </CEffectCreatePersistent>
+  <CEffectApplyForce id="ArthasDeathCoilGorefiendsGraspTalentApplyForce">
+    <WhichLocation Value="CasterUnit" />
+    <Amount value="-75" />
+  </CEffectApplyForce>
+  <CEffectSet id="ArthasFrostmourneHungersFXDummy" />
+  <CEffectSet id="ArthasFrostmourneHungersFrostStrikeTalentFXDummy" />
+  <CEffectSwitch id="ArthasFrostmourneHungersFXSwitch">
+    <CaseArray Validator="ArthasHasFrostmourneHungersFrostStrike" Effect="ArthasFrostmourneHungersFrostStrikeTalentFXDummy" />
+    <CaseDefault value="ArthasFrostmourneHungersFXDummy" />
+  </CEffectSwitch>
+  <CEffectCreateHealer id="ArthasFrozenTempestRemorselessWinterTalentHealer" parent="StormSelfOnlyHealingSpellPercent">
+    <ImpactUnit Value="Caster" History="Unknown" />
+    <RechargeVitalFraction value="0.03" />
+  </CEffectCreateHealer>
+  <CEffectSet id="ArthasFrozenTempestRemorselessWinterTalentProcSet">
+    <EffectArray value="ArthasFrozenTempestRemorselessWinterApplyRootBehavior" />
+    <EffectArray value="ArthasFrozenTempestRemorselessWinterTalentHealer" />
+  </CEffectSet>
+  <CEffectEnumArea id="ArthasFrostmourneHungersFrostStrikeTalentSearch">
     <ValidatorArray value="CasterNotBlindedAndTargetNotEvading" />
+    <Chance value="0" />
+    <SearchFilters value="-;Player,Ally,ImmuneToAOE,User1,Missile,Item,Stasis,Dead,Hidden,Invulnerable" />
+    <AreaArray Effect="ArthasFrostmourneHungersFrostStrikeTalentSearchImpactSet">
+      <Radius value="3" />
+    </AreaArray>
+  </CEffectEnumArea>
+  <CEffectSet id="ArthasFrostmourneHungersFrostStrikeTalentSearchImpactSet">
+    <EffectArray value="ArthasFrostmourneHungersFrostStrikeApplySlow" />
+    <EffectArray value="ArthasFrostmourneHungersFrostStrikeTalentDamage" />
+  </CEffectSet>
+  <CEffectDamage id="ArthasFrostmourneHungersFrostStrikeTalentDamage" parent="StormSpell">
+    <Amount value="115" />
+  </CEffectDamage>
+  <CEffectModifyTokenCount id="ArthasFrostmourneHungersFrostStrikeTalentAddQuestTokenHero" parent="BaseEffectModifyTokenCount">
+    <ValidatorArray value="TargetIsHero" />
+    <ValidatorArray value="ArthasFrostStrikeTalentProcCombine" />
+    <EffectCategory index="Quest" value="1" />
+    <CollationId value="ArthasFrostmourneHungersAddQuestTokenHero" />
+    <TokenId value="ArthasFrostmourneHungersTokenCounter" />
+  </CEffectModifyTokenCount>
+  <CEffectModifyUnit id="ArthasHeroWeaponFrostStrikeTalentModifyUnit">
+    <ValidatorArray value="CasterNotBlindedAndTargetNotEvading" />
+    <ValidatorArray value="TargetIsRootedOrSlowed" />
+    <Chance value="0" />
+    <ImpactUnit Value="Caster" />
+    <Cost Abil="ArthasFrostmourneHungers,Execute" CooldownOperation="Add" CooldownTimeUse="-1" />
+  </CEffectModifyUnit>
+  <CEffectApplyBehavior id="ArthasHowlingBlastDeathchillTalentApplyRoot" parent="StormRootApply">
+    <ValidatorArray value="ArthasTargetDoesNotHaveHowlingBlastRoot" />
+    <Behavior value="ArthasHowlingBlastRoot" />
+    <Flags index="UseDuration" value="1" />
+    <Duration value="1.5" />
+  </CEffectApplyBehavior>
+  <CEffectSwitch id="ArthasHowlingBlastRootSwitch">
+    <ValidatorArray value="TargetNotDead" />
+    <CaseArray Validator="ArthasDeathchillTalentProcCombine" Effect="ArthasHowlingBlastDeathchillTalentApplyRoot" />
+    <CaseDefault value="ArthasHowlingBlastApplyBehavior" />
+  </CEffectSwitch>
+  <CEffectModifyUnit id="ArthasDeathCoilImmortalCoilTalentModifyUnit">
+    <Chance value="0" />
+    <ImpactUnit Value="Caster" />
+    <Cost Abil="ArthasDeathCoil,Execute" CooldownOperation="Add" CooldownTimeUse="-3" />
+  </CEffectModifyUnit>
+  <CEffectSet id="ArthasDeathCoilSelfSet">
+    <EffectArray value="ArthasDeathCoilSelfCastCreateHealer" />
+    <EffectArray value="ArthasDeathCoilImmortalCoilTalentModifyUnit" />
+  </CEffectSet>
+  <CEffectModifyUnit id="ArthasIceboundFortitudeModifyCooldown">
+    <ValidatorArray value="TargetIsHero" />
+    <Chance value="0" />
+    <ImpactUnit Value="Caster" />
+    <Cost Abil="ArthasIceboundFortitude,Execute" CooldownOperation="Add" CooldownTimeUse="-2" />
+  </CEffectModifyUnit>
+  <CEffectEnumArea id="ArthasDeathCoilDeathlordTalentSearch">
+    <ValidatorArray value="TargetIsHero" />
+    <Chance value="0" />
+    <ExcludeArray Effect="ArthasDeathCoilInitialSwitch" Value="Target" />
+    <SearchFilters value="Heroic;Player,Ally,Neutral,Missile,Item,Stasis,Dead,Invulnerable" />
+    <AreaArray MaxCount="1" Effect="ArthasDeathCoilLaunchMissile">
+      <Radius value="3.5" />
+    </AreaArray>
+    <MaxCount value="1" />
+  </CEffectEnumArea>
+  <CEffectSet id="ArthasDeathCoilEnemySet">
+    <EffectArray value="ArthasDeathCoilLaunchMissile" />
+    <EffectArray value="ArthasDeathCoilDeathlordTalentSearch" />
+  </CEffectSet>
+  <CEffectApplyBehavior id="ArthasFrozenTempestBoreanWindsTalentApplyBuff">
+    <Behavior value="ArthasFrozenTempestBoreanWindsTalentBuff" />
+  </CEffectApplyBehavior>
+  <CEffectApplyBehavior id="ArthasFrozenTempestBoreanWindsTalentApplyCoolup">
+    <Chance value="0" />
+    <WhichUnit Value="Caster" />
+    <Behavior value="ArthasFrozenTempestBoreanWindsTalentCoolup" />
+  </CEffectApplyBehavior>
+  <CEffectEnumArea id="ArthasFrozenTempestBoreanWindsTalentSearch">
+    <SearchFilters value="Heroic;Neutral,Enemy,ImmuneToFriendlyAbilities,Missile,Item,Stasis,Dead" />
+    <AreaArray Effect="ArthasFrozenTempestBoreanWindsTalentSearchImpactSet">
+      <Radius value="6.5" />
+    </AreaArray>
+  </CEffectEnumArea>
+  <CEffectSet id="ArthasFrozenTempestBoreanWindsTalentSearchImpactSet">
+    <EffectArray value="ArthasFrozenTempestBoreanWindsTalentApplyBuff" />
+  </CEffectSet>
+  <CEffectApplyBehavior id="ArthasDeathCoilFrostPresenceTalentApplySlow" parent="StormSlowApply">
+    <ValidatorArray value="TargetIsHero" />
+    <Chance value="0" />
+    <Behavior value="ArthasDeathCoilFrostPresenceTalentSlow" />
+  </CEffectApplyBehavior>
+  <CEffectModifyTokenCount id="ArthasFrostmourneHungersAddQuestTokenMinion" parent="BaseEffectModifyTokenCount">
+    <ValidatorArray value="SourceIsMinionAndNotMercLaner" />
+    <ValidatorArray value="SourceIsNotAMonster" />
+    <ValidatorArray value="ArthasDoesNotHaveDeathPactTalent" />
+    <EffectCategory index="Quest" value="1" />
+    <CollationId value="ArthasFrostmourneHungersAddQuestTokenHero" />
+    <TokenId value="ArthasFrostmourneHungersTokenCounter" />
+  </CEffectModifyTokenCount>
+  <CEffectApplyBehavior id="ArthasFrostmourneHungersApplyMinionDebuff">
+    <ValidatorArray index="0" value="TargetIsMinionAndNotMercLaner" />
+    <ValidatorArray value="TargetIsNotAMonster" />
+    <ValidatorArray value="CasterNotBlindedAndTargetNotEvading" />
+    <ValidatorArray value="ArthasDoesNotHaveDeathPactTalent" />
+    <Behavior value="ArthasFrostmourneHungersMinionDebuff" />
+  </CEffectApplyBehavior>
+  <CEffectModifyUnit id="ArthasFrostmourneHungersImpactModifyWeaponCooldown">
     <ImpactUnit Value="Caster" />
     <Weapon Weapon="HeroArthas" CooldownOperation="Set" CooldownFraction="0.85" />
   </CEffectModifyUnit>
@@ -1138,16 +1565,16 @@
   <CEffectModifyTokenCount id="ArthasHowlingBlastFrostPresenceTalentModifyTokenCount" parent="BaseEffectModifyTokenCount">
     <ValidatorArray value="TargetIsHero" />
     <ValidatorArray value="ArthasHasHowlingBlastFrostPresence" />
-    <ValidatorArray value="ArthasCasterHasLT20FrostPresenceTokens" />
+    <ValidatorArray value="ArthasCasterHasLT30FrostPresenceTokens" />
     <EffectCategory index="Quest" value="1" />
     <TokenId value="ArthasFrostPresenceTokenCounter" />
   </CEffectModifyTokenCount>
   <CEffectModifyPlayer id="ArthasHowlingBlastFrostPresenceTalentTier1CompletionModifyPlayer">
-    <EffectArray Operation="Subtract" Reference="Abil,ArthasHowlingBlast,Cost.Cooldown.TimeUse" Value="2.000000" />
-  </CEffectModifyPlayer>
-  <CEffectModifyPlayer id="ArthasHowlingBlastFrostPresenceTalentTier2CompletionModifyPlayer">
     <EffectArray Reference="Abil,ArthasHowlingBlast,Range" Value="$ArthasFrostPresenceRangeIncrease" />
     <EffectArray Reference="Actor,ArthasHowlingBlastRangeSplat,Scale" Value="$ArthasFrostPresenceRangeIncrease" />
+  </CEffectModifyPlayer>
+  <CEffectModifyPlayer id="ArthasHowlingBlastFrostPresenceTalentTier2CompletionModifyPlayer">
+    <EffectArray Operation="Set" Reference="Effect,ArthasDeathCoilFrostPresenceTalentApplySlow,Chance" Value="1" />
   </CEffectModifyPlayer>
   <CEffectApplyBehavior id="ArthasHowlingBlastShatteredArmorTalentApplyBehavior">
     <ValidatorArray index="0" value="ArthasHasShatteredArmor" />
@@ -1190,12 +1617,11 @@
     <WhichUnit Value="Caster" />
     <Behavior value="ArthasDeathsAdvanceActivated" />
   </CEffectApplyBehavior>
-  <CEffectModifyTokenCount id="ArthasFrostmourneHungersEternalHungerIncrementQuestToken" parent="BaseEffectModifyTokenCount">
+  <CEffectModifyTokenCount id="ArthasFrostmourneHungersAddQuestTokenHero" parent="BaseEffectModifyTokenCount">
     <ValidatorArray value="TargetIsHero" />
-    <ValidatorArray value="CasterNotBlindedAndTargetNotEvading" />
+    <ValidatorArray value="ArthasDoesNotHaveDeathPactTalent" />
     <EffectCategory index="Quest" value="1" />
-    <Chance value="0" />
-    <TokenId value="ArthasFrostmourneHungersEternalHungerQuestToken" />
+    <TokenId value="ArthasFrostmourneHungersTokenCounter" />
   </CEffectModifyTokenCount>
   <CEffectApplyBehavior id="ArthasFrozenTempestApplyAttackSpeedSlow">
     <Behavior value="ArthasFrozenTempestAttackSpeedSlow" />
@@ -1212,7 +1638,7 @@
     <WhichUnit Value="Source" />
     <Behavior value="ArthasFrozenTempestRemorselessWinterImmunity" />
   </CEffectApplyBehavior>
-  <CEffectApplyBehavior id="ArthasFrozenTempestRemorselessWinterApplyRootBehavior" parent="StormRootApply">
+  <CEffectApplyBehavior id="ArthasFrozenTempestRemorselessWinterApplyRootBehavior">
     <Behavior value="ArthasFrozenTempestRemorselessWinterRoot" />
   </CEffectApplyBehavior>
   <CEffectApplyBehavior id="ArthasFrozenTempestRemorselessWinterApplyTargetStacksBehavior">
@@ -1221,7 +1647,7 @@
   <CEffectSwitch id="ArthasFrozenTempestRemorselessWinterImpactSwitch">
     <ValidatorArray value="ArthasDoesNotHaveFrozenTempestRemorselessWinterRootAndDoesNotHaveFrozenTempestRemorselessWinterImmunity" />
     <ValidatorArray value="TargetNotInvulnerable" />
-    <CaseArray Validator="ArthasHas6StacksOfFrozenTempestRemorselessWinter" Effect="ArthasFrozenTempestRemorselessWinterApplyRootBehavior" />
+    <CaseArray Validator="ArthasHas5StacksOfFrozenTempestRemorselessWinter" Effect="ArthasFrozenTempestRemorselessWinterTalentProcSet" />
     <CaseDefault value="ArthasFrozenTempestRemorselessWinterApplyTargetStacksBehavior" />
   </CEffectSwitch>
   <CEffectModifyUnit id="ArthasHowlingBlastFrostPresenceModifyCooldown">
@@ -1277,10 +1703,9 @@
     <EffectArray value="ArthasRimeRemoveArmor" />
   </CEffectSet>
   <CEffectCreateHealer id="ArthasFrostmourneHungersCreateManaHealer" parent="StormManaRestore">
-    <ValidatorArray value="CasterNotBlindedAndTargetNotEvading" />
     <FlatModifierArray index="ArthasFrostmourneHungersEternalHunger" Accumulator="ArthasFrostmourneHungersEternalHungerManaAccumulator" />
     <ImpactUnit Value="Caster" />
-    <RechargeVitalRate value="30" />
+    <RechargeVitalRate value="40" />
   </CEffectCreateHealer>
   <CEffectCreateHealer id="ArthasArmyOfTheDeadLegionofNorthrendHeal" parent="StormSelfOnlyHealingSpell">
     <Marker Link="Effect/ArmyOfTheDeadHeal" />
@@ -1297,11 +1722,11 @@
     <Weapon Weapon="HeroArthas" CooldownOperation="Set" />
   </CEffectModifyUnit>
   <CEffectSwitch id="ArthasHeroWeaponFrostmourneHungersSwitch">
+    <CaseArray Validator="ArthasHasFrostmourneHungersPrimedAndCasterIsBlindedOrTargetIsEvading" Effect="ArthasFrostmourneHungersBlindImpactSet" />
     <CaseArray Validator="ArthasHasFrostmourneHungersPrimed" Effect="ArthasFrostmourneHungersAttackSet" />
     <CaseDefault value="ArthasWeaponDamageSet" />
   </CEffectSwitch>
   <CEffectModifyUnit id="ArthasFrostmourneHungersSetCooldown">
-    <ValidatorArray value="ArthasCasterDoesNotHaveFrostmourneFeedsFreeCast" />
     <ImpactUnit Value="Caster" />
     <Cost Abil="ArthasFrostmourneHungers,Execute" CooldownOperation="Set">
       <Fraction Cooldown="1" />
@@ -1316,64 +1741,42 @@
     <WhichUnit Value="Caster" />
     <Behavior value="ArthasFrostmourneHungersPrimed" />
   </CEffectApplyBehavior>
-  <CEffectSet id="ArthasFrostmourneHungersPreImpactSet">
-    <EffectArray value="BlindMissedDummySet" />
+  <CEffectDamage id="ArthasFrostmourneHungersDamage" parent="StormWeapon">
+    <FlatModifierArray index="0" Accumulator="ArthasFrostmourneHungersDamageAccumulator" Modifier="71" />
+    <Flags index="Crit" value="1" />
+    <Amount value="95">
+      <AccumulatorArray value="ArthasFrostmourneHungersDamageAccumulator" />
+    </Amount>
+    <LeechValidator index="Life" value="ArthasHasFrostmourneHungersFrostmourneFeeds" />
+    <LeechFraction index="Life" value="0.75" />
+  </CEffectDamage>
+  <CEffectSet id="ArthasFrostmourneHungersBlindImpactSet">
+    <EffectArray value="ArthasFrostmourneHungersDamage" />
     <EffectArray value="ArthasFrostmourneHungersRemoveBehavior" />
   </CEffectSet>
   <CEffectSet id="ArthasFrostmourneHungersAttackSet">
+    <EffectArray value="ArthasFrostmourneHungersApplyMinionDebuff" />
     <EffectArray value="ArthasFrostmourneHungersWeaponPreImpactSet" />
     <EffectArray value="ArthasFrostmourneHungersDamage" />
     <EffectArray value="ArthasFrostmourneHungersWeaponPostImpactSet" />
+    <EffectArray value="ArthasFrostmourneHungersFrostStrikeTalentSearch" />
   </CEffectSet>
   <CEffectSet id="ArthasFrostmourneHungersWeaponPreImpactSet">
+    <EffectArray value="ArthasFrostmourneHungersFXSwitch" />
     <EffectArray value="ArthasFrostmourneHungersImpactModifyWeaponCooldown" />
     <EffectArray value="ArthasFrostmourneHungersCreateManaHealer" />
   </CEffectSet>
   <CEffectSet id="ArthasFrostmourneHungersWeaponPostImpactSet">
+    <EffectArray value="ArthasFrostmourneHungersAddQuestTokenHero" />
     <EffectArray value="ArthasFrostmourneHungersFrostStrikeApplySlow" />
-    <EffectArray value="ArthasFrostmourneHungersEternalHungerIncrementQuestToken" />
     <EffectArray value="ArthasFrostmourneHungersRemoveBehavior" />
-    <EffectArray value="ArthasFrostmourneFeedsApplySwitch" />
   </CEffectSet>
-  <CEffectDamage id="ArthasFrostmourneHungersDamage" parent="StormWeapon">
-    <Flags index="Crit" value="1" />
-    <Amount value="95">
-      <AccumulatorArray value="ArthasFrostmourneHungersEternalHungerDamageAccumulator" />
-    </Amount>
-    <FlatModifierArray index="0" Modifier="99" />
-  </CEffectDamage>
-  <CEffectSwitch id="ArthasFrostmourneFeedsApplySwitch">
-    <ValidatorArray value="ArthasHasFrostmourneHungersFrostmourneFeeds" />
-    <ValidatorArray value="CasterNotBlindedAndTargetNotEvading" />
-    <CaseArray Validator="ArthasCasterHasFrostmourneFeedsFreeCast" Effect="ArthasFrostmourneFeedsRemoveFrostmourneHungersFreeCast" />
-    <CaseDefault value="ArthasFrostmourneFeedsApplySet" />
-  </CEffectSwitch>
-  <CEffectSet id="ArthasFrostmourneFeedsApplySet">
-    <ValidatorArray value="TargetIsHero" />
-    <EffectArray value="ArthasFrostmourneHungersFrostmourneFeedsApplyBehavior" />
-    <EffectArray value="ArthasFrostmourneFeedsApplyFrostmourneHungersFreeCast" />
-  </CEffectSet>
-  <CEffectApplyBehavior id="ArthasFrostmourneHungersFrostmourneFeedsApplyBehavior">
-    <WhichUnit Value="Caster" />
-    <Behavior value="ArthasFrostmourneHungersPrimed" />
-    <Flags index="UseDuration" value="1" />
-    <Duration value="4" />
-  </CEffectApplyBehavior>
-  <CEffectApplyBehavior id="ArthasFrostmourneFeedsApplyFrostmourneHungersFreeCast">
-    <WhichUnit Value="Caster" />
-    <Behavior value="ArthasFrostmourneFeedsFrostmourneHungersFreeCast" />
-  </CEffectApplyBehavior>
-  <CEffectRemoveBehavior id="ArthasFrostmourneFeedsRemoveFrostmourneHungersFreeCast">
-    <WhichUnit Value="Caster" />
-    <BehaviorLink value="ArthasFrostmourneFeedsFrostmourneHungersFreeCast" />
-    <Count value="1" />
-  </CEffectRemoveBehavior>
-  <CEffectDamage id="ArthasDeathCoilEmbraceDeathTalentDamage" parent="StormSpell">
+  <CEffectDamage id="ArthasDeathCoilDeathlordTalentDamage" parent="StormSpell">
+    <MultiplicativeModifierArray index="Deathlord" Accumulator="ArthasDeathlordTalentVitalAccumulator" />
     <Amount value="164" />
-    <MultiplicativeModifierArray index="0" Validator="ArthasHasDeathCoilEmbraceDeath" Accumulator="ArthasEmbraceDeathVitalAccumulator" />
   </CEffectDamage>
-  <CEffectSwitch id="ArthasDeathCoilEmbraceDeathSwitch">
-    <CaseArray Validator="ArthasHasDeathCoilEmbraceDeath" Effect="ArthasDeathCoilEmbraceDeathTalentDamage" />
+  <CEffectSwitch id="ArthasDeathCoilDeathlordDamageSwitch">
+    <CaseArray Validator="ArthasHasDeathCoilDeathlord" Effect="ArthasDeathCoilDeathlordTalentDamage" />
     <CaseDefault value="ArthasDeathCoilDamage" />
   </CEffectSwitch>
   <CEffectLaunchMissile id="ArthasDeathCoilImmortalCoilLaunchReturnMissile">
@@ -1386,13 +1789,16 @@
   </CEffectLaunchMissile>
   <CEffectDamage id="ArthasDeathCoilDamage" parent="StormSpell">
     <Amount value="164" />
+    <MultiplicativeModifierArray index="Deathlord" Validator="ArthasHasDeathCoilDeathlord" Accumulator="ArthasDeathlordTalentVitalAccumulator" />
+    <CritValidatorArray index="0" value="ArthasDeathCoilDamageCritCombine" />
   </CEffectDamage>
   <CEffectSet id="ArthasDeathCoiImpactSet">
     <EffectArray value="ApplyAbilityImpactReveal" />
-    <EffectArray value="ArthasDeathCoilDamageSwitch" />
+    <EffectArray value="ArthasDeathCoilFrostPresenceTalentApplySlow" />
+    <EffectArray value="ArthasDeathCoilDamage" />
+    <EffectArray value="ArthasDeathCoilGorefiendsGraspTalentPushPullPersistent" />
     <EffectArray value="ArthasDeathCoilImmortalCoilLaunchReturnMissile" />
     <EffectArray value="ArthasDeathCoilDeathlordManaRestore" />
-    <EffectArray value="ArthasFrostStrikeApplySilence" />
   </CEffectSet>
   <CEffectLaunchMissile id="ArthasDeathCoilLaunchMissile">
     <ValidatorArray index="0" value="TargetIsNotOwnedbyPlayer" />
@@ -1401,25 +1807,21 @@
   </CEffectLaunchMissile>
   <CEffectCreateHealer id="ArthasDeathCoilSelfCastCreateHealer" parent="StormSelfOnlyHealingSpell">
     <ImpactUnit Value="Caster" />
-    <RechargeVitalRate value="290" />
-    <MultiplicativeModifierArray index="0" Validator="ArthasHasDeathCoilImmortalCoil" Modifier="0.5" Crit="1" />
-    <MultiplicativeModifierArray index="1" Validator="ArthasHasDeathCoilEmbraceDeath" Accumulator="ArthasEmbraceDeathVitalAccumulator" />
-    <CritValidatorArray index="0" value="ArthasDeathCoilHealerCritCombine" />
+    <RechargeVitalRate value="262" />
+    <MultiplicativeModifierArray index="0" Validator="ArthasHasDeathCoilImmortalCoil" Modifier="0.75" Crit="1" />
   </CEffectCreateHealer>
   <CEffectCreateHealer id="ArthasDeathCoilImmortalCoilCreateHealer" parent="StormSelfOnlyHealingSpell">
     <ImpactUnit Value="Caster" />
-    <RechargeVitalRate value="290" />
+    <RechargeVitalRate value="262" />
     <SourceButtonFace value="ArthasImmortalCoilDeathCoilTalent" />
-    <MultiplicativeModifierArray index="0" Validator="ArthasHasDeathCoilEmbraceDeath" Accumulator="ArthasEmbraceDeathVitalAccumulator" />
-    <CritValidatorArray index="0" value="ArthasDeathCoilHealerCritCombine" />
   </CEffectCreateHealer>
   <CEffectSwitch id="ArthasDeathCoilDamageSwitch">
-    <CaseArray Validator="ArthasHasDeathCoilEmbraceDeath" Effect="ArthasDeathCoilEmbraceDeathTalentDamage" />
+    <CaseArray Validator="ArthasHasDeathCoilEmbraceDeath" Effect="ArthasDeathCoilDeathlordTalentDamage" />
     <CaseDefault value="ArthasDeathCoilDamage" />
   </CEffectSwitch>
   <CEffectSwitch id="ArthasDeathCoilInitialSwitch">
-    <CaseArray Validator="IsNotSelf" Effect="ArthasDeathCoilLaunchMissile" />
-    <CaseDefault value="ArthasDeathCoilSelfCastCreateHealer" />
+    <CaseArray Validator="IsNotSelf" Effect="ArthasDeathCoilEnemySet" />
+    <CaseDefault value="ArthasDeathCoilSelfSet" />
     <ValidatorArray value="TargetLifeNotFullOrIsEnemy" />
     <ValidatorArray value="TargetIsSelfOrTargetIsEnemyAndNotInvuln" />
   </CEffectSwitch>
@@ -1452,9 +1854,9 @@
     <ImpactUnit Value="Caster" />
     <Cost Abil="ArthasFrozenTempest,Execute" CooldownOperation="Add" CooldownTimeUse="1" />
   </CEffectModifyUnit>
-  <CEffectModifyUnit id="ArthasArmyOfTheDeadModifyCooldown">
+  <CEffectModifyUnit id="ArthasArmyoftheDeadModifySacrificeCooldown">
     <ImpactUnit Value="Caster" />
-    <Cost Abil="ArthasArmyOfTheDeadSacrifice,Execute" CooldownOperation="Add" CooldownTimeUse="1.5" />
+    <Cost Abil="ArthasArmyOfTheDeadSacrifice,Execute" CooldownOperation="Add" CooldownTimeUse="1" />
   </CEffectModifyUnit>
   <CEffectDamage id="ArthasSummonSindragosaFlyByDamageSoundDummy">
     <ResponseFlags index="Acquire" value="1" />
@@ -1496,7 +1898,7 @@
     <EffectArray value="ArthasRuneTapRemoveStacks" />
   </CEffectSet>
   <CEffectCreatePersistent id="ArthasHowlingBlastFrostPresenceCreatePersistent">
-    <ValidatorArray value="ArthasCasterHas20FrostPresenceTokens" />
+    <ValidatorArray value="ArthasCasterHas15FrostPresenceTokens" />
     <WhichLocation Value="SourceUnit" />
     <Flags index="PersistUntilDestroyed" value="1" />
     <PeriodicEffectArray value="ArthasHowlingBlastFrostPresenceSearchArea" />
@@ -1509,8 +1911,12 @@
   </CEffectDestroyPersistent>
   <CEffectSet id="ArthasHowlingBlastFrostPresenceImpactSet">
     <ValidatorArray value="ArthasTargetDoesNotHaveHowlingBlastRoot" />
+    <ValidatorArray value="noMarkers" />
+    <EffectArray value="ArthasHowlingBlastFrostPresenceTalentModifyTokenCount" />
+    <EffectArray value="ArthasHowlingBlastRootSwitch" />
+    <EffectArray value="ArthasHowlingBlastDamage" />
     <EffectArray value="ArthasHowlingBlastShatteredArmorTalentApplyBehavior" />
-    <EffectArray value="ArthasHowlingBlastApplyBehavior" />
+    <EffectArray value="ArthasIceboundFortitudeModifyCooldown" />
   </CEffectSet>
   <CEffectEnumArea id="ArthasHowlingBlastFrostPresenceSearchArea">
     <LaunchLocation Value="OriginPoint" />
@@ -1576,18 +1982,13 @@
   </CEffectSet>
   <CEffectApplyBehavior id="ArthasFrostmourneHungersFrostStrikeApplySlow" parent="StormSlowApply">
     <ValidatorArray index="0" value="TargetNotDead" />
-    <ValidatorArray value="ArthasHasFrostmourneHungersFrostStrike" />
-    <ValidatorArray value="CasterNotBlindedAndTargetNotEvading" />
-    <Behavior value="ArthasFrostmourneHungersFrostStrikeSlow" />
-  </CEffectApplyBehavior>
-  <CEffectApplyBehavior id="ArthasFrostStrikeApplySilence">
-    <ValidatorArray value="ArthasFrostStrikeTargetHasSlow" />
     <ValidatorArray value="TargetIsHero" />
-    <Behavior value="ArthasFrostmourneHungersFrostStrikeSilence" />
+    <Behavior value="ArthasFrostmourneHungersFrostStrikeSlow" />
   </CEffectApplyBehavior>
   <CEffectSet id="ArthasFrozenTempestInitialSet">
     <EffectArray value="ArthasFrozenTempestSearch" />
     <EffectArray value="ArthasFrozenTempestCreatePersistentInitialReveal" />
+    <EffectArray value="ArthasFrozenTempestBoreanWindsTalentApplyCoolup" />
   </CEffectSet>
   <CEffectRemoveBehavior id="ArthasFrozenTempestRemoveBehavior">
     <WhichUnit Value="Caster" />
@@ -1597,15 +1998,21 @@
   <CEffectSet id="ArthasHeroWeaponImpactSet">
     <EffectArray value="UniversalWeaponLaunchSet" />
     <EffectArray value="UniversalWeaponImpact" />
+    <EffectArray value="ArthasWeaponSharedPreImpactSet" />
     <EffectArray value="ArthasHeroWeaponFrostmourneHungersSwitch" />
+    <EffectArray value="ArthasWeaponSharedPostImpactSet" />
     <EffectArray value="UniversalWeaponPostImpactSet" />
   </CEffectSet>
+  <CEffectSet id="ArthasWeaponSharedPreImpactSet">
+    <EffectArray value="ArthasHeroWeaponFrostStrikeTalentModifyUnit" />
+  </CEffectSet>
+  <CEffectSet id="ArthasWeaponSharedPostImpactSet" />
   <CEffectCreatePersistent id="ArthasArmyOfTheDeadSpawnPersistent">
     <WhichLocation Value="CasterUnit" />
     <Flags index="RandomOffset" value="1" />
     <Flags index="RandomPeriod" value="1" />
     <PeriodCount value="6" />
-    <PeriodicEffectArray value="ArthasArmyOfTheDeadCreateGhoul" />
+    <PeriodicEffectArray value="ArthasArmyoftheDeadSpawnPersistentSet" />
     <PeriodicOffsetArray X="5" />
     <PeriodicOffsetArray X="2.5" Y="5" />
     <PeriodicOffsetArray X="-2.5" Y="5" />
@@ -1623,7 +2030,7 @@
     <PeriodicPeriodArray value="0.25" />
     <PeriodicPeriodArray value="0.125" />
     <OffsetRandMode value="RandomNoRepeat" />
-    <InitialEffect value="ArthasArmyOfTheDeadModifyCooldown" />
+    <InitialEffect value="ArthasArmyoftheDeadSpawnPersistentInitialSet" />
   </CEffectCreatePersistent>
   <CEffectSet id="ArthasFrozenTempestImpactSet">
     <EffectArray value="ArthasFrozenTempestDamage" />
@@ -1780,6 +2187,8 @@
   </CEffectSet>
   <CEffectDamage id="ArthasHowlingBlastDamage" parent="StormSpell">
     <Amount value="68" />
+    <MultiplicativeModifierArray index="DeathchillProc" Validator="ArthasDeathchillTalentProcCombine" Modifier="1" Crit="1" />
+    <FlatModifierArray index="Deathchill" Validator="ArthasHasDeathchillTalent" Accumulator="ArthasDeathchillTalentDamageAccumulator" />
   </CEffectDamage>
   <CEffectSet id="ArthasArmyOfTheDeadHealImpactSet">
     <EffectArray value="ArthasArmyOfTheDeadHealSwitch" />
@@ -1791,6 +2200,7 @@
     <ImpactUnit Value="Caster" />
     <PeriodCount value="0" />
     <RechargeVitalRate value="50" />
+    <Chance value="0" />
   </CEffectCreateHealer>
   <CEffectLaunchMissile id="ArthasArmyOfTheDeadHealLaunchMissile">
     <LaunchLocation Value="TargetUnit" />
@@ -1798,6 +2208,17 @@
     <ImpactEffect value="ArthasArmyOfTheDeadHealImpactSet" />
     <AmmoUnit value="ArthasArmyOfTheDeadGhoulHealMissile" />
   </CEffectLaunchMissile>
+  <CEffectSet id="ArthasHowlingBlastImpactSet">
+    <EffectArray value="ApplyAbilityImpactReveal" />
+    <EffectArray value="ArthasHowlingBlastRootSwitch" />
+    <EffectArray value="ArthasHowlingBlastDamage" />
+    <EffectArray value="CameraShakeLightTauntingTotemSet" />
+    <EffectArray value="CameraShakeLightCasterDummySet" />
+    <EffectArray value="ArthasHowlingBlastShatteredArmorTalentApplyBehavior" />
+    <EffectArray value="ArthasHowlingBlastFrostPresenceTalentModifyTokenCount" />
+    <EffectArray value="ArthasIceboundFortitudeModifyCooldown" />
+    <ValidatorArray value="noMarkers" />
+  </CEffectSet>
   <CEffectCreatePersistent id="ArthasHowlingBlastCreatePersistent">
     <Marker>
       <MatchFlags index="Id" value="1" />
@@ -1815,19 +2236,10 @@
   <CEffectEnumArea id="ArthasHowlingBlastSearch">
     <ImpactLocation Value="TargetPoint" />
     <SearchFilters value="-;Player,Ally,Neutral,ImmuneToAOE,Missile,Item,Stasis,Dead,Hidden,Invulnerable" />
-    <AreaArray Effect="ArthasHowlingBlastSet">
+    <AreaArray Effect="ArthasHowlingBlastImpactSet">
       <Radius value="2" />
     </AreaArray>
   </CEffectEnumArea>
-  <CEffectSet id="ArthasHowlingBlastSet">
-    <EffectArray value="ApplyAbilityImpactReveal" />
-    <EffectArray value="ArthasHowlingBlastDamage" />
-    <EffectArray value="ArthasHowlingBlastApplyBehavior" />
-    <EffectArray value="CameraShakeLightTauntingTotemSet" />
-    <EffectArray value="CameraShakeLightCasterDummySet" />
-    <EffectArray value="ArthasHowlingBlastShatteredArmorTalentApplyBehavior" />
-    <EffectArray value="ArthasHowlingBlastFrostPresenceTalentModifyTokenCount" />
-  </CEffectSet>
   <CEffectApplyBehavior id="ArthasHowlingBlastApplyBehavior" parent="StormRootApply">
     <Behavior value="ArthasHowlingBlastRoot" />
     <ValidatorArray value="ArthasTargetDoesNotHaveHowlingBlastRoot" />
@@ -1843,8 +2255,9 @@
     </AreaArray>
   </CEffectEnumArea>
   <CEffectDamage id="ArthasFrozenTempestDamage" parent="StormSpell">
-    <Amount value="20" />
-    <MultiplicativeModifierArray index="FrozenTempest" Validator="ArthasHasFrozenTempestBitingCold" Accumulator="ArthasFrozenTempestBitingColdTalentAccumulator" />
+    <Amount value="18" />
+    <MultiplicativeModifierArray index="BitingCrit" Validator="ArthasHasFrozenTempestBitingCold" Accumulator="ArthasFrozenTempestBitingColdTalentAccumulator" />
+    <CritValidatorArray index="0" value="ArthasFrozenTempestCritCombine" />
   </CEffectDamage>
   <CEffectSet id="ArthasWeaponDamageSet">
     <EffectArray value="ArthasWeaponPreImpactSet" />
@@ -1854,11 +2267,13 @@
   <CEffectSet id="ArthasWeaponPreImpactSet" />
   <CEffectSet id="ArthasWeaponPostImpactSet" />
   <CEffectDamage id="ArthasHeroWeaponDamage" parent="StormWeapon">
-    <Amount value="95" />
+    <Amount value="95">
+      <AccumulatorArray value="ArthasFrostmourneHungersDamageAccumulator" />
+    </Amount>
   </CEffectDamage>
   <CEffectEnumArea id="ArthasArmyOfTheDeadHealSearch">
     <ValidatorArray value="CasterLifeNotFull" />
-    <ValidatorArray value="ArthasHasArmyoftheDeadGhoulsSummoned" />
+    <ValidatorArray value="ArthasHasGTE1ArmyoftheDeadGhoulTracked" />
     <SearchFilters value="-;Self,Ally,Neutral,Enemy,Structure,Missile,Item,Stasis,Dead,Hidden" />
     <TargetSorts>
       <SortArray value="TSLife" />
@@ -1869,13 +2284,13 @@
   </CEffectEnumArea>
   <CEffectSet id="ArthasArmyOfTheDeadHealSet">
     <ValidatorArray value="ArthasIsArmyoftheDeadGhoul" />
+    <ValidatorArray value="ArthasIsArmyoftheDeadTrackedGhoul" />
     <EffectArray value="KillSquish" />
     <EffectArray value="ArthasArmyOfTheDeadHeal" />
   </CEffectSet>
   <CEffectCreateHealer id="ArthasArmyOfTheDeadHeal" parent="StormSelfOnlyHealingSpell">
     <ImpactUnit Value="Caster" />
-    <RechargeVitalRate value="267" />
-    <MultiplicativeModifierArray index="LegionofNorthrend" Validator="ArthasHasArmyoftheDeadLegionofNorthrend" Modifier="0.5" />
+    <RechargeVitalRate value="240" />
   </CEffectCreateHealer>
   <CEffectUseMagazine id="ArthasArmyOfTheDeadCreateGhoul">
     <TargetLocation Value="TargetPoint" />
@@ -1883,20 +2298,49 @@
   <CEffectDamage id="ArthasArmyOfTheDeadGhoulWeaponDamage" parent="StormSummonedUnitWeapon">
     <Amount value="20" />
     <Visibility value="Hidden" />
-    <MultiplicativeModifierArray index="0" Validator="ArthasHasArmyoftheDeadLegionofNorthrend" Modifier="0.5" />
   </CEffectDamage>
   <CHero id="Arthas">
-    <AIComplexityTier value="Mid" />
     <AttributeId value="Arth" />
-    <Melee value="1" />
-    <RolesMultiClass value="Warrior" />
+    <Flags index="GoodForModeA" value="1" />
     <ExpandedRole value="Tank" />
+    <RolesMultiClass value="Warrior" />
     <RoleScoreValueOverride value="Warrior" />
+    <Melee value="1" />
     <SelectScreenButtonImage value="Assets\Textures\storm_ui_ingame_heroselect_btn_arthas.dds" />
-    <UniverseIcon value="Assets\Textures\UI_Glues_Store_GameIcon_Wow.dds" />
-    <VariationIcon value="Assets\Textures\UI_Glues_Swatch_Yellow_Gray.dds" />
     <ImageFacing value="Left" />
     <IntroCutsceneSize value="Large" />
+    <HeroAbilArray Abil="ArthasDeathCoil" Button="ArthasDeathCoil">
+      <Flags index="ShowInHeroSelect" value="1" />
+      <Flags index="AffectedByCooldownReduction" value="1" />
+    </HeroAbilArray>
+    <HeroAbilArray Abil="ArthasHowlingBlast" Button="ArthasHowlingBlast">
+      <Flags index="ShowInHeroSelect" value="1" />
+      <Flags index="AffectedByCooldownReduction" value="1" />
+    </HeroAbilArray>
+    <HeroAbilArray Abil="ArthasFrozenTempest" Button="ArthasFrozenTempest">
+      <Flags index="ShowInHeroSelect" value="1" />
+      <Flags index="AffectedByCooldownReduction" value="1" />
+    </HeroAbilArray>
+    <HeroAbilArray Abil="ArthasArmyOfTheDead" Button="ArthasArmyOfTheDead">
+      <Flags index="ShowInHeroSelect" value="1" />
+      <Flags index="UsesCharges" value="1" />
+      <Flags index="AffectedByCooldownReduction" value="1" />
+      <Flags index="Heroic" value="1" />
+    </HeroAbilArray>
+    <HeroAbilArray Abil="ArthasArmyOfTheDeadSacrifice">
+      <Flags index="AffectedByCooldownReduction" value="1" />
+      <Flags index="Heroic" value="1" />
+    </HeroAbilArray>
+    <HeroAbilArray Abil="ArthasSummonSindragosa" Button="ArthasSummonSindragosa">
+      <Flags index="ShowInHeroSelect" value="1" />
+      <Flags index="AffectedByCooldownReduction" value="1" />
+      <Flags index="Heroic" value="1" />
+    </HeroAbilArray>
+    <HeroAbilArray Abil="ArthasFrostmourneHungers" Button="ArthasFrostmourneHungers">
+      <Flags index="ShowInHeroSelect" value="1" />
+      <Flags index="AffectedByCooldownReduction" value="1" />
+      <Flags index="Trait" value="1" />
+    </HeroAbilArray>
     <SkinArray value="ArthasUltimate" />
     <SkinArray value="ArthasFrostWyrm" />
     <SkinArray value="ArthasLichPrince" />
@@ -1904,10 +2348,12 @@
     <SkinArray value="ArthasGuanYu" />
     <SkinArray value="ArthasCraft20" />
     <SkinArray value="ArthasDeathKnight" />
+    <VoiceLineArray value="ArthasBase_VoiceLine01" />
+    <VoiceLineArray value="ArthasBase_VoiceLine02" />
+    <VoiceLineArray value="ArthasBase_VoiceLine03" />
+    <VoiceLineArray value="ArthasBase_VoiceLine04" />
+    <VoiceLineArray value="ArthasBase_VoiceLine05" />
     <DefaultMount value="BattleBeast" />
-    <VariationArray value="ArthasBlue" />
-    <VariationArray value="ArthasWhite" />
-    <VariationArray value="ArthasVar3" />
     <VOArray index="AIAttack" value="LichKing_AI_Attack" />
     <VOArray index="AICaution" value="LichKing_AI_Caution" />
     <VOArray index="AIGoodJob" value="LichKing_AI_GoodJob" />
@@ -1976,34 +2422,37 @@
     <VOArray index="VOPing_Retreat" value="LichKing_VOPing_Retreat" />
     <VOArray index="WellPlayed" value="LichKing_Social_WellPlayed" />
     <VOArray index="WorthIt" value="LichKing_WorthIt" />
-    <Difficulty value="Medium" />
     <TalentTreeArray Talent="ArthasMasteryFrostPresenceHowlingBlast" Tier="1" Column="1" />
-    <TalentTreeArray Talent="ArthasMasteryEternalHungerFrostmourneHungers" Tier="1" Column="2" />
+    <TalentTreeArray Talent="ArthasBoreanWinds" Tier="1" Column="2" />
     <TalentTreeArray Talent="ArthasRime" Tier="1" Column="3" />
-    <TalentTreeArray Talent="ArthasDeathlord" Tier="2" Column="1" />
-    <TalentTreeArray Talent="ArthasMasteryFrozenWastesFrozenTempest" Tier="2" Column="2" />
-    <TalentTreeArray Talent="ArthasIcyTalons" Tier="2" Column="3" />
+    <TalentTreeArray Talent="ArthasShatteredArmor" Tier="2" Column="1" />
+    <TalentTreeArray Talent="ArthasIcyTalons" Tier="2" Column="2" />
+    <TalentTreeArray Talent="ArthasMasteryFrostStrikeFrostmourneHungers" Tier="2" Column="3" />
     <TalentTreeArray Talent="ArthasMasteryImmortalCoilDeathCoil" Tier="3" Column="1" />
     <TalentTreeArray Talent="ArthasRuneTap" Tier="3" Column="2" />
     <TalentTreeArray Talent="ArthasIceboundFortitude" Tier="3" Column="3" />
     <TalentTreeArray Talent="ArthasHeroicAbilityArmyoftheDead" Tier="4" Column="1" />
     <TalentTreeArray Talent="ArthasHeroicAbilitySummonSindragosa" Tier="4" Column="2" />
-    <TalentTreeArray Talent="ArthasShatteredArmor" Tier="5" Column="1" />
-    <TalentTreeArray Talent="ArthasMasteryBitingColdFrozenTempest" Tier="5" Column="2" />
-    <TalentTreeArray Talent="ArthasMasteryFrostStrikeFrostmourneHungers" Tier="5" Column="3" />
-    <TalentTreeArray Talent="ArthasMasteryEmbraceDeathDeathCoil" Tier="6" Column="1" />
-    <TalentTreeArray Talent="ArthasMasteryRemorselessWinterFrozenTempest" Tier="6" Column="2" />
-    <TalentTreeArray Talent="ArthasMasteryFrostmourneFeedsFrostmourneHungers" Tier="6" Column="3" />
+    <TalentTreeArray Talent="ArthasDeathlord" Tier="5" Column="1" />
+    <TalentTreeArray Talent="ArthasDeathchill" Tier="5" Column="2" />
+    <TalentTreeArray Talent="ArthasMasteryBitingColdFrozenTempest" Tier="5" Column="3" />
+    <TalentTreeArray Talent="ArthasMasteryRemorselessWinterFrozenTempest" Tier="6" Column="1" />
+    <TalentTreeArray Talent="ArthasMasteryFrostmourneFeedsFrostmourneHungers" Tier="6" Column="2" />
+    <TalentTreeArray Talent="ArthasAntiMagicShell" Tier="6" Column="3" />
     <TalentTreeArray Talent="ArthasMasteryLegionOfNorthrendArmyoftheDead" Tier="7" Column="1">
       <PrerequisiteTalentArray value="ArthasHeroicAbilityArmyoftheDead" />
     </TalentTreeArray>
     <TalentTreeArray Talent="ArthasMasteryAbsoluteZeroSummonSindragosa" Tier="7" Column="2">
       <PrerequisiteTalentArray value="ArthasHeroicAbilitySummonSindragosa" />
     </TalentTreeArray>
-    <TalentTreeArray Talent="ArthasDeathsAdvance" Tier="7" Column="3" />
-    <TalentTreeArray Talent="ArthasAntiMagicShell" Tier="7" Column="4" />
+    <TalentTreeArray Talent="ArthasDeathPact" Tier="7" Column="3" />
+    <TalentTreeArray Talent="ArthasPathofFrost" Tier="7" Column="4" />
+    <VariationIcon value="Assets\Textures\UI_Glues_Swatch_Yellow_Gray.dds" />
+    <Difficulty value="Medium" />
+    <AIComplexityTier value="Mid" />
     <HeroTierAchievementId value="5216701565554236007" />
     <Universe value="Warcraft" />
+    <UniverseIcon value="Assets\Textures\UI_Glues_Store_GameIcon_Wow.dds" />
     <ProductId value="10112" />
     <LevelScalingArray Ability="ArthasDeathCoil">
       <Modifications>
@@ -2024,7 +2473,7 @@
       </Modifications>
       <Modifications>
         <Catalog value="Effect" />
-        <Entry value="ArthasDeathCoilEmbraceDeathTalentDamage" />
+        <Entry value="ArthasDeathCoilDeathlordTalentDamage" />
         <Field value="Amount" />
         <Value value="0.040000" />
         <AffectedByAbilityPower value="1" />
@@ -2078,14 +2527,14 @@
       <Modifications>
         <Catalog value="Unit" />
         <Entry value="ArthasArmyOfTheDeadGhoul" />
-        <Field value="LifeRegenRate" />
+        <Field value="LifeStart" />
         <Value value="0.040000" />
         <AffectedByOverdrive value="1" />
       </Modifications>
       <Modifications>
         <Catalog value="Unit" />
         <Entry value="ArthasArmyOfTheDeadGhoul" />
-        <Field value="LifeStart" />
+        <Field value="LifeRegenRate" />
         <Value value="0.040000" />
         <AffectedByOverdrive value="1" />
       </Modifications>
@@ -2103,13 +2552,6 @@
         <Field value="RechargeVitalRate" />
         <Value value="0.040000" />
         <AffectedByAbilityPower value="1" />
-        <AffectedByOverdrive value="1" />
-      </Modifications>
-      <Modifications>
-        <Catalog value="Behavior" />
-        <Entry value="ArthasGhoulLegionofNorthrendLifeRegenModifier" />
-        <Field value="Modification.VitalRegenArray[Life]" />
-        <Value value="0.040000" />
         <AffectedByOverdrive value="1" />
       </Modifications>
     </LevelScalingArray>
@@ -2166,38 +2608,33 @@
         <Value value="0.040000" />
         <AffectedByOverdrive value="1" />
       </Modifications>
+      <Modifications>
+        <Catalog value="Effect" />
+        <Entry value="ArthasFrostmourneHungersFrostStrikeTalentDamage" />
+        <Field value="Amount" />
+        <Value value="0.040000" />
+        <AffectedByOverdrive value="1" />
+      </Modifications>
+      <Modifications>
+        <Catalog value="Effect" />
+        <Entry value="ArthasRimeHeal" />
+        <Field value="RechargeVitalRate" />
+        <Value value="0.040000" />
+        <AffectedByAbilityPower value="1" />
+        <AffectedByOverdrive value="1" />
+      </Modifications>
+      <Modifications>
+        <Catalog value="Effect" />
+        <Entry value="ArthasPathofFrostDamage" />
+        <Field value="Amount" />
+        <Value value="0.040000" />
+        <AffectedByOverdrive value="1" />
+      </Modifications>
     </LevelScalingArray>
-    <HeroAbilArray Abil="ArthasDeathCoil" Button="ArthasDeathCoil">
-      <Flags index="ShowInHeroSelect" value="1" />
-      <Flags index="AffectedByCooldownReduction" value="1" />
-    </HeroAbilArray>
-    <HeroAbilArray Abil="ArthasHowlingBlast" Button="ArthasHowlingBlast">
-      <Flags index="ShowInHeroSelect" value="1" />
-      <Flags index="AffectedByCooldownReduction" value="1" />
-    </HeroAbilArray>
-    <HeroAbilArray Abil="ArthasFrozenTempest" Button="ArthasFrozenTempest">
-      <Flags index="ShowInHeroSelect" value="1" />
-      <Flags index="AffectedByCooldownReduction" value="1" />
-    </HeroAbilArray>
-    <HeroAbilArray Abil="ArthasArmyOfTheDead" Button="ArthasArmyOfTheDead">
-      <Flags index="ShowInHeroSelect" value="1" />
-      <Flags index="AffectedByCooldownReduction" value="1" />
-      <Flags index="Heroic" value="1" />
-    </HeroAbilArray>
-    <HeroAbilArray Abil="ArthasArmyOfTheDeadSacrifice">
-      <Flags index="AffectedByCooldownReduction" value="1" />
-      <Flags index="Heroic" value="1" />
-    </HeroAbilArray>
-    <HeroAbilArray Abil="ArthasSummonSindragosa" Button="ArthasSummonSindragosa">
-      <Flags index="ShowInHeroSelect" value="1" />
-      <Flags index="AffectedByCooldownReduction" value="1" />
-      <Flags index="Heroic" value="1" />
-    </HeroAbilArray>
-    <HeroAbilArray Abil="ArthasFrostmourneHungers" Button="ArthasFrostmourneHungers">
-      <Flags index="ShowInHeroSelect" value="1" />
-      <Flags index="AffectedByCooldownReduction" value="1" />
-      <Flags index="Trait" value="1" />
-    </HeroAbilArray>
+    <VariationArray value="ArthasBlue" />
+    <VariationArray value="ArthasWhite" />
+    <VariationArray value="ArthasVar3" />
+    <ReleaseDate Month="3" Day="13" />
     <AllowedMountCategoryArray value="Ride" />
     <AllowedMountCategoryArray value="Ridebeast" />
     <AllowedMountCategoryArray value="Ridebike" />
@@ -2208,69 +2645,62 @@
       <Survivability value="8" />
       <Complexity value="4" />
     </Ratings>
-    <Flags index="GoodForModeA" value="1" />
     <TalentAIBuildsArray ChanceToPick="16">
-      <TalentsArray value="ArthasMasteryEternalHungerFrostmourneHungers" />
+      <TalentsArray value="ArthasBoreanWinds" />
       <TalentsArray value="ArthasIcyTalons" />
       <TalentsArray value="ArthasRuneTap" />
       <TalentsArray value="ArthasHeroicAbilityArmyoftheDead" />
       <TalentsArray value="ArthasMasteryBitingColdFrozenTempest" />
       <TalentsArray value="ArthasMasteryRemorselessWinterFrozenTempest" />
-      <TalentsArray value="ArthasAntiMagicShell" />
+      <TalentsArray value="ArthasDeathPact" />
     </TalentAIBuildsArray>
     <TalentAIBuildsArray ChanceToPick="16">
       <TalentsArray value="ArthasRime" />
-      <TalentsArray value="ArthasMasteryFrozenWastesFrozenTempest" />
+      <TalentsArray value="ArthasShatteredArmor" />
       <TalentsArray value="ArthasIceboundFortitude" />
       <TalentsArray value="ArthasHeroicAbilitySummonSindragosa" />
       <TalentsArray value="ArthasMasteryBitingColdFrozenTempest" />
-      <TalentsArray value="ArthasMasteryRemorselessWinterFrozenTempest" />
+      <TalentsArray value="ArthasAntiMagicShell" />
       <TalentsArray value="ArthasMasteryAbsoluteZeroSummonSindragosa" />
     </TalentAIBuildsArray>
     <TalentAIBuildsArray ChanceToPick="16">
       <TalentsArray value="ArthasMasteryFrostPresenceHowlingBlast" />
-      <TalentsArray value="ArthasMasteryFrozenWastesFrozenTempest" />
+      <TalentsArray value="ArthasShatteredArmor" />
       <TalentsArray value="ArthasRuneTap" />
       <TalentsArray value="ArthasHeroicAbilityArmyoftheDead" />
-      <TalentsArray value="ArthasShatteredArmor" />
+      <TalentsArray value="ArthasDeathlord" />
       <TalentsArray value="ArthasMasteryRemorselessWinterFrozenTempest" />
-      <TalentsArray value="ArthasAntiMagicShell" />
+      <TalentsArray value="ArthasMasteryLegionOfNorthrendArmyoftheDead" />
     </TalentAIBuildsArray>
     <TalentAIBuildsArray ChanceToPick="16">
-      <TalentsArray value="ArthasMasteryEternalHungerFrostmourneHungers" />
-      <TalentsArray value="ArthasDeathlord" />
-      <TalentsArray value="ArthasMasteryImmortalCoilDeathCoil" />
-      <TalentsArray value="ArthasHeroicAbilityArmyoftheDead" />
+      <TalentsArray value="ArthasBoreanWinds" />
       <TalentsArray value="ArthasMasteryFrostStrikeFrostmourneHungers" />
-      <TalentsArray value="ArthasMasteryEmbraceDeathDeathCoil" />
+      <TalentsArray value="ArthasIceboundFortitude" />
+      <TalentsArray value="ArthasHeroicAbilityArmyoftheDead" />
+      <TalentsArray value="ArthasDeathchill" />
+      <TalentsArray value="ArthasMasteryFrostmourneFeedsFrostmourneHungers" />
       <TalentsArray value="ArthasAntiMagicShell" />
     </TalentAIBuildsArray>
     <TalentAIBuildsArray AIOnly="1" ChanceToPick="16">
-      <TalentsArray value="ArthasMasteryEternalHungerFrostmourneHungers" />
+      <TalentsArray value="ArthasBoreanWinds" />
       <TalentsArray value="ArthasIcyTalons" />
       <TalentsArray value="ArthasIceboundFortitude" />
       <TalentsArray value="ArthasHeroicAbilitySummonSindragosa" />
-      <TalentsArray value="ArthasMasteryFrostStrikeFrostmourneHungers" />
+      <TalentsArray value="ArthasDeathlord" />
       <TalentsArray value="ArthasMasteryFrostmourneFeedsFrostmourneHungers" />
       <TalentsArray value="ArthasMasteryAbsoluteZeroSummonSindragosa" />
     </TalentAIBuildsArray>
     <TalentAIBuildsArray AIOnly="1" ChanceToPick="16">
       <TalentsArray value="ArthasMasteryFrostPresenceHowlingBlast" />
-      <TalentsArray value="ArthasDeathlord" />
+      <TalentsArray value="ArthasShatteredArmor" />
       <TalentsArray value="ArthasMasteryImmortalCoilDeathCoil" />
       <TalentsArray value="ArthasHeroicAbilityArmyoftheDead" />
-      <TalentsArray value="ArthasMasteryFrostStrikeFrostmourneHungers" />
-      <TalentsArray value="ArthasMasteryEmbraceDeathDeathCoil" />
+      <TalentsArray value="ArthasMasteryBitingColdFrozenTempest" />
+      <TalentsArray value="ArthasAntiMagicShell" />
       <TalentsArray value="ArthasMasteryLegionOfNorthrendArmyoftheDead" />
     </TalentAIBuildsArray>
     <HeroSpecificUIArray Location="Status" DescName="Arthas/ArthasFrame" />
-    <VoiceLineArray value="ArthasBase_VoiceLine01" />
-    <VoiceLineArray value="ArthasBase_VoiceLine02" />
-    <VoiceLineArray value="ArthasBase_VoiceLine03" />
-    <VoiceLineArray value="ArthasBase_VoiceLine04" />
-    <VoiceLineArray value="ArthasBase_VoiceLine05" />
     <Rarity value="Epic" />
-    <ReleaseDate Month="3" Day="13" />
   </CHero>
   <CHeroMastery id="ArthasMasteryRing1" parent="MasteryRingRank1">
     <ProductId value="67015" />
@@ -2393,7 +2823,7 @@
     <NodeArray index="Show" Link="EqNotCountBehaviorArthasFrozenTempestCasterCompleteOnlyAtUnit1" />
   </CRequirement>
   <CRequirement id="ArthasHasArthasFrostmourneHungersActive">
-    <NodeArray index="Show" Link="AndGTECountBehaviorArthasFrostmourneHungersPrimedCompleteOnlyAtUnit1LTCountBehaviorArthasFrostmourneFeedsFrostmourneHungersFreeCastCompleteOnlyAtUnit1" />
+    <NodeArray index="Show" Link="GTECountBehaviorArthasFrostmourneHungersPrimedCompleteOnlyAtUnit1" />
   </CRequirement>
   <CRequirement id="ArthasHasFrozenTempest">
     <NodeArray index="Show" Link="EqCountBehaviorArthasFrozenTempestCasterCompleteOnlyAtUnit1" />
@@ -2413,10 +2843,6 @@
   <CRequirementCountBehavior id="CountBehaviorArthasFrostmourneHungersPrimedCompleteOnlyAtUnit">
     <Flags index="TechTreeCheat" value="0" />
     <Count Link="ArthasFrostmourneHungersPrimed" State="CompleteOnlyAtUnit" />
-  </CRequirementCountBehavior>
-  <CRequirementCountBehavior id="CountBehaviorArthasFrostmourneFeedsFrostmourneHungersFreeCastCompleteOnlyAtUnit">
-    <Flags index="TechTreeCheat" value="0" />
-    <Count Link="ArthasFrostmourneFeedsFrostmourneHungersFreeCast" State="CompleteOnlyAtUnit" />
   </CRequirementCountBehavior>
   <CRequirementCountBehavior id="CountBehaviorArthasFrozenTempestCasterCompleteOnlyAtUnit">
     <Flags index="TechTreeCheat" value="0" />
@@ -2446,18 +2872,10 @@
     <OperandArray index="0" value="CountUnitArthasArmyOfTheDeadGhoulCompleteOnly" />
     <OperandArray index="1" value="0" />
   </CRequirementGT>
-  <CRequirementAnd id="AndGTECountBehaviorArthasFrostmourneHungersPrimedCompleteOnlyAtUnit1LTCountBehaviorArthasFrostmourneFeedsFrostmourneHungersFreeCastCompleteOnlyAtUnit1">
-    <OperandArray value="GTECountBehaviorArthasFrostmourneHungersPrimedCompleteOnlyAtUnit1" />
-    <OperandArray value="LTCountBehaviorArthasFrostmourneFeedsFrostmourneHungersFreeCastCompleteOnlyAtUnit1" />
-  </CRequirementAnd>
   <CRequirementGTE id="GTECountBehaviorArthasFrostmourneHungersPrimedCompleteOnlyAtUnit1">
     <OperandArray index="0" value="CountBehaviorArthasFrostmourneHungersPrimedCompleteOnlyAtUnit" />
     <OperandArray index="1" value="1" />
   </CRequirementGTE>
-  <CRequirementLT id="LTCountBehaviorArthasFrostmourneFeedsFrostmourneHungersFreeCastCompleteOnlyAtUnit1">
-    <OperandArray index="0" value="CountBehaviorArthasFrostmourneFeedsFrostmourneHungersFreeCastCompleteOnlyAtUnit" />
-    <OperandArray index="1" value="1" />
-  </CRequirementLT>
   <CRequirementNot id="NotCountBehaviorArthasFrozenTempestCasterCompleteOnlyAtUnit">
     <OperandArray index="0" value="CountBehaviorArthasFrozenTempestCasterCompleteOnlyAtUnit" />
   </CRequirementNot>
@@ -2473,6 +2891,103 @@
   <CRewardHeroMastery id="ArthasMasteryRing3">
     <License value="52250" />
   </CRewardHeroMastery>
+  <CSound id="ArthasPathofFrostSlowProcSound" parent="_FX_Hero_Spell_End">
+    <AssetArray File="Assets\Sounds\Mutators\SnowBrawl\Hardpack_Snowball_Impact_01.wav" FacialGroup="" />
+    <AssetArray File="Assets\Sounds\Mutators\SnowBrawl\Hardpack_Snowball_Impact_02.wav" FacialGroup="" />
+    <AssetArray File="Assets\Sounds\Mutators\SnowBrawl\Hardpack_Snowball_Impact_03.wav" FacialGroup="" />
+    <Pitch value="-2.000000,-1.000000" />
+    <Volume value="-6.000000,-6.000000" />
+  </CSound>
+  <CSound id="ArthasPathofFrostSlowImpactSound" parent="_FX_Hero_Spell_Impact">
+    <AssetArray File="Assets\Sounds\Mutators\SnowBrawl\Heavy_Snowball_Impact_Miss_01.wav" FacialGroup="" />
+    <AssetArray File="Assets\Sounds\Mutators\SnowBrawl\Heavy_Snowball_Impact_Miss_02.wav" FacialGroup="" />
+    <AssetArray File="Assets\Sounds\Mutators\SnowBrawl\Heavy_Snowball_Impact_Miss_03.wav" FacialGroup="" />
+    <Pitch value="3.000000,4.000000" />
+    <Volume value="-6.000000,-6.000000" />
+  </CSound>
+  <CTalent id="ArthasDeathPact">
+    <Face value="ArthasDeathPact" />
+    <Abil value="ArthasFrostmourneHungers" />
+    <RankArray>
+      <BehaviorArray value="ArthasFrostmourneHungersDeathPactTalentBuff" />
+    </RankArray>
+  </CTalent>
+  <CTalent id="ArthasPathofFrost">
+    <Face value="ArthasPathofFrost" />
+    <Abil value="ArthasPathofFrost" />
+    <RankArray>
+      <BehaviorArray value="ArthasPathofFrostAbility" />
+    </RankArray>
+    <Active value="1" />
+  </CTalent>
+  <CTalent id="ArthasGorefiendsGrasp">
+    <Face value="ArthasGorefiendsGrasp" />
+    <Abil value="ArthasDeathCoil" />
+    <AbilityModificationArray>
+      <Modifications>
+        <Type value="FlatModification" />
+        <Catalog value="Actor" />
+        <Entry value="ArthasDeathCoilRangeSplat" />
+        <Field value="Scale" />
+        <Value value="$ArthasGorefiendsGraspRangeIncrease" />
+      </Modifications>
+      <Modifications>
+        <Type value="FlatModification" />
+        <Entry value="ArthasDeathCoil" />
+        <Field value="Range" />
+        <Value value="$ArthasGorefiendsGraspRangeIncrease" />
+      </Modifications>
+      <Modifications>
+        <Type value="FlatModification" />
+        <Catalog value="Effect" />
+        <Entry value="ArthasDeathCoilGorefiendsGraspTalentPushPullPersistent" />
+        <Field value="Chance" />
+        <Value value="1.000000" />
+      </Modifications>
+    </AbilityModificationArray>
+  </CTalent>
+  <CTalent id="ArthasDeathchill">
+    <Face value="ArthasDeathchill" />
+    <Abil value="ArthasHowlingBlast" />
+    <RankArray />
+  </CTalent>
+  <CTalent id="ArthasBoreanWinds">
+    <Face value="ArthasBoreanWinds" />
+    <Abil value="ArthasFrozenTempest" />
+    <RankArray>
+      <BehaviorArray value="ArthasFrozenTempestBoreanWindsTalentCarry" />
+    </RankArray>
+    <AbilityModificationArray>
+      <Modifications>
+        <Type value="FlatModification" />
+        <Catalog value="Effect" />
+        <Entry value="ArthasFrozenTempestBoreanWindsTalentApplyCoolup" />
+        <Field value="Chance" />
+        <Value value="1.000000" />
+      </Modifications>
+      <Modifications>
+        <Type value="FlatModification" />
+        <Catalog value="Behavior" />
+        <Entry value="ArthasFrozenTempestCaster" />
+        <Field value="Modification.VitalRegenArray[Energy]" />
+        <Value value="4.000000" />
+      </Modifications>
+      <Modifications>
+        <Type value="FlatModification" />
+        <Catalog value="Behavior" />
+        <Entry value="ArthasFrozenTempestAttackSpeedSlow" />
+        <Field value="Duration" />
+        <Value value="0.500000" />
+      </Modifications>
+      <Modifications>
+        <Type value="FlatModification" />
+        <Catalog value="Behavior" />
+        <Entry value="ArthasFrozenTempestSlow" />
+        <Field value="Duration" />
+        <Value value="0.500000" />
+      </Modifications>
+    </AbilityModificationArray>
+  </CTalent>
   <CTalent id="ArthasIcyTalons">
     <Face value="ArthasIcyTalons" />
     <Abil value="ArthasFrozenTempest" />
@@ -2559,6 +3074,16 @@
   <CTalent id="ArthasMasteryFrostStrikeFrostmourneHungers">
     <Face value="ArthasFrostStrikeFrostmourneHungersTalent" />
     <Abil value="ArthasFrostmourneHungers" />
+    <RankArray />
+    <AbilityModificationArray>
+      <Modifications>
+        <Type value="FlatModification" />
+        <Catalog value="Effect" />
+        <Entry value="ArthasFrostmourneHungersFrostStrikeTalentSearch" />
+        <Field value="Chance" />
+        <Value value="1.000000" />
+      </Modifications>
+    </AbilityModificationArray>
   </CTalent>
   <CTalent id="ArthasIceboundFortitude">
     <Face value="ArthasIceboundFortitudeTalent" />
@@ -2567,14 +3092,23 @@
     </RankArray>
     <Abil value="ArthasIceboundFortitude" />
     <Active value="1" />
+    <AbilityModificationArray>
+      <Modifications>
+        <Type value="FlatModification" />
+        <Catalog value="Effect" />
+        <Entry value="ArthasIceboundFortitudeModifyCooldown" />
+        <Field value="Chance" />
+        <Value value="1.000000" />
+      </Modifications>
+    </AbilityModificationArray>
   </CTalent>
   <CTalent id="ArthasMasteryEternalHungerFrostmourneHungers">
     <Face value="ArthasEternalHungerFrostmourneHungersTalent" />
     <Abil value="ArthasFrostmourneHungers" />
     <RankArray>
-      <BehaviorArray value="ArthasFrostmourneHungersEternalHungerQuestToken" />
+      <BehaviorArray value="ArthasFrostmourneHungersTokenCounter" />
     </RankArray>
-    <QuestData StackBehavior="ArthasFrostmourneHungersEternalHungerQuestToken" TargetCount="10" />
+    <QuestData StackBehavior="ArthasFrostmourneHungersTokenCounter" />
     <AbilityModificationArray>
       <Modifications>
         <Type value="FlatModification" />
@@ -2588,6 +3122,15 @@
   <CTalent id="ArthasMasteryFrostmourneFeedsFrostmourneHungers">
     <Face value="ArthasFrostmourneFeedsFrostmourneHungersTalents" />
     <Abil value="ArthasFrostmourneHungers" />
+    <RankArray />
+    <AbilityModificationArray>
+      <Modifications>
+        <Type value="FlatModification" />
+        <Entry value="ArthasFrostmourneHungers" />
+        <Field value="Cost[0].Cooldown.TimeUse" />
+        <Value value="-6.000000" />
+      </Modifications>
+    </AbilityModificationArray>
   </CTalent>
   <CTalent id="ArthasMasteryFrozenWastesFrozenTempest">
     <Face value="ArthasFrozenWastesFrozenTempestTalent" />
@@ -2636,6 +3179,13 @@
         <Field value="Chance" />
         <Value value="1.000000" />
       </Modifications>
+      <Modifications>
+        <Type value="FlatModification" />
+        <Catalog value="Effect" />
+        <Entry value="ArthasDeathCoilImmortalCoilTalentModifyUnit" />
+        <Field value="Chance" />
+        <Value value="1.000000" />
+      </Modifications>
     </AbilityModificationArray>
   </CTalent>
   <CTalent id="ArthasMasteryBitingColdFrozenTempest">
@@ -2657,9 +3207,35 @@
         <Entry value="ArthasHowlingBlastRangeSplat" />
         <Field value="Scale" />
       </Modifications>
-      <Modifications Type="FlatModification" Entry="ArthasHowlingBlast" Field="Cost[0].Cooldown.TimeUse" />
+      <Modifications>
+        <Type value="FlatModification" />
+        <Catalog value="Effect" />
+        <Entry value="ArthasHowlingBlastSearch" />
+        <Field value="AreaArray[0].Radius" />
+        <Value value="0.400000" />
+      </Modifications>
+      <Modifications>
+        <Type value="FlatModification" />
+        <Catalog value="Actor" />
+        <Entry value="ArthasHowlingBlastCursorSplat" />
+        <Field value="Scale" />
+        <Value value="0.200000" />
+      </Modifications>
+      <Modifications>
+        <Type value="FlatModification" />
+        <Catalog value="Effect" />
+        <Entry value="ArthasDeathCoilFrostPresenceTalentApplySlow" />
+        <Field value="Chance" />
+      </Modifications>
+      <Modifications>
+        <Type value="FlatModification" />
+        <Catalog value="Actor" />
+        <Entry value="ArthasHowlingBlast" />
+        <Field value="Scale" />
+        <Value value="0.200000" />
+      </Modifications>
     </AbilityModificationArray>
-    <QuestData StackBehavior="ArthasFrostPresenceTokenCounter" TargetCount="20" />
+    <QuestData StackBehavior="ArthasFrostPresenceTokenCounter" TargetCount="30" />
   </CTalent>
   <CTalent id="ArthasMasteryLegionOfNorthrendArmyoftheDead">
     <Face value="ArthasLegionOfNorthrendArmyOfTheDeadTalent" />
@@ -2668,17 +3244,22 @@
     <AbilityModificationArray ModifyAbil="ArthasArmyOfTheDead" TooltipAddendum="Talent/Arthas/ArmyoftheDead/LegionOfNorthrend">
       <Modifications>
         <Type value="FlatModification" />
-        <Catalog value="Effect" />
-        <Entry value="ArthasArmyOfTheDeadSpawnPersistent" />
-        <Field value="PeriodCount" />
-        <FieldIsInteger value="1" />
-        <Value value="3.000000" />
+        <Entry value="ArthasArmyOfTheDead" />
+        <Field value="Cost[0].Charge.TimeUse" />
+        <Value value="-5.000000" />
       </Modifications>
       <Modifications>
         <Type value="CatalogReplacement" />
         <Catalog value="Sound" />
         <Entry value="ArthasArmyDeadCast" />
         <StringReplacement value="Arthas_ArmyDead_Legion_Cast" />
+      </Modifications>
+      <Modifications>
+        <Type value="FlatModification" />
+        <Catalog value="Effect" />
+        <Entry value="ArthasArmyoftheDeadLegionofNorthrendTalentCreateUnit" />
+        <Field value="Chance" />
+        <Value value="1.000000" />
       </Modifications>
     </AbilityModificationArray>
   </CTalent>
@@ -2707,22 +3288,10 @@
     <AbilityModificationArray>
       <Modifications>
         <Type value="FlatModification" />
-        <Entry value="ArthasDeathCoil" />
-        <Field value="Cost[0].Cooldown.TimeUse" />
-        <Value value="-3.000000" />
-      </Modifications>
-      <Modifications>
-        <Type value="FlatModification" />
-        <Catalog value="Actor" />
-        <Entry value="ArthasDeathCoilRangeSplat" />
-        <Field value="Scale" />
-        <Value value="$ArthasDeathlordRangeIncrease" />
-      </Modifications>
-      <Modifications>
-        <Type value="FlatModification" />
-        <Entry value="ArthasDeathCoil" />
-        <Field value="Range" />
-        <Value value="$ArthasDeathlordRangeIncrease" />
+        <Catalog value="Effect" />
+        <Entry value="ArthasDeathCoilDeathlordTalentSearch" />
+        <Field value="Chance" />
+        <Value value="1.000000" />
       </Modifications>
     </AbilityModificationArray>
   </CTalent>
@@ -2730,6 +3299,7 @@
     <Face value="ArthasRime" />
     <RankArray>
       <BehaviorArray value="ArthasRimeCharged" />
+      <BehaviorArray value="ArthasRimeHealCarry" />
     </RankArray>
   </CTalent>
   <CTalent id="ArthasHeroicAbilitySummonSindragosa">
@@ -2751,9 +3321,19 @@
     <Abil value="ArthasArmyOfTheDead" />
     <RankArray>
       <BehaviorArray value="Ultimate1Unlocked" />
-      <BehaviorArray value="ArthasArmyoftheDeadCarryBehavior" />
+      <BehaviorArray value="ArthasArmyoftheDeadUnitTracker" />
     </RankArray>
     <Active value="1" />
+    <AbilityModificationArray>
+      <Modifications Entry="ArthasArmyOfTheDead" Field="Cost[0].Charge.CountMax" />
+      <Modifications Entry="ArthasArmyOfTheDead" Field="Cost[0].Charge.CountUse" />
+      <Modifications>
+        <Type value="FlatModification" />
+        <Catalog value="Effect" />
+        <Entry value="ArthasArmyOfTheDeadSpawnPersistent" />
+        <Field value="PeriodCount" />
+      </Modifications>
+    </AbilityModificationArray>
   </CTalent>
   <CUnit id="ArthasDeathCoilMissile" parent="MISSILE_INVULNERABLE" />
   <CUnit id="ArthasDeathCoilImmortalCoilMasteryReturnMissile" parent="MISSILE_INVULNERABLE">
@@ -2768,13 +3348,14 @@
     <BehaviorArray Link="ArthasSummonSindragosaDummyDelay" />
   </CUnit>
   <CUnit id="HeroArthas" parent="StormHeroMounted">
-    <LifeStart value="2980" />
-    <LifeMax value="2980" />
-    <LifeRegenRate value="6.207" />
+    <LifeStart value="2625" />
+    <LifeMax value="2625" />
+    <LifeRegenRate value="5.4687" />
     <Radius value="0.8125" />
     <InnerRadius value="0.8125" />
     <AIThinkTree value="AI/Arthas.aitree" />
     <BehaviorArray Link="ExcellentMana" />
+    <BehaviorArray Link="ArthasFrostmourneHungersTokenCounter" />
     <WeaponArray Link="HeroArthas" />
     <AbilArray Link="ArthasArmyOfTheDead" />
     <AbilArray Link="ArthasArmyOfTheDeadSacrifice" />
@@ -2808,6 +3389,7 @@
   <CUnit id="ArthasArmyOfTheDeadGhoul" parent="StormSummonActive">
     <LifeStart value="$ArthasArmyOfTheDeadGhoulHealth" />
     <LifeMax value="$ArthasArmyOfTheDeadGhoulHealth" />
+    <LifeRegenRate value="-$ArthasArmyOfTheDeadGhoulDecayRate" />
     <Speed value="5" />
     <Sight value="7" />
     <AbilArray Link="stop" />
@@ -2815,7 +3397,6 @@
     <AbilArray Link="move" />
     <BehaviorArray Link="ArthasArmyOfTheDeadGhoulTimedLife" />
     <BehaviorArray Link="HeroicSummon" />
-    <BehaviorArray Link="ArthasGhoulLegionofNorthrendLifeRegenModifier" />
     <WeaponArray Link="ArthasArmyOfTheDeadGhoulWeapon" />
     <CardLayouts>
       <LayoutButtons Face="Move" Type="AbilCmd" AbilCmd="move,Move" Slot="Stop" />
@@ -2827,11 +3408,110 @@
     <Radius value="0.6875" />
     <InnerRadius value="0.6875" />
     <AIThinkTree value="AI/SummonedMinion.aitree" />
-    <LifeRegenRate value="-$ArthasArmyOfTheDeadGhoulDecayRate" />
   </CUnit>
   <CUnit id="ArthasArmyOfTheDeadGhoulHealMissile" parent="MISSILE_INVULNERABLE">
     <Mover value="ArthasGhoulHealMissile" />
   </CUnit>
+  <CValidatorPlayerTalent id="ArthasDoesNotHaveDeathPactTalent">
+    <WhichPlayer Value="Caster" />
+    <Value value="ArthasDeathPact" />
+  </CValidatorPlayerTalent>
+  <CValidatorUnitCompareBehaviorCount id="ArthasSourceHasPathofFrostActive">
+    <Behavior value="ArthasPathofFrostTimedBehavior" />
+    <WhichUnit Value="Source" />
+    <Value value="1" />
+  </CValidatorUnitCompareBehaviorCount>
+  <CValidatorCompareTrackedUnitsCount id="ArthasHasGTE1ArmyoftheDeadGhoulTracked">
+    <Compare value="GE" />
+    <Value value="1" />
+    <BehaviorLink value="ArthasArmyoftheDeadUnitTracker" />
+  </CValidatorCompareTrackedUnitsCount>
+  <CValidatorIsUnitTracked id="ArthasIsArmyoftheDeadTrackedGhoul">
+    <Find value="1" />
+    <BehaviorLink value="ArthasArmyoftheDeadUnitTracker" />
+    <TrackedUnit Value="Target" />
+  </CValidatorIsUnitTracked>
+  <CValidatorUnitCompareChargeUsed id="ArthasHasGTE1ChargeArmyOfTheDead">
+    <Compare value="LT" />
+    <ChargeLink value="Abil/ArthasArmyOfTheDeadCharge" />
+    <Location value="Unit" />
+    <Ability value="ArthasArmyOfTheDead" />
+    <Value value="6" />
+  </CValidatorUnitCompareChargeUsed>
+  <CValidatorPlayerTalent id="ArthasHasDeathPactTalent">
+    <WhichPlayer Value="Caster" />
+    <Find value="1" />
+    <Value value="ArthasDeathPact" />
+  </CValidatorPlayerTalent>
+  <CValidatorCombine id="ArthasGorefiendsGraspTalentPeriodicValidatorCombine">
+    <Type value="And" />
+    <CombineArray value="ArthasTargetHasGorefiendsGraspPushPull" />
+    <CombineArray value="ArthasGorefiendsGraspTargetGT1RangeAway" />
+  </CValidatorCombine>
+  <CValidatorLocationCompareRange id="ArthasGorefiendsGraspTargetGT1RangeAway">
+    <WhichLocation Value="TargetUnit" />
+    <Compare value="GE" />
+    <Range value="1" />
+  </CValidatorLocationCompareRange>
+  <CValidatorUnitCompareBehaviorCount id="ArthasTargetHasGorefiendsGraspPushPull">
+    <Value value="1" />
+    <Behavior value="ArthasDeathCoilGorefiendsGraspTalentPushPull" />
+  </CValidatorUnitCompareBehaviorCount>
+  <CValidatorPlayerTalent id="ArthasDoesNotHaveFrostStrikeTalent">
+    <Value value="ArthasMasteryFrostStrikeFrostmourneHungers" />
+  </CValidatorPlayerTalent>
+  <CValidatorCombine id="ArthasFrostStrikeTalentProcCombine">
+    <Type value="And" />
+    <CombineArray value="TargetIsRootedOrSlowed" />
+    <CombineArray value="ArthasHasFrostmourneHungersFrostStrike" />
+  </CValidatorCombine>
+  <CValidatorCombine id="ArthasDeathchillTalentProcCombine">
+    <Type value="And" />
+    <CombineArray value="ArthasHasDeathchillTalent" />
+    <CombineArray value="TargetLifeLT50Percent" />
+    <CombineArray value="TargetIsHero" />
+  </CValidatorCombine>
+  <CValidatorPlayerTalent id="ArthasHasDeathchillTalent">
+    <Find value="1" />
+    <Value value="ArthasDeathchill" />
+  </CValidatorPlayerTalent>
+  <CValidatorCombine id="ArthasFrozenTempestCritCombine">
+    <CombineArray value="CritAliasSpellPower" />
+    <CombineArray value="ArthasBitingColdCritCombine" />
+  </CValidatorCombine>
+  <CValidatorCombine id="ArthasBitingColdCritCombine">
+    <Type value="And" />
+    <CombineArray value="ArthasHasFrozenTempestBitingCold" />
+    <CombineArray value="ArthasTargetHas8BitingColdTokens" />
+  </CValidatorCombine>
+  <CValidatorPlayerTalent id="ArthasHasRuneTapTalent">
+    <Find value="1" />
+    <Value value="ArthasRuneTap" />
+  </CValidatorPlayerTalent>
+  <CValidatorUnitCompareTokenCount id="ArthasTargetHas8BitingColdTokens">
+    <WhichUnit Value="Target" />
+    <Value value="8" />
+    <TokenId value="ArthasBitingColdTokenCounter" />
+    <Compare value="GE" />
+  </CValidatorUnitCompareTokenCount>
+  <CValidatorPlayerTalent id="ArthasHasBoreanWindsTalent">
+    <Find value="1" />
+    <Value value="ArthasBoreanWinds" />
+  </CValidatorPlayerTalent>
+  <CValidatorUnitCompareBehaviorCount id="ArthasHasBoreanWindsActive">
+    <WhichUnit Value="Caster" />
+    <Value value="1" />
+    <Behavior value="ArthasFrozenTempestBoreanWindsTalentCarry" />
+  </CValidatorUnitCompareBehaviorCount>
+  <CValidatorUnitCompareBehaviorCount id="ArthasHasFrozenTempestActive">
+    <WhichUnit Value="Caster" />
+    <Value value="1" />
+    <Behavior value="ArthasFrozenTempestCaster" />
+  </CValidatorUnitCompareBehaviorCount>
+  <CValidatorUnitCompareBehaviorCount id="ArthasDoesNotHaveBoreanWindsTalentCoolup">
+    <WhichUnit Value="Caster" />
+    <Behavior value="ArthasFrozenTempestBoreanWindsTalentCoolup" />
+  </CValidatorUnitCompareBehaviorCount>
   <CValidatorPlayerTalent id="ArthasHasRimeTalentSource">
     <WhichPlayer Value="Source" />
     <Find value="1" />
@@ -2868,15 +3548,16 @@
     <Value value="10" />
     <TokenId value="ArthasFrostmourneHungersEternalHungerQuestToken" />
   </CValidatorUnitCompareTokenCount>
-  <CValidatorUnitCompareTokenCount id="ArthasCasterHasLT20FrostPresenceTokens">
+  <CValidatorUnitCompareTokenCount id="ArthasCasterHasLT30FrostPresenceTokens">
     <WhichUnit Value="Caster" />
     <Compare value="LT" />
-    <Value value="20" />
+    <Value value="30" />
     <TokenId value="ArthasFrostPresenceTokenCounter" />
   </CValidatorUnitCompareTokenCount>
-  <CValidatorUnitCompareTokenCount id="ArthasCasterHas20FrostPresenceTokens">
+  <CValidatorUnitCompareTokenCount id="ArthasCasterHas15FrostPresenceTokens">
     <WhichUnit Value="Caster" />
-    <Value value="20" />
+    <Compare value="GE" />
+    <Value value="15" />
     <TokenId value="ArthasFrostPresenceTokenCounter" />
   </CValidatorUnitCompareTokenCount>
   <CValidatorUnitCompareBehaviorCount id="ArthasFrozenTempestTargetHasBitingColdTokenCounter">
@@ -2903,23 +3584,6 @@
     <CombineArray value="ArthasSourceDoesNotHaveRimeChargedCountdownBehavior" />
     <CombineArray value="ArthasSourceHasLessThan3RimeChargedArmorBehavior" />
   </CValidatorCombine>
-  <CValidatorCombine id="StormTargetHasRootCombineIncludeDisabled">
-    <CombineArray value="ArthasTargetHasRemorselessWinterRootIncludeDisabled" />
-    <CombineArray value="ArthasTargetHasSummonSindragosaRootIncludeDisabled" />
-    <CombineArray value="ArthasTargetHasHowlingBlastRootIncludeDisabled" />
-  </CValidatorCombine>
-  <CValidatorUnitHasBehavior id="ArthasTargetHasRemorselessWinterRootIncludeDisabled">
-    <Behavior value="ArthasFrozenTempestRemorselessWinterRoot" />
-    <IncludeDisabled value="1" />
-  </CValidatorUnitHasBehavior>
-  <CValidatorUnitHasBehavior id="ArthasTargetHasSummonSindragosaRootIncludeDisabled">
-    <Behavior value="ArthasSummonSindragosaHeroRoot" />
-    <IncludeDisabled value="1" />
-  </CValidatorUnitHasBehavior>
-  <CValidatorUnitHasBehavior id="ArthasTargetHasHowlingBlastRootIncludeDisabled">
-    <Behavior value="ArthasHowlingBlastRoot" />
-    <IncludeDisabled value="1" />
-  </CValidatorUnitHasBehavior>
   <CValidatorUnitCompareBehaviorCount id="ArthasHasLessThan15StacksofDeathCoilTouchofDeath">
     <Compare value="LT" />
     <Value value="15" />
@@ -2931,15 +3595,24 @@
   <CValidatorUnitCompareBehaviorCount id="ArthasDoesNotHaveFrozenTempestRemorselessWinterRoot">
     <Behavior value="ArthasFrozenTempestRemorselessWinterRoot" />
   </CValidatorUnitCompareBehaviorCount>
+  <CValidatorUnitCompareBehaviorCount id="ArthasHas5StacksOfFrozenTempestRemorselessWinter">
+    <Value value="5" />
+    <Behavior value="ArthasFrozenTempestRemorselessWinterTargetStacks" />
+  </CValidatorUnitCompareBehaviorCount>
   <CValidatorCombine id="ArthasDoesNotHaveFrozenTempestRemorselessWinterRootAndDoesNotHaveFrozenTempestRemorselessWinterImmunity">
     <Type value="And" />
     <CombineArray value="ArthasDoesNotHaveFrozenTempestRemorselessWinterRoot" />
     <CombineArray value="ArthasDoesNotHaveFrozenTempestRemorselessWinterImmunity" />
   </CValidatorCombine>
-  <CValidatorUnitCompareBehaviorCount id="ArthasHas6StacksOfFrozenTempestRemorselessWinter">
-    <Value value="6" />
-    <Behavior value="ArthasFrozenTempestRemorselessWinterTargetStacks" />
-  </CValidatorUnitCompareBehaviorCount>
+  <CValidatorCombine id="ArthasDeathCoilDamageCritCombine">
+    <CombineArray value="CritAliasSpellPower" />
+    <CombineArray value="ArthasHasDeathlordAndLT50FractionHealth" />
+  </CValidatorCombine>
+  <CValidatorCombine id="ArthasHasDeathlordAndLT50FractionHealth">
+    <Type value="And" />
+    <CombineArray value="ArthasHasDeathCoilDeathlord" />
+    <CombineArray value="CasterLifeLT50Percent" />
+  </CValidatorCombine>
   <CValidatorPlayerTalent id="ArthasHasDeathCoilDeathlord">
     <Find value="1" />
     <Value value="ArthasDeathlord" />
@@ -2952,10 +3625,6 @@
   <CValidatorPlayerTalent id="ArthasHasFrostmourneHungersFrostmourneFeeds">
     <WhichPlayer Value="Caster" />
     <Find value="1" />
-    <Value value="ArthasMasteryFrostmourneFeedsFrostmourneHungers" />
-  </CValidatorPlayerTalent>
-  <CValidatorPlayerTalent id="ArthasDoesNotHaveFrostmourneFeeds">
-    <WhichPlayer Value="Caster" />
     <Value value="ArthasMasteryFrostmourneFeedsFrostmourneHungers" />
   </CValidatorPlayerTalent>
   <CValidatorPlayerTalent id="ArthasHasFrostmourneHungersFrostStrike">
@@ -2974,41 +3643,9 @@
     <Value value="ArthasMasteryEternalHungerFrostmourneHungers" />
   </CValidatorPlayerTalent>
   <CValidatorPlayerTalent id="ArthasHasDeathCoilEmbraceDeath">
-    <WhichPlayer Value="Caster" />
     <Find value="1" />
     <Value value="ArthasMasteryEmbraceDeathDeathCoil" />
   </CValidatorPlayerTalent>
-  <CValidatorCombine id="ArthasDeathCoilHealerCritCombine">
-    <CombineArray value="CritAliasSpellPower" />
-    <CombineArray value="ArthasHasDeathCoilAndLT50FractionHealth" />
-  </CValidatorCombine>
-  <CValidatorCombine id="ArthasHasDeathCoilAndLT50PercentHealth">
-    <Type value="And" />
-    <CombineArray value="ArthasHasDeathCoilEmbraceDeath" />
-    <CombineArray value="CasterLifeLT50Percent" />
-  </CValidatorCombine>
-  <CValidatorUnitCompareBehaviorCount id="ArthasCasterDoesNotHaveFrostmourneFeedsFreeCast">
-    <WhichUnit Value="Caster" />
-    <Behavior value="ArthasFrostmourneFeedsFrostmourneHungersFreeCast" />
-  </CValidatorUnitCompareBehaviorCount>
-  <CValidatorUnitCompareBehaviorCount id="ArthasCasterHasFrostmourneFeedsFreeCast">
-    <WhichUnit Value="Caster" />
-    <Value value="1" />
-    <Behavior value="ArthasFrostmourneFeedsFrostmourneHungersFreeCast" />
-  </CValidatorUnitCompareBehaviorCount>
-  <CValidatorUnitHasBehavior id="ArthasFrostStrikeTargetHasSlow">
-    <Behavior value="ArthasFrostmourneHungersFrostStrikeSlow" />
-  </CValidatorUnitHasBehavior>
-  <CValidatorCombine id="ArthasFrostmourneHugnersFirstStrikeCombine">
-    <CombineArray value="ArthasFrostmourneHungersTwoAttacksPrimed" />
-    <CombineArray value="ArthasDoesNotHaveFrostmourneFeeds" />
-  </CValidatorCombine>
-  <CValidatorUnitCompareBehaviorCount id="ArthasFrostmourneHungersTwoAttacksPrimed">
-    <WhichUnit Value="Caster" />
-    <Compare value="GT" />
-    <Value value="1" />
-    <Behavior value="ArthasFrostmourneHungersPrimed" />
-  </CValidatorUnitCompareBehaviorCount>
   <CValidatorUnitCompareBehaviorCount id="ArthasHasFrostmourneHungersPrimed">
     <WhichUnit Value="Caster" />
     <Compare value="GE" />
@@ -3076,6 +3713,23 @@
   <CValidatorUnitOrderQueue id="CasterCastingArthasSindragosa">
     <AbilLink value="ArthasSummonSindragosa" />
   </CValidatorUnitOrderQueue>
+  <CValidatorCombine id="StormTargetHasRootCombineIncludeDisabled">
+    <CombineArray value="ArthasTargetHasRemorselessWinterRootIncludeDisabled" />
+    <CombineArray value="ArthasTargetHasSummonSindragosaRootIncludeDisabled" />
+    <CombineArray value="ArthasTargetHasHowlingBlastRootIncludeDisabled" />
+  </CValidatorCombine>
+  <CValidatorUnitHasBehavior id="ArthasTargetHasRemorselessWinterRootIncludeDisabled">
+    <Behavior value="ArthasFrozenTempestRemorselessWinterRoot" />
+    <IncludeDisabled value="1" />
+  </CValidatorUnitHasBehavior>
+  <CValidatorUnitHasBehavior id="ArthasTargetHasSummonSindragosaRootIncludeDisabled">
+    <Behavior value="ArthasSummonSindragosaHeroRoot" />
+    <IncludeDisabled value="1" />
+  </CValidatorUnitHasBehavior>
+  <CValidatorUnitHasBehavior id="ArthasTargetHasHowlingBlastRootIncludeDisabled">
+    <Behavior value="ArthasHowlingBlastRoot" />
+    <IncludeDisabled value="1" />
+  </CValidatorUnitHasBehavior>
   <CWeaponLegacy id="ArthasArmyOfTheDeadGhoulWeapon">
     <Options index="Melee" value="1" />
     <Icon value="Assets\Textures\storm_temp_btn-upgrade-zerg-meleeattacks-level0.dds" />
@@ -3094,7 +3748,7 @@
     <DisplayEffect value="ArthasHeroWeaponDamage" />
     <MinScanRange value="4" />
     <Range value="2" />
-    <Period value="1" />
+    <Period value="1.1" />
     <Effect value="ArthasHeroWeaponImpactSet" />
     <Options index="Melee" value="1" />
     <PreswingBeforeAttack value="0.25" />
