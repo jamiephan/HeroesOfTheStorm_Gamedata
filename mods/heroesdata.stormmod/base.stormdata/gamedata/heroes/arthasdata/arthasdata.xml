@@ -9,6 +9,8 @@
   <const id="$ArthasArmyOfTheDeadGhoulHealth" value="1200" />
   <const id="$ArthasArmyOfTheDeadGhoulDecayDuration" value="20" />
   <const id="$ArthasArmyOfTheDeadGhoulDecayRate" value="/($ArthasArmyOfTheDeadGhoulHealth $ArthasArmyOfTheDeadGhoulDecayDuration)" evaluateAsExpression="1" />
+  <const id="$ArthasPathofFrostMinimumMovespeedModifier" value="1.4" />
+  <const id="$ArthasPathofFrostMovespeed" value="*($HeroBaseMovementSpeed $ArthasPathofFrostMinimumMovespeedModifier)" evaluateAsExpression="1" />
   <CAbilEffectInstant id="ArthasPathofFrost">
     <Effect value="ArthasPathofFrostCastSet" />
     <Flags index="ClearLastAttackTargetOutOfRange" value="1" />
@@ -237,10 +239,17 @@
     <Missing value="1" />
     <VitalType value="Life" />
   </CAccumulatorVitals>
+  <CAccumulatorToken id="ArthasFrostmourneHungersBasicAttackDamageAccumulator" parent="BaseTokenAccumulator">
+    <MaxAccumulation value="10000" />
+    <ApplicationRule value="Add" />
+    <TokenId value="ArthasFrostmourneHungersTokenCounter" />
+    <Scale value="0.75" />
+  </CAccumulatorToken>
   <CAccumulatorToken id="ArthasFrostmourneHungersDamageAccumulator" parent="BaseTokenAccumulator">
     <MaxAccumulation value="10000" />
     <ApplicationRule value="Add" />
     <TokenId value="ArthasFrostmourneHungersTokenCounter" />
+    <Scale value="3" />
   </CAccumulatorToken>
   <CAccumulatorToken id="ArthasFrozenWastesTokenAccumulator" parent="BaseTokenAccumulator">
     <MaxAccumulation value="150" />
@@ -750,6 +759,7 @@
     <InitialEffect value="ArthasFrostmourneHungersDeathPactTalentModifyTokens" />
   </CBehaviorBuff>
   <CBehaviorBuff id="ArthasRimeHealCarry" parent="CarryBehaviorParent">
+    <Face value="ArthasRime" />
     <DisableValidatorArray value="CasterIsStunnedOrRootedOrSlowed" />
     <Period value="0.25" />
     <PeriodicEffect value="ArthasRimeHeal" />
@@ -783,7 +793,7 @@
     <PeriodicEffect value="ArthasPathofFrostApplyMountedController" />
     <FinalEffect value="ArthasPathofFrostTimedFinalSet" />
     <Modification>
-      <UnifiedMoveSpeedFactor value="0.4" />
+      <MoveSpeedMinimum value="$ArthasPathofFrostMovespeed" />
     </Modification>
   </CBehaviorBuff>
   <CBehaviorUnitTracker id="ArthasArmyoftheDeadUnitTracker">
@@ -818,7 +828,7 @@
     <Duration value="2" />
   </CBehaviorBuff>
   <CBehaviorBuff id="ArthasDeathCoilFrostPresenceTalentSlow" parent="StormSlowParent">
-    <Duration value="0.75" />
+    <Duration value="1.25" />
     <Modification>
       <UnifiedMoveSpeedFactor value="-0.5" />
     </Modification>
@@ -1407,7 +1417,8 @@
     <CaseDefault value="ArthasFrostmourneHungersFXDummy" />
   </CEffectSwitch>
   <CEffectCreateHealer id="ArthasFrozenTempestRemorselessWinterTalentHealer" parent="StormSelfOnlyHealingSpellPercent">
-    <ImpactUnit Value="Caster" History="Unknown" />
+    <SourceButtonFace value="ArthasRemorselessWinterFrozenTempestTalent" />
+    <ImpactUnit Value="Caster" />
     <RechargeVitalFraction value="0.03" />
   </CEffectCreateHealer>
   <CEffectSet id="ArthasFrozenTempestRemorselessWinterTalentProcSet">
@@ -1678,9 +1689,14 @@
     <Flags index="UseDuration" value="1" />
     <Duration value="3" />
   </CEffectApplyBehavior>
+  <CEffectRemoveBehavior id="ArthasIceboundFortitudeRemoveCCBehaviorCategories">
+    <BehaviorCategories index="Slow" value="1" />
+    <BehaviorCategories index="DebuffRoot" value="1" />
+  </CEffectRemoveBehavior>
   <CEffectSet id="ArthasIceboundFortitudeInitialSet">
     <EffectArray value="ArthasIceboundFortitudeApplyCasterBehavior" />
     <EffectArray value="ArthasIceboundFortitudeApplyCCReductionBehavior" />
+    <EffectArray value="ArthasIceboundFortitudeRemoveCCBehaviorCategories" />
   </CEffectSet>
   <CEffectApplyBehavior id="ArthasRimeApplyArmor">
     <WhichUnit Value="Source" />
@@ -1745,7 +1761,7 @@
     <FlatModifierArray index="0" Accumulator="ArthasFrostmourneHungersDamageAccumulator" Modifier="71" />
     <Flags index="Crit" value="1" />
     <Amount value="95">
-      <AccumulatorArray value="ArthasFrostmourneHungersDamageAccumulator" />
+      <AccumulatorArray value="ArthasFrostmourneHungersBasicAttackDamageAccumulator" />
     </Amount>
     <LeechValidator index="Life" value="ArthasHasFrostmourneHungersFrostmourneFeeds" />
     <LeechFraction index="Life" value="0.75" />
@@ -1807,12 +1823,12 @@
   </CEffectLaunchMissile>
   <CEffectCreateHealer id="ArthasDeathCoilSelfCastCreateHealer" parent="StormSelfOnlyHealingSpell">
     <ImpactUnit Value="Caster" />
-    <RechargeVitalRate value="262" />
+    <RechargeVitalRate value="275" />
     <MultiplicativeModifierArray index="0" Validator="ArthasHasDeathCoilImmortalCoil" Modifier="0.75" Crit="1" />
   </CEffectCreateHealer>
   <CEffectCreateHealer id="ArthasDeathCoilImmortalCoilCreateHealer" parent="StormSelfOnlyHealingSpell">
     <ImpactUnit Value="Caster" />
-    <RechargeVitalRate value="262" />
+    <RechargeVitalRate value="275" />
     <SourceButtonFace value="ArthasImmortalCoilDeathCoilTalent" />
   </CEffectCreateHealer>
   <CEffectSwitch id="ArthasDeathCoilDamageSwitch">
@@ -1903,6 +1919,9 @@
     <Flags index="PersistUntilDestroyed" value="1" />
     <PeriodicEffectArray value="ArthasHowlingBlastFrostPresenceSearchArea" />
     <PeriodicPeriodArray value="0.0625" />
+    <Marker>
+      <MatchFlags index="Id" value="1" />
+    </Marker>
   </CEffectCreatePersistent>
   <CEffectDestroyPersistent id="ArthasHowlingBlastFrostPresenceDestroyPersistent">
     <WhichLocation Value="SourceUnit" />
@@ -1910,7 +1929,6 @@
     <Count value="1" />
   </CEffectDestroyPersistent>
   <CEffectSet id="ArthasHowlingBlastFrostPresenceImpactSet">
-    <ValidatorArray value="ArthasTargetDoesNotHaveHowlingBlastRoot" />
     <ValidatorArray value="noMarkers" />
     <EffectArray value="ArthasHowlingBlastFrostPresenceTalentModifyTokenCount" />
     <EffectArray value="ArthasHowlingBlastRootSwitch" />
@@ -2143,7 +2161,7 @@
   <CEffectApplyBehavior id="ArthasSummonSindragosaStructureApplyBehavior">
     <ValidatorArray index="0" value="IsStructureTarget" />
     <ValidatorArray value="NotCore" />
-    <ValidatorArray value="NotNoMinionAggro" />
+    <ValidatorArray value="TargetNotNoMinionAggroOrIsAndCanBeDisabled" />
     <Behavior value="ArthasSummonSindragosaStructureDebuff" />
   </CEffectApplyBehavior>
   <CEffectApplyBehavior id="ArthasSummonSindragosaUnitApplyBehavior">
@@ -2228,8 +2246,8 @@
     <PeriodCount value="2" />
     <PeriodicEffectArray value="ArthasHowlingBlastCastDummy" />
     <PeriodicEffectArray value="ArthasHowlingBlastLaunchMissileSet" />
-    <PeriodicOffsetArray Y="-0.5" />
-    <PeriodicOffsetArray Y="-0.5" />
+    <PeriodicOffsetArray Y="-1.5" />
+    <PeriodicOffsetArray Y="-1.5" />
     <PeriodicPeriodArray value="0.075" />
     <PeriodicPeriodArray value="0.1" />
   </CEffectCreatePersistent>
@@ -2268,7 +2286,7 @@
   <CEffectSet id="ArthasWeaponPostImpactSet" />
   <CEffectDamage id="ArthasHeroWeaponDamage" parent="StormWeapon">
     <Amount value="95">
-      <AccumulatorArray value="ArthasFrostmourneHungersDamageAccumulator" />
+      <AccumulatorArray value="ArthasFrostmourneHungersBasicAttackDamageAccumulator" />
     </Amount>
   </CEffectDamage>
   <CEffectEnumArea id="ArthasArmyOfTheDeadHealSearch">
@@ -3348,9 +3366,9 @@
     <BehaviorArray Link="ArthasSummonSindragosaDummyDelay" />
   </CUnit>
   <CUnit id="HeroArthas" parent="StormHeroMounted">
-    <LifeStart value="2625" />
-    <LifeMax value="2625" />
-    <LifeRegenRate value="5.4687" />
+    <LifeStart value="2750" />
+    <LifeMax value="2750" />
+    <LifeRegenRate value="5.7304" />
     <Radius value="0.8125" />
     <InnerRadius value="0.8125" />
     <AIThinkTree value="AI/Arthas.aitree" />
