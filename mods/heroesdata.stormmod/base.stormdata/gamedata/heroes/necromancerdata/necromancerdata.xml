@@ -1502,13 +1502,15 @@
     <Max value="12" />
     <IncreaseEvents Effect="NecromancerCursedStrikesGrimScytheModifyCooldown" />
   </CBehaviorTokenCounter>
-  <CBehaviorBuff id="NecromancerRaiseSekeltonTalentDamageResponse">
-    <Modification>
-      <StateFlags index="Summoned" value="1" />
-    </Modification>
-    <DamageResponse Chance="1" Handled="NecromancerRaiseSkeletonOnHitTalentDamageResponseSet" Location="Attacker">
-      <RequireEffectArray value="NecromancerRaiseSkeletonDamage" />
-    </DamageResponse>
+  <CBehaviorBuff id="NecromancerRaiseSkeletonAbilityController" parent="CarryBehaviorParent">
+    <EnableEffect value="NecromancerRaiseSkeletonAddAbilityTargetController" />
+    <PeriodicEffect value="NecromancerRaiseSkeletonAddAbilityTargetController" />
+    <Period value="0.0625" />
+    <DisableValidatorArray value="NecromancerRaiseSkeletonDoesNotHaveAbilityTargetController" />
+  </CBehaviorBuff>
+  <CBehaviorBuff id="NecromancerRaiseSkeletonAbilityTargetController" parent="CarryBehaviorParent">
+    <Face value="NecromancerRaiseSkeleton" />
+    <CancelEffect value="NecromancerRaiseSkeletonAttackEnumTarget" />
   </CBehaviorBuff>
   <CBehaviorTokenCounter id="NecromancerBonePrisonJailorsQuestTokenBehavior" parent="StormQuestToken">
     <Face value="NecromancerRaiseSkeletonJailorsQuestToken" />
@@ -1689,6 +1691,16 @@
       <VitalRegenArray index="Life" value="-$NecromancerSkeletalMageLifeDecayRate" />
     </Modification>
   </CBehaviorBuff>
+  <CBehaviorBuff id="NecromancerSkeletalMagesAbilityController" parent="CarryBehaviorParent">
+    <EnableEffect value="NecromancerSkeletalMagesAddAbilityTargetController" />
+    <PeriodicEffect value="NecromancerSkeletalMagesAddAbilityTargetController" />
+    <Period value="0.0625" />
+    <DisableValidatorArray value="NecromancerSkeletalMagesDoesNotHaveAbilityTargetController" />
+  </CBehaviorBuff>
+  <CBehaviorBuff id="NecromancerSkeletalMagesAbilityTargetController" parent="CarryBehaviorParent">
+    <Face value="NecromancerSkeletalMages" />
+    <CancelEffect value="NecromancerSkeletalMagesAttackEnumTarget" />
+  </CBehaviorBuff>
   <CBehaviorBuff id="RaiseSkeletonMaxCountController" parent="CarryBehaviorParent">
     <DisableValidatorArray value="RaiseSkeletonMaxCount" />
     <Period value="0.0625" />
@@ -1854,7 +1866,7 @@
     <Behavior value="NecromancerBoneArmorWallOfBonesSpellArmorBuff" />
   </CEffectApplyBehavior>
   <CEffectModifyUnit id="NecromancerKalansEdictCorpseExplosionModifyCooldown">
-    <Chance value="0" />
+    <ValidatorArray value="HasNecromancerTalentKalansEdict" />
     <ImpactUnit Value="Caster" />
     <Cost Abil="NecromancerPoisonNovaInstant,Execute" CooldownOperation="Add">
       <Fraction Cooldown="-0.015" />
@@ -1874,6 +1886,11 @@
     <ValidatorArray value="HasNecromancerTalentWeaken" />
     <ValidatorArray value="TargetIsHero" />
     <ValidatorArray value="CasterNotBlindedAndTargetNotEvading" />
+    <Behavior value="NecromancerCursedStrikesWeakenDamageReduction" />
+  </CEffectApplyBehavior>
+  <CEffectApplyBehavior id="NecromancerCursedStrikesWeakenDamageReductionApplyBehaviorSkeletalWarriors">
+    <ValidatorArray value="HasNecromancerTalentWeaken" />
+    <ValidatorArray value="TargetIsHero" />
     <Behavior value="NecromancerCursedStrikesWeakenDamageReduction" />
   </CEffectApplyBehavior>
   <CEffectSwitch id="NecromancerSpectralScytheSkeletonSpawnSwitch">
@@ -2002,8 +2019,8 @@
     <Behavior value="NecromancerSkeletalMagesColdHandOfDeathSkeletonCarryBehavior" />
   </CEffectApplyBehavior>
   <CEffectModifyUnit id="NecromancerKalansEdictSkeletalWarriorAttackModifyCooldown">
-    <Chance value="0" />
-    <ImpactUnit Effect="NecromancerRaiseSkeletonApplyTalentDamageResponse" Value="Caster" />
+    <ValidatorArray value="HasNecromancerTalentKalansEdict" />
+    <ImpactUnit Value="Caster" />
     <Cost Abil="NecromancerPoisonNovaInstant,Execute" CooldownOperation="Add">
       <Fraction Cooldown="-0.015" />
     </Cost>
@@ -2024,12 +2041,6 @@
     <Behavior value="NecromancerCursedStrikesRapidHarvestAttackSpeedBuff" />
     <ValidatorArray value="CasterNotBlindedAndTargetNotEvading" />
   </CEffectApplyBehavior>
-  <CEffectSet id="NecromancerRaiseSkeletonOnHitTalentDamageResponseSet">
-    <EffectArray value="NecromancerRaiseSkeletonTragOulsEssenceSet" />
-    <EffectArray value="NecromancerKalansEdictSkeletalWarriorAttackModifyCooldown" />
-    <EffectArray value="NecromancerCursedStrikesWeakenDamageReductionApplyBehavior" />
-    <EffectArray value="NecromancerRaiseSkeletonDecrepifyApplySlowBehavior" />
-  </CEffectSet>
   <CEffectModifyTokenCount id="NecromancerCursedStrikesGrimScytheResetTokens" parent="BaseEffectModifyTokenCount">
     <TokenId value="NecromancerCursedStrikesGrimScytheTokenCounter" />
     <Operation value="Set" />
@@ -2083,13 +2094,9 @@
   </CEffectCreatePersistent>
   <CEffectSet id="NecromancerRaiseSkeketonBirthSet">
     <EffectArray value="NecromancerRaiseSkeletonApplyTimedLife" />
-    <EffectArray value="NecromancerRaiseSkeletonApplyTalentDamageResponse" />
   </CEffectSet>
-  <CEffectApplyBehavior id="NecromancerRaiseSkeletonApplyTalentDamageResponse">
-    <Behavior value="NecromancerRaiseSekeltonTalentDamageResponse" />
-  </CEffectApplyBehavior>
   <CEffectCreateHealer id="NecromancerRaiseSkeletonTragOulsEssenceCreateHealerMana" parent="StormManaRestore">
-    <ImpactUnit Effect="NecromancerRaiseSkeletonApplyTalentDamageResponse" Value="Caster" />
+    <ImpactUnit Value="Caster" />
     <RechargeVitalFraction value="0.002" />
   </CEffectCreateHealer>
   <CEffectSet id="NecromancerRaiseSkeletonTragOulsEssenceSet">
@@ -2098,7 +2105,7 @@
     <EffectArray value="NecromancerRaiseSkeletonTragOulsEssenceCreateHealerMana" />
   </CEffectSet>
   <CEffectCreateHealer id="NecromancerRaiseSkeletonTragOulsEssenceCreateHealerHealth" parent="StormSelfOnlyHealingSpellPercent">
-    <ImpactUnit Effect="NecromancerRaiseSkeletonApplyTalentDamageResponse" Value="Caster" />
+    <ImpactUnit Value="Caster" />
     <RechargeVitalFraction value="0.005" />
     <SourceButtonFace value="NecromancerTragOulsEssence" />
   </CEffectCreateHealer>
@@ -2755,8 +2762,9 @@
     <SpawnEffect value="NecromancerSkeletalMagesSpawnSet" />
     <SpawnUnit value="NecromancerSkeletalMage" />
   </CEffectCreateUnit>
-  <CEffectDamage id="NecromancerSkeletalMagesDamage" parent="StormSummonedUnitWeapon">
+  <CEffectDamage id="NecromancerSkeletalMagesDamage" parent="StormSpell">
     <Amount value="46.875" />
+    <Visibility value="Hidden" />
   </CEffectDamage>
   <CEffectEnumArea id="NecromancerSkeletalMagesAuraSearch">
     <SearchFilters value="-;Self,Player,Ally,ImmuneToAOE,Structure,User1,Missile,Stasis,Dead,Hidden,Invulnerable,Unstoppable" />
@@ -2774,7 +2782,6 @@
   </CEffectCreateUnit>
   <CEffectSet id="NecromancerBonePrisonJailorsTalentRaiseSkeletonSpawnSet">
     <EffectArray value="NecromancerBonePrisonApplyJailorTalentRaiseSkeletonTimedLife" />
-    <EffectArray value="NecromancerRaiseSkeletonApplyTalentDamageResponse" />
     <EffectArray value="NecromancerRaiseSkeletonCorpseExplosionHealthCarryApplyBehavior" />
     <EffectArray value="NecromancerBonePrisonJailorsQuestProgressIncrementTokenCount" />
     <EffectArray value="NecromancerSkeletalMageColdHandOfDeathApplyBehavior" />
@@ -2790,6 +2797,9 @@
   <CEffectApplyBehavior id="NecromancerRaiseSkeletonApplyTimedLife">
     <Behavior value="NecromancerRaiseSkeletonTimedLife" />
   </CEffectApplyBehavior>
+  <CEffectEnumTrackedUnits id="NecromancerSkeletalMagesAttackEnumTarget" parent="StormSummonedUnitEnumTrackedAttackUnit">
+    <Effect value="NecromancerSkeletalMagesLaunchMissile" />
+  </CEffectEnumTrackedUnits>
   <CEffectLaunchMissile id="NecromancerSkeletalMagesLaunchMissile">
     <ImpactEffect value="NecromancerSkeletalMagesWeaponImpactSwitch" />
     <AmmoUnit value="NecromancerSkeletalMagesWeaponMissile" />
@@ -2824,16 +2834,45 @@
     <SpawnEffect value="NecromancerRaiseSkeletonSpawnSet" />
     <SpawnUnit value="NecromancerRaiseSkeleton" />
   </CEffectCreateUnit>
-  <CEffectSwitch id="NecromancerRaiseSkeletonAttackImpactSwitch" parent="SummonedBasicAttackAbilityDamageMissCheck">
-    <CaseDefault value="NecromancerRaiseSkeletonAttackImpactSet" />
+  <CEffectApplyBehavior id="NecromancerRaiseSkeletonApplyAbilityController">
+    <Behavior value="NecromancerRaiseSkeletonAbilityController" />
+  </CEffectApplyBehavior>
+  <CEffectApplyBehavior id="NecromancerRaiseSkeletonAddAbilityTargetController">
+    <ValidatorArray value="NecromancerRaiseSkeletonDoesNotHaveAbilityTargetController" />
+    <Behavior value="NecromancerRaiseSkeletonAbilityTargetController" />
+  </CEffectApplyBehavior>
+  <CEffectRemoveBehavior id="NecromancerRaiseSkeletonRemoveAbilityTargetController">
+    <WhichUnit Value="Caster" />
+    <BehaviorLink value="NecromancerRaiseSkeletonAbilityTargetController" />
+    <CancelBehavior value="1" />
+  </CEffectRemoveBehavior>
+  <CEffectSet id="NecromancerRaiseSkeletonAttackSet" parent="StormSummonedUnitAddAttackTargetSet" behaviorRemoveEffect="NecromancerRaiseSkeletonRemoveAbilityTargetController" />
+  <CEffectEnumTrackedUnits id="NecromancerRaiseSkeletonAttackEnumTarget" parent="StormSummonedUnitEnumTrackedAttackUnit">
+    <Effect value="NecromancerRaiseSkeletonWeaponSwitch" />
+  </CEffectEnumTrackedUnits>
+  <CEffectSwitch id="NecromancerRaiseSkeletonWeaponSwitch">
+    <CaseArray Validator="NecromancerRaiseSkeletonAttackerBlindedOrTargetIsEvadingAndNotGenjiDodge" Effect="BlindMissedDummy" />
+    <CaseDefault value="NecromancerRaiseSkeletonWeaponImpactSet" />
   </CEffectSwitch>
-  <CEffectSet id="NecromancerRaiseSkeletonAttackImpactSet">
-    <EffectArray value="StormSummonedWeaponPhysicalDamageDummy" />
+  <CEffectSet id="NecromancerRaiseSkeletonWeaponImpactSet">
     <EffectArray value="NecromancerRaiseSkeletonDamage" />
+    <EffectArray value="NecromancerRaiseSkeletonTragOulsEssenceSet" />
+    <EffectArray value="NecromancerKalansEdictSkeletalWarriorAttackModifyCooldown" />
+    <EffectArray value="NecromancerCursedStrikesWeakenDamageReductionApplyBehaviorSkeletalWarriors" />
+    <EffectArray value="NecromancerRaiseSkeletonDecrepifyApplySlowBehavior" />
+    <EffectArray value="NecromancerRaiseSkeletonDamagedUnitTrackerAdd" />
+    <EffectArray value="NecromancerRaiseSkeletonCreatePersistentRevealDummy" />
   </CEffectSet>
-  <CEffectDamage id="NecromancerRaiseSkeletonDamage" parent="StormSummonedUnitWeapon">
+  <CEffectDamage id="NecromancerRaiseSkeletonDamage" parent="StormSpell">
     <Amount value="21" />
+    <Visibility value="Hidden" />
   </CEffectDamage>
+  <CEffectAddTrackedUnit id="NecromancerRaiseSkeletonDamagedUnitTrackerAdd" parent="StormSummonedUnitDamagedUnitTrackerAdd">
+    <TrackerUnit Effect="NecromancerRaiseSkeletonEnumTargetUnit" Value="Target" />
+  </CEffectAddTrackedUnit>
+  <CEffectCreatePersistent id="NecromancerRaiseSkeletonCreatePersistentRevealDummy" parent="StormSummonedUnitPhysicalDamageDealtPersistent">
+    <WhichLocation Effect="NecromancerRaiseSkeletonEnumTargetUnit" Value="TargetUnit" />
+  </CEffectCreatePersistent>
   <CEffectCreatePersistent id="NecromancerRaiseSkeletonCreationPersistent">
     <ExpireDelay value="1.125" />
     <PeriodCount value="1" />
@@ -2847,30 +2886,39 @@
     <EffectArray value="NecromancerSkeletalMageColdHandOfDeathApplyBehavior" />
     <EffectArray value="NecromancerRaiseSkeletonAddTrackerUnit" />
     <EffectArray value="NecromancerRaiseSkeletonAllSpawnTypesUnitTrackerAddTrackedUnit" />
+    <EffectArray value="NecromancerRaiseSkeletonApplyAbilityController" />
   </CEffectSet>
-  <CEffectSwitch id="NecromancerSkeletalMagesWeaponImpactSwitch" parent="SummonedBasicAttackAbilityDamageMissCheck">
+  <CEffectSwitch id="NecromancerSkeletalMagesWeaponImpactSwitch">
+    <CaseArray Validator="NecromancerSkeletalMagesAttackerBlindedOrTargetIsEvadingAndNotGenjiDodge" Effect="BlindMissedDummy" />
     <CaseDefault value="NecromancerSkeletalMagesWeaponImpactSet" />
   </CEffectSwitch>
   <CEffectSet id="NecromancerSkeletalMagesWeaponImpactSet">
-    <EffectArray value="NecromancerSkeletalMagesApplySlow" />
-    <EffectArray value="StormSummonedWeaponPhysicalDamageDummy" />
     <EffectArray value="NecromancerSkeletalMagesDamage" />
+    <EffectArray value="NecromancerSkeletalMagesApplySlow" />
+    <EffectArray value="NecromancerSkeletalMagesDamagedUnitTrackerAdd" />
+    <EffectArray value="NecromancerSkeletalMagesCreatePersistentRevealDummy" />
   </CEffectSet>
   <CEffectLaunchMissile id="NecromancerSkeletalMagesWeaponLaunchMissile">
-    <ImpactEffect value="NecromancerSkeletalMagesWeaponImpactSet" />
+    <ImpactEffect value="NecromancerSkeletalMagesWeaponImpactSwitch" />
     <AmmoUnit value="NecromancerSkeletalMagesWeaponMissile" />
     <Movers Link="RangedMinionMissile" />
   </CEffectLaunchMissile>
   <CEffectApplyBehavior id="NecromancerSkeletalMagesApplySlow" parent="StormSlowApply">
-    <ValidatorArray value="CasterNotBlindedAndTargetNotEvading" />
     <Behavior value="NecromancerSkeletalMagesSlow" />
   </CEffectApplyBehavior>
+  <CEffectAddTrackedUnit id="NecromancerSkeletalMagesDamagedUnitTrackerAdd" parent="StormSummonedUnitDamagedUnitTrackerAdd">
+    <TrackerUnit Effect="NecromancerSkeletalMagesAttackEnumTarget" Value="Target" />
+  </CEffectAddTrackedUnit>
+  <CEffectCreatePersistent id="NecromancerSkeletalMagesCreatePersistentRevealDummy" parent="StormSummonedUnitPhysicalDamageDealtPersistent">
+    <WhichLocation Effect="NecromancerSkeletalMagesAttackEnumTarget" Value="TargetUnit" />
+  </CEffectCreatePersistent>
   <CEffectApplyBehavior id="NecromancerSkeletalMagesApplyTimedLifeDummy">
     <Behavior value="NecromancerSkeletalMagesTimedLifeDummy" />
   </CEffectApplyBehavior>
   <CEffectSet id="NecromancerSkeletalMagesSpawnSet">
     <EffectArray value="NecromancerSkeletalMagesApplyPreBirth" />
     <EffectArray value="NecromancerSkeletalMagesApplyTimedLifeDummy" />
+    <EffectArray value="NecromancerSkeletalMagesApplyAbilityController" />
   </CEffectSet>
   <CEffectModifyUnit id="NecromancerRaiseSkeletonAddCharge">
     <Cost Abil="NecromancerRaiseSkeletonDisplayAbility,Execute" ChargeCountUse="-1" CooldownOperation="Add" />
@@ -2883,7 +2931,7 @@
   </CEffectCreatePersistent>
   <CEffectSet id="NecromancerRaiseSkeletonCorpseExplosionTalentImpactSet">
     <EffectArray value="NecromancerRaiseSkeletonCorpseExplosionTalentDamage" />
-    <EffectArray value="NecromancerCursedStrikesWeakenDamageReductionApplyBehavior" />
+    <EffectArray value="NecromancerCursedStrikesWeakenDamageReductionApplyBehaviorSkeletalWarriors" />
     <EffectArray value="NecromancerKalansEdictCorpseExplosionModifyCooldown" />
     <EffectArray value="NecromancerRaiseSkeletonDecrepifyApplySlowBehavior" />
   </CEffectSet>
@@ -2938,13 +2986,23 @@
     <EffectArray value="NecromancerCursedStrikesRemoveAttackLeft" />
     <EffectArray value="NecromancerCursedStrikesApplyAttackRight" />
   </CEffectSet>
-  <CEffectSet id="NecromancerSkeletalMagesWeaponLaunchSetHeroic">
+  <CEffectApplyBehavior id="NecromancerSkeletalMagesApplyAbilityController">
+    <Behavior value="NecromancerSkeletalMagesAbilityController" />
+  </CEffectApplyBehavior>
+  <CEffectApplyBehavior id="NecromancerSkeletalMagesAddAbilityTargetController">
+    <ValidatorArray value="NecromancerSkeletalMagesDoesNotHaveAbilityTargetController" />
+    <Behavior value="NecromancerSkeletalMagesAbilityTargetController" />
+  </CEffectApplyBehavior>
+  <CEffectRemoveBehavior id="NecromancerSkeletalMagesRemoveAbilityTargetController">
+    <WhichUnit Value="Caster" />
+    <BehaviorLink value="NecromancerSkeletalMagesAbilityTargetController" />
+    <CancelBehavior value="1" />
+  </CEffectRemoveBehavior>
+  <CEffectSet id="NecromancerSkeletalMagesAttackSetHeroic" parent="StormSummonedUnitAddAttackTargetSet" behaviorRemoveEffect="NecromancerSkeletalMagesRemoveAbilityTargetController">
     <ValidatorArray value="TargetIsHero" />
-    <EffectArray value="NecromancerSkeletalMagesLaunchMissile" />
   </CEffectSet>
-  <CEffectSet id="NecromancerSkeletalMagesWeaponLaunchSetNonHeroic">
+  <CEffectSet id="NecromancerSkeletalMagesAttackSetNonHeroic" parent="StormSummonedUnitAddAttackTargetSet" behaviorRemoveEffect="NecromancerSkeletalMagesRemoveAbilityTargetController">
     <ValidatorArray value="TargetNotHero" />
-    <EffectArray value="NecromancerSkeletalMagesLaunchMissile" />
   </CEffectSet>
   <CHero id="Necromancer">
     <AttributeId value="Necr" />
@@ -3534,22 +3592,6 @@
   </CTalent>
   <CTalent id="NecromancerTalentKalansEdict">
     <Face value="NecromancerTalentKalansEdict" />
-    <AbilityModificationArray>
-      <Modifications>
-        <Type value="FlatModification" />
-        <Catalog value="Effect" />
-        <Entry value="NecromancerKalansEdictSkeletalWarriorAttackModifyCooldown" />
-        <Field value="Chance" />
-        <Value value="1.000000" />
-      </Modifications>
-      <Modifications>
-        <Type value="FlatModification" />
-        <Catalog value="Effect" />
-        <Entry value="NecromancerKalansEdictCorpseExplosionModifyCooldown" />
-        <Field value="Chance" />
-        <Value value="1.000000" />
-      </Modifications>
-    </AbilityModificationArray>
     <Trait value="1" />
   </CTalent>
   <CTalent id="NecromancerTalentRapidHarvest">
@@ -3823,6 +3865,8 @@
     <AbilArray Link="attack" />
     <AbilArray Link="move" />
     <WeaponArray Link="NecromancerRaiseSkeletonWeapon" />
+    <BehaviorArray Link="StormSummonedUnitTargetTracker" />
+    <BehaviorArray Link="StormSummonedUnitDamagedUnitTracker" />
     <CardLayouts>
       <LayoutButtons Face="Attack" Type="AbilCmd" AbilCmd="attack,Execute" Slot="Hold" />
       <LayoutButtons Face="Move" Type="AbilCmd" AbilCmd="move,Move" Slot="Hearth" />
@@ -3839,6 +3883,8 @@
     <AbilArray Link="attack" />
     <AbilArray Link="move" />
     <WeaponArray Link="NecromancerRaiseSkeletonWeapon" />
+    <BehaviorArray Link="StormSummonedUnitTargetTracker" />
+    <BehaviorArray Link="StormSummonedUnitDamagedUnitTracker" />
     <CardLayouts>
       <LayoutButtons Face="Attack" Type="AbilCmd" AbilCmd="attack,Execute" Slot="Hold" />
       <LayoutButtons Face="Move" Type="AbilCmd" AbilCmd="move,Move" Slot="Hearth" />
@@ -3855,6 +3901,8 @@
     <AbilArray Link="move" />
     <WeaponArray Link="NecromancerSkeletalMagesHeroWeapon" />
     <WeaponArray Link="NecromancerSkeletalMagesWeapon" />
+    <BehaviorArray Link="StormSummonedUnitTargetTracker" />
+    <BehaviorArray Link="StormSummonedUnitDamagedUnitTracker" />
     <CardLayouts>
       <LayoutButtons Face="Attack" Type="AbilCmd" AbilCmd="attack,Execute" Slot="Hearth" />
       <LayoutButtons Face="Move" Type="AbilCmd" AbilCmd="move,Move" Slot="Cancel" />
@@ -4209,6 +4257,32 @@
   <CValidatorUnitType id="TargetIsNecromancerSkeleton">
     <Value value="NecromancerRaiseSkeleton" />
   </CValidatorUnitType>
+  <CValidatorUnitHasBehavior id="NecromancerRaiseSkeletonDoesNotHaveAbilityTargetController">
+    <Behavior value="NecromancerRaiseSkeletonAbilityTargetController" />
+    <Negate value="1" />
+  </CValidatorUnitHasBehavior>
+  <CValidatorCombine id="NecromancerRaiseSkeletonAttackerBlindedOrTargetIsEvadingAndNotGenjiDodge">
+    <CombineArray value="NecromancerRaiseSkeletonAttackerBlinded" />
+    <CombineArray value="TargetIsEvadingAndNotGenjiDodge" />
+  </CValidatorCombine>
+  <CValidatorUnitCompareBehaviorCount id="NecromancerRaiseSkeletonAttackerBlinded">
+    <Compare value="GT" />
+    <WhichUnit Effect="NecromancerRaiseSkeletonEnumTargetUnit" />
+    <Categories index="DebuffBlind" value="1" />
+  </CValidatorUnitCompareBehaviorCount>
+  <CValidatorUnitHasBehavior id="NecromancerSkeletalMagesDoesNotHaveAbilityTargetController">
+    <Behavior value="NecromancerSkeletalMagesAbilityTargetController" />
+    <Negate value="1" />
+  </CValidatorUnitHasBehavior>
+  <CValidatorCombine id="NecromancerSkeletalMagesAttackerBlindedOrTargetIsEvadingAndNotGenjiDodge">
+    <CombineArray value="NecromancerSkeletalMagesAttackerBlinded" />
+    <CombineArray value="TargetIsEvadingAndNotGenjiDodge" />
+  </CValidatorCombine>
+  <CValidatorUnitCompareBehaviorCount id="NecromancerSkeletalMagesAttackerBlinded">
+    <Compare value="GT" />
+    <WhichUnit Effect="NecromancerSkeletalMagesEnumTargetUnit" />
+    <Categories index="DebuffBlind" value="1" />
+  </CValidatorUnitCompareBehaviorCount>
   <CWeaponLegacy id="NecromancerHeroWeapon" parent="StormHeroMediumWeapon">
     <Options index="Melee" value="1" />
     <Icon value="Assets\Textures\storm_temp_btn-upgrade-terran-infantryweaponslevel2.dds" />
@@ -4236,7 +4310,7 @@
     <Range value="0.5" />
     <Period value="1" />
     <Backswing value="0" />
-    <Effect value="NecromancerRaiseSkeletonAttackImpactSwitch" />
+    <Effect value="NecromancerRaiseSkeletonAttackSet" />
     <DamagePoint value="0.3125" />
     <ScanValidationArray value="TargetNotNoMinionAggroAndSummoned" />
     <DisplayEffect value="NecromancerRaiseSkeletonDamage" />
@@ -4249,7 +4323,7 @@
     <Period value="1" />
     <DamagePoint value="0" />
     <Backswing value="0" />
-    <Effect value="NecromancerSkeletalMagesWeaponLaunchSetNonHeroic" />
+    <Effect value="NecromancerSkeletalMagesAttackSetNonHeroic" />
     <ScanValidationArray value="TargetNotNoMinionAggroAndSummoned" />
   </CWeaponLegacy>
   <CWeaponLegacy id="NecromancerSkeletalMagesHeroWeapon" parent="NecromancerSkeletalMagesWeapon">
@@ -4257,6 +4331,6 @@
     <TargetFilters value="Heroic,Visible;Self,Player,Ally,Neutral,User1,Missile,Item,Stasis,Invulnerable,Benign" />
     <AcquireFilters value="Heroic,Visible;Self,Player,Ally,Neutral,User1,Missile,Item,Stasis,Invulnerable,Benign" />
     <AcquireScanFilters value="Heroic,Visible;Self,Player,Ally,Neutral,User1,Missile,Item,Stasis,Invulnerable,Benign" />
-    <Effect value="NecromancerSkeletalMagesWeaponLaunchSetHeroic" />
+    <Effect value="NecromancerSkeletalMagesAttackSetHeroic" />
   </CWeaponLegacy>
 </Catalog>

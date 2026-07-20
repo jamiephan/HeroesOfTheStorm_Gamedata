@@ -281,6 +281,35 @@
     </EndLocation>
     <Scale value="1" />
   </CAccumulatorDistance>
+  <CAccumulatorDistance id="AnaEyeOfHorusDistanceAccumulatorStructureTargetMidPoint" parent="BaseAccumulator">
+    <MinAccumulation value="-500" />
+    <MaxAccumulation value="0" />
+    <StartLocation Value="CasterPoint" />
+    <EndLocation>
+      <Effect value="AnaEyeOfHorusImpactEnemyStructureSet" />
+      <Value value="TargetUnitOrPoint" />
+      <ProjectionSourceEffect value="AnaEyeOfHorusImpactEnemyStructureSet" />
+      <ProjectionSourceValue value="TargetUnitOrPoint" />
+      <ProjectionTargetValue value="TargetUnitOrPoint" />
+      <UsesLineDash value="1" />
+    </EndLocation>
+    <ApplicationRule value="Add" />
+    <Scale value="-0.5" />
+  </CAccumulatorDistance>
+  <CAccumulatorDistance id="AnaEyeOfHorusDistanceAccumulatorStructureTarget" parent="BaseAccumulator">
+    <MaxAccumulation value="500" />
+    <StartLocation Value="CasterPoint" />
+    <EndLocation>
+      <Effect value="AnaEyeOfHorusImpactEnemyStructureSet" />
+      <Value value="TargetUnitOrPoint" />
+      <ProjectionSourceEffect value="AnaEyeOfHorusImpactEnemyStructureSet" />
+      <ProjectionSourceValue value="TargetUnitOrPoint" />
+      <ProjectionTargetValue value="TargetUnitOrPoint" />
+      <UsesLineDash value="1" />
+    </EndLocation>
+    <ApplicationRule value="Add" />
+    <Scale value="1" />
+  </CAccumulatorDistance>
   <CAccumulatorDistance id="AnaEyeOfHorusImpactSearchRevealAccumulator" parent="BaseAccumulator">
     <MinAccumulation value="-524288" />
     <MaxAccumulation value="524287.9997" />
@@ -2731,8 +2760,8 @@
     <EffectArray value="AnaEyeOfHorusAttackTriggerMarkerApplyBehavior" />
     <EffectArray value="AnaEyeOfHorusAttackSetFacing" />
     <EffectArray value="AnaEyeOfHorusHeroHitRemoveBehavior" />
-    <EffectArray value="AnaEyeOfHorusNoEnemyStructureDelay" />
     <EffectArray value="AnaEyeOfHorusEnemyStructureSearch" />
+    <EffectArray value="AnaEyeOfHorusNoEnemyStructureSet" />
     <TargetLocationType value="Point" />
   </CEffectSet>
   <CEffectModifyUnit id="AnaEyeOfHorusAttackSetDummyCooldown">
@@ -2785,13 +2814,8 @@
     </AreaArray>
     <SearchFlags index="DoActorSearch" value="1" />
   </CEffectEnumArea>
-  <CEffectCreatePersistent id="AnaEyeOfHorusNoEnemyStructureDelay">
-    <WhichLocation Value="CasterUnit" />
-    <PeriodCount value="1" />
-    <PeriodicEffectArray value="AnaEyeOfHorusNoEnemyStructureSet" />
-    <PeriodicPeriodArray value="0.0625" />
-  </CEffectCreatePersistent>
   <CEffectSet id="AnaEyeOfHorusNoEnemyStructureSet">
+    <ValidatorArray value="AnaEyeOfHorusCasterDoesNotHaveHeroHit" />
     <EffectArray value="AnaEyeOfHorusNoEnemyStructureHitDummy" />
     <EffectArray value="AnaEyeOfHorusNoEnemyStructureDamageSearch" />
   </CEffectSet>
@@ -2822,14 +2846,14 @@
     <RevealerParams Duration="0.75" ShapeExpansion="1">
       <RevealFlags index="Unfog" value="1" />
     </RevealerParams>
-    <SearchFilters value="-;Stasis" />
+    <SearchFilters value="Heroic;Self,Player,Missile,Item,Stasis,Dead" />
   </CEffectEnumArea>
   <CEffectSet id="AnaEyeOfHorusImpactEnemyStructureSet">
     <ValidatorArray value="IsEnemyStructure" />
-    <EffectArray value="AnaEyeOfHorusNoEnemyStructureDestroyCP" />
+    <EffectArray value="AnaEyeOfHorusUpdateHeroSearchCatalog" />
     <EffectArray value="AnaEyeOfHorusHeroHitApplyBehavior" />
     <EffectArray value="AnaEyeOfHorusImpactReveal" />
-    <EffectArray value="EyeOfHorusAttackDamageSearch" />
+    <EffectArray value="AnaEyeOfHorusAttackDamageSearchBetweenBuildingHit" />
     <EffectArray value="AnaEyeOfHorusImpactDummyDamage" />
     <EffectArray value="AnaEyeOfHorusMainTargetMarkerApplyBehavior" />
     <EffectArray value="AnaEyeOfHorusImpactSwitch" />
@@ -2844,10 +2868,18 @@
     <EffectArray value="AnaEyeOfHorusMainTargetMarkerApplyBehavior" />
     <EffectArray value="AnaEyeOfHorusImpactSwitch" />
   </CEffectSet>
-  <CEffectDestroyPersistent id="AnaEyeOfHorusNoEnemyStructureDestroyCP">
-    <Effect value="AnaEyeOfHorusNoEnemyStructureDelay" />
-    <Count value="1" />
-  </CEffectDestroyPersistent>
+  <CEffectModifyCatalogNumeric id="AnaEyeOfHorusUpdateHeroSearchCatalog">
+    <CatalogModifications Operation="Set" Reference="Effect,AnaEyeOfHorusAttackDamageSearchBetweenBuildingHit,AreaRelativeOffset.Y">
+      <Value value="0">
+        <AccumulatorArray value="AnaEyeOfHorusDistanceAccumulatorStructureTargetMidPoint" />
+      </Value>
+    </CatalogModifications>
+    <CatalogModifications Operation="Set" Reference="Effect,AnaEyeOfHorusAttackDamageSearchBetweenBuildingHit,AreaArray[0].RectangleHeight">
+      <Value value="0">
+        <AccumulatorArray value="AnaEyeOfHorusDistanceAccumulatorStructureTarget" />
+      </Value>
+    </CatalogModifications>
+  </CEffectModifyCatalogNumeric>
   <CEffectEnumArea id="AnaEyeOfHorusImpactReveal">
     <AreaArray>
       <Radius value="2" />
@@ -2905,27 +2937,19 @@
     <WhichUnit Value="Caster" />
     <Behavior value="AnaDebilitatingDartMissMarkerBuff" />
   </CEffectApplyBehavior>
-  <CEffectEnumArea id="EyeOfHorusAttackDamageSearch">
-    <ImpactLocation>
-      <Value value="CasterPoint" />
-      <ProjectionMultiplier value="1" />
-      <ProjectionSourceValue value="CasterPoint" />
-      <ProjectionTargetValue value="FocusPoint" />
-      <UsesLineDash value="1" />
-      <ProjectionDistanceScale value="500" />
-      <PostProjectionOffsetScale value="0.5" />
-    </ImpactLocation>
-    <AreaArray Effect="AnaEyeOfHorusImpactHeroDummySet">
+  <CEffectEnumArea id="AnaEyeOfHorusAttackDamageSearchBetweenBuildingHit">
+    <LaunchLocation Value="CasterPoint" />
+    <ImpactLocation Effect="AnaEyeOfHorusAttackInitialSet" Value="TargetPoint" />
+    <AreaArray Effect="AnaEyeOfHorusImpactHeroSet">
       <RectangleWidth value="1" />
-      <RectangleHeight value="0">
-        <AccumulatorArray value="AnaEyeOfHorusDistanceAccumulator" />
-      </RectangleHeight>
+      <RectangleHeight value="1" />
     </AreaArray>
     <RevealerParams Duration="0.75" ShapeExpansion="1">
       <RevealFlags index="Unfog" value="1" />
     </RevealerParams>
     <SearchFlags index="DoActorSearch" value="1" />
-    <SearchFilters value="-;Stasis" />
+    <SearchFlags index="CenterAtLaunch" value="1" />
+    <SearchFilters value="Heroic;Self,Player,Missile,Item,Stasis,Dead" />
   </CEffectEnumArea>
   <CEffectCreatePersistent id="AnaEyeOfHorusRadiusTargetHitDummyTriggerImpactCreatePersistent">
     <WhichLocation Value="CasterUnit" />
@@ -5336,6 +5360,11 @@
     <WhichUnit Value="Caster" />
     <Behavior value="AnaEyeOfHorusHeroHit" />
   </CValidatorUnitCompareBehaviorCount>
+  <CValidatorUnitHasBehavior id="AnaEyeOfHorusCasterDoesNotHaveHeroHit">
+    <WhichUnit Value="Caster" />
+    <Behavior value="AnaEyeOfHorusHeroHit" />
+    <Negate value="1" />
+  </CValidatorUnitHasBehavior>
   <CValidatorUnitCompareBehaviorCount id="AnaSourceHasSleepDartAimDownSightsDummyBehavior">
     <WhichUnit Value="Source" />
     <Compare value="GT" />

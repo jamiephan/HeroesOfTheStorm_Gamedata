@@ -1287,7 +1287,6 @@
     <InfoFlags index="Hidden" value="1" />
     <InfoIcon value="Assets\Textures\storm_ui_icon_probius_photoncannon.dds" />
     <TokenId value="ProbiusPhotonCannonGatherMineralsQuestTokenFX" />
-    <AtMaxEvents index="0" EventId="QuestComplete" Effect="ProbiusPhotonCannonGatherMineralsQuestCompleteModify" />
     <Max value="70" />
   </CBehaviorTokenCounter>
   <CBehaviorBuff id="ProbiusWarpInPylonShieldBatteryShieldBuff">
@@ -1667,6 +1666,16 @@
     </Modification>
     <InitialEffect value="ProbiusPhotonCannonApplyWeaponSuppressionBehavior" />
   </CBehaviorBuff>
+  <CBehaviorBuff id="ProbiusPhotonCannonAbilityController" parent="CarryBehaviorParent">
+    <EnableEffect value="ProbiusPhotonCannonAddAbilityTargetController" />
+    <PeriodicEffect value="ProbiusPhotonCannonAddAbilityTargetController" />
+    <Period value="0.0625" />
+    <DisableValidatorArray value="ProbiusPhotonCannonDoesNotHaveAbilityTargetController" />
+  </CBehaviorBuff>
+  <CBehaviorBuff id="ProbiusPhotonCannonAbilityTargetController" parent="CarryBehaviorParent">
+    <Face value="ProbiusPhotonCannon" />
+    <CancelEffect value="ProbiusPhotonCannonEnumTarget" />
+  </CBehaviorBuff>
   <CBehaviorBuff id="ProbiusPylonOverchargeWeaponInitialCoolup">
     <Duration value="0.5" />
     <Modification>
@@ -1902,10 +1911,6 @@
   <CEffectApplyBehavior id="ProbiusPhotonCannonApplyAttackSpeedBehavior">
     <WhichUnit Value="Source" />
     <Behavior value="ProbiusPhotonCannonAttackSpeedBuff" />
-  </CEffectApplyBehavior>
-  <CEffectApplyBehavior id="ProbiusPhotonCannonGatherMineralsApplyBonusDamage">
-    <Chance value="0" />
-    <Behavior value="ProbiusPhotonCannonGatherMineralsBonusDamage" />
   </CEffectApplyBehavior>
   <CEffectModifyUnit id="ProbiusPhotonCannonTowerDefenseReduceCooldown">
     <Cost Abil="ProbiusPhotonCannon,Execute" CooldownOperation="Add" CooldownTimeUse="-3.5" />
@@ -2457,10 +2462,6 @@
     <WhichUnit Effect="ProbiusPhotonCannonPeriodicSet" Value="Caster" />
     <Behavior value="ProbiusPhotonCannonPhotonBarrierPowered" />
   </CEffectApplyBehavior>
-  <CEffectSwitch id="ProbiusPhotonCannonDamageSwitch">
-    <CaseArray Validator="ProbiusPhotonCannonHasPhotonCannonGatherMineralsBonusDamage" Effect="ProbiusPhotonCannonGatherMineralsWeaponDamage" />
-    <CaseDefault value="ProbiusPhotonCannonWeaponDamage" />
-  </CEffectSwitch>
   <CEffectApplyBehavior id="ProbiusPhotonCannonGatherMineralsApplyBonusHealth">
     <Behavior value="ProbiusPhotonCannonGatherMineralsBonusHealth" />
     <Chance value="0" />
@@ -2470,8 +2471,8 @@
     <EffectArray value="ProbiusPhotonCannonGatherMineralsApplyRevealerIconBehavior" />
     <EffectArray value="ProbiusPhotonCannonGatherMineralsTransferTokenCount" />
     <EffectArray value="ProbiusPhotonCannonGatherMineralsApplyBonusHealth" />
-    <EffectArray value="ProbiusPhotonCannonGatherMineralsApplyBonusDamage" />
     <EffectArray value="ProbiusPhotonCannonApplyPowerOverflowingSummonedUnitBuff" />
+    <EffectArray value="ProbiusPhotonCannonAddAbilityController" />
   </CEffectSet>
   <CEffectApplyBehavior id="ProbiusPhotonCannonGatherMineralsApplyRevealerIconBehavior">
     <Behavior value="ProbiusPhotonCannonGatherMineralsRevealerIcon" />
@@ -2479,10 +2480,6 @@
   <CEffectApplyBehavior id="ProbiusPhotonCannonGatherMineralsApplyModelBuff">
     <Behavior value="ProbiusPhotonCannonGatherMineralsModelBuff" />
   </CEffectApplyBehavior>
-  <CEffectModifyPlayer id="ProbiusPhotonCannonGatherMineralsQuestCompleteModify">
-    <EffectCategory index="Quest" value="1" />
-    <EffectArray Operation="Set" Reference="Effect,ProbiusPhotonCannonGatherMineralsApplyBonusDamage,Chance" Value="1" />
-  </CEffectModifyPlayer>
   <CEffectEnumArea id="ProbiusPhotonCannonGatherMineralsRevealSearch">
     <SearchFilters value="-;Player,Ally,Neutral,ImmuneToAOE,Missile,Item,Dead,Hidden,Invulnerable" />
     <AreaArray Effect="ProbiusPhotonCannonGatherMineralsApplyModelBuff">
@@ -2505,12 +2502,14 @@
     <EffectArray value="ProbiusPhotonCannonPhotonBarrierApplyPoweredBehavior" />
     <EffectArray value="ProbiusPhotonCannonApplyAttackSpeedBehavior" />
   </CEffectSet>
-  <CEffectSwitch id="ProbiusPhotonCannonWeaponImpactSwitch" parent="SummonedBasicAttackAbilityDamageMissCheck">
+  <CEffectSwitch id="ProbiusPhotonCannonWeaponImpactSwitch">
+    <CaseArray Validator="ProbiusPhotonCannonAttackerBlindedOrTargetIsEvadingAndNotGenjiDodge" Effect="BlindMissedDummy" />
     <CaseDefault value="ProbiusPhotonCannonWeaponImpactSet" />
   </CEffectSwitch>
   <CEffectSet id="ProbiusPhotonCannonWeaponImpactSet">
-    <EffectArray value="StormSummonedWeaponPhysicalDamageDummy" />
-    <EffectArray value="ProbiusPhotonCannonDamageSwitch" />
+    <EffectArray value="ProbiusPhotonCannonWeaponDamage" />
+    <EffectArray value="ProbiusPhotonCannonAttackDamagedUnitTrackerAdd" />
+    <EffectArray value="ProbiusPhotonCannonCreatePersistentRevealDummy" />
   </CEffectSet>
   <CEffectApplyBehavior id="ProbiusPhotonCannonApplyWarpOutBehavior">
     <WhichUnit Value="Source" />
@@ -2528,18 +2527,45 @@
     <Abil value="attack" />
     <Target Value="TargetUnit" />
   </CEffectIssueOrder>
-  <CEffectDamage id="ProbiusPhotonCannonWeaponDamage" parent="StormSummonedUnitWeapon">
+  <CEffectSet id="ProbiusPhotonCannonAttackSet" parent="StormSummonedUnitAddAttackTargetSet" behaviorRemoveEffect="ProbiusPhotonCannonRemoveAbilityTargetController" />
+  <CEffectEnumTrackedUnits id="ProbiusPhotonCannonEnumTarget" parent="StormSummonedUnitEnumTrackedAttackUnit">
+    <Effect value="ProbiusPhotonCannonWeaponAttackSet" />
+  </CEffectEnumTrackedUnits>
+  <CEffectSet id="ProbiusPhotonCannonWeaponAttackSet">
+    <EffectArray value="ProbiusPhotonCannonWeaponLaunchMissile" />
+  </CEffectSet>
+  <CEffectDamage id="ProbiusPhotonCannonWeaponDamage" parent="StormSpell">
+    <MultiplicativeModifierArray index="GatherMinerals" Validator="ProbiusCasterHasGatherMineralsTokenGTE70" Modifier="0.35" />
     <Amount value="105" />
     <SourceButtonFace value="ProbiusPhotonCannon" />
+    <Visibility value="Hidden" />
   </CEffectDamage>
-  <CEffectDamage id="ProbiusPhotonCannonGatherMineralsWeaponDamage" parent="ProbiusPhotonCannonWeaponDamage">
-    <MultiplicativeModifierArray index="GatherMinerals" Modifier="0.35" />
+  <CEffectDamage id="ProbiusPhotonCannonWeaponDamagePreview" parent="ProbiusPhotonCannonWeaponDamage">
+    <MultiplicativeModifierArray index="GatherMinerals" Validator="ProbiusCreatorHasGatherMineralsTokenGTE70" Modifier="0.35" />
   </CEffectDamage>
+  <CEffectAddTrackedUnit id="ProbiusPhotonCannonAttackDamagedUnitTrackerAdd" parent="StormSummonedUnitDamagedUnitTrackerAdd">
+    <TrackerUnit Effect="ProbiusPhotonCannonEnumTarget" Value="Target" />
+  </CEffectAddTrackedUnit>
+  <CEffectCreatePersistent id="ProbiusPhotonCannonCreatePersistentRevealDummy" parent="StormSummonedUnitPhysicalDamageDealtPersistent">
+    <WhichLocation Effect="ProbiusPhotonCannonEnumTarget" Value="TargetUnit" />
+  </CEffectCreatePersistent>
   <CEffectLaunchMissile id="ProbiusPhotonCannonWeaponLaunchMissile">
     <ValidatorArray index="0" value="TargetNotDead" />
     <ImpactEffect value="ProbiusPhotonCannonWeaponImpactSwitch" />
     <AmmoUnit value="ProbiusPhotonCannonWeaponAttackMissile" />
   </CEffectLaunchMissile>
+  <CEffectApplyBehavior id="ProbiusPhotonCannonAddAbilityController">
+    <Behavior value="ProbiusPhotonCannonAbilityController" />
+  </CEffectApplyBehavior>
+  <CEffectApplyBehavior id="ProbiusPhotonCannonAddAbilityTargetController">
+    <ValidatorArray value="ProbiusPhotonCannonDoesNotHaveAbilityTargetController" />
+    <Behavior value="ProbiusPhotonCannonAbilityTargetController" />
+  </CEffectApplyBehavior>
+  <CEffectRemoveBehavior id="ProbiusPhotonCannonRemoveAbilityTargetController">
+    <WhichUnit Value="Caster" />
+    <BehaviorLink value="ProbiusPhotonCannonAbilityTargetController" />
+    <CancelBehavior value="1" />
+  </CEffectRemoveBehavior>
   <CEffectApplyBehavior id="ProbiusPhotonCannonApplyTimedLifeBehavior">
     <Behavior value="ProbiusPhotonCannonTimedLifeBehavior" />
   </CEffectApplyBehavior>
@@ -2896,7 +2922,7 @@
       </Modifications>
       <Modifications>
         <Catalog value="Effect" />
-        <Entry value="ProbiusPhotonCannonGatherMineralsWeaponDamage" />
+        <Entry value="ProbiusPhotonCannonWeaponDamagePreview" />
         <Field value="Amount" />
         <Value value="0.040000" />
         <AffectedByAbilityPower value="1" />
@@ -4219,12 +4245,6 @@
       <Modifications>
         <Type value="FlatModification" />
         <Catalog value="Effect" />
-        <Entry value="ProbiusPhotonCannonGatherMineralsApplyBonusDamage" />
-        <Field value="Chance" />
-      </Modifications>
-      <Modifications>
-        <Type value="FlatModification" />
-        <Catalog value="Effect" />
         <Entry value="ProbiusPhotonCannonGatherMineralsRevealSearch" />
         <Field value="Chance" />
       </Modifications>
@@ -4448,6 +4468,8 @@
     <Sight value="7" />
     <BehaviorArray Link="HallOfStormsKnockbackKillable" />
     <BehaviorArray Link="ProbiusPhotonCannonGatherMineralsRevealerIcon" />
+    <BehaviorArray Link="StormSummonedUnitTargetTracker" />
+    <BehaviorArray Link="StormSummonedUnitDamagedUnitTracker" />
     <MinimapRadius value="0.75" />
     <PushPriority value="0" />
     <AlliedPushPriority value="0" />
@@ -4481,11 +4503,31 @@
     <Value value="3" />
     <TokenId value="ProbiusDisruptionPulseParticleAcceleratorTokenCounter" />
   </CValidatorUnitCompareTokenCount>
-  <CValidatorUnitCompareBehaviorCount id="ProbiusPhotonCannonHasPhotonCannonGatherMineralsBonusDamage">
-    <WhichUnit Value="Caster" />
-    <Value value="1" />
-    <Behavior value="ProbiusPhotonCannonGatherMineralsBonusDamage" />
+  <CValidatorUnitHasBehavior id="ProbiusPhotonCannonDoesNotHaveAbilityTargetController">
+    <Behavior value="ProbiusPhotonCannonAbilityTargetController" />
+    <Negate value="1" />
+  </CValidatorUnitHasBehavior>
+  <CValidatorUnitCompareBehaviorCount id="ProbiusPhotonCannonAttackerBlinded">
+    <Compare value="GT" />
+    <WhichUnit Effect="ProbiusPhotonCannonEnumTarget" />
+    <Categories index="DebuffBlind" value="1" />
   </CValidatorUnitCompareBehaviorCount>
+  <CValidatorCombine id="ProbiusPhotonCannonAttackerBlindedOrTargetIsEvadingAndNotGenjiDodge">
+    <CombineArray value="ProbiusPhotonCannonAttackerBlinded" />
+    <CombineArray value="TargetIsEvadingAndNotGenjiDodge" />
+  </CValidatorCombine>
+  <CValidatorUnitCompareTokenCount id="ProbiusCasterHasGatherMineralsTokenGTE70">
+    <WhichUnit Value="Caster" />
+    <Compare value="GE" />
+    <Value value="70" />
+    <TokenId value="ProbiusPhotonCannonGatherMineralsQuestToken" />
+  </CValidatorUnitCompareTokenCount>
+  <CValidatorUnitCompareTokenCount id="ProbiusCreatorHasGatherMineralsTokenGTE70">
+    <WhichUnit Value="Creator" />
+    <Compare value="GE" />
+    <Value value="70" />
+    <TokenId value="ProbiusPhotonCannonGatherMineralsQuestToken" />
+  </CValidatorUnitCompareTokenCount>
   <CValidatorCombine id="ProbiusTargetNearPylonOrOverchargedPylon">
     <CombineArray value="ProbiusTargetNearPylon" />
     <CombineArray value="ProbiusTargetNearOverchargedPylon" />
@@ -4941,7 +4983,7 @@
   </CWeaponLegacy>
   <CWeaponLegacy id="ProbiusPhotonCannonWeapon" parent="StormHeroMediumWeapon">
     <Options index="HoldFileInShrubs" value="0" />
-    <DisplayEffect value="ProbiusPhotonCannonWeaponDamage" />
+    <DisplayEffect value="ProbiusPhotonCannonWeaponDamagePreview" />
     <TargetFilters value="Visible;Player,Ally,Missile,Stasis,Dead,Hidden,Invulnerable" />
     <AcquireFilters value="Visible;Player,Ally,Missile,Stasis,Dead,Hidden,Invulnerable" />
     <MinScanRange value="6.5" />
@@ -4951,7 +4993,7 @@
     <Period value="1.4" />
     <DamagePoint value="0" />
     <Backswing value="0" />
-    <Effect value="ProbiusPhotonCannonWeaponLaunchMissile" />
+    <Effect value="ProbiusPhotonCannonAttackSet" />
     <ScanValidationArray value="TargetNotNoMinionAggroAndSummoned" />
     <LegacyOptions index="Uninterruptible" value="0" />
     <LegacyOptions index="FaceTargetWhileInCooldown" value="1" />

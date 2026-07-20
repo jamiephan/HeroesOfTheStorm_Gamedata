@@ -1,14 +1,28 @@
 <?xml version="1.0" encoding="us-ascii"?>
 <Catalog>
+  <const id="$JainaFrostboltDamage" value="184" />
+  <const id="$JainaFrostboltRange" value="11" />
+  <const id="$JainaBlizzardDamage" value="142" />
+  <const id="$JainaConeOfColdDamage" value="220" />
+  <const id="$JainaRingOfFrostDamage" value="310" />
   <const id="$JainaBlizzardRange" value="7.5" />
+  <const id="$JainaWintersReachModifier" value="0.3" />
+  <const id="$JainaWintersReachFrostboltRangeIncrease" value="*($JainaFrostboltRange $JainaWintersReachModifier)" evaluateAsExpression="1" />
   <const id="$JainaStormFrontRangeModifier" value="0.75" />
   <const id="$JainaStormFrontRangeIncrease" value="*($JainaBlizzardRange $JainaStormFrontRangeModifier)" evaluateAsExpression="1" />
   <const id="$JainaSummonWaterElementalRange" value="8.5" />
   <const id="$JainaWaterElementalHealth" value="958" />
   <const id="$JainaWaterElementalDecayDuration" value="32" />
+  <const id="$JainaWaterElementalAttackDamage" value="62" />
+  <const id="$JainaWaterElementalAttackSplashModifier" value="0.25" />
+  <const id="$JainaWaterElementalAttackSplashDamage" value="*($JainaWaterElementalAttackDamage $JainaWaterElementalAttackSplashModifier)" evaluateAsExpression="1" />
   <const id="$JainaWaterElementalLifeDecayRate" value="/($JainaWaterElementalHealth $JainaWaterElementalDecayDuration)" evaluateAsExpression="1" />
   <const id="$JainaWintermuteRangeModifier" value="0.4" />
   <const id="$JainaWintermuteRangeIncrease" value="*($JainaSummonWaterElementalRange $JainaWintermuteRangeModifier)" evaluateAsExpression="1" />
+  <const id="$JainaWintermuteDamageModifier" value="0.4" />
+  <const id="$JainaWintermuteFrostboltDamage" value="*($JainaFrostboltDamage $JainaWintermuteDamageModifier)" evaluateAsExpression="1" />
+  <const id="$JainaWintermuteBlizzardDamage" value="*($JainaBlizzardDamage $JainaWintermuteDamageModifier)" evaluateAsExpression="1" />
+  <const id="$JainaWintermuteConeOfColdDamage" value="*($JainaConeOfColdDamage $JainaWintermuteDamageModifier)" evaluateAsExpression="1" />
   <CAbilEffectInstant id="JainaIceBlockCancel">
     <Effect value="JainaIceBlockRemoveBehaviorsSet" />
     <Cost>
@@ -80,7 +94,8 @@
     <Arc value="360" />
   </CAbilEffectTarget>
   <CAbilEffectTarget id="JainaWaterElementalBlizzard">
-    <Effect value="JainaBlizzardBasePersistent" />
+    <PrepEffect value="JainaBlizzardWintermuteApplyCastingBehavior" />
+    <Effect value="JainaBlizzardWintermuteInitialSet" />
     <Flags index="ClearLastAttackTargetOutOfRange" value="1" />
     <Flags index="ClearLastMoveTarget" value="1" />
     <Flags index="RequireTargetVision" value="0" />
@@ -106,7 +121,7 @@
     <SharedFlags index="ExecutableWhileDead" value="1" />
   </CAbilEffectTarget>
   <CAbilEffectTarget id="JainaConeOfCold">
-    <PrepEffect value="DismountDecloakCasterSet" />
+    <PrepEffect value="JainaConeOfColdPrepSet" />
     <Effect value="JainaConeOfColdOffsetPersistent" />
     <Flags index="ClearLastAttackTargetOutOfRange" value="1" />
     <Flags index="ClearLastMoveTarget" value="1" />
@@ -130,7 +145,8 @@
     <CursorRangeFlags index="ClampMin" value="1" />
   </CAbilEffectTarget>
   <CAbilEffectTarget id="JainaWaterElementalConeOfCold">
-    <Effect value="JainaConeOfColdOffsetPersistent" />
+    <PrepEffect value="JainaConeOfColdWintermuteApplyCastingBehavior" />
+    <Effect value="JainaConeOfColdWintermuteInitialSet" />
     <Flags index="ClearLastAttackTargetOutOfRange" value="1" />
     <Flags index="ClearLastMoveTarget" value="1" />
     <Flags index="RequireTargetVision" value="0" />
@@ -182,11 +198,12 @@
     <CmdButtonArray index="Execute" DefaultButtonFace="JainaFrostbolt">
       <Flags index="AllowSelfCast" value="0" />
     </CmdButtonArray>
-    <PrepEffect value="DismountDecloakCasterSet" />
+    <PrepEffect value="JainaFrostboltPrepSet" />
     <Arc value="360" />
   </CAbilEffectTarget>
   <CAbilEffectTarget id="JainaWaterElementalFrostbolt">
-    <Effect value="JainaFrostboltLaunchMissile" />
+    <PrepEffect value="JainaFrostboltWintermuteApplyCastingBehavior" />
+    <Effect value="JainaFrostboltWintermuteInitialSet" />
     <Flags index="ClearLastAttackTargetOutOfRange" value="1" />
     <Flags index="ClearLastMoveTarget" value="1" />
     <Flags index="RequireTargetVision" value="0" />
@@ -453,6 +470,11 @@
     <ImpactPointSiteOps Ops="SOpTargetPointStationary SOpShadow JainaFrostboltVolleyOffset" />
     <LaunchSiteOps Ops="SOpForwardTargetUnit SOpOffsetLaunch" />
   </CActorAction>
+  <CActorAction id="JainaWaterElementalFrostboltAction" parent="RangedHeroAttackPoint" effectLaunch="JainaFrostboltWintermuteLaunchMissile">
+    <Missile value="JainaFrostboltMissile" />
+    <ImpactPointSiteOps Ops="SOpTargetPointStationary SOpShadow JainaFrostboltVolleyOffset" />
+    <LaunchSiteOps Ops="SOpForwardTargetUnit SOpOffsetLaunch" />
+  </CActorAction>
   <CActorAction id="HeroJainaAttack" parent="RangedHeroAttackMissile" effectImpact="JainaWeaponDamage" effectLaunch="JainaWeaponLaunchMissile">
     <LaunchAssets Sound="Jaina_Attack_Launch" />
     <ImpactMap index="None" Model="JainaAttackImpact" Sound="Jaina_Attack_Impact" />
@@ -518,7 +540,7 @@
     <Radius value="7.000000" />
   </CActorArc>
   <CActorQuad id="JainaFrostboltElementalGuide">
-    <Height value="11.000000" />
+    <Height value="JainaFrostboltRange" />
     <Width value="1.000000" />
     <Quad value="-0.500000,-1.000000,0.500000,0.000000" />
     <Host Subject="_ElementalSiteModel" Actor="Find" />
@@ -560,13 +582,16 @@
     <Sound value="Jaina_Frostbolt_Volley_Activate" />
   </CActorSound>
   <CActorQuad id="JainaFrostboltGuide" parent="StormGuideVisualQuadDownClosestFantasy" abil="JainaFrostbolt">
-    <Height value="11.000000" />
+    <Height value="$JainaFrostboltRange" />
     <Width value="1.000000" />
   </CActorQuad>
   <CActorSiteOpLocalOffset id="JainaFrostboltVolleyOffset">
     <LocalOffset Z="1.500000" />
   </CActorSiteOpLocalOffset>
   <CActorAction id="JainaFrostboltImpactAction" parent="RangedHeroAttack" effectAttack="JainaFrostboltImpactSet">
+    <ImpactMap index="None" Model="JainaFrostboltImpact" Sound="Jaina_Frostbolt_Volley_Impact" />
+  </CActorAction>
+  <CActorAction id="JainaWaterElementalFrostboltImpactAction" parent="RangedHeroAttack" effectAttack="JainaFrostboltWintermuteImpactSet">
     <ImpactMap index="None" Model="JainaFrostboltImpact" Sound="Jaina_Frostbolt_Volley_Impact" />
   </CActorAction>
   <CActorRange id="JainaBlizzardRange" parent="StormRangeAbilPlusSplat" abil="JainaBlizzard" />
@@ -586,6 +611,7 @@
   <CActorSound id="JainaBlizzardLaunchSound" parent="SoundOneShot">
     <On Terms="Effect.JainaBlizzardBasePersistent.Start" Send="Create" />
     <On Terms="Effect.JainaWaterElementalBlizzardPersistent.Start" Send="Create" />
+    <On Terms="Effect.JainaBlizzardWintermutePersistent.Start" Send="Create" />
     <HostSiteOps Ops="SOpTargetPointStationary" />
     <Sound value="Jaina_Blizzard_Cast" />
   </CActorSound>
@@ -597,11 +623,14 @@
   </CActorSound>
   <CActorSound id="JainaBlizzardImpactSound" parent="SoundOneShot">
     <On Terms="Effect.JainaBlizzardSearch.Start" Send="Create" />
+    <On Terms="Effect.JainaBlizzardWintermuteSearch.Start" Send="Create" />
     <Sound value="Jaina_Blizzard_Impact" />
   </CActorSound>
   <CActorSound id="JainaBlizzardLoopSound" parent="SoundContinuous">
     <On Terms="Effect.JainaBlizzardBasePersistent.Start" Send="Create" />
     <On Terms="Effect.JainaBlizzardBasePersistent.Stop" Send="Destroy" />
+    <On Terms="Effect.JainaBlizzardWintermutePersistent.Start" Send="Create" />
+    <On Terms="Effect.JainaBlizzardWintermutePersistent.Stop" Send="Destroy" />
     <Sound value="Jaina_Blizzard_Loop" />
   </CActorSound>
   <CActorSplat id="JainaBlizzardCursorSplat" parent="StormGuideVisualCircle" abil="JainaBlizzard">
@@ -622,6 +651,8 @@
     <On Terms="Effect.JainaBlizzardBasePersistent.Stop" Send="AnimBracketStop BSD 0 1.000000 AsTimeScale" />
     <On Terms="Effect.JainaWaterElementalBlizzardPersistent.Start" Send="Create" />
     <On Terms="Effect.JainaWaterElementalBlizzardPersistent.Stop" Send="AnimBracketStop BSD 0 1.000000 AsDuration" />
+    <On Terms="Effect.JainaBlizzardWintermutePersistent.Start" Send="Create" />
+    <On Terms="Effect.JainaBlizzardWintermutePersistent.Stop" Send="AnimBracketStop BSD 0 1.000000 AsTimeScale" />
   </CActorModel>
   <CActorSplat id="JainaBlizzardRangeSplat" parent="StormRangeSplat">
     <Scale value="$JainaBlizzardRange" />
@@ -656,6 +687,28 @@
     <Sound value="Jaina_ConeOfCold_Activate" />
     <Host Subject="_Unit" />
   </CActorSound>
+  <CActorModel id="JainaConeOfColdWintermuteModel" parent="StormModelAnimationStyleOneShotUnit">
+    <On Terms="Effect.JainaConeOfColdWintermuteInitialTargetPersistent.Start; At Target; ValidatePlayer JainaNoConeOfColdIceFloes" Send="Create" />
+    <On Terms="ActorCreation" Send="Create JainaConeOfColdLaunchSound" />
+    <HostSiteOps Ops="SOpTargetUnit SOpAttachCenter SOpJainaConeOfColdWintermuteForward SOp2DRotation JainaConeOfColdOffset" HoldPosition="1" HoldRotation="1" />
+    <Model value="JainaConeOfColdModel" />
+  </CActorModel>
+  <CActorModel id="JainaConeOfColdWintermuteFloesModel" parent="StormModelAnimationStyleOneShotUnit">
+    <On Terms="Effect.JainaConeOfColdWintermuteInitialTargetPersistent.Start; At Target; ValidatePlayer JainaHasConeOfColdIceFloes" Send="Create" />
+    <On Terms="ActorCreation" Send="Create JainaConeOfColdLaunchSound" />
+    <HostSiteOps Ops="SOpTargetUnit SOpAttachCenter SOpJainaConeOfColdWintermuteForward SOp2DRotation JainaConeOfColdOffset" HoldPosition="1" HoldRotation="1" />
+    <Model value="JainaConeOfColdIceFloesModel" />
+  </CActorModel>
+  <CActorModel id="JainaConeOfColdOffsetDummy">
+    <On Terms="Effect.JainaConeOfColdOffsetPersistent.Start; At Effect" Send="Create" />
+    <On Terms="ActorCreation" Send="TimerSet 0.1875 Destroy" />
+    <On Terms="TimerExpired; TimerName Destroy" Send="Destroy" />
+    <HostSiteOps Ops="SOpTargetPointStationary" />
+    <Model value="Invisible" />
+  </CActorModel>
+  <CActorSiteOpForward id="SOpJainaConeOfColdWintermuteForward">
+    <HostForward Subject="JainaConeOfColdOffsetDummy" Actor="Find" />
+  </CActorSiteOpForward>
   <CActorRange id="JainaSummonWaterElementalRange" parent="StormRangeAbilPlusSplat" abil="JainaSummonWaterElemental" />
   <CActorSplat id="JainaSummonWaterElementalRangeSplat" parent="StormRangeSplat">
     <Scale value="$JainaSummonWaterElementalRange" />
@@ -1050,9 +1103,44 @@
     <DisableValidatorArray value="JainaTargetHasSummonWaterElementalWintermute" />
     <DisableValidatorArray value="WaterElementalStatusEnumerateArea" />
   </CBehaviorBuff>
+  <CBehaviorUnitTracker id="JainaWaterElementalUnitTracker">
+    <MaxTrackedUnits value="1" />
+    <UnitAddedAtMaxRule value="ReplaceOldest" />
+  </CBehaviorUnitTracker>
   <CBehaviorBuff id="JainaWaterElementalTimedLife" parent="StormTimedLife">
     <Duration value="-1" />
     <ExpireEffect value="StormSuicide" />
+  </CBehaviorBuff>
+  <CBehaviorBuff id="JainaWaterElementalAttackAbilityController" parent="CarryBehaviorParent">
+    <EnableEffect value="JainaWaterElementalAttackAddAbilityTargetController" />
+    <PeriodicEffect value="JainaWaterElementalAttackAddAbilityTargetController" />
+    <Period value="0.0625" />
+    <DisableValidatorArray value="JainaWaterElementalAttackDoesNotHaveAbilityTargetController" />
+  </CBehaviorBuff>
+  <CBehaviorBuff id="JainaWaterElementalAttackAbilityTargetController" parent="CarryBehaviorParent">
+    <Face value="JainaSummonWaterElemental" />
+    <CancelEffect value="JainaWaterElementalAttackEnumTargetUnit" />
+  </CBehaviorBuff>
+  <CBehaviorBuff id="JainaFrostboltWintermuteCastBehaviorMarker">
+    <Duration value="0.1875" />
+    <RemoveValidatorArray value="CasterNotDazedOrDeadOrPolymorphedOrSilencedOrStasisOrStunnedExceptTimeStop" />
+    <Modification>
+      <WeaponDisableArray value="JainaWaterElementalWeapon" />
+    </Modification>
+  </CBehaviorBuff>
+  <CBehaviorBuff id="JainaBlizzardWintermuteCastBehaviorMarker">
+    <Duration value="0.1875" />
+    <RemoveValidatorArray value="CasterNotDazedOrDeadOrPolymorphedOrSilencedOrStasisOrStunnedExceptTimeStop" />
+    <Modification>
+      <WeaponDisableArray value="JainaWaterElementalWeapon" />
+    </Modification>
+  </CBehaviorBuff>
+  <CBehaviorBuff id="JainaConeOfColdWintermuteCastBehaviorMarker">
+    <Duration value="0.1875" />
+    <RemoveValidatorArray value="CasterNotDazedOrDeadOrPolymorphedOrSilencedOrStasisOrStunnedExceptTimeStop" />
+    <Modification>
+      <WeaponDisableArray value="JainaWaterElementalWeapon" />
+    </Modification>
   </CBehaviorBuff>
   <CBehaviorBuff id="JainaConeofColdNorthernExposureArmorDecrease" parent="StormArmor">
     <BehaviorCategories index="DebuffVulnerable" value="1" />
@@ -1437,18 +1525,20 @@
     <CaseArray Validator="JainaTargetHasChilledDamageBonus" Effect="JainaWaterElementalWeaponFrostbiteSplashDamage" />
     <CaseDefault value="JainaWaterElementalWeaponSplashDamage" />
   </CEffectSwitch>
-  <CEffectDamage id="JainaWaterElementalWeaponFrostbiteDamage" parent="StormSummonedUnitWeapon">
+  <CEffectDamage id="JainaWaterElementalWeaponFrostbiteDamage" parent="StormSpell">
     <MultiplicativeModifierArray index="JainaChilledBonusDamage" Validator="JainaTargetHasChilledDamageBonus" Modifier="0.5" />
     <MultiplicativeModifierArray index="FrostMagePursuitBonus" Validator="JainaHas20TokensofFingersOfFrost" Modifier="0.1" />
     <Marker Link="Effect/JainaWaterElementalWeaponDamage" />
-    <Amount value="62" />
+    <Amount value="$JainaWaterElementalAttackDamage" />
     <Flags index="Crit" value="1" />
+    <Visibility value="Hidden" />
   </CEffectDamage>
-  <CEffectDamage id="JainaWaterElementalWeaponFrostbiteSplashDamage" parent="StormSummonedUnitWeapon">
+  <CEffectDamage id="JainaWaterElementalWeaponFrostbiteSplashDamage" parent="StormSpell">
     <MultiplicativeModifierArray index="JainaChilledBonusDamage" Validator="JainaTargetHasChilledDamageBonus" Modifier="0.5" />
     <MultiplicativeModifierArray index="FrostMagePursuitBonus" Validator="JainaHas20TokensofFingersOfFrost" Modifier="0.1" />
-    <Amount value="15.5" />
+    <Amount value="$JainaWaterElementalAttackSplashDamage" />
     <Flags index="Crit" value="1" />
+    <Visibility value="Hidden" />
   </CEffectDamage>
   <CEffectApplyBehavior id="JainaFrostbiteApplyCompletionCarry">
     <Behavior value="JainaFrostbiteCompletionCarry" />
@@ -1525,9 +1615,15 @@
     <EffectArray value="JainaFrostboltIceLanceModifyCooldown" />
     <EffectArray value="JainaFrostboltIceLanceRestoreMana" />
   </CEffectSet>
+  <CEffectSet id="JainaFrostboltPrepSet">
+    <EffectArray value="DismountDecloakCasterSet" />
+    <EffectArray value="JainaWaterElementalWintermuteEnumFrostboltPrepSet" />
+    <TargetLocationType value="Point" />
+  </CEffectSet>
   <CEffectSet id="JainaFrostboltInitialSet">
     <EffectArray value="JainaFrostboltLaunchMissile" />
     <EffectArray value="JainaModifyAttack" />
+    <EffectArray value="JainaWaterElementalWintermuteEnumFrostboltInitialSet" />
     <TargetLocationType value="Point" />
   </CEffectSet>
   <CEffectCreatePersistent id="JainaBlizzardIceRingPersistentStormFront">
@@ -1689,20 +1785,120 @@
     </RevealerParams>
     <ImpactLocation Value="TargetPoint" />
   </CEffectEnumArea>
+  <CEffectApplyBehavior id="JainaBlizzardWintermuteApplyCastingBehavior">
+    <Behavior value="JainaBlizzardWintermuteCastBehaviorMarker" />
+    <WhichUnit Value="Caster" />
+  </CEffectApplyBehavior>
+  <CEffectSet id="JainaBlizzardWintermuteInitialSet">
+    <EffectArray value="JainaBlizzardWintermuteFireDummy" />
+    <TargetLocationType value="Point" />
+  </CEffectSet>
+  <CEffectModifyUnit id="JainaBlizzardWintermuteFireDummy" />
+  <CEffectCreatePersistent id="JainaBlizzardWintermuteInitialPersistent">
+    <ValidatorArray value="JainaHasSummonWaterElementalWintermute" />
+    <ValidatorArray value="JainaHasWaterElementalTrackedNotCCd" />
+    <ExpireDelay value="0.0625" />
+    <InitialEffect value="JainaWaterElementalWintermuteEnumBlizzardPrepSet" />
+    <FinalEffect value="JainaWaterElementalWintermuteEnumBlizzardInitialSet" />
+  </CEffectCreatePersistent>
+  <CEffectEnumTrackedUnits id="JainaWaterElementalWintermuteEnumBlizzardPrepSet">
+    <BehaviorLink value="JainaWaterElementalUnitTracker" />
+    <Effect value="JainaWaterElementalEnumWaterElementalBlizzardPrepSet" />
+  </CEffectEnumTrackedUnits>
+  <CEffectSet id="JainaWaterElementalEnumWaterElementalBlizzardPrepSet">
+    <EffectArray value="JainaBlizzardWintermuteSetFacing" />
+    <EffectArray value="JainaBlizzardWintermuteIssueOrder" />
+  </CEffectSet>
+  <CEffectModifyUnit id="JainaBlizzardWintermuteSetFacing">
+    <FacingLocation Effect="JainaBlizzardBasePersistentSet" Value="FocusUnitOrPoint" />
+    <FacingType value="LookAt" />
+  </CEffectModifyUnit>
+  <CEffectIssueOrder id="JainaBlizzardWintermuteIssueOrder">
+    <Abil value="JainaWaterElementalBlizzard" />
+    <Player Value="Caster" />
+    <Target Effect="JainaBlizzardBasePersistentSet" Value="FocusUnitOrPoint" />
+  </CEffectIssueOrder>
+  <CEffectEnumTrackedUnits id="JainaWaterElementalWintermuteEnumBlizzardInitialSet">
+    <ValidatorArray value="JainaHasSummonWaterElementalWintermute" />
+    <ValidatorArray value="JainaHasWaterElementalTrackedHasBlizzardCastMarker" />
+    <BehaviorLink value="JainaWaterElementalUnitTracker" />
+    <Effect value="JainaBlizzardWintermuteEnumerateTrackedUnitsSet" />
+  </CEffectEnumTrackedUnits>
+  <CEffectSet id="JainaBlizzardWintermuteEnumerateTrackedUnitsSet">
+    <EffectArray value="JainaBlizzardWintermutePersistent" />
+  </CEffectSet>
+  <CEffectCreatePersistent id="JainaBlizzardWintermutePersistent">
+    <ValidatorArray value="JainaHasWaterElementalTrackedHasBlizzardCastMarker" />
+    <Marker>
+      <MatchFlags index="Id" value="1" />
+    </Marker>
+    <WhichLocation Effect="JainaBlizzardBasePersistentSet" />
+    <ExpireDelay value="0.5" />
+    <PeriodCount value="3" />
+    <PeriodicEffectArray value="JainaBlizzardWintermuteSet" />
+    <PeriodicEffectArray value="JainaBlizzardWintermuteSet" />
+    <PeriodicEffectArray value="JainaBlizzardWintermuteSet" />
+    <PeriodicPeriodArray value="0.25" />
+    <PeriodicPeriodArray value="1.25" />
+    <PeriodicPeriodArray value="1.25" />
+    <PeriodicPeriodArray value="1.25" />
+    <RevealRadius value="2.5" />
+    <RevealFlags index="Unfog" value="1" />
+    <AINotifySettings AreaEffect="JainaBlizzardSearch">
+      <Flags index="HurtsEnemy" value="1" />
+    </AINotifySettings>
+  </CEffectCreatePersistent>
+  <CEffectSet id="JainaBlizzardWintermuteSet">
+    <EffectArray value="JainaBlizzardIceRingPersistentSwitch" />
+    <EffectArray value="JainaBlizzardWintermuteDamageDelayPersistent" />
+    <TargetLocationType value="Point" />
+  </CEffectSet>
+  <CEffectCreatePersistent id="JainaBlizzardWintermuteDamageDelayPersistent">
+    <PeriodCount value="1" />
+    <PeriodicEffectArray value="JainaBlizzardWintermuteDelayPersistentSet" />
+    <PeriodicPeriodArray value="0.5" />
+  </CEffectCreatePersistent>
+  <CEffectSet id="JainaBlizzardWintermuteDelayPersistentSet">
+    <EffectArray value="JainaBlizzardWintermuteSearch" />
+    <EffectArray value="JainaBlizzardWintermuteCreatePersistentRevealDummy" />
+    <TargetLocationType value="Point" />
+  </CEffectSet>
+  <CEffectEnumArea id="JainaBlizzardWintermuteSearch">
+    <SearchFilters value="-;Self,Player,Ally,Neutral,ImmuneToAOE,Missile,Item,Stasis,Dead,Hidden,Invulnerable" />
+    <AreaArray Effect="JainaBlizzardWintermuteImpactSet">
+      <Radius value="2.5" />
+    </AreaArray>
+    <RevealerParams Duration="0.75">
+      <RevealFlags index="Unfog" value="1" />
+    </RevealerParams>
+  </CEffectEnumArea>
+  <CEffectSet id="JainaBlizzardWintermuteImpactSet">
+    <EffectArray value="JainaBlizzardWintermuteDamageSwitch" />
+    <EffectArray value="JainaFrostbiteApplyChilledBehaviorSetWaterElemental" />
+    <EffectArray value="JainaBlizzardWintermuteDamagedUnitTrackerAdd" />
+    <EffectArray value="ApplyAbilityImpactReveal" />
+  </CEffectSet>
+  <CEffectSwitch id="JainaBlizzardWintermuteDamageSwitch">
+    <CaseArray Validator="JainaTargetHasChilledDamageBonus" Effect="JainaWaterElementalBlizzardDamageChilled" />
+    <CaseDefault value="JainaWaterElementalBlizzardDamage" />
+  </CEffectSwitch>
   <CEffectDamage id="JainaWaterElementalBlizzardDamageChilled" parent="StormSpell">
     <MultiplicativeModifierArray index="JainaChilledBonusDamage" Validator="JainaTargetHasChilledDamageBonus" Modifier="0.5" />
-    <MultiplicativeModifierArray index="FrostMagePursuitBonus" Validator="JainaHasFingersOfFrostWaterElementalCarryBehavior" Modifier="0.1" />
-    <Amount value="71" />
+    <MultiplicativeModifierArray index="FrostMagePursuitBonus" Validator="JainaHas20TokensofFingersOfFrost" Modifier="0.1" />
+    <Amount value="$JainaWintermuteBlizzardDamage" />
     <Flags index="Crit" value="1" />
-    <DamageModifierSource Value="Creator" />
+    <Visibility value="Hidden" />
   </CEffectDamage>
   <CEffectDamage id="JainaWaterElementalBlizzardDamage" parent="StormSpell">
-    <Amount value="57" />
-    <DamageModifierSource Value="Creator" />
+    <Amount value="$JainaWintermuteBlizzardDamage" />
+    <Visibility value="Hidden" />
   </CEffectDamage>
-  <CEffectCreatePersistent id="JainaWaterElementalBlizzardDummyPersistent">
-    <Chance value="0" />
-    <ValidatorArray value="JainaCasterNotJainaWaterElemental" />
+  <CEffectAddTrackedUnit id="JainaBlizzardWintermuteDamagedUnitTrackerAdd" parent="StormSummonedUnitDamagedUnitTrackerAdd">
+    <TrackerUnit Effect="JainaBlizzardWintermuteEnumerateTrackedUnitsSet" Value="Target" />
+  </CEffectAddTrackedUnit>
+  <CEffectCreatePersistent id="JainaBlizzardWintermuteCreatePersistentRevealDummy" parent="StormSummonedUnitSpellDamageDealtPersistent">
+    <ValidatorArray value="JainaBlizzardWintermuteHasDamagedUnitsTracked" />
+    <WhichLocation Effect="JainaBlizzardWintermuteEnumerateTrackedUnitsSet" Value="TargetUnit" />
   </CEffectCreatePersistent>
   <CEffectCreatePersistent id="JainaWaterElementalBlizzardPersistent">
     <Marker>
@@ -1720,20 +1916,88 @@
     <RevealRadius value="2.5" />
     <RevealFlags index="Unfog" value="1" />
   </CEffectCreatePersistent>
+  <CEffectApplyBehavior id="JainaConeOfColdWintermuteApplyCastingBehavior">
+    <Behavior value="JainaConeOfColdWintermuteCastBehaviorMarker" />
+    <WhichUnit Value="Caster" />
+  </CEffectApplyBehavior>
+  <CEffectSet id="JainaConeOfColdWintermuteInitialSet">
+    <EffectArray value="JainaConeOfColdWintermuteFireDummy" />
+    <TargetLocationType value="Point" />
+  </CEffectSet>
+  <CEffectModifyUnit id="JainaConeOfColdWintermuteFireDummy" />
+  <CEffectEnumTrackedUnits id="JainaWaterElementalWintermuteEnumConeOfColdInitialSet">
+    <ValidatorArray value="JainaHasSummonWaterElementalWintermute" />
+    <ValidatorArray value="JainaHasWaterElementalTrackedHasConeOfColdCastMarker" />
+    <BehaviorLink value="JainaWaterElementalUnitTracker" />
+    <Effect value="JainaConeOfColdWintermuteEnumerateTrackedUnitsSet" />
+  </CEffectEnumTrackedUnits>
+  <CEffectSet id="JainaConeOfColdWintermuteEnumerateTrackedUnitsSet">
+    <Marker>
+      <MatchFlags index="Id" value="1" />
+    </Marker>
+    <EffectArray value="JainaConeOfColdWintermuteInitialTargetPersistent" />
+    <EffectArray value="JainaConeOfColdWintermuteCreatePersistentRevealDummy" />
+  </CEffectSet>
+  <CEffectCreatePersistent id="JainaConeOfColdWintermuteInitialTargetPersistent">
+    <InitialEffect value="JainaConeOfColdWintermuteSearch" />
+  </CEffectCreatePersistent>
+  <CEffectEnumArea id="JainaConeOfColdWintermuteSearch">
+    <SearchFlags index="DoActorSearch" value="1" />
+    <SearchFlags index="CenterAtLaunch" value="1" />
+    <SearchFlags index="OffsetAreaByAngle" value="0" />
+    <SearchFilters value="-;Player,Ally,Neutral,ImmuneToAOE,Missile,Item,Stasis,Dead,Hidden,Invulnerable" />
+    <TargetSorts>
+      <SortArray value="TSDistanceFromOriginPoint" />
+    </TargetSorts>
+    <AreaArray Arc="45" Effect="JainaConeOfColdWintermuteImpactSet">
+      <Radius value="7" />
+    </AreaArray>
+    <RevealerParams Duration="0.75" ShapeExpansion="1">
+      <RevealFlags index="Unfog" value="1" />
+    </RevealerParams>
+    <LaunchLocation Effect="JainaConeOfColdWintermuteEnumerateTrackedUnitsSet" Value="TargetUnit" />
+    <ImpactLocation>
+      <ProjectionMultiplier value="0.001" />
+      <ProjectionSourceEffect value="JainaConeOfColdWintermuteEnumerateTrackedUnitsSet" />
+      <ProjectionSourceValue value="TargetPoint" />
+      <ProjectionTargetEffect value="JainaConeOfColdOffsetPersistent" />
+      <ProjectionTargetValue value="FocusPoint" />
+      <ProjectionOffset Y="-5" />
+    </ImpactLocation>
+  </CEffectEnumArea>
+  <CEffectSet id="JainaConeOfColdWintermuteImpactSet">
+    <EffectArray value="JainaConeOfColdWintermuteDamageSwitch" />
+    <EffectArray value="JainaConeOfColdNumbingBlastApplyRoot" />
+    <EffectArray value="JainaFrostbiteApplyChilledBehaviorSetWaterElemental" />
+    <EffectArray value="JainaConeofColdNorthernExposureApplyVulnerable" />
+    <EffectArray value="JainaConeOfColdWintermuteDamagedUnitTrackerAdd" />
+    <EffectArray value="ApplyAbilityImpactReveal" />
+  </CEffectSet>
+  <CEffectSwitch id="JainaConeOfColdWintermuteDamageSwitch">
+    <CaseArray Validator="JainaTargetHasChilledDamageBonus" Effect="JainaWaterElementalConeOfColdDamageChilled" />
+    <CaseDefault value="JainaWaterElementalConeOfColdDamage" />
+  </CEffectSwitch>
   <CEffectDamage id="JainaWaterElementalConeOfColdDamage" parent="StormSpell">
-    <Amount value="88" />
-    <DamageModifierSource Value="Creator" />
+    <Amount value="$JainaWintermuteConeOfColdDamage" />
+    <Visibility value="Hidden" />
   </CEffectDamage>
   <CEffectDamage id="JainaWaterElementalConeOfColdDamageChilled" parent="StormSpell">
     <MultiplicativeModifierArray index="JainaChilledBonusDamage" Validator="JainaTargetHasChilledDamageBonus" Modifier="0.5" />
-    <MultiplicativeModifierArray index="FrostMagePursuitBonus" Validator="JainaHasFingersOfFrostWaterElementalCarryBehavior" Modifier="0.1" />
-    <Amount value="110" />
+    <MultiplicativeModifierArray index="FrostMagePursuitBonus" Validator="JainaHas20TokensofFingersOfFrost" Modifier="0.1" />
+    <Amount value="$JainaWintermuteConeOfColdDamage" />
     <Flags index="Crit" value="1" />
-    <DamageModifierSource Value="Creator" />
+    <Visibility value="Hidden" />
   </CEffectDamage>
+  <CEffectAddTrackedUnit id="JainaConeOfColdWintermuteDamagedUnitTrackerAdd" parent="StormSummonedUnitDamagedUnitTrackerAdd">
+    <TrackerUnit Effect="JainaConeOfColdWintermuteEnumerateTrackedUnitsSet" Value="Target" />
+  </CEffectAddTrackedUnit>
+  <CEffectCreatePersistent id="JainaConeOfColdWintermuteCreatePersistentRevealDummy" parent="StormSummonedUnitSpellDamageDealtPersistent">
+    <ValidatorArray value="JainaConeOfColdWintermuteHasDamagedUnitsTracked" />
+    <WhichLocation Effect="JainaConeOfColdWintermuteEnumerateTrackedUnitsSet" Value="TargetUnit" />
+  </CEffectCreatePersistent>
   <CEffectDamage id="JainaWaterElementalFrostboltDamage" parent="StormSpell">
-    <Amount value="74" />
-    <DamageModifierSource Value="Creator" />
+    <Amount value="$JainaWintermuteFrostboltDamage" />
+    <Visibility value="Hidden" />
   </CEffectDamage>
   <CEffectLaunchMissile id="JainaFrostboltLaunchMissile">
     <Marker>
@@ -1747,7 +2011,7 @@
       <ProjectionTargetValue value="TargetPoint" />
       <UsesLineDash value="1" />
       <LineDashType value="AllowedInUnpathable" />
-      <ProjectionDistanceScale value="10.5" />
+      <ProjectionDistanceScale value="$JainaFrostboltRange" />
     </ImpactLocation>
     <LaunchEffect value="JainaFrostboltLaunchMissileSet" />
     <SharedFlags index="DynamicSearchArea" value="1" />
@@ -1791,13 +2055,108 @@
     <WhichUnit Value="Source" />
   </CEffectModifyTokenCount>
   <CEffectSet id="JainaIceBarrierDummy" />
+  <CEffectEnumTrackedUnits id="JainaWaterElementalWintermuteEnumFrostboltPrepSet">
+    <ValidatorArray value="JainaHasSummonWaterElementalWintermute" />
+    <ValidatorArray value="JainaHasWaterElementalTrackedNotCCd" />
+    <BehaviorLink value="JainaWaterElementalUnitTracker" />
+    <Effect value="JainaWaterElementalEnumWaterElementalFrostboltPrepSet" />
+  </CEffectEnumTrackedUnits>
+  <CEffectSet id="JainaWaterElementalEnumWaterElementalFrostboltPrepSet">
+    <EffectArray value="JainaFrostboltWintermuteSetFacing" />
+    <EffectArray value="JainaFrostboltWintermuteIssueOrder" />
+  </CEffectSet>
+  <CEffectModifyUnit id="JainaFrostboltWintermuteSetFacing">
+    <FacingLocation Effect="JainaFrostboltPrepSet" Value="FocusUnitOrPoint" />
+    <FacingType value="LookAt" />
+  </CEffectModifyUnit>
+  <CEffectIssueOrder id="JainaFrostboltWintermuteIssueOrder">
+    <Abil value="JainaWaterElementalFrostbolt" />
+    <Player Value="Caster" />
+    <Target Effect="JainaFrostboltPrepSet" Value="FocusUnitOrPoint" />
+  </CEffectIssueOrder>
+  <CEffectApplyBehavior id="JainaFrostboltWintermuteApplyCastingBehavior">
+    <Behavior value="JainaFrostboltWintermuteCastBehaviorMarker" />
+    <WhichUnit Value="Caster" />
+  </CEffectApplyBehavior>
+  <CEffectSet id="JainaFrostboltWintermuteInitialSet">
+    <EffectArray value="JainaFrostboltWintermuteFireDummy" />
+    <TargetLocationType value="Point" />
+  </CEffectSet>
+  <CEffectModifyUnit id="JainaFrostboltWintermuteFireDummy" />
+  <CEffectEnumTrackedUnits id="JainaWaterElementalWintermuteEnumFrostboltInitialSet">
+    <ValidatorArray value="JainaHasSummonWaterElementalWintermute" />
+    <ValidatorArray value="JainaHasWaterElementalTrackedHasFrostboltCastMarker" />
+    <BehaviorLink value="JainaWaterElementalUnitTracker" />
+    <Effect value="JainaFrostboltWintermuteEnumerateTrackedUnitsSet" />
+  </CEffectEnumTrackedUnits>
+  <CEffectSet id="JainaFrostboltWintermuteEnumerateTrackedUnitsSet">
+    <EffectArray value="JainaFrostboltWintermuteLaunchMissile" />
+  </CEffectSet>
+  <CEffectLaunchMissile id="JainaFrostboltWintermuteLaunchMissile">
+    <Marker>
+      <MatchFlags index="Id" value="1" />
+    </Marker>
+    <LaunchLocation Effect="JainaFrostboltWintermuteEnumerateTrackedUnitsSet" Value="TargetUnit" />
+    <ImpactLocation>
+      <Effect value="JainaFrostboltInitialSet" />
+      <Value value="FocusPoint" />
+      <ProjectionMultiplier value="1" />
+      <ProjectionSourceEffect value="JainaFrostboltWintermuteEnumerateTrackedUnitsSet" />
+      <ProjectionSourceValue value="TargetUnitOrPoint" />
+      <ProjectionTargetEffect value="JainaFrostboltInitialSet" />
+      <ProjectionTargetValue value="FocusPoint" />
+      <UsesLineDash value="1" />
+      <LineDashType value="AllowedInUnpathable" />
+      <ProjectionDistanceScale value="$JainaFrostboltRange" />
+    </ImpactLocation>
+    <LaunchOffset Y="-1.5" />
+    <LaunchEffect value="JainaFrostboltLaunchMissileSet" />
+    <SharedFlags index="2D" value="1" />
+    <SharedFlags index="DynamicSearchArea" value="1" />
+    <AmmoUnit value="JainaFrostboltMissile" />
+    <Movers Link="JainaFrostboltMissile" />
+    <SearchEffect value="JainaFrostboltWintermuteMissileSearch" />
+  </CEffectLaunchMissile>
+  <CEffectEnumArea id="JainaFrostboltWintermuteMissileSearch">
+    <AreaArray MaxCount="1" Effect="JainaFrostboltWintermuteImpactSet">
+      <RectangleWidth value="1" />
+      <RectangleHeight value="1.6" />
+    </AreaArray>
+    <SearchFilters value="-;Player,Ally,Neutral,ImmuneToSkillshots,Missile,Item,Stasis,Dead,Hidden,Invulnerable" />
+    <RevealerParams Duration="0.5" ShapeExpansion="1">
+      <RevealFlags index="Unfog" value="1" />
+    </RevealerParams>
+    <SearchFlags index="DoActorSearch" value="1" />
+  </CEffectEnumArea>
+  <CEffectSet id="JainaFrostboltWintermuteImpactSet">
+    <EffectArray value="ApplyAbilityImpactReveal" />
+    <EffectArray value="JainaFrostboltWintermuteDamageSwitch" />
+    <EffectArray value="JainaFrostbiteApplyChilledBehaviorSetWaterElemental" />
+    <EffectArray value="JainaFrostboltWintermuteDamagedUnitTrackerAdd" />
+    <EffectArray value="JainaFrostboltWintermuteCreatePersistentRevealDummy" />
+    <EffectArray value="JainaFrostboltSuicide" />
+    <EffectArray value="JainaFrostboltReducePierceCounter" />
+    <ValidatorArray value="noMarkers" />
+    <ValidatorArray value="SourceNotDead" />
+  </CEffectSet>
+  <CEffectSwitch id="JainaFrostboltWintermuteDamageSwitch">
+    <CaseArray Validator="JainaTargetHasChilledDamageBonus" Effect="JainaWaterElementalFrostboltDamageChilled" />
+    <CaseDefault value="JainaWaterElementalFrostboltDamage" />
+  </CEffectSwitch>
   <CEffectDamage id="JainaWaterElementalFrostboltDamageChilled" parent="StormSpell">
     <MultiplicativeModifierArray index="JainaChilledBonusDamage" Validator="JainaTargetHasChilledDamageBonus" Modifier="0.5" />
-    <MultiplicativeModifierArray index="FrostMagePursuitBonus" Validator="JainaHasFingersOfFrostWaterElementalCarryBehavior" Modifier="0.1" />
-    <Amount value="92" />
+    <MultiplicativeModifierArray index="FrostMagePursuitBonus" Validator="JainaHas20TokensofFingersOfFrost" Modifier="0.1" />
+    <Amount value="$JainaWintermuteFrostboltDamage" />
     <Flags index="Crit" value="1" />
-    <DamageModifierSource Value="Creator" />
+    <Visibility value="Hidden" />
   </CEffectDamage>
+  <CEffectAddTrackedUnit id="JainaFrostboltWintermuteDamagedUnitTrackerAdd" parent="StormSummonedUnitDamagedUnitTrackerAdd">
+    <TrackerUnit Effect="JainaFrostboltWintermuteEnumerateTrackedUnitsSet" Value="Target" />
+  </CEffectAddTrackedUnit>
+  <CEffectCreatePersistent id="JainaFrostboltWintermuteCreatePersistentRevealDummy" parent="StormSummonedUnitSpellDamageDealtPersistent">
+    <ValidatorArray value="JainaFrostboltWintermuteNotDead" />
+    <WhichLocation Effect="JainaFrostboltWintermuteEnumerateTrackedUnitsSet" Value="TargetUnit" />
+  </CEffectCreatePersistent>
   <CEffectSet id="JainaRingofFrostColdSnapDamageImpactSet">
     <EffectArray value="JainaRingOfFrostApplyRootBehavior" />
     <EffectArray value="JainaRingOfFrostDamageSwitch" />
@@ -1991,12 +2350,18 @@
     <EffectArray value="JainaFrostbiteApplyChilledSlowBehavior" />
     <EffectArray value="AbilityImpactRevealDummyDamage" />
   </CEffectSet>
+  <CEffectSet id="JainaFrostbiteApplyChilledBehaviorSetWaterElemental">
+    <ValidatorArray value="TargetNotInvulnerable" />
+    <EffectArray value="JainaFrostbiteDeepChillTalentApplySlow" />
+    <EffectArray value="JainaFrostbiteApplyChilledDamageBehavior" />
+    <EffectArray value="JainaFrostbiteApplyChilledSlowBehavior" />
+  </CEffectSet>
   <CEffectCreatePersistent id="JainaBlizzardBasePersistent">
     <Marker>
       <MatchFlags index="Id" value="1" />
     </Marker>
     <ExpireDelay value="0.5" />
-    <ExpireEffect value="JainaWaterElementalBlizzardDummyPersistent" />
+    <ExpireEffect value="JainaBlizzardWintermuteInitialPersistent" />
     <PeriodCount value="3" />
     <PeriodicEffectArray value="JainaBlizzardSet" />
     <PeriodicEffectArray value="JainaBlizzardSet2" />
@@ -2013,21 +2378,17 @@
     </AINotifySettings>
   </CEffectCreatePersistent>
   <CEffectSwitch id="JainaFrostboltDamageSwitch">
-    <CaseArray Validator="WaterElementalChilledCombine" Effect="JainaWaterElementalFrostboltDamageChilled" />
-    <CaseArray Validator="WaterElementalNotChilledCombine" Effect="JainaWaterElementalFrostboltDamage" />
     <CaseArray Validator="JainaTargetHasChilledDamageBonus" Effect="JainaFrostboltChilledImpactSet" />
     <CaseDefault value="JainaFrostboltDamageImpactSet" />
   </CEffectSwitch>
   <CEffectDamage id="JainaFrostboltDamage" parent="StormSpell">
-    <Amount value="184" />
-    <DamageModifierSource Value="Creator" />
+    <Amount value="$JainaFrostboltDamage" />
   </CEffectDamage>
   <CEffectDamage id="JainaFrostboltDamageChilled" parent="StormSpell">
     <MultiplicativeModifierArray index="JainaChilledBonusDamage" Validator="JainaTargetHasChilledDamageBonus" Modifier="0.5" />
     <MultiplicativeModifierArray index="FrostMagePursuitBonus" Validator="JainaHas20TokensofFingersOfFrost" Modifier="0.1" />
-    <Amount value="184" />
+    <Amount value="$JainaFrostboltDamage" />
     <Flags index="Crit" value="1" />
-    <DamageModifierSource Value="Creator" />
   </CEffectDamage>
   <CEffectSet id="JainaBlizzardSet">
     <EffectArray value="JainaBlizzardIceRingPersistentSwitch" />
@@ -2074,8 +2435,6 @@
     <EffectArray value="ApplyAbilityImpactReveal" />
   </CEffectSet>
   <CEffectSwitch id="JainaBlizzardDamageSwitch">
-    <CaseArray Validator="WaterElementalChilledCombine" Effect="JainaWaterElementalBlizzardDamageChilled" />
-    <CaseArray Validator="WaterElementalNotChilledCombine" Effect="JainaWaterElementalBlizzardDamage" />
     <CaseArray Validator="JainaTargetHasChilledDamageBonus" Effect="JainaBlizzardDamageChilled" />
     <CaseDefault value="JainaBlizzardDamage" />
   </CEffectSwitch>
@@ -2084,15 +2443,38 @@
     <MultiplicativeModifierArray index="FrostMagePursuitBonus" Validator="JainaHas20TokensofFingersOfFrost" Modifier="0.1" />
     <MultiplicativeModifierArray index="Snowstorm1Token" Validator="JainaHas1TokenOfBlizzardSnowstorm" Modifier="0.5" />
     <MultiplicativeModifierArray index="Snowstorm2Tokens" Validator="JainaHas2TokensOfBlizzardSnowstorm" Modifier="1" />
-    <Amount value="142" />
+    <Amount value="$JainaBlizzardDamage" />
     <Flags index="Crit" value="1" />
   </CEffectDamage>
   <CEffectDamage id="JainaBlizzardDamage" parent="StormSpell">
-    <Amount value="142" />
-    <DamageModifierSource Value="Creator" />
+    <Amount value="$JainaBlizzardDamage" />
     <MultiplicativeModifierArray index="Snowstorm1Token" Validator="JainaHas1TokenOfBlizzardSnowstorm" Modifier="0.5" />
     <MultiplicativeModifierArray index="Snowstorm2Tokens" Validator="JainaHas2TokensOfBlizzardSnowstorm" Modifier="1" />
   </CEffectDamage>
+  <CEffectSet id="JainaConeOfColdPrepSet">
+    <EffectArray value="DismountDecloakCasterSet" />
+    <EffectArray value="JainaWaterElementalWintermuteEnumConeOfColdPrepSet" />
+    <TargetLocationType value="Point" />
+  </CEffectSet>
+  <CEffectEnumTrackedUnits id="JainaWaterElementalWintermuteEnumConeOfColdPrepSet">
+    <ValidatorArray value="JainaHasSummonWaterElementalWintermute" />
+    <ValidatorArray value="JainaHasWaterElementalTrackedNotCCd" />
+    <BehaviorLink value="JainaWaterElementalUnitTracker" />
+    <Effect value="JainaWaterElementalEnumWaterElementalConeOfColdPrepSet" />
+  </CEffectEnumTrackedUnits>
+  <CEffectSet id="JainaWaterElementalEnumWaterElementalConeOfColdPrepSet">
+    <EffectArray value="JainaConeOfColdWintermuteSetFacing" />
+    <EffectArray value="JainaConeOfColdWintermuteIssueOrder" />
+  </CEffectSet>
+  <CEffectModifyUnit id="JainaConeOfColdWintermuteSetFacing">
+    <FacingLocation Effect="JainaConeOfColdPrepSet" Value="FocusUnitOrPoint" />
+    <FacingType value="LookAt" />
+  </CEffectModifyUnit>
+  <CEffectIssueOrder id="JainaConeOfColdWintermuteIssueOrder">
+    <Abil value="JainaWaterElementalConeOfCold" />
+    <Player Value="Caster" />
+    <Target Effect="JainaConeOfColdPrepSet" Value="FocusUnitOrPoint" />
+  </CEffectIssueOrder>
   <CEffectCreatePersistent id="JainaConeOfColdOffsetPersistent">
     <OffsetVectorStartLocation Value="CasterPoint" />
     <PeriodCount value="1" />
@@ -2106,6 +2488,7 @@
     <EffectArray value="JainaConeOfColdIceFloesTalentSearch" />
     <EffectArray value="JainaConeOfColdSearch" />
     <EffectArray value="JainaConeOfColdIceFloesApplyCleanupBehavior" />
+    <EffectArray value="JainaWaterElementalWintermuteEnumConeOfColdInitialSet" />
   </CEffectSet>
   <CEffectEnumArea id="JainaConeOfColdSearch">
     <ImpactLocation Value="TargetPoint" />
@@ -2121,8 +2504,6 @@
     </RevealerParams>
   </CEffectEnumArea>
   <CEffectSwitch id="JainaConeOfColdDamageSwitch">
-    <CaseArray Validator="WaterElementalChilledCombine" Effect="JainaWaterElementalConeOfColdDamageChilled" />
-    <CaseArray Validator="WaterElementalNotChilledCombine" Effect="JainaWaterElementalConeOfColdDamage" />
     <CaseArray Validator="JainaTargetHasChilledDamageBonus" Effect="JainaConeOfColdDamageChilled" />
     <CaseDefault value="JainaConeOfColdDamage" />
   </CEffectSwitch>
@@ -2136,33 +2517,41 @@
   <CEffectDamage id="JainaConeOfColdDamageChilled" parent="StormSpell">
     <MultiplicativeModifierArray index="JainaChilledBonusDamage" Validator="JainaTargetHasChilledDamageBonus" Modifier="0.5" />
     <MultiplicativeModifierArray index="FrostMagePursuitBonus" Validator="JainaHas20TokensofFingersOfFrost" Modifier="0.1" />
-    <Amount value="220" />
+    <Amount value="$JainaConeOfColdDamage" />
     <Flags index="Crit" value="1" />
-    <DamageModifierSource Value="Creator" />
   </CEffectDamage>
-  <CEffectSwitch id="JainaWaterElementalWeaponSplashImpactSwitch" parent="SummonedBasicAttackAbilityDamageMissCheck">
-    <CaseDefault value="JainaWaterElementalWeaponImpactSplashSet" />
+  <CEffectSwitch id="JainaWaterElementalWeaponSplashImpactSwitch">
+    <CaseArray Validator="JainaWaterElementalAttackerBlindedOrTargetIsEvadingAndNotGenjiDodge" Effect="BlindMissedDummy" />
+    <CaseDefault value="JainaWaterElementalWeaponSplashImpactSet" />
   </CEffectSwitch>
-  <CEffectSet id="JainaWaterElementalWeaponImpactSplashSet">
-    <EffectArray value="StormSummonedWeaponPhysicalDamageDummy" />
+  <CEffectSet id="JainaWaterElementalWeaponSplashImpactSet">
     <EffectArray value="JainaWaterElementalWeaponSplashDamageSwitch" />
-    <EffectArray value="JainaFrostbiteApplyChilledBehaviorSet" />
+    <EffectArray value="JainaFrostbiteApplyChilledBehaviorSetWaterElemental" />
+    <EffectArray value="JainaWaterElementalWeaponDamagedUnitTrackerAdd" />
   </CEffectSet>
-  <CEffectDamage id="JainaWaterElementalWeaponSplashDamage" parent="StormSummonedUnitWeapon">
-    <Amount value="15.5" />
+  <CEffectDamage id="JainaWaterElementalWeaponSplashDamage" parent="StormSpell">
+    <Amount value="$JainaWaterElementalAttackSplashDamage" />
+    <Visibility value="Hidden" />
   </CEffectDamage>
-  <CEffectSwitch id="JainaWaterElementalWeaponImpactSwitch" parent="SummonedBasicAttackAbilityDamageMissCheck">
+  <CEffectSwitch id="JainaWaterElementalWeaponImpactSwitch">
+    <CaseArray Validator="JainaWaterElementalAttackerBlindedOrTargetIsEvadingAndNotGenjiDodge" Effect="BlindMissedDummy" />
     <CaseDefault value="JainaWaterElementalWeaponImpactSet" />
   </CEffectSwitch>
   <CEffectSet id="JainaWaterElementalWeaponImpactSet">
-    <EffectArray value="StormSummonedWeaponPhysicalDamageDummy" />
     <EffectArray value="JainaWaterElementalWeaponDamageSwitch" />
-    <EffectArray value="JainaFrostbiteApplyChilledBehaviorSet" />
+    <EffectArray value="JainaFrostbiteApplyChilledBehaviorSetWaterElemental" />
     <EffectArray value="JainaWaterElementalWeaponImpactSplashSearch" />
+    <EffectArray value="JainaWaterElementalWeaponDamagedUnitTrackerAdd" />
+    <EffectArray value="JainaWaterElementalWeaponCreatePersistentRevealDummy" />
   </CEffectSet>
+  <CEffectAddTrackedUnit id="JainaWaterElementalWeaponDamagedUnitTrackerAdd" parent="StormSummonedUnitDamagedUnitTrackerAdd">
+    <TrackerUnit Effect="JainaWaterElementalAttackEnumTargetUnit" Value="Target" />
+  </CEffectAddTrackedUnit>
+  <CEffectCreatePersistent id="JainaWaterElementalWeaponCreatePersistentRevealDummy" parent="StormSummonedUnitPhysicalDamageDealtPersistent">
+    <WhichLocation Effect="JainaWaterElementalAttackEnumTargetUnit" Value="TargetUnit" />
+  </CEffectCreatePersistent>
   <CEffectDamage id="JainaConeOfColdDamage" parent="StormSpell">
-    <Amount value="220" />
-    <DamageModifierSource Value="Creator" />
+    <Amount value="$JainaConeOfColdDamage" />
   </CEffectDamage>
   <CEffectCreateUnit id="JainaSummonWaterElementalCreateUnit">
     <SpawnUnit value="JainaWaterElemental" />
@@ -2203,7 +2592,13 @@
     <EffectArray value="JainaWaterElementalApplyStatusBehavior" />
     <EffectArray value="JainaWaterElementalApplyArcanePowerBehavior" />
     <EffectArray value="JainaWaterElementalApplyFingersOfFrostCarry" />
+    <EffectArray value="JainaWaterElementalAddTrackedUnit" />
+    <EffectArray value="JainaWaterElementalAttackAddAbilityController" />
   </CEffectSet>
+  <CEffectAddTrackedUnit id="JainaWaterElementalAddTrackedUnit">
+    <BehaviorLink value="JainaWaterElementalUnitTracker" />
+    <TrackedUnit Value="Target" />
+  </CEffectAddTrackedUnit>
   <CEffectCreatePersistent id="JainaWaterElementalBlizzardInitialPersistent">
     <InitialDelay value="0.5" />
     <FinalEffect value="JainaWaterElementalBlizzardPersistent" />
@@ -2216,8 +2611,9 @@
     <EffectArray value="SummonWaterElementalApplyCasterBehavior" />
     <EffectArray value="WaterElementalApplyBehavior" />
   </CEffectSet>
-  <CEffectDamage id="JainaWaterElementalWeaponDamage" parent="StormSummonedUnitWeapon">
-    <Amount value="62" />
+  <CEffectDamage id="JainaWaterElementalWeaponDamage" parent="StormSpell">
+    <Amount value="$JainaWaterElementalAttackDamage" />
+    <Visibility value="Hidden" />
   </CEffectDamage>
   <CEffectCreatePersistent id="JainaRingOfFrostInitialPersistent">
     <ExpireDelay value="0.5" />
@@ -2276,16 +2672,29 @@
   <CEffectDamage id="JainaRingOfFrostImpactDamageChilled" parent="StormSpell">
     <MultiplicativeModifierArray index="JainaChilledBonusDamage" Validator="JainaTargetHasChilledDamageBonus" Modifier="0.5" />
     <MultiplicativeModifierArray index="FrostMagePursuitBonus" Validator="JainaHas20TokensofFingersOfFrost" Modifier="0.1" />
-    <Amount value="310" />
+    <Amount value="$JainaRingOfFrostDamage" />
     <Flags index="Crit" value="1" />
   </CEffectDamage>
   <CEffectDamage id="JainaRingOfFrostImpactDamage" parent="StormSpell">
-    <Amount value="310" />
+    <Amount value="$JainaRingOfFrostDamage" />
   </CEffectDamage>
   <CEffectApplyBehavior id="JainaRingOfFrostApplyRootBehavior" parent="StormRootApply">
     <ValidatorArray value="TargetNotUnstoppable" />
     <Behavior value="JainaRingOfFrostRoot" />
   </CEffectApplyBehavior>
+  <CEffectApplyBehavior id="JainaWaterElementalAttackAddAbilityController">
+    <Behavior value="JainaWaterElementalAttackAbilityController" />
+  </CEffectApplyBehavior>
+  <CEffectApplyBehavior id="JainaWaterElementalAttackAddAbilityTargetController">
+    <ValidatorArray value="JainaWaterElementalAttackDoesNotHaveAbilityTargetController" />
+    <Behavior value="JainaWaterElementalAttackAbilityTargetController" />
+  </CEffectApplyBehavior>
+  <CEffectRemoveBehavior id="JainaWaterElementalAttackRemoveAbilityTargetController">
+    <WhichUnit Value="Caster" />
+    <BehaviorLink value="JainaWaterElementalAttackAbilityTargetController" />
+    <CancelBehavior value="1" />
+  </CEffectRemoveBehavior>
+  <CEffectSet id="JainaWaterElementalAttackSet" parent="StormSummonedUnitAddAttackTargetSet" behaviorRemoveEffect="JainaWaterElementalAttackRemoveAbilityTargetController" />
   <CEffectEnumArea id="JainaWaterElementalWeaponImpactSplashSearch">
     <ExcludeArray Value="Target" />
     <SearchFilters value="-;Self,Player,Ally,Neutral,ImmuneToAOE,Missile,Item,Stasis,Dead,Hidden,Invulnerable" />
@@ -2296,6 +2705,9 @@
       <RevealFlags index="Unfog" value="1" />
     </RevealerParams>
   </CEffectEnumArea>
+  <CEffectEnumTrackedUnits id="JainaWaterElementalAttackEnumTargetUnit" parent="StormSummonedUnitEnumTrackedAttackUnit">
+    <Effect value="JainaWaterElementalWeaponLaunchMissile" />
+  </CEffectEnumTrackedUnits>
   <CEffectLaunchMissile id="JainaWaterElementalWeaponLaunchMissile">
     <ValidatorArray index="0" value="TargetNotDead" />
     <ImpactEffect value="JainaWaterElementalWeaponImpactSwitch" />
@@ -3060,6 +3472,13 @@
         <Field value="AreaArray[0].Arc" />
         <Value value="45.000000" />
       </Modifications>
+      <Modifications>
+        <Type value="FlatModification" />
+        <Catalog value="Effect" />
+        <Entry value="JainaConeOfColdWintermuteSearch" />
+        <Field value="AreaArray[0].Arc" />
+        <Value value="45.000000" />
+      </Modifications>
     </AbilityModificationArray>
     <RankArray>
       <BehaviorArray value="JainaConeOfColdIceFloesTokenCounter" />
@@ -3085,13 +3504,6 @@
         <Entry value="JainaSummonWaterElementalRangeSplat" />
         <Field value="Scale" />
         <Value value="$JainaWintermuteRangeIncrease" />
-      </Modifications>
-      <Modifications>
-        <Type value="FlatModification" />
-        <Catalog value="Effect" />
-        <Entry value="JainaWaterElementalBlizzardDummyPersistent" />
-        <Field value="Chance" />
-        <Value value="1.000000" />
       </Modifications>
       <Modifications>
         <Type value="CatalogReplacement" />
@@ -3215,6 +3627,14 @@
         <FieldIsInteger value="1" />
         <Value value="2.000000" />
       </Modifications>
+      <Modifications>
+        <Type value="FlatModification" />
+        <Catalog value="Effect" />
+        <Entry value="JainaFrostboltWintermuteMissileSearch" />
+        <Field value="AreaArray[0].MaxCount" />
+        <FieldIsInteger value="1" />
+        <Value value="2.000000" />
+      </Modifications>
     </AbilityModificationArray>
     <RankArray>
       <BehaviorArray value="JainaFrostBoltFrostShardsTokenCounter" />
@@ -3236,14 +3656,14 @@
         <Catalog value="Actor" />
         <Entry value="JainaFrostboltGuide" />
         <Field value="Height" />
-        <Value value="3.150000" />
+        <Value value="$JainaWintersReachFrostboltRangeIncrease" />
       </Modifications>
       <Modifications>
         <Type value="FlatModification" />
         <Catalog value="Actor" />
         <Entry value="JainaFrostboltElementalGuide" />
         <Field value="Height" />
-        <Value value="3.000000" />
+        <Value value="$JainaWintersReachFrostboltRangeIncrease" />
       </Modifications>
       <Modifications>
         <Type value="CatalogReplacement" />
@@ -3256,7 +3676,7 @@
         <Catalog value="Effect" />
         <Entry value="JainaFrostboltLaunchMissile" />
         <Field value="ImpactLocation.ProjectionDistanceScale" />
-        <Value value="3.150000" />
+        <Value value="$JainaWintersReachFrostboltRangeIncrease" />
       </Modifications>
     </AbilityModificationArray>
   </CTalent>
@@ -3350,6 +3770,13 @@
       </Modifications>
       <Modifications>
         <Type value="FlatModification" />
+        <Catalog value="Effect" />
+        <Entry value="JainaBlizzardWintermuteSearch" />
+        <Field value="AreaArray[0].Radius" />
+        <Value value="0.750000" />
+      </Modifications>
+      <Modifications>
+        <Type value="FlatModification" />
         <Catalog value="Actor" />
         <Entry value="JainaBlizzardZoneSplat" />
         <Field value="Scale" />
@@ -3369,6 +3796,13 @@
         <Field value="RevealRadius" />
         <Value value="0.750000" />
       </Modifications>
+      <Modifications>
+        <Type value="FlatModification" />
+        <Catalog value="Effect" />
+        <Entry value="JainaBlizzardWintermutePersistent" />
+        <Field value="RevealRadius" />
+        <Value value="0.750000" />
+      </Modifications>
     </AbilityModificationArray>
   </CTalent>
   <CUnit id="HeroJaina" parent="StormHeroMounted">
@@ -3384,6 +3818,7 @@
     <BehaviorArray Link="ExcellentMana" />
     <BehaviorArray Link="JainaWaterElementalStatusController" />
     <BehaviorArray Link="JainaFrostbiteTokenCounter" />
+    <BehaviorArray Link="JainaWaterElementalUnitTracker" />
     <WeaponArray Link="HeroJaina" />
     <CardLayouts index="0">
       <LayoutButtons Face="JainaCommandWaterElemental" Type="AbilCmd" AbilCmd="JainaCommandWaterElemental,Execute" Slot="Heroic" />
@@ -3431,6 +3866,8 @@
     <BehaviorArray Link="JainaWaterElementalSpawnSuppression" />
     <BehaviorArray Link="ShrubProximityDetector" />
     <BehaviorArray Link="HeroicSummon" />
+    <BehaviorArray Link="StormSummonedUnitTargetTracker" />
+    <BehaviorArray Link="StormSummonedUnitDamagedUnitTracker" />
     <CardLayouts>
       <LayoutButtons Face="Move" Type="AbilCmd" AbilCmd="move,Move" Slot="Stop" />
       <LayoutButtons Face="Stop" Type="AbilCmd" AbilCmd="stop,Stop" Slot="Stop" />
@@ -3884,6 +4321,62 @@
     <Value value="1" />
     <Behavior value="JainaWaterElementalStatusAvailable" />
   </CValidatorUnitCompareBehaviorCount>
+  <CValidatorUnitCompareBehaviorCount id="JainaWaterElementalAttackerBlinded">
+    <Compare value="GT" />
+    <WhichUnit Effect="JainaWaterElementalAttackEnumTargetUnit" />
+    <Categories index="DebuffBlind" value="1" />
+  </CValidatorUnitCompareBehaviorCount>
+  <CValidatorCombine id="JainaWaterElementalAttackerBlindedOrTargetIsEvadingAndNotGenjiDodge">
+    <CombineArray value="JainaWaterElementalAttackerBlinded" />
+    <CombineArray value="TargetIsEvadingAndNotGenjiDodge" />
+  </CValidatorCombine>
+  <CValidatorUnitHasBehavior id="JainaWaterElementalAttackDoesNotHaveAbilityTargetController">
+    <Behavior value="JainaWaterElementalAttackAbilityTargetController" />
+    <Negate value="1" />
+  </CValidatorUnitHasBehavior>
+  <CValidatorUnitHasBehavior id="JainaWaterElementalHasFrostboltCastBehaviorMarker">
+    <Behavior value="JainaFrostboltWintermuteCastBehaviorMarker" />
+  </CValidatorUnitHasBehavior>
+  <CValidatorUnitHasBehavior id="JainaWaterElementalHasBlizzardCastBehaviorMarker">
+    <Behavior value="JainaBlizzardWintermuteCastBehaviorMarker" />
+  </CValidatorUnitHasBehavior>
+  <CValidatorUnitHasBehavior id="JainaWaterElementalHasConeOfColdCastBehaviorMarker">
+    <Behavior value="JainaConeOfColdWintermuteCastBehaviorMarker" />
+  </CValidatorUnitHasBehavior>
+  <CValidatorUnitFilters id="JainaFrostboltWintermuteNotDead">
+    <WhichUnit Effect="JainaFrostboltWintermuteEnumerateTrackedUnitsSet" />
+    <Filters value="-;Dead" />
+  </CValidatorUnitFilters>
+  <CValidatorCompareTrackedUnitsCount id="JainaBlizzardWintermuteHasDamagedUnitsTracked" parent="StormSummonedUnitHasDamagedUnitsTracked">
+    <TrackerUnit Effect="JainaBlizzardWintermuteEnumerateTrackedUnitsSet" Value="Target" />
+  </CValidatorCompareTrackedUnitsCount>
+  <CValidatorCompareTrackedUnitsCount id="JainaConeOfColdWintermuteHasDamagedUnitsTracked" parent="StormSummonedUnitHasDamagedUnitsTracked">
+    <TrackerUnit Effect="JainaConeOfColdWintermuteEnumerateTrackedUnitsSet" Value="Target" />
+  </CValidatorCompareTrackedUnitsCount>
+  <CValidatorCompareTrackedUnitsCount id="JainaHasWaterElementalTracked">
+    <Compare value="GT" />
+    <BehaviorLink value="JainaWaterElementalUnitTracker" />
+  </CValidatorCompareTrackedUnitsCount>
+  <CValidatorCompareTrackedUnitsCount id="JainaHasWaterElementalTrackedNotCCd">
+    <Compare value="GT" />
+    <BehaviorLink value="JainaWaterElementalUnitTracker" />
+    <TrackedUnitValidatorArray value="TargetNotDeadOrPolymorphedOrSilencedOrStasisOrStunned" />
+  </CValidatorCompareTrackedUnitsCount>
+  <CValidatorCompareTrackedUnitsCount id="JainaHasWaterElementalTrackedHasFrostboltCastMarker">
+    <Compare value="GT" />
+    <BehaviorLink value="JainaWaterElementalUnitTracker" />
+    <TrackedUnitValidatorArray value="JainaWaterElementalHasFrostboltCastBehaviorMarker" />
+  </CValidatorCompareTrackedUnitsCount>
+  <CValidatorCompareTrackedUnitsCount id="JainaHasWaterElementalTrackedHasBlizzardCastMarker">
+    <Compare value="GT" />
+    <BehaviorLink value="JainaWaterElementalUnitTracker" />
+    <TrackedUnitValidatorArray value="JainaWaterElementalHasBlizzardCastBehaviorMarker" />
+  </CValidatorCompareTrackedUnitsCount>
+  <CValidatorCompareTrackedUnitsCount id="JainaHasWaterElementalTrackedHasConeOfColdCastMarker">
+    <Compare value="GT" />
+    <BehaviorLink value="JainaWaterElementalUnitTracker" />
+    <TrackedUnitValidatorArray value="JainaWaterElementalHasConeOfColdCastBehaviorMarker" />
+  </CValidatorCompareTrackedUnitsCount>
   <CWeaponLegacy id="HeroJaina" parent="StormHeroFastWeapon">
     <Icon value="Assets\Textures\storm_temp_btn-upgrade-zerg-meleeattacks-level3.dds" />
     <DisplayEffect value="JainaWeaponDamage" />
@@ -3901,7 +4394,7 @@
     <Range value="5.5" />
     <ArcSlop value="11.25" />
     <Period value="1" />
-    <Effect value="JainaWaterElementalWeaponLaunchMissile" />
+    <Effect value="JainaWaterElementalAttackSet" />
     <LegacyOptions index="Uninterruptible" value="0" />
     <LegacyOptions index="FaceTargetWhileInCooldown" value="1" />
     <AcquireScanFilters value="-;NoMinionAggro" />

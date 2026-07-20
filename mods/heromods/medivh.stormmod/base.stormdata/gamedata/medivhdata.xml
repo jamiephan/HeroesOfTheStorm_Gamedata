@@ -166,7 +166,7 @@
   </CAbilEffectInstant>
   <CAbilEffectTarget id="MedivhArcaneRift">
     <PrepEffect value="MedivhArcaneRiftAbilityPrepareSet" />
-    <Effect value="MedivhArcaneRiftCreatePersistent" />
+    <Effect value="MedivhArcaneRiftInitialSet" />
     <Flags index="ClearLastMoveTarget" value="1" />
     <Flags index="RequireTargetVision" value="0" />
     <Flags index="TargetVectorLock" value="1" />
@@ -1275,9 +1275,10 @@
   </CActorSound>
   <CActorMissile id="MedivhArcaneRiftMissile" parent="StormMissileWithDeathEarly" unitName="MedivhArcaneRiftMissile">
     <On Terms="ActorCreation" Send="Create MedivhArcaneRiftMissileLoop" />
-    <On Terms="ActorCreation; ValidateEffect MedivhHasArcaneRiftArcaneChargeMarker" Send="AnimGroupApply A" />
+    <On Terms="Behavior.MedivhArcaneChargeMissileMarker.On" Send="AnimGroupApply A" />
     <On Terms="ActorCreation; ValidateEffect MedivhHasArcaneRiftTheMastersTouchQuestComplete" Send="AnimGroupApply B" />
-    <On Terms="UnitBirth; ValidatePlayer MedivhHasArcaneRiftGuardianOfTirisfalTalent" Send="AnimSetTimeScale BSD 0.660000" />
+    <On Terms="UnitBirth; ValidatePlayer MedivhHasArcaneRiftGuardianOfTirisfalTalent" Send="TimerSet 0.250000 SlowAnim" />
+    <On Terms="TimerExpired; TimerName SlowAnim" Send="AnimSetTimeScale BSD 0.475000" />
     <On Terms="ActorDestruction" Target="MedivhArcaneRiftMissileLoop" Send="Destroy" />
   </CActorMissile>
   <CActorModel id="MedivhArcaneRiftImpact" parent="StormModelAnimationStyleOneShot">
@@ -1322,10 +1323,10 @@
     <Layers Sound="Medivh_ArcaneRift_Cast_Sweetener" />
   </CActorSound>
   <CActorForceConeRoundedEnd id="MedivhArcaneRiftForce">
-    <On Terms="Effect.MedivhArcaneRiftMissileScan.Start; At Caster" Send="Create" />
-    <Host Subject="MedivhArcaneRiftMissile" />
-    <HostSiteOps Ops="SOpShadow" HoldPosition="1" HoldRotation="1" />
-    <Duration value="0.125500" />
+    <On Terms="Effect.MedivhArcaneRiftMissileScan.Start" Send="Create" />
+    <Host Subject="_Missile" />
+    <HostSiteOps Ops="SOpForwardOriginPointInverted" HoldPosition="1" HoldRotation="1" />
+    <Duration value="0.245000" />
     <Magnitude value="70.000000" />
     <ForceFlags index="FallOff" value="0" />
     <HostEndSiteOps Ops="SOpMoveBy5Dot5" />
@@ -1711,7 +1712,10 @@
     <Duration value="10" />
   </CBehaviorBuff>
   <CBehaviorBuff id="MedivhPortalBeamPreventionDummy" />
-  <CBehaviorBuff id="MedivhArcaneRiftHeroHit" />
+  <CBehaviorTokenCounter id="MedivhArcaneRiftHeroHitCounter" parent="StormGenericToken">
+    <Max value="1" />
+    <AtMaxEvents Effect="MedivhArcaneRiftHeroHitRefundSet" />
+  </CBehaviorTokenCounter>
   <CBehaviorBuff id="MedivhPortalMageArmor" parent="StormArmor">
     <Alignment value="Positive" />
     <Duration value="5" />
@@ -1729,6 +1733,7 @@
   <CBehaviorBuff id="MedivhArcaneRiftArcaneChargeMarker">
     <RemoveValidatorArray value="MedivhHasArcaneRiftArcaneChargeTalent" />
   </CBehaviorBuff>
+  <CBehaviorBuff id="MedivhArcaneChargeMissileMarker" />
   <CBehaviorBuff id="MedivhDustofDisappearanceCloak" parent="StormTempCloak">
     <InfoFlags index="AlwaysUseGameText" value="1" />
     <BehaviorCategories index="Restorable" value="1" />
@@ -1925,9 +1930,11 @@
     <TooltipVitalOverrideText index="Energy" value="Portal Cancel Hide Mana" />
     <Icon value="Assets\Textures\hud_btn_bg_ability_cancel.dds" />
   </CButton>
+  <CEffectSet id="MedivhArcaneRiftHeroHitRefundSet">
+    <EffectArray value="MedivhArcaneRiftManaRefund" />
+    <EffectArray value="MedivhArcaneRiftMastersTouchCooldownReductionSwitch" />
+  </CEffectSet>
   <CEffectSwitch id="MedivhArcaneRiftMastersTouchCooldownReductionSwitch">
-    <ValidatorArray value="TargetIsHero" />
-    <ValidatorArray value="MedivhSourceHasNoArcaneRiftHeroHitBehavior" />
     <CaseArray Validator="MedivhHasArcaneRiftTheMastersTouchQuestComplete" Effect="MedivhArcaneRiftCooldownReductionMastersTouch" />
     <CaseDefault value="MedivhArcaneRiftCooldownReduction" />
   </CEffectSwitch>
@@ -2502,7 +2509,7 @@
     <EffectArray value="MedivhPortalRavenFamiliarImpactDamage" />
     <EffectArray value="MedivhPortalApplyRavenFamiliarTalentSlow" />
   </CEffectSet>
-  <CEffectDamage id="MedivhPortalRavenFamiliarImpactDamage" parent="StormSummonedUnitWeapon">
+  <CEffectDamage id="MedivhPortalRavenFamiliarImpactDamage" parent="StormSpell">
     <Amount value="114" />
     <Flags index="Crit" value="1" />
     <SourceButtonFace value="MedivhPortalRavenFamiliar" />
@@ -2935,6 +2942,7 @@
   <CEffectDamage id="MedivhArcaneRiftGuardianOfTirisfalMinionKill">
     <ImpactLocation Value="TargetUnit" />
     <Flags index="Kill" value="1" />
+    <AmountScoreArray Validator="TargetMinion" Value="MinionDamage" />
     <AmountScoreArray Validator="TargetMinion" Value="SiegeDamage" />
     <Amount value="1" />
     <Kind value="Ability" />
@@ -2945,44 +2953,49 @@
     <FacingLocation Value="TargetPoint" />
     <FacingType value="LookAt" />
   </CEffectModifyUnit>
-  <CEffectCreatePersistent id="MedivhArcaneRiftCreatePersistent">
-    <WhichLocation Value="CasterPoint" />
-    <PeriodCount value="1" />
-    <PeriodicEffectArray value="MedivhArcaneRiftLaunchMissile" />
-    <PeriodicOffsetArray Y="-10" />
-    <PeriodicPeriodArray value="0" />
+  <CEffectSet id="MedivhArcaneRiftInitialSet">
+    <EffectArray value="MedivhArcaneRiftLaunchMissile" />
+    <EffectArray value="MedivhArcaneRiftArcaneChargeMarkerRemove" />
+    <TargetLocationType value="Point" />
+  </CEffectSet>
+  <CEffectLaunchMissile id="MedivhArcaneRiftLaunchMissile">
     <Marker Duration="1">
       <MatchFlags index="Id" value="1" />
     </Marker>
-  </CEffectCreatePersistent>
-  <CEffectLaunchMissile id="MedivhArcaneRiftLaunchMissile">
-    <ImpactLocation Value="TargetPoint" />
     <LaunchOffset Y="-0.9" />
-    <LaunchEffect value="MedivhArcaneRiftMissileScanPersistent" />
-    <ImpactEffect value="MedivhArcaneRiftDestructionSet" />
+    <ImpactLocation>
+      <Value value="TargetPoint" />
+      <ProjectionMultiplier value="1" />
+      <ProjectionSourceValue value="OriginPoint" />
+      <ProjectionTargetValue value="TargetPoint" />
+      <UsesLineDash value="1" />
+      <LineDashType value="AllowedInUnpathable" />
+      <ProjectionDistanceScale value="10" />
+    </ImpactLocation>
+    <LaunchEffect value="MedivhArcaneRiftMissileLaunchSet" />
+    <ImpactEffect value="MedivhArcaneRiftMissileImpactSet" />
+    <SharedFlags index="DynamicSearchArea" value="1" />
     <AmmoUnit value="MedivhArcaneRiftMissile" />
     <Movers Link="MedivhArcaneRiftMissile" />
+    <SearchEffect value="MedivhArcaneRiftMissileScan" />
   </CEffectLaunchMissile>
-  <CEffectCreatePersistent id="MedivhArcaneRiftMissileScanPersistent">
-    <WhichLocation Value="SourceUnit" />
-    <PeriodCount value="9" />
-    <PeriodicEffectArray value="MedivhArcaneRiftMissileScan" />
-    <PeriodicPeriodArray value="0.0625" />
-  </CEffectCreatePersistent>
-  <CEffectDestroyPersistent id="MedivhArcaneRiftMissileScanDestroyPersistent">
-    <WhichLocation Value="SourcePoint" />
-    <Effect value="MedivhArcaneRiftMissileScanPersistent" />
-    <Count value="1" />
-    <Radius value="0.5" />
-  </CEffectDestroyPersistent>
-  <CEffectSet id="MedivhArcaneRiftDestructionSet">
-    <EffectArray value="MedivhArcaneRiftArcaneChargeMarkerRemove" />
-    <EffectArray value="MedivhArcaneRiftArcaneChargeMarkerApply" />
-    <EffectArray value="MedivhArcaneRiftMissileScanDestroyPersistent" />
+  <CEffectSet id="MedivhArcaneRiftMissileLaunchSet">
+    <EffectArray value="MedivhArcaneRiftApplyHeroHitCounter" />
+    <EffectArray value="MedivhArcaneRiftApplyArcaneChargeMissileMarker" />
   </CEffectSet>
+  <CEffectApplyBehavior id="MedivhArcaneRiftApplyHeroHitCounter">
+    <WhichUnit Value="Source" />
+    <Behavior value="MedivhArcaneRiftHeroHitCounter" />
+  </CEffectApplyBehavior>
+  <CEffectSet id="MedivhArcaneRiftMissileImpactSet">
+    <EffectArray value="MedivhArcaneRiftArcaneChargeMarkerApply" />
+  </CEffectSet>
+  <CEffectApplyBehavior id="MedivhArcaneRiftApplyArcaneChargeMissileMarker">
+    <ValidatorArray index="0" value="MedivhHasArcaneRiftArcaneChargeMarker" />
+    <WhichUnit Value="Source" />
+    <Behavior value="MedivhArcaneChargeMissileMarker" />
+  </CEffectApplyBehavior>
   <CEffectEnumArea id="MedivhArcaneRiftMissileScan">
-    <LaunchLocation Effect="MedivhArcaneRiftCreatePersistent" Value="OriginPoint" />
-    <ImpactLocation Value="SourceUnit" />
     <SearchFilters value="-;Self,Player,Ally,Neutral,ImmuneToAOE,Missile,Item,Stasis,Dead,Hidden,Invulnerable" />
     <SearchFlags index="DoActorSearch" value="1" />
     <AreaArray Effect="MedivhArcaneRiftImpactSet">
@@ -2996,29 +3009,23 @@
   <CEffectSet id="MedivhArcaneRiftImpactSet">
     <EffectArray value="ApplyAbilityImpactReveal" />
     <EffectArray value="MedivhArcaneRiftDamageSwitch" />
-    <EffectArray value="MedivhArcaneRiftManaRefund" />
-    <EffectArray value="MedivhArcaneRiftMastersTouchCooldownReductionSwitch" />
-    <EffectArray value="MedivhArcaneRiftHeroHitApply" />
+    <EffectArray value="MedivhArcaneRiftHeroHitIncreaseTokenCounterSource" />
     <EffectArray value="MedivhMysticAssaultApplyBehavior" />
     <EffectArray value="MedivhArcaneRiftTheMastersTouchQuestIncrementToken" />
     <EffectArray value="MedivhTemporalFluxCooldownModifierArcaneRift" />
     <ValidatorArray value="noMarkers" />
   </CEffectSet>
   <CEffectModifyUnit id="MedivhArcaneRiftCooldownReduction">
-    <ValidatorArray value="TargetIsHero" />
-    <ValidatorArray value="MedivhSourceHasNoArcaneRiftHeroHitBehavior" />
     <ImpactUnit Value="Caster" />
     <Cost Abil="MedivhArcaneRift,Execute" CooldownOperation="Add" CooldownTimeUse="-5" />
   </CEffectModifyUnit>
   <CEffectCreateHealer id="MedivhArcaneRiftManaRefund" parent="StormManaRestore">
-    <ValidatorArray value="TargetIsHero" />
-    <ValidatorArray value="MedivhSourceHasNoArcaneRiftHeroHitBehavior" />
     <ImpactUnit Value="Caster" />
     <RechargeVitalRate value="50" />
   </CEffectCreateHealer>
   <CEffectDamage id="MedivhArcaneRiftDamage" parent="StormSpell">
     <Amount value="170" />
-    <MultiplicativeModifierArray index="MedivhArcaneCharge" Validator="MedivhHasArcaneRiftArcaneChargeMarker" Modifier="0.15" Crit="1" />
+    <MultiplicativeModifierArray index="MedivhArcaneCharge" Validator="MedivhSourceHasArcaneRiftArcaneChargeMarker" Modifier="0.15" Crit="1" />
     <FlatModifierArray index="MastersTouchDamage" Validator="MedivhHasArcaneRiftTheMastersTouchQuestComplete" Modifier="75" />
   </CEffectDamage>
   <CEffectDamage id="MedivhArcaneRiftArcaneChargeDamage" parent="StormSpell">
@@ -3038,6 +3045,11 @@
     <CaseArray Validator="MedivhHasArcaneRiftGuardianOfTirisfalAndTargetIsMinion" Effect="MedivhArcaneRiftGuardianOfTirisfalMinionKill" />
     <CaseDefault value="MedivhArcaneRiftDamage" />
   </CEffectSwitch>
+  <CEffectModifyTokenCount id="MedivhArcaneRiftHeroHitIncreaseTokenCounterSource" parent="BaseEffectModifyTokenCount">
+    <ValidatorArray value="TargetIsHero" />
+    <TokenId value="MedivhArcaneRiftHeroHitCounter" />
+    <WhichUnit Value="Source" />
+  </CEffectModifyTokenCount>
   <CEffectEnumArea id="MedivhArcaneBrillianceApplySearch">
     <SearchFilters value="Heroic;Neutral,Enemy,Structure,User1,Missile,Item,Stasis,Dead,MapBoss" />
     <AreaArray Effect="MedivhArcaneBrillianceImpactSet">
@@ -3057,14 +3069,8 @@
     <ValidatorArray value="TargetIsManaUser" />
     <RechargeVitalRate value="200" />
   </CEffectCreateHealer>
-  <CEffectApplyBehavior id="MedivhArcaneRiftHeroHitApply">
-    <ValidatorArray index="0" value="MedivhSourceHasNoArcaneRiftHeroHitBehavior" />
-    <ValidatorArray value="TargetIsHero" />
-    <WhichUnit Value="Source" />
-    <Behavior value="MedivhArcaneRiftHeroHit" />
-  </CEffectApplyBehavior>
   <CEffectApplyBehavior id="MedivhArcaneRiftArcaneChargeMarkerApply">
-    <ValidatorArray index="0" value="MedivhSourceHasArcaneRiftHeroHitBehavior" />
+    <ValidatorArray index="0" value="MedivhArcaneRiftSourceHasGE1HeroHit" />
     <Chance value="0" />
     <WhichUnit Value="Caster" />
     <Behavior value="MedivhArcaneRiftArcaneChargeMarker" />
@@ -3879,22 +3885,15 @@
       <Modifications>
         <Type value="FlatModification" />
         <Catalog value="Effect" />
-        <Entry value="MedivhArcaneRiftCreatePersistent" />
-        <Field value="PeriodicOffsetArray[0].Y" />
-        <Value value="-5.000000" />
+        <Entry value="MedivhArcaneRiftLaunchMissile" />
+        <Field value="ImpactLocation.ProjectionDistanceScale" />
+        <Value value="5.000000" />
       </Modifications>
       <Modifications>
         <Type value="FlatModification" />
         <Catalog value="Actor" />
         <Entry value="MedivhArcaneRiftGuide" />
         <Field value="Height" />
-        <Value value="5.000000" />
-      </Modifications>
-      <Modifications>
-        <Type value="FlatModification" />
-        <Catalog value="Effect" />
-        <Entry value="MedivhArcaneRiftMissileScanPersistent" />
-        <Field value="PeriodCount" />
         <Value value="5.000000" />
       </Modifications>
     </AbilityModificationArray>
@@ -4863,19 +4862,20 @@
     <WhichUnit Value="Caster" />
     <Behavior value="MedivhTransformRaven" />
   </CValidatorUnitCompareBehaviorCount>
-  <CValidatorUnitCompareBehaviorCount id="MedivhSourceHasNoArcaneRiftHeroHitBehavior">
-    <WhichUnit Value="Source" />
-    <Behavior value="MedivhArcaneRiftHeroHit" />
-  </CValidatorUnitCompareBehaviorCount>
-  <CValidatorUnitCompareBehaviorCount id="MedivhSourceHasArcaneRiftHeroHitBehavior">
-    <WhichUnit Value="Source" />
+  <CValidatorUnitCompareTokenCount id="MedivhArcaneRiftSourceHasGE1HeroHit">
+    <Compare value="GE" />
     <Value value="1" />
-    <Behavior value="MedivhArcaneRiftHeroHit" />
-  </CValidatorUnitCompareBehaviorCount>
+    <TokenId value="MedivhArcaneRiftHeroHitCounter" />
+  </CValidatorUnitCompareTokenCount>
   <CValidatorUnitCompareBehaviorCount id="MedivhHasArcaneRiftArcaneChargeMarker">
     <WhichUnit Value="Caster" />
     <Value value="1" />
     <Behavior value="MedivhArcaneRiftArcaneChargeMarker" />
+  </CValidatorUnitCompareBehaviorCount>
+  <CValidatorUnitCompareBehaviorCount id="MedivhSourceHasArcaneRiftArcaneChargeMarker">
+    <WhichUnit Effect="MedivhArcaneRiftImpactSet" Value="Source" />
+    <Compare value="GT" />
+    <Behavior value="MedivhArcaneChargeMissileMarker" />
   </CValidatorUnitCompareBehaviorCount>
   <CValidatorUnitCompareBehaviorCount id="MedivhTargetHasNoPortalMageArmorMarker">
     <Behavior value="MedivhPortalMageArmorMarker" />

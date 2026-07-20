@@ -9,12 +9,13 @@
   <const id="$ChromieTimeTrapArmingDuration" value="2" />
   <const id="$ChromieTimeTrapChargeCooldown" value="15" />
   <const id="$ChromieTimeTrapCooldown" value="1" />
-  <const id="$ChromieSandBlastOnceAgainTheFirstTimeMaximumTokens" value="40" />
-  <const id="$ChromieDragonsBreathDeepBreathingMaxStackCount" value="20" />
+  <const id="$ChromieSandBlastOnceAgainTheFirstTimeMaximumTokens" value="20" />
+  <const id="$ChromieDragonsBreathDeepBreathingMilestoneGoal" value="20" />
   <const id="$PastAndFutureMeUnitRadius" value="0.625" />
-  <const id="$ChromieHereAndThereRange" value="20" />
+  <const id="$ChromieHereAndThereRange" value="40" />
   <const id="$ChromieHereAndThereSlopDistance" value="4" />
   <const id="$ChromieHereAndThereSlopDistanceSplat" value="+($ChromieHereAndThereSlopDistance $PastAndFutureMeUnitRadius)" evaluateAsExpression="1" />
+  <const id="$ChromieHereAndThereValidCastArea" value="+($ChromieHereAndThereRange $ChromieHereAndThereSlopDistance)" evaluateAsExpression="1" />
   <const id="$ChromieSlowingSandsRange" value="8" />
   <const id="$ChromieUnravellingRangeModifier" value="0.5" />
   <const id="$ChromieUnravellingRangeIncrease" value="*($ChromieSlowingSandsRange $ChromieUnravellingRangeModifier)" evaluateAsExpression="1" />
@@ -97,11 +98,16 @@
     <Flags index="ClearLastMoveTarget" value="1" />
     <Flags index="RequireTargetVision" value="0" />
     <Cost>
-      <Cooldown Location="Player" TimeUse="20" />
+      <Cooldown TimeUse="20" />
     </Cost>
-    <Range value="$ChromieHereAndThereRange" />
+    <Range value="500" />
     <Arc value="360" />
-    <CmdButtonArray index="Execute" DefaultButtonFace="ChromieHereAndThere" />
+    <CursorRangeFlags index="ClampMin" value="1" />
+    <MinimumRange value="0.75" />
+    <TargetCursorValidators value="ChromieHereAndThereEchoWithinProximity" />
+    <CmdButtonArray index="Execute" DefaultButtonFace="ChromieHereAndThere">
+      <Flags index="AllowMinimap" value="1" />
+    </CmdButtonArray>
   </CAbilEffectTarget>
   <CAbilEffectTarget id="ChromieTimeTrap">
     <PrepEffect value="DismountDecloakCasterSet" />
@@ -249,10 +255,9 @@
     <Scale value="0.1" />
   </CAccumulatorToken>
   <CAccumulatorToken id="ChromieDragonsBreathDeepBreathingAccumulator" parent="BaseTokenAccumulator">
-    <Scale value="0.01" />
+    <Scale value="0.005" />
     <TokenId value="ChromieDragonsBreathDeepBreathingQuestToken" />
     <ApplicationRule value="Add" />
-    <MaxAccumulation value="0.2" />
   </CAccumulatorToken>
   <CActorModel id="ChromiePastAndFutureMeStormGuideVisualQuadModel2" parent="ModelAnimationStyleContinuous">
     <Aliases value="_GuidePastAndFutureMeQuadSegment2" />
@@ -408,12 +413,10 @@
     <HostSiteOps Ops="SOpCursor" />
   </CActorSite>
   <CActorSound id="ChromieSandBlastHereAndThereFrom" parent="SoundOneShot">
-    <On Terms="Effect.ChromieHereAndThereTeleportChromieUnitTeleport.Start; At Target" Send="Create" />
     <HostSiteOps HoldPosition="1" />
     <Sound value="Chromie_HereAndThere_Teleport_From" />
   </CActorSound>
   <CActorSound id="ChromieSandBlastHereAndThereTo" parent="SoundOneShot">
-    <On Terms="Effect.ChromieHereAndThereTeleportEchoUnitTeleport.Start; At Caster" Send="Create" />
     <HostSiteOps HoldPosition="1" />
     <Sound value="Chromie_HereAndThere_Teleport_To" />
   </CActorSound>
@@ -421,10 +424,20 @@
     <On Terms="Effect.ChromieSandBlastImpactSet.Start" Send="Create" />
     <Sound value="Chromie_AetherCannon_Impact" />
   </CActorSound>
-  <CActorRange id="ChromieHereAndThereRange" parent="StormRangeAbilPlusSplat" abil="ChromieHereAndThere" />
-  <CActorSplat id="ChromieHereAndThereRangeSplat" parent="StormRangeSplat">
-    <Scale value="$ChromieHereAndThereRange" />
-  </CActorSplat>
+  <CActorRange id="ChromieHereAndThereRange">
+    <Filter index="All" value="1" />
+    <VisibleTo index="Self" value="1" />
+    <Inherits index="TeamColor" value="1" />
+    <On Terms="Abil.ChromieHereAndThere.TargetOn" Send="Create" />
+    <On Terms="Abil.ChromieHereAndThere.TargetOff" Send="Destroy" />
+    <On Terms="Abil.ChromieHereAndThere.ButtonHoverOn" Send="Create" />
+    <On Terms="Abil.ChromieHereAndThere.ButtonHoverOff" Send="Destroy" />
+    <HostForProps Subject="PropsHost" />
+    <Range value="$ChromieHereAndThereRange" />
+    <Icon value="Assets\Textures\storm_towerradius.dds" />
+    <IconArcLength value="5.000000" />
+    <RangeFlags index="Minimap" value="1" />
+  </CActorRange>
   <CActorModel id="ChromieTemporalLoopStuckInALoopAnchorFX" parent="StormModelAnimationStyleContinuous">
     <FogVisibility value="Visible" />
     <Preload index="0" value="ChromieTemporalLoopAnchorFX" />
@@ -437,9 +450,24 @@
   </CActorModel>
   <CActorModel id="ChromieHereAndThereTeleportEchoFXModel" parent="StormModelAnimationStyleOneShot">
     <Preload index="0" value="ChromieHereAndThereTeleportFXModel" />
-    <On Terms="Effect.ChromieHereAndThereTeleportEchoUnitTeleport.Stop; At Target" Send="Create" />
+    <On Terms="Effect.ChromieHereAndThereTeleportEchoUnitTeleport.Stop; At Effect" Send="Create" />
     <On Terms="ActorCreation" Send="SetScale 1.500000" />
-    <HostSiteOps Ops="SOpForwardCasterPoint" HoldPosition="1" HoldRotation="1" />
+    <On Terms="ActorCreation" Send="Create ChromieSandBlastHereAndThereFrom" />
+    <HostSiteOps Ops="SOpAttachCenterStationary SOpForwardCasterPoint" />
+    <Model value="ChromieTemporalLoopTeleportImpact" />
+  </CActorModel>
+  <CActorModel id="ChromieHereAndThereTeleportEchoFXModelOutOfRange" parent="StormModelAnimationStyleOneShot">
+    <Preload index="0" value="ChromieHereAndThereTeleportFXModel" />
+    <On Terms="Effect.ChromieHereAndThereTeleportEchoUnitOutOfRangeTeleport.Stop; At Effect" Send="Create" />
+    <On Terms="ActorCreation" Send="SetScale 1.500000" />
+    <On Terms="ActorCreation" Send="Create ChromieSandBlastHereAndThereFrom" />
+    <Host>
+      <Subject value="_Unit" />
+      <Scope value="Target" />
+      <Actor value="Find" />
+      <Effect value="ChromieHereAndThereTargetRangeSwitch" />
+    </Host>
+    <HostSiteOps Ops="SOpAttachCenterStationary SOpForwardCasterPoint" />
     <Model value="ChromieTemporalLoopTeleportImpact" />
   </CActorModel>
   <CActorModel id="ChromieSandBlastQuestCompleteVisualFX" parent="StormModelAnimationStyleContinuousUnit">
@@ -451,10 +479,12 @@
     <HostSiteOps Ops="SOpAttachCenter" />
   </CActorModel>
   <CActorModel id="ChromieHereAndThereTeleportFXModel" parent="StormModelAnimationStyleOneShot">
-    <On Terms="Effect.ChromieHereAndThereTeleportChromieUnitTeleport.Start; At Target" Send="Create" />
+    <On Terms="Effect.ChromieHereAndThereTeleportChromieUnitTeleport.Stop; At Source" Send="Create" />
+    <On Terms="Effect.ChromieHereAndThereTeleportChromieUnitTeleportToTarget.Stop; At Source" Send="Create" />
     <On Terms="ActorCreation" Send="SetScale 1.500000" />
+    <On Terms="ActorCreation" Send="Create ChromieSandBlastHereAndThereTo" />
     <Model value="ChromieTemporalLoopTeleportImpact" />
-    <HostSiteOps Ops="SOpAttachCenter SOpForwardOriginPoint" HoldPosition="1" HoldRotation="1" />
+    <HostSiteOps Ops="SOpAttachCenterStationary SOpForwardOriginPoint" />
   </CActorModel>
   <CActorModel id="ChromieTemporalLoopStuckInALoopTargetOverhead" parent="StormModelAnimationStyleContinuousUnit">
     <Macros value="RemoveEffectVisibilityMacro" />
@@ -851,8 +881,8 @@
     <Filter index="All" value="1" />
     <VisibleTo index="Neutral" value="1" />
     <VisibleTo index="Enemy" value="1" />
-    <On Terms="Effect.ChromieDragonsBreathCreatePersistent.Start; At Effect" Send="Create" />
-    <On Terms="Effect.ChromieDragonsBreathCreatePersistent.Stop; At Effect" Send="Destroy Immediate" />
+    <On Terms="Effect.ChromieDragonsBreathOffsetPersistent.Start; At Effect" Send="Create" />
+    <On Terms="Effect.ChromieDragonsBreathOffsetPersistent.Stop; FromEffectTreeDescendant; At Effect" Send="Destroy Immediate" />
     <On Terms="ActorCreation" Send="SetOpacity" />
     <On Terms="ActorCreation" Send="TimerSet 0.375000 DragonsBreathWarningTimer" />
     <On Terms="TimerExpired; TimerName DragonsBreathWarningTimer" Send="SetOpacity 1.000000" />
@@ -862,8 +892,8 @@
     <Filter index="All" value="1" />
     <VisibleTo index="Neutral" value="1" />
     <VisibleTo index="Enemy" value="1" />
-    <On Terms="Effect.ChromieDragonsBreathCreatePersistent.Start; At Effect; ValidatePlayer ChromieHasDragonsBreathDragonsEyeTalent" Send="Create" />
-    <On Terms="Effect.ChromieDragonsBreathCreatePersistent.Stop; At Effect; ValidatePlayer ChromieHasDragonsBreathDragonsEyeTalent" Send="Destroy Immediate" />
+    <On Terms="Effect.ChromieDragonsBreathOffsetPersistent.Start; At Effect; ValidatePlayer ChromieHasDragonsBreathDragonsEyeTalent" Send="Create" />
+    <On Terms="Effect.ChromieDragonsBreathOffsetPersistent.Stop; At Effect; FromEffectTreeDescendant; ValidatePlayer ChromieHasDragonsBreathDragonsEyeTalent" Send="Destroy Immediate" />
     <On Terms="ActorCreation" Send="SetOpacity" />
     <On Terms="ActorCreation" Send="TimerSet 0.375000 DragonsBreathWarningTimer" />
     <On Terms="TimerExpired; TimerName DragonsBreathWarningTimer" Send="SetOpacity 1.000000" />
@@ -949,6 +979,7 @@
   </CActorModel>
   <CActorSound id="ChromieTimeTrapTriggeredSound" parent="SoundOneShot">
     <On Terms="Effect.ChromieTimeTrapImpactSet.Start; At Source" Send="Create" />
+    <On Terms="Effect.ChromieTimeTrapProximityImpactSet.Start; At Source" Send="Create" />
     <Sound value="Chromie_TimeTrap_Triggered_Impact" />
   </CActorSound>
   <CActorSound id="ChromieTimeTrapFizzle" parent="SoundOneShot">
@@ -972,6 +1003,7 @@
     <Filter index="All" value="1" />
     <VisibleToAtCreation index="Caster" value="1" />
     <On Terms="Effect.ChromieTimeTrapImpactSet.Start; At Source" Send="Create" />
+    <On Terms="Effect.ChromieTimeTrapProximityImpactSet.Start; At Source" Send="Create" />
     <Sound value="Chromie_TimeTrap_Impact_Caster" />
   </CActorSound>
   <CActorSound id="ChromieTimeTrapActiveLoop" parent="SoundContinuous">
@@ -1695,7 +1727,7 @@
   <CBehaviorBuff id="ChromieTimeTrapChronicConditionsIncreasedMovementSpeed" parent="StormSprint">
     <Duration value="3" />
     <Modification>
-      <UnifiedMoveSpeedFactor value="0.3" />
+      <UnifiedMoveSpeedFactor value="0.2" />
     </Modification>
   </CBehaviorBuff>
   <CBehaviorBuff id="ChromieSandBlastGnomeSpeedAheadIncreasedMovementSpeed" parent="StormSprint">
@@ -1834,7 +1866,7 @@
   <CBehaviorBuff id="ChromieTimeTrapChronicConditionsSlow" parent="StormSlowParent">
     <Duration value="3" />
     <Modification>
-      <UnifiedMoveSpeedFactor value="-0.3" />
+      <UnifiedMoveSpeedFactor value="-0.2" />
     </Modification>
   </CBehaviorBuff>
   <CBehaviorBuff id="ChromieSandEchoEchoActiveBehavior">
@@ -1851,7 +1883,6 @@
     <FinalEffect value="ChromieTimeTrapTargetBehaviorExpireSet" />
     <InitialEffect value="ChromieTimeTrapInitialTargetSet" />
     <InfoFlags index="AlwaysUseGameText" value="1" />
-    <DisplayPriority value="1001" />
   </CBehaviorBuff>
   <CBehaviorBuff id="ChromieTimeTrapArmingBehavior">
     <DisplayDuration index="Self" value="1" />
@@ -1876,6 +1907,8 @@
     </Modification>
     <FinalEffect value="ChromieTimeTrapSuicideSet" />
     <RemoveValidatorArray value="ChromieTimeTrapIsBeingTracked" />
+    <PeriodicEffect value="ChromieTimeTrapProximitySearchArea" />
+    <Period value="0.0625" />
   </CBehaviorBuff>
   <CBehaviorBuff id="ChromieTimeTrapSelfRevealDamageResponseBehavior">
     <DamageResponse Chance="1" Handled="ChromieTimeTrapApplySelfRevealer" />
@@ -2005,9 +2038,11 @@
     <Max value="25" />
   </CBehaviorTokenCounter>
   <CBehaviorTokenCounter id="ChromieDragonsBreathDeepBreathingQuestToken" parent="StormQuestToken">
-    <AtMaxEvents index="0" EventId="QuestComplete" Effect="ChromieDragonsBreathDeepBreathingTalentCompletionSet" />
-    <Max value="$ChromieDragonsBreathDeepBreathingMaxStackCount" />
+    <Max value="65535" />
     <SortIndex value="10" />
+    <ConditionalEvents Compare="GE" CompareValue="$ChromieDragonsBreathDeepBreathingMilestoneGoal">
+      <Event EventId="QuestComplete" Effect="ChromieDragonsBreathDeepBreathingTalentCompletionSet" />
+    </ConditionalEvents>
   </CBehaviorTokenCounter>
   <CBehaviorUnitTracker id="ChromieHereAndThereTrackerBehavior">
     <MaxTrackedUnits value="1" />
@@ -2206,6 +2241,16 @@
     <ReverbLevel value="985.000000" />
     <ReverbDelay value="0.030000" />
   </CDSPReverb>
+  <CEffectModifyTokenCount id="OnceAgainTheFirstTimeDeathReset" parent="BaseEffectModifyTokenCount">
+    <ValidatorArray value="ChromieDoesNotHaveSandBlastOnceAgainTheFirstTimeQuestCompleteBehavior" />
+    <Marker Link="Effect/ChromieSandBlastOnceAgainTheFirstTimeIncrementQuestTokenCounter" />
+    <EffectCategory index="Quest" value="1" />
+    <CollationId value="ChromieSandBlastOnceAgainTheFirstTimeIncrementQuestTokenCounter" />
+    <WhichUnit Value="Creator" />
+    <TokenId value="ChromieSandBlastOnceAgainTheFirstTimeQuestToken" />
+    <Operation value="Set" />
+    <Value value="0" />
+  </CEffectModifyTokenCount>
   <CEffectApplyBehavior id="ChromieDragonsBreathMobiusLoopSlowApplyBehavior" parent="StormSlowApply">
     <ValidatorArray value="TargetIsHero" />
     <Behavior value="ChromieDragonsBreathMobiusLoopSlow" />
@@ -2266,8 +2311,8 @@
     <Chance value="0" />
   </CEffectEnumArea>
   <CEffectEnumArea id="ChromieHereAndThereSearchForNearbyEcho">
-    <AreaArray MaxCount="1" Effect="ChromieHereAndThereTeleportEchoUnitTeleport">
-      <Radius value="$ChromieHereAndThereSlopDistance" />
+    <AreaArray MaxCount="1" Effect="ChromieHereAndThereTargetRangeSwitch">
+      <Radius value="500" />
     </AreaArray>
     <TargetSorts>
       <SortArray value="TSDistanceFromTarget" />
@@ -2288,10 +2333,15 @@
   <CEffectSet id="ChromieDragonsBreathFinalSet" />
   <CEffectSet id="ChromieHereAndThereInitialSet">
     <EffectArray value="ChromieHereAndThereSearchForNearbyEcho" />
-    <EffectArray value="ChromieHereAndThereTeleportChromieUnitTeleport" />
     <TargetLocationType value="Point" />
-    <ValidatorArray value="ChromieHereAndThereTargetProximity" />
+    <ValidatorArray value="CasterNotRooted" />
   </CEffectSet>
+  <CEffectSwitch id="ChromieHereAndThereTargetRangeSwitch">
+    <ValidatorArray value="ChromieHereAndThereUnitIsBeingTracked" />
+    <ValidatorArray value="ChromieHereAndThereEchoTargetWithinRange" />
+    <CaseArray Validator="ChromieHereAndThereInitialTargetPointOutsideOfRange" Effect="ChromieHereAndThereImpactSetOutOfRangePersistent" />
+    <CaseDefault value="ChromieHereAndThereEchoImpactSetWithinRange" />
+  </CEffectSwitch>
   <CEffectLaunchMissile id="ChromieHeroWeaponLaunchMissileBronzeTalons">
     <ValidatorArray index="0" value="TargetNotDead" />
     <ImpactEffect value="ChromieHeroWeaponImpactSet" />
@@ -2624,13 +2674,21 @@
     <BehaviorLink value="ChromiePastAndFutureMeTracker" />
     <TrackedUnit Value="Target" />
   </CEffectAddTrackedUnit>
+  <CEffectSet id="ChromieHereAndThereEchoImpactSetWithinRange">
+    <EffectArray value="ChromieHereAndThereTeleportChromieUnitTeleportToTarget" />
+    <EffectArray value="ChromieHereAndThereTeleportEchoUnitTeleport" />
+  </CEffectSet>
   <CEffectTeleport id="ChromieHereAndThereTeleportChromieUnitTeleport" parent="StormTeleportSelf">
     <PlacementRange value="$ChromieHereAndThereRange" />
     <PlacementArc value="360" />
     <TargetLocation Value="TargetPoint" />
   </CEffectTeleport>
+  <CEffectTeleport id="ChromieHereAndThereTeleportChromieUnitTeleportToTarget" parent="StormTeleportSelf">
+    <PlacementRange value="$ChromieHereAndThereRange" />
+    <PlacementArc value="360" />
+    <TargetLocation Effect="ChromieHereAndThereInitialSet" Value="TargetPoint" />
+  </CEffectTeleport>
   <CEffectTeleport id="ChromieHereAndThereTeleportEchoUnitTeleport">
-    <ValidatorArray value="ChromieHereAndThereUnitIsBeingTracked" />
     <PlacementArc value="360" />
     <PlacementAround Value="OriginPoint" />
     <PlacementRange value="100" />
@@ -2638,17 +2696,26 @@
     <SourceLocation Value="TargetUnit" />
     <TargetLocation Value="OriginPoint" />
   </CEffectTeleport>
-  <CEffectSet id="ChromieHereAndThereTrackingSet">
+  <CEffectCreatePersistent id="ChromieHereAndThereImpactSetOutOfRangePersistent">
+    <InitialEffect value="ChromieHereAndThereEchoImpactSetOutOfRange" />
+    <InitialOffset Y="-$ChromieHereAndThereSlopDistanceSplat" />
+    <OffsetVectorStartLocation Value="TargetPoint" />
+    <OffsetVectorEndLocation Effect="ChromieHereAndThereInitialSet" />
+  </CEffectCreatePersistent>
+  <CEffectSet id="ChromieHereAndThereEchoImpactSetOutOfRange">
     <EffectArray value="ChromieHereAndThereTeleportChromieUnitTeleport" />
-    <EffectArray value="ChromieHereAndThereTeleportEchoUnitTeleport" />
+    <EffectArray value="ChromieHereAndThereTeleportEchoUnitOutOfRangeTeleport" />
     <TargetLocationType value="Point" />
   </CEffectSet>
-  <CEffectEnumTrackedUnits id="ChromieHereAndThereEnumerateTrackedUnits">
-    <Effect value="ChromieHereAndThereTrackingSet" />
-    <TrackedUnitFilters value="-;Ally,Neutral,Enemy" />
-    <ValidatorArray value="ChromieHereAndThereWithinRangeofSandEcho" />
-    <BehaviorLink value="ChromieHereAndThereTrackerBehavior" />
-  </CEffectEnumTrackedUnits>
+  <CEffectTeleport id="ChromieHereAndThereTeleportEchoUnitOutOfRangeTeleport">
+    <WhichUnit Effect="ChromieHereAndThereTargetRangeSwitch" />
+    <PlacementArc value="360" />
+    <PlacementAround Value="OriginPoint" />
+    <PlacementRange value="100" />
+    <Range value="100" />
+    <SourceLocation Effect="ChromieHereAndThereTargetRangeSwitch" Value="TargetUnit" />
+    <TargetLocation Value="OriginPoint" />
+  </CEffectTeleport>
   <CEffectApplyBehavior id="ChromieSandBlastApplyUIDummyFX">
     <WhichUnit Value="Caster" />
     <Behavior value="ChromieSandBlastUIFXDummy" />
@@ -2716,7 +2783,6 @@
     <BehaviorLink value="ChromieSandBlastPiercingSandsSourceBehavior" />
   </CEffectRemoveBehavior>
   <CEffectModifyPlayer id="ChromieDragonsBreathDeepBreathingFinalModifyUnit">
-    <EffectArray Operation="Set" Reference="Effect,ChromieDragonsBreathDeepBreathingModifyQuestToken,Chance" Value="0" />
     <EffectArray Reference="Abil,ChromieDragonsBreath,Cost.Vital[Energy]" Value="-25" />
     <EffectArray Reference="Abil,ChromieDragonsBreath,Cost.Cooldown.TimeUse" Value="-4.000000" />
   </CEffectModifyPlayer>
@@ -2852,6 +2918,39 @@
   <CEffectApplyBehavior id="ChromieTimeTrapApplyArmingBehavior">
     <Behavior value="ChromieTimeTrapArmingBehavior" />
   </CEffectApplyBehavior>
+  <CEffectEnumArea id="ChromieTimeTrapProximitySearchArea">
+    <ImpactLocation Value="SourceUnit" />
+    <SearchFilters value="Heroic;Self,Player,Ally,Neutral,ImmuneToAOE,Structure,Missile,Destructible,Item,Stasis,Dead,Hidden" />
+    <AreaArray MaxCount="1" Effect="ChromieTimeTrapProximityImpactSet">
+      <Radius value="1.5" />
+    </AreaArray>
+    <ValidatorArray value="ChromieTimeTrapHasChronicConditionsTalent" />
+  </CEffectEnumArea>
+  <CEffectSet id="ChromieTimeTrapProximityImpactSet">
+    <EffectArray value="ApplyAbilityImpactReveal" />
+    <EffectArray value="ChromieTimeTrapTargetApplyBehavior" />
+    <EffectArray value="ChromieTimeTrapProximitySuicideSet" />
+    <ValidatorArray value="FalstadDoesNotHaveFlightAscend" />
+    <ValidatorArray value="ChromieTimeTrapBenignValidator" />
+  </CEffectSet>
+  <CEffectSet id="ChromieTimeTrapProximitySuicideSet">
+    <EffectArray value="ChromieTimeTrapDestroyVisionDestroyPersistentProximity" />
+    <EffectArray value="ChromieTimeTrapVisionAfterSuicideCreatePersistentProximity" />
+    <EffectArray value="ChromieTimeTrapSuicideProximity" />
+  </CEffectSet>
+  <CEffectDestroyPersistent id="ChromieTimeTrapDestroyVisionDestroyPersistentProximity">
+    <WhichLocation Value="SourceUnit" />
+    <Effect value="ChromieTimeTrapVisionCreatePersistent" />
+    <Count value="1" />
+  </CEffectDestroyPersistent>
+  <CEffectCreatePersistent id="ChromieTimeTrapVisionAfterSuicideCreatePersistentProximity">
+    <WhichLocation Value="SourceUnitOrPoint" />
+    <ExpireDelay value="2" />
+    <RevealRadius value="3.5" />
+    <RevealFlags index="Unfog" value="1" />
+    <HeightMap value="Ground" />
+  </CEffectCreatePersistent>
+  <CEffectDamage id="ChromieTimeTrapSuicideProximity" parent="StormSuicide" />
   <CEffectSwitch id="ChromieTimeTrapApplyCooldownSwitch">
     <CaseArray Validator="ChromieHasTimeTrapChronicConditionsTalent" Effect="ChromieTimeTrapChronoSicknessApplyCooldown" />
     <CaseDefault value="ChromieTimeTrapApplyCooldown" />
@@ -4004,7 +4103,7 @@
         <Entry value="ChromieSandBlastMissileScan" />
         <Field value="AreaArray[0].MaxCount" />
         <FieldIsInteger value="1" />
-        <Value value="4294967294.000000" />
+        <Value value="4294967296.000000" />
       </Modifications>
       <Modifications>
         <Type value="FlatModification" />
@@ -4020,7 +4119,7 @@
         <Entry value="ChromieSandBlastPastAndFutureMeMissileScan" />
         <Field value="AreaArray[0].MaxCount" />
         <FieldIsInteger value="1" />
-        <Value value="4294967294.000000" />
+        <Value value="4294967296.000000" />
       </Modifications>
       <Modifications>
         <Type value="FlatModification" />
@@ -4172,7 +4271,7 @@
       <Modifications Type="FlatModification" Entry="ChromieDragonsBreath" Field="Cost.Vital[Energy]" />
       <Modifications Type="FlatModification" Entry="ChromieDragonsBreath" Field="Cost.Cooldown.TimeUse" />
     </AbilityModificationArray>
-    <QuestData StackBehavior="ChromieDragonsBreathDeepBreathingQuestToken" TargetCount="20" />
+    <QuestData StackBehavior="ChromieDragonsBreathDeepBreathingQuestToken" TargetCount="$ChromieDragonsBreathDeepBreathingMilestoneGoal" />
   </CTalent>
   <CTalent id="ChromieTimeOut">
     <Face value="ChromieTimeOutHotbar" />
@@ -4382,8 +4481,8 @@
   </CUnit>
   <CUnit id="ChromieTimeTrap" parent="StormSummonPassive">
     <Facing value="315" />
-    <LifeStart value="400" />
-    <LifeMax value="400" />
+    <LifeStart value="250" />
+    <LifeMax value="250" />
     <InnerRadius value="0.5" />
     <BehaviorArray Link="ChromieTimeTrapSelfRevealDamageResponseBehavior" />
     <Radius value="0.75" />
@@ -4426,6 +4525,7 @@
     <HeroPlaystyleFlags index="EnergyImportant" value="1" />
     <HeroPlaystyleFlags index="RoleCaster" value="1" />
     <AIThinkTree value="AI\Chromie.aitree" />
+    <EffectArray index="Death" value="OnceAgainTheFirstTimeDeathReset" />
   </CUnit>
   <CUnit id="ChromieHeroWeaponMissile" parent="MISSILE_INVULNERABLE">
     <Mover value="ChromieHeroWeaponMissileMover" />
@@ -4525,6 +4625,22 @@
     <BehaviorLink value="ChromieHereAndThereTrackerBehavior" />
     <TrackedUnit Value="Target" />
   </CValidatorIsUnitTracked>
+  <CValidatorLocationCompareRange id="ChromieHereAndThereEchoTargetWithinRange">
+    <WhichLocation Value="TargetUnit" />
+    <Compare value="LT" />
+    <Range value="$ChromieHereAndThereValidCastArea" />
+  </CValidatorLocationCompareRange>
+  <CValidatorLocationCompareRange id="ChromieHereAndThereInitialTargetPointOutsideOfRange">
+    <WhichLocation Effect="ChromieHereAndThereInitialSet" />
+    <Compare value="GT" />
+    <Range value="$ChromieHereAndThereSlopDistance" />
+    <Value Value="TargetPoint" />
+  </CValidatorLocationCompareRange>
+  <CValidatorCompareTrackedUnitsCount id="ChromieHereAndThereEchoWithinProximity">
+    <Compare value="GT" />
+    <BehaviorLink value="ChromieHereAndThereTrackerBehavior" />
+    <TrackedUnitValidatorArray value="ChromieHereAndThereEchoTargetWithinRange" />
+  </CValidatorCompareTrackedUnitsCount>
   <CValidatorPlayerTalent id="ChromieTimeTrapHasChronicConditionsTalent">
     <WhichPlayer Value="Caster" />
     <Find value="1" />
@@ -4598,7 +4714,7 @@
     <Value Value="FocusUnit" />
   </CValidatorLocationCompareRange>
   <CValidatorUnitFilters id="ChromieSandEchoAttackSandEchoIsNotVisibleToTarget">
-    <WhichUnit Effect="ChromieSandEchoBasicAttackEnumerateTrackedUnitsSet" Value="Target" />
+    <WhichUnit Effect="ChromieSandEchoBasicAttackEnumerateTrackedUnitsSet" />
     <OtherUnit Value="Target" />
     <Filters value="-;Visible" />
   </CValidatorUnitFilters>
@@ -4915,7 +5031,7 @@
   </CValidatorUnitCompareBehaviorCount>
   <CValidatorUnitCompareBehaviorCount id="ChromieHasDragonsBreathDeepBreathingMaxStacks">
     <WhichUnit Value="Caster" />
-    <Value value="$ChromieDragonsBreathDeepBreathingMaxStackCount" />
+    <Value value="65535" />
     <Behavior value="ChromieDragonsBreathDeepBreathingQuestToken" />
     <Compare value="GE" />
   </CValidatorUnitCompareBehaviorCount>

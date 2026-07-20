@@ -244,6 +244,10 @@
     <TokenId value="WitchDoctorVoodooRitual" />
     <Scale value="0.001" />
   </CAccumulatorToken>
+  <CAccumulatorToken id="WitchDoctorVoodooRitualTokenCountAccumulator" parent="BaseTokenAccumulator">
+    <ApplicationRule value="Add" />
+    <TokenId value="WitchDoctorVoodooRitual" />
+  </CAccumulatorToken>
   <CAccumulatorToken id="WitchDoctorBigVoodooHealthAccumulator" parent="BaseAccumulator">
     <MaxAccumulation value="390000" />
     <ApplicationRule value="Add" />
@@ -1067,6 +1071,8 @@
   </CBehaviorBuff>
   <CBehaviorTokenCounter id="WitchDoctorThingOfTheDeepQuestToken" parent="StormQuestToken">
     <Max value="100" />
+    <InitEvents Effect="WitchDoctorThingOfTheDeepMatchTokenCountPersistent" />
+    <IncreaseEvents index="0" EventId="" />
     <AtMaxEvents index="0" EventId="QuestComplete" Effect="WitchDoctorThingOfTheDeepModifyPlayerTier2" />
     <ConditionalEvents Compare="GE" CompareValue="50">
       <Event EventId="QuestMilestone" Effect="WitchDoctorThingOfTheDeepModifyPlayerTier1" />
@@ -1129,7 +1135,7 @@
     <Face value="WitchDoctorVoodooRitualTrait" />
     <BehaviorFlags index="Permanent" value="1" />
     <BehaviorFlags index="EnabledWhileDead" value="1" />
-    <Duration value="6.0625" />
+    <Duration value="6" />
     <Period value="1" />
     <PeriodicEffect value="WitchDoctorVoodooRitualDeathRitualTalentDamage" />
     <PeriodicDisplayEffect value="WitchDoctorVoodooRitualDeathRitualTalentDamage" />
@@ -1348,6 +1354,21 @@
       </VitalMaxArray>
     </Modification>
   </CBehaviorBuff>
+  <CBehaviorBuff id="WitchDoctorVoodooRitualDeathResponse" parent="CarryBehaviorParent">
+    <RemoveValidatorArray value="TargetHasVoodooRitualDoTCombine" />
+    <MaxStackCount value="15" />
+    <MaxStackCountPerCaster value="1" />
+    <Duration value="6.0625" />
+    <DamageResponse>
+      <Chance value="1" />
+      <Handled value="WitchDoctorVoodooRitualDeathResponseSet" />
+      <Priority value="15" />
+      <Fatal value="1" />
+    </DamageResponse>
+    <Modification>
+      <DeathResponse Chance="1" Effect="WitchDoctorVoodooRitualDeathResponseSet" />
+    </Modification>
+  </CBehaviorBuff>
   <CBehaviorTokenCounter id="WitchDoctorVoodooRitualTokenCounter" parent="StormQuestToken">
     <Face value="WitchDoctorVoodooRitualToken" />
     <InfoIcon value="Assets\Textures\storm_ui_icon_nazeebo_voodooritual.dds" />
@@ -1362,6 +1383,8 @@
     <InfoIcon value="Assets\Textures\storm_ui_icon_nazeebo_voodooritual.dds" />
     <TokenId value="WitchDoctorVoodooRitualVileInfection" />
     <Max value="175" />
+    <InitEvents Effect="WitchDoctorVileInfectionMatchTokenCountPersistent" />
+    <IncreaseEvents index="0" EventId="" />
     <AtMaxEvents index="0" EventId="QuestComplete" Effect="WitchDoctorVoodooRitualApplyDeathRitualTalentCarry" />
   </CBehaviorTokenCounter>
   <CBehaviorBuff id="WitchDoctorGargantuanActive">
@@ -1532,13 +1555,10 @@
     <Face value="WitchDoctorVoodooRitualTrait" />
     <BehaviorFlags index="Permanent" value="1" />
     <BehaviorFlags index="EnabledWhileDead" value="1" />
-    <Duration value="6.0625" />
+    <Duration value="6" />
     <Period value="1" />
     <PeriodicEffect value="WitchDoctorVoodooRitualDamage" />
     <PeriodicDisplayEffect value="WitchDoctorVoodooRitualDamage" />
-    <RemoveValidatorArray index="0" removed="1" />
-    <RemoveValidatorArray index="1" removed="1" />
-    <RemoveValidatorArray index="2" removed="1" />
   </CBehaviorBuff>
   <CBehaviorBuff id="RavenousSoulsChannel">
     <Alignment value="Positive" />
@@ -1829,7 +1849,7 @@
   <CEffectCreatePersistent id="WitchDoctorVoodooRitualBloodRitualTalentTakedownProcPersistent">
     <WhichLocation Value="TargetUnit" />
     <PeriodCount value="3" />
-    <PeriodicEffectArray value="WitchDoctorVoodooRitualProcSet" />
+    <PeriodicEffectArray value="WitchDoctorVoodooRitualProcSetNoValidate" />
     <PeriodicPeriodArray value="0" />
   </CEffectCreatePersistent>
   <CEffectModifyBehaviorBuffDuration id="WitchDoctorPlagueofToadsGuardianToadsTalentModifyBuffDuration">
@@ -1848,6 +1868,16 @@
     <CaseArray Validator="WitchDoctorHasGuardianToadsBuff" Effect="WitchDoctorPlagueofToadsGuardianToadsTalentModifyBuffDuration" />
     <CaseDefault value="WitchDoctorPlagueofToadsGuardianToadsTalentApplyResistant" />
   </CEffectSwitch>
+  <CEffectCreatePersistent id="WitchDoctorThingOfTheDeepMatchTokenCountPersistent">
+    <PeriodCount value="0">
+      <AccumulatorArray value="WitchDoctorVoodooRitualTokenCountAccumulator" />
+    </PeriodCount>
+    <PeriodicEffectArray value="WitchDoctorThingOfTheDeepAddTokenToSource" />
+  </CEffectCreatePersistent>
+  <CEffectModifyTokenCount id="WitchDoctorThingOfTheDeepAddTokenToSource" parent="BaseEffectModifyTokenCount">
+    <TokenId value="WitchDoctorThingOfTheDeepQuestToken" />
+    <WhichUnit Value="Source" />
+  </CEffectModifyTokenCount>
   <CEffectModifyTokenCount id="WitchDoctorThingOfTheDeepAddToken" parent="BaseEffectModifyTokenCount">
     <Chance value="0" />
     <TokenId value="WitchDoctorThingOfTheDeepQuestToken" />
@@ -2042,12 +2072,20 @@
     <ValidatorArray index="0" removed="1" />
     <Behavior value="WitchDoctorVoodooRitualDeathRitualTalentDoT" />
   </CEffectApplyBehavior>
+  <CEffectSet id="WitchDoctorAbilityDamageApplyVoodooRitual">
+    <EffectArray value="WitchDoctorVoodooRitualApplyDoTSwitch" />
+    <EffectArray value="WitchDoctorVoodooRitualApplyDeathResponseBehavior" />
+  </CEffectSet>
   <CEffectSwitch id="WitchDoctorVoodooRitualApplyDoTSwitch">
     <CaseArray Validator="WitchDoctorHasDeathRitualCarryCombine" Effect="WitchDoctorVoodooRitualApplyDeathRitualTalentDoTBehavior" />
     <CaseDefault value="WitchDoctorVoodooRitualApplyDoTBehavior" />
   </CEffectSwitch>
-  <CEffectSwitch id="WitchDoctorVoodooRitualApplyDoTSwitchHeroWeapon">
+  <CEffectSet id="WitchDoctorWeaponDamageApplyVoodooRitualSet">
     <ValidatorArray value="CasterNotBlindedAndTargetNotEvading" />
+    <EffectArray value="WitchDoctorVoodooRitualApplyDoTSwitchHeroWeapon" />
+    <EffectArray value="WitchDoctorVoodooRitualApplyDeathResponseBehavior" />
+  </CEffectSet>
+  <CEffectSwitch id="WitchDoctorVoodooRitualApplyDoTSwitchHeroWeapon">
     <CaseArray Validator="WitchDoctorHasDeathRitualCarryCombine" Effect="WitchDoctorVoodooRitualApplyDeathRitualTalentDoTBehavior" />
     <CaseDefault value="WitchDoctorVoodooRitualApplyDoTBehavior" />
   </CEffectSwitch>
@@ -2400,17 +2438,21 @@
   </CEffectDamage>
   <CEffectModifyTokenCount id="WitchDoctorVoodooRitualModifyToken" parent="BaseEffectModifyTokenCount">
     <TokenId value="WitchDoctorVoodooRitual" />
-    <EffectCategory index="Quest" value="1" />
-    <ValidatorArray value="WitchDoctorVoodooRitualQuestValidatorNoFX" />
+    <ContextUnit Value="Source" />
   </CEffectModifyTokenCount>
   <CEffectModifyTokenCount id="WitchDoctorVoodooRitualVileInfectionModifyToken" parent="BaseEffectModifyTokenCount">
     <TokenId value="WitchDoctorVoodooRitualVileInfection" />
     <EffectCategory index="Quest" value="1" />
   </CEffectModifyTokenCount>
-  <CEffectModifyTokenCount id="WitchDoctorVoodooRitualModifyTokenQuest" parent="BaseEffectModifyTokenCount">
-    <EffectCategory index="Quest" value="1" />
-    <TokenId value="WitchDoctorVoodooRitual" />
-    <ValidatorArray value="WitchDoctorHasVoodooRitualVileInfectionAndNotComplete" />
+  <CEffectCreatePersistent id="WitchDoctorVileInfectionMatchTokenCountPersistent">
+    <PeriodCount value="0">
+      <AccumulatorArray value="WitchDoctorVoodooRitualTokenCountAccumulator" />
+    </PeriodCount>
+    <PeriodicEffectArray value="WitchDoctorVileInfectionAddTokenToSource" />
+  </CEffectCreatePersistent>
+  <CEffectModifyTokenCount id="WitchDoctorVileInfectionAddTokenToSource" parent="BaseEffectModifyTokenCount">
+    <TokenId value="WitchDoctorVoodooRitualVileInfection" />
+    <WhichUnit Value="Source" />
   </CEffectModifyTokenCount>
   <CEffectModifyTokenCount id="WitchDoctorVoodooRitualModifyEnergyToken" parent="BaseEffectModifyTokenCount">
     <TokenId value="VoodooRitualEnergyTokenCounter" />
@@ -2434,10 +2476,20 @@
     <ValidatorArray value="WitchDoctorPlagueToadStructureTargetCombine" />
     <EffectArray value="WitchDoctorPlagueofToadsSuicideSet" />
   </CEffectSet>
+  <CEffectSet id="WitchDoctorVoodooRitualDeathResponseSet">
+    <ValidatorArray value="WitchDoctorVoodooRitualSourceHasDeathResponse" />
+    <EffectArray value="WitchDoctorVoodooRitualProcSet" />
+    <EffectArray value="WitchDoctorVoodooRitualBloodRitualSet" />
+    <EffectArray value="WitchDoctorVoodooRitualRemoveDeathResponse" />
+  </CEffectSet>
   <CEffectSet id="WitchDoctorVoodooRitualProcSet">
+    <ValidatorArray value="SylvanasSourceUnPossessed" />
+    <ValidatorArray value="SourceIsVoodooRitualValidTargetTypes" />
     <EffectArray value="WitchDoctorVoodooRitualModifyToken" />
-    <EffectArray value="WitchDoctorVoodooRitualModifyTokenQuest" />
-    <EffectArray value="WitchDoctorCorpseSpidersWidowmakersTalentModifyPlayer" />
+    <EffectArray value="WitchDoctorThingOfTheDeepAddToken" />
+  </CEffectSet>
+  <CEffectSet id="WitchDoctorVoodooRitualProcSetNoValidate">
+    <EffectArray value="WitchDoctorVoodooRitualModifyToken" />
     <EffectArray value="WitchDoctorThingOfTheDeepAddToken" />
   </CEffectSet>
   <CEffectLaunchMissileAdvanced id="WitchDoctorCorpseSpidersLeapLaunchMissile">
@@ -2616,7 +2668,7 @@
   </CEffectCreatePersistent>
   <CEffectSet id="WitchDoctorHeroWeaponImpactSet">
     <EffectArray value="UniversalWeaponImpact" />
-    <EffectArray value="WitchDoctorVoodooRitualApplyDoTSwitchHeroWeapon" />
+    <EffectArray value="WitchDoctorWeaponDamageApplyVoodooRitualSet" />
     <EffectArray value="WitchDoctorWeaponPreImpactSet" />
     <EffectArray value="WitchDoctorHeroWeaponDamage" />
     <EffectArray value="WitchDoctorWeaponPostImpactSet" />
@@ -2625,6 +2677,7 @@
   <CEffectSet id="WitchDoctorWeaponPreImpactSet" />
   <CEffectSet id="WitchDoctorWeaponPostImpactSet" />
   <CEffectSet id="WitchDoctorVoodooRitualBloodRitualSet">
+    <ValidatorArray value="WitchDoctorHasBloodRitual" />
     <EffectArray value="WitchDoctorVoodooRitualBloodRitualTalentCreateHealer" />
     <EffectArray value="WitchDoctorVoodooRitualBloodRitualModifyUnit" />
   </CEffectSet>
@@ -2809,8 +2862,8 @@
     <RechargeVitalFraction value="0.0195" />
   </CEffectCreateHealer>
   <CEffectCreateHealer id="WitchDoctorVoodooRitualBloodRitualTalentCreateHealer" parent="StormSelfOnlyHealingSpellPercent">
-    <LaunchUnit Value="Target" />
-    <RechargeVitalFraction value="0.0195" />
+    <ImpactUnit Value="Caster" />
+    <RechargeVitalFraction value="0.02" />
     <SourceButtonFace value="WitchDoctorVoodooRitualBloodRitualTalent" />
   </CEffectCreateHealer>
   <CEffectDamage id="WitchDoctorPlagueofToadsDamage" parent="StormSpellDot">
@@ -3112,6 +3165,16 @@
   <CEffectApplyBehavior id="WitchDoctorVoodooRitualApplyHealBehavior">
     <Behavior value="WitchDoctorVoodooRitualVitalCarry" />
   </CEffectApplyBehavior>
+  <CEffectApplyBehavior id="WitchDoctorVoodooRitualApplyDeathResponseBehavior">
+    <ValidatorArray value="SylvanasTargetUnPossessed" />
+    <Behavior value="WitchDoctorVoodooRitualDeathResponse" />
+  </CEffectApplyBehavior>
+  <CEffectRemoveBehavior id="WitchDoctorVoodooRitualRemoveDeathResponse">
+    <Count value="1" />
+    <WhichUnit Value="Source" />
+    <BehaviorLink value="WitchDoctorVoodooRitualDeathResponse" />
+    <RequireCasterUnit Value="Caster" />
+  </CEffectRemoveBehavior>
   <CEffectApplyBehavior id="WitchDoctorVoodooRitualApplyDoTBehavior">
     <ValidatorArray index="0" value="TargetIsNotHeroic" />
     <Behavior value="WitchDoctorVoodooRitualDoT" />
@@ -3175,6 +3238,7 @@
     <RechargeVitalFraction value="0.01" />
   </CEffectCreateHealer>
   <CEffectCreateHealer id="WitchDoctorVoodooRitualBloodRitualModifyUnit" parent="StormManaRestore">
+    <ImpactUnit Value="Caster" />
     <RechargeVitalFraction value="0.02" />
   </CEffectCreateHealer>
   <CEffectDamage id="WitchDoctorVoodooRitualDamage" parent="StormSpellDot">
@@ -5270,6 +5334,25 @@
     <WhichLocation Effect="WitchDoctorPlagueofToadsCreationPersistent1" />
     <Types index="Building" value="0" />
   </CValidatorLocationPathable>
+  <CValidatorUnitFilters id="SourceIsVoodooRitualValidTargetTypes" parent="SourceIsParentFilter">
+    <Filters value="Minion;Merc,Creep,Summoned,Structure" />
+  </CValidatorUnitFilters>
+  <CValidatorUnitCompareBehaviorCount id="WitchDoctorVoodooRitualSourceHasDeathResponse">
+    <WhichUnit Value="Source" />
+    <Compare value="GT" />
+    <Behavior value="WitchDoctorVoodooRitualDeathResponse" />
+    <RequireCasterUnit Value="Caster" />
+  </CValidatorUnitCompareBehaviorCount>
+  <CValidatorCombine id="TargetHasVoodooRitualDoTCombine">
+    <CombineArray value="WitchDoctorVoodooRitualTargetHasDoT" />
+    <CombineArray value="WitchDoctorVoodooRitualTargetHasDeathRitualDoT" />
+  </CValidatorCombine>
+  <CValidatorUnitHasBehavior id="WitchDoctorVoodooRitualTargetHasDoT">
+    <Behavior value="WitchDoctorVoodooRitualDoT" />
+  </CValidatorUnitHasBehavior>
+  <CValidatorUnitHasBehavior id="WitchDoctorVoodooRitualTargetHasDeathRitualDoT">
+    <Behavior value="WitchDoctorVoodooRitualDeathRitualTalentDoT" />
+  </CValidatorUnitHasBehavior>
   <CWeaponLegacy id="WitchDoctorRavenousSpiritWeapon">
     <Options index="Melee" value="1" />
     <Options index="CanInitiateAttackOrder" value="0" />

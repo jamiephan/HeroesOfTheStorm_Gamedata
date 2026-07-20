@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="us-ascii"?>
 <Catalog>
   <const id="$YrelBasicAbilityCooldown" value="6" />
-  <const id="$YrelBasicAbilityManaCost" value="65" />
+  <const id="$YrelBasicAbilityManaCost" value="50" />
   <const id="$YrelBasicAbilityChannelTokenMax" value="24" />
   <const id="$YrelBasicAbilityStartingOffsetRatio" value="0.3" />
   <const id="$YrelBasicAbilityChannelUnifiedMoveSpeedFactor" value="-0.25" />
@@ -12,7 +12,7 @@
   <const id="$YrelVindicationAegisOfLightSearchRadius" value="4.5" />
   <const id="$YrelVindicationAldorPeacekeeperDamageReductionDuration" value="3" />
   <const id="$YrelRighteousHammerSearchRadius" value="4" />
-  <const id="$YrelRighteousHammerStunDuration" value="0.75" />
+  <const id="$YrelRighteousHammerStunDuration" value="1.0" />
   <const id="$YrelRighteousHammerMinimumKnockbackMovespeed" value="6.5" />
   <const id="$YrelRighteousHammerMaximumKnockbackMovespeed" value="-($YrelBasicAbilityChannelTokenMax 7.5)" evaluateAsExpression="1" />
   <const id="$YrelRighteousHammerMaximumKnockbackMovespeedAtFullCharge" value="+($YrelRighteousHammerMaximumKnockbackMovespeed 2.5)" evaluateAsExpression="1" />
@@ -27,7 +27,7 @@
   <const id="$YrelArdentDefenderWordOfGlorySearchRadius" value="12" />
   <const id="$YrelSacredGroundRadius" value="5.5" />
   <const id="$YrelSacredGroundArmorBonus" value="50" />
-  <const id="$YrelDivinePurposeCooldown" value="8" />
+  <const id="$YrelDivinePurposeCooldown" value="16" />
   <const id="$YrelDivinePurposeGiftOfTheNaaruSearchRadius" value="8" />
   <const id="$YrelDauntlessArmorValue" value="35" />
   <const id="$YrelHolyWrathSearchRadius" value="3" />
@@ -183,7 +183,7 @@
     <Effect value="YrelDivinePurposeInitialSet" />
     <SharedFlags index="DelayHotkeysAfterThisByOneGameLoop" value="1" />
     <Cost>
-      <Cooldown TimeUse="$YrelDivinePurposeCooldown" />
+      <Cooldown TimeUse="12" />
     </Cost>
     <CmdButtonArray index="Execute" DefaultButtonFace="YrelDivinePurpose" ShowValidator="YrelDivinePurposeCasterDoesNotHaveBuff" />
   </CAbilEffectInstant>
@@ -215,7 +215,7 @@
     <Effect value="YrelHandOfFreedomInitialSet" />
     <Flags index="BestUnit" value="0" />
     <Cost>
-      <Cooldown TimeUse="30" />
+      <Cooldown TimeUse="40" />
     </Cost>
     <TargetFilters value="Heroic;Neutral,Enemy,Structure,ImmuneToFriendlyAbilities,Stasis,Summoned" />
     <Range value="10" />
@@ -264,7 +264,7 @@
     <PrepEffect value="DismountDecloakCasterSet" />
     <Effect value="YrelSeraphimInitialSet" />
     <Cost>
-      <Cooldown TimeUse="10" />
+      <Cooldown TimeUse="20" />
     </Cost>
     <CmdButtonArray index="Execute" DefaultButtonFace="YrelSeraphim" />
   </CAbilEffectInstant>
@@ -1341,7 +1341,6 @@
   <CBehaviorBuff id="YrelAvengingWrathChannelBuff">
     <Alignment value="Positive" />
     <RemoveValidatorArray value="CasterNotDeadOrUserCategoryStunnedOrSilencedOrStasisExceptTimeStop" />
-    <RemoveValidatorArray value="CasterNotRooted" />
     <RemoveValidatorArray value="YrelDivinePurposeCasterDoesNotHaveBuff" />
     <InitialEffect value="YrelAvengingWrathChannelBuffInitialSet" />
     <Period value="0.0625" />
@@ -1445,6 +1444,12 @@
   <CBehaviorTimestamp id="YrelDivineSteedMountTimestamp">
     <Flags index="UseTimeScale" value="1" />
   </CBehaviorTimestamp>
+  <CBehaviorBuff id="StunDetection">
+    <BehaviorFlags index="Permanent" value="1" />
+    <DisableValidatorArray value="SourceIsStunned" />
+    <Duration value="-1" />
+    <DisableEffect value="DivinePurposeModifyCooldown" />
+  </CBehaviorBuff>
   <CBehaviorBuff id="YrelRighteousHammerRighteousMomentumBaseMoveSpeed" parent="CarryBehaviorParent">
     <Tooltip value="Button/Tooltip/YrelSamaarasLight" />
     <Alignment value="Positive" />
@@ -1504,7 +1509,7 @@
   <CBehaviorBuff id="YrelHandOfFreedomMoveSpeed" parent="StormSprint">
     <Duration value="$YrelHandOfFreedomMoveSpeedDuration" />
     <Modification>
-      <UnifiedMoveSpeedFactor value="0.3" />
+      <UnifiedMoveSpeedFactor value="0.25" />
     </Modification>
     <RemoveValidatorArray value="TargetNotSpecialDeathState" />
   </CBehaviorBuff>
@@ -1586,7 +1591,7 @@
   <CBehaviorBuff id="YrelAvengingWrathSlow" parent="StormSlowParent">
     <Duration value="$YrelAvengingWrathSlowDuration" />
     <Modification>
-      <UnifiedMoveSpeedFactor value="-0.5" />
+      <UnifiedMoveSpeedFactor value="-0.6" />
     </Modification>
   </CBehaviorBuff>
   <CBehaviorBuff id="YrelSamaarasLightBuff" parent="CarryBehaviorParent">
@@ -1719,9 +1724,12 @@
     <BuffFlags index="RefreshStack" value="1" />
     <BuffFlags index="UpdateDurationWhileDisabled" value="1" />
     <Duration value="$YrelArdentDefenderDamageTrackerDuration" />
-    <DamageResponse Chance="1" Priority="96" ModifyFraction="0">
-      <ModifyScoreArray Value="SelfHealing" />
+    <DamageResponse>
+      <Chance value="1" />
+      <Priority value="96" />
       <RecordBehaviorShieldDamage value="1" />
+      <ModifyFraction value="0" />
+      <ModifyScoreArray Value="SelfHealing" />
     </DamageResponse>
   </CBehaviorBuff>
   <CBehaviorBuff id="YrelVelensChosenAbilityPowerBuff" parent="StormDamageIncrease">
@@ -1862,6 +1870,10 @@
       <Value index="Colorblind" value="ColorGray" />
     </ColorEntry>
   </CColorStyle>
+  <CEffectModifyUnit id="DivinePurposeModifyCooldown">
+    <Cost Abil="YrelDivinePurpose,Execute" CooldownOperation="Add" CooldownTimeUse="-3" />
+    <ValidatorArray value="TargetIsSilencedOrStunned" />
+  </CEffectModifyUnit>
   <CEffectModifyUnit id="YrelArdentDefenderDamageConversionScaleDummyModifyUnit">
     <XP value="0.5" />
   </CEffectModifyUnit>
@@ -2009,6 +2021,7 @@
     <ValidatorArray value="YrelAvengingWrathCasterDoesNotHaveInFlightBehavior" />
     <EffectArray value="YrelAvengingWrathCooldownModifyUnit" />
     <EffectArray value="YrelAvengingWrathChannelManaRefundModifyUnit" />
+    <EffectArray value="DivinePurposeModifyCooldown" />
   </CEffectSet>
   <CEffectEnumArea id="YrelAvengingWrathAegisOfLightSearchArea">
     <Chance value="0" />
@@ -2100,7 +2113,7 @@
     <Chance value="0" />
   </CEffectModifyUnit>
   <CEffectDamage id="YrelAvengingWrathDamage" parent="StormSpell">
-    <Amount value="225" />
+    <Amount value="260" />
     <MultiplicativeModifierArray index="HolyAvenger" Validator="YrelAvengingWrathHolyAvengerHasTalentAndTargetIsHeroAndCasterHasMaxChargeBehavior" Modifier="0.25" Crit="1" />
   </CEffectDamage>
   <CEffectModifyUnit id="YrelAvengingWrathCooldownModifyUnit">
@@ -2306,7 +2319,7 @@
     <EffectArray value="ApplyAbilityImpactReveal" />
   </CEffectSet>
   <CEffectDamage id="YrelRighteousHammerDamage" parent="StormSpell">
-    <Amount value="125">
+    <Amount value="140">
       <AccumulatorArray value="YrelRighteousHammerDamageAccumulator" />
     </Amount>
   </CEffectDamage>
@@ -2360,8 +2373,9 @@
   </CEffectModifyTokenCount>
   <CEffectApplyForce id="YrelRighteousHammerKnockbackApplyForce">
     <WhichLocation>
-      <Value value="OriginPoint" />
       <Effect value="YrelRighteousHammerInitialSet" />
+      <Value value="OriginPoint" />
+      <ProjectionAngle value="180" />
       <ProjectionMultiplier value="1" />
       <ProjectionSourceEffect value="YrelRighteousHammerInitialSet" />
       <ProjectionSourceValue value="OriginPoint" />
@@ -2369,7 +2383,6 @@
       <ProjectionTargetValue value="TargetPoint" />
       <UsesLineDash value="1" />
       <LineDashType value="AllowedInUnpathable" />
-      <ProjectionAngle value="180" />
       <ProjectionDistanceScale value="2" />
     </WhichLocation>
     <WhichUnit Effect="YrelRighteousHammerImpactSet" />
@@ -2424,7 +2437,6 @@
     <EffectArray value="YrelSacredGroundEnumerateTrackedUnit" />
     <EffectArray value="YrelSacredGroundCreateUnit" />
     <EffectArray value="YrelSacredGroundArmorApplyBehavior" />
-    <EffectArray value="YrelDivinePurposeHeroicCastCooldownModifyUnit" />
   </CEffectSet>
   <CEffectDamage id="YrelSacredGroundKillUnit" parent="StormSuicideParent">
     <ImpactLocation Value="TargetUnit" />
@@ -2601,13 +2613,13 @@
   <CEffectCreateHealer id="YrelVindicationCreateHealer" parent="StormSelfOnlyHealingSpell">
     <MultiplicativeModifierArray index="LightOfKarabor" Validator="YrelVindicationLightOfKaraborHasTalent" Accumulator="YrelVindicationLightOfKaraborHealingAccumulator" />
     <ImpactUnit Value="Caster" />
-    <RechargeVitalRate value="320">
+    <RechargeVitalRate value="370">
       <AccumulatorArray value="YrelVindicationHealingAccumulator" />
     </RechargeVitalRate>
     <CritValidatorArray value="YrelVindicationLightOfKaraborHasTalentAndTokenCounterGE3" />
   </CEffectCreateHealer>
   <CEffectDamage id="YrelVindicationDamage" parent="StormSpell">
-    <Amount value="140">
+    <Amount value="160">
       <AccumulatorArray value="YrelVindicationDamageAccumulator" />
     </Amount>
   </CEffectDamage>
@@ -2673,6 +2685,7 @@
     <EffectArray value="YrelRighteousHammerCooldownModifyUnit" />
     <EffectArray value="YrelRighteousHammerChannelTokenReset" />
     <EffectArray value="YrelRighteousHammerChannelManaRefundModifyUnit" />
+    <EffectArray value="DivinePurposeModifyCooldown" />
   </CEffectSet>
   <CEffectSet id="YrelRighteousHammerChannelBuffDisableSet">
     <EffectArray value="YrelRighteousHammerMaxChargeIconOffModifyPlayer" />
@@ -2775,6 +2788,7 @@
   <CEffectSet id="YrelVindicationChannelBuffCancelSet">
     <EffectArray value="YrelVindicationCooldownModifyUnit" />
     <EffectArray value="YrelVindicationChannelManaRefundModifyUnit" />
+    <EffectArray value="DivinePurposeModifyCooldown" />
   </CEffectSet>
   <CEffectSet id="YrelVindicationInitialSet">
     <EffectArray value="YrelVindicationAbilitySwitch" />
@@ -2819,7 +2833,6 @@
   </CEffectCreateHealer>
   <CEffectSet id="YrelArdentDefenderInitialSet">
     <EffectArray value="YrelArdentDefenderDamageTrackerApplyBehavior" />
-    <EffectArray value="YrelDivinePurposeHeroicCastCooldownModifyUnit" />
   </CEffectSet>
   <CEffectApplyBehavior id="YrelArdentDefenderDamageTrackerApplyBehavior">
     <WhichUnit Value="Caster" />

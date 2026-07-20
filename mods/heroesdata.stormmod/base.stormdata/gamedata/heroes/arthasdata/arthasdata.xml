@@ -1080,6 +1080,16 @@
     <Duration value="-1" />
     <InitialEffect value="ArthasArmyOfTheDeadApplyGhoulRootBehavior" />
   </CBehaviorBuff>
+  <CBehaviorBuff id="ArthasArmyOfTheDeadAbilityController" parent="CarryBehaviorParent">
+    <EnableEffect value="ArthasArmyOfTheDeadAddAbilityTargetController" />
+    <PeriodicEffect value="ArthasArmyOfTheDeadAddAbilityTargetController" />
+    <Period value="0.0625" />
+    <DisableValidatorArray value="ArthasArmyOfTheDeadDoesNotHaveAbilityTargetController" />
+  </CBehaviorBuff>
+  <CBehaviorBuff id="ArthasArmyOfTheDeadAbilityTargetController" parent="CarryBehaviorParent">
+    <Face value="ArthasArmyOfTheDead" />
+    <CancelEffect value="ArthasArmyOfTheDeadEnumTargetUnit" />
+  </CBehaviorBuff>
   <CBehaviorBuff id="ArthasHowlingBlastRoot" parent="StormRoot">
     <Duration value="1.25" />
   </CBehaviorBuff>
@@ -1354,7 +1364,9 @@
   <CEffectSet id="ArthasArmyoftheDeadChargeIncrementSet">
     <EffectArray value="ArthasArmyoftheDeadModifyChargeCost" />
   </CEffectSet>
-  <CEffectSet id="ArthasArmyoftheDeadLegionofNorthrendTalentSpawnSet" />
+  <CEffectSet id="ArthasArmyoftheDeadLegionofNorthrendTalentSpawnSet">
+    <EffectArray value="ArthasArmyOfTheDeadApplyAbilityController" />
+  </CEffectSet>
   <CEffectModifyUnit id="ArthasRimeBlockChargeModifyCooldown">
     <ImpactUnit Value="Source" />
     <Cost Abil="ArthasHowlingBlast,Execute" CooldownOperation="Add" CooldownTimeUse="-1" />
@@ -2002,6 +2014,7 @@
     <ValidatorArray index="0" value="TargetNotDead" />
     <ValidatorArray value="TargetIsHero" />
     <Behavior value="ArthasFrostmourneHungersFrostStrikeSlow" />
+    <Chance value="0" />
   </CEffectApplyBehavior>
   <CEffectSet id="ArthasFrozenTempestInitialSet">
     <EffectArray value="ArthasFrozenTempestSearch" />
@@ -2196,13 +2209,39 @@
     <Movers Link="ArthasHowlingBlastMissile" IfRangeLTE="8" />
     <Movers Link="ArthasHowlingBlastMissileFrostPresenceTalent" IfRangeLTE="12" />
   </CEffectLaunchMissile>
-  <CEffectSwitch id="ArthasArmyOfTheDeadGhoulWeaponSwitch" parent="SummonedBasicAttackAbilityDamageMissCheck">
-    <CaseDefault value="ArthasArmyOfTheDeadGhoulWeaponSet" />
-  </CEffectSwitch>
-  <CEffectSet id="ArthasArmyOfTheDeadGhoulWeaponSet">
+  <CEffectApplyBehavior id="ArthasArmyOfTheDeadApplyAbilityController">
+    <Behavior value="ArthasArmyOfTheDeadAbilityController" />
+  </CEffectApplyBehavior>
+  <CEffectApplyBehavior id="ArthasArmyOfTheDeadAddAbilityTargetController">
+    <ValidatorArray value="ArthasArmyOfTheDeadDoesNotHaveAbilityTargetController" />
+    <Behavior value="ArthasArmyOfTheDeadAbilityTargetController" />
+  </CEffectApplyBehavior>
+  <CEffectRemoveBehavior id="ArthasArmyOfTheDeadRemoveAbilityTargetController">
+    <WhichUnit Value="Caster" />
+    <BehaviorLink value="ArthasArmyOfTheDeadAbilityTargetController" />
+    <CancelBehavior value="1" />
+  </CEffectRemoveBehavior>
+  <CEffectSet id="ArthasArmyOfTheDeadGhoulWeaponSet" parent="StormSummonedUnitAddAttackTargetSet" behaviorRemoveEffect="ArthasArmyOfTheDeadRemoveAbilityTargetController">
     <EffectArray value="StormSummonedWeaponPhysicalDamageDummy" />
-    <EffectArray value="ArthasArmyOfTheDeadGhoulWeaponDamage" />
   </CEffectSet>
+  <CEffectEnumTrackedUnits id="ArthasArmyOfTheDeadEnumTargetUnit" parent="StormSummonedUnitEnumTrackedAttackUnit">
+    <Effect value="ArthasArmyOfTheDeadGhoulWeaponSwitch" />
+  </CEffectEnumTrackedUnits>
+  <CEffectSwitch id="ArthasArmyOfTheDeadGhoulWeaponSwitch">
+    <CaseArray Validator="ArthasArmyOfTheDeadGhoulAttackerBlindedOrTargetIsEvadingAndNotGenjiDodge" Effect="BlindMissedDummy" />
+    <CaseDefault value="ArthasArmyOfTheDeadGhoulWeaponImpactSet" />
+  </CEffectSwitch>
+  <CEffectSet id="ArthasArmyOfTheDeadGhoulWeaponImpactSet">
+    <EffectArray value="ArthasArmyOfTheDeadGhoulWeaponDamage" />
+    <EffectArray value="ArthasArmyOfTheDeadGhoulDamagedUnitTrackerAdd" />
+    <EffectArray value="ArthasArmyOfTheDeadGhoulCreatePersistentRevealDummy" />
+  </CEffectSet>
+  <CEffectAddTrackedUnit id="ArthasArmyOfTheDeadGhoulDamagedUnitTrackerAdd" parent="StormSummonedUnitDamagedUnitTrackerAdd">
+    <TrackerUnit Effect="ArthasArmyOfTheDeadEnumTargetUnit" Value="Target" />
+  </CEffectAddTrackedUnit>
+  <CEffectCreatePersistent id="ArthasArmyOfTheDeadGhoulCreatePersistentRevealDummy" parent="StormSummonedUnitPhysicalDamageDealtPersistent">
+    <WhichLocation Effect="ArthasArmyOfTheDeadEnumTargetUnit" Value="TargetUnit" />
+  </CEffectCreatePersistent>
   <CEffectDamage id="ArthasHowlingBlastDamage" parent="StormSpell">
     <Amount value="68" />
     <MultiplicativeModifierArray index="DeathchillProc" Validator="ArthasDeathchillTalentProcCombine" Modifier="1" Crit="1" />
@@ -2246,7 +2285,7 @@
     <PeriodCount value="2" />
     <PeriodicEffectArray value="ArthasHowlingBlastCastDummy" />
     <PeriodicEffectArray value="ArthasHowlingBlastLaunchMissileSet" />
-    <PeriodicOffsetArray Y="-1.5" />
+    <PeriodicOffsetArray Y="-0.5" />
     <PeriodicOffsetArray Y="-1.5" />
     <PeriodicPeriodArray value="0.075" />
     <PeriodicPeriodArray value="0.1" />
@@ -2312,8 +2351,9 @@
   </CEffectCreateHealer>
   <CEffectUseMagazine id="ArthasArmyOfTheDeadCreateGhoul">
     <TargetLocation Value="TargetPoint" />
+    <AmmoEffect value="ArthasArmyOfTheDeadApplyAbilityController" />
   </CEffectUseMagazine>
-  <CEffectDamage id="ArthasArmyOfTheDeadGhoulWeaponDamage" parent="StormSummonedUnitWeapon">
+  <CEffectDamage id="ArthasArmyOfTheDeadGhoulWeaponDamage" parent="StormSpell">
     <Amount value="20" />
     <Visibility value="Hidden" />
   </CEffectDamage>
@@ -3101,6 +3141,13 @@
         <Field value="Chance" />
         <Value value="1.000000" />
       </Modifications>
+      <Modifications>
+        <Type value="FlatModification" />
+        <Catalog value="Effect" />
+        <Entry value="ArthasFrostmourneHungersFrostStrikeApplySlow" />
+        <Field value="Chance" />
+        <Value value="1.000000" />
+      </Modifications>
     </AbilityModificationArray>
   </CTalent>
   <CTalent id="ArthasIceboundFortitude">
@@ -3415,6 +3462,8 @@
     <AbilArray Link="move" />
     <BehaviorArray Link="ArthasArmyOfTheDeadGhoulTimedLife" />
     <BehaviorArray Link="HeroicSummon" />
+    <BehaviorArray Link="StormSummonedUnitTargetTracker" />
+    <BehaviorArray Link="StormSummonedUnitDamagedUnitTracker" />
     <WeaponArray Link="ArthasArmyOfTheDeadGhoulWeapon" />
     <CardLayouts>
       <LayoutButtons Face="Move" Type="AbilCmd" AbilCmd="move,Move" Slot="Stop" />
@@ -3456,6 +3505,19 @@
     <Ability value="ArthasArmyOfTheDead" />
     <Value value="6" />
   </CValidatorUnitCompareChargeUsed>
+  <CValidatorUnitHasBehavior id="ArthasArmyOfTheDeadDoesNotHaveAbilityTargetController">
+    <Behavior value="ArthasArmyOfTheDeadAbilityTargetController" />
+    <Negate value="1" />
+  </CValidatorUnitHasBehavior>
+  <CValidatorUnitCompareBehaviorCount id="ArthasArmyOfTheDeadGhoulAttackerBlinded">
+    <Compare value="GT" />
+    <WhichUnit Effect="ArthasArmyOfTheDeadEnumTargetUnit" />
+    <Categories index="DebuffBlind" value="1" />
+  </CValidatorUnitCompareBehaviorCount>
+  <CValidatorCombine id="ArthasArmyOfTheDeadGhoulAttackerBlindedOrTargetIsEvadingAndNotGenjiDodge">
+    <CombineArray value="ArthasArmyOfTheDeadGhoulAttackerBlinded" />
+    <CombineArray value="TargetIsEvadingAndNotGenjiDodge" />
+  </CValidatorCombine>
   <CValidatorPlayerTalent id="ArthasHasDeathPactTalent">
     <WhichPlayer Value="Caster" />
     <Find value="1" />
@@ -3759,7 +3821,7 @@
     <Period value="1" />
     <DamagePoint value="0.25" />
     <Backswing value="0" />
-    <Effect value="ArthasArmyOfTheDeadGhoulWeaponSwitch" />
+    <Effect value="ArthasArmyOfTheDeadGhoulWeaponSet" />
   </CWeaponLegacy>
   <CWeaponLegacy id="HeroArthas" parent="StormHeroMediumWeapon">
     <Icon value="Assets\Textures\storm_temp_war3_btnorcmeleeupthree.dds" />

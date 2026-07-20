@@ -28,6 +28,7 @@ void libHMaj_InitVariables () {
 
     libHMaj_InitVariables_completed = true;
 
+    libHMaj_gv_ragnarosSpawned2 = 110.0;
     libHMaj_gv_hero_Ragnaros_BlastWave_TemperedFlameMod_C = 1.0;
 }
 
@@ -52,6 +53,7 @@ void libHMaj_gf_HeroRagnarosIncrementHeroCountFunction () {
         TriggerEnable(libHMaj_gt_HeroRagnarosBigRagHealthGlobeRedirect, true);
         TriggerEnable(libHMaj_gt_HeroRagnarosGainsHeroic, true);
         TriggerEnable(libHMaj_gt_HeroRagnarosEmpowerSulfurasResilientFlame, true);
+        TriggerEnable(libHMaj_gt_HeroRagnarosMoltenCoreHeroicModeCDReduction, true);
         libGDHL_gv_ragnarosExists = true;
     }
 
@@ -81,6 +83,7 @@ void libHMaj_gf_HeroRagnarosDecrementHeroCountFunction () {
         TriggerEnable(libHMaj_gt_HeroRagnarosBigRagHealthGlobeRedirect, false);
         TriggerEnable(libHMaj_gt_HeroRagnarosGainsHeroic, false);
         TriggerEnable(libHMaj_gt_HeroRagnarosEmpowerSulfurasResilientFlame, false);
+        TriggerEnable(libHMaj_gt_HeroRagnarosMoltenCoreHeroicModeCDReduction, false);
         libGDHL_gv_ragnarosExists = false;
     }
 
@@ -220,6 +223,40 @@ void libHMaj_gf_HeroRagnarosLavaWaveMinimapPathCleanup (int lp_player, int lp_la
 
 // Triggers
 //--------------------------------------------------------------------------------------------------
+// Trigger: Hero - Ragnaros - Molten Core - Heroic Mode CD Reduction
+//--------------------------------------------------------------------------------------------------
+bool libHMaj_gt_HeroRagnarosMoltenCoreHeroicModeCDReduction_Func (bool testConds, bool runActions) {
+    // Variable Declarations
+    unit lv_bigRagUnit;
+    int lv_ragnarosPlayer;
+
+    // Automatic Variable Declarations
+    // Variable Initialization
+    lv_bigRagUnit = EventUnit();
+    lv_ragnarosPlayer = UnitGetOwner(lv_bigRagUnit);
+
+    // Actions
+    if (!runActions) {
+        return true;
+    }
+
+    if ((UnitTestState(EventUnitTargetUnit(), c_unitStateIsDead) == true) && (PlayerHasTalent(lv_ragnarosPlayer, "RagnarosMoltenCoreHeroicDifficulty") == true)) {
+        libHMaj_gv_ragnarosUnit3[UnitGetOwner(EventUnit())] = true;
+    }
+    else {
+        libHMaj_gv_ragnarosUnit3[UnitGetOwner(EventUnit())] = false;
+    }
+    return true;
+}
+
+//--------------------------------------------------------------------------------------------------
+void libHMaj_gt_HeroRagnarosMoltenCoreHeroicModeCDReduction_Init () {
+    libHMaj_gt_HeroRagnarosMoltenCoreHeroicModeCDReduction = TriggerCreate("libHMaj_gt_HeroRagnarosMoltenCoreHeroicModeCDReduction_Func");
+    TriggerEnable(libHMaj_gt_HeroRagnarosMoltenCoreHeroicModeCDReduction, false);
+    TriggerAddEventUnitAbility(libHMaj_gt_HeroRagnarosMoltenCoreHeroicModeCDReduction, null, AbilityCommand("RagnarosMoltenCore", 0), c_unitAbilStageComplete, false);
+}
+
+//--------------------------------------------------------------------------------------------------
 // Trigger: Hero - Ragnaros - Molten Core
 //--------------------------------------------------------------------------------------------------
 bool libHMaj_gt_HeroRagnarosMoltenCore_Func (bool testConds, bool runActions) {
@@ -289,7 +326,12 @@ bool libHMaj_gt_HeroRagnarosMoltenCoreEnd_Func (bool testConds, bool runActions)
 
     libHMaj_gv_ragnarosUnit2[lv_ragnarosPlayer] = null;
     UnitSelect(lv_regularRagnarosUnit, lv_ragnarosPlayer, true);
-    UnitModifyCooldown(lv_regularRagnarosUnit, "Abil/RagnarosMoltenCore", CatalogFieldValueGetAsInt(c_gameCatalogAbil, "RagnarosMoltenCore", "Cost.Cooldown.TimeUse", lv_ragnarosPlayer), c_cooldownOperationSet);
+    if ((libHMaj_gv_ragnarosUnit3[lv_ragnarosPlayer] == false)) {
+        UnitModifyCooldown(lv_regularRagnarosUnit, "Abil/RagnarosMoltenCore", CatalogFieldValueGetAsInt(c_gameCatalogAbil, "RagnarosMoltenCore", "Cost.Cooldown.TimeUse", lv_ragnarosPlayer), c_cooldownOperationSet);
+    }
+    else {
+        UnitModifyCooldown(lv_regularRagnarosUnit, "Abil/RagnarosMoltenCore", (CatalogFieldValueGetAsInt(c_gameCatalogAbil, "RagnarosMoltenCore", "Cost.Cooldown.TimeUse", c_playerAny) - libHMaj_gv_ragnarosSpawned2), c_cooldownOperationSet);
+    }
     libGame_gv_players[lv_ragnarosPlayer].lv_cameraPlayerUnitGroupToFocusOn = libNtve_gf_ConvertUnitToUnitGroup(lv_regularRagnarosUnit);
     libGame_gv_players[lv_ragnarosPlayer].lv_activeVehicle = null;
     libGame_gf_SendEventHeroUnitSwappedForPlayer(lv_structureRagnarosUnit, lv_regularRagnarosUnit, lv_ragnarosPlayer, false);
@@ -830,6 +872,7 @@ void libHMaj_gt_HeroRagnarosEmpowerSulfurasResilientFlame_Init () {
 }
 
 void libHMaj_InitTriggers () {
+    libHMaj_gt_HeroRagnarosMoltenCoreHeroicModeCDReduction_Init();
     libHMaj_gt_HeroRagnarosMoltenCore_Init();
     libHMaj_gt_HeroRagnarosMoltenCoreEnd_Init();
     libHMaj_gt_HeroRagnarosMoltenCoreUpdateDurationBar_Init();

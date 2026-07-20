@@ -628,10 +628,10 @@
     <On Terms="WeaponStart.*.AttackStart; IsStatus WeaponNext 1" Send="AnimPlay AttackRight Attack,00" />
     <On Terms="WeaponStart.*.AttackStart; IsStatus WeaponNext 2" Send="AnimClear AttackRight" />
     <On Terms="WeaponStart.*.AttackStart; IsStatus WeaponNext 2" Send="AnimPlay AttackMid Attack,02" />
-    <On Terms="Effect.KerriganUltraliskWeaponDamage.Start; At Caster; IsStatus WeaponNext 2" Send="Create UltraliskAttackMid" />
-    <On Terms="Effect.KerriganUltraliskWeaponDamage.Start; At Caster; IsStatus WeaponNext 0" Send="Create KerriganUltraliskAttackLeft" />
-    <On Terms="Effect.KerriganUltraliskWeaponDamage.Start; At Caster; IsStatus WeaponNext 1" Send="Create KerriganUltraliskAttackRight" />
-    <On Terms="Effect.KerriganUltraliskWeaponDamage.Start; At Caster" Send="Create KerriganUltraliskAttackImpactSound" />
+    <On Terms="Effect.KerriganUltraliskWeaponImpactDummyWeaponImpactDummy.Start; At Caster; IsStatus WeaponNext 2" Send="Create UltraliskAttackMid" />
+    <On Terms="Effect.KerriganUltraliskWeaponImpactDummyWeaponImpactDummy.Start; At Caster; IsStatus WeaponNext 0" Send="Create KerriganUltraliskAttackLeft" />
+    <On Terms="Effect.KerriganUltraliskWeaponImpactDummyWeaponImpactDummy.Start; At Caster; IsStatus WeaponNext 1" Send="Create KerriganUltraliskAttackRight" />
+    <On Terms="Effect.KerriganUltraliskWeaponImpactDummyWeaponImpactDummy.Start; At Caster" Send="Create KerriganUltraliskAttackImpactSound" />
     <On Terms="Behavior.KerriganUltraliskChargeDash.On" Send="AnimPlay Spell Spell,A 0 -1.000000 -1.000000 1.000000 AsTimeScale" />
     <On Terms="Effect.KerriganUltraliskChargeExplosionImpactSet.Start" Send="AnimPlay Spell Spell,B 0 0.000000 -1.000000 1.000000 AsTimeScale" />
     <On Terms="Effect.KerriganUltraliskChargeExpireSet.Start" Send="AnimPlay Spell Spell,C 0 0.000000 -1.000000 1.000000 AsTimeScale" />
@@ -1123,6 +1123,22 @@
     <FinalEffect value="KerriganSummonUltraliskTimedLifeFinalSet" />
     <ExpireEffect value="" />
   </CBehaviorBuff>
+  <CBehaviorBuff id="KerriganUltraliskAbilityController" parent="CarryBehaviorParent">
+    <EnableEffect value="KerriganUltraliskAddAbilityTargetController" />
+    <PeriodicEffect value="KerriganUltraliskAddAbilityTargetController" />
+    <Period value="0.0625" />
+    <DisableValidatorArray value="KerriganUltraliskDoesNotHaveAbilityTargetController" />
+  </CBehaviorBuff>
+  <CBehaviorBuff id="KerriganUltraliskAbilityTargetController" parent="CarryBehaviorParent">
+    <Face value="KerriganSummonUltralisk" />
+    <CancelEffect value="KerriganUltraliskAttackEnumTarget" />
+  </CBehaviorBuff>
+  <CBehaviorBuff id="KerriganUltraliskChargeDamageController">
+    <CancelEffect value="KerriganUltraliskChargeEnumTrackedUnit" />
+  </CBehaviorBuff>
+  <CBehaviorUnitTracker id="KerriganUltraliskChargeTargetTracker">
+    <MaxTrackedUnits value="1" />
+  </CBehaviorUnitTracker>
   <CBehaviorBuff id="KerriganImpalingBlades" parent="StormStun">
     <Duration value="0.75" />
   </CBehaviorBuff>
@@ -1427,12 +1443,13 @@
       <RevealFlags index="Unfog" value="1" />
     </RevealerParams>
   </CEffectEnumArea>
-  <CEffectSwitch id="KerriganUltraliskWeaponSplashSwitch" parent="SummonedBasicAttackAbilityDamageMissCheck">
+  <CEffectSwitch id="KerriganUltraliskWeaponSplashSwitch">
+    <CaseArray Validator="KerriganUltraliskAttackerBlindedOrTargetIsEvadingAndNotGenjiDodge" Effect="BlindMissedDummy" />
     <CaseDefault value="KerriganUltraliskWeaponSplashDamageSet" />
   </CEffectSwitch>
   <CEffectSet id="KerriganUltraliskWeaponSplashDamageSet">
-    <EffectArray value="StormSummonedWeaponPhysicalDamageDummy" />
     <EffectArray value="KerriganUltraliskWeaponSplashDamage" />
+    <EffectArray value="KerriganUltraliskWeaponDamagedUnitTrackerAdd" />
   </CEffectSet>
   <CEffectApplyBehavior id="KerriganBasicAttackDamageApplyDamageDealtResponseBehavior">
     <Behavior value="KerriganBasicAttackDamageDamageDealtResponse" />
@@ -1487,9 +1504,7 @@
   <CEffectSet id="KerriganUltraliskTorrasqueSpawnSet">
     <EffectArray value="KerriganSummonUltraliskApplyTimedLife" />
     <EffectArray value="KerriganSummonUltraliskAddTrackedUnit" />
-    <EffectArray value="KerriganUnbridledEnergyApplyDamageDealtResponseBehavior" />
-    <EffectArray value="KerriganAbilityDamageApplyDamageDealtResponseBehavior" />
-    <EffectArray value="KerriganBasicAttackDamageApplyDamageDealtResponseBehavior" />
+    <EffectArray value="KerriganUltraliskApplyAbilityController" />
     <EffectArray value="KerriganSummonUltraliskTorrasqueBonusHealthApplyBehavior" />
   </CEffectSet>
   <CEffectCreateUnit id="KerriganSummonUltraliskTorrasqueCreateUnit">
@@ -1517,9 +1532,8 @@
     <EffectArray value="KerriganSummonUltraliskApplyTimedLife" />
     <EffectArray value="KerriganUltraliskChargeIssueChargeOrder" />
     <EffectArray value="KerriganSummonUltraliskAddTrackedUnit" />
-    <EffectArray value="KerriganUnbridledEnergyApplyDamageDealtResponseBehavior" />
-    <EffectArray value="KerriganAbilityDamageApplyDamageDealtResponseBehavior" />
-    <EffectArray value="KerriganBasicAttackDamageApplyDamageDealtResponseBehavior" />
+    <EffectArray value="KerriganUltraliskApplyAbilityController" />
+    <EffectArray value="KerriganUltraliskChargeApplyDamageController" />
     <EffectArray value="KerriganSummonUltraliskTorrasqueBonusHealthApplyBehavior" />
   </CEffectSet>
   <CEffectCreateUnit id="KerriganSummonUltraliskCreateUnit">
@@ -1550,9 +1564,27 @@
     <WhichUnit Value="Caster" />
     <Behavior value="KerriganRavageSharpenedBladesQuestMilestone" />
   </CEffectApplyBehavior>
-  <CEffectSet id="KerriganUltraliskWeaponImpactSet">
-    <EffectArray value="KerriganUltraliskWeaponSwitch" />
+  <CEffectApplyBehavior id="KerriganUltraliskApplyAbilityController">
+    <Behavior value="KerriganUltraliskAbilityController" />
+  </CEffectApplyBehavior>
+  <CEffectApplyBehavior id="KerriganUltraliskAddAbilityTargetController">
+    <ValidatorArray value="KerriganUltraliskDoesNotHaveAbilityTargetController" />
+    <Behavior value="KerriganUltraliskAbilityTargetController" />
+  </CEffectApplyBehavior>
+  <CEffectRemoveBehavior id="KerriganUltraliskRemoveAbilityTargetController">
+    <WhichUnit Value="Caster" />
+    <BehaviorLink value="KerriganUltraliskAbilityTargetController" />
+    <CancelBehavior value="1" />
+  </CEffectRemoveBehavior>
+  <CEffectSet id="KerriganUltraliskAttackSet" parent="StormSummonedUnitAddAttackTargetSet" behaviorRemoveEffect="KerriganUltraliskRemoveAbilityTargetController">
+    <EffectArray value="KerriganUltraliskWeaponImpactDummyWeaponImpactDummy" />
   </CEffectSet>
+  <CEffectModifyUnit id="KerriganUltraliskWeaponImpactDummyWeaponImpactDummy">
+    <ValidatorArray value="StormSummonedUnitTargetIsTracked" />
+  </CEffectModifyUnit>
+  <CEffectEnumTrackedUnits id="KerriganUltraliskAttackEnumTarget" parent="StormSummonedUnitEnumTrackedAttackUnit">
+    <Effect value="KerriganUltraliskWeaponSwitch" />
+  </CEffectEnumTrackedUnits>
   <CEffectSet id="KerriganImpalingBladesPainfulSpikesDamageResponseSet">
     <EffectArray value="KerriganImpalingBladesPainfulSpikesDamage" />
     <EffectArray value="KerriganImpalingBladesPainfulSpikesRemoveStacksBehavior" />
@@ -1784,6 +1816,9 @@
     <WhichUnit Value="Caster" />
     <Behavior value="KerriganUltraliskPathableAhead" />
   </CEffectApplyBehavior>
+  <CEffectApplyBehavior id="KerriganUltraliskChargeApplyDamageController">
+    <Behavior value="KerriganUltraliskChargeDamageController" />
+  </CEffectApplyBehavior>
   <CEffectCreatePersistent id="KerriganUltraliskChargeInitialPersistent">
     <ValidatorArray value="CasterNotRooted" />
     <WhichLocation Value="CasterPoint" />
@@ -1868,18 +1903,44 @@
     <MaxCount value="1" />
   </CEffectEnumArea>
   <CEffectSet id="KerriganUltraliskChargeExplosionImpactSet">
+    <EffectArray value="KerriganUltraliskChargeAddTargetToTracker" />
+    <EffectArray value="KerriganUltraliskChargeDamageControllerCancel" />
+    <EffectArray value="KerriganSummonUltraliskIssueRedirectOrderDummy" />
+  </CEffectSet>
+  <CEffectAddTrackedUnit id="KerriganUltraliskChargeAddTargetToTracker">
+    <BehaviorLink value="KerriganUltraliskChargeTargetTracker" />
+    <TrackedUnit Value="Target" />
+  </CEffectAddTrackedUnit>
+  <CEffectRemoveBehavior id="KerriganUltraliskChargeDamageControllerCancel">
+    <WhichUnit Value="Caster" />
+    <BehaviorLink value="KerriganUltraliskChargeDamageController" />
+    <CancelBehavior value="1" />
+  </CEffectRemoveBehavior>
+  <CEffectEnumTrackedUnits id="KerriganUltraliskChargeEnumTrackedUnit">
+    <ValidatorArray value="SourceNotDead" />
+    <BehaviorLink value="KerriganUltraliskChargeTargetTracker" />
+    <TrackerUnit Value="Source" />
+    <Effect value="KerriganUltraliskChargeDamageImpactSet" />
+  </CEffectEnumTrackedUnits>
+  <CEffectSet id="KerriganUltraliskChargeDamageImpactSet">
     <EffectArray value="KerriganUltraliskChargeStunApplyBehavior" />
     <EffectArray value="KerriganUltraliskChargeDamage" />
-    <EffectArray value="KerriganSummonUltraliskIssueRedirectOrderDummy" />
+    <EffectArray value="KerriganUltraliskChargeDamagedUnitTrackerAdd" />
+    <EffectArray value="KerriganUltraliskChargeCreatePersistentRevealDummy" />
   </CEffectSet>
   <CEffectApplyBehavior id="KerriganUltraliskChargeStunApplyBehavior">
     <Behavior value="KerriganUltraliskStun" />
   </CEffectApplyBehavior>
   <CEffectDamage id="KerriganUltraliskChargeDamage" parent="KerriganAbilityDamageParent">
     <Amount value="225" />
-    <LeechRecipientArray index="0" Value="Creator" />
-    <LeechValidator index="Shields" value="KerriganEligibleForShields" />
+    <Visibility value="Hidden" />
   </CEffectDamage>
+  <CEffectAddTrackedUnit id="KerriganUltraliskChargeDamagedUnitTrackerAdd" parent="StormSummonedUnitDamagedUnitTrackerAdd">
+    <TrackerUnit Effect="KerriganUltraliskChargeEnumTrackedUnit" Value="Target" />
+  </CEffectAddTrackedUnit>
+  <CEffectCreatePersistent id="KerriganUltraliskChargeCreatePersistentRevealDummy" parent="StormSummonedUnitSpellDamageDealtPersistent">
+    <WhichLocation Effect="KerriganUltraliskChargeEnumTrackedUnit" Value="TargetUnit" />
+  </CEffectCreatePersistent>
   <CEffectApplyBehavior id="KerriganAssimilationApplyBehavior">
     <WhichUnit Value="Caster" />
     <Behavior value="KerriganAssimilationShield" />
@@ -2267,25 +2328,27 @@
     <EffectArray value="KerriganWeaponDamageSet" />
     <EffectArray value="UniversalWeaponPostImpactSet" />
   </CEffectSet>
-  <CEffectSwitch id="KerriganUltraliskWeaponSwitch" parent="SummonedBasicAttackAbilityDamageMissCheck">
+  <CEffectSwitch id="KerriganUltraliskWeaponSwitch">
+    <CaseArray Validator="KerriganUltraliskAttackerBlindedOrTargetIsEvadingAndNotGenjiDodge" Effect="BlindMissedDummy" />
     <CaseDefault value="KerriganUltraliskWeaponDamageSet" />
   </CEffectSwitch>
   <CEffectSet id="KerriganUltraliskWeaponDamageSet">
-    <EffectArray value="StormSummonedWeaponPhysicalDamageDummy" />
     <EffectArray value="KerriganUltraliskWeaponDamage" />
     <EffectArray value="KerriganUltraliskSplashWeaponDamageSearch" />
+    <EffectArray value="KerriganUltraliskWeaponDamagedUnitTrackerAdd" />
+    <EffectArray value="KerriganUltraliskWeaponCreatePersistentRevealDummy" />
   </CEffectSet>
-  <CEffectDamage id="KerriganUltraliskWeaponDamage" parent="StormSummonedUnitWeapon">
+  <CEffectDamage id="KerriganUltraliskWeaponDamage" parent="KerriganAbilityDamageParent">
     <Amount value="100" />
-    <LeechFraction index="Shields" value="0.1" />
-    <LeechShieldsTargetBehaviorBuff value="KerriganAssimilationShield" />
-    <LeechMultiplicativeModifierArray index="Hero" Validator="TargetIsHero" Modifier="1" />
-    <LeechFlatModifierArray index="VolatilePower" Validator="KerriganAssimilationHasVolatilePowerTalent" Modifier="0.1" />
-    <LeechRecipientArray index="0" Value="Creator" />
+    <Visibility value="Hidden" />
     <MultiplicativeModifierArray index="TorrasqueBonusDamage" Validator="KerriganHasTorrasque" Modifier="0.2" />
-    <LeechScoreArray index="0" removed="1" />
-    <LeechValidator index="Shields" value="KerriganEligibleForShields" />
   </CEffectDamage>
+  <CEffectAddTrackedUnit id="KerriganUltraliskWeaponDamagedUnitTrackerAdd" parent="StormSummonedUnitDamagedUnitTrackerAdd">
+    <TrackerUnit Effect="KerriganUltraliskAttackEnumTarget" Value="Target" />
+  </CEffectAddTrackedUnit>
+  <CEffectCreatePersistent id="KerriganUltraliskWeaponCreatePersistentRevealDummy" parent="StormSummonedUnitPhysicalDamageDealtPersistent">
+    <WhichLocation Effect="KerriganUltraliskAttackEnumTarget" Value="TargetUnit" />
+  </CEffectCreatePersistent>
   <CEffectCreatePersistent id="KerriganMaelstromCreatePersistent">
     <WhichLocation Value="CasterUnit" />
     <TimeScaleSource Value="Caster" />
@@ -2321,7 +2384,6 @@
   </CEffectEnumArea>
   <CEffectDamage id="KerriganUltraliskWeaponSplashDamage" parent="KerriganUltraliskWeaponDamage">
     <Amount value="50" />
-    <LeechValidator index="Shields" value="" />
   </CEffectDamage>
   <CEffectDamage id="KerriganMaelstromDamage" parent="KerriganAbilityDamageParent">
     <Amount value="37" />
@@ -3341,6 +3403,9 @@
     <BehaviorArray Link="HeroicSummon" />
     <BehaviorArray Link="KerriganUltraliskChargeSuppressCollision" />
     <BehaviorArray Link="KerriganSummonUltraliskUnitTracker" />
+    <BehaviorArray Link="KerriganUltraliskChargeTargetTracker" />
+    <BehaviorArray Link="StormSummonedUnitTargetTracker" />
+    <BehaviorArray Link="StormSummonedUnitDamagedUnitTracker" />
     <WeaponArray Link="KerriganUltralisk" />
     <CardLayouts>
       <LayoutButtons Face="Move" Type="AbilCmd" AbilCmd="move,Move" Slot="Stop" />
@@ -3741,6 +3806,19 @@
     <WhichUnit Value="Source" />
     <Behavior value="KerriganRavageFatalDamageResponse" />
   </CValidatorUnitHasBehavior>
+  <CValidatorUnitHasBehavior id="KerriganUltraliskDoesNotHaveAbilityTargetController">
+    <Behavior value="KerriganUltraliskAbilityTargetController" />
+    <Negate value="1" />
+  </CValidatorUnitHasBehavior>
+  <CValidatorCombine id="KerriganUltraliskAttackerBlindedOrTargetIsEvadingAndNotGenjiDodge">
+    <CombineArray value="KerriganUltraliskAttackerBlinded" />
+    <CombineArray value="TargetIsEvadingAndNotGenjiDodge" />
+  </CValidatorCombine>
+  <CValidatorUnitCompareBehaviorCount id="KerriganUltraliskAttackerBlinded">
+    <Compare value="GT" />
+    <WhichUnit Effect="KerriganUltraliskEnumTargetUnit" />
+    <Categories index="DebuffBlind" value="1" />
+  </CValidatorUnitCompareBehaviorCount>
   <CWeaponLegacy id="HeroKerrigan" parent="StormHeroFastWeapon">
     <Icon value="Assets\Textures\storm_temp_btn-upgrade-zerg-meleeattacks-level3.dds" />
     <DisplayEffect value="KerriganWeaponDamage" />
@@ -3764,7 +3842,7 @@
     <Period value="1" />
     <DamagePoint value="0.25" />
     <Backswing value="0" />
-    <Effect value="KerriganUltraliskWeaponImpactSet" />
+    <Effect value="KerriganUltraliskAttackSet" />
     <RandomDelayMin value="0" />
     <RandomDelayMax value="0" />
     <LegacyOptions index="Uninterruptible" value="1" />

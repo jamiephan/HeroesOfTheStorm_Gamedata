@@ -1,5 +1,20 @@
 <?xml version="1.0" encoding="us-ascii"?>
 <Catalog>
+  <const id="$AbathurEvolvedMonstrosityHealth" value="1350" />
+  <const id="$AbathurEvolvedMonstrosityDamage" value="85" />
+  <const id="$AbathurEvolvedMonstrosityHealthPercentBonusPerStack" value="0.02" />
+  <const id="$AbathurEvolvedMonstrosityDamagePercentDamageBonusPerStack" value="0.02" />
+  <const id="$AbathurEvolvedMonstrosityMaxStacks" value="40" />
+  <const id="$AbathurEvolvedMonstrosityHealthBonusAccumulatorScale" value="*($AbathurEvolvedMonstrosityHealth $AbathurEvolvedMonstrosityHealthPercentBonusPerStack)" evaluateAsExpression="1" />
+  <const id="$AbathurEvolvedMonstrosityHealthBonusAccumulatorMax" value="*($AbathurEvolvedMonstrosityHealthBonusAccumulatorScale $AbathurEvolvedMonstrosityMaxStacks)" evaluateAsExpression="1" />
+  <const id="$AbathurEvolvedMonstrosityDamageBonusAccumulatorMax" value="*($AbathurEvolvedMonstrosityDamagePercentDamageBonusPerStack $AbathurEvolvedMonstrosityMaxStacks)" evaluateAsExpression="1" />
+  <const id="$AbathurEvolvedMonstrosityEvolutionCompleteDamageBonusPercent" value="1" />
+  <const id="$AbathurLocustHealth" value="225" />
+  <const id="$AbathurLocustDecayDuration" value="17" />
+  <const id="$AbathurLocustLifeDecayRate" value="/($AbathurLocustHealth $AbathurLocustDecayDuration)" evaluateAsExpression="1" />
+  <const id="$AbathurLocustBombardDecayModifier" value="0.5" />
+  <const id="$AbathurLocustBombardLifeDecayRate" value="*($AbathurLocustLifeDecayRate $AbathurLocustBombardDecayModifier)" evaluateAsExpression="1" />
+  <const id="$AbathurSlapathurStunDuration" value="1.5" />
   <CAbilEffectInstant id="AbathurEvolveMonstrosityActiveSymbiote">
     <Effect value="AbathurEvolveMonstrosityActivateSymbioteEnumerator" />
     <Cost>
@@ -14,7 +29,7 @@
   <CAbilEffectTarget id="AbathurLocustSwarm">
     <Effect value="AbathurLocustSwarmCreatePersistent" />
     <Cost>
-      <Cooldown TimeUse="45" />
+      <Cooldown TimeUse="75" />
     </Cost>
     <Range value="6" />
     <CmdButtonArray index="Execute" DefaultButtonFace="AbathurLocustSwarm" />
@@ -281,23 +296,17 @@
   <CAbilEffectTarget id="ToxicNestMasteryRangeDummy">
     <Range value="500" />
   </CAbilEffectTarget>
-  <CAccumulatorToken id="AbathurEvolveMonstrosityMinionAbsorbedAccumulator" parent="BaseAccumulator">
-    <TokenId value="AbathurEvolveMonstrosityMinionAbsorbedToken" />
-    <Scale value="0.02" />
-    <MaxAccumulation value="2" />
+  <CAccumulatorToken id="AbathurEvolveMonstrosityStackDamageAccumulator" parent="BaseAccumulator">
+    <MaxAccumulation value="$AbathurEvolvedMonstrosityDamageBonusAccumulatorMax" />
+    <TokenId value="AbathurEvolveMonstrosityQuestStack" />
+    <Scale value="$AbathurEvolvedMonstrosityDamagePercentDamageBonusPerStack" />
     <ApplicationRule value="Add" />
   </CAccumulatorToken>
-  <CAccumulatorToken id="AbathurEvolveMonstrosityAccumulator" parent="BaseTokenAccumulator">
-    <MinAccumulation value="0" />
-    <MaxAccumulation value="40" />
+  <CAccumulatorToken id="AbathurEvolveMonstrosityStackHealthAccumulator" parent="BaseAccumulator">
+    <MaxAccumulation value="$AbathurEvolvedMonstrosityHealthBonusAccumulatorMax" />
+    <TokenId value="AbathurEvolveMonstrosityQuestStack" />
+    <Scale value="$AbathurEvolvedMonstrosityHealthBonusAccumulatorScale" />
     <ApplicationRule value="Add" />
-    <TokenId value="AbathurEvolveMonstrosityMinionAbsorbedToken" />
-  </CAccumulatorToken>
-  <CAccumulatorToken id="AbathurEvolveMonstrosityQuestAccumulator" parent="BaseTokenAccumulator">
-    <MinAccumulation value="0" />
-    <MaxAccumulation value="40" />
-    <ApplicationRule value="Add" />
-    <TokenId value="AbathurEvolveMonstrosityMinionAbsorbedToken" />
   </CAccumulatorToken>
   <CAccumulatorToken id="AbathurSpikeBurstSomaTranferenceAccumulator" parent="BaseTokenAccumulator">
     <ApplicationRule value="Add" />
@@ -1295,11 +1304,26 @@
     <MinimapIconType value="Hero" />
     <MinimapIconIsTeamColored value="1" />
     <MinimapIconScale value="0.800000" />
+    <VitalNames index="Life" value="UI/HeroLife" />
     <ImpactSound value="Pet_Large_Dry_Impact" />
     <GroupIcon>
       <Image value="Assets\Textures\Storm_UI_InGame_TargetInfoPanel_Unit_Abathur_Monstrosity.dds" />
     </GroupIcon>
   </CActorUnit>
+  <CActorModel id="AbathurEvolveMonstrosityQuestTalentCompleteModel" parent="StormModelAnimationStyleOneShotUnit">
+    <On Terms="Effect.AbathurEvolveMonstrosityQuestCompleteDummy.Start; At Target" Send="Create" />
+    <On Terms="ActorCreation" Send="Create TalentQuestCompletionSound" />
+    <On Terms="ActorCreation" Send="Create TalentQuestAllyCompletionSound" />
+    <On Terms="ActorCreation" Send="Create TalentQuestEnemyCompletionSound" />
+    <Model value="QuestTalentCompleteModel" />
+    <HostSiteOps Ops="SOpAttachCenter SOpForwardSouth" HoldRotation="1" />
+    <HostedAttaches Name="Seg0">
+      <AttachQuery Methods="Center" />
+      <Host Subject="::Host" Actor="Find" />
+      <HostSiteOps Ops="SOpAttachCenter" />
+    </HostedAttaches>
+    <AutoScaleFactor value="1.000000" />
+  </CActorModel>
   <CActorSimple id="AbathurUltimateEvolutionUnitFadeIn">
     <On Terms="Behavior.UltimateEvolutionBuild.On" Send="Create" />
     <On Terms="Behavior.UltimateEvolutionBuild.On" Target="_Unit" Send="SetOpacity 0.000000 0.000000 UEBuild" />
@@ -1436,12 +1460,39 @@
   </CActorSound>
   <CActorPortrait id="AbathurSkinUltimatePortrait" parent="StormCompositePortrait" />
   <CActorModel id="AbathurSkinUltimatePortraitAddition" parent="StormCompositePortraitAddition" />
+  <CBehaviorBuff id="SlapathurInternalCooldown">
+    <Alignment value="Negative" />
+    <Duration value="6" />
+  </CBehaviorBuff>
+  <CBehaviorBuff id="AbathurLocustKillCreditAura">
+    <BehaviorFlags index="Permanent" value="1" />
+    <BehaviorFlags index="EnabledWhileDead" value="1" />
+    <Duration value="-1" />
+    <Period value="0.5" />
+    <PeriodicEffect value="AbathurLocustKillCreditSearch" />
+  </CBehaviorBuff>
+  <CBehaviorBuff id="LocustFatalResponse" parent="CarryBehaviorParent">
+    <Duration value="0.6" />
+    <DamageResponse>
+      <Chance value="1" />
+      <Handled value="HealLocust" />
+      <Priority value="15" />
+      <Fatal value="1" />
+    </DamageResponse>
+    <MaxStackCount value="64" />
+  </CBehaviorBuff>
+  <CBehaviorBuff id="AbathurSlapathurStun" parent="StormStun">
+    <Duration value="$AbathurSlapathurStunDuration" />
+  </CBehaviorBuff>
+  <CBehaviorBuff id="AbathurSlapathurStructureDisable" parent="StormStructureDisable">
+    <Duration value="$AbathurSlapathurStunDuration" />
+  </CBehaviorBuff>
   <CBehaviorBuff id="AbathurToxicNestEnvenomedNestArmorDebuff" parent="StormArmor">
     <BehaviorCategories index="DebuffVulnerable" value="1" />
     <Alignment value="Negative" />
     <Duration value="4" />
     <ArmorModification>
-      <AllArmorBonus value="-10" />
+      <AllArmorBonus value="-15" />
     </ArmorModification>
   </CBehaviorBuff>
   <CBehaviorBuff id="AbathurEvolveMonstrosityDamageStack">
@@ -1542,6 +1593,7 @@
   <CBehaviorBuff id="AbathurSurvivalInstinctsBuff">
     <Modification>
       <VitalMaxAdditiveMultiplierArray index="Life" value="1" />
+      <VitalRegenMultiplier index="Life" value="1" />
     </Modification>
   </CBehaviorBuff>
   <CBehaviorBuff id="AbathurToxicNestEnvenomedNest" parent="StormDot">
@@ -1581,16 +1633,6 @@
       <AbilClassDisableArray index="CAbilEffectTarget" value="1" />
     </Modification>
   </CBehaviorBuff>
-  <CBehaviorBuff id="AbathurEvolveMonstrosityAbathurStack">
-    <Alignment value="Positive" />
-    <InfoIcon value="Assets\Textures\storm_ui_icon_abathur_evolvemonstrosity.dds" />
-    <DisableValidatorArray value="AbathurHasActiveMonstrosity" />
-    <MaxStackCount value="40" />
-    <BuffFlags index="Extend" value="1" />
-    <InfoFlags index="Hidden" value="0" />
-    <BehaviorFlags index="Permanent" value="1" />
-    <BehaviorFlags index="EnabledWhileDead" value="1" />
-  </CBehaviorBuff>
   <CBehaviorBuff id="EvolveMonstrosityActive">
     <Alignment value="Positive" />
     <RemoveValidatorArray value="AbathurHasActiveMonstrosity" />
@@ -1616,19 +1658,18 @@
       <StateFlags index="OrdersPaused" value="1" />
     </Modification>
   </CBehaviorBuff>
-  <CBehaviorTokenCounter id="AbathurEvolveMonstrosityMinionAbsorbedToken" parent="StormGenericToken">
+  <CBehaviorBuff id="AbathurEvolveMonstrosityStackBonusController">
+    <FinalEffect value="AbathurEvolveMonstrosityResetQuestStack" />
+  </CBehaviorBuff>
+  <CBehaviorTokenCounter id="AbathurEvolveMonstrosityQuestStack" parent="StormQuestToken">
+    <InfoFlags index="Hidden" value="1" />
     <Face value="AbathurEvolveMonstrosityHotbar" />
-    <AtMaxEvents EventId="QuestComplete" />
-    <Max value="40" />
-    <DeltaEvents Delta="1" OnlyIncrease="1" FireForEachDelta="1">
-      <Event Effect="AbathurEvolveMonstrosityUpdateQuestDisplay" />
-    </DeltaEvents>
-    <AtMinEvents Effect="AbathurEvolveMonstrosityUpdateQuestDisplay" />
-    <TerminateEvents Effect="AbathurEvolveMonstrosityUpdateQuestDisplay" />
-  </CBehaviorTokenCounter>
-  <CBehaviorTokenCounter id="AbathurEvolveMonstrosityQuestStack" parent="StormGenericToken">
-    <Max value="40" />
-    <StackCountAccumulator value="AbathurEvolveMonstrosityQuestAccumulator" />
+    <Max value="$AbathurEvolvedMonstrosityMaxStacks" />
+    <DecreaseEvents index="0" EventId="QuestDecrease" Effect="AbathurEvolveMonstrosityUpdateHealthBonus" />
+    <IncreaseEvents index="0" EventId="QuestIncrease" Effect="AbathurEvolveMonstrosityUpdateHealthBonus" />
+    <InitEvents Effect="AbathurEvolveMonstrosityUpdateHealthBonus" />
+    <AtMinEvents index="0" EventId="" Effect="AbathurEvolveMonstrosityUpdateHealthBonus" />
+    <AtMaxEvents index="0" EventId="MonstrosityQuestComplete" Effect="AbathurEvolveMonstrosityQuestCompleteEnumMonstrosity" />
   </CBehaviorTokenCounter>
   <CBehaviorBuff id="AbathurEvolveMonstrosity">
     <Alignment value="Positive" />
@@ -1899,7 +1940,7 @@
     <Alignment value="Positive" />
     <InfoIcon value="Assets\Textures\storm_btn-extra_liferegen_0.dds" />
     <BehaviorCategories index="Restorable" value="1" />
-    <Duration value="16" />
+    <Duration value="-1" />
     <FinalEffect value="AbathurLocustAssaultExplodeSearch" />
     <AINotifySettings AreaEffect="AbathurLocustAssaultExplodeSearch">
       <Flags index="Disabled" value="1" />
@@ -1994,6 +2035,10 @@
   <CBehaviorBuff id="StabFacingControllerBehavior">
     <Duration value="0.5" />
   </CBehaviorBuff>
+  <CButton id="AbathurSlapathur" parent="StormButtonParent">
+    <Icon value="Assets\Textures\storm_ui_icon_abathur_volatilemutation.dds" />
+    <HotkeyAlias value="AbathurReinforcedCarapaceTalent" />
+  </CButton>
   <CButton id="AbathurMonstrosityDeepTunnel" parent="StormButtonParent">
     <TooltipAppender Validator="HasPregameSuppressionBehavior" Text="Button/TooltipAppender/LockedUntilGameStarts" />
     <Icon value="Assets\Textures\storm_ui_icon_Abathur_Mount.dds" />
@@ -2183,6 +2228,62 @@
     <Age value="40" />
     <Unit value="HeroAbathur" />
   </CCharacter>
+  <CEffectApplyBehavior id="ApplySlapathurInternalCooldown">
+    <Behavior value="SlapathurInternalCooldown" />
+  </CEffectApplyBehavior>
+  <CEffectSwitch id="AbathurSlapathurApplySwitch">
+    <ValidatorArray value="TargetDoesNotHaveSlapthurInternalCooldown" />
+    <ValidatorArray value="TargetIsNotTownGateAndTownWall" />
+    <ValidatorArray value="CasterNotBlindedAndTargetNotEvading" />
+    <ValidatorArray value="TargetIsNotABossUnitCombine" />
+    <ValidatorArray value="NotCore" />
+    <CaseArray Validator="TargetIsHero" Effect="AbathurSlapathurApplyStunSetHero" />
+    <CaseArray Validator="IsStructureTarget" Effect="AbathurSlapathurApplyStunSetStructure" />
+    <CaseDefault value="AbathurApplySlapathurStun" />
+    <Chance value="0" />
+  </CEffectSwitch>
+  <CEffectSet id="AbathurSlapathurApplyStunSetHero">
+    <ValidatorArray value="TargetNotUnstoppable" />
+    <EffectArray value="AbathurApplySlapathurStun" />
+    <EffectArray value="ApplySlapathurInternalCooldown" />
+  </CEffectSet>
+  <CEffectApplyBehavior id="AbathurApplySlapathurStun">
+    <ValidatorArray value="TargetNotUnstoppable" />
+    <Behavior value="AbathurSlapathurStun" />
+  </CEffectApplyBehavior>
+  <CEffectSet id="AbathurSlapathurApplyStunSetStructure">
+    <ValidatorArray value="TargetNotNoMinionAggroOrIsAndCanBeDisabled" />
+    <EffectArray value="AbathurApplySlapathurStructureDisable" />
+    <EffectArray value="ApplySlapathurInternalCooldown" />
+  </CEffectSet>
+  <CEffectApplyBehavior id="AbathurApplySlapathurStructureDisable">
+    <Behavior value="AbathurSlapathurStructureDisable" />
+  </CEffectApplyBehavior>
+  <CEffectEnumArea id="AbathurLocustDeathHealSearch">
+    <Marker Link="Effect/AbathurLocustKillCreditSearch" />
+    <ImpactLocation Value="CasterPoint" />
+    <SearchFilters value="-;Neutral,Enemy,Missile,Item,Stasis,Dead,Hidden,Invulnerable" />
+    <AreaArray Effect="HealLocust">
+      <Radius value="8.5" />
+    </AreaArray>
+  </CEffectEnumArea>
+  <CEffectApplyBehavior id="ApplyKillCreditBuff">
+    <Marker>
+      <MatchFlags index="Id" value="1" />
+    </Marker>
+    <Behavior value="LocustFatalResponse" />
+  </CEffectApplyBehavior>
+  <CEffectEnumArea id="AbathurLocustKillCreditSearch">
+    <ImpactLocation Value="CasterPoint" />
+    <SearchFilters value="-;Player,Ally,Neutral,Missile,Item,Stasis,Dead,Hidden,Invulnerable" />
+    <AreaArray Effect="ApplyKillCreditBuff">
+      <Radius value="8.5" />
+    </AreaArray>
+  </CEffectEnumArea>
+  <CEffectCreateHealer id="HealLocust">
+    <ImpactUnit Value="Caster" />
+    <RechargeVitalFraction value="0.2" />
+  </CEffectCreateHealer>
   <CEffectApplyBehavior id="AbathurToxicNestEnvenomedNestArmorDebuffApplyBehavior">
     <ValidatorArray value="TargetIsHero" />
     <ValidatorArray value="HasAbathurMasteryEnvenomedNestsToxicNest" />
@@ -2416,9 +2517,10 @@
     <EffectArray value="AbathurLocustBombardWeaponCloseRangeDamage" />
   </CEffectSet>
   <CEffectDamage id="AbathurLocustBombardWeaponCloseRangeDamage" parent="StormSummonedUnitWeapon">
-    <Amount value="46" />
+    <Amount value="36" />
     <MultiplicativeModifierArray index="HasSurvivalInstincts" Validator="HasAbathurCombatStyleSurvivalInstincts" Modifier="0.6" />
-    <MultiplicativeModifierArray index="StructureDamage" Validator="IsStructureTarget" Modifier="0.25" />
+    <MultiplicativeModifierArray index="StructureDamage" Validator="TargetNotHero" Modifier="1" />
+    <LeechFraction index="Life" value="0.2" />
   </CEffectDamage>
   <CEffectSet id="DeepTunnelFinalSet">
     <EffectArray value="DeepTunnelRemoveDisablerBehavior" />
@@ -2438,13 +2540,15 @@
   <CEffectDamage id="AbathurLocustBombardWeaponDamage" parent="StormSummonedUnitWeapon">
     <ValidatorArray index="0" removed="1" />
     <ResponseFlags index="Acquire" value="0" />
-    <Amount value="58" />
+    <Amount value="36" />
     <MultiplicativeModifierArray index="HasSurvivalInstincts" Validator="HasAbathurCombatStyleSurvivalInstincts" Modifier="0.6" />
-    <MultiplicativeModifierArray index="StructureDamage" Validator="IsStructureTarget" Modifier="0.25" />
+    <MultiplicativeModifierArray index="StructureDamage" Validator="TargetNotHero" Modifier="1" />
+    <LeechFraction index="Life" value="0.2" />
   </CEffectDamage>
   <CEffectDamage id="AbathurLocustAssaultWeaponDamage" parent="StormSummonedUnitWeapon">
     <Amount value="43" />
     <MultiplicativeModifierArray index="StructureDamage" Validator="IsStructureTarget" Modifier="0.25" />
+    <LeechFraction index="Life" value="0.2" />
   </CEffectDamage>
   <CEffectDamage id="AbathurLocustAssaultExplodeDamage" parent="StormSpell">
     <Marker Link="Effect/AbathurLocustWeaponDamage" />
@@ -2728,9 +2832,10 @@
     <CaseDefault value="AbathurLocustWeaponDamage" />
   </CEffectSwitch>
   <CEffectDamage id="AbathurLocustWeaponDamage" parent="StormSummonedUnitWeapon">
-    <Amount value="58" />
+    <Amount value="36" />
     <MultiplicativeModifierArray index="SurvivalInstincts" Validator="HasAbathurCombatStyleSurvivalInstincts" Modifier="0.6" />
-    <MultiplicativeModifierArray index="StructureDamage" Validator="IsStructureTarget" Modifier="0.25" />
+    <MultiplicativeModifierArray index="StructureDamage" Validator="TargetNotHero" Modifier="1" />
+    <LeechFraction index="Life" value="0.2" />
   </CEffectDamage>
   <CEffectSet id="AssumingDirectControlBehaviorFinalSet">
     <EffectArray value="AssumingDirectControlUltimateEvolutionSearch" />
@@ -3377,10 +3482,13 @@
     <EffectArray value="UniversalWeaponPostImpactSet" />
   </CEffectSet>
   <CEffectSet id="AbathurWeaponPreImpactSet" />
-  <CEffectSet id="AbathurWeaponPostImpactSet" />
+  <CEffectSet id="AbathurWeaponPostImpactSet">
+    <EffectArray value="AbathurSlapathurApplySwitch" />
+  </CEffectSet>
   <CEffectDamage id="AbathurWeaponDamage" parent="StormWeapon">
     <Marker Link="Effect/MuradinWeaponDamage" />
     <Amount value="26" />
+    <MultiplicativeModifierArray index="0" Validator="AbathurHasSlapathur" Modifier="3.5" />
   </CEffectDamage>
   <CEffectSwitch id="AbathurEvolveMonstrosityAttackSwitch" parent="SummonedBasicAttackAbilityDamageMissCheck">
     <CaseDefault value="AbathurEvolveMonstrosityAttackSet" />
@@ -3397,15 +3505,43 @@
     <EffectArray value="AbathurEvolveMonstrosityWeaponDamage" />
   </CEffectSet>
   <CEffectDamage id="AbathurEvolveMonstrosityWeaponDamage" parent="StormSummonedUnitWeapon">
-    <Amount value="85" />
-    <MultiplicativeModifierArray index="EvolutionCompleteDamage" Validator="AbathurHasMonstrosityEvolutionComplete" Modifier="1" />
-    <MultiplicativeModifierArray index="MonstrosityDamageAccumulator" Accumulator="AbathurEvolveMonstrosityMinionAbsorbedAccumulator" />
+    <Amount value="$AbathurEvolvedMonstrosityDamage" />
+    <MultiplicativeModifierArray index="EvolutionCompleteDamage" Validator="AbathurHasMonstrosityEvolutionComplete" Modifier="$AbathurEvolvedMonstrosityEvolutionCompleteDamageBonusPercent" />
+    <MultiplicativeModifierArray index="MonstrosityQuestDamage" />
   </CEffectDamage>
+  <CEffectModifyTokenCount id="AbathurEvolveMonstrosityIncreaseQuestStack" parent="BaseEffectModifyTokenCount">
+    <TokenId value="AbathurEvolveMonstrosityQuestStack" />
+  </CEffectModifyTokenCount>
+  <CEffectModifyTokenCount id="AbathurEvolveMonstrosityResetQuestStack" parent="BaseEffectModifyTokenCount">
+    <Operation value="Set" />
+    <TokenId value="AbathurEvolveMonstrosityQuestStack" />
+    <Value value="0" />
+  </CEffectModifyTokenCount>
+  <CEffectModifyCatalogNumeric id="AbathurEvolveMonstrosityUpdateHealthBonus">
+    <CatalogModifications Operation="Set" Reference="Behavior,AbathurEvolveMonstrosityStackBonusController,Modification.VitalMaxArray[Life]">
+      <Value value="0">
+        <AccumulatorArray value="AbathurEvolveMonstrosityStackHealthAccumulator" />
+      </Value>
+    </CatalogModifications>
+    <CatalogModifications Operation="Set" Reference="Effect,AbathurEvolveMonstrosityWeaponDamage,MultiplicativeModifierArray[MonstrosityQuestDamage].Modifier">
+      <Value value="0">
+        <AccumulatorArray value="AbathurEvolveMonstrosityStackDamageAccumulator" />
+      </Value>
+    </CatalogModifications>
+  </CEffectModifyCatalogNumeric>
+  <CEffectEnumTrackedUnits id="AbathurEvolveMonstrosityQuestCompleteEnumMonstrosity">
+    <BehaviorLink value="AbathurEvolveMonstrosityTrackingBehavior" />
+    <Effect value="AbathurEvolveMonstrosityQuestCompleteDummy" />
+  </CEffectEnumTrackedUnits>
+  <CEffectModifyUnit id="AbathurEvolveMonstrosityQuestCompleteDummy" />
   <CEffectApplyBehavior id="AbathurEvolveMonstrosityApplyCollisionSuppresser">
     <Behavior value="AbathurEvolveMonstrosityTargetCollisionSuppresser" />
   </CEffectApplyBehavior>
   <CEffectApplyBehavior id="AbathurEvolveMonstrosityApplyTimedLife">
     <Behavior value="AbathurEvolveMonstrosity" />
+  </CEffectApplyBehavior>
+  <CEffectApplyBehavior id="AbathurEvolveMonstrosityApplyStackBonusController">
+    <Behavior value="AbathurEvolveMonstrosityStackBonusController" />
   </CEffectApplyBehavior>
   <CEffectCreateUnit id="AbathurEvolveMonstrosityCreateUnit">
     <SpawnEffect value="AbathurEvolveMonstrositySpawnSet" />
@@ -3414,7 +3550,6 @@
     <CreateFlags index="Placement" value="0" />
   </CEffectCreateUnit>
   <CEffectSet id="AbathurEvolveMonstrosityInitialSet">
-    <EffectArray value="AbathurEvolveMonstrosityRemoveAbathurStack" />
     <EffectArray value="AbathurEvolveMonstrosityApplyCollisionSuppresser" />
     <EffectArray value="AbathurEvolveMonstrosityCreateUnit" />
     <EffectArray value="EvolveMonstrosityApplyActiveBehavior" />
@@ -3422,15 +3557,11 @@
     <ValidatorArray value="TargetIsNotABossUnitOrMonsterMinorCombine" />
     <ValidatorArray value="TargetNotMerc" />
   </CEffectSet>
-  <CEffectRemoveBehavior id="AbathurEvolveMonstrosityRemoveAbathurStack">
-    <WhichUnit Value="Caster" />
-    <BehaviorLink value="AbathurEvolveMonstrosityAbathurStack" />
-    <Count value="40" />
-  </CEffectRemoveBehavior>
   <CEffectSet id="AbathurEvolveMonstrositySpawnSet">
     <EffectArray value="AbathurEvolveMonstrisityAddToTrackingBehavior" />
     <EffectArray value="AbathurEvolvedMonstrosityApplyStasisController" />
     <EffectArray value="AbathurEvolveMonstrosityApplyTimedLife" />
+    <EffectArray value="AbathurEvolveMonstrosityApplyStackBonusController" />
     <EffectArray value="AbathurEvolveMonstrosityApplyVolatileMutation" />
     <EffectArray value="AbathurMonstrosityDeepTunnelCooldownResetEvolveMonstrosity" />
     <EffectArray value="AbathurMonstrosityDeepTunnelCooldownResetRedirectEvolveMonstrosity" />
@@ -3505,10 +3636,11 @@
     <TalentTreeArray Talent="AbathurMasteryPressurizedGlands" Tier="1" Column="1" />
     <TalentTreeArray Talent="AbathurMasteryEnvenomedNestsToxicNest" Tier="1" Column="2" />
     <TalentTreeArray Talent="AbathurReinforcedCarapace" Tier="1" Column="3" />
-    <TalentTreeArray Talent="AbathurCombatStyleSurvivalInstincts" Tier="1" Column="4" />
+    <TalentTreeArray Talent="AbathurCombatStyleLocustBrood" Tier="1" Column="4" />
     <TalentTreeArray Talent="AbathurSymbioteAdrenalOverload" Tier="2" Column="1" />
     <TalentTreeArray Talent="AbathurMasteryNeedlespine" Tier="2" Column="2" />
     <TalentTreeArray Talent="AbathurMasteryProlificDispersal" Tier="2" Column="3" />
+    <TalentTreeArray Talent="AbathurSlapathur" Tier="2" Column="4" />
     <TalentTreeArray Talent="AbathurMasteryVileNestsToxicNest" Tier="3" Column="1" />
     <TalentTreeArray Talent="AbathurSymbioteCarapaceNetworkedCarapace" Tier="3" Column="2" />
     <TalentTreeArray Talent="GenericTalentCalldownMULE" Tier="3" Column="3" />
@@ -3520,7 +3652,7 @@
     <TalentTreeArray Talent="AbathurMasteryEnvenomedSpikes" Tier="6" Column="1" />
     <TalentTreeArray Talent="AbathurMasteryAdrenalineBoost" Tier="6" Column="2" />
     <TalentTreeArray Talent="AbathurVolatileMutation" Tier="6" Column="3" />
-    <TalentTreeArray Talent="AbathurCombatStyleLocustBrood" Tier="6" Column="4" />
+    <TalentTreeArray Talent="AbathurCombatStyleSurvivalInstincts" Tier="6" Column="4" />
     <TalentTreeArray Talent="AbathurUltimateEvolutionEvolutionaryLink" Tier="7" Column="1">
       <PrerequisiteTalentArray value="AbathurHeroicAbilityUltimateEvolution" />
     </TalentTreeArray>
@@ -3539,12 +3671,12 @@
       <TalentsArray value="AbathurSymbioteHivemind" />
     </TalentAIBuildsArray>
     <TalentAIBuildsArray ChanceToPick="16">
-      <TalentsArray value="AbathurCombatStyleSurvivalInstincts" />
+      <TalentsArray value="AbathurCombatStyleLocustBrood" />
       <TalentsArray value="AbathurMasteryProlificDispersal" />
       <TalentsArray value="AbathurMasteryVileNestsToxicNest" />
       <TalentsArray value="AbathurHeroicAbilityEvolveMonstrosity" />
       <TalentsArray value="AbathurCombatStyleBombardStrain" />
-      <TalentsArray value="AbathurCombatStyleLocustBrood" />
+      <TalentsArray value="AbathurCombatStyleSurvivalInstincts" />
       <TalentsArray value="AbathurMasteryLocustMaster" />
     </TalentAIBuildsArray>
     <TalentAIBuildsArray ChanceToPick="16">
@@ -3553,7 +3685,7 @@
       <TalentsArray value="GenericTalentCalldownMULE" />
       <TalentsArray value="AbathurHeroicAbilityUltimateEvolution" />
       <TalentsArray value="AbathurCombatStyleBombardStrain" />
-      <TalentsArray value="AbathurCombatStyleLocustBrood" />
+      <TalentsArray value="AbathurCombatStyleSurvivalInstincts" />
       <TalentsArray value="AbathurMasteryLocustMaster" />
     </TalentAIBuildsArray>
     <TalentAIBuildsArray ChanceToPick="16">
@@ -3575,12 +3707,12 @@
       <TalentsArray value="AbathurUltimateEvolutionEvolutionaryLink" />
     </TalentAIBuildsArray>
     <TalentAIBuildsArray AIOnly="1" ChanceToPick="16">
-      <TalentsArray value="AbathurCombatStyleSurvivalInstincts" />
+      <TalentsArray value="AbathurCombatStyleLocustBrood" />
       <TalentsArray value="AbathurMasteryNeedlespine" />
       <TalentsArray value="AbathurSymbioteCarapaceNetworkedCarapace" />
       <TalentsArray value="AbathurHeroicAbilityEvolveMonstrosity" />
       <TalentsArray value="AbathurCombatStyleBombardStrain" />
-      <TalentsArray value="AbathurCombatStyleLocustBrood" />
+      <TalentsArray value="AbathurCombatStyleSurvivalInstincts" />
       <TalentsArray value="AbathurMasteryEvolutionComplete" />
     </TalentAIBuildsArray>
     <VOArray index="AIAttack" value="AbathurHero_AI_Attack" />
@@ -3668,6 +3800,13 @@
         <AffectedByOverdrive value="1" />
       </Modifications>
       <Modifications>
+        <Catalog value="Unit" />
+        <Entry value="AbathurLocustNormal" />
+        <Field value="LifeRegenRate" />
+        <Value value="0.040000" />
+        <AffectedByOverdrive value="1" />
+      </Modifications>
+      <Modifications>
         <Catalog value="Effect" />
         <Entry value="AbathurLocustWeaponDamage" />
         <Field value="Amount" />
@@ -3705,6 +3844,13 @@
         <AffectedByOverdrive value="1" />
       </Modifications>
       <Modifications>
+        <Catalog value="Unit" />
+        <Entry value="AbathurLocustAssaultStrain" />
+        <Field value="LifeRegenRate" />
+        <Value value="0.040000" />
+        <AffectedByOverdrive value="1" />
+      </Modifications>
+      <Modifications>
         <Catalog value="Effect" />
         <Entry value="AbathurLocustAssaultWeaponDamage" />
         <Field value="Amount" />
@@ -3738,6 +3884,13 @@
         <Catalog value="Unit" />
         <Entry value="AbathurLocustBombardStrain" />
         <Field value="LifeStart" />
+        <Value value="0.040000" />
+        <AffectedByOverdrive value="1" />
+      </Modifications>
+      <Modifications>
+        <Catalog value="Unit" />
+        <Entry value="AbathurLocustBombardStrain" />
+        <Field value="LifeRegenRate" />
         <Value value="0.040000" />
         <AffectedByOverdrive value="1" />
       </Modifications>
@@ -3942,23 +4095,23 @@
         <AffectedByOverdrive value="1" />
       </Modifications>
       <Modifications>
-        <Catalog value="Behavior" />
-        <Entry value="AbathurEvolveMonstrosityDamageStack" />
-        <Field value="Modification.DamageDealtScaled[Basic]" />
+        <Catalog value="Accumulator" />
+        <Entry value="AbathurEvolveMonstrosityStackHealthAccumulator" />
+        <Field value="Scale" />
+        <Value value="0.040000" />
+        <AffectedByOverdrive value="1" />
+      </Modifications>
+      <Modifications>
+        <Catalog value="Accumulator" />
+        <Entry value="AbathurEvolveMonstrosityStackHealthAccumulator" />
+        <Field value="MaxAccumulation" />
         <Value value="0.040000" />
         <AffectedByOverdrive value="1" />
       </Modifications>
       <Modifications>
         <Catalog value="Behavior" />
-        <Entry value="AbathurEvolveMonstrosityHealthStack" />
+        <Entry value="AbathurEvolveMonstrosityStackBonusController" />
         <Field value="Modification.VitalMaxArray[Life]" />
-        <Value value="0.040000" />
-        <AffectedByOverdrive value="1" />
-      </Modifications>
-      <Modifications>
-        <Catalog value="Effect" />
-        <Entry value="EvolveMonstrosityHealthStackHealer" />
-        <Field value="RechargeVitalRate" />
         <Value value="0.040000" />
         <AffectedByOverdrive value="1" />
       </Modifications>
@@ -4032,6 +4185,8 @@
       <Flags index="MountReplacement" value="1" />
     </HeroAbilArray>
     <Ratings Damage="3" Utility="7" Complexity="9" />
+    <HeroSpecificUIArray Location="Status" DescName="Abathur/AbathurFrameWithPetHealth" />
+    <HeroSpecificUIArray Location="HeroSpecificStackingBuffsStatus" DescName="Abathur/AbathurStacksFrameContainer" />
     <AlternateUnitArray value="AbathurSymbiote" />
     <VoiceLineArray value="AbathurBase_VoiceLine01" />
     <VoiceLineArray value="AbathurBase_VoiceLine02" />
@@ -4040,6 +4195,71 @@
     <VoiceLineArray value="AbathurBase_VoiceLine05" />
     <Rarity value="Legendary" />
     <ReleaseDate Month="3" Day="13" />
+  </CHero>
+  <CHero id="AbathurSymbiote" parent="Abathur">
+    <PairedHero value="Abathur" />
+    <Flags index="AllowAIRandomSelection" value="0" />
+    <Flags index="AllowHumanRandomSelection" value="0" />
+    <Flags index="IsBaseHeroOfPair" value="0" />
+    <Flags index="PreventTryMeLaunch" value="1" />
+    <Name value="Hero/Name/AbathurSymbiote" />
+    <PortraitPaired value="Assets\Textures\storm_ui_icon_abathur_symbiote.dds" />
+    <PortraitPairedText value="Hero/PortraitPairedText/AbathurSymbiote" />
+    <HeroAbilArray index="0" Abil="AbathurSymbiote" Button="AbathurSymbiote">
+      <Flags index="ShowInHeroSelect" value="0" />
+      <Flags index="AffectedByCooldownReduction" value="1" />
+    </HeroAbilArray>
+    <HeroAbilArray index="1" Abil="AbathurSymbioteStab" Button="AbathurSymbioteStab" Unit="AbathurSymbiote">
+      <Flags index="ShowInHeroSelect" value="1" />
+      <Flags index="UsesCharges" value="1" />
+      <Flags index="AffectedByCooldownReduction" value="1" />
+    </HeroAbilArray>
+    <HeroAbilArray index="2" Abil="AbathurSymbioteSpikeBurst" Button="AbathurSymbioteSpikeBurst" Unit="AbathurSymbiote">
+      <Flags index="ShowInHeroSelect" value="1" />
+      <Flags index="AffectedByCooldownReduction" value="1" />
+    </HeroAbilArray>
+    <HeroAbilArray index="3" Abil="AbathurSymbioteCarapace" Button="AbathurSymbioteCarapace" Unit="AbathurSymbiote">
+      <Flags index="ShowInHeroSelect" value="1" />
+      <Flags index="AffectedByCooldownReduction" value="1" />
+    </HeroAbilArray>
+    <HeroAbilArray index="4" Abil="AbathurToxicNest" Button="AbathurToxicNest">
+      <Flags index="ShowInHeroSelect" value="0" />
+      <Flags index="UsesCharges" value="1" />
+      <Flags index="AffectedByCooldownReduction" value="1" />
+    </HeroAbilArray>
+    <HeroAbilArray index="8" Abil="AbathurDeepTunnel" Button="AbathurDeepTunnel">
+      <Flags index="ShowInHeroSelect" value="0" />
+      <Flags index="AffectedByCooldownReduction" value="1" />
+      <Flags index="MountReplacement" value="1" />
+    </HeroAbilArray>
+    <StoreName value="Hero/Name/Abathur" />
+    <TalentAIBuildsArray index="1" ChanceToPick="16">
+      <TalentsArray index="0" value="AbathurCombatStyleSurvivalInstincts" />
+      <TalentsArray index="1" value="AbathurMasteryProlificDispersal" />
+      <TalentsArray index="2" value="AbathurMasteryVileNestsToxicNest" />
+      <TalentsArray index="3" value="AbathurHeroicAbilityEvolveMonstrosity" />
+      <TalentsArray index="4" value="AbathurCombatStyleBombardStrain" />
+      <TalentsArray index="5" value="AbathurCombatStyleLocustBrood" />
+      <TalentsArray index="6" value="AbathurMasteryLocustMaster" />
+    </TalentAIBuildsArray>
+    <TalentAIBuildsArray index="2" ChanceToPick="16">
+      <TalentsArray index="0" value="AbathurReinforcedCarapace" />
+      <TalentsArray index="1" value="AbathurMasteryNeedlespine" />
+      <TalentsArray index="2" value="GenericTalentCalldownMULE" />
+      <TalentsArray index="3" value="AbathurHeroicAbilityUltimateEvolution" />
+      <TalentsArray index="4" value="AbathurCombatStyleBombardStrain" />
+      <TalentsArray index="5" value="AbathurCombatStyleLocustBrood" />
+      <TalentsArray index="6" value="AbathurMasteryLocustMaster" />
+    </TalentAIBuildsArray>
+    <TalentAIBuildsArray index="5" AIOnly="1" ChanceToPick="16">
+      <TalentsArray index="0" value="AbathurCombatStyleSurvivalInstincts" />
+      <TalentsArray index="1" value="AbathurMasteryNeedlespine" />
+      <TalentsArray index="2" value="AbathurSymbioteCarapaceNetworkedCarapace" />
+      <TalentsArray index="3" value="AbathurHeroicAbilityEvolveMonstrosity" />
+      <TalentsArray index="4" value="AbathurCombatStyleBombardStrain" />
+      <TalentsArray index="5" value="AbathurCombatStyleLocustBrood" />
+      <TalentsArray index="6" value="AbathurMasteryEvolutionComplete" />
+    </TalentAIBuildsArray>
   </CHero>
   <CHeroMastery id="AbathurMasteryRing1" parent="MasteryRingRank1">
     <ProductId value="66976" />
@@ -4263,6 +4483,19 @@
   <CRewardHeroMastery id="AbathurMasteryRing3">
     <License value="52263" />
   </CRewardHeroMastery>
+  <CTalent id="AbathurSlapathur">
+    <Face value="AbathurSlapathur" />
+    <Abil value="AbathurSymbioteCarapace" />
+    <AbilityModificationArray>
+      <Modifications>
+        <Type value="FlatModification" />
+        <Catalog value="Effect" />
+        <Entry value="AbathurSlapathurApplySwitch" />
+        <Field value="Chance" />
+        <Value value="1.000000" />
+      </Modifications>
+    </AbilityModificationArray>
+  </CTalent>
   <CTalent id="AbathurReinforcedCarapace">
     <Face value="AbathurReinforcedCarapaceTalent" />
     <Abil value="AbathurSymbioteCarapace" />
@@ -4318,15 +4551,6 @@
       <BehaviorArray value="AbathurCombatStyleBombardStrain" />
     </RankArray>
     <Trait value="1" />
-    <AbilityModificationArray>
-      <Modifications>
-        <Type value="FlatModification" />
-        <Catalog value="Behavior" />
-        <Entry value="LocustTimedLife" />
-        <Field value="Duration" />
-        <Value value="12.000000" />
-      </Modifications>
-    </AbilityModificationArray>
   </CTalent>
   <CTalent id="AbathurCombatStyleAssaultStrain">
     <Face value="AbathurLocustStrainAssaultStrainTalent" />
@@ -4787,19 +5011,23 @@
   </CTalent>
   <CUnit id="AbathurLocust" parent="StormSummonActive">
     <FlagArray index="DoNotAcquire" value="1" />
-    <LifeStart value="350" />
-    <LifeMax value="350" />
+    <FlagArray index="SuppressFloaters" value="1" />
+    <LifeStart value="$AbathurLocustHealth" />
+    <LifeMax value="$AbathurLocustHealth" />
     <BehaviorArray Link="LocustTimedLife" />
+    <BehaviorArray Link="AbathurLocustKillCreditAura" />
     <AbilArray Link="stop" />
     <AbilArray Link="AttackAlly" />
     <AbilArray Link="move" />
     <Radius value="0.375" />
     <SeparationRadius value="0.375" />
     <AIThinkTree value="AI/SummonedMinion.aitree" />
+    <LifeRegenRate value="-$AbathurLocustLifeDecayRate" />
   </CUnit>
   <CUnit id="AbathurLocustBombardStrain" parent="AbathurLocust">
     <WeaponArray Link="AbathurLocustBombardWeapon" />
     <WeaponArray Link="AbathurLocustBombardWeaponCloseRange" />
+    <LifeRegenRate value="-$AbathurLocustBombardLifeDecayRate" />
   </CUnit>
   <CUnit id="AbathurLocustNormal" parent="AbathurLocust">
     <WeaponArray Link="AbathurLocustWeapon" />
@@ -4876,6 +5104,7 @@
     <HeroPlaystyleFlags index="RoleSpecialist" value="1" />
     <HeroPlaystyleFlags index="TowerPusher" value="1" />
     <HeroPlaystyleFlags index="WaveClearer" value="1" />
+    <Speed value="4.75" />
   </CUnit>
   <CUnit id="AbathurLocustNest" parent="StormSummonPassive">
     <Facing value="315" />
@@ -4942,8 +5171,8 @@
   <CUnit id="AbathurEvolvedMonstrosity" parent="StormSummonActive">
     <FlagArray index="CreateAITreeOnSpawn" value="1" />
     <PushPriority value="400" />
-    <LifeStart value="1350" />
-    <LifeMax value="1350" />
+    <LifeStart value="$AbathurEvolvedMonstrosityHealth" />
+    <LifeMax value="$AbathurEvolvedMonstrosityHealth" />
     <Speed value="4" />
     <StationaryTurningRate value="1759.9218" />
     <TurningRate value="1759.9218" />
@@ -4959,7 +5188,6 @@
     <BehaviorArray Link="HeroGenericIsFat" />
     <BehaviorArray Link="HeroGenericHasNoStatusBar" />
     <BehaviorArray Link="HeroGenericMapMechanicPickupDisallowed" />
-    <BehaviorArray Link="AbathurEvolveMonstrosityMinionAbsorbedToken" />
     <WeaponArray Link="AbathurEvolveMonstrosityWeapon" />
     <WeaponArray Link="AbathurEvolveMonstrosityWeaponMelee" />
     <CardLayouts>
@@ -4982,6 +5210,14 @@
     <OverlapIndex value="Hero" />
     <AIThinkTree value="AI/SummonedMinion.aitree" />
   </CUnit>
+  <CValidatorUnitCompareBehaviorCount id="TargetDoesNotHaveSlapthurInternalCooldown">
+    <Behavior value="SlapathurInternalCooldown" />
+  </CValidatorUnitCompareBehaviorCount>
+  <CValidatorPlayerTalent id="AbathurHasSlapathur">
+    <WhichPlayer Value="Caster" />
+    <Find value="1" />
+    <Value value="AbathurSlapathur" />
+  </CValidatorPlayerTalent>
   <CValidatorCombine id="AbathurHasProlificDispersalAndTargetIsIn91Range">
     <Type value="And" />
     <CombineArray value="TargetWithin91RangeProlificDispersal" />
@@ -5521,6 +5757,18 @@
   <CValidatorCombine id="AbathurIsValidSymbioteTarget">
     <CombineArray value="TargetIsNecromancerSkeleton" />
   </CValidatorCombine>
+  <CValidatorCompareTrackedUnitsCount id="AbathurHasTrackedMonstrosityUnitWithSymbiote">
+    <Compare value="GT" />
+    <BehaviorLink value="AbathurEvolveMonstrosityTrackingBehavior" />
+    <TrackedUnitValidatorArray value="TargetHasAbathurSymbioteHost" />
+  </CValidatorCompareTrackedUnitsCount>
+  <CValidatorCompareTrackedUnitsCount id="AbathurHasTrackedMonstrosityUnit">
+    <Compare value="GT" />
+    <BehaviorLink value="AbathurEvolveMonstrosityTrackingBehavior" />
+  </CValidatorCompareTrackedUnitsCount>
+  <CValidatorCompareTrackedUnitsCount id="AbathurDoesNotHaveTrackedMonstrosityUnit">
+    <BehaviorLink value="AbathurEvolveMonstrosityTrackingBehavior" />
+  </CValidatorCompareTrackedUnitsCount>
   <CWeaponLegacy id="AbathurLocustBombardWeaponCloseRange">
     <Options index="Melee" value="1" />
     <Icon value="Assets\Textures\storm_temp_btn-upgrade-zerg-meleeattacks-level0.dds" />
