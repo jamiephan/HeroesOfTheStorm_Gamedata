@@ -2,11 +2,16 @@
 <Catalog>
   <const id="$ChoConsumingBlazeHealAmount" value="40" />
   <const id="$ChoConsumingFireBonusHealAmount" value="75" />
+  <const id="$GallShadowflameCooldown" value="3" />
+  <const id="$GallDreadOrbCooldown" value="6" />
   <const id="$GallOgreRageBonus" value="0.25" />
   <const id="$GallOgreRampageBonus" value="0.05" />
   <const id="$GallEyeOfKilroggRange" value="12" />
   <const id="$GallWeSeeYouRangeModifier" value="0.33" />
   <const id="$GallWeSeeYouRangeIncrease" value="*($GallEyeOfKilroggRange $GallWeSeeYouRangeModifier)" evaluateAsExpression="1" />
+  <const id="$GallDoubleTroubleProcCooldownReduction" value="0.5" />
+  <const id="$GallDoubleTroubleQuestCompleteCooldownReduction" value="1" />
+  <const id="$GallTwilightFrenzyCooldownToReduceTo" value="2" />
   <CAbilEffectInstant id="GallTwilightFrenzy">
     <Effect value="GallTwilightFrenzyApplyBehavior" />
     <Cost>
@@ -193,7 +198,7 @@
     <Effect value="GallShadowflameInitialSet" />
     <Flags index="RequireTargetVision" value="0" />
     <Cost>
-      <Cooldown TimeUse="3" />
+      <Cooldown TimeUse="$GallShadowflameCooldown" />
     </Cost>
     <Arc value="360" />
     <CmdButtonArray index="Execute" DefaultButtonFace="GallShadowflame">
@@ -222,7 +227,7 @@
     <Flags index="RecursiveCursor" value="1" />
     <Flags index="RequireTargetVision" value="0" />
     <Cost>
-      <Cooldown TimeUse="6" />
+      <Cooldown TimeUse="$GallDreadOrbCooldown" />
     </Cost>
     <Range value="6.5" />
     <RangeSlop value="8" />
@@ -2167,6 +2172,7 @@
     <ConditionalEvents Compare="GE" CompareValue="20">
       <Event EventId="QuestIncrease" Effect="GallRunicBlastApplyBombsAwayTalentGallCarry" />
     </ConditionalEvents>
+    <Max value="65535" />
   </CBehaviorTokenCounter>
   <CBehaviorTokenCounter id="GallShadowflameDoubleTroubleTalentTokenCounter" parent="StormQuestToken">
     <Face value="GallDoubleTroubleToken" />
@@ -2959,24 +2965,23 @@
     <WhichUnit Value="Caster" />
   </CEffectApplyBehavior>
   <CEffectModifyPlayer id="GallTwilightFrenzyBuffApplyBonus">
-    <EffectArray Operation="Set" Reference="Abil,GallShadowflame,Cost[0].Cooldown.TimeUse" Value="2.000000" />
-    <EffectArray Operation="Set" Reference="Abil,GallDreadOrb,Cost[0].Cooldown.TimeUse" Value="2.000000" />
+    <EffectArray Operation="Set" Reference="Abil,GallShadowflame,Cost[0].Cooldown.TimeUse" Value="$GallTwilightFrenzyCooldownToReduceTo" />
+    <EffectArray Operation="Set" Reference="Abil,GallDreadOrb,Cost[0].Cooldown.TimeUse" Value="$GallTwilightFrenzyCooldownToReduceTo" />
   </CEffectModifyPlayer>
   <CEffectModifyPlayer id="GallTwilightFrenzyBuffReset">
-    <EffectArray Operation="Set" Reference="Abil,GallShadowflame,Cost[0].Cooldown.TimeUse" Value="3.000000" />
-    <EffectArray Operation="Set" Reference="Abil,GallDreadOrb,Cost[0].Cooldown.TimeUse" Value="6.000000" />
+    <EffectArray Operation="Set" Reference="Abil,GallShadowflame,Cost[0].Cooldown.TimeUse" Value="$GallShadowflameCooldown" />
+    <EffectArray Operation="Set" Reference="Abil,GallDreadOrb,Cost[0].Cooldown.TimeUse" Value="$GallDreadOrbCooldown" />
   </CEffectModifyPlayer>
   <CEffectModifyPlayer id="GallTwilightFrenzyBuffResetTwilightNova">
-    <EffectArray Operation="Set" Reference="Abil,GallShadowflame,Cost[0].Cooldown.TimeUse" Value="3.000000" />
-    <EffectArray Operation="Set" Reference="Abil,GallDreadOrb,Cost[0].Cooldown.TimeUse" Value="6.000000" />
+    <EffectArray Operation="Set" Reference="Abil,GallShadowflame,Cost[0].Cooldown.TimeUse" Value="$GallShadowflameCooldown" />
+    <EffectArray Operation="Set" Reference="Abil,GallDreadOrb,Cost[0].Cooldown.TimeUse" Value="$GallDreadOrbCooldown" />
   </CEffectModifyPlayer>
   <CEffectModifyPlayer id="GallShadowflameDoubleTroubleTalentCompletionModifyPlayer">
-    <EffectArray Operation="Subtract" Reference="Abil,GallShadowflame,Cost.Cooldown.TimeUse" Value="0.500000" />
+    <EffectArray Operation="Subtract" Reference="Abil,GallShadowflame,Cost.Cooldown.TimeUse" Value="$GallDoubleTroubleQuestCompleteCooldownReduction" />
   </CEffectModifyPlayer>
   <CEffectModifyPlayer id="GallTwilightFrenzyDoubleTroubleTalentCompletionModifyPlayer" parent="GallShadowflameDoubleTroubleTalentCompletionModifyPlayer">
     <ValidatorArray value="GallHasDoubleTroubleTalent" />
     <ValidatorArray value="GallCastHasDoubleTroubleCompleted" />
-    <EffectArray index="0" Operation="Subtract" Reference="Abil,GallShadowflame,Cost.Cooldown.TimeUse" Value="1.000000" />
   </CEffectModifyPlayer>
   <CEffectSet id="ChoConsumingBlazeBasicAttackSet">
     <ValidatorArray value="CasterNotBlindedAndTargetNotEvading" />
@@ -3271,7 +3276,7 @@
     <Behavior value="GallShadowflameSearingShadowsTalentArmorDebuff" />
   </CEffectApplyBehavior>
   <CEffectModifyPlayer id="GallShadowflameDoubleTroubleTalentCompletionResetPlayer">
-    <EffectArray Operation="Set" Reference="Abil,GallShadowflame,Cost.Cooldown.TimeUse" Value="3" />
+    <EffectArray Operation="Set" Reference="Abil,GallShadowflame,Cost.Cooldown.TimeUse" Value="$GallShadowflameCooldown" />
   </CEffectModifyPlayer>
   <CEffectApplyBehavior id="ChoOgreHideApplyEnragedRegenerationTalentCarry">
     <WhichUnit Effect="ChoGallLinkUnitsInitialSet" Value="Caster" />
@@ -5424,7 +5429,7 @@
   </CEffectSet>
   <CEffectModifyUnit id="GallShadowflameDoubleTroubleTalentModifyCooldown">
     <ImpactUnit Value="Caster" />
-    <Cost Abil="GallShadowflame,Execute" CooldownOperation="Add" CooldownTimeUse="-0.5" />
+    <Cost Abil="GallShadowflame,Execute" CooldownOperation="Add" CooldownTimeUse="-$GallDoubleTroubleProcCooldownReduction" />
     <ValidatorArray value="GallDoesNotHaveShadowflameDoubleTroubleTalentImpactMarker" />
   </CEffectModifyUnit>
   <CEffectModifyUnit id="GallPsychoticBreakCooldownResetShadowBoltVolley">
