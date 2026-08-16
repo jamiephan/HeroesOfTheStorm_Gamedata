@@ -12,7 +12,7 @@ const glob = require("glob");
 
 // Configuration
 const PRODUCT = "hero";
-const REGION = "eu";
+const REGION = "us";
 const TEMP_DIR = `${os.tmpdir()}/${PRODUCT}_${REGION}_temp`;
 
 const EXTRACT_FILE_PATTERN =
