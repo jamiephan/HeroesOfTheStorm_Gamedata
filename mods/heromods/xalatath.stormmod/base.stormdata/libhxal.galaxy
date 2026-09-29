@@ -1,0 +1,348 @@
+include "TriggerLibs/NativeLib"
+include "TriggerLibs/HeroesLib"
+include "TriggerLibs/GameLib"
+
+include "LibHXAL_h"
+
+//--------------------------------------------------------------------------------------------------
+// Library: Xal'atath
+//--------------------------------------------------------------------------------------------------
+// External Library Initialization
+void libHXAL_InitLibraries () {
+    libNtve_InitVariables();
+    libCore_InitVariables();
+    libGame_InitVariables();
+}
+
+// Variable Initialization
+bool libHXAL_InitVariables_completed = false;
+
+void libHXAL_InitVariables () {
+    int init_i;
+
+    if (libHXAL_InitVariables_completed) {
+        return;
+    }
+
+    libHXAL_InitVariables_completed = true;
+
+    for (init_i = 0; init_i <= libCore_gv_bALMaxPlayers; init_i += 1) {
+        libHXAL_gv_heroXalatathVoidStepUnitGroup[init_i] = UnitGroupEmpty();
+    }
+}
+
+// Functions
+void libHXAL_gf_HeroXalatathIncrementHeroCountFunction () {
+    // Automatic Variable Declarations
+    // Implementation
+    libHXAL_gv_heroXalatathTriggerRegistrationVariable += 1;
+    if ((libHXAL_gv_heroXalatathTriggerRegistrationVariable == 1)) {
+        TriggerEnable(libHXAL_gt_HeroXalatathHeroWeaponApplyTargetingUnit, true);
+        TriggerEnable(libHXAL_gt_HeroXalatathTargetAcquired, true);
+        TriggerEnable(libHXAL_gt_HeroXalatathForceAcquireTargetTaunt, true);
+        TriggerEnable(libHXAL_gt_HeroXalatathHoldFire, true);
+        TriggerEnable(libHXAL_gt_HeroXalatathVoidVolleyCooldownReset, true);
+    }
+
+}
+
+void libHXAL_gf_HeroXalatathDecrementHeroCountFunction () {
+    // Automatic Variable Declarations
+    // Implementation
+    libHXAL_gv_heroXalatathTriggerRegistrationVariable -= 1;
+    if ((libHXAL_gv_heroXalatathTriggerRegistrationVariable < 0)) {
+        libHXAL_gv_heroXalatathTriggerRegistrationVariable = 0;
+    }
+
+    if ((libHXAL_gv_heroXalatathTriggerRegistrationVariable == 0)) {
+        TriggerEnable(libHXAL_gt_HeroXalatathHeroWeaponApplyTargetingUnit, false);
+        TriggerEnable(libHXAL_gt_HeroXalatathTargetAcquired, false);
+        TriggerEnable(libHXAL_gt_HeroXalatathForceAcquireTargetTaunt, false);
+        TriggerEnable(libHXAL_gt_HeroXalatathHoldFire, false);
+        TriggerEnable(libHXAL_gt_HeroXalatathVoidVolleyCooldownReset, false);
+    }
+
+}
+
+// Triggers
+//--------------------------------------------------------------------------------------------------
+// Trigger: New Trigger: Hero - Xalatath - Void Volley - Cooldown Reset
+//--------------------------------------------------------------------------------------------------
+bool libHXAL_gt_HeroXalatathVoidVolleyCooldownReset_Func (bool testConds, bool runActions) {
+    // Variable Declarations
+    int lv_player;
+    unit lv_playerHero;
+
+    // Automatic Variable Declarations
+    // Variable Initialization
+    lv_player = libGame_gf_SpecialCaseTalentCooldownResetPlayer();
+    lv_playerHero = libGame_gv_players[lv_player].lv_heroUnit;
+
+    // Conditions
+    if (testConds) {
+        if (!((UnitHasBehavior2(lv_playerHero, "XalatathVoidVolleyChargeTokenCounter") == true))) {
+            return false;
+        }
+    }
+
+    // Actions
+    if (!runActions) {
+        return true;
+    }
+
+    UnitCreateEffectUnit(lv_playerHero, "XalatathVoidVolleyChargeApplyAllStacksSet", lv_playerHero);
+    return true;
+}
+
+//--------------------------------------------------------------------------------------------------
+void libHXAL_gt_HeroXalatathVoidVolleyCooldownReset_Init () {
+    libHXAL_gt_HeroXalatathVoidVolleyCooldownReset = TriggerCreate("libHXAL_gt_HeroXalatathVoidVolleyCooldownReset_Func");
+    TriggerEnable(libHXAL_gt_HeroXalatathVoidVolleyCooldownReset, false);
+    libGame_gf_SpecialCaseTalentCooldownReset(libHXAL_gt_HeroXalatathVoidVolleyCooldownReset);
+}
+
+//--------------------------------------------------------------------------------------------------
+// Trigger: Hero - Xalatath - Hero Weapon Apply Targeting Unit
+//--------------------------------------------------------------------------------------------------
+bool libHXAL_gt_HeroXalatathHeroWeaponApplyTargetingUnit_Func (bool testConds, bool runActions) {
+    // Variable Declarations
+    unit lv_XalatathUnit;
+    unit lv_targetUnit;
+    point lv_targetPoint;
+    int lv_XalatathPlayer;
+    bool lv_hadHoldFire;
+    bool lv_hadDisabler;
+    bool lv_hadMountedDisabler;
+
+    // Automatic Variable Declarations
+    // Variable Initialization
+
+    // Conditions
+    if (testConds) {
+        if (!((UnitGetType(EventUnit()) == "HeroXalatath"))) {
+            return false;
+        }
+    }
+
+    // Actions
+    if (!runActions) {
+        return true;
+    }
+
+    lv_XalatathUnit = EventUnit();
+    lv_XalatathPlayer = UnitGetOwner(EventUnit());
+    lv_targetUnit = EventUnitTargetUnit();
+    if ((lv_targetUnit != null) && (UnitFilterMatch(lv_targetUnit, lv_XalatathPlayer, UnitFilter(0, 0, (1 << c_targetFilterPlayer) | (1 << c_targetFilterAlly) | (1 << c_targetFilterMissile) | (1 << c_targetFilterItem), (1 << (c_targetFilterStasis - 32)) | (1 << (c_targetFilterDead - 32)) | (1 << (c_targetFilterInvulnerable - 32)))) == true)) {
+        if ((lv_targetUnit == libHXAL_gv_heroXalatathCurrentAttackTarget[lv_XalatathPlayer]) && (UnitHasBehavior2(libHXAL_gv_heroXalatathCurrentAttackTarget[lv_XalatathPlayer], "XalatathWeaponTargeting") == true)) {
+            return true;
+        }
+
+        if ((libHXAL_gv_heroXalatathCurrentAttackTarget[lv_XalatathPlayer] != null) && (libHXAL_gv_heroXalatathCurrentAttackTarget[lv_XalatathPlayer] != lv_targetUnit) && (UnitHasBehavior2(libHXAL_gv_heroXalatathCurrentAttackTarget[lv_XalatathPlayer], "XalatathWeaponTargeting") == true)) {
+            UnitCreateEffectUnit(lv_XalatathUnit, "XalatathWeaponRemoveTargetingBehavior", libHXAL_gv_heroXalatathCurrentAttackTarget[lv_XalatathPlayer]);
+        }
+
+        UnitBehaviorRemove(lv_XalatathUnit, "XalatathHeroWeaponDisablerHoldFire", 1);
+        UnitCreateEffectUnit(lv_XalatathUnit, "XalatathWeaponClearWeaponTargets", lv_XalatathUnit);
+        UnitCreateEffectUnit(lv_XalatathUnit, "XalatathWeaponApplyTargetingBehavior", lv_targetUnit);
+        libHXAL_gv_heroXalatathCurrentAttackTarget[lv_XalatathPlayer] = lv_targetUnit;
+        UnitBehaviorAdd(lv_XalatathUnit, "XalatathWeaponCasterTargetFinderDisabler", lv_XalatathUnit, 1);
+    }
+    else {
+        if ((EventUnitTargetPoint() != null) && (DistanceBetweenPoints(EventUnitTargetPoint(), UnitGetPosition(lv_XalatathUnit)) > 0.0)) {
+            if ((UnitHasBehavior2(lv_XalatathUnit, "XalatathWeaponCasterTargetFinderDisabler") == true)) {
+                lv_hadDisabler = true;
+                UnitBehaviorRemove(lv_XalatathUnit, "XalatathWeaponCasterTargetFinderDisabler", 1);
+            }
+
+            if ((UnitHasBehavior2(lv_XalatathUnit, "XalatathHeroWeaponCasterTargetFinderDisablerMounted") == true)) {
+                lv_hadMountedDisabler = true;
+                UnitBehaviorRemove(lv_XalatathUnit, "XalatathHeroWeaponCasterTargetFinderDisablerMounted", 1);
+            }
+
+            if ((UnitHasBehavior2(lv_XalatathUnit, "HoldFire") == true)) {
+                lv_hadHoldFire = true;
+                UnitBehaviorAdd(lv_XalatathUnit, "XalatathHoldFireDisabler", lv_XalatathUnit, 1);
+            }
+
+            lv_targetPoint = EventUnitTargetPoint();
+            while (!((UnitOrder(lv_XalatathUnit, 0) != OrderTargetingPoint(AbilityCommand("XalatathAttack", 0), lv_targetPoint)))) {
+                Wait(0.125, c_timeGame);
+            }
+            if ((lv_hadDisabler == true)) {
+                lv_hadDisabler = false;
+                UnitBehaviorAdd(lv_XalatathUnit, "XalatathWeaponCasterTargetFinderDisabler", lv_XalatathUnit, 1);
+            }
+
+            if ((lv_hadMountedDisabler == true)) {
+                lv_hadMountedDisabler = false;
+                UnitBehaviorAdd(lv_XalatathUnit, "XalatathHeroWeaponCasterTargetFinderDisablerMounted", lv_XalatathUnit, 1);
+            }
+
+            if ((lv_hadHoldFire == true)) {
+                lv_hadHoldFire = false;
+                UnitBehaviorRemove(lv_XalatathUnit, "XalatathHoldFireDisabler", 1);
+            }
+
+        }
+
+    }
+    return true;
+}
+
+//--------------------------------------------------------------------------------------------------
+void libHXAL_gt_HeroXalatathHeroWeaponApplyTargetingUnit_Init () {
+    libHXAL_gt_HeroXalatathHeroWeaponApplyTargetingUnit = TriggerCreate("libHXAL_gt_HeroXalatathHeroWeaponApplyTargetingUnit_Func");
+    TriggerEnable(libHXAL_gt_HeroXalatathHeroWeaponApplyTargetingUnit, false);
+    TriggerAddEventUnitAbility(libHXAL_gt_HeroXalatathHeroWeaponApplyTargetingUnit, null, AbilityCommand("XalatathSmartTargetingRightClick", 0), c_abilEffectStageApproach, false);
+    TriggerAddEventUnitAbility(libHXAL_gt_HeroXalatathHeroWeaponApplyTargetingUnit, null, AbilityCommand("XalatathSmartTargetingRightClick", 0), c_abilEffectStageCast, false);
+    TriggerAddEventUnitAbility(libHXAL_gt_HeroXalatathHeroWeaponApplyTargetingUnit, null, AbilityCommand("XalatathTargetingAttackClick", 0), c_unitAbilStageExecute, false);
+}
+
+//--------------------------------------------------------------------------------------------------
+// Trigger: Hero - Xalatath - Target Acquired
+//--------------------------------------------------------------------------------------------------
+bool libHXAL_gt_HeroXalatathTargetAcquired_Func (bool testConds, bool runActions) {
+    // Variable Declarations
+    unit lv_targetUnit;
+    int lv_xalatathPlayer;
+    unit lv_xalatath;
+
+    // Automatic Variable Declarations
+    // Variable Initialization
+    lv_targetUnit = EventPlayerEffectUsedUnit(c_effectUnitTarget);
+    lv_xalatathPlayer = UnitGetOwner(EventPlayerEffectUsedUnit(c_effectUnitCaster));
+
+    // Conditions
+    if (testConds) {
+        if (!((UnitIsAlive(lv_targetUnit) == true))) {
+            return false;
+        }
+
+        if (!((lv_targetUnit != libHXAL_gv_heroXalatathCurrentAttackTarget[lv_xalatathPlayer]))) {
+            return false;
+        }
+    }
+
+    // Actions
+    if (!runActions) {
+        return true;
+    }
+
+    lv_xalatath = EventPlayerEffectUsedUnit(c_effectUnitCaster);
+    if ((libHXAL_gv_heroXalatathCurrentAttackTarget[lv_xalatathPlayer] != null) && (UnitHasBehavior2(libHXAL_gv_heroXalatathCurrentAttackTarget[lv_xalatathPlayer], "XalatathWeaponTargeting") == true)) {
+        UnitCreateEffectUnit(lv_xalatath, "XalatathWeaponRemoveTargetingBehavior", libHXAL_gv_heroXalatathCurrentAttackTarget[lv_xalatathPlayer]);
+    }
+
+    UnitCreateEffectUnit(lv_xalatath, "XalatathWeaponCasterTargetApplyDisablerBehavior", lv_xalatath);
+    libHXAL_gv_heroXalatathCurrentAttackTarget[lv_xalatathPlayer] = lv_targetUnit;
+    return true;
+}
+
+//--------------------------------------------------------------------------------------------------
+void libHXAL_gt_HeroXalatathTargetAcquired_Init () {
+    libHXAL_gt_HeroXalatathTargetAcquired = TriggerCreate("libHXAL_gt_HeroXalatathTargetAcquired_Func");
+    TriggerEnable(libHXAL_gt_HeroXalatathTargetAcquired, false);
+    TriggerAddEventPlayerEffectUsed(libHXAL_gt_HeroXalatathTargetAcquired, c_playerAny, "XalatathWeaponNewTargetImpactSet");
+}
+
+//--------------------------------------------------------------------------------------------------
+// Trigger: Hero - Xalatath - Force Acquire Target (Taunt)
+//--------------------------------------------------------------------------------------------------
+bool libHXAL_gt_HeroXalatathForceAcquireTargetTaunt_Func (bool testConds, bool runActions) {
+    // Variable Declarations
+    unit lv_unittoAttack;
+    unit lv_xalatathUnit;
+    int lv_xalatathPlayer;
+
+    // Automatic Variable Declarations
+    // Variable Initialization
+    lv_unittoAttack = EventPlayerEffectUsedUnit(c_effectUnitCaster);
+    lv_xalatathUnit = EventPlayerEffectUsedUnit(c_effectUnitTarget);
+    lv_xalatathPlayer = UnitGetOwner(lv_xalatathUnit);
+
+    // Conditions
+    if (testConds) {
+        if (!((UnitGetType(lv_xalatathUnit) == "HeroXalatath"))) {
+            return false;
+        }
+    }
+
+    // Actions
+    if (!runActions) {
+        return true;
+    }
+
+    UnitIssueOrder(lv_xalatathUnit, OrderTargetingUnit(AbilityCommand("XalatathSmartTargetingRightClick", 0), lv_unittoAttack), c_orderQueueReplace);
+    return true;
+}
+
+//--------------------------------------------------------------------------------------------------
+void libHXAL_gt_HeroXalatathForceAcquireTargetTaunt_Init () {
+    libHXAL_gt_HeroXalatathForceAcquireTargetTaunt = TriggerCreate("libHXAL_gt_HeroXalatathForceAcquireTargetTaunt_Func");
+    TriggerEnable(libHXAL_gt_HeroXalatathForceAcquireTargetTaunt, false);
+    TriggerAddEventPlayerEffectUsed(libHXAL_gt_HeroXalatathForceAcquireTargetTaunt, c_playerAny, "ForceTargetToAttackCasterUnitScriptDummy");
+}
+
+//--------------------------------------------------------------------------------------------------
+// Trigger: Hero - Xalatath - Hold Fire
+//--------------------------------------------------------------------------------------------------
+bool libHXAL_gt_HeroXalatathHoldFire_Func (bool testConds, bool runActions) {
+    // Variable Declarations
+    unit lv_xalatath;
+
+    // Automatic Variable Declarations
+    // Variable Initialization
+    lv_xalatath = EventUnit();
+
+    // Conditions
+    if (testConds) {
+        if (!((UnitIsAlive(lv_xalatath) == true))) {
+            return false;
+        }
+
+        if (!((UnitGetType(lv_xalatath) == "HeroXalatath"))) {
+            return false;
+        }
+    }
+
+    // Actions
+    if (!runActions) {
+        return true;
+    }
+
+    UnitBehaviorAdd(lv_xalatath, "XalatathHeroWeaponDisablerHoldFire", lv_xalatath, 1);
+    return true;
+}
+
+//--------------------------------------------------------------------------------------------------
+void libHXAL_gt_HeroXalatathHoldFire_Init () {
+    libHXAL_gt_HeroXalatathHoldFire = TriggerCreate("libHXAL_gt_HeroXalatathHoldFire_Func");
+    TriggerEnable(libHXAL_gt_HeroXalatathHoldFire, false);
+    TriggerAddEventUnitOrder(libHXAL_gt_HeroXalatathHoldFire, null, AbilityCommand("HoldFire", 1));
+}
+
+void libHXAL_InitTriggers () {
+    libHXAL_gt_HeroXalatathVoidVolleyCooldownReset_Init();
+    libHXAL_gt_HeroXalatathHeroWeaponApplyTargetingUnit_Init();
+    libHXAL_gt_HeroXalatathTargetAcquired_Init();
+    libHXAL_gt_HeroXalatathForceAcquireTargetTaunt_Init();
+    libHXAL_gt_HeroXalatathHoldFire_Init();
+}
+
+//--------------------------------------------------------------------------------------------------
+// Library Initialization
+//--------------------------------------------------------------------------------------------------
+bool libHXAL_InitLib_completed = false;
+
+void libHXAL_InitLib () {
+    if (libHXAL_InitLib_completed) {
+        return;
+    }
+
+    libHXAL_InitLib_completed = true;
+
+    libHXAL_InitLibraries();
+    libHXAL_InitVariables();
+    libHXAL_InitTriggers();
+}
+
