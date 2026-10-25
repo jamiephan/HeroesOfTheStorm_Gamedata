@@ -13,9 +13,9 @@ Current latest Heroes of the Storm version in Battle.net (US region):
 
 # CI
 
-A [GitHub action have been setup](https://github.com/jamiephan/HeroesOfTheStorm_Gamedata/actions) to automatically fetch, extract and upload the game data *every 4 hours*.
+A [GitHub action have been setup](https://github.com/jamiephan/HeroesOfTheStorm_Gamedata/actions) to automatically fetch, extract and upload the game data *every hour*.
 
-This repo uses [`@jamiephan/casclib`](https://github.com/jamiephan/casclib-stormlib-monorepo) to extract the game files, which provides a significant speed improvement compare to previous [`storm-extract`](https://github.com/nydus/storm-extract). 
+This repo uses [`@jamiephan/casclib`](https://github.com/jamiephan/casclib-stormlib-monorepo) to extract the game files.
 
 # Versions
 
