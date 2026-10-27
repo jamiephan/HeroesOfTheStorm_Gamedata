@@ -1,7 +1,7 @@
 name: Automatically Fetch Game Data Files
 on:
   schedule:
-    - cron: "0 * * * *"
+    - cron: "0 */2 * * *"
   workflow_dispatch:
 jobs:
   auto-fetch-gamedata:
@@ -74,9 +74,8 @@ jobs:
                 version_string_output="$versionStringExtracted"
 
                 if [[ "$modsBuild" == "B$buildIdExtracted" ]]; then
-                  echo "Current Gamedata is up to date. Skipping."
-                  echo "up_to_date=true" >> "$GITHUB_OUTPUT"
-                  exit 0
+                  echo "Error: Current Gamedata is up to date. Abort." >&2
+                  exit 1
                 fi
                 break
               fi
@@ -95,15 +94,11 @@ jobs:
           echo "build_id=${build_id_output}" >> "$GITHUB_OUTPUT"
           echo "version_string=${version_string_output}" >> "$GITHUB_OUTPUT"
       - uses: actions/setup-node@v6
-        if: steps.check-version.outputs.up_to_date != 'true'
         with:
           node-version: 22
       - run: npm ci
-        if: steps.check-version.outputs.up_to_date != 'true'
       - run: npm run extract
-        if: steps.check-version.outputs.up_to_date != 'true'
       - name: Generate XSD File
-        if: steps.check-version.outputs.up_to_date != 'true'
         shell: bash
         run: |
           gameVersion="${{ steps.check-version.outputs.version_string }}"
@@ -136,7 +131,6 @@ jobs:
             java -jar "./trang.jar" -I xml -O xsd ./_temp_/*.xml "./xsd/latest.xsd"
           fi
       - name: Push Changes to Github
-        if: steps.check-version.outputs.up_to_date != 'true'
         shell: bash
         run: |
           gameVersion="${{ steps.check-version.outputs.version_string }}"
